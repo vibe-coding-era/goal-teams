@@ -1,0 +1,309 @@
+# Goal Teams
+
+作者：肉山@TGO 杭州
+
+`goal-teams` 是一个面向 Codex 的 Goal Mode 团队化 Skill。它把一次目标执行拆成由 Goal Lead 统一协调、多个独立 subagent 分工完成的工作流，并强制使用中文沟通、SPEC 优先、Markdown 持久化、表格确认和独立测试。
+
+它适合用于中大型需求、跨模块改造、多版本并发、产品/研发/测试/文档协作、代码审计、安全审核、架构评审，以及需要把过程沉淀成可复盘资料的场景。
+
+## 核心理念
+
+Goal Teams 的设计目标不是让一个 Agent “假装很多角色”，而是让每个团队成员都成为一个独立 subagent：
+
+- Goal Lead 负责澄清目标、拆解计划、确认分工、路由阻塞、整合结果。
+- 每个成员只负责自己的目标切片、锁定范围和交付物。
+- 所有成员都基于同一套 SPEC、tasklist 和 Markdown 过程记录协作。
+- 测试必须由独立 QA subagent 或用户指定的测试 skill/subagent 执行。
+- 计划、进度、决策和结果尽量写入 Markdown，便于审阅、分享和复盘。
+
+## 关键能力
+
+- 全程中文：计划、表格、SPEC、tasklist、进度报告、成员包、总结默认使用中文。
+- 强制 Plan 模式：执行前必须先澄清、规划、表格确认。
+- 计划阶段多澄清：范围、验收、优先级、设计风格、数据接口、发布约束、风险审批不清楚时主动提问。
+- SPEC First：先补齐 PRD、Architecture Design、HTML Prototype、Test Plan、Acceptance，再进入开发执行。
+- Markdown 持久化：过程和结果优先保存为 `.md` 文件。
+- tasklist 协作：如果没有 tasklist，自动创建 `.codex/goal-teams/tasklist.md`。
+- 成员认领任务：每个成员都有 claimed task、locked scope、done criteria。
+- 支持用户指定成员能力：可以指定某个成员使用特定 skill、plugin、自定义 subagent 或内置 subagent 类型。
+- 执行过程表格反馈：每轮进度、阻塞、风险、结果都用表格输出。
+- 独立测试：实现者不能成为唯一测试者，必须由独立 QA 或测试 skill/subagent 验证。
+- 适合版本并发：可以按版本、模块、交付物、审查视角拆分并发成员。
+
+## 推荐目录结构
+
+安装到 Codex 后，Skill 目录结构如下：
+
+```text
+goal-teams/
+  SKILL.md
+  agents/
+    openai.yaml
+  references/
+    goal-teams-runtime.md
+  subagents/
+    goal-product.toml
+    goal-backend.toml
+    goal-frontend.toml
+    goal-qa.toml
+    goal-docs.toml
+    goal-reviewer.toml
+```
+
+项目执行时，Goal Teams 会优先使用或创建下面的运行时文件：
+
+```text
+.codex/goal-teams/
+  plan.md               # 澄清问题、用户回答、假设、确认后的计划
+  progress.md           # 每轮执行进展表、阻塞、下一步
+  decisions.md          # 决策、原因、审批记录
+  tasklist.md           # 成员认领、任务状态、验收、验证
+  goal-packet.md        # 团队级目标包
+  team-state.json       # 机器可读团队状态
+  events.jsonl          # 执行事件历史
+  messages.jsonl        # 问题、阻塞、交接、决策
+  doc-capsules.jsonl    # 文档摘要
+  member-packets/       # 每个 subagent 的目标包
+  spec/
+    PRD.md
+    architecture-design.md
+    HTML-prototype.html
+    test-plan.md
+    acceptance.md
+```
+
+## SPEC 约定
+
+Goal Teams 强制采用 SPEC 驱动流程。缺少文档时，会先补齐或在 tasklist 中安排补齐任务。
+
+| 层级 | 文件 | 说明 |
+| --- | --- | --- |
+| PRD | `.codex/goal-teams/spec/PRD.md` | 需求、目标用户、范围、验收标准 |
+| Architecture Design | `.codex/goal-teams/spec/architecture-design.md` | 架构设计、模块边界、接口、数据、风险 |
+| HTML Prototype | `.codex/goal-teams/spec/HTML-prototype.html` | 页面、流程、交互原型；有页面或工作流时启用 |
+| Test Plan | `.codex/goal-teams/spec/test-plan.md` | 测试范围、策略、命令、验收证据 |
+| Acceptance | `.codex/goal-teams/spec/acceptance.md` | 最终验收清单、证据、剩余风险 |
+| Tasklist | `.codex/goal-teams/tasklist.md` | 成员认领、状态、依赖、验证和文档更新 |
+
+如果项目中已有 `design.md`，Goal Teams 会优先读取它，并在架构设计和 HTML 原型中继承它的风格、术语、章节结构和细节密度。
+
+## 默认团队成员
+
+仓库提供 6 个推荐 subagent 配置：
+
+| Subagent | 角色 | 典型职责 |
+| --- | --- | --- |
+| `goal_product` | 产品/需求 | 需求分析、PRD、验收标准、原型结构、产品评审 |
+| `goal_backend` | 后端开发 | 领域模型、存储、API、CLI、MCP、迁移、集成 |
+| `goal_frontend` | 前端开发 | UI、HTML 原型、浏览器验证、E2E、截图验收 |
+| `goal_qa` | 测试 | 独立测试、集成测试、验收证据、测试报告 |
+| `goal_docs` | 文档 | tasklist、验收文档、README、报告、发布说明 |
+| `goal_reviewer` | 评审 | 只读评审、架构边界、安全、覆盖率、兼容性、风险 |
+
+用户也可以显式指定某个成员使用其他 skill 或 subagent，例如：
+
+```text
+用 $goal-teams 规划这个需求。
+产品成员使用 goal_product。
+前端成员使用 browser skill 做页面验证。
+测试成员必须使用独立 goal_qa。
+安全审核交给 reviewer subagent。
+```
+
+## 工作流
+
+Goal Teams 的标准流程如下：
+
+1. 理解目标：把用户请求转换成可验证的 Done Criteria。
+2. 澄清问题：在计划和方案阶段主动询问关键信息。
+3. 发现或创建 SPEC：补齐 PRD、Architecture Design、HTML Prototype、Test Plan、Acceptance。
+4. 发现或创建 tasklist：没有 tasklist 时自动创建 `.codex/goal-teams/tasklist.md`。
+5. 拆分成员：按版本、模块、交付物、评审视角拆分。
+6. 表格确认：展示 SPEC、成员、任务、风险、审批。
+7. 用户确认：确认后才开始实现或调用 worker subagents。
+8. 独立执行：每个成员运行自己的 `Load -> Plan -> Implement -> Test -> Document -> Review -> Continue` 循环。
+9. 过程持久化：进度、阻塞、决策和结果写入 Markdown。
+10. 独立测试：由 QA 或测试 skill/subagent 验证。
+11. 整合收口：Goal Lead 更新 tasklist、SPEC、progress、acceptance 并总结结果。
+
+## 确认表格示例
+
+### SPEC 准备度
+
+| SPEC | 是否存在 | 动作 | Owner | 输出 |
+| --- | --- | --- | --- | --- |
+| PRD | 否 | 创建 | 产品/需求 | `.codex/goal-teams/spec/PRD.md` |
+| Architecture Design | 否 | 创建 | 后端/架构 | `.codex/goal-teams/spec/architecture-design.md` |
+| HTML Prototype | 适用 | 创建 | 前端 | `.codex/goal-teams/spec/HTML-prototype.html` |
+| Test Plan | 否 | 创建 | QA | `.codex/goal-teams/spec/test-plan.md` |
+| Acceptance | 否 | 创建 | 文档/QA | `.codex/goal-teams/spec/acceptance.md` |
+
+### 成员计划
+
+| 成员 | Skill/Subagent | 目标切片 | 认领任务 | 锁定范围 | 交付物 | 完成标准 | 文档/tasklist 更新 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 产品/需求 | `goal_product` | 明确需求和验收 | GT-001 | `.codex/goal-teams/spec/` | PRD | 验收标准可测试 | PRD + tasklist |
+| 后端开发 | `goal_backend` | 实现 API 合同 | GT-002 | `src/api/` | API 实现 | 测试通过 | Architecture Design + tasklist |
+| 前端开发 | `goal_frontend` | 页面和交互 | GT-003 | `src/ui/` | UI/原型 | 截图/E2E 通过 | HTML Prototype + tasklist |
+| 独立测试 | `goal_qa` | 验证交付 | GT-004 | `tests/` | 测试报告 | 证据完整 | Test Plan + Acceptance |
+
+### 执行进度
+
+| 成员 | 认领任务 | 状态 | 当前步骤 | 证据 | 下一步 |
+| --- | --- | --- | --- | --- | --- |
+| 后端开发 | GT-002 | 进行中 | Test | `npm test -- api` | 更新架构说明 |
+
+## 安装方式
+
+### 安装 Skill
+
+把仓库克隆到 Codex skills 目录：
+
+```bash
+git clone https://github.com/vibe-coding-era/goal-teams.git ~/.codex/skills/goal-teams
+```
+
+或者如果你已经在本地有 Codex skills 目录，也可以直接复制：
+
+```bash
+mkdir -p ~/.codex/skills/goal-teams
+cp -R ./SKILL.md ./agents ./references ~/.codex/skills/goal-teams/
+```
+
+### 安装 Subagents
+
+把 `subagents/` 下的 TOML 文件复制到 Codex agents 目录：
+
+```bash
+mkdir -p ~/.codex/agents
+cp ./subagents/goal-*.toml ~/.codex/agents/
+```
+
+安装后建议重启 Codex 或刷新配置，让 Skill 和 subagents 被重新发现。
+
+## 使用示例
+
+### 规划一个需求
+
+```text
+Use $goal-teams。
+请为“分时租赁 V3.0”做 Goal Teams 计划。
+全程中文，先多问我澄清问题。
+过程和结果保存到 Markdown。
+```
+
+### 按版本并发
+
+```text
+Use $goal-teams。
+tasklist 里有 V3.0、V3.1、V3.2 三个版本。
+请按版本拆成并发成员，但共享核心模块要串行。
+测试必须由独立 QA 成员完成。
+```
+
+### 指定成员使用特定能力
+
+```text
+Use $goal-teams。
+产品成员用 goal_product。
+前端成员用 goal_frontend，并参考 design.md。
+测试成员用 goal_qa。
+安全审核成员用 goal_reviewer，只读模式。
+```
+
+### 只生成方案，不执行
+
+```text
+Use $goal-teams。
+只生成计划表、SPEC 准备表、成员分工表和风险审批表。
+不要修改实现文件。
+```
+
+## CLI 使用示例
+
+可以通过 Codex CLI 在项目目录中运行：
+
+```bash
+PROJECT="/path/to/project"
+
+codex exec \
+  -C "$PROJECT" \
+  --sandbox workspace-write \
+  --ask-for-approval never \
+  --json \
+  --output-last-message ".codex/goal-teams/last-message.md" \
+  - <<'PROMPT' | tee -a ".codex/goal-teams/events.jsonl"
+Use $goal-teams。
+
+全程中文。
+先进入 Plan 模式，主动提出澄清问题。
+优先把计划、进度、决策和结果写入 Markdown。
+发现或创建 SPEC：PRD、Architecture Design、HTML Prototype、Test Plan、Acceptance。
+如果没有 tasklist，创建 .codex/goal-teams/tasklist.md。
+用表格确认成员、任务认领、锁定范围、测试 owner 和风险审批。
+确认后再执行，每个成员必须是独立 subagent。
+测试必须由独立 QA 或测试 skill/subagent 完成。
+PROMPT
+```
+
+只做规划可以使用只读沙箱：
+
+```bash
+codex exec \
+  -C "$PROJECT" \
+  --sandbox read-only \
+  --json \
+  'Use $goal-teams。全程中文，只生成计划和确认表格，不修改文件。'
+```
+
+## 与普通 Agent Teams 的区别
+
+| 维度 | Agent Teams | Goal Teams |
+| --- | --- | --- |
+| 目标 | 通用多 agent 协作 | 面向目标闭环的多 subagent 执行 |
+| 计划 | 可选 | 强制 Plan 模式 |
+| SPEC | 可选 | 强制 SPEC First |
+| tasklist | 可选 | 没有就创建 |
+| 持久化 | 视情况 | 优先 Markdown 持久化 |
+| 测试 | 可由实现者执行 | 必须独立测试 |
+| 反馈 | 可自由组织 | 表格化进度和结果 |
+| 适用场景 | 协同分析、研究、开发 | 需求到交付的完整闭环 |
+
+## 适合场景
+
+- 产品需求从 0 到 1 规划和落地。
+- 多模块开发，需要前端、后端、测试、文档并行推进。
+- 多版本并行，例如 V3.0、V3.1、V3.2 分 lane 执行。
+- 需要沉淀 PRD、架构设计、原型、测试计划、验收文档。
+- 需要分享给团队或做复盘，要求过程有记录。
+- 代码审计、安全审核、架构评审需要独立视角。
+- 需要把 Codex CLI、tasklist、dashboard 或本地项目状态结合起来。
+
+## 不适合场景
+
+- 很小的单文件修改。
+- 强顺序、强共享上下文、无法拆分的任务。
+- 用户只想快速问答，不需要计划、SPEC 或持久化。
+- 无法接受计划阶段澄清和确认成本的极短任务。
+
+## 安全与协作规则
+
+- 不在未确认计划前启动实现 subagents。
+- 不让多个成员同时修改共享核心模块。
+- 不跳过 PRD、Architecture Design、HTML Prototype、Test Plan、Acceptance 的适用性判断。
+- 不让实现者成为唯一测试者。
+- 不允许成员创建嵌套团队，默认 `max_depth = 1`。
+- 涉及认证、支付、退款、迁移、破坏性写入、安全敏感集成或大范围 API 改造时，必须由 Goal Lead 和用户确认。
+
+## 发布状态
+
+当前仓库包含：
+
+- `SKILL.md`：Goal Teams Skill 主说明。
+- `agents/openai.yaml`：Codex UI 元数据。
+- `references/goal-teams-runtime.md`：运行时协议、模板、CLI 示例。
+- `subagents/goal-*.toml`：6 个推荐成员 subagent 配置。
+
+## License
+
+如需开源发布，建议后续补充明确的 License 文件，例如 MIT、Apache-2.0 或内部共享协议。
