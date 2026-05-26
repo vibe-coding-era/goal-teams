@@ -9,9 +9,13 @@ Goal Teams = Goal Lead + independent subagent members.
 ```text
 Goal Lead
   - communicates in Chinese by default
+  - communicates with the user in a friendly, concise, non-jargony style
   - turns the user goal into Done Criteria
   - enforces Plan mode before execution
   - asks clarifying questions during planning and solution design
+  - checks project guidance files such as AGENTS.md / agent.md / CLAUDE.md / claude.md
+  - identifies the version directory before writing docs
+  - creates document indexes before creating multiple documents
   - discovers or creates SPEC docs
   - discovers or creates a tasklist
   - persists process and results mainly in Markdown
@@ -36,17 +40,23 @@ Subagent Member
 
 Every member is an independent subagent. Roles are responsibility boundaries; task claims and goal packets are execution granularity.
 
+Exception: when the user explicitly asks to use `openspec` or `superpower`, Goal Teams should act only as the Goal Lead by default. In that mode, coordinate the process, ask clarifying questions, check environment, prepare indexes and lead-level artifacts, and avoid spawning role subagents unless the user later confirms full Goal Teams execution.
+
 ## Mandatory Plan Mode
 
 Goal Teams always starts in Plan mode:
 
-1. Ask clarifying questions when goals, scope, acceptance criteria, priorities, constraints, user roles, design style, data contracts, risk tolerance, or deployment targets are unclear.
-2. Record questions, answers, assumptions, and decisions in Markdown, usually `.codex/goal-teams/plan.md`.
-3. Discover or create SPEC and tasklist.
-4. Propose member assignments, skill/subagent assignments, task claims, locked scopes, docs updates, testing owner, and done criteria.
-5. Present confirmation tables.
-6. Wait for user confirmation before spawning worker subagents or editing implementation files.
-7. If the user explicitly says to proceed without confirmation, still show the tables as the execution plan before continuing.
+1. Check environment guidance files: `AGENTS.md`, `agents.md`, `agent.md`, `CLAUDE.md`, `claude.md`.
+2. If none exists, suggest creating one for team rules, coding style, constraints, and project context.
+3. Ask for or infer the target version number. Do not write process docs until a version directory is chosen.
+4. Ask clarifying questions when goals, scope, acceptance criteria, priorities, constraints, user roles, design style, data contracts, risk tolerance, or deployment targets are unclear.
+5. Record questions, answers, assumptions, and decisions in Markdown, usually `.codex/goal-teams/versions/<version>/plan.md`.
+6. Create or update indexes before producing multiple documents.
+7. Discover or create SPEC and tasklist.
+8. Propose member assignments, skill/subagent assignments, task claims, locked scopes, docs updates, testing owner, and done criteria.
+9. Present confirmation tables.
+10. Wait for user confirmation before spawning worker subagents or editing implementation files.
+11. If the user explicitly says to proceed without confirmation, still show the tables as the execution plan before continuing.
 
 Plan mode must be repeated when the user changes scope, member assignments, skill/subagent choices, locked scopes, risks, or stop conditions.
 
@@ -56,6 +66,7 @@ Clarification rules:
 - Group questions by topic, such as business目标, 范围边界, 验收标准, 设计风格, 数据/接口, 发布约束, 风险审批.
 - If a question can be answered by reading local files, inspect first and ask only when ambiguity remains.
 - If execution must continue with assumptions, record them explicitly in the plan and confirmation tables.
+- Keep Goal Lead messages brief and human. Explain why a question matters, but avoid dense process terminology.
 
 ## Language And Persistence
 
@@ -69,19 +80,41 @@ Prefer Markdown as the persistent human-readable record:
 
 ```text
 .codex/goal-teams/
-  plan.md               # 澄清问题、用户回答、假设、确认后的计划
-  progress.md           # 每轮执行进展表、阻塞、下一步
-  decisions.md          # 决策、原因、审批记录
-  tasklist.md           # 成员认领、任务状态、验收、验证
-  goal-packet.md        # 团队级目标包
-  spec/
-    PRD.md
-    architecture-design.md
-    test-plan.md
-    acceptance.md
+  INDEX.md              # 跨版本总索引
+  versions/<version>/
+    INDEX.md            # 当前版本文档索引，多文档前先建
+    plan.md             # 澄清问题、用户回答、假设、确认后的计划
+    progress.md         # 每轮执行进展表、阻塞、下一步
+    decisions.md        # 决策、原因、审批记录
+    tasklist.md         # 成员认领、任务状态、验收、验证
+    goal-packet.md      # 团队级目标包
+    spec/
+      requirement-spec-card.md
+      PRD.md
+      architecture-design.md
+      HTML-prototype.html
+      test-plan.md
+      acceptance.md
 ```
 
 Use JSON/JSONL for machine-readable runtime state only when useful; mirror important results back into Markdown.
+
+Version directory rules:
+
+- All process and result documents produced by Goal Teams must be stored under a version-numbered directory, usually `.codex/goal-teams/versions/<version>/`.
+- If the user gives a release name instead of a semantic version, use it as the directory name after making it filesystem-safe, such as `V3.0`, `vNext`, or `2026-Q2`.
+- Keep only cross-version indexes and machine runtime files outside version directories.
+- If multiple documents will be created, create or update `.codex/goal-teams/INDEX.md` and `.codex/goal-teams/versions/<version>/INDEX.md` first.
+
+Index table template:
+
+```md
+# Goal Teams Index
+
+| 文档 | 版本 | Owner | 状态 | 说明 |
+| --- | --- | --- | --- | --- |
+| `versions/V3.0/spec/requirement-spec-card.md` | V3.0 | 需求分析师 | planning | 人类友好的需求规格卡 |
+```
 
 ## SPEC Contract
 
@@ -89,13 +122,14 @@ Goal Teams is SPEC-driven. Missing SPEC should be created or scheduled in the ta
 
 Required vocabulary:
 
+- Human-friendly requirement summary = `Requirement Specification Card`.
 - Requirements = `PRD`.
 - Design = `Architecture Design`.
 - UI/page/workflow design = `HTML Prototype`.
 - Development execution = `tasklist.md`.
 - Testing = independent subagent or user-specified testing skill/subagent.
 
-Recommended files:
+Legacy non-versioned files may be read when found:
 
 ```text
 .codex/goal-teams/spec/
@@ -107,6 +141,27 @@ Recommended files:
 .codex/goal-teams/tasklist.md
 ```
 
+Use the versioned layout in active projects:
+
+```text
+.codex/goal-teams/versions/<version>/spec/
+  requirement-spec-card.md
+  PRD.md
+  architecture-design.md
+  HTML-prototype.html
+  test-plan.md
+  acceptance.md
+.codex/goal-teams/versions/<version>/tasklist.md
+```
+
+Requirement analysis flow:
+
+1. The `goal_requirements_analyst` member talks with the user in plain Chinese and asks focused questions.
+2. It may use network search, computer use, browser, or Chrome capabilities when available and useful for market, competitor, policy, workflow, or domain context.
+3. It first creates `requirement-spec-card.md`, limited to roughly two pages.
+4. The card must clearly cover core goal, why it matters, key business function structure, main flow, boundaries, non-goals, and open questions.
+5. The PRD is generated from the approved card, not directly from scattered conversation notes.
+
 If the user provides `design.md`, treat it as the style source for architecture/prototype work:
 
 - Read `design.md` before creating or updating Architecture Design or HTML Prototype.
@@ -117,11 +172,12 @@ SPEC readiness table:
 
 | SPEC | Exists | Action | Owner | Output |
 | --- | --- | --- | --- | --- |
-| PRD | yes/no | create/update/skip | goal_product | `.codex/goal-teams/spec/PRD.md` |
-| Architecture Design | yes/no | create/update/skip | goal_backend or goal_product | `.codex/goal-teams/spec/architecture-design.md` |
-| HTML Prototype | yes/no/not applicable | create/update/skip | goal_frontend | `.codex/goal-teams/spec/HTML-prototype.html` |
-| Test Plan | yes/no | create/update/skip | goal_qa | `.codex/goal-teams/spec/test-plan.md` |
-| Acceptance | yes/no | create/update/skip | goal_docs | `.codex/goal-teams/spec/acceptance.md` |
+| Requirement Specification Card | yes/no | create/update/skip | goal_requirements_analyst | `.codex/goal-teams/versions/<version>/spec/requirement-spec-card.md` |
+| PRD | yes/no | create/update/skip | goal_product | `.codex/goal-teams/versions/<version>/spec/PRD.md` |
+| Architecture Design | yes/no | create/update/skip | goal_backend or goal_product | `.codex/goal-teams/versions/<version>/spec/architecture-design.md` |
+| HTML Prototype | yes/no/not applicable | create/update/skip | goal_frontend | `.codex/goal-teams/versions/<version>/spec/HTML-prototype.html` |
+| Test Plan | yes/no | create/update/skip | goal_qa | `.codex/goal-teams/versions/<version>/spec/test-plan.md` |
+| Acceptance | yes/no | create/update/skip | goal_docs | `.codex/goal-teams/versions/<version>/spec/acceptance.md` |
 
 ## Tasklist Discovery And Creation
 
@@ -129,8 +185,9 @@ Discovery order:
 
 1. User-mentioned tasklist path.
 2. Project-local candidates: `TASKLIST.md`, `tasklist.md`, `TODO.md`, `docs/*task*`, `docs/*plan*`.
-3. Goal Teams runtime path: `.codex/goal-teams/tasklist.md`.
-4. If no relevant tasklist exists, create `.codex/goal-teams/tasklist.md`.
+3. Goal Teams version path: `.codex/goal-teams/versions/<version>/tasklist.md`.
+4. Legacy Goal Teams runtime path: `.codex/goal-teams/tasklist.md`.
+5. If no relevant tasklist exists, create `.codex/goal-teams/versions/<version>/tasklist.md`.
 
 Generated tasklists must include ownership and confirmation-ready structure from the start:
 
@@ -144,7 +201,7 @@ Status: planning
 
 | Task ID | Member | Skill/Subagent | Claimed By | Status | Locked Scope | Deliverable | Done Criteria | Verification | Docs/SPEC Update |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| GT-001 | 产品/需求 | goal_product or user-selected | unclaimed | pending | docs/ | PRD | PRD approved | Review checklist | PRD + tasklist |
+| GT-001 | 需求分析师 | goal_requirements_analyst or user-selected | unclaimed | pending | .codex/goal-teams/versions/<version>/spec/ | 需求规格卡 | 用户确认 | Review checklist | 需求规格卡 + tasklist |
 
 ## Tasks
 
@@ -162,7 +219,7 @@ Checkbox-only tasklists are allowed for human readability, but tables are prefer
 
 ## Markdown Persistence Templates
 
-Use or append to `.codex/goal-teams/plan.md`:
+Use or append to `.codex/goal-teams/versions/<version>/plan.md`:
 
 ```md
 # Goal Teams Plan
@@ -170,6 +227,14 @@ Use or append to `.codex/goal-teams/plan.md`:
 ## 用户目标
 
 <中文描述>
+
+## 环境检查
+
+| 项目 | 结果 | 建议 |
+| --- | --- | --- |
+| AGENTS/agent 指南 | found/missing | 如缺失，建议补充团队规则和项目约束 |
+| CLAUDE 指南 | found/missing | 如缺失，建议补充跨工具协作约定 |
+| 版本目录 | <version> | 文档写入 `.codex/goal-teams/versions/<version>/` |
 
 ## 澄清问题
 
@@ -187,7 +252,7 @@ Use or append to `.codex/goal-teams/plan.md`:
 | --- | --- | --- | --- | --- |
 ```
 
-Use or append to `.codex/goal-teams/progress.md`:
+Use or append to `.codex/goal-teams/versions/<version>/progress.md`:
 
 ```md
 # Goal Teams Progress
@@ -203,7 +268,7 @@ Use or append to `.codex/goal-teams/progress.md`:
 | --- | --- | --- | --- | --- |
 ```
 
-Use or append to `.codex/goal-teams/decisions.md`:
+Use or append to `.codex/goal-teams/versions/<version>/decisions.md`:
 
 ```md
 # Goal Teams Decisions
@@ -220,19 +285,31 @@ Before spawning worker subagents or editing implementation files, present:
 
 | SPEC | Exists | Action | Owner | Output |
 | --- | --- | --- | --- | --- |
-| PRD | no | create | 产品/需求 | `.codex/goal-teams/spec/PRD.md` |
+| Requirement Specification Card | no | create | 需求分析师 | `.codex/goal-teams/versions/<version>/spec/requirement-spec-card.md` |
+| PRD | no | create | 产品/需求 | `.codex/goal-teams/versions/<version>/spec/PRD.md` |
+
+### Environment Readiness
+
+| Item | Status | Suggestion |
+| --- | --- | --- |
+| AGENTS/agent guidance | found/missing | 如果缺失，建议创建 `AGENTS.md` 或 `agent.md` |
+| CLAUDE guidance | found/missing | 如果缺失，建议创建 `CLAUDE.md` 或 `claude.md` |
+| Version directory | ready/pending | `.codex/goal-teams/versions/<version>/` |
+| Document index | ready/pending | `.codex/goal-teams/INDEX.md` + `versions/<version>/INDEX.md` |
 
 ### Member Plan
 
 | Member | Skill/Subagent | Goal Slice | Claimed Tasks | Locked Scope | Deliverable | Done Criteria | Docs/Tasklist Updates |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 产品/需求 | goal_product or user-selected skill | Clarify scope | GT-001 | docs/ | PRD | Approved criteria | PRD + tasklist.md |
+| 需求分析师 | goal_requirements_analyst or user-selected skill | 梳理需求 | GT-001 | `.codex/goal-teams/versions/<version>/spec/` | 需求规格卡 | 用户确认核心目标/功能/流程/边界 | requirement-spec-card.md + INDEX.md |
+| 产品/需求 | goal_product or user-selected skill | 生成 PRD | GT-002 | `.codex/goal-teams/versions/<version>/spec/` | PRD | PRD 来源于已确认需求规格卡 | PRD + tasklist.md |
 
 ### Tasklist Execution
 
 | Task ID | Owner | Status | Depends On | Verification | Completion Evidence |
 | --- | --- | --- | --- | --- | --- |
-| GT-001 | 产品/需求 | pending | - | PRD review | PRD section complete |
+| GT-001 | 需求分析师 | pending | - | 用户确认 | 需求规格卡完成 |
+| GT-002 | 产品/需求 | pending | GT-001 | PRD review | PRD section complete |
 
 ### Risk And Approval
 
@@ -242,7 +319,7 @@ Before spawning worker subagents or editing implementation files, present:
 
 Ask for confirmation in plain language after the tables. If the user explicitly says to proceed without confirmation, still include the tables as the plan and continue.
 
-Also persist the confirmation tables and any assumptions to `.codex/goal-teams/plan.md` unless the user requested a proposal only and no files should be written.
+Also persist the confirmation tables and any assumptions to `.codex/goal-teams/versions/<version>/plan.md` unless the user requested a proposal only and no files should be written.
 
 ## Progress Feedback Tables
 
@@ -262,7 +339,7 @@ For final closeout:
 | Member | Claimed Tasks | Final Status | Evidence | Remaining |
 | --- | --- | --- | --- | --- |
 
-Append progress tables, blockers, and final closeout evidence to `.codex/goal-teams/progress.md` or the relevant Markdown artifact.
+Append progress tables, blockers, and final closeout evidence to `.codex/goal-teams/versions/<version>/progress.md` or the relevant Markdown artifact.
 
 ## Cache-Friendly Prompt Layout
 
@@ -290,16 +367,18 @@ Use a generic manifest:
 ```text
 Always load first:
 1. User-provided goal and constraints.
-2. `.codex/goal-teams/plan.md` if present.
-3. Relevant tasklist if present; otherwise generated .codex/goal-teams/tasklist.md.
-4. The current member's claimed task rows.
+2. Project guidance files when present: `AGENTS.md`, `agents.md`, `agent.md`, `CLAUDE.md`, `claude.md`.
+3. `.codex/goal-teams/INDEX.md` and `.codex/goal-teams/versions/<version>/INDEX.md` if present.
+4. `.codex/goal-teams/versions/<version>/plan.md` if present.
+5. Relevant tasklist if present; otherwise generated `.codex/goal-teams/versions/<version>/tasklist.md`.
+6. The current member's claimed task rows.
 ```
 
 Load on demand:
 
 | Need | Load |
 | --- | --- |
-| Product/user scope | PRD, issue, brief, or stakeholder notes if present |
+| Product/user scope | Requirement Specification Card, PRD, issue, brief, or stakeholder notes if present |
 | Architecture/ownership | Architecture Design, design.md, module docs, code maps, dependency files |
 | UI/page/workflow design | HTML Prototype, design.md, screenshots, mockups, route maps |
 | API/contract semantics | API docs, schemas, route definitions, SDK docs |
@@ -315,22 +394,27 @@ Team-level packet:
 ```text
 Goal Packet:
 - goal:
+- version:
+- version_dir:
 - done_criteria:
 - language: Chinese by default
 - constraints:
 - discovered_docs:
 - markdown_persistence:
+  - INDEX.md
   - plan.md
   - progress.md
   - decisions.md
   - tasklist.md
 - tasklist_path:
+- openspec_or_superpower_lead_only: true/false
 - allowed_scope:
 - forbidden_scope:
 - required_tests:
 - required_docs_after_done:
   - Markdown progress/result updates
 - required_spec:
+  - Requirement Specification Card
   - PRD
   - Architecture Design
   - HTML Prototype when applicable
@@ -342,6 +426,7 @@ Goal Packet:
   - member_id:
     role:
     skill_or_subagent:
+    communication_style: brief, human-friendly Chinese
     claimed_tasks:
     locked_scope:
     deliverable:
@@ -353,9 +438,11 @@ Use the team packet to create one Member Goal Packet per subagent.
 
 ```text
 Member Goal Packet:
-- member_id: backend-gt-002
+- member_id: backend-gt-003
 - role: backend
 - skill_or_subagent: goal_backend
+- version: V3.0
+- version_dir: .codex/goal-teams/versions/V3.0
 - language: Chinese by default
 - user_requested_skill:
 - user_requested_subagent:
@@ -370,7 +457,7 @@ Member Goal Packet:
   - API behavior matches accepted contract.
   - Targeted tests pass.
 - required_doc_load:
-  - .codex/goal-teams/tasklist.md#GT-002
+  - .codex/goal-teams/versions/V3.0/tasklist.md#GT-003
   - relevant API docs if present
 - allowed_scope:
   - src/api
@@ -383,9 +470,10 @@ Member Goal Packet:
   - targeted tests for touched module
 - required_docs_after_done:
   - tasklist status
-  - progress.md row
+  - versions/<version>/progress.md row
   - API notes if changed
 - required_spec:
+  - Requirement Specification Card: read or confirm not applicable
   - PRD: read or confirm not applicable
   - Architecture Design: update if API structure changes
   - HTML Prototype: not applicable unless UI changes
@@ -413,7 +501,7 @@ Member Goal Packet:
 Use this durable shape:
 
 ```json
-{"ts":"2026-05-26T10:00:00+08:00","member_id":"backend-gt-002","source":".codex/goal-teams/tasklist.md#GT-002","decision":"Implement only the confirmed API slice.","must_do":["match accepted contract","run targeted tests"],"must_not_do":["edit shared auth without approval"],"test_refs":["targeted module tests"],"doc_update_refs":["tasklist.md"],"open_questions":[]}
+{"ts":"2026-05-26T10:00:00+08:00","member_id":"backend-gt-003","source":".codex/goal-teams/versions/V3.0/tasklist.md#GT-003","decision":"Implement only the confirmed API slice.","must_do":["match accepted contract","run targeted tests"],"must_not_do":["edit shared auth without approval"],"test_refs":["targeted module tests"],"doc_update_refs":[".codex/goal-teams/versions/V3.0/tasklist.md"],"open_questions":[]}
 ```
 
 ## Team State JSON
@@ -423,35 +511,37 @@ Use this durable shape:
   "team": {
     "mode": "goal-teams",
     "goal": "Complete the confirmed user goal",
+    "version": "V3.0",
+    "version_dir": ".codex/goal-teams/versions/V3.0",
     "status": "planning",
-    "tasklist_path": ".codex/goal-teams/tasklist.md",
+    "tasklist_path": ".codex/goal-teams/versions/V3.0/tasklist.md",
     "updated_at": "2026-05-26T10:00:00+08:00"
   },
   "members": [
     {
-      "id": "product-gt-001",
-      "role": "product",
-      "skill_or_subagent": "goal_product",
+      "id": "requirements-gt-001",
+      "role": "requirements_analyst",
+      "skill_or_subagent": "goal_requirements_analyst",
       "user_requested_skill": null,
       "user_requested_subagent": null,
       "status": "pending",
       "claimed_tasks": ["GT-001"],
-      "current": "Clarify requirements and acceptance",
-      "locked_scope": ["docs/requirements"]
+      "current": "Create requirement specification card",
+      "locked_scope": [".codex/goal-teams/versions/V3.0/spec"]
     }
   ],
   "tasks": [
     {
       "id": "GT-001",
-      "title": "Clarify requirements and acceptance",
-      "owner": "product-gt-001",
+      "title": "Clarify requirements and create requirement specification card",
+      "owner": "requirements-gt-001",
       "claimed_by": null,
       "status": "pending",
-      "deliverable": "Requirements brief",
-      "done_criteria": ["Scope confirmed", "Acceptance criteria written"],
-      "locked_scope": ["docs/requirements"],
-      "docs_update": [".codex/goal-teams/tasklist.md"],
-      "spec_update": [".codex/goal-teams/spec/PRD.md"]
+      "deliverable": "Requirement Specification Card",
+      "done_criteria": ["Core goals, functions, flows, and boundaries are clear", "User confirms the card"],
+      "locked_scope": [".codex/goal-teams/versions/V3.0/spec"],
+      "docs_update": [".codex/goal-teams/versions/V3.0/tasklist.md", ".codex/goal-teams/versions/V3.0/progress.md"],
+      "spec_update": [".codex/goal-teams/versions/V3.0/spec/requirement-spec-card.md"]
     }
   ]
 }
@@ -461,10 +551,12 @@ Use this durable shape:
 
 ```json
 {"ts":"2026-05-26T10:01:00+08:00","type":"goal_team_planned","goal":"Complete the confirmed user goal"}
-{"ts":"2026-05-26T10:02:00+08:00","type":"tasklist_created","path":".codex/goal-teams/tasklist.md"}
+{"ts":"2026-05-26T10:02:00+08:00","type":"version_dir_created","path":".codex/goal-teams/versions/V3.0"}
+{"ts":"2026-05-26T10:02:30+08:00","type":"index_created","path":".codex/goal-teams/versions/V3.0/INDEX.md"}
+{"ts":"2026-05-26T10:03:00+08:00","type":"tasklist_created","path":".codex/goal-teams/versions/V3.0/tasklist.md"}
 {"ts":"2026-05-26T10:03:00+08:00","type":"user_confirmed_plan","confirmation":"approved"}
-{"ts":"2026-05-26T10:04:00+08:00","type":"member_spawned","member_id":"backend-gt-002","skill_or_subagent":"goal_backend"}
-{"ts":"2026-05-26T10:20:00+08:00","type":"task_completed","task_id":"GT-002","member_id":"backend-gt-002"}
+{"ts":"2026-05-26T10:04:00+08:00","type":"member_spawned","member_id":"requirements-gt-001","skill_or_subagent":"goal_requirements_analyst"}
+{"ts":"2026-05-26T10:20:00+08:00","type":"task_completed","task_id":"GT-001","member_id":"requirements-gt-001"}
 ```
 
 ## Messages JSONL
@@ -478,11 +570,13 @@ Use this durable shape:
 ### Load
 
 1. Read user goal and constraints.
-2. Read or create SPEC docs.
-3. Read or create tasklist.
-4. Read current member's claimed task rows.
-5. Read project docs only as needed.
-6. Produce Doc Capsules.
+2. Check project guidance files: `AGENTS.md`, `agents.md`, `agent.md`, `CLAUDE.md`, `claude.md`.
+3. Read or create cross-version and version `INDEX.md` files.
+4. Read or create versioned SPEC docs.
+5. Read or create versioned tasklist.
+6. Read current member's claimed task rows.
+7. Read project docs only as needed.
+8. Produce Doc Capsules.
 
 ### Plan
 
@@ -490,24 +584,29 @@ Return up to five steps:
 
 ```text
 Plan:
-1. PRD task -> verify: accepted criteria
-2. Architecture Design task -> verify: design review
-3. HTML Prototype task -> verify: screenshot/E2E when applicable
-4. Implementation tasklist task -> verify: targeted test
-5. Independent QA task -> verify: command/report
-6. Docs/tasklist task -> verify: status and ownership updated
+1. 环境/版本/索引 -> verify: docs directory and INDEX ready
+2. 需求规格卡 -> verify: user confirms goal/functions/flow/boundaries
+3. PRD task -> verify: accepted criteria
+4. Architecture Design task -> verify: design review
+5. HTML Prototype task -> verify: screenshot/E2E when applicable
+6. Implementation tasklist task -> verify: targeted test
+7. Independent QA task -> verify: command/report
+8. Docs/tasklist task -> verify: status and ownership updated
 ```
 
 ### Implement
 
 Use tasklist order and dependencies. For engineering-heavy work, a common order is:
 
-1. PRD
-2. Architecture Design
-3. HTML Prototype if applicable
-4. Tasklist implementation tasks
-5. Independent QA/testing tasks
-6. Docs, acceptance, and tasklist status updates
+1. Environment guidance check and version directory.
+2. Cross-version and version `INDEX.md`.
+3. Requirement Specification Card.
+4. PRD generated from the approved card.
+5. Architecture Design.
+6. HTML Prototype if applicable.
+7. Tasklist implementation tasks.
+8. Independent QA/testing tasks.
+9. Docs, acceptance, and tasklist status updates.
 
 Skip layers only with an explicit reason.
 
@@ -534,6 +633,7 @@ Every member should report whether it updated:
 - owner/claimed_by fields
 - docs assigned in its packet
 - SPEC files assigned in its packet
+- version `INDEX.md` entries when documents are added or changed
 - reports or acceptance notes
 - remaining gaps
 
@@ -561,6 +661,7 @@ Lead execution pattern:
 
 ```bash
 PROJECT="/path/to/project"
+VERSION="V3.0"
 
 codex exec \
   -C "$PROJECT" \
@@ -571,9 +672,16 @@ codex exec \
   - <<'PROMPT' | tee -a ".codex/goal-teams/events.jsonl"
 Use $goal-teams.
 
+Use Chinese and keep Goal Lead messages concise and human-friendly.
+Check for AGENTS.md / agent.md / CLAUDE.md / claude.md and suggest creating one if none exists.
+Use version "$VERSION" and store generated process/result docs under .codex/goal-teams/versions/$VERSION/.
+Create or update .codex/goal-teams/INDEX.md and .codex/goal-teams/versions/$VERSION/INDEX.md before creating multiple docs.
 Turn the user goal into Done Criteria.
-Discover an existing tasklist, or create .codex/goal-teams/tasklist.md if none exists.
-Discover or create SPEC docs: PRD, Architecture Design, HTML Prototype when applicable, test plan, and acceptance.
+Start with a requirements analyst. Use conversation plus web search, computer use, browser, or Chrome when available and useful to improve requirements.
+First create a human-friendly Requirement Specification Card, no more than two pages, covering core goal, key business function structure, flow, and boundaries.
+Generate PRD from the approved Requirement Specification Card.
+Discover an existing tasklist, or create .codex/goal-teams/versions/$VERSION/tasklist.md if none exists.
+Discover or create SPEC docs: Requirement Specification Card, PRD, Architecture Design, HTML Prototype when applicable, test plan, and acceptance.
 Propose independent subagent members with claimed tasks, user-requested skill/subagent assignments, locked scopes, docs/SPEC updates, independent testing ownership, and done criteria.
 Show SPEC readiness, member plan, tasklist execution, and risk tables before spawning implementation members unless already approved.
 After confirmation, spawn each team member as a separate subagent.
@@ -589,7 +697,7 @@ codex exec \
   -C "$PROJECT" \
   --sandbox read-only \
   --json \
-  'Use $goal-teams. Create a confirmation table for a goal team: members, claimed tasks, locked scopes, docs/tasklist updates, done criteria, and risks. Do not edit files.'
+  'Use $goal-teams. 全程中文。只做 Goal Lead：检查环境，询问版本号，提出澄清问题，生成确认表格。不要编辑文件。'
 ```
 
 ## Safety And Coordination
@@ -597,7 +705,11 @@ codex exec \
 - Do not start implementation without locked scope.
 - Do not let members modify shared core files concurrently.
 - Do not skip Plan mode.
-- Do not skip SPEC. Create missing PRD, Architecture Design, HTML Prototype when applicable, test plan, acceptance, and tasklist work items.
+- Do not write multiple documents before creating the relevant `INDEX.md`.
+- Do not write process/result Markdown outside the selected version directory except cross-version indexes.
+- Do not skip the requirement specification card before PRD unless the user explicitly chooses OpenSpec/Superpower lead-only mode or confirms an exception.
+- If the user specifies OpenSpec or Superpower, act only as Goal Lead by default and do not spawn role subagents without confirmation.
+- Do not skip SPEC. Create missing Requirement Specification Card, PRD, Architecture Design, HTML Prototype when applicable, test plan, acceptance, and tasklist work items.
 - Do not let implementation members be the only testers. Assign independent QA/testing skill/subagent.
 - Honor user-specified skill/subagent assignments for members.
 - Require lead approval for auth, payment, refund, migrations, destructive writes, security-sensitive integrations, or broad API changes.
@@ -610,6 +722,10 @@ Use a concise final shape:
 
 ```text
 完成：<一句话说明>
+
+版本与文档：
+| Version | Index | Main Docs |
+| --- | --- | --- |
 
 成员状态：
 | Member | Claimed Tasks | Status | Evidence | Remaining |

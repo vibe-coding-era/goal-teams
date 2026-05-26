@@ -1,4 +1,4 @@
 interface:
   display_name: "Goal Teams"
-  short_description: "Plan SPEC-driven subagent goal teams."
-  default_prompt: "Use $goal-teams to run a Chinese-first SPEC-driven Goal Team in Plan mode, ask clarifying questions during planning, persist plans/progress/results in Markdown, confirm PRD/Architecture/HTML Prototype/tasklist ownership in tables, honor user-selected skills or subagents, and execute each member as an independent subagent."
+  short_description: "Plan versioned SPEC-driven goal teams."
+  default_prompt: "Use $goal-teams to run a Chinese-first Goal Team in Plan mode, ask clarifying questions, check AGENTS/CLAUDE guidance, store docs by version with INDEX.md first, create a Requirement Specification Card before PRD, honor user-selected skills or subagents, and execute confirmed members as independent subagents."
