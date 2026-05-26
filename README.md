@@ -1,3 +1,5 @@
+[English](README.en.md) | 中文
+
 # Goal Teams
 
 作者：肉山@TGO 杭州
