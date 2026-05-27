@@ -1,6 +1,6 @@
 ---
 name: goal-teams
-description: Run Codex Goal Mode as a coordinated team of independent subagents for any project. Use when the user asks for Goal Teams, goal-mode teams, multi-agent goal execution, version/module goals, versioned document directories, document indexes, requirement analysis, requirement specification cards, goal packets, Chinese-first team execution, Markdown persistence for process/results, planning-stage clarification questions, SPEC-driven execution, PRD, architecture design, HTML prototypes, tasklist creation, member task claiming, confirmation tables, progress tables, progressive document loading, Doc Capsules, or when combining Codex Goal Mode with Agent Teams so every team member runs as its own subagent.
+description: Run Codex Goal Mode as a coordinated team of independent subagents for any project. Use when the user asks for Goal Teams, goal-mode teams, multi-agent goal execution, version/module goals, versioned document directories, document indexes, default AGENTS guidance, Chinese-generated artifacts, Chinese team member names, independent validation of docs/code/tests, requirement analysis, requirement specification cards, goal packets, Chinese-first team execution, Markdown persistence for process/results, planning-stage clarification questions, SPEC-driven execution, PRD, architecture design, HTML prototypes, tasklist creation, member task claiming, confirmation tables, progress tables, progressive document loading, Doc Capsules, or when combining Codex Goal Mode with Agent Teams so every team member runs as its own subagent.
 ---
 
 # Goal Teams
@@ -13,8 +13,9 @@ For detailed schemas, generic tasklist templates, confirmation tables, and CLI b
 
 - The current Codex session is the Goal Lead. It plans, proposes, confirms, assigns, coordinates, integrates, verifies, and summarizes.
 - The Goal Lead communicates with the user in a human-friendly, concise style. Prefer plain words, short explanations, and clear options. Avoid unnecessary specialist vocabulary unless the user asks for detail.
-- Use Chinese throughout by default, including plans, tables, tasklists, SPEC docs, progress reports, subagent packets, and final summaries. Keep code identifiers, commands, file paths, API names, and quoted source text in their original language when needed.
+- Use Chinese throughout by default, including plans, tables, tasklists, SPEC docs, progress reports, subagent packets, final summaries, generated documentation, code comments, test names, test cases, and human-facing code strings. Keep code identifiers, commands, file paths, API names, logs, and quoted source text in their original language when needed.
 - Every team member must be a separate subagent. Do not simulate team members only as sections inside the lead response when the user asks for Goal Teams.
+- Use Chinese human-readable team member names in plans, packets, progress tables, and dashboard state. Prefer the pattern `<角色>-<任务名>`, such as `后端-接口联调`, `前端-订单页面`, `测试-租期规则`, or `需求分析-规格卡`. Keep technical subagent config IDs stable when needed.
 - Each member receives a Member Goal Packet and runs its own loop: `Load -> Plan -> Implement -> Test -> Document -> Review -> Continue`.
 - Prefer custom subagents `goal_requirements_analyst`, `goal_product`, `goal_backend`, `goal_frontend`, `goal_qa`, `goal_docs`, and `goal_reviewer` when those roles match the member packet.
 - Honor user member overrides. If the user specifies that a member should use a particular skill, plugin, custom subagent, or built-in subagent type, include that assignment in the confirmation table and Member Goal Packet.
@@ -29,7 +30,7 @@ Always begin in Plan mode for Goal Teams work:
 
 - Do not spawn implementation subagents or edit implementation files before producing the Plan tables.
 - Do not skip Plan mode unless the user explicitly says to execute an already confirmed plan.
-- Check the project environment before planning: look for `AGENTS.md`, `agents.md`, `agent.md`, `CLAUDE.md`, or `claude.md` at the project root or obvious config locations. If none exists, suggest that the user create one to capture team rules, coding style, and project constraints.
+- Check the project environment before planning: look for `AGENTS.md`, `agents.md`, `agent.md`, `CLAUDE.md`, or `claude.md` at the project root or obvious config locations. If none exists, use `references/default-AGENTS.md` as the default active guidance and suggest that the user copy it to project-root `AGENTS.md` to capture team rules, coding style, and project constraints.
 - Ask for or infer a version number before writing process docs. If no version is provided and it cannot be inferred, ask the user for the version directory name.
 - Ask clarifying questions generously during planning and solution-design stages when goals, scope, acceptance criteria, priorities, constraints, user roles, design style, data contracts, risk tolerance, or deployment targets are unclear.
 - Prefer 1-5 high-signal questions at a time, grouped by topic. Do not ask implementation trivia that can be discovered locally.
@@ -120,6 +121,11 @@ During execution, report progress with tables:
 | Member | Claimed Tasks | Status | Current Step | Evidence | Next |
 | --- | --- | --- | --- | --- | --- |
 
+Also report independent validation:
+
+| Artifact | Author | Validator | Method | Status | Evidence |
+| --- | --- | --- | --- | --- | --- |
+
 ## When To Use
 
 Use Goal Teams for:
@@ -130,6 +136,7 @@ Use Goal Teams for:
 - Work that must cover product/requirements, implementation, tests, docs, review, and acceptance.
 - Projects where task ownership, task claiming, dashboard state, or completion checks should be explicit.
 - Long goal loops that must continue until Done Criteria are satisfied or a real blocker is reached.
+- Work where every generated document, code change, and test case must be checked by an independent subagent or a user-specified skill.
 
 Prefer normal `agent-teams` or a single Codex session when the task is small, same-file heavy, highly sequential, or does not need Goal Mode.
 
@@ -179,7 +186,7 @@ When the project already uses another coordination directory, either reuse it or
 
 1. Understand the goal.
    - Turn the user request into verifiable Done Criteria.
-   - Check for `AGENTS.md`/`agent.md` and `CLAUDE.md`/`claude.md`; if none exists, suggest creating one.
+   - Check for `AGENTS.md`/`agent.md` and `CLAUDE.md`/`claude.md`; if none exists, load `references/default-AGENTS.md` as default guidance and suggest creating `AGENTS.md`.
    - Identify or ask for the target version number and version docs directory.
    - Identify likely deliverables, constraints, risks, and verification.
    - In planning and solution-design stages, ask clarifying questions before locking scope whenever material information is missing.
@@ -212,9 +219,10 @@ When the project already uses another coordination directory, either reuse it or
 
 6. Split into members.
    - Split by deliverable, module, version lane, or review lens.
-   - Assign each member a role, skill/subagent type, claimed tasks, locked scope, docs responsibility, verification responsibility, and output contract.
+   - Assign each member a Chinese display name, role, skill/subagent type, claimed tasks, locked scope, docs responsibility, independent validation responsibility, and output contract.
    - Typical members: requirements analyst, product/PRD, backend, frontend, QA, docs, reviewer/security.
    - Assign testing to an independent `goal_qa`, testing skill, reviewer, or user-specified test subagent. Do not let the implementation owner be the only tester.
+   - Assign every generated artifact to a validator that is not the author, unless the user explicitly specifies a validation skill.
 
 7. Confirm with tables.
    - Present environment readiness, index readiness, SPEC readiness, member assignment, tasklist, and risk/approval tables.
@@ -240,6 +248,7 @@ When the project already uses another coordination directory, either reuse it or
 11. Integrate and close.
    - The lead integrates outputs, resolves conflicts, runs verification, updates `team-state.json`, and updates tasklist/docs.
    - Do not mark a goal done until every claimed task is done, explicitly deferred, or blocked with a documented reason.
+   - Do not mark a generated document, code change, or test case done until independent validation evidence is recorded.
 
 ## Stable Core Prompt
 
@@ -267,6 +276,7 @@ Give each subagent a compact packet:
 ```text
 Member Goal Packet:
 - member_id:
+- display_name:
 - role:
 - skill_or_subagent:
 - version:
@@ -282,6 +292,10 @@ Member Goal Packet:
 - forbidden_scope:
 - locked_scope:
 - required_tests:
+- required_independent_validation:
+  - documents
+  - code
+  - test cases
 - required_docs_after_done:
 - spec_updates:
   - PRD
@@ -296,6 +310,7 @@ Member Goal Packet:
   - plan
   - files changed
   - tests run
+  - independent validation evidence
   - docs updated
   - tasklist updates
   - SPEC updates
@@ -339,6 +354,7 @@ A Goal Team is not done until the lead can report:
 - Each claimed task is `done`, `deferred`, or `blocked` with a reason.
 - Required tests run, or skipped with reason and risk.
 - Testing was performed by an independent member/skill/subagent, or the exception is explicitly documented.
+- Every generated document, code change, and test case was validated by an independent subagent or a user-specified skill, with evidence recorded.
 - Tasklist and required docs updated with member ownership and final status.
 - Requirement Specification Card, PRD, Architecture Design, HTML Prototype when relevant, test plan, acceptance, and tasklist are complete or explicitly marked not applicable.
 - Version directory and document indexes are updated.

@@ -10,15 +10,18 @@ Goal Teams = Goal Lead + independent subagent members.
 Goal Lead
   - communicates in Chinese by default
   - communicates with the user in a friendly, concise, non-jargony style
+  - ensures generated docs, code comments, test names, and test cases are Chinese by default
   - turns the user goal into Done Criteria
   - enforces Plan mode before execution
   - asks clarifying questions during planning and solution design
   - checks project guidance files such as AGENTS.md / agent.md / CLAUDE.md / claude.md
+  - uses references/default-AGENTS.md when no guidance file exists
   - identifies the version directory before writing docs
   - creates document indexes before creating multiple documents
   - discovers or creates SPEC docs
   - discovers or creates a tasklist
   - persists process and results mainly in Markdown
+  - assigns independent validators for every generated document, code change, and test case
   - proposes member/task ownership in tables
   - waits for confirmation when required
   - creates Member Goal Packets
@@ -29,6 +32,7 @@ Goal Lead
 
 Subagent Member
   - receives one Member Goal Packet
+  - uses a Chinese display name, usually <角色>-<任务名>
   - responds in Chinese by default
   - uses the user-specified skill/subagent when assigned
   - claims specific tasks
@@ -36,6 +40,7 @@ Subagent Member
   - emits Doc Capsules
   - executes its own goal loop
   - reports complete / blocked / incomplete
+  - does not self-approve its generated artifacts
 ```
 
 Every member is an independent subagent. Roles are responsibility boundaries; task claims and goal packets are execution granularity.
@@ -47,16 +52,17 @@ Exception: when the user explicitly asks to use `openspec` or `superpower`, Goal
 Goal Teams always starts in Plan mode:
 
 1. Check environment guidance files: `AGENTS.md`, `agents.md`, `agent.md`, `CLAUDE.md`, `claude.md`.
-2. If none exists, suggest creating one for team rules, coding style, constraints, and project context.
+2. If none exists, load `references/default-AGENTS.md` as active default guidance and suggest copying it to project-root `AGENTS.md` for team rules, coding style, constraints, and project context.
 3. Ask for or infer the target version number. Do not write process docs until a version directory is chosen.
 4. Ask clarifying questions when goals, scope, acceptance criteria, priorities, constraints, user roles, design style, data contracts, risk tolerance, or deployment targets are unclear.
 5. Record questions, answers, assumptions, and decisions in Markdown, usually `.codex/goal-teams/versions/<version>/plan.md`.
 6. Create or update indexes before producing multiple documents.
 7. Discover or create SPEC and tasklist.
 8. Propose member assignments, skill/subagent assignments, task claims, locked scopes, docs updates, testing owner, and done criteria.
-9. Present confirmation tables.
-10. Wait for user confirmation before spawning worker subagents or editing implementation files.
-11. If the user explicitly says to proceed without confirmation, still show the tables as the execution plan before continuing.
+9. Propose independent validators for every generated artifact: documents, code, and test cases.
+10. Present confirmation tables.
+11. Wait for user confirmation before spawning worker subagents or editing implementation files.
+12. If the user explicitly says to proceed without confirmation, still show the tables as the execution plan before continuing.
 
 Plan mode must be repeated when the user changes scope, member assignments, skill/subagent choices, locked scopes, risks, or stop conditions.
 
@@ -73,8 +79,15 @@ Clarification rules:
 Default language is Chinese for user-facing content and team artifacts:
 
 - Plans, proposals, tables, progress updates, SPEC docs, tasklists, member packets, review reports, and final summaries should be in Chinese.
+- Generated documentation, code comments, human-facing code strings, test names, test descriptions, test fixtures, and test case summaries should be Chinese by default.
 - Keep code identifiers, commands, logs, file paths, API names, dependency names, and exact source quotes in their original language when needed.
 - If the user explicitly asks for another language, follow that request for the requested artifact.
+
+Chinese member naming:
+
+- Use Chinese display names for subagent members in all user-facing tables, packets, and state.
+- Prefer `<角色>-<任务名>`, for example `需求分析-规格卡`, `产品-PRD`, `后端-接口联调`, `前端-订单页面`, `测试-租期规则`, `文档-验收清单`, `评审-安全边界`.
+- Keep the technical subagent identifier, such as `goal_backend`, only in `skill_or_subagent` or machine-readable fields.
 
 Prefer Markdown as the persistent human-readable record:
 
@@ -98,6 +111,13 @@ Prefer Markdown as the persistent human-readable record:
 ```
 
 Use JSON/JSONL for machine-readable runtime state only when useful; mirror important results back into Markdown.
+
+Default guidance template:
+
+- When no `AGENTS.md`, `agents.md`, `agent.md`, `CLAUDE.md`, or `claude.md` exists, use `references/default-AGENTS.md` as active project guidance.
+- Tell the user plainly: “我没有看到项目指南文件，会先按默认 AGENTS 模板执行；也建议把它保存为项目根目录的 `AGENTS.md`。”
+- If the user agrees, create project-root `AGENTS.md` from `references/default-AGENTS.md`.
+- The generated `AGENTS.md` content must remain Chinese.
 
 Version directory rules:
 
@@ -179,6 +199,14 @@ SPEC readiness table:
 | Test Plan | yes/no | create/update/skip | goal_qa | `.codex/goal-teams/versions/<version>/spec/test-plan.md` |
 | Acceptance | yes/no | create/update/skip | goal_docs | `.codex/goal-teams/versions/<version>/spec/acceptance.md` |
 
+Independent validation table:
+
+| Artifact | Author Member | Validator Member/Skill | Method | Evidence |
+| --- | --- | --- | --- | --- |
+| `spec/PRD.md` | 产品-PRD | 评审-PRD校验 | checklist review | `progress.md` row |
+| `src/api/order.ts` | 后端-订单接口 | 测试-接口行为 | targeted tests + code review | command output |
+| `tests/order.test.ts` | 测试-订单规则 | 评审-测试有效性 | assertion review | review note |
+
 ## Tasklist Discovery And Creation
 
 Discovery order:
@@ -201,7 +229,7 @@ Status: planning
 
 | Task ID | Member | Skill/Subagent | Claimed By | Status | Locked Scope | Deliverable | Done Criteria | Verification | Docs/SPEC Update |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| GT-001 | 需求分析师 | goal_requirements_analyst or user-selected | unclaimed | pending | .codex/goal-teams/versions/<version>/spec/ | 需求规格卡 | 用户确认 | Review checklist | 需求规格卡 + tasklist |
+| GT-001 | 需求分析-规格卡 | goal_requirements_analyst or user-selected | unclaimed | pending | .codex/goal-teams/versions/<version>/spec/ | 需求规格卡 | 用户确认 | 评审-规格卡校验 | 需求规格卡 + tasklist |
 
 ## Tasks
 
@@ -234,6 +262,7 @@ Use or append to `.codex/goal-teams/versions/<version>/plan.md`:
 | --- | --- | --- |
 | AGENTS/agent 指南 | found/missing | 如缺失，建议补充团队规则和项目约束 |
 | CLAUDE 指南 | found/missing | 如缺失，建议补充跨工具协作约定 |
+| 默认指南 | active/not needed | 缺失项目指南时使用 `references/default-AGENTS.md` |
 | 版本目录 | <version> | 文档写入 `.codex/goal-teams/versions/<version>/` |
 
 ## 澄清问题
@@ -294,6 +323,7 @@ Before spawning worker subagents or editing implementation files, present:
 | --- | --- | --- |
 | AGENTS/agent guidance | found/missing | 如果缺失，建议创建 `AGENTS.md` 或 `agent.md` |
 | CLAUDE guidance | found/missing | 如果缺失，建议创建 `CLAUDE.md` 或 `claude.md` |
+| Default guidance | active/not needed | 如果缺失项目指南，使用 `references/default-AGENTS.md` |
 | Version directory | ready/pending | `.codex/goal-teams/versions/<version>/` |
 | Document index | ready/pending | `.codex/goal-teams/INDEX.md` + `versions/<version>/INDEX.md` |
 
@@ -301,8 +331,16 @@ Before spawning worker subagents or editing implementation files, present:
 
 | Member | Skill/Subagent | Goal Slice | Claimed Tasks | Locked Scope | Deliverable | Done Criteria | Docs/Tasklist Updates |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 需求分析师 | goal_requirements_analyst or user-selected skill | 梳理需求 | GT-001 | `.codex/goal-teams/versions/<version>/spec/` | 需求规格卡 | 用户确认核心目标/功能/流程/边界 | requirement-spec-card.md + INDEX.md |
-| 产品/需求 | goal_product or user-selected skill | 生成 PRD | GT-002 | `.codex/goal-teams/versions/<version>/spec/` | PRD | PRD 来源于已确认需求规格卡 | PRD + tasklist.md |
+| 需求分析-规格卡 | goal_requirements_analyst or user-selected skill | 梳理需求 | GT-001 | `.codex/goal-teams/versions/<version>/spec/` | 需求规格卡 | 用户确认核心目标/功能/流程/边界 | requirement-spec-card.md + INDEX.md |
+| 产品-PRD | goal_product or user-selected skill | 生成 PRD | GT-002 | `.codex/goal-teams/versions/<version>/spec/` | PRD | PRD 来源于已确认需求规格卡 | PRD + tasklist.md |
+
+### Independent Validation Plan
+
+| Artifact Type | Author | Validator | Validation Method | Evidence Location |
+| --- | --- | --- | --- | --- |
+| 文档 | 产出成员 | 非作者评审成员或用户指定 skill | 结构/事实/验收标准校验 | `progress.md` / `acceptance.md` |
+| 代码 | 实现成员 | 独立测试/评审成员或用户指定 skill | 代码审查 + 命令验证 | `progress.md` |
+| 测试用例 | 测试成员 | 独立评审成员或用户指定 skill | 断言有效性/边界覆盖校验 | `test-plan.md` / `progress.md` |
 
 ### Tasklist Execution
 
@@ -327,7 +365,13 @@ During execution, summarize each meaningful round with tables:
 
 | Member | Claimed Tasks | Status | Current Step | Evidence | Next |
 | --- | --- | --- | --- | --- | --- |
-| backend-gt-002 | GT-002 | running | Test | `cargo test ...` | update docs |
+| 后端-接口联调 | GT-003 | running | Test | `cargo test ...` | update docs |
+
+For independent validation:
+
+| Artifact | Author | Validator | Status | Evidence | Next |
+| --- | --- | --- | --- | --- | --- |
+| `spec/PRD.md` | 产品-PRD | 评审-PRD校验 | passed | review note | update acceptance |
 
 For blockers:
 
@@ -368,10 +412,11 @@ Use a generic manifest:
 Always load first:
 1. User-provided goal and constraints.
 2. Project guidance files when present: `AGENTS.md`, `agents.md`, `agent.md`, `CLAUDE.md`, `claude.md`.
-3. `.codex/goal-teams/INDEX.md` and `.codex/goal-teams/versions/<version>/INDEX.md` if present.
-4. `.codex/goal-teams/versions/<version>/plan.md` if present.
-5. Relevant tasklist if present; otherwise generated `.codex/goal-teams/versions/<version>/tasklist.md`.
-6. The current member's claimed task rows.
+3. `references/default-AGENTS.md` if no project guidance file exists.
+4. `.codex/goal-teams/INDEX.md` and `.codex/goal-teams/versions/<version>/INDEX.md` if present.
+5. `.codex/goal-teams/versions/<version>/plan.md` if present.
+6. Relevant tasklist if present; otherwise generated `.codex/goal-teams/versions/<version>/tasklist.md`.
+7. The current member's claimed task rows.
 ```
 
 Load on demand:
@@ -424,12 +469,14 @@ Goal Packet:
 - confirmation_required:
 - team_members:
   - member_id:
+    display_name:
     role:
     skill_or_subagent:
     communication_style: brief, human-friendly Chinese
     claimed_tasks:
     locked_scope:
     deliverable:
+    validation_owner_for:
 ```
 
 Use the team packet to create one Member Goal Packet per subagent.
@@ -439,6 +486,7 @@ Use the team packet to create one Member Goal Packet per subagent.
 ```text
 Member Goal Packet:
 - member_id: backend-gt-003
+- display_name: 后端-接口联调
 - role: backend
 - skill_or_subagent: goal_backend
 - version: V3.0
@@ -456,6 +504,7 @@ Member Goal Packet:
 - success_criteria:
   - API behavior matches accepted contract.
   - Targeted tests pass.
+  - Independent validator confirms generated code and tests.
 - required_doc_load:
   - .codex/goal-teams/versions/V3.0/tasklist.md#GT-003
   - relevant API docs if present
@@ -468,6 +517,10 @@ Member Goal Packet:
   - src/api/specific-module
 - required_tests:
   - targeted tests for touched module
+- required_independent_validation:
+  - generated docs: validator must not be the author
+  - generated code: independent QA/reviewer or user-specified skill
+  - generated test cases: independent reviewer or user-specified skill
 - required_docs_after_done:
   - tasklist status
   - versions/<version>/progress.md row
@@ -489,6 +542,7 @@ Member Goal Packet:
   - tests run
   - docs updated
   - Markdown progress/result updates
+  - independent validation evidence
   - tasklist updates
   - SPEC updates
   - suggested team-state updates
@@ -520,28 +574,35 @@ Use this durable shape:
   "members": [
     {
       "id": "requirements-gt-001",
+      "display_name": "需求分析-规格卡",
       "role": "requirements_analyst",
       "skill_or_subagent": "goal_requirements_analyst",
       "user_requested_skill": null,
       "user_requested_subagent": null,
       "status": "pending",
       "claimed_tasks": ["GT-001"],
-      "current": "Create requirement specification card",
+      "current": "创建需求规格卡",
       "locked_scope": [".codex/goal-teams/versions/V3.0/spec"]
     }
   ],
   "tasks": [
     {
       "id": "GT-001",
-      "title": "Clarify requirements and create requirement specification card",
+      "title": "澄清需求并创建需求规格卡",
       "owner": "requirements-gt-001",
+      "owner_display_name": "需求分析-规格卡",
       "claimed_by": null,
       "status": "pending",
       "deliverable": "Requirement Specification Card",
       "done_criteria": ["Core goals, functions, flows, and boundaries are clear", "User confirms the card"],
       "locked_scope": [".codex/goal-teams/versions/V3.0/spec"],
       "docs_update": [".codex/goal-teams/versions/V3.0/tasklist.md", ".codex/goal-teams/versions/V3.0/progress.md"],
-      "spec_update": [".codex/goal-teams/versions/V3.0/spec/requirement-spec-card.md"]
+      "spec_update": [".codex/goal-teams/versions/V3.0/spec/requirement-spec-card.md"],
+      "validation": {
+        "required": true,
+        "validator": "评审-规格卡校验",
+        "evidence": []
+      }
     }
   ]
 }
@@ -635,6 +696,7 @@ Every member should report whether it updated:
 - SPEC files assigned in its packet
 - version `INDEX.md` entries when documents are added or changed
 - reports or acceptance notes
+- independent validation evidence for generated docs/code/tests
 - remaining gaps
 
 ### Review
@@ -644,6 +706,7 @@ Review Checklist:
 - claimed task complete:
 - done criteria:
 - tests:
+- generated docs/code/tests independently validated:
 - docs/tasklist:
 - SPEC:
 - locked scope respected:
@@ -673,7 +736,9 @@ codex exec \
 Use $goal-teams.
 
 Use Chinese and keep Goal Lead messages concise and human-friendly.
-Check for AGENTS.md / agent.md / CLAUDE.md / claude.md and suggest creating one if none exists.
+Generated documentation, code comments, human-facing code strings, test names, and test cases should be Chinese by default.
+Use Chinese member display names in the form <角色>-<任务名>, such as 后端-接口联调.
+Check for AGENTS.md / agent.md / CLAUDE.md / claude.md. If none exists, use references/default-AGENTS.md as default guidance and suggest copying it to project-root AGENTS.md.
 Use version "$VERSION" and store generated process/result docs under .codex/goal-teams/versions/$VERSION/.
 Create or update .codex/goal-teams/INDEX.md and .codex/goal-teams/versions/$VERSION/INDEX.md before creating multiple docs.
 Turn the user goal into Done Criteria.
@@ -683,6 +748,7 @@ Generate PRD from the approved Requirement Specification Card.
 Discover an existing tasklist, or create .codex/goal-teams/versions/$VERSION/tasklist.md if none exists.
 Discover or create SPEC docs: Requirement Specification Card, PRD, Architecture Design, HTML Prototype when applicable, test plan, and acceptance.
 Propose independent subagent members with claimed tasks, user-requested skill/subagent assignments, locked scopes, docs/SPEC updates, independent testing ownership, and done criteria.
+Assign an independent validator for every generated document, code change, and test case. Use a separate subagent or the user-specified validation skill.
 Show SPEC readiness, member plan, tasklist execution, and risk tables before spawning implementation members unless already approved.
 After confirmation, spawn each team member as a separate subagent.
 Coordinate through team-state.json, events.jsonl, messages.jsonl, and doc-capsules.jsonl.
@@ -705,6 +771,8 @@ codex exec \
 - Do not start implementation without locked scope.
 - Do not let members modify shared core files concurrently.
 - Do not skip Plan mode.
+- Do not self-approve generated artifacts.
+- Do not mark generated docs, code, or test cases done without an independent subagent or user-specified skill validating them.
 - Do not write multiple documents before creating the relevant `INDEX.md`.
 - Do not write process/result Markdown outside the selected version directory except cross-version indexes.
 - Do not skip the requirement specification card before PRD unless the user explicitly chooses OpenSpec/Superpower lead-only mode or confirms an exception.
@@ -734,6 +802,10 @@ Use a concise final shape:
 SPEC：
 | SPEC | Status | Owner | Evidence |
 | --- | --- | --- | --- |
+
+独立校验：
+| Artifact | Author | Validator | Status | Evidence |
+| --- | --- | --- | --- | --- |
 
 验证：
 - <命令>：通过

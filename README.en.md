@@ -21,9 +21,10 @@ Goal Teams makes each team member an independent subagent, instead of treating r
 ## Key Capabilities
 
 - Chinese-first execution: plans, tables, SPEC files, tasklists, progress reports, and member packets default to Chinese.
+- Chinese-generated artifacts: generated docs, code comments, human-facing code strings, test names, and test case descriptions default to Chinese.
 - Mandatory Plan Mode: clarify, plan, and confirm before implementation.
 - More clarification during planning: ask about goals, scope, acceptance criteria, priorities, design style, data contracts, release constraints, and risk approvals when unclear.
-- Environment check: check `AGENTS.md`, `agent.md`, `CLAUDE.md`, and `claude.md`; suggest creating one when missing.
+- Environment check: check `AGENTS.md`, `agent.md`, `CLAUDE.md`, and `claude.md`; when missing, use `references/default-AGENTS.md` as default guidance and suggest saving it as project-root `AGENTS.md`.
 - Versioned documents: process and result documents are stored under `.codex/goal-teams/versions/<version>/`.
 - Index first: create `.codex/goal-teams/INDEX.md` and the version `INDEX.md` before creating multiple documents.
 - Requirement card first: a requirements analyst uses conversation, web search, computer use, browser, or Chrome when useful, then creates a human-friendly Requirement Specification Card before PRD.
@@ -31,10 +32,12 @@ Goal Teams makes each team member an independent subagent, instead of treating r
 - Markdown persistence: process and results are saved as versioned Markdown files.
 - Tasklist coordination: if no tasklist exists, create `.codex/goal-teams/versions/<version>/tasklist.md`.
 - Task claiming: every member has claimed tasks, locked scope, deliverables, and done criteria.
+- Chinese member names: member display names use Chinese, preferably `<role>-<task>`, such as `后端-接口联调`.
 - User-selected capabilities: the user can assign a member to a specific skill, plugin, custom subagent, or built-in subagent type.
 - OpenSpec/Superpower compatibility: when the user specifies `openspec` or `superpower`, Goal Teams defaults to Goal Lead only and does not automatically start a full role team.
 - Table-based progress feedback: progress, blockers, risks, and closeout evidence are reported in tables.
 - Independent testing: implementation owners cannot be the only testers.
+- Independent validation: every generated document, code change, and test case must be checked by an independent subagent or user-selected skill.
 - Version-lane parallelism: work can be split by version, module, deliverable, or review lens.
 
 ## Repository Layout
@@ -48,6 +51,7 @@ goal-teams/
     openai.yaml
   references/
     goal-teams-runtime.md
+    default-AGENTS.md
   subagents/
     goal-requirements-analyst.toml
     goal-product.toml
@@ -59,6 +63,8 @@ goal-teams/
 ```
 
 The root-level `goal-teams.md` records long-term user requirements for this Skill.
+
+When the target project has no `AGENTS.md`, `agent.md`, `CLAUDE.md`, or `claude.md`, Goal Teams uses [default-AGENTS.md](references/default-AGENTS.md) as active default guidance and suggests copying it to the project root as `AGENTS.md`.
 
 ## Runtime Files
 
@@ -142,11 +148,13 @@ Use goal_reviewer for read-only security review.
 8. Discover or create `.codex/goal-teams/versions/<version>/tasklist.md`.
 9. Split members by version, module, deliverable, or review lens.
 10. Confirm environment, indexes, SPEC readiness, member ownership, tasks, risks, and approvals in tables.
-11. Wait for user confirmation before implementation or worker subagents.
-12. Run each member as an independent subagent.
-13. Persist progress, blockers, decisions, and results in versioned Markdown.
-14. Verify with independent QA or a testing skill/subagent.
-15. Integrate outputs and close the tasklist, SPEC, progress, and acceptance docs.
+11. Use Chinese display names for members, such as `后端-接口联调` or `测试-租期规则`.
+12. Assign independent validators for generated docs, code, and test cases.
+13. Wait for user confirmation before implementation or worker subagents.
+14. Run each member as an independent subagent.
+15. Persist progress, blockers, decisions, and results in versioned Markdown.
+16. Verify with independent QA, reviewer, or a user-selected validation skill/subagent.
+17. Integrate outputs and close the tasklist, SPEC, progress, and acceptance docs.
 
 ## Confirmation Table Examples
 
@@ -165,17 +173,25 @@ Use goal_reviewer for read-only security review.
 
 | Member | Skill/Subagent | Goal Slice | Claimed Tasks | Locked Scope | Deliverable | Done Criteria | Docs/Tasklist Updates |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Requirements analyst | `goal_requirements_analyst` | Clarify requirements | GT-001 | `.codex/goal-teams/versions/<version>/spec/` | Requirement Specification Card | User confirms goals, functions, flow, boundaries | requirement-spec-card + INDEX |
-| Product / PRD | `goal_product` | Generate PRD | GT-002 | `.codex/goal-teams/versions/<version>/spec/` | PRD | Based on approved card | PRD + tasklist |
-| Backend engineer | `goal_backend` | Implement API contract | GT-003 | `src/api/` | API implementation | Tests pass | Architecture Design + tasklist |
-| Frontend engineer | `goal_frontend` | UI and workflow | GT-004 | `src/ui/` | UI/prototype | Screenshot/E2E evidence | HTML Prototype + tasklist |
-| Independent QA | `goal_qa` | Verify delivery | GT-005 | `tests/` | Test report | Evidence complete | Test Plan + Acceptance |
+| 需求分析-规格卡 | `goal_requirements_analyst` | Clarify requirements | GT-001 | `.codex/goal-teams/versions/<version>/spec/` | Requirement Specification Card | User confirms goals, functions, flow, boundaries | requirement-spec-card + INDEX |
+| 产品-PRD | `goal_product` | Generate PRD | GT-002 | `.codex/goal-teams/versions/<version>/spec/` | PRD | Based on approved card | PRD + tasklist |
+| 后端-接口联调 | `goal_backend` | Implement API contract | GT-003 | `src/api/` | API implementation | Tests pass and independent validation is recorded | Architecture Design + tasklist |
+| 前端-订单页面 | `goal_frontend` | UI and workflow | GT-004 | `src/ui/` | UI/prototype | Screenshot/E2E evidence and independent validation | HTML Prototype + tasklist |
+| 测试-验收证据 | `goal_qa` | Verify delivery | GT-005 | `tests/` | Test report | Evidence complete and test cases independently validated | Test Plan + Acceptance |
+
+### Independent Validation Plan
+
+| Artifact | Author | Validator | Method | Evidence |
+| --- | --- | --- | --- | --- |
+| Document | Producing member | Non-author reviewer or user-selected skill | Structure/facts/acceptance review | `progress.md` / `acceptance.md` |
+| Code | Implementing member | Independent QA/reviewer or user-selected skill | Code review + command verification | `progress.md` |
+| Test case | QA member | Independent reviewer or user-selected skill | Assertion and boundary review | `test-plan.md` / `progress.md` |
 
 ### Progress
 
 | Member | Claimed Tasks | Status | Current Step | Evidence | Next |
 | --- | --- | --- | --- | --- | --- |
-| Backend engineer | GT-003 | running | Test | `npm test -- api` | update architecture notes |
+| 后端-接口联调 | GT-003 | running | Test | `npm test -- api` | update architecture notes |
 
 ## Installation
 
@@ -272,7 +288,9 @@ Use $goal-teams.
 
 Use Chinese.
 Keep Goal Lead communication concise and human-friendly.
-Check AGENTS.md / agent.md / CLAUDE.md / claude.md and suggest creating one if missing.
+Check AGENTS.md / agent.md / CLAUDE.md / claude.md. If none exists, use references/default-AGENTS.md as default guidance and suggest saving it as project-root AGENTS.md.
+Generated docs, code comments, human-facing code strings, test names, and test case descriptions should be Chinese by default.
+Use Chinese member display names in the form <role>-<task>.
 Use version "$VERSION" and store generated process/result docs under .codex/goal-teams/versions/$VERSION/.
 Create or update .codex/goal-teams/INDEX.md and .codex/goal-teams/versions/$VERSION/INDEX.md before creating multiple docs.
 Start in Plan Mode and ask clarification questions.
@@ -283,6 +301,7 @@ Then generate PRD from that card.
 Discover or create SPEC docs: Requirement Specification Card, PRD, Architecture Design, HTML Prototype, Test Plan, Acceptance.
 If no tasklist exists, create .codex/goal-teams/versions/$VERSION/tasklist.md.
 Confirm members, task claims, locked scopes, testing owner, and risk approvals in tables.
+Assign an independent validator or user-selected skill for every generated document, code change, and test case.
 After confirmation, run each team member as an independent subagent.
 Testing must be handled by independent QA or a testing skill/subagent.
 PROMPT
@@ -334,9 +353,13 @@ codex exec \
 
 - Do not start implementation subagents before the plan is confirmed.
 - When OpenSpec or Superpower is specified, default to Goal Lead only.
+- When no AGENTS/CLAUDE guidance file exists, use `references/default-AGENTS.md` as default guidance.
+- Generated content defaults to Chinese, including docs, code comments, test names, and test case descriptions.
+- Member display names are Chinese, such as `后端-接口联调`.
 - Create cross-version and version indexes before multiple documents.
 - Store process and result documents inside the version directory.
 - Complete the Requirement Specification Card before PRD unless the user explicitly skips it.
+- Independently validate every generated document, code change, and test case with a separate subagent or user-selected skill.
 - Do not let multiple members edit shared core modules concurrently.
 - Do not skip applicability checks for Requirement Specification Card, PRD, Architecture Design, HTML Prototype, Test Plan, and Acceptance.
 - Do not let the implementer be the only tester.
@@ -350,6 +373,7 @@ This repository includes:
 - `SKILL.md`: main Goal Teams Skill instructions.
 - `agents/openai.yaml`: Codex UI metadata.
 - `references/goal-teams-runtime.md`: runtime protocol, templates, CLI examples.
+- `references/default-AGENTS.md`: default Chinese AGENTS guidance used when a project has no guidance file.
 - `subagents/goal-*.toml`: seven recommended member subagent configs.
 - `goal-teams.md`: long-term user-specified requirements for maintaining this Skill.
 - `README.md`: Chinese README.
