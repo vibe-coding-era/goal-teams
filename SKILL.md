@@ -1,6 +1,6 @@
 ---
 name: goal-teams
-description: Run Codex Goal Mode as a coordinated team of independent subagents for any project. Use when the user asks for Goal Teams, goal-mode teams, multi-agent goal execution, version/module goals, versioned document directories, document indexes, default AGENTS guidance, Chinese-generated artifacts, Chinese team member names, independent validation of docs/code/tests, requirement analysis, requirement specification cards, goal packets, Chinese-first team execution, Markdown persistence for process/results, planning-stage clarification questions, SPEC-driven execution, PRD, architecture design, HTML prototypes, tasklist creation, member task claiming, confirmation tables, progress tables, progressive document loading, Doc Capsules, or when combining Codex Goal Mode with Agent Teams so every team member runs as its own subagent.
+description: Run Codex Goal Mode as a coordinated team of independent subagents for any project. Use when the user asks for Goal Teams, goal-mode teams, multi-agent goal execution, version/module goals, versioned document directories, document indexes, default AGENTS guidance, Chinese-generated artifacts, role-plus-task Chinese member names, Teams planning table confirmation before execution, independent validation of docs/code/tests, requirement analysis, requirement specification cards, goal packets, Chinese-first team execution, Markdown persistence for process/results, planning-stage clarification questions, SPEC-driven execution, PRD, architecture design, HTML prototypes, tasklist creation, member task claiming, confirmation tables, progress tables, progressive document loading, Doc Capsules, or when combining Codex Goal Mode with Agent Teams so every team member runs as its own subagent.
 ---
 
 # Goal Teams
@@ -15,7 +15,7 @@ For detailed schemas, generic tasklist templates, confirmation tables, and CLI b
 - The Goal Lead communicates with the user in a human-friendly, concise style. Prefer plain words, short explanations, and clear options. Avoid unnecessary specialist vocabulary unless the user asks for detail.
 - Use Chinese throughout by default, including plans, tables, tasklists, SPEC docs, progress reports, subagent packets, final summaries, generated documentation, code comments, test names, test cases, and human-facing code strings. Keep code identifiers, commands, file paths, API names, logs, and quoted source text in their original language when needed.
 - Every team member must be a separate subagent. Do not simulate team members only as sections inside the lead response when the user asks for Goal Teams.
-- Use Chinese human-readable team member names in plans, packets, progress tables, and dashboard state. Prefer the pattern `<角色>-<任务名>`, such as `后端-接口联调`, `前端-订单页面`, `测试-租期规则`, or `需求分析-规格卡`. Keep technical subagent config IDs stable when needed.
+- Use Chinese human-readable team member names in plans, packets, progress tables, and dashboard state. Names must combine role + concrete task name in the pattern `<角色>-<任务名>`, such as `后端-WIKI 列表后端开发`, `前端-WIKI 列表页面开发`, `测试-WIKI 列表验收测试`, or `需求分析-WIKI 列表需求澄清`. Avoid role-only or generic names such as `后端` or `后端-接口联调` when a concrete task is known. Keep technical subagent config IDs stable when needed.
 - Each member receives a Member Goal Packet and runs its own loop: `Load -> Plan -> Implement -> Test -> Document -> Review -> Continue`.
 - Prefer custom subagents `goal_requirements_analyst`, `goal_product`, `goal_backend`, `goal_frontend`, `goal_qa`, `goal_docs`, and `goal_reviewer` when those roles match the member packet.
 - Honor user member overrides. If the user specifies that a member should use a particular skill, plugin, custom subagent, or built-in subagent type, include that assignment in the confirmation table and Member Goal Packet.
@@ -35,6 +35,7 @@ Always begin in Plan mode for Goal Teams work:
 - Ask clarifying questions generously during planning and solution-design stages when goals, scope, acceptance criteria, priorities, constraints, user roles, design style, data contracts, risk tolerance, or deployment targets are unclear.
 - Prefer 1-5 high-signal questions at a time, grouped by topic. Do not ask implementation trivia that can be discovered locally.
 - A valid Plan includes clarification status, assumptions, SPEC status, member assignments, task claims, locked scopes, test ownership, docs ownership, risks, and stop conditions.
+- Before starting worker subagents or implementation edits, present a `Teams 规划表` for user confirmation. The table must show each member's role+task display name, skill/subagent, task slice, claimed tasks, locked scope, deliverable, done criteria, docs/tasklist updates, testing owner, and independent validator.
 - After the user confirms, execute exactly the confirmed plan unless a blocker requires re-planning.
 - If the user changes the team, scope, skill, or subagent assignment, update the tables before continuing.
 
@@ -86,14 +87,16 @@ Do not assume a project already has a tasklist. Discover first:
 
 The tasklist is not a dependency; it is a coordination artifact. Create or update it as needed.
 
-## Confirmation First
+## Teams Planning Confirmation
 
-Before spawning worker subagents or editing implementation files, present a confirmation table to the user unless they explicitly told you to proceed without confirmation.
+Before spawning worker subagents or editing implementation files, always present a `Teams 规划表` to the user and ask for confirmation in plain language. If the user explicitly asks to skip confirmation or execute an already confirmed plan, still show the table as the execution plan before continuing.
 
 At minimum, show:
 
-| Member | Skill/Subagent | Goal Slice | Claimed Tasks | Locked Scope | Deliverable | Done Criteria | Docs/Tasklist Updates |
-| --- | --- | --- | --- | --- | --- | --- | --- |
+| Member | Skill/Subagent | Goal Slice | Claimed Tasks | Locked Scope | Deliverable | Done Criteria | Docs/Tasklist Updates | Test Owner | Validator |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+
+Member names in this table must use role + concrete task name, for example `后端-WIKI 列表后端开发`.
 
 Also show environment and document-index readiness:
 
@@ -109,7 +112,7 @@ Also show a second table for risks and approvals when relevant:
 | Item | Risk | Owner | Approval Needed | Stop Condition |
 | --- | --- | --- | --- | --- |
 
-After the user confirms, spawn each member as an independent subagent. If the user requests only a proposal, stop after the tables.
+After the user confirms the `Teams 规划表`, spawn each member as an independent subagent. If the user requests only a proposal, stop after the tables.
 
 Also show SPEC readiness:
 
@@ -219,14 +222,14 @@ When the project already uses another coordination directory, either reuse it or
 
 6. Split into members.
    - Split by deliverable, module, version lane, or review lens.
-   - Assign each member a Chinese display name, role, skill/subagent type, claimed tasks, locked scope, docs responsibility, independent validation responsibility, and output contract.
+   - Assign each member a Chinese display name formed from role + concrete task name, role, skill/subagent type, claimed tasks, locked scope, docs responsibility, independent validation responsibility, and output contract.
    - Typical members: requirements analyst, product/PRD, backend, frontend, QA, docs, reviewer/security.
    - Assign testing to an independent `goal_qa`, testing skill, reviewer, or user-specified test subagent. Do not let the implementation owner be the only tester.
    - Assign every generated artifact to a validator that is not the author, unless the user explicitly specifies a validation skill.
 
 7. Confirm with tables.
-   - Present environment readiness, index readiness, SPEC readiness, member assignment, tasklist, and risk/approval tables.
-   - Wait for user confirmation before spawning worker subagents or editing implementation files, unless the user explicitly asked you to proceed.
+   - Present environment readiness, index readiness, SPEC readiness, `Teams 规划表`, tasklist, independent validation plan, and risk/approval tables.
+   - Wait for user confirmation before spawning worker subagents or editing implementation files. If the user explicitly skips confirmation or references an already confirmed plan, still show the `Teams 规划表` before continuing.
 
 8. Spawn independent subagents.
    - Each member runs as a subagent with its own Member Goal Packet.
@@ -276,7 +279,7 @@ Give each subagent a compact packet:
 ```text
 Member Goal Packet:
 - member_id:
-- display_name:
+- display_name: <角色>-<具体任务名>, for example 后端-WIKI 列表后端开发
 - role:
 - skill_or_subagent:
 - version:

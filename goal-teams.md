@@ -7,7 +7,7 @@
 - 默认全程中文：计划、表格、SPEC、tasklist、进度、成员包、总结都用中文；命令、路径、代码标识、API 名称保持原文。
 - 生成的内容全部使用中文，包括文档、代码注释、面向用户的代码字符串、测试名称、测试说明和测试用例描述；技术标识、命令、路径、API 名称、日志原文可保持原文。
 - Goal Lead 和用户交流要人类友好、简约，少用特别专业的名词。
-- 强制 Plan 模式：执行前先澄清、规划、表格确认。
+- 强制 Plan 模式：执行前先澄清、规划，列出 `Teams 规划表` 给用户确认。
 - 计划和方案阶段要多找用户澄清，尤其是目标、范围、验收、优先级、设计风格、数据接口、发布约束和风险审批。
 - 过程和结果尽量使用 Markdown 文件持久化。
 
@@ -74,7 +74,8 @@
 ## 团队执行规则
 
 - 用户可以指定某个成员使用其他 skill、plugin、自定义 subagent 或内置 subagent。
-- 团队成员展示名称使用中文，优先采用 `<角色>-<任务名>`，例如 `后端-接口联调`、`前端-订单页面`、`测试-租期规则`。
+- 团队成员展示名称使用中文，必须采用“角色 + 具体任务名”的 `<角色>-<任务名>` 格式，例如 `后端-WIKI 列表后端开发`、`前端-WIKI 列表页面开发`、`测试-WIKI 列表验收测试`。
+- 启动 worker subagents 或修改实现文件前，Goal Lead 必须先列出 `Teams 规划表`，包含成员、Skill/Subagent、目标切片、认领任务、锁定范围、交付物、完成标准、文档/tasklist 更新、测试 owner 和校验者，并等待用户确认。
 - 执行过程使用表格反馈。
 - 开发过程按 `tasklist.md`。
 - 测试必须是独立的 subagent 或 skill，不能由实现者作为唯一测试者。
@@ -86,11 +87,16 @@
 ## 发布仓库维护
 
 - 更新 skill 规则时，同步更新：
+  - `AGENTS.md`
   - `SKILL.md`
   - `references/goal-teams-runtime.md`
+  - `references/default-AGENTS.md`
   - `agents/openai.yaml`
   - `subagents/goal-*.toml`
   - `README.md`
   - `README.en.md`
+  - `examples/mini-goal-run/`
+  - `CHANGELOG.md`
 - 默认项目指南模板保存在 `references/default-AGENTS.md`。
+- 发布或提交前运行 `./scripts/check.sh`，确保 Skill frontmatter、subagent TOML、README 发布清单、示例产物和关键规则一致。
 - 新增用户长期指定要求时，也要更新本文件。

@@ -24,7 +24,7 @@ Goal Teams 的设计目标是让每个团队成员都成为一个独立 subagent
 
 - 全程中文：计划、表格、SPEC、tasklist、进度报告、成员包。
 - 中文产物：生成的文档、代码注释、面向用户的代码字符串、测试名称和测试用例描述默认使用中文。
-- 强制 Plan 模式：执行前必须先澄清、规划、表格确认。
+- 强制 Plan 模式：执行前必须先澄清、规划，列出 `Teams 规划表` 并给用户确认。
 - 计划阶段多澄清：范围、验收、优先级、设计风格、数据接口、发布约束、风险审批不清楚时主动提问。
 - 环境检查：先检查 `AGENTS.md` / `agent.md` / `CLAUDE.md` / `claude.md`，缺失时使用 `references/default-AGENTS.md` 作为默认指南，并建议用户保存为项目根目录 `AGENTS.md`。
 - 版本化文档：过程和结果文档全部放入 `.codex/goal-teams/versions/<version>/`。
@@ -34,7 +34,7 @@ Goal Teams 的设计目标是让每个团队成员都成为一个独立 subagent
 - Markdown 持久化：过程和结果优先保存为版本目录内的 `.md` 文件。
 - tasklist 协作：如果没有 tasklist，自动创建 `.codex/goal-teams/versions/<version>/tasklist.md`。
 - 成员认领任务：每个成员都有 claimed task、locked scope、done criteria。
-- 中文成员名：成员展示名称使用中文，推荐 `<角色>-<任务名>`，例如 `后端-接口联调`。
+- 中文成员名：成员展示名称使用角色 + 具体任务名，格式 `<角色>-<任务名>`，例如 `后端-WIKI 列表后端开发`。
 - 支持用户指定成员能力：可以指定某个成员使用特定 skill、plugin、自定义 subagent 或内置 subagent 类型。
 - OpenSpec/Superpower 兼容：用户指定 `openspec` 或 `superpower` 时，默认只做 Goal Lead，不自动启动完整角色团队。
 - 执行过程表格反馈：每轮进度、阻塞、风险、结果都用表格输出。
@@ -146,8 +146,8 @@ Goal Teams 的标准流程如下：
 7. 发现或创建 SPEC：基于需求规格卡补齐 PRD、Architecture Design、HTML Prototype、Test Plan、Acceptance。
 8. 发现或创建 tasklist：没有 tasklist 时自动创建 `.codex/goal-teams/versions/<version>/tasklist.md`。
 9. 拆分成员：按版本、模块、交付物、评审视角拆分。
-10. 表格确认：展示环境、索引、SPEC、成员、任务、风险、审批。
-11. 中文命名：成员展示名采用 `角色-任务名`，例如 `后端-接口联调`、`测试-租期规则`。
+10. 表格确认：先展示 `Teams 规划表`，再展示环境、索引、SPEC、任务、风险、审批。
+11. 中文命名：成员展示名采用 `角色-具体任务名`，例如 `后端-WIKI 列表后端开发`、`测试-WIKI 列表验收测试`。
 12. 独立校验计划：为文档、代码、测试用例指定非作者校验者或用户指定 skill。
 13. 用户确认：确认后才开始实现或调用 worker subagents。
 14. 独立执行：每个成员运行自己的 `Load -> Plan -> Implement -> Test -> Document -> Review -> Continue` 循环。
@@ -168,15 +168,15 @@ Goal Teams 的标准流程如下：
 | Test Plan | 否 | 创建 | QA | `.codex/goal-teams/versions/<version>/spec/test-plan.md` |
 | Acceptance | 否 | 创建 | 文档/QA | `.codex/goal-teams/versions/<version>/spec/acceptance.md` |
 
-### 成员计划
+### Teams 规划表
 
-| 成员 | Skill/Subagent | 目标切片 | 认领任务 | 锁定范围 | 交付物 | 完成标准 | 文档/tasklist 更新 |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| 需求分析-规格卡 | `goal_requirements_analyst` | 梳理需求 | GT-001 | `.codex/goal-teams/versions/<version>/spec/` | 需求规格卡 | 用户确认目标/功能/流程/边界 | requirement-spec-card + INDEX |
-| 产品-PRD | `goal_product` | 生成 PRD | GT-002 | `.codex/goal-teams/versions/<version>/spec/` | PRD | 来源于已确认需求规格卡 | PRD + tasklist |
-| 后端-接口联调 | `goal_backend` | 实现 API 合同 | GT-003 | `src/api/` | API 实现 | 测试通过并独立校验 | Architecture Design + tasklist |
-| 前端-订单页面 | `goal_frontend` | 页面和交互 | GT-004 | `src/ui/` | UI/原型 | 截图/E2E 通过并独立校验 | HTML Prototype + tasklist |
-| 测试-验收证据 | `goal_qa` | 验证交付 | GT-005 | `tests/` | 测试报告 | 证据完整，测试用例被独立校验 | Test Plan + Acceptance |
+| 成员 | Skill/Subagent | 目标切片 | 认领任务 | 锁定范围 | 交付物 | 完成标准 | 文档/tasklist 更新 | 测试 Owner | 校验者 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 需求分析-WIKI 列表需求澄清 | `goal_requirements_analyst` | 梳理 WIKI 列表需求 | GT-001 | `.codex/goal-teams/versions/<version>/spec/` | 需求规格卡 | 用户确认目标/功能/流程/边界 | requirement-spec-card + INDEX | 评审-WIKI 列表需求校验 | 评审-WIKI 列表需求校验 |
+| 产品-WIKI 列表 PRD | `goal_product` | 生成 WIKI 列表 PRD | GT-002 | `.codex/goal-teams/versions/<version>/spec/` | PRD | 来源于已确认需求规格卡 | PRD + tasklist | 评审-WIKI 列表 PRD 校验 | 评审-WIKI 列表 PRD 校验 |
+| 后端-WIKI 列表后端开发 | `goal_backend` | 实现 WIKI 列表 API | GT-003 | `src/api/wiki/` | API 实现 | 测试通过并独立校验 | Architecture Design + tasklist | 测试-WIKI 列表验收测试 | 评审-WIKI 列表代码审查 |
+| 前端-WIKI 列表页面开发 | `goal_frontend` | 实现 WIKI 列表页面 | GT-004 | `src/ui/wiki/` | UI/原型 | 截图/E2E 通过并独立校验 | HTML Prototype + tasklist | 测试-WIKI 列表验收测试 | 评审-WIKI 列表体验审查 |
+| 测试-WIKI 列表验收测试 | `goal_qa` | 验证交付 | GT-005 | `tests/wiki/` | 测试报告 | 证据完整，测试用例被独立校验 | Test Plan + Acceptance | 测试-WIKI 列表验收测试 | 评审-WIKI 列表测试有效性 |
 
 ### 独立校验计划
 
@@ -190,7 +190,7 @@ Goal Teams 的标准流程如下：
 
 | 成员 | 认领任务 | 状态 | 当前步骤 | 证据 | 下一步 |
 | --- | --- | --- | --- | --- | --- |
-| 后端-接口联调 | GT-003 | 进行中 | Test | `npm test -- api` | 更新架构说明 |
+| 后端-WIKI 列表后端开发 | GT-003 | 进行中 | Test | `npm test -- wiki` | 更新架构说明 |
 
 ## 安装方式
 
@@ -206,7 +206,7 @@ git clone https://github.com/vibe-coding-era/goal-teams.git ~/.codex/skills/goal
 
 ```bash
 mkdir -p ~/.codex/skills/goal-teams
-cp -R ./SKILL.md ./agents ./references ~/.codex/skills/goal-teams/
+cp -R ./SKILL.md ./agents ./references ./subagents ./goal-teams.md ~/.codex/skills/goal-teams/
 ```
 
 ### 安装 Subagents
@@ -219,6 +219,20 @@ cp ./subagents/goal-*.toml ~/.codex/agents/
 ```
 
 安装后建议重启 Codex 或刷新配置，让 Skill 和 subagents 被重新发现。
+
+### 校验 Skill 包
+
+维护或发布前运行：
+
+```bash
+./scripts/check.sh
+```
+
+校验脚本会检查必需文件、Skill frontmatter、subagent TOML、README 发布清单、示例产物和关键规则关键词。
+
+### 查看最小示例
+
+`examples/mini-goal-run/` 提供一个最小 Goal Teams 产物树，可用来对照索引、tasklist、SPEC、HTML 原型、验收清单和独立校验记录。
 
 ## 使用示例
 
@@ -289,7 +303,7 @@ Use $goal-teams。
 Goal Lead 和用户交流要简洁、人类友好，少用专业术语。
 先检查 AGENTS.md / agent.md / CLAUDE.md / claude.md，缺失则使用 references/default-AGENTS.md 作为默认指南，并建议保存为项目根目录 AGENTS.md。
 生成的文档、代码注释、面向用户的代码字符串、测试名称和测试用例描述默认使用中文。
-团队成员展示名使用中文，格式为 <角色>-<任务名>。
+团队成员展示名使用“角色 + 具体任务名”，格式为 <角色>-<任务名>，例如 后端-WIKI 列表后端开发。
 使用版本 "$VERSION"，过程和结果文档写入 .codex/goal-teams/versions/$VERSION/。
 多文档前先创建 .codex/goal-teams/INDEX.md 和 .codex/goal-teams/versions/$VERSION/INDEX.md。
 先进入 Plan 模式，主动提出澄清问题。
@@ -299,7 +313,7 @@ Goal Lead 和用户交流要简洁、人类友好，少用专业术语。
 再基于需求规格卡生成 PRD。
 发现或创建 SPEC：Requirement Specification Card、PRD、Architecture Design、HTML Prototype、Test Plan、Acceptance。
 如果没有 tasklist，创建 .codex/goal-teams/versions/$VERSION/tasklist.md。
-用表格确认成员、任务认领、锁定范围、测试 owner 和风险审批。
+先列出 Teams 规划表，确认成员、任务认领、锁定范围、测试 owner、独立校验者和风险审批，并等待用户确认。
 为所有生成的文档、代码、测试用例指定独立校验者或用户指定 skill。
 确认后再执行，每个成员必须是独立 subagent。
 测试必须由独立 QA 或测试 skill/subagent 完成。
@@ -326,6 +340,7 @@ codex exec \
 | tasklist | 可选 | 没有就创建 |
 | 持久化 | 视情况 | 按版本目录优先 Markdown 持久化 |
 | 测试 | 可由实现者执行 | 必须独立测试 |
+| 校验 | 可选 | 文档、代码、测试用例都要独立校验 |
 | 反馈 | 可自由组织 | 表格化进度和结果 |
 | 适用场景 | 协同分析、研究、开发 | 需求到交付的完整闭环 |
 
@@ -353,7 +368,7 @@ codex exec \
 - 使用 OpenSpec 或 Superpower 时默认只做 Goal Lead，不自动启动完整角色团队。
 - 如果没有 AGENTS/CLAUDE 指南文件，使用 `references/default-AGENTS.md` 作为默认指南。
 - 生成内容默认中文，包括文档、代码注释、测试名称和测试用例描述。
-- 团队成员展示名使用中文，例如 `后端-接口联调`。
+- 团队成员展示名使用“角色 + 具体任务名”，例如 `后端-WIKI 列表后端开发`。
 - 多文档前先创建总索引和版本索引。
 - 过程和结果文档必须进入版本目录。
 - PRD 前先完成需求规格卡，除非用户明确要求跳过。
@@ -373,6 +388,14 @@ codex exec \
 - `references/goal-teams-runtime.md`：运行时协议、模板、CLI 示例。
 - `references/default-AGENTS.md`：缺失项目指南时使用的默认中文 AGENTS 模板。
 - `subagents/goal-*.toml`：7 个推荐成员 subagent 配置。
+- `goal-teams.md`：维护本 skill 时必须对齐的长期用户指定要求。
+- `AGENTS.md`：本仓库维护指南。
+- `scripts/check.sh`：一键校验入口。
+- `scripts/validate.py`：Skill 包结构与规则校验脚本。
+- `examples/mini-goal-run/`：最小 Goal Teams 产物示例。
+- `CHANGELOG.md`：版本变更记录。
+- `README.md`：中文 README。
+- `README.en.md`：英文 README。
 
 ## License
 

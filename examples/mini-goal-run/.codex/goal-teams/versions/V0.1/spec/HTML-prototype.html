@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>登录页空状态提示 V0.1</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f6f7f9;
+        color: #1f2937;
+      }
+      main {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+      section {
+        width: min(420px, 100%);
+        background: #ffffff;
+        border: 1px solid #d8dee8;
+        border-radius: 8px;
+        padding: 28px;
+      }
+      h1 {
+        margin: 0 0 10px;
+        font-size: 24px;
+      }
+      p {
+        margin: 0 0 20px;
+        line-height: 1.6;
+      }
+      button {
+        width: 100%;
+        border: 0;
+        border-radius: 6px;
+        padding: 12px 16px;
+        background: #166534;
+        color: #ffffff;
+        font-size: 16px;
+      }
+      nav {
+        margin-top: 16px;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      a {
+        color: #1d4ed8;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section aria-labelledby="empty-title">
+        <h1 id="empty-title">暂无可恢复的登录会话</h1>
+        <p>你可以重新登录，或创建一个新账号继续使用服务。</p>
+        <button type="button">登录</button>
+        <nav aria-label="其他操作">
+          <a href="#create-account">创建账号</a>
+          <a href="#support">联系支持</a>
+        </nav>
+      </section>
+    </main>
+  </body>
+</html>

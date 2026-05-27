@@ -1,0 +1,26 @@
+{
+  "team": {
+    "mode": "goal-teams",
+    "goal": "规划登录页空状态提示 V0.1",
+    "version": "V0.1",
+    "version_dir": ".codex/goal-teams/versions/V0.1",
+    "status": "done",
+    "tasklist_path": ".codex/goal-teams/versions/V0.1/tasklist.md"
+  },
+  "members": [
+    {
+      "id": "requirements-gt-001",
+      "display_name": "需求分析-登录页空状态需求澄清",
+      "skill_or_subagent": "goal_requirements_analyst",
+      "status": "done",
+      "claimed_tasks": ["GT-001"]
+    },
+    {
+      "id": "reviewer-gt-006",
+      "display_name": "评审-登录页空状态文档校验",
+      "skill_or_subagent": "goal_reviewer",
+      "status": "done",
+      "claimed_tasks": ["GT-006"]
+    }
+  ]
+}
