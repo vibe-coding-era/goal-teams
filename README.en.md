@@ -4,6 +4,8 @@
 
 Author: 肉山@TGO Hangzhou
 
+Current version: `V1.0`
+
 `goal-teams` is a Codex Skill for running Goal Mode as a coordinated team of independent subagents. It combines ideas from Claude Code Agent Teams with Codex Goal Mode, and enforces Plan Mode, Chinese-first execution, SPEC-first delivery, Markdown persistence, table-based confirmation, and independent testing.
 
 It is designed for medium and large work: product planning, multi-module engineering, version-lane execution, frontend/backend/testing/docs collaboration, code audit, security review, architecture review, and any project where the process should be easy to review, share, and replay later.
@@ -20,6 +22,7 @@ Goal Teams makes each team member an independent subagent, instead of treating r
 
 ## Key Capabilities
 
+- Version identity: current identity is `Goal Teams Leader V1.0`; every run starts with `我是 Goal Teams Leader V1.0，我会帮你完成以下工作：`, followed by the concrete work items for that run.
 - Chinese-first execution: plans, tables, SPEC files, tasklists, progress reports, and member packets default to Chinese.
 - Chinese-generated artifacts: generated docs, code comments, human-facing code strings, test names, and test case descriptions default to Chinese.
 - Mandatory Plan Mode: clarify, plan, show a `Teams 规划表`, and ask the user to confirm before implementation.
@@ -46,6 +49,7 @@ After installation, the Skill layout is:
 
 ```text
 goal-teams/
+  VERSION
   SKILL.md
   agents/
     openai.yaml
@@ -242,6 +246,7 @@ The validation script checks required files, Skill frontmatter, subagent TOML, R
 ```text
 Use $goal-teams.
 Create a Goal Teams plan for "Car Sharing V3.0".
+Start by saying: 我是 Goal Teams Leader V1.0，我会帮你完成以下工作：
 Use Chinese throughout.
 Ask me clarification questions first.
 Save process and results to the V3.0 version directory.
@@ -300,6 +305,7 @@ codex exec \
   - <<'PROMPT' | tee -a ".codex/goal-teams/events.jsonl"
 Use $goal-teams.
 
+Start by saying: 我是 Goal Teams Leader V1.0，我会帮你完成以下工作：
 Use Chinese.
 Keep Goal Lead communication concise and human-friendly.
 Check AGENTS.md / agent.md / CLAUDE.md / claude.md. If none exists, use references/default-AGENTS.md as default guidance and suggest saving it as project-root AGENTS.md.
@@ -386,6 +392,7 @@ codex exec \
 This repository includes:
 
 - `SKILL.md`: main Goal Teams Skill instructions.
+- `VERSION`: current Skill version.
 - `agents/openai.yaml`: Codex UI metadata.
 - `references/goal-teams-runtime.md`: runtime protocol, templates, CLI examples.
 - `references/default-AGENTS.md`: default Chinese AGENTS guidance used when a project has no guidance file.

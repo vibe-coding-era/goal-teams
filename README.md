@@ -4,6 +4,8 @@
 
 作者：肉山@TGO 杭州
 
+当前版本：`V1.0`
+
 `goal-teams` 是一个面向 Codex 的 Goal Mode 团队化 Skill。它把一次目标执行拆成由 Goal Lead 统一协调、多个独立 subagent 分工完成的工作流，并强制使用中文沟通、SPEC 优先、Markdown 持久化、表格确认和独立测试。
 
 结合了 Claude Code 的 Agent Teams 和 Codex 的 Goal Mode 能力， 并强制 Plan 模式执行。
@@ -22,6 +24,7 @@ Goal Teams 的设计目标是让每个团队成员都成为一个独立 subagent
 
 ## 关键能力
 
+- 版本身份：当前为 `Goal Teams Leader V1.0`；每次开始工作前先汇报 `我是 Goal Teams Leader V1.0，我会帮你完成以下工作：`，再列出本轮工作。
 - 全程中文：计划、表格、SPEC、tasklist、进度报告、成员包。
 - 中文产物：生成的文档、代码注释、面向用户的代码字符串、测试名称和测试用例描述默认使用中文。
 - 强制 Plan 模式：执行前必须先澄清、规划，列出 `Teams 规划表` 并给用户确认。
@@ -48,6 +51,7 @@ Goal Teams 的设计目标是让每个团队成员都成为一个独立 subagent
 
 ```text
 goal-teams/
+  VERSION
   SKILL.md
   agents/
     openai.yaml
@@ -241,6 +245,7 @@ cp ./subagents/goal-*.toml ~/.codex/agents/
 ```text
 Use $goal-teams。
 请为“分时租赁 V3.0”做 Goal Teams 计划。
+先汇报：我是 Goal Teams Leader V1.0，我会帮你完成以下工作：
 全程中文，先多问我澄清问题。
 过程和结果保存到 V3.0 版本目录的 Markdown。
 先生成需求规格卡，再生成 PRD。
@@ -299,6 +304,7 @@ codex exec \
   - <<'PROMPT' | tee -a ".codex/goal-teams/events.jsonl"
 Use $goal-teams。
 
+先汇报：我是 Goal Teams Leader V1.0，我会帮你完成以下工作：
 全程中文。
 Goal Lead 和用户交流要简洁、人类友好，少用专业术语。
 先检查 AGENTS.md / agent.md / CLAUDE.md / claude.md，缺失则使用 references/default-AGENTS.md 作为默认指南，并建议保存为项目根目录 AGENTS.md。
@@ -384,6 +390,7 @@ codex exec \
 当前仓库包含：
 
 - `SKILL.md`：Goal Teams Skill 主说明。
+- `VERSION`：当前 Skill 版本号。
 - `agents/openai.yaml`：Codex UI 元数据。
 - `references/goal-teams-runtime.md`：运行时协议、模板、CLI 示例。
 - `references/default-AGENTS.md`：缺失项目指南时使用的默认中文 AGENTS 模板。

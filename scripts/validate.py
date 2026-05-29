@@ -19,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_FILES = [
     "AGENTS.md",
+    "VERSION",
     "SKILL.md",
     "README.md",
     "README.en.md",
@@ -55,6 +56,8 @@ EXPECTED_SUBAGENTS = {
 }
 
 KEY_RULES = [
+    "Goal Teams Leader V1.0",
+    "我是 Goal Teams Leader V1.0，我会帮你完成以下工作：",
     "Requirement Specification Card",
     "references/default-AGENTS.md",
     "Teams 规划表",
@@ -67,6 +70,7 @@ KEY_RULES = [
 ]
 
 README_RELEASE_ITEMS = [
+    "VERSION",
     "SKILL.md",
     "agents/openai.yaml",
     "references/goal-teams-runtime.md",
@@ -100,11 +104,14 @@ def check_required_files() -> None:
 
 def check_skill_frontmatter() -> None:
     skill = read("SKILL.md")
+    version = read("VERSION").strip()
+    if version != "V1.0":
+        fail(f"VERSION should be V1.0, got {version!r}")
     match = re.match(r"^---\n(?P<body>.*?)\n---\n", skill, flags=re.S)
     if not match:
         fail("SKILL.md must start with YAML frontmatter")
     body = match.group("body")
-    for key in ("name: goal-teams", "description:"):
+    for key in ("name: goal-teams", f"version: {version}", "description:"):
         if key not in body:
             fail(f"SKILL.md frontmatter missing {key!r}")
     if len(body.split("description:", 1)[1].strip()) < 80:
@@ -145,20 +152,27 @@ def check_readmes() -> None:
 
 
 def check_key_rules() -> None:
+    startup_line = "我是 Goal Teams Leader V1.0，我会帮你完成以下工作："
     combined = "\n".join(
         read(path)
         for path in [
+            "VERSION",
             "goal-teams.md",
             "SKILL.md",
             "references/goal-teams-runtime.md",
+            "agents/openai.yaml",
             "references/default-AGENTS.md",
             "README.md",
             "README.en.md",
+            "CHANGELOG.md",
         ]
     )
     for rule in KEY_RULES:
         if rule not in combined:
             fail(f"Key rule missing from docs: {rule}")
+    for path in ["SKILL.md", "references/goal-teams-runtime.md", "agents/openai.yaml", "README.md", "README.en.md", "goal-teams.md"]:
+        if startup_line not in read(path):
+            fail(f"Startup line missing from {path}")
     stale_examples = ["需求分析-规格卡", "产品-PRD", "前端-订单页面", "测试-验收证据"]
     for stale in stale_examples:
         if stale in combined:

@@ -5,6 +5,7 @@
 ## 维护原则
 
 - `goal-teams.md` 记录长期用户指定要求，是规则变更的上游依据。
+- `VERSION` 记录当前 Skill 版本号，需要和 `SKILL.md` frontmatter、README、runtime 启动语保持一致。
 - `SKILL.md` 是 Codex 发现和执行 skill 的主入口。
 - `references/goal-teams-runtime.md` 承载详细协议、模板和 CLI 示例。
 - `subagents/goal-*.toml` 是实际可注册的成员 agent 配置。
@@ -15,6 +16,7 @@
 更新运行规则时，通常需要同步检查：
 
 - `goal-teams.md`
+- `VERSION`
 - `SKILL.md`
 - `references/goal-teams-runtime.md`
 - `references/default-AGENTS.md`

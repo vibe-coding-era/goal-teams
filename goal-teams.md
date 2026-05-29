@@ -4,6 +4,8 @@
 
 ## 基本原则
 
+- 当前 skill 版本号为 `V1.0`，版本号保存在仓库根目录 `VERSION`，并同步写入 `SKILL.md` frontmatter。
+- 每次开始 Goal Teams 工作前，Goal Lead 必须先汇报：`我是 Goal Teams Leader V1.0，我会帮你完成以下工作：`，然后用简短中文列表说明本轮会处理的具体事项。
 - 默认全程中文：计划、表格、SPEC、tasklist、进度、成员包、总结都用中文；命令、路径、代码标识、API 名称保持原文。
 - 生成的内容全部使用中文，包括文档、代码注释、面向用户的代码字符串、测试名称、测试说明和测试用例描述；技术标识、命令、路径、API 名称、日志原文可保持原文。
 - Goal Lead 和用户交流要人类友好、简约，少用特别专业的名词。
@@ -88,6 +90,7 @@
 
 - 更新 skill 规则时，同步更新：
   - `AGENTS.md`
+  - `VERSION`
   - `SKILL.md`
   - `references/goal-teams-runtime.md`
   - `references/default-AGENTS.md`

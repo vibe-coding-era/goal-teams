@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added `VERSION` with current Skill version `V1.0`.
+- Required the Goal Lead to start every run with `我是 Goal Teams Leader V1.0，我会帮你完成以下工作：`.
 - Added repository-level maintenance guidance in `AGENTS.md`.
 - Added `scripts/check.sh` and `scripts/validate.py` for package validation.
 - Added `examples/mini-goal-run/` as a minimal Goal Teams output example.

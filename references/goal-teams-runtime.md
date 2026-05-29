@@ -2,12 +2,15 @@
 
 This reference defines a project-agnostic Goal Teams runtime. It does not assume a business domain or an existing tasklist.
 
+Current Skill version: `V1.0`. Keep it aligned with the repository `VERSION` file and `SKILL.md` frontmatter.
+
 ## Runtime Shape
 
 Goal Teams = Goal Lead + independent subagent members.
 
 ```text
 Goal Lead
+  - identifies itself at the start of every run as: 我是 Goal Teams Leader V1.0，我会帮你完成以下工作：
   - communicates in Chinese by default
   - communicates with the user in a friendly, concise, non-jargony style
   - ensures generated docs, code comments, test names, and test cases are Chinese by default
@@ -51,18 +54,19 @@ Exception: when the user explicitly asks to use `openspec` or `superpower`, Goal
 
 Goal Teams always starts in Plan mode:
 
-1. Check environment guidance files: `AGENTS.md`, `agents.md`, `agent.md`, `CLAUDE.md`, `claude.md`.
-2. If none exists, load `references/default-AGENTS.md` as active default guidance and suggest copying it to project-root `AGENTS.md` for team rules, coding style, constraints, and project context.
-3. Ask for or infer the target version number. Do not write process docs until a version directory is chosen.
-4. Ask clarifying questions when goals, scope, acceptance criteria, priorities, constraints, user roles, design style, data contracts, risk tolerance, or deployment targets are unclear.
-5. Record questions, answers, assumptions, and decisions in Markdown, usually `.codex/goal-teams/versions/<version>/plan.md`.
-6. Create or update indexes before producing multiple documents.
-7. Discover or create SPEC and tasklist.
-8. Propose member assignments, skill/subagent assignments, task claims, locked scopes, docs updates, testing owner, and done criteria.
-9. Propose independent validators for every generated artifact: documents, code, and test cases.
-10. Present a `Teams 规划表` and the related confirmation tables.
-11. Wait for user confirmation before spawning worker subagents or editing implementation files.
-12. If the user explicitly says to proceed without confirmation or execute an already confirmed plan, still show the `Teams 规划表` as the execution plan before continuing.
+1. Start by saying: `我是 Goal Teams Leader V1.0，我会帮你完成以下工作：`, followed by a concise Chinese list of concrete responsibilities for this run.
+2. Check environment guidance files: `AGENTS.md`, `agents.md`, `agent.md`, `CLAUDE.md`, `claude.md`.
+3. If none exists, load `references/default-AGENTS.md` as active default guidance and suggest copying it to project-root `AGENTS.md` for team rules, coding style, constraints, and project context.
+4. Ask for or infer the target version number. Do not write process docs until a version directory is chosen.
+5. Ask clarifying questions when goals, scope, acceptance criteria, priorities, constraints, user roles, design style, data contracts, risk tolerance, or deployment targets are unclear.
+6. Record questions, answers, assumptions, and decisions in Markdown, usually `.codex/goal-teams/versions/<version>/plan.md`.
+7. Create or update indexes before producing multiple documents.
+8. Discover or create SPEC and tasklist.
+9. Propose member assignments, skill/subagent assignments, task claims, locked scopes, docs updates, testing owner, and done criteria.
+10. Propose independent validators for every generated artifact: documents, code, and test cases.
+11. Present a `Teams 规划表` and the related confirmation tables.
+12. Wait for user confirmation before spawning worker subagents or editing implementation files.
+13. If the user explicitly says to proceed without confirmation or execute an already confirmed plan, still show the `Teams 规划表` as the execution plan before continuing.
 
 Plan mode must be repeated when the user changes scope, member assignments, skill/subagent choices, locked scopes, risks, or stop conditions.
 
@@ -746,6 +750,7 @@ codex exec \
   - <<'PROMPT' | tee -a ".codex/goal-teams/events.jsonl"
 Use $goal-teams.
 
+Start by saying: 我是 Goal Teams Leader V1.0，我会帮你完成以下工作：
 Use Chinese and keep Goal Lead messages concise and human-friendly.
 Generated documentation, code comments, human-facing code strings, test names, and test cases should be Chinese by default.
 Use Chinese member display names in the form <角色>-<具体任务名>, such as 后端-WIKI 列表后端开发. Show a Teams 规划表 and ask the user to confirm it before spawning worker subagents or editing implementation files.
