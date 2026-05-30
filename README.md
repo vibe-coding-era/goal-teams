@@ -4,7 +4,7 @@
 
 作者：肉山@TGO 杭州
 
-当前版本：`V1.0`
+当前版本：`V1.1`
 
 `goal-teams` 是一个面向 Codex 的 Goal Mode 团队化 Skill。它把一次目标执行拆成由 Goal Lead 统一协调、多个独立 subagent 分工完成的工作流，并强制使用中文沟通、SPEC 优先、Markdown 持久化、表格确认和独立测试。
 
@@ -24,7 +24,7 @@ Goal Teams 的设计目标是让每个团队成员都成为一个独立 subagent
 
 ## 关键能力
 
-- 版本身份：当前为 `Goal Teams Leader V1.0`；每次开始工作前先汇报 `我是 Goal Teams Leader V1.0，我会帮你完成以下工作：`，再列出本轮工作。
+- 版本身份：当前为 `Goal Teams Leader V1.1`；每次开始工作前先汇报 `我是 Goal Teams Leader V1.1，我会帮你完成以下工作：`，再列出本轮工作。
 - 全程中文：计划、表格、SPEC、tasklist、进度报告、成员包。
 - 中文产物：生成的文档、代码注释、面向用户的代码字符串、测试名称和测试用例描述默认使用中文。
 - 强制 Plan 模式：执行前必须先澄清、规划，列出 `Teams 规划表` 并给用户确认。
@@ -150,7 +150,7 @@ Goal Teams 的标准流程如下：
 7. 发现或创建 SPEC：基于需求规格卡补齐 PRD、Architecture Design、HTML Prototype、Test Plan、Acceptance。
 8. 发现或创建 tasklist：没有 tasklist 时自动创建 `.codex/goal-teams/versions/<version>/tasklist.md`。
 9. 拆分成员：按版本、模块、交付物、评审视角拆分。
-10. 表格确认：先展示 `Teams 规划表`，再展示环境、索引、SPEC、任务、风险、审批。
+10. 表格确认：先展示四列合并的 `Teams 规划表`，再展示环境、索引、SPEC、任务、风险、审批。
 11. 中文命名：成员展示名采用 `角色-具体任务名`，例如 `后端-WIKI 列表后端开发`、`测试-WIKI 列表验收测试`。
 12. 独立校验计划：为文档、代码、测试用例指定非作者校验者或用户指定 skill。
 13. 用户确认：确认后才开始实现或调用 worker subagents。
@@ -174,13 +174,13 @@ Goal Teams 的标准流程如下：
 
 ### Teams 规划表
 
-| 成员 | Skill/Subagent | 目标切片 | 认领任务 | 锁定范围 | 交付物 | 完成标准 | 文档/tasklist 更新 | 测试 Owner | 校验者 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 需求分析-WIKI 列表需求澄清 | `goal_requirements_analyst` | 梳理 WIKI 列表需求 | GT-001 | `.codex/goal-teams/versions/<version>/spec/` | 需求规格卡 | 用户确认目标/功能/流程/边界 | requirement-spec-card + INDEX | 评审-WIKI 列表需求校验 | 评审-WIKI 列表需求校验 |
-| 产品-WIKI 列表 PRD | `goal_product` | 生成 WIKI 列表 PRD | GT-002 | `.codex/goal-teams/versions/<version>/spec/` | PRD | 来源于已确认需求规格卡 | PRD + tasklist | 评审-WIKI 列表 PRD 校验 | 评审-WIKI 列表 PRD 校验 |
-| 后端-WIKI 列表后端开发 | `goal_backend` | 实现 WIKI 列表 API | GT-003 | `src/api/wiki/` | API 实现 | 测试通过并独立校验 | Architecture Design + tasklist | 测试-WIKI 列表验收测试 | 评审-WIKI 列表代码审查 |
-| 前端-WIKI 列表页面开发 | `goal_frontend` | 实现 WIKI 列表页面 | GT-004 | `src/ui/wiki/` | UI/原型 | 截图/E2E 通过并独立校验 | HTML Prototype + tasklist | 测试-WIKI 列表验收测试 | 评审-WIKI 列表体验审查 |
-| 测试-WIKI 列表验收测试 | `goal_qa` | 验证交付 | GT-005 | `tests/wiki/` | 测试报告 | 证据完整，测试用例被独立校验 | Test Plan + Acceptance | 测试-WIKI 列表验收测试 | 评审-WIKI 列表测试有效性 |
+| 成员 / Skill/Subagent | 任务范围 | 交付与标准 | 验证安排 |
+| --- | --- | --- | --- |
+| 成员：需求分析-WIKI 列表需求澄清<br>Skill/Subagent：`goal_requirements_analyst` | 目标切片：梳理 WIKI 列表需求<br>认领任务：GT-001<br>锁定范围：`.codex/goal-teams/versions/<version>/spec/` | 交付物：需求规格卡<br>完成标准：用户确认目标/功能/流程/边界<br>文档/tasklist：requirement-spec-card + INDEX | 测试 Owner：评审-WIKI 列表需求校验<br>校验者：评审-WIKI 列表需求校验 |
+| 成员：产品-WIKI 列表 PRD<br>Skill/Subagent：`goal_product` | 目标切片：生成 WIKI 列表 PRD<br>认领任务：GT-002<br>锁定范围：`.codex/goal-teams/versions/<version>/spec/` | 交付物：PRD<br>完成标准：来源于已确认需求规格卡<br>文档/tasklist：PRD + tasklist | 测试 Owner：评审-WIKI 列表 PRD 校验<br>校验者：评审-WIKI 列表 PRD 校验 |
+| 成员：后端-WIKI 列表后端开发<br>Skill/Subagent：`goal_backend` | 目标切片：实现 WIKI 列表 API<br>认领任务：GT-003<br>锁定范围：`src/api/wiki/` | 交付物：API 实现<br>完成标准：测试通过并独立校验<br>文档/tasklist：Architecture Design + tasklist | 测试 Owner：测试-WIKI 列表验收测试<br>校验者：评审-WIKI 列表代码审查 |
+| 成员：前端-WIKI 列表页面开发<br>Skill/Subagent：`goal_frontend` | 目标切片：实现 WIKI 列表页面<br>认领任务：GT-004<br>锁定范围：`src/ui/wiki/` | 交付物：UI/原型<br>完成标准：截图/E2E 通过并独立校验<br>文档/tasklist：HTML Prototype + tasklist | 测试 Owner：测试-WIKI 列表验收测试<br>校验者：评审-WIKI 列表体验审查 |
+| 成员：测试-WIKI 列表验收测试<br>Skill/Subagent：`goal_qa` | 目标切片：验证交付<br>认领任务：GT-005<br>锁定范围：`tests/wiki/` | 交付物：测试报告<br>完成标准：证据完整，测试用例被独立校验<br>文档/tasklist：Test Plan + Acceptance | 测试 Owner：测试-WIKI 列表验收测试<br>校验者：评审-WIKI 列表测试有效性 |
 
 ### 独立校验计划
 
@@ -245,7 +245,7 @@ cp ./subagents/goal-*.toml ~/.codex/agents/
 ```text
 Use $goal-teams。
 请为“分时租赁 V3.0”做 Goal Teams 计划。
-先汇报：我是 Goal Teams Leader V1.0，我会帮你完成以下工作：
+先汇报：我是 Goal Teams Leader V1.1，我会帮你完成以下工作：
 全程中文，先多问我澄清问题。
 过程和结果保存到 V3.0 版本目录的 Markdown。
 先生成需求规格卡，再生成 PRD。
@@ -304,7 +304,7 @@ codex exec \
   - <<'PROMPT' | tee -a ".codex/goal-teams/events.jsonl"
 Use $goal-teams。
 
-先汇报：我是 Goal Teams Leader V1.0，我会帮你完成以下工作：
+先汇报：我是 Goal Teams Leader V1.1，我会帮你完成以下工作：
 全程中文。
 Goal Lead 和用户交流要简洁、人类友好，少用专业术语。
 先检查 AGENTS.md / agent.md / CLAUDE.md / claude.md，缺失则使用 references/default-AGENTS.md 作为默认指南，并建议保存为项目根目录 AGENTS.md。
@@ -319,7 +319,7 @@ Goal Lead 和用户交流要简洁、人类友好，少用专业术语。
 再基于需求规格卡生成 PRD。
 发现或创建 SPEC：Requirement Specification Card、PRD、Architecture Design、HTML Prototype、Test Plan、Acceptance。
 如果没有 tasklist，创建 .codex/goal-teams/versions/$VERSION/tasklist.md。
-先列出 Teams 规划表，确认成员、任务认领、锁定范围、测试 owner、独立校验者和风险审批，并等待用户确认。
+先列出四列合并展示的 Teams 规划表，确认成员、任务认领、锁定范围、测试 owner、独立校验者和风险审批，并等待用户确认。
 为所有生成的文档、代码、测试用例指定独立校验者或用户指定 skill。
 确认后再执行，每个成员必须是独立 subagent。
 测试必须由独立 QA 或测试 skill/subagent 完成。

@@ -30,14 +30,14 @@
 
 ## Teams 规划表
 
-| 成员 | Skill/Subagent | 目标切片 | 认领任务 | 锁定范围 | 交付物 | 完成标准 | 文档/tasklist 更新 | 测试 Owner | 校验者 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 需求分析-登录页空状态需求澄清 | `goal_requirements_analyst` | 梳理登录页空状态需求 | GT-001 | `spec/` | 需求规格卡 | 目标、流程、边界清楚 | requirement-spec-card | 评审-登录页空状态文档校验 | 评审-登录页空状态文档校验 |
-| 产品-登录页空状态 PRD | `goal_product` | 生成登录页空状态 PRD | GT-002 | `spec/` | PRD | 来源于需求规格卡 | PRD | 评审-登录页空状态文档校验 | 评审-登录页空状态文档校验 |
-| 前端-登录页空状态 HTML 原型 | `goal_frontend` | 登录页空状态原型 | GT-003 | `spec/HTML-prototype.html` | HTML 原型 | 能表达空状态 | HTML Prototype | 测试-登录页空状态验收测试 | 评审-登录页空状态文档校验 |
-| 测试-登录页空状态验收测试 | `goal_qa` | 登录页空状态测试计划 | GT-004 | `spec/test-plan.md` | 测试计划 | 覆盖文案和流程 | test-plan | 测试-登录页空状态验收测试 | 评审-登录页空状态测试有效性 |
-| 文档-登录页空状态验收文档 | `goal_docs` | 登录页空状态收口文档 | GT-005 | `spec/acceptance.md` | 验收清单 | 证据完整 | acceptance | 评审-登录页空状态文档校验 | 评审-登录页空状态文档校验 |
-| 评审-登录页空状态文档校验 | `goal_reviewer` | 独立校验登录页空状态文档 | GT-006 | 只读 | 校验记录 | 非作者校验通过 | progress | 不适用 | 不适用 |
+| 成员 / Skill/Subagent | 任务范围 | 交付与标准 | 验证安排 |
+| --- | --- | --- | --- |
+| 成员：需求分析-登录页空状态需求澄清<br>Skill/Subagent：`goal_requirements_analyst` | 目标切片：梳理登录页空状态需求<br>认领任务：GT-001<br>锁定范围：`spec/` | 交付物：需求规格卡<br>完成标准：目标、流程、边界清楚<br>文档/tasklist：requirement-spec-card | 测试 Owner：评审-登录页空状态文档校验<br>校验者：评审-登录页空状态文档校验 |
+| 成员：产品-登录页空状态 PRD<br>Skill/Subagent：`goal_product` | 目标切片：生成登录页空状态 PRD<br>认领任务：GT-002<br>锁定范围：`spec/` | 交付物：PRD<br>完成标准：来源于需求规格卡<br>文档/tasklist：PRD | 测试 Owner：评审-登录页空状态文档校验<br>校验者：评审-登录页空状态文档校验 |
+| 成员：前端-登录页空状态 HTML 原型<br>Skill/Subagent：`goal_frontend` | 目标切片：登录页空状态原型<br>认领任务：GT-003<br>锁定范围：`spec/HTML-prototype.html` | 交付物：HTML 原型<br>完成标准：能表达空状态<br>文档/tasklist：HTML Prototype | 测试 Owner：测试-登录页空状态验收测试<br>校验者：评审-登录页空状态文档校验 |
+| 成员：测试-登录页空状态验收测试<br>Skill/Subagent：`goal_qa` | 目标切片：登录页空状态测试计划<br>认领任务：GT-004<br>锁定范围：`spec/test-plan.md` | 交付物：测试计划<br>完成标准：覆盖文案和流程<br>文档/tasklist：test-plan | 测试 Owner：测试-登录页空状态验收测试<br>校验者：评审-登录页空状态测试有效性 |
+| 成员：文档-登录页空状态验收文档<br>Skill/Subagent：`goal_docs` | 目标切片：登录页空状态收口文档<br>认领任务：GT-005<br>锁定范围：`spec/acceptance.md` | 交付物：验收清单<br>完成标准：证据完整<br>文档/tasklist：acceptance | 测试 Owner：评审-登录页空状态文档校验<br>校验者：评审-登录页空状态文档校验 |
+| 成员：评审-登录页空状态文档校验<br>Skill/Subagent：`goal_reviewer` | 目标切片：独立校验登录页空状态文档<br>认领任务：GT-006<br>锁定范围：只读 | 交付物：校验记录<br>完成标准：非作者校验通过<br>文档/tasklist：progress | 测试 Owner：不适用<br>校验者：不适用 |
 
 ## 风险与审批
 

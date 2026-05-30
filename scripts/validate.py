@@ -56,11 +56,15 @@ EXPECTED_SUBAGENTS = {
 }
 
 KEY_RULES = [
-    "Goal Teams Leader V1.0",
-    "我是 Goal Teams Leader V1.0，我会帮你完成以下工作：",
+    "Goal Teams Leader V1.1",
+    "我是 Goal Teams Leader V1.1，我会帮你完成以下工作：",
     "Requirement Specification Card",
     "references/default-AGENTS.md",
     "Teams 规划表",
+    "成员 / Skill/Subagent",
+    "任务范围",
+    "交付与标准",
+    "验证安排",
     "后端-WIKI 列表后端开发",
     "独立校验",
     "中文",
@@ -105,8 +109,8 @@ def check_required_files() -> None:
 def check_skill_frontmatter() -> None:
     skill = read("SKILL.md")
     version = read("VERSION").strip()
-    if version != "V1.0":
-        fail(f"VERSION should be V1.0, got {version!r}")
+    if version != "V1.1":
+        fail(f"VERSION should be V1.1, got {version!r}")
     match = re.match(r"^---\n(?P<body>.*?)\n---\n", skill, flags=re.S)
     if not match:
         fail("SKILL.md must start with YAML frontmatter")
@@ -152,7 +156,7 @@ def check_readmes() -> None:
 
 
 def check_key_rules() -> None:
-    startup_line = "我是 Goal Teams Leader V1.0，我会帮你完成以下工作："
+    startup_line = "我是 Goal Teams Leader V1.1，我会帮你完成以下工作："
     combined = "\n".join(
         read(path)
         for path in [
@@ -173,7 +177,14 @@ def check_key_rules() -> None:
     for path in ["SKILL.md", "references/goal-teams-runtime.md", "agents/openai.yaml", "README.md", "README.en.md", "goal-teams.md"]:
         if startup_line not in read(path):
             fail(f"Startup line missing from {path}")
-    stale_examples = ["需求分析-规格卡", "产品-PRD", "前端-订单页面", "测试-验收证据"]
+    stale_examples = [
+        "需求分析-规格卡",
+        "产品-PRD",
+        "前端-订单页面",
+        "测试-验收证据",
+        "| Member | Skill/Subagent | Goal Slice | Claimed Tasks | Locked Scope | Deliverable | Done Criteria | Docs/Tasklist Updates | Test Owner | Validator |",
+        "| 成员 | Skill/Subagent | 目标切片 | 认领任务 | 锁定范围 | 交付物 | 完成标准 | 文档/tasklist 更新 | 测试 Owner | 校验者 |",
+    ]
     for stale in stale_examples:
         if stale in combined:
             fail(f"Stale generic member-name example found: {stale}")

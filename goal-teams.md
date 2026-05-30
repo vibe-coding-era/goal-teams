@@ -4,8 +4,8 @@
 
 ## 基本原则
 
-- 当前 skill 版本号为 `V1.0`，版本号保存在仓库根目录 `VERSION`，并同步写入 `SKILL.md` frontmatter。
-- 每次开始 Goal Teams 工作前，Goal Lead 必须先汇报：`我是 Goal Teams Leader V1.0，我会帮你完成以下工作：`，然后用简短中文列表说明本轮会处理的具体事项。
+- 当前 skill 版本号为 `V1.1`，版本号保存在仓库根目录 `VERSION`，并同步写入 `SKILL.md` frontmatter。
+- 每次开始 Goal Teams 工作前，Goal Lead 必须先汇报：`我是 Goal Teams Leader V1.1，我会帮你完成以下工作：`，然后用简短中文列表说明本轮会处理的具体事项。
 - 默认全程中文：计划、表格、SPEC、tasklist、进度、成员包、总结都用中文；命令、路径、代码标识、API 名称保持原文。
 - 生成的内容全部使用中文，包括文档、代码注释、面向用户的代码字符串、测试名称、测试说明和测试用例描述；技术标识、命令、路径、API 名称、日志原文可保持原文。
 - Goal Lead 和用户交流要人类友好、简约，少用特别专业的名词。
@@ -77,7 +77,7 @@
 
 - 用户可以指定某个成员使用其他 skill、plugin、自定义 subagent 或内置 subagent。
 - 团队成员展示名称使用中文，必须采用“角色 + 具体任务名”的 `<角色>-<任务名>` 格式，例如 `后端-WIKI 列表后端开发`、`前端-WIKI 列表页面开发`、`测试-WIKI 列表验收测试`。
-- 启动 worker subagents 或修改实现文件前，Goal Lead 必须先列出 `Teams 规划表`，包含成员、Skill/Subagent、目标切片、认领任务、锁定范围、交付物、完成标准、文档/tasklist 更新、测试 owner 和校验者，并等待用户确认。
+- 启动 worker subagents 或修改实现文件前，Goal Lead 必须先列出 `Teams 规划表` 并等待用户确认；表格显示为四列：成员 / Skill/Subagent、任务范围（目标切片、认领任务、锁定范围）、交付与标准（交付物、完成标准、文档/tasklist 更新）、验证安排（测试 owner、校验者）。
 - 执行过程使用表格反馈。
 - 开发过程按 `tasklist.md`。
 - 测试必须是独立的 subagent 或 skill，不能由实现者作为唯一测试者。

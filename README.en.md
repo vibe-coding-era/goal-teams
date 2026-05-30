@@ -4,7 +4,7 @@
 
 Author: 肉山@TGO Hangzhou
 
-Current version: `V1.0`
+Current version: `V1.1`
 
 `goal-teams` is a Codex Skill for running Goal Mode as a coordinated team of independent subagents. It combines ideas from Claude Code Agent Teams with Codex Goal Mode, and enforces Plan Mode, Chinese-first execution, SPEC-first delivery, Markdown persistence, table-based confirmation, and independent testing.
 
@@ -22,7 +22,7 @@ Goal Teams makes each team member an independent subagent, instead of treating r
 
 ## Key Capabilities
 
-- Version identity: current identity is `Goal Teams Leader V1.0`; every run starts with `我是 Goal Teams Leader V1.0，我会帮你完成以下工作：`, followed by the concrete work items for that run.
+- Version identity: current identity is `Goal Teams Leader V1.1`; every run starts with `我是 Goal Teams Leader V1.1，我会帮你完成以下工作：`, followed by the concrete work items for that run.
 - Chinese-first execution: plans, tables, SPEC files, tasklists, progress reports, and member packets default to Chinese.
 - Chinese-generated artifacts: generated docs, code comments, human-facing code strings, test names, and test case descriptions default to Chinese.
 - Mandatory Plan Mode: clarify, plan, show a `Teams 规划表`, and ask the user to confirm before implementation.
@@ -151,7 +151,7 @@ Use goal_reviewer for read-only security review.
 7. Create or update SPEC docs from the approved card: PRD, Architecture Design, HTML Prototype, Test Plan, Acceptance.
 8. Discover or create `.codex/goal-teams/versions/<version>/tasklist.md`.
 9. Split members by version, module, deliverable, or review lens.
-10. Show a `Teams 规划表` first, then confirm environment, indexes, SPEC readiness, tasks, risks, and approvals in tables.
+10. Show a four-column `Teams 规划表` first, then confirm environment, indexes, SPEC readiness, tasks, risks, and approvals in tables.
 11. Use Chinese display names with role + concrete task name, such as `后端-WIKI 列表后端开发` or `测试-WIKI 列表验收测试`.
 12. Assign independent validators for generated docs, code, and test cases.
 13. Wait for user confirmation before implementation or worker subagents.
@@ -175,13 +175,13 @@ Use goal_reviewer for read-only security review.
 
 ### Teams 规划表
 
-| Member | Skill/Subagent | Goal Slice | Claimed Tasks | Locked Scope | Deliverable | Done Criteria | Docs/Tasklist Updates | Test Owner | Validator |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 需求分析-WIKI 列表需求澄清 | `goal_requirements_analyst` | Clarify WIKI list requirements | GT-001 | `.codex/goal-teams/versions/<version>/spec/` | Requirement Specification Card | User confirms goals, functions, flow, boundaries | requirement-spec-card + INDEX | 评审-WIKI 列表需求校验 | 评审-WIKI 列表需求校验 |
-| 产品-WIKI 列表 PRD | `goal_product` | Generate WIKI list PRD | GT-002 | `.codex/goal-teams/versions/<version>/spec/` | PRD | Based on approved card | PRD + tasklist | 评审-WIKI 列表 PRD 校验 | 评审-WIKI 列表 PRD 校验 |
-| 后端-WIKI 列表后端开发 | `goal_backend` | Implement WIKI list API | GT-003 | `src/api/wiki/` | API implementation | Tests pass and independent validation is recorded | Architecture Design + tasklist | 测试-WIKI 列表验收测试 | 评审-WIKI 列表代码审查 |
-| 前端-WIKI 列表页面开发 | `goal_frontend` | Implement WIKI list UI | GT-004 | `src/ui/wiki/` | UI/prototype | Screenshot/E2E evidence and independent validation | HTML Prototype + tasklist | 测试-WIKI 列表验收测试 | 评审-WIKI 列表体验审查 |
-| 测试-WIKI 列表验收测试 | `goal_qa` | Verify delivery | GT-005 | `tests/wiki/` | Test report | Evidence complete and test cases independently validated | Test Plan + Acceptance | 测试-WIKI 列表验收测试 | 评审-WIKI 列表测试有效性 |
+| 成员 / Skill/Subagent | Scope | Delivery / Criteria | Verification |
+| --- | --- | --- | --- |
+| Member: 需求分析-WIKI 列表需求澄清<br>Skill/Subagent: `goal_requirements_analyst` | Goal slice: Clarify WIKI list requirements<br>Claimed tasks: GT-001<br>Locked scope: `.codex/goal-teams/versions/<version>/spec/` | Deliverable: Requirement Specification Card<br>Done criteria: user confirms goals, functions, flow, boundaries<br>Docs/tasklist: requirement-spec-card + INDEX | Test owner: 评审-WIKI 列表需求校验<br>Validator: 评审-WIKI 列表需求校验 |
+| Member: 产品-WIKI 列表 PRD<br>Skill/Subagent: `goal_product` | Goal slice: Generate WIKI list PRD<br>Claimed tasks: GT-002<br>Locked scope: `.codex/goal-teams/versions/<version>/spec/` | Deliverable: PRD<br>Done criteria: based on approved card<br>Docs/tasklist: PRD + tasklist | Test owner: 评审-WIKI 列表 PRD 校验<br>Validator: 评审-WIKI 列表 PRD 校验 |
+| Member: 后端-WIKI 列表后端开发<br>Skill/Subagent: `goal_backend` | Goal slice: Implement WIKI list API<br>Claimed tasks: GT-003<br>Locked scope: `src/api/wiki/` | Deliverable: API implementation<br>Done criteria: tests pass and independent validation is recorded<br>Docs/tasklist: Architecture Design + tasklist | Test owner: 测试-WIKI 列表验收测试<br>Validator: 评审-WIKI 列表代码审查 |
+| Member: 前端-WIKI 列表页面开发<br>Skill/Subagent: `goal_frontend` | Goal slice: Implement WIKI list UI<br>Claimed tasks: GT-004<br>Locked scope: `src/ui/wiki/` | Deliverable: UI/prototype<br>Done criteria: screenshot/E2E evidence and independent validation<br>Docs/tasklist: HTML Prototype + tasklist | Test owner: 测试-WIKI 列表验收测试<br>Validator: 评审-WIKI 列表体验审查 |
+| Member: 测试-WIKI 列表验收测试<br>Skill/Subagent: `goal_qa` | Goal slice: Verify delivery<br>Claimed tasks: GT-005<br>Locked scope: `tests/wiki/` | Deliverable: Test report<br>Done criteria: evidence complete and test cases independently validated<br>Docs/tasklist: Test Plan + Acceptance | Test owner: 测试-WIKI 列表验收测试<br>Validator: 评审-WIKI 列表测试有效性 |
 
 ### Independent Validation Plan
 
@@ -246,7 +246,7 @@ The validation script checks required files, Skill frontmatter, subagent TOML, R
 ```text
 Use $goal-teams.
 Create a Goal Teams plan for "Car Sharing V3.0".
-Start by saying: 我是 Goal Teams Leader V1.0，我会帮你完成以下工作：
+Start by saying: 我是 Goal Teams Leader V1.1，我会帮你完成以下工作：
 Use Chinese throughout.
 Ask me clarification questions first.
 Save process and results to the V3.0 version directory.
@@ -305,7 +305,7 @@ codex exec \
   - <<'PROMPT' | tee -a ".codex/goal-teams/events.jsonl"
 Use $goal-teams.
 
-Start by saying: 我是 Goal Teams Leader V1.0，我会帮你完成以下工作：
+Start by saying: 我是 Goal Teams Leader V1.1，我会帮你完成以下工作：
 Use Chinese.
 Keep Goal Lead communication concise and human-friendly.
 Check AGENTS.md / agent.md / CLAUDE.md / claude.md. If none exists, use references/default-AGENTS.md as default guidance and suggest saving it as project-root AGENTS.md.
@@ -320,7 +320,7 @@ First create a Requirement Specification Card of no more than two pages.
 Then generate PRD from that card.
 Discover or create SPEC docs: Requirement Specification Card, PRD, Architecture Design, HTML Prototype, Test Plan, Acceptance.
 If no tasklist exists, create .codex/goal-teams/versions/$VERSION/tasklist.md.
-First show a Teams 规划表, confirm members, task claims, locked scopes, testing owner, independent validator, and risk approvals, then wait for user confirmation.
+First show a four-column Teams 规划表, confirm members, task claims, locked scopes, testing owner, independent validator, and risk approvals, then wait for user confirmation.
 Assign an independent validator or user-selected skill for every generated document, code change, and test case.
 After confirmation, run each team member as an independent subagent.
 Testing must be handled by independent QA or a testing skill/subagent.

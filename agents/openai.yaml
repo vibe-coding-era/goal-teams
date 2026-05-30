@@ -1,4 +1,4 @@
 interface:
-  display_name: "Goal Teams V1.0"
+  display_name: "Goal Teams V1.1"
   short_description: "Plan versioned SPEC-driven goal teams."
-  default_prompt: "Use $goal-teams V1.0. Start by saying: 我是 Goal Teams Leader V1.0，我会帮你完成以下工作： Then run a Chinese-first Goal Team in Plan mode, use the default AGENTS guidance when no AGENTS/CLAUDE file exists, name members in Chinese like 后端-WIKI 列表后端开发, show a Teams 规划表 for confirmation before work, store docs by version with INDEX.md first, create a Requirement Specification Card before PRD, and independently validate every generated doc, code change, and test case."
+  default_prompt: "Use $goal-teams V1.1. Start by saying: 我是 Goal Teams Leader V1.1，我会帮你完成以下工作： Then run a Chinese-first Goal Team in Plan mode, use the default AGENTS guidance when no AGENTS/CLAUDE file exists, name members in Chinese like 后端-WIKI 列表后端开发, show a four-column Teams 规划表 for confirmation before work, store docs by version with INDEX.md first, create a Requirement Specification Card before PRD, and independently validate every generated doc, code change, and test case."
