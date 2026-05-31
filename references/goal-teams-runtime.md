@@ -2,7 +2,7 @@
 
 This reference defines a project-agnostic Goal Teams runtime. It does not assume a business domain or an existing tasklist.
 
-Current Skill version: `V1.1`. Keep it aligned with the repository `VERSION` file and `SKILL.md` frontmatter.
+Current Skill version: `V1.2`. Keep it aligned with the repository `VERSION` file and `SKILL.md` frontmatter.
 
 ## Runtime Shape
 
@@ -10,7 +10,7 @@ Goal Teams = Goal Lead + independent subagent members.
 
 ```text
 Goal Lead
-  - identifies itself at the start of every run as: 我是 Goal Teams Leader V1.1，我会帮你完成以下工作：
+  - identifies itself at the start of every run as: 我是 Goal Teams Leader V1.2，我会帮你完成以下工作：
   - communicates in Chinese by default
   - communicates with the user in a friendly, concise, non-jargony style
   - ensures generated docs, code comments, test names, and test cases are Chinese by default
@@ -32,6 +32,8 @@ Goal Lead
   - routes messages and blockers
   - integrates outputs
   - verifies completion
+  - spawns a fresh goal_completion_auditor after apparent completion
+  - automatically starts continuation Goal Teams cycles for unfinished work inside the confirmed scope without asking the user again
 
 Subagent Member
   - receives one Member Goal Packet
@@ -44,6 +46,12 @@ Subagent Member
   - executes its own goal loop
   - reports complete / blocked / incomplete
   - does not self-approve its generated artifacts
+
+Completion Auditor
+  - runs as a fresh read-only subagent after all planned tasks appear done, deferred, or blocked
+  - checks tasklist, progress, acceptance, tests, docs, validation evidence, unresolved blockers, and remaining risks
+  - reports complete, auto-continue gaps, or blocked/user-decision gaps
+  - never edits files or starts nested teams
 ```
 
 Every member is an independent subagent. Roles are responsibility boundaries; task claims and goal packets are execution granularity.
@@ -54,7 +62,7 @@ Exception: when the user explicitly asks to use `openspec` or `superpower`, Goal
 
 Goal Teams always starts in Plan mode:
 
-1. Start by saying: `我是 Goal Teams Leader V1.1，我会帮你完成以下工作：`, followed by a concise Chinese list of concrete responsibilities for this run.
+1. Start by saying: `我是 Goal Teams Leader V1.2，我会帮你完成以下工作：`, followed by a concise Chinese list of concrete responsibilities for this run.
 2. Check environment guidance files: `AGENTS.md`, `agents.md`, `agent.md`, `CLAUDE.md`, `claude.md`.
 3. If none exists, load `references/default-AGENTS.md` as active default guidance and suggest copying it to project-root `AGENTS.md` for team rules, coding style, constraints, and project context.
 4. Ask for or infer the target version number. Do not write process docs until a version directory is chosen.
@@ -733,6 +741,62 @@ Review Checklist:
 
 Continue the loop until complete or blocked.
 
+## Completion Audit And Auto-Continuation
+
+After every apparent completion, Goal Lead must run a final audit before sending the final response.
+
+Use a new `goal_completion_auditor` subagent with a read-only packet:
+
+```text
+Completion Audit Packet:
+- display_name: 收尾-WIKI 列表未完成工作检查
+- skill_or_subagent: goal_completion_auditor
+- version:
+- confirmed_goal:
+- confirmed_scope:
+- tasklist_path:
+- progress_path:
+- acceptance_path:
+- spec_paths:
+- test_evidence:
+- validation_evidence:
+- audit_scope:
+  - task status
+  - done criteria
+  - docs/SPEC updates
+  - independent validation evidence
+  - tests and acceptance evidence
+  - unresolved blockers
+  - remaining risks
+- output_contract:
+  - audit verdict: complete | auto_continue | blocked_needs_user
+  - unfinished items
+  - evidence
+  - recommended continuation tasks
+  - recommended members/subagents
+  - locked scopes
+  - stop conditions
+```
+
+Auditor verdict handling:
+
+| Verdict | Lead Action |
+| --- | --- |
+| `complete` | Send the final completion response. |
+| `auto_continue` | Convert unfinished items into tasklist entries, show a continuation `Teams 规划表` as the execution record, then spawn the needed Goal Teams members without asking the user for confirmation. |
+| `blocked_needs_user` | Record blocker/decision in `decisions.md` or `progress.md`, explain why auto-continuation is unsafe, and ask the user for the missing decision or approval. |
+
+Auto-continuation is allowed only for unfinished work inside the already confirmed goal scope. Do not auto-continue into new scope, destructive writes, security-sensitive work, missing credentials, external approvals, or unresolved user decisions.
+
+For every auto-continuation cycle:
+
+1. Append an event such as `completion_audit_started`, `completion_audit_finished`, and `auto_continuation_started`.
+2. Update tasklist/progress with continuation task IDs and owners.
+3. Show the four-column continuation `Teams 规划表`.
+4. Spawn the required members concurrently where scopes do not conflict.
+5. Run independent testing and validation as usual.
+6. Repeat the completion audit after the continuation finishes.
+
 ## CLI Bridge
 
 The dashboard should not execute shell commands directly. Use a local bridge if needed.
@@ -752,7 +816,7 @@ codex exec \
   - <<'PROMPT' | tee -a ".codex/goal-teams/events.jsonl"
 Use $goal-teams.
 
-Start by saying: 我是 Goal Teams Leader V1.1，我会帮你完成以下工作：
+Start by saying: 我是 Goal Teams Leader V1.2，我会帮你完成以下工作：
 Use Chinese and keep Goal Lead messages concise and human-friendly.
 Generated documentation, code comments, human-facing code strings, test names, and test cases should be Chinese by default.
 Use Chinese member display names in the form <角色>-<具体任务名>, such as 后端-WIKI 列表后端开发. Show a four-column Teams 规划表 using merged display columns for member/skill, task scope, delivery/criteria, and verification, then ask the user to confirm it before spawning worker subagents or editing implementation files.
@@ -771,6 +835,7 @@ Show SPEC readiness, the four-column Teams 规划表, tasklist execution, indepe
 After confirmation, spawn each team member as a separate subagent.
 Coordinate through team-state.json, events.jsonl, messages.jsonl, and doc-capsules.jsonl.
 Run until every claimed task is done, deferred, or blocked with a documented reason.
+After apparent completion, spawn goal_completion_auditor to check unfinished work. If it finds unfinished work inside the confirmed scope, create continuation tasks and restart Goal Teams members concurrently without asking the user for confirmation. Ask the user only for new scope, risky/destructive work, credentials, external approvals, or unresolved decisions.
 PROMPT
 ```
 
@@ -801,6 +866,9 @@ codex exec \
 - Require lead approval for auth, payment, refund, migrations, destructive writes, security-sensitive integrations, or broad API changes.
 - Keep `max_depth = 1`; members do not spawn nested teams.
 - Keep team size around 3-6 concurrent members unless the user explicitly wants more.
+- Do not send a final completion response before a fresh `goal_completion_auditor` audit.
+- Do not ask the user to confirm auto-continuation for unfinished work inside the already confirmed goal scope; show the continuation plan and execute it.
+- Do ask the user when the audit exposes new scope, destructive or security-sensitive work, missing credentials, external approvals, or unresolved decisions.
 
 ## Completion Response
 

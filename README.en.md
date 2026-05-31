@@ -4,7 +4,7 @@
 
 Author: 肉山@TGO Hangzhou
 
-Current version: `V1.1`
+Current version: `V1.2`
 
 `goal-teams` is a Codex Skill for running Goal Mode as a coordinated team of independent subagents. It combines ideas from Claude Code Agent Teams with Codex Goal Mode, and enforces Plan Mode, Chinese-first execution, SPEC-first delivery, Markdown persistence, table-based confirmation, and independent testing.
 
@@ -22,7 +22,7 @@ Goal Teams makes each team member an independent subagent, instead of treating r
 
 ## Key Capabilities
 
-- Version identity: current identity is `Goal Teams Leader V1.1`; every run starts with `我是 Goal Teams Leader V1.1，我会帮你完成以下工作：`, followed by the concrete work items for that run.
+- Version identity: current identity is `Goal Teams Leader V1.2`; every run starts with `我是 Goal Teams Leader V1.2，我会帮你完成以下工作：`, followed by the concrete work items for that run.
 - Chinese-first execution: plans, tables, SPEC files, tasklists, progress reports, and member packets default to Chinese.
 - Chinese-generated artifacts: generated docs, code comments, human-facing code strings, test names, and test case descriptions default to Chinese.
 - Mandatory Plan Mode: clarify, plan, show a `Teams 规划表`, and ask the user to confirm before implementation.
@@ -41,6 +41,7 @@ Goal Teams makes each team member an independent subagent, instead of treating r
 - Table-based progress feedback: progress, blockers, risks, and closeout evidence are reported in tables.
 - Independent testing: implementation owners cannot be the only testers.
 - Independent validation: every generated document, code change, and test case must be checked by an independent subagent or user-selected skill.
+- Completion audit and auto-continuation: after apparent completion, a fresh `goal_completion_auditor` checks unfinished work; if remaining work is still inside the confirmed goal scope, Goal Teams restarts concurrent members automatically without asking the user to confirm again.
 - Version-lane parallelism: work can be split by version, module, deliverable, or review lens.
 
 ## Repository Layout
@@ -64,6 +65,7 @@ goal-teams/
     goal-qa.toml
     goal-docs.toml
     goal-reviewer.toml
+    goal-completion-auditor.toml
 ```
 
 The root-level `goal-teams.md` records long-term user requirements for this Skill.
@@ -117,7 +119,7 @@ If the project already has `design.md`, Goal Teams reads it first and mirrors it
 
 ## Default Subagents
 
-This repository provides seven recommended subagents:
+This repository provides eight recommended subagents:
 
 | Subagent | Role | Typical Responsibility |
 | --- | --- | --- |
@@ -128,6 +130,7 @@ This repository provides seven recommended subagents:
 | `goal_qa` | QA | Independent testing, integration tests, acceptance evidence, test reports |
 | `goal_docs` | Documentation | Tasklist, acceptance docs, README, reports, release notes |
 | `goal_reviewer` | Reviewer | Read-only review, architecture boundaries, safety, coverage, compatibility, risks |
+| `goal_completion_auditor` | Completion auditor | Post-completion unfinished-work audit, missing evidence checks, remaining risks, and auto-continuation tasks |
 
 The user can also assign a specific member to another skill or subagent:
 
@@ -159,6 +162,8 @@ Use goal_reviewer for read-only security review.
 15. Persist progress, blockers, decisions, and results in versioned Markdown.
 16. Verify with independent QA, reviewer, or a user-selected validation skill/subagent.
 17. Integrate outputs and close the tasklist, SPEC, progress, and acceptance docs.
+18. Start a fresh `goal_completion_auditor` to check unfinished work.
+19. If remaining work is still inside the confirmed scope, show a continuation `Teams 规划表` and execute it concurrently without waiting for user confirmation. If the audit finds new scope or risky decisions, record the blocker and ask the user.
 
 ## Confirmation Table Examples
 
@@ -246,7 +251,7 @@ The validation script checks required files, Skill frontmatter, subagent TOML, R
 ```text
 Use $goal-teams.
 Create a Goal Teams plan for "Car Sharing V3.0".
-Start by saying: 我是 Goal Teams Leader V1.1，我会帮你完成以下工作：
+Start by saying: 我是 Goal Teams Leader V1.2，我会帮你完成以下工作：
 Use Chinese throughout.
 Ask me clarification questions first.
 Save process and results to the V3.0 version directory.
@@ -305,7 +310,7 @@ codex exec \
   - <<'PROMPT' | tee -a ".codex/goal-teams/events.jsonl"
 Use $goal-teams.
 
-Start by saying: 我是 Goal Teams Leader V1.1，我会帮你完成以下工作：
+Start by saying: 我是 Goal Teams Leader V1.2，我会帮你完成以下工作：
 Use Chinese.
 Keep Goal Lead communication concise and human-friendly.
 Check AGENTS.md / agent.md / CLAUDE.md / claude.md. If none exists, use references/default-AGENTS.md as default guidance and suggest saving it as project-root AGENTS.md.
@@ -323,6 +328,7 @@ If no tasklist exists, create .codex/goal-teams/versions/$VERSION/tasklist.md.
 First show a four-column Teams 规划表, confirm members, task claims, locked scopes, testing owner, independent validator, and risk approvals, then wait for user confirmation.
 Assign an independent validator or user-selected skill for every generated document, code change, and test case.
 After confirmation, run each team member as an independent subagent.
+After apparent completion, start goal_completion_auditor to check unfinished work; if remaining work is still inside the confirmed goal scope, create continuation tasks and run members concurrently without waiting for another user confirmation.
 Testing must be handled by independent QA or a testing skill/subagent.
 PROMPT
 ```
@@ -349,6 +355,7 @@ codex exec \
 | Persistence | Case by case | Versioned Markdown-first |
 | Testing | May be done by implementer | Must be independent |
 | Validation | Optional | Docs, code, and test cases require independent validation |
+| Closeout | Optional | `goal_completion_auditor` audits apparent completion and triggers auto-continuation when needed |
 | Feedback | Flexible | Progress and results in tables |
 | Best for | Research, analysis, coordination | Requirement-to-delivery workflow |
 
@@ -381,11 +388,13 @@ codex exec \
 - Store process and result documents inside the version directory.
 - Complete the Requirement Specification Card before PRD unless the user explicitly skips it.
 - Independently validate every generated document, code change, and test case with a separate subagent or user-selected skill.
+- Before final completion, run a fresh read-only `goal_completion_auditor`.
+- Auto-continue unfinished work inside the already confirmed goal scope without waiting for another user confirmation.
 - Do not let multiple members edit shared core modules concurrently.
 - Do not skip applicability checks for Requirement Specification Card, PRD, Architecture Design, HTML Prototype, Test Plan, and Acceptance.
 - Do not let the implementer be the only tester.
 - Do not allow nested teams; keep `max_depth = 1`.
-- Require Goal Lead and user confirmation for auth, payment, refund, migrations, destructive writes, security-sensitive integrations, or broad API changes.
+- Require Goal Lead and user confirmation for new scope, auth, payment, refund, migrations, destructive writes, security-sensitive integrations, or broad API changes.
 
 ## Release Contents
 
@@ -396,7 +405,7 @@ This repository includes:
 - `agents/openai.yaml`: Codex UI metadata.
 - `references/goal-teams-runtime.md`: runtime protocol, templates, CLI examples.
 - `references/default-AGENTS.md`: default Chinese AGENTS guidance used when a project has no guidance file.
-- `subagents/goal-*.toml`: seven recommended member subagent configs.
+- `subagents/goal-*.toml`: eight recommended member subagent configs.
 - `goal-teams.md`: long-term user-specified requirements for maintaining this Skill.
 - `AGENTS.md`: repository maintenance guidance.
 - `scripts/check.sh`: one-command validation entry point.

@@ -1,7 +1,7 @@
 ---
 name: goal-teams
-version: V1.1
-description: Run Codex Goal Mode as a coordinated team of independent subagents for any project. Use when the user asks for Goal Teams, goal-mode teams, multi-agent goal execution, version/module goals, versioned document directories, document indexes, default AGENTS guidance, Chinese-generated artifacts, role-plus-task Chinese member names, Teams planning table confirmation before execution, independent validation of docs/code/tests, requirement analysis, requirement specification cards, goal packets, Chinese-first team execution, Markdown persistence for process/results, planning-stage clarification questions, SPEC-driven execution, PRD, architecture design, HTML prototypes, tasklist creation, member task claiming, confirmation tables, progress tables, progressive document loading, Doc Capsules, or when combining Codex Goal Mode with Agent Teams so every team member runs as its own subagent.
+version: V1.2
+description: Run Codex Goal Mode as a coordinated team of independent subagents for any project. Use when the user asks for Goal Teams, goal-mode teams, multi-agent goal execution, version/module goals, versioned document directories, document indexes, default AGENTS guidance, Chinese-generated artifacts, role-plus-task Chinese member names, Teams planning table confirmation before execution, independent validation of docs/code/tests, post-completion unfinished-work audits, automatic continuation cycles, requirement analysis, requirement specification cards, goal packets, Chinese-first team execution, Markdown persistence for process/results, planning-stage clarification questions, SPEC-driven execution, PRD, architecture design, HTML prototypes, tasklist creation, member task claiming, confirmation tables, progress tables, progressive document loading, Doc Capsules, or when combining Codex Goal Mode with Agent Teams so every team member runs as its own subagent.
 ---
 
 # Goal Teams
@@ -10,29 +10,30 @@ Use this skill when a user wants Goal Mode execution with Agent Teams. The curre
 
 For detailed schemas, generic tasklist templates, confirmation tables, and CLI bridge examples, read `references/goal-teams-runtime.md`.
 
-Current Skill version: `V1.1`. Keep this value aligned with the repository `VERSION` file.
+Current Skill version: `V1.2`. Keep this value aligned with the repository `VERSION` file.
 
 ## Core Model
 
 - The current Codex session is the Goal Lead. It plans, proposes, confirms, assigns, coordinates, integrates, verifies, and summarizes.
 - The Goal Lead communicates with the user in a human-friendly, concise style. Prefer plain words, short explanations, and clear options. Avoid unnecessary specialist vocabulary unless the user asks for detail.
-- At the start of every Goal Teams run, before asking clarification questions, writing process docs, spawning subagents, or editing files, report identity and scope with this exact opening line: `我是 Goal Teams Leader V1.1，我会帮你完成以下工作：`. Then list the concrete work items you will handle in concise Chinese.
+- At the start of every Goal Teams run, before asking clarification questions, writing process docs, spawning subagents, or editing files, report identity and scope with this exact opening line: `我是 Goal Teams Leader V1.2，我会帮你完成以下工作：`. Then list the concrete work items you will handle in concise Chinese.
 - Use Chinese throughout by default, including plans, tables, tasklists, SPEC docs, progress reports, subagent packets, final summaries, generated documentation, code comments, test names, test cases, and human-facing code strings. Keep code identifiers, commands, file paths, API names, logs, and quoted source text in their original language when needed.
 - Every team member must be a separate subagent. Do not simulate team members only as sections inside the lead response when the user asks for Goal Teams.
 - Use Chinese human-readable team member names in plans, packets, progress tables, and dashboard state. Names must combine role + concrete task name in the pattern `<角色>-<任务名>`, such as `后端-WIKI 列表后端开发`, `前端-WIKI 列表页面开发`, `测试-WIKI 列表验收测试`, or `需求分析-WIKI 列表需求澄清`. Avoid role-only or generic names such as `后端` or `后端-接口联调` when a concrete task is known. Keep technical subagent config IDs stable when needed.
 - Each member receives a Member Goal Packet and runs its own loop: `Load -> Plan -> Implement -> Test -> Document -> Review -> Continue`.
-- Prefer custom subagents `goal_requirements_analyst`, `goal_product`, `goal_backend`, `goal_frontend`, `goal_qa`, `goal_docs`, and `goal_reviewer` when those roles match the member packet.
+- Prefer custom subagents `goal_requirements_analyst`, `goal_product`, `goal_backend`, `goal_frontend`, `goal_qa`, `goal_docs`, `goal_reviewer`, and `goal_completion_auditor` when those roles match the member packet.
 - Honor user member overrides. If the user specifies that a member should use a particular skill, plugin, custom subagent, or built-in subagent type, include that assignment in the confirmation table and Member Goal Packet.
 - If the user asks to use `openspec` or `superpower`, act only as the Goal Lead unless the user later confirms a full Goal Teams execution. In that mode, coordinate, clarify, index docs, and prepare lead-level artifacts, but do not spawn role subagents by default.
 - Keep stable instructions unchanged across runs. Put dynamic details at the end of prompts to preserve prompt-cache friendliness.
 - Use progressive document loading. Read only the smallest relevant existing document slices. If no tasklist exists, create one from the user goal before assigning work.
 - Compress read documents into Doc Capsules before continuing.
+- After all planned tasks appear complete, deferred, or blocked, spawn a fresh `goal_completion_auditor` subagent to inspect unfinished work before final response. If the auditor finds unfinished work inside the already confirmed goal scope, start a new Goal Teams continuation cycle automatically and do not ask the user for confirmation again.
 
 ## Mandatory Plan Mode
 
 Always begin in Plan mode for Goal Teams work:
 
-- First report: `我是 Goal Teams Leader V1.1，我会帮你完成以下工作：`, followed by a short list of planned responsibilities for this run.
+- First report: `我是 Goal Teams Leader V1.2，我会帮你完成以下工作：`, followed by a short list of planned responsibilities for this run.
 - Do not spawn implementation subagents or edit implementation files before producing the Plan tables.
 - Do not skip Plan mode unless the user explicitly says to execute an already confirmed plan.
 - Check the project environment before planning: look for `AGENTS.md`, `agents.md`, `agent.md`, `CLAUDE.md`, or `claude.md` at the project root or obvious config locations. If none exists, use `references/default-AGENTS.md` as the default active guidance and suggest that the user copy it to project-root `AGENTS.md` to capture team rules, coding style, and project constraints.
@@ -254,10 +255,13 @@ When the project already uses another coordination directory, either reuse it or
    - The lead routes blockers and cross-member questions through `messages.jsonl` or direct follow-up.
    - Shared core changes, migrations, auth, payment, destructive writes, and broad API changes require lead approval.
 
-11. Integrate and close.
+11. Integrate, audit, and continue if needed.
    - The lead integrates outputs, resolves conflicts, runs verification, updates `team-state.json`, and updates tasklist/docs.
    - Do not mark a goal done until every claimed task is done, explicitly deferred, or blocked with a documented reason.
    - Do not mark a generated document, code change, or test case done until independent validation evidence is recorded.
+   - Spawn a new `goal_completion_auditor` subagent to audit tasklist, progress, acceptance, tests, docs, and remaining risks.
+   - If the auditor finds unfinished work within the confirmed goal scope, convert those gaps into continuation tasks, show the continuation Teams plan as an execution record, and spawn the needed Goal Teams members without waiting for user confirmation.
+   - Ask the user only when the auditor finds new scope, risky/destructive work, missing external information, or a decision outside the already confirmed plan.
 
 ## Stable Core Prompt
 
@@ -355,12 +359,24 @@ Append durable capsules to `.codex/goal-teams/doc-capsules.jsonl` when persisten
 - Require an independent test member or testing skill/subagent for verification.
 - Keep `max_depth = 1`; members should not create nested teams.
 
+## Completion Audit And Auto-Continuation
+
+Every Goal Teams run has a final audit gate:
+
+1. When the lead believes all claimed work is complete, deferred, or blocked, spawn a fresh `goal_completion_auditor` subagent in read-only mode.
+2. The auditor checks tasklist status, progress logs, acceptance evidence, test results, SPEC/docs, independent validation records, unresolved blockers, and remaining risks.
+3. If the auditor reports no unfinished work, the lead may send the final completion response.
+4. If the auditor finds unfinished work inside the already confirmed goal scope, the lead must create continuation tasks and start another Goal Teams cycle automatically. Do not ask the user for confirmation; show the continuation `Teams 规划表` as the execution record and spawn the needed members.
+5. If the auditor finds new scope, destructive or security-sensitive work, missing credentials, external approvals, or unresolved user decisions, record the blocker and ask the user instead of auto-continuing.
+6. Repeat audit and continuation until the auditor reports complete, or only blocked/deferred work remains with documented reasons.
+
 ## Completion Rules
 
 A Goal Team is not done until the lead can report:
 
 - Done Criteria satisfied.
 - Each claimed task is `done`, `deferred`, or `blocked` with a reason.
+- A fresh `goal_completion_auditor` subagent found no unfinished work inside the confirmed scope, or any remaining work is blocked/deferred with documented reasons.
 - Required tests run, or skipped with reason and risk.
 - Testing was performed by an independent member/skill/subagent, or the exception is explicitly documented.
 - Every generated document, code change, and test case was validated by an independent subagent or a user-specified skill, with evidence recorded.

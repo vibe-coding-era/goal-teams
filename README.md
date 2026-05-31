@@ -4,7 +4,7 @@
 
 作者：肉山@TGO 杭州
 
-当前版本：`V1.1`
+当前版本：`V1.2`
 
 `goal-teams` 是一个面向 Codex 的 Goal Mode 团队化 Skill。它把一次目标执行拆成由 Goal Lead 统一协调、多个独立 subagent 分工完成的工作流，并强制使用中文沟通、SPEC 优先、Markdown 持久化、表格确认和独立测试。
 
@@ -24,7 +24,7 @@ Goal Teams 的设计目标是让每个团队成员都成为一个独立 subagent
 
 ## 关键能力
 
-- 版本身份：当前为 `Goal Teams Leader V1.1`；每次开始工作前先汇报 `我是 Goal Teams Leader V1.1，我会帮你完成以下工作：`，再列出本轮工作。
+- 版本身份：当前为 `Goal Teams Leader V1.2`；每次开始工作前先汇报 `我是 Goal Teams Leader V1.2，我会帮你完成以下工作：`，再列出本轮工作。
 - 全程中文：计划、表格、SPEC、tasklist、进度报告、成员包。
 - 中文产物：生成的文档、代码注释、面向用户的代码字符串、测试名称和测试用例描述默认使用中文。
 - 强制 Plan 模式：执行前必须先澄清、规划，列出 `Teams 规划表` 并给用户确认。
@@ -43,6 +43,7 @@ Goal Teams 的设计目标是让每个团队成员都成为一个独立 subagent
 - 执行过程表格反馈：每轮进度、阻塞、风险、结果都用表格输出。
 - 独立测试：实现者不能成为唯一测试者，必须由独立 QA 或测试 skill/subagent 验证。
 - 独立校验：所有生成的文档、代码、测试用例都必须由独立 subagent 或用户指定 skill 校验。
+- 收尾审计与自动续跑：所有任务看似完成后，由新的 `goal_completion_auditor` 检查未完成工作；若剩余工作仍在已确认目标内，自动再次启动 Goal Teams 并发完成，不需要用户再次确认。
 - 适合版本并发：可以按版本、模块、交付物、审查视角拆分并发成员。
 
 ## 推荐目录结构
@@ -66,6 +67,7 @@ goal-teams/
     goal-qa.toml
     goal-docs.toml
     goal-reviewer.toml
+    goal-completion-auditor.toml
 ```
 
 项目执行时，Goal Teams 会优先使用或创建下面的运行时文件：
@@ -115,7 +117,7 @@ Goal Teams 强制采用 SPEC 驱动流程。缺少文档时，会先补齐或在
 
 ## 默认团队成员
 
-仓库提供 7 个推荐 subagent 配置：
+仓库提供 8 个推荐 subagent 配置：
 
 | Subagent | 角色 | 典型职责 |
 | --- | --- | --- |
@@ -126,6 +128,7 @@ Goal Teams 强制采用 SPEC 驱动流程。缺少文档时，会先补齐或在
 | `goal_qa` | 测试 | 独立测试、集成测试、验收证据、测试报告 |
 | `goal_docs` | 文档 | tasklist、验收文档、README、报告、发布说明 |
 | `goal_reviewer` | 评审 | 只读评审、架构边界、安全、覆盖率、兼容性、风险 |
+| `goal_completion_auditor` | 收尾审计 | 完成后检查未完成工作、缺失证据、剩余风险，并给出自动续跑任务 |
 
 用户也可以显式指定某个成员使用其他 skill 或 subagent，例如：
 
@@ -157,7 +160,9 @@ Goal Teams 的标准流程如下：
 14. 独立执行：每个成员运行自己的 `Load -> Plan -> Implement -> Test -> Document -> Review -> Continue` 循环。
 15. 过程持久化：进度、阻塞、决策和结果写入版本目录 Markdown。
 16. 独立测试与校验：由 QA、评审成员或用户指定 skill 验证生成内容。
-17. 整合收口：Goal Lead 更新 tasklist、SPEC、progress、acceptance 并总结结果。
+17. 整合收口：Goal Lead 更新 tasklist、SPEC、progress、acceptance。
+18. 收尾审计：启动新的 `goal_completion_auditor` 检查未完成工作。
+19. 自动续跑：若剩余工作仍在已确认范围内，展示续跑 `Teams 规划表` 后直接并发执行，不再等待用户确认；若涉及新范围或风险决策，则记录阻塞并询问用户。
 
 ## 确认表格示例
 
@@ -245,7 +250,7 @@ cp ./subagents/goal-*.toml ~/.codex/agents/
 ```text
 Use $goal-teams。
 请为“分时租赁 V3.0”做 Goal Teams 计划。
-先汇报：我是 Goal Teams Leader V1.1，我会帮你完成以下工作：
+先汇报：我是 Goal Teams Leader V1.2，我会帮你完成以下工作：
 全程中文，先多问我澄清问题。
 过程和结果保存到 V3.0 版本目录的 Markdown。
 先生成需求规格卡，再生成 PRD。
@@ -304,7 +309,7 @@ codex exec \
   - <<'PROMPT' | tee -a ".codex/goal-teams/events.jsonl"
 Use $goal-teams。
 
-先汇报：我是 Goal Teams Leader V1.1，我会帮你完成以下工作：
+先汇报：我是 Goal Teams Leader V1.2，我会帮你完成以下工作：
 全程中文。
 Goal Lead 和用户交流要简洁、人类友好，少用专业术语。
 先检查 AGENTS.md / agent.md / CLAUDE.md / claude.md，缺失则使用 references/default-AGENTS.md 作为默认指南，并建议保存为项目根目录 AGENTS.md。
@@ -323,6 +328,7 @@ Goal Lead 和用户交流要简洁、人类友好，少用专业术语。
 为所有生成的文档、代码、测试用例指定独立校验者或用户指定 skill。
 确认后再执行，每个成员必须是独立 subagent。
 测试必须由独立 QA 或测试 skill/subagent 完成。
+所有任务看似完成后，启动 goal_completion_auditor 检查未完成工作；若剩余工作仍在已确认目标范围内，自动拆成续跑任务并并发执行，不再等待用户确认。
 PROMPT
 ```
 
@@ -347,6 +353,7 @@ codex exec \
 | 持久化 | 视情况 | 按版本目录优先 Markdown 持久化 |
 | 测试 | 可由实现者执行 | 必须独立测试 |
 | 校验 | 可选 | 文档、代码、测试用例都要独立校验 |
+| 收尾 | 可选 | 完成后由 `goal_completion_auditor` 审计，必要时自动续跑 |
 | 反馈 | 可自由组织 | 表格化进度和结果 |
 | 适用场景 | 协同分析、研究、开发 | 需求到交付的完整闭环 |
 
@@ -379,11 +386,13 @@ codex exec \
 - 过程和结果文档必须进入版本目录。
 - PRD 前先完成需求规格卡，除非用户明确要求跳过。
 - 所有生成的文档、代码、测试用例都必须由独立 subagent 或用户指定 skill 校验。
+- 最终完成前必须由新的 `goal_completion_auditor` 做只读收尾审计。
+- 对已确认目标范围内的未完成工作自动续跑，不再等待用户确认。
 - 不让多个成员同时修改共享核心模块。
 - 不跳过 Requirement Specification Card、PRD、Architecture Design、HTML Prototype、Test Plan、Acceptance 的适用性判断。
 - 不让实现者成为唯一测试者。
 - 不允许成员创建嵌套团队，默认 `max_depth = 1`。
-- 涉及认证、支付、退款、迁移、破坏性写入、安全敏感集成或大范围 API 改造时，必须由 Goal Lead 和用户确认。
+- 涉及新范围、认证、支付、退款、迁移、破坏性写入、安全敏感集成或大范围 API 改造时，必须由 Goal Lead 和用户确认。
 
 ## 发布状态
 
@@ -394,7 +403,7 @@ codex exec \
 - `agents/openai.yaml`：Codex UI 元数据。
 - `references/goal-teams-runtime.md`：运行时协议、模板、CLI 示例。
 - `references/default-AGENTS.md`：缺失项目指南时使用的默认中文 AGENTS 模板。
-- `subagents/goal-*.toml`：7 个推荐成员 subagent 配置。
+- `subagents/goal-*.toml`：8 个推荐成员 subagent 配置。
 - `goal-teams.md`：维护本 skill 时必须对齐的长期用户指定要求。
 - `AGENTS.md`：本仓库维护指南。
 - `scripts/check.sh`：一键校验入口。

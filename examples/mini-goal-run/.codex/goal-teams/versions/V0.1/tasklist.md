@@ -13,6 +13,7 @@ Status: done
 | GT-004 | 测试-登录页空状态验收测试 | goal_qa | qa-gt-004 | done | `spec/test-plan.md` | 测试计划 | 覆盖验收点 | 评审-登录页空状态测试有效性 | test-plan |
 | GT-005 | 文档-登录页空状态验收文档 | goal_docs | docs-gt-005 | done | `spec/acceptance.md` | 验收清单 | 证据完整 | 评审-登录页空状态文档校验 | acceptance |
 | GT-006 | 评审-登录页空状态文档校验 | goal_reviewer | reviewer-gt-006 | done | read-only | 校验记录 | 非作者校验完成 | 不适用 | progress |
+| GT-007 | 收尾-登录页空状态未完成工作检查 | goal_completion_auditor | completion-auditor-gt-007 | done | read-only | 收尾审计记录 | 无未完成工作或自动续跑任务已列出 | 不适用 | progress + acceptance |
 
 ## Independent Validation
 
@@ -22,3 +23,4 @@ Status: done
 | `spec/PRD.md` | 产品-登录页空状态 PRD | 评审-登录页空状态文档校验 | PRD 来源追踪 | `progress.md` |
 | `spec/HTML-prototype.html` | 前端-登录页空状态 HTML 原型 | 评审-登录页空状态文档校验 | 原型静态检查 | `progress.md` |
 | `spec/test-plan.md` | 测试-登录页空状态验收测试 | 评审-登录页空状态测试有效性 | 断言和边界检查 | `progress.md` |
+| 完成状态 | 收尾-登录页空状态未完成工作检查 | `goal_completion_auditor` | 未完成工作审计 | `progress.md` |

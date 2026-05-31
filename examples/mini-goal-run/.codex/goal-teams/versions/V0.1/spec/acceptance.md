@@ -10,6 +10,7 @@
 | HTML 原型表达空状态 | passed | `HTML-prototype.html` |
 | 测试计划覆盖验收标准 | passed | `test-plan.md` |
 | 独立校验证据已记录 | passed | `progress.md` |
+| 收尾审计已完成 | passed | `progress.md#收尾审计` |
 
 ## 剩余风险
 

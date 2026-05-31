@@ -9,6 +9,7 @@
 | 前端-登录页空状态 HTML 原型 | GT-003 | done | Document | `spec/HTML-prototype.html` | 等待校验 |
 | 测试-登录页空状态验收测试 | GT-004 | done | Document | `spec/test-plan.md` | 等待校验 |
 | 评审-登录页空状态文档校验 | GT-006 | done | Review | 本文件独立校验表 | 收口 |
+| 收尾-登录页空状态未完成工作检查 | GT-007 | done | Audit | tasklist、progress、acceptance 均已检查 | 无需自动续跑 |
 
 ## 独立校验
 
@@ -18,6 +19,12 @@
 | `spec/PRD.md` | 产品-登录页空状态 PRD | 评审-登录页空状态文档校验 | passed | 可追溯到规格卡 | 无 |
 | `spec/HTML-prototype.html` | 前端-登录页空状态 HTML 原型 | 评审-登录页空状态文档校验 | passed | 包含空状态和操作按钮 | 无 |
 | `spec/test-plan.md` | 测试-登录页空状态验收测试 | 评审-登录页空状态测试有效性 | passed | 覆盖文案、按钮、可访问性 | 无 |
+
+## 收尾审计
+
+| 审计者 | Verdict | 证据 | 自动续跑 |
+| --- | --- | --- | --- |
+| 收尾-登录页空状态未完成工作检查 | complete | tasklist、SPEC、acceptance、独立校验证据齐备 | 否 |
 
 ## 阻塞与决策
 

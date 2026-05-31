@@ -21,6 +21,14 @@
       "skill_or_subagent": "goal_reviewer",
       "status": "done",
       "claimed_tasks": ["GT-006"]
+    },
+    {
+      "id": "completion-auditor-gt-007",
+      "display_name": "收尾-登录页空状态未完成工作检查",
+      "skill_or_subagent": "goal_completion_auditor",
+      "status": "done",
+      "claimed_tasks": ["GT-007"],
+      "verdict": "complete"
     }
   ]
 }

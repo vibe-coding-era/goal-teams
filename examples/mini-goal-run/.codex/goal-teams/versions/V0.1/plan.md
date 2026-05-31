@@ -38,6 +38,7 @@
 | 成员：测试-登录页空状态验收测试<br>Skill/Subagent：`goal_qa` | 目标切片：登录页空状态测试计划<br>认领任务：GT-004<br>锁定范围：`spec/test-plan.md` | 交付物：测试计划<br>完成标准：覆盖文案和流程<br>文档/tasklist：test-plan | 测试 Owner：测试-登录页空状态验收测试<br>校验者：评审-登录页空状态测试有效性 |
 | 成员：文档-登录页空状态验收文档<br>Skill/Subagent：`goal_docs` | 目标切片：登录页空状态收口文档<br>认领任务：GT-005<br>锁定范围：`spec/acceptance.md` | 交付物：验收清单<br>完成标准：证据完整<br>文档/tasklist：acceptance | 测试 Owner：评审-登录页空状态文档校验<br>校验者：评审-登录页空状态文档校验 |
 | 成员：评审-登录页空状态文档校验<br>Skill/Subagent：`goal_reviewer` | 目标切片：独立校验登录页空状态文档<br>认领任务：GT-006<br>锁定范围：只读 | 交付物：校验记录<br>完成标准：非作者校验通过<br>文档/tasklist：progress | 测试 Owner：不适用<br>校验者：不适用 |
+| 成员：收尾-登录页空状态未完成工作检查<br>Skill/Subagent：`goal_completion_auditor` | 目标切片：检查未完成工作和缺失证据<br>认领任务：GT-007<br>锁定范围：只读 | 交付物：收尾审计记录<br>完成标准：确认无未完成工作，或输出自动续跑任务<br>文档/tasklist：progress + acceptance | 测试 Owner：不适用<br>校验者：不适用 |
 
 ## 风险与审批
 

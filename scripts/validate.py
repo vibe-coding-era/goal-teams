@@ -47,6 +47,7 @@ REQUIRED_FILES = [
 
 EXPECTED_SUBAGENTS = {
     "goal-backend.toml": "goal_backend",
+    "goal-completion-auditor.toml": "goal_completion_auditor",
     "goal-docs.toml": "goal_docs",
     "goal-frontend.toml": "goal_frontend",
     "goal-product.toml": "goal_product",
@@ -56,8 +57,8 @@ EXPECTED_SUBAGENTS = {
 }
 
 KEY_RULES = [
-    "Goal Teams Leader V1.1",
-    "我是 Goal Teams Leader V1.1，我会帮你完成以下工作：",
+    "Goal Teams Leader V1.2",
+    "我是 Goal Teams Leader V1.2，我会帮你完成以下工作：",
     "Requirement Specification Card",
     "references/default-AGENTS.md",
     "Teams 规划表",
@@ -65,6 +66,9 @@ KEY_RULES = [
     "任务范围",
     "交付与标准",
     "验证安排",
+    "goal_completion_auditor",
+    "自动续跑",
+    "未完成工作",
     "后端-WIKI 列表后端开发",
     "独立校验",
     "中文",
@@ -109,8 +113,8 @@ def check_required_files() -> None:
 def check_skill_frontmatter() -> None:
     skill = read("SKILL.md")
     version = read("VERSION").strip()
-    if version != "V1.1":
-        fail(f"VERSION should be V1.1, got {version!r}")
+    if version != "V1.2":
+        fail(f"VERSION should be V1.2, got {version!r}")
     match = re.match(r"^---\n(?P<body>.*?)\n---\n", skill, flags=re.S)
     if not match:
         fail("SKILL.md must start with YAML frontmatter")
@@ -156,7 +160,7 @@ def check_readmes() -> None:
 
 
 def check_key_rules() -> None:
-    startup_line = "我是 Goal Teams Leader V1.1，我会帮你完成以下工作："
+    startup_line = "我是 Goal Teams Leader V1.2，我会帮你完成以下工作："
     combined = "\n".join(
         read(path)
         for path in [
