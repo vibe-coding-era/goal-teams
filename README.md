@@ -4,9 +4,9 @@
 
 作者：肉山@TGO 杭州
 
-当前版本：`V1.2`
+当前版本：`V1.3`
 
-`goal-teams` 是一个面向 Codex 的 Goal Mode 团队化 Skill。它把一次目标执行拆成由 Goal Lead 统一协调、多个独立 subagent 分工完成的工作流，并强制使用中文沟通、SPEC 优先、Markdown 持久化、表格确认和独立测试。
+`goal-teams` 是一个面向 Codex 的 Goal Mode 团队化 Skill。它把一次目标执行拆成由 Goal Lead 统一协调、多个独立 subagent 分工完成的工作流，并强制使用中文沟通、SPEC 优先、Markdown 持久化、表格确认或直接执行记录，以及独立测试。
 
 结合了 Claude Code 的 Agent Teams 和 Codex 的 Goal Mode 能力， 并强制 Plan 模式执行。
 
@@ -24,10 +24,11 @@ Goal Teams 的设计目标是让每个团队成员都成为一个独立 subagent
 
 ## 关键能力
 
-- 版本身份：当前为 `Goal Teams Leader V1.2`；每次开始工作前先汇报 `我是 Goal Teams Leader V1.2，我会帮你完成以下工作：`，再列出本轮工作。
+- 版本身份：当前为 `Goal Teams Leader V1.3`；每次开始工作前先汇报 `我是 Goal Teams Leader V1.3，我会帮你完成以下工作：`，再列出本轮工作。
 - 全程中文：计划、表格、SPEC、tasklist、进度报告、成员包。
 - 中文产物：生成的文档、代码注释、面向用户的代码字符串、测试名称和测试用例描述默认使用中文。
-- 强制 Plan 模式：执行前必须先澄清、规划，列出 `Teams 规划表` 并给用户确认。
+- 强制 Plan 模式：执行前必须先澄清、规划，列出 `Teams 规划表`；默认给用户确认，若提示词包含“直接执行/不用确认/跳过确认”等直接执行类词语，则展示计划表后直接执行。
+- 数字选项：Plan 阶段需要用户选择时，使用 `1. 确认并执行`、`2. 调整成员或范围`、`3. 只保留方案不执行` 这类数字选项，用户可以只回复数字。
 - 计划阶段多澄清：范围、验收、优先级、设计风格、数据接口、发布约束、风险审批不清楚时主动提问。
 - 环境检查：先检查 `AGENTS.md` / `agent.md` / `CLAUDE.md` / `claude.md`，缺失时使用 `references/default-AGENTS.md` 作为默认指南，并建议用户保存为项目根目录 `AGENTS.md`。
 - 版本化文档：过程和结果文档全部放入 `.codex/goal-teams/versions/<version>/`。
@@ -44,6 +45,7 @@ Goal Teams 的设计目标是让每个团队成员都成为一个独立 subagent
 - 独立测试：实现者不能成为唯一测试者，必须由独立 QA 或测试 skill/subagent 验证。
 - 独立校验：所有生成的文档、代码、测试用例都必须由独立 subagent 或用户指定 skill 校验。
 - 收尾审计与自动续跑：所有任务看似完成后，由新的 `goal_completion_auditor` 检查未完成工作；若剩余工作仍在已确认目标内，自动再次启动 Goal Teams 并发完成，不需要用户再次确认。
+- 安全边界：直接执行和自动续跑都不能绕过新范围、破坏性写入、凭证、支付/认证/安全敏感改动、外部审批或关键业务决策。
 - 适合版本并发：可以按版本、模块、交付物、审查视角拆分并发成员。
 
 ## 推荐目录结构
@@ -156,13 +158,22 @@ Goal Teams 的标准流程如下：
 10. 表格确认：先展示四列合并的 `Teams 规划表`，再展示环境、索引、SPEC、任务、风险、审批。
 11. 中文命名：成员展示名采用 `角色-具体任务名`，例如 `后端-WIKI 列表后端开发`、`测试-WIKI 列表验收测试`。
 12. 独立校验计划：为文档、代码、测试用例指定非作者校验者或用户指定 skill。
-13. 用户确认：确认后才开始实现或调用 worker subagents。
+13. 用户确认或直接执行：默认确认后才开始实现或调用 worker subagents；若用户提示词已包含直接执行类词语，则展示 `执行计划（已按用户要求直接执行）` 后进入执行。
 14. 独立执行：每个成员运行自己的 `Load -> Plan -> Implement -> Test -> Document -> Review -> Continue` 循环。
 15. 过程持久化：进度、阻塞、决策和结果写入版本目录 Markdown。
 16. 独立测试与校验：由 QA、评审成员或用户指定 skill 验证生成内容。
 17. 整合收口：Goal Lead 更新 tasklist、SPEC、progress、acceptance。
 18. 收尾审计：启动新的 `goal_completion_auditor` 检查未完成工作。
 19. 自动续跑：若剩余工作仍在已确认范围内，展示续跑 `Teams 规划表` 后直接并发执行，不再等待用户确认；若涉及新范围或风险决策，则记录阻塞并询问用户。
+
+Plan 阶段等待用户选择时，推荐给出数字选项：
+
+```text
+请选择下一步：
+1. 确认并执行
+2. 调整成员或范围
+3. 只保留方案，不执行
+```
 
 ## 确认表格示例
 
@@ -250,7 +261,7 @@ cp ./subagents/goal-*.toml ~/.codex/agents/
 ```text
 Use $goal-teams。
 请为“分时租赁 V3.0”做 Goal Teams 计划。
-先汇报：我是 Goal Teams Leader V1.2，我会帮你完成以下工作：
+先汇报：我是 Goal Teams Leader V1.3，我会帮你完成以下工作：
 全程中文，先多问我澄清问题。
 过程和结果保存到 V3.0 版本目录的 Markdown。
 先生成需求规格卡，再生成 PRD。
@@ -309,7 +320,7 @@ codex exec \
   - <<'PROMPT' | tee -a ".codex/goal-teams/events.jsonl"
 Use $goal-teams。
 
-先汇报：我是 Goal Teams Leader V1.2，我会帮你完成以下工作：
+先汇报：我是 Goal Teams Leader V1.3，我会帮你完成以下工作：
 全程中文。
 Goal Lead 和用户交流要简洁、人类友好，少用专业术语。
 先检查 AGENTS.md / agent.md / CLAUDE.md / claude.md，缺失则使用 references/default-AGENTS.md 作为默认指南，并建议保存为项目根目录 AGENTS.md。
@@ -324,12 +335,20 @@ Goal Lead 和用户交流要简洁、人类友好，少用专业术语。
 再基于需求规格卡生成 PRD。
 发现或创建 SPEC：Requirement Specification Card、PRD、Architecture Design、HTML Prototype、Test Plan、Acceptance。
 如果没有 tasklist，创建 .codex/goal-teams/versions/$VERSION/tasklist.md。
-先列出四列合并展示的 Teams 规划表，确认成员、任务认领、锁定范围、测试 owner、独立校验者和风险审批，并等待用户确认。
+先列出四列合并展示的 Teams 规划表，确认成员、任务认领、锁定范围、测试 owner、独立校验者和风险审批；如果用户提示词没有直接执行类词语，则等待用户确认。
 为所有生成的文档、代码、测试用例指定独立校验者或用户指定 skill。
-确认后再执行，每个成员必须是独立 subagent。
+确认后再执行；如果用户提示词包含“直接执行/不用确认/跳过确认”，展示执行计划后直接执行。每个成员必须是独立 subagent。
 测试必须由独立 QA 或测试 skill/subagent 完成。
 所有任务看似完成后，启动 goal_completion_auditor 检查未完成工作；若剩余工作仍在已确认目标范围内，自动拆成续跑任务并并发执行，不再等待用户确认。
 PROMPT
+```
+
+如果你想跳过首次确认，可以在提示词里加入直接执行类词语：
+
+```text
+Use $goal-teams。
+请直接执行：为 WIKI 列表 V1.3 规划并实现后端 API、前端页面、独立测试和验收文档。
+仍然先展示 Teams 规划表作为执行记录，但不用等我确认。
 ```
 
 只做规划可以使用只读沙箱：
@@ -373,11 +392,11 @@ codex exec \
 - 很小的单文件修改。
 - 强顺序、强共享上下文、无法拆分的任务。
 - 用户只想快速问答，不需要计划、SPEC 或持久化。
-- 无法接受计划阶段澄清和确认成本的极短任务。
+- 无法接受计划阶段澄清成本的极短任务。若只是想减少确认成本，可在提示词中写“直接执行”。
 
 ## 安全与协作规则
 
-- 不在未确认计划前启动实现 subagents。
+- 默认不在未确认计划前启动实现 subagents；如果用户明确写了“直接执行/不用确认/跳过确认”，可以在展示执行计划后直接启动。
 - 使用 OpenSpec 或 Superpower 时默认只做 Goal Lead，不自动启动完整角色团队。
 - 如果没有 AGENTS/CLAUDE 指南文件，使用 `references/default-AGENTS.md` 作为默认指南。
 - 生成内容默认中文，包括文档、代码注释、测试名称和测试用例描述。
@@ -388,6 +407,7 @@ codex exec \
 - 所有生成的文档、代码、测试用例都必须由独立 subagent 或用户指定 skill 校验。
 - 最终完成前必须由新的 `goal_completion_auditor` 做只读收尾审计。
 - 对已确认目标范围内的未完成工作自动续跑，不再等待用户确认。
+- Plan 阶段给用户选择时优先使用数字选项，允许用户只回复 `1`、`2`、`3`。
 - 不让多个成员同时修改共享核心模块。
 - 不跳过 Requirement Specification Card、PRD、Architecture Design、HTML Prototype、Test Plan、Acceptance 的适用性判断。
 - 不让实现者成为唯一测试者。

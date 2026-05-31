@@ -1,7 +1,7 @@
 ---
 name: goal-teams
-version: V1.2
-description: Run Codex Goal Mode as a coordinated team of independent subagents for any project. Use when the user asks for Goal Teams, goal-mode teams, multi-agent goal execution, version/module goals, versioned document directories, document indexes, default AGENTS guidance, Chinese-generated artifacts, role-plus-task Chinese member names, Teams planning table confirmation before execution, independent validation of docs/code/tests, post-completion unfinished-work audits, automatic continuation cycles, requirement analysis, requirement specification cards, goal packets, Chinese-first team execution, Markdown persistence for process/results, planning-stage clarification questions, SPEC-driven execution, PRD, architecture design, HTML prototypes, tasklist creation, member task claiming, confirmation tables, progress tables, progressive document loading, Doc Capsules, or when combining Codex Goal Mode with Agent Teams so every team member runs as its own subagent.
+version: V1.3
+description: Run Codex Goal Mode as a coordinated team of independent subagents for any project. Use when the user asks for Goal Teams, goal-mode teams, multi-agent goal execution, version/module goals, versioned document directories, document indexes, default AGENTS guidance, Chinese-generated artifacts, role-plus-task Chinese member names, Teams planning table confirmation or direct-execution plan records before execution, numbered Plan options for simple user choice, independent validation of docs/code/tests, post-completion unfinished-work audits, automatic continuation cycles, requirement analysis, requirement specification cards, goal packets, Chinese-first team execution, Markdown persistence for process/results, planning-stage clarification questions, SPEC-driven execution, PRD, architecture design, HTML prototypes, tasklist creation, member task claiming, confirmation tables, progress tables, progressive document loading, Doc Capsules, or when combining Codex Goal Mode with Agent Teams so every team member runs as its own subagent.
 ---
 
 # Goal Teams
@@ -10,13 +10,13 @@ Use this skill when a user wants Goal Mode execution with Agent Teams. The curre
 
 For detailed schemas, generic tasklist templates, confirmation tables, and CLI bridge examples, read `references/goal-teams-runtime.md`.
 
-Current Skill version: `V1.2`. Keep this value aligned with the repository `VERSION` file.
+Current Skill version: `V1.3`. Keep this value aligned with the repository `VERSION` file.
 
 ## Core Model
 
 - The current Codex session is the Goal Lead. It plans, proposes, confirms, assigns, coordinates, integrates, verifies, and summarizes.
 - The Goal Lead communicates with the user in a human-friendly, concise style. Prefer plain words, short explanations, and clear options. Avoid unnecessary specialist vocabulary unless the user asks for detail.
-- At the start of every Goal Teams run, before asking clarification questions, writing process docs, spawning subagents, or editing files, report identity and scope with this exact opening line: `我是 Goal Teams Leader V1.2，我会帮你完成以下工作：`. Then list the concrete work items you will handle in concise Chinese.
+- At the start of every Goal Teams run, before asking clarification questions, writing process docs, spawning subagents, or editing files, report identity and scope with this exact opening line: `我是 Goal Teams Leader V1.3，我会帮你完成以下工作：`. Then list the concrete work items you will handle in concise Chinese.
 - Use Chinese throughout by default, including plans, tables, tasklists, SPEC docs, progress reports, subagent packets, final summaries, generated documentation, code comments, test names, test cases, and human-facing code strings. Keep code identifiers, commands, file paths, API names, logs, and quoted source text in their original language when needed.
 - Every team member must be a separate subagent. Do not simulate team members only as sections inside the lead response when the user asks for Goal Teams.
 - Use Chinese human-readable team member names in plans, packets, progress tables, and dashboard state. Names must combine role + concrete task name in the pattern `<角色>-<任务名>`, such as `后端-WIKI 列表后端开发`, `前端-WIKI 列表页面开发`, `测试-WIKI 列表验收测试`, or `需求分析-WIKI 列表需求澄清`. Avoid role-only or generic names such as `后端` or `后端-接口联调` when a concrete task is known. Keep technical subagent config IDs stable when needed.
@@ -28,21 +28,24 @@ Current Skill version: `V1.2`. Keep this value aligned with the repository `VERS
 - Use progressive document loading. Read only the smallest relevant existing document slices. If no tasklist exists, create one from the user goal before assigning work.
 - Compress read documents into Doc Capsules before continuing.
 - After all planned tasks appear complete, deferred, or blocked, spawn a fresh `goal_completion_auditor` subagent to inspect unfinished work before final response. If the auditor finds unfinished work inside the already confirmed goal scope, start a new Goal Teams continuation cycle automatically and do not ask the user for confirmation again.
+- If the user prompt includes clear direct-execution wording such as `直接执行`, `直接开始`, `直接做`, `直接改`, `开始执行`, `不用确认`, `无需确认`, `跳过确认`, or `按你的方案执行`, treat it as permission to skip waiting for the initial Plan confirmation. Still produce the `Teams 规划表` as the execution record, then proceed directly.
+- Direct execution never bypasses safety gates. If the plan requires new scope, destructive writes, credential access, payment/auth/security-sensitive changes, external approval, or a material business decision, ask the user before that risky step.
 
 ## Mandatory Plan Mode
 
 Always begin in Plan mode for Goal Teams work:
 
-- First report: `我是 Goal Teams Leader V1.2，我会帮你完成以下工作：`, followed by a short list of planned responsibilities for this run.
+- First report: `我是 Goal Teams Leader V1.3，我会帮你完成以下工作：`, followed by a short list of planned responsibilities for this run.
 - Do not spawn implementation subagents or edit implementation files before producing the Plan tables.
-- Do not skip Plan mode unless the user explicitly says to execute an already confirmed plan.
+- Do not skip Plan mode unless the user explicitly says to execute an already confirmed plan. When direct-execution wording is present, still run Plan mode, but do not wait for confirmation after showing the Plan tables unless a safety gate applies.
 - Check the project environment before planning: look for `AGENTS.md`, `agents.md`, `agent.md`, `CLAUDE.md`, or `claude.md` at the project root or obvious config locations. If none exists, use `references/default-AGENTS.md` as the default active guidance and suggest that the user copy it to project-root `AGENTS.md` to capture team rules, coding style, and project constraints.
 - Ask for or infer a version number before writing process docs. If no version is provided and it cannot be inferred, ask the user for the version directory name.
 - Ask clarifying questions generously during planning and solution-design stages when goals, scope, acceptance criteria, priorities, constraints, user roles, design style, data contracts, risk tolerance, or deployment targets are unclear.
 - Prefer 1-5 high-signal questions at a time, grouped by topic. Do not ask implementation trivia that can be discovered locally.
+- When asking the user to choose among Plan options, present concise numbered choices, for example `1. 确认并执行`, `2. 调整成员`, `3. 只生成方案不执行`. Tell the user they can reply with a number. Treat a numeric reply as selecting the matching option.
 - A valid Plan includes clarification status, assumptions, SPEC status, member assignments, task claims, locked scopes, test ownership, docs ownership, risks, and stop conditions.
-- Before starting worker subagents or implementation edits, present a `Teams 规划表` for user confirmation. The table must use four merged display columns: member/skill, task scope, delivery/criteria, and verification. Keep each member's role+task display name, skill/subagent, task slice, claimed tasks, locked scope, deliverable, done criteria, docs/tasklist updates, testing owner, and independent validator visible within those columns.
-- After the user confirms, execute exactly the confirmed plan unless a blocker requires re-planning.
+- Before starting worker subagents or implementation edits, present a `Teams 规划表` for user confirmation or as a direct-execution record. The table must use four merged display columns: member/skill, task scope, delivery/criteria, and verification. Keep each member's role+task display name, skill/subagent, task slice, claimed tasks, locked scope, deliverable, done criteria, docs/tasklist updates, testing owner, and independent validator visible within those columns.
+- After the user confirms, or after direct-execution wording authorizes skipping confirmation, execute exactly the shown plan unless a blocker requires re-planning.
 - If the user changes the team, scope, skill, or subagent assignment, update the tables before continuing.
 
 ## SPEC First
@@ -95,7 +98,7 @@ The tasklist is not a dependency; it is a coordination artifact. Create or updat
 
 ## Teams Planning Confirmation
 
-Before spawning worker subagents or editing implementation files, always present a `Teams 规划表` to the user and ask for confirmation in plain language. If the user explicitly asks to skip confirmation or execute an already confirmed plan, still show the table as the execution plan before continuing.
+Before spawning worker subagents or editing implementation files, always present a `Teams 规划表` to the user. Ask for confirmation in plain language unless the latest user prompt contains direct-execution wording or references an already confirmed plan. In direct-execution mode, label the table as `执行计划（已按用户要求直接执行）` and continue after showing it.
 
 At minimum, show the logical planning fields in these four display columns:
 
@@ -119,7 +122,18 @@ Also show a second table for risks and approvals when relevant:
 | Item | Risk | Owner | Approval Needed | Stop Condition |
 | --- | --- | --- | --- | --- |
 
-After the user confirms the `Teams 规划表`, spawn each member as an independent subagent. If the user requests only a proposal, stop after the tables.
+After the user confirms the `Teams 规划表`, or after direct-execution wording authorizes execution, spawn each member as an independent subagent. If the user requests only a proposal, stop after the tables.
+
+When waiting for a Plan decision, use numbered options by default:
+
+```text
+请选择下一步：
+1. 确认并执行
+2. 调整成员或范围
+3. 只保留方案，不执行
+```
+
+The user may answer with just `1`, `2`, or `3`. If they answer with free text, map it to the closest option when unambiguous; otherwise ask one short follow-up.
 
 Also show SPEC readiness:
 
@@ -236,7 +250,8 @@ When the project already uses another coordination directory, either reuse it or
 
 7. Confirm with tables.
    - Present environment readiness, index readiness, SPEC readiness, `Teams 规划表`, tasklist, independent validation plan, and risk/approval tables.
-   - Wait for user confirmation before spawning worker subagents or editing implementation files. If the user explicitly skips confirmation or references an already confirmed plan, still show the `Teams 规划表` before continuing.
+   - Wait for user confirmation before spawning worker subagents or editing implementation files unless the latest user prompt contains direct-execution wording or references an already confirmed plan. If confirmation is skipped, still show the `Teams 规划表` as the execution record before continuing.
+   - When waiting for the user's Plan decision, offer numbered choices so the user can reply with a simple number.
 
 8. Spawn independent subagents.
    - Each member runs as a subagent with its own Member Goal Packet.
@@ -367,8 +382,9 @@ Every Goal Teams run has a final audit gate:
 2. The auditor checks tasklist status, progress logs, acceptance evidence, test results, SPEC/docs, independent validation records, unresolved blockers, and remaining risks.
 3. If the auditor reports no unfinished work, the lead may send the final completion response.
 4. If the auditor finds unfinished work inside the already confirmed goal scope, the lead must create continuation tasks and start another Goal Teams cycle automatically. Do not ask the user for confirmation; show the continuation `Teams 规划表` as the execution record and spawn the needed members.
-5. If the auditor finds new scope, destructive or security-sensitive work, missing credentials, external approvals, or unresolved user decisions, record the blocker and ask the user instead of auto-continuing.
-6. Repeat audit and continuation until the auditor reports complete, or only blocked/deferred work remains with documented reasons.
+5. If the user originally authorized direct execution, keep using direct execution for continuation tasks inside the same confirmed scope. Ask only when the continuation touches a safety gate or new scope.
+6. If the auditor finds new scope, destructive or security-sensitive work, missing credentials, external approvals, or unresolved user decisions, record the blocker and ask the user instead of auto-continuing.
+7. Repeat audit and continuation until the auditor reports complete, or only blocked/deferred work remains with documented reasons.
 
 ## Completion Rules
 

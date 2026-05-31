@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-- Bumped current Skill version to `V1.2` and startup identity to `我是 Goal Teams Leader V1.2，我会帮你完成以下工作：`.
+- Bumped current Skill version to `V1.3` and startup identity to `我是 Goal Teams Leader V1.3，我会帮你完成以下工作：`.
+- Added direct-execution trigger wording such as `直接执行`, `不用确认`, and `跳过确认`; the lead still shows the `Teams 规划表` as an execution record, then proceeds without waiting for the initial confirmation unless a safety gate applies.
+- Added numbered Plan options so users can reply with simple choices like `1`, `2`, or `3`.
 - Added repository-level maintenance guidance in `AGENTS.md`.
 - Added `scripts/check.sh` and `scripts/validate.py` for package validation.
 - Added `examples/mini-goal-run/` as a minimal Goal Teams output example.

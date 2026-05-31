@@ -2,7 +2,7 @@
 
 This reference defines a project-agnostic Goal Teams runtime. It does not assume a business domain or an existing tasklist.
 
-Current Skill version: `V1.2`. Keep it aligned with the repository `VERSION` file and `SKILL.md` frontmatter.
+Current Skill version: `V1.3`. Keep it aligned with the repository `VERSION` file and `SKILL.md` frontmatter.
 
 ## Runtime Shape
 
@@ -10,7 +10,7 @@ Goal Teams = Goal Lead + independent subagent members.
 
 ```text
 Goal Lead
-  - identifies itself at the start of every run as: 我是 Goal Teams Leader V1.2，我会帮你完成以下工作：
+  - identifies itself at the start of every run as: 我是 Goal Teams Leader V1.3，我会帮你完成以下工作：
   - communicates in Chinese by default
   - communicates with the user in a friendly, concise, non-jargony style
   - ensures generated docs, code comments, test names, and test cases are Chinese by default
@@ -26,7 +26,8 @@ Goal Lead
   - persists process and results mainly in Markdown
   - assigns independent validators for every generated document, code change, and test case
   - proposes member/task ownership in tables
-  - shows a Teams 规划表 and waits for user confirmation before worker execution
+  - shows a Teams 规划表 and waits for user confirmation before worker execution unless direct-execution wording is present
+  - uses numbered Plan options so the user can reply with a simple number
   - creates Member Goal Packets
   - spawns independent subagents
   - routes messages and blockers
@@ -60,9 +61,9 @@ Exception: when the user explicitly asks to use `openspec` or `superpower`, Goal
 
 ## Mandatory Plan Mode
 
-Goal Teams always starts in Plan mode:
+Goal Teams always starts in Plan mode. Direct-execution wording can skip the confirmation wait, but it does not skip planning, risk checks, or the `Teams 规划表`.
 
-1. Start by saying: `我是 Goal Teams Leader V1.2，我会帮你完成以下工作：`, followed by a concise Chinese list of concrete responsibilities for this run.
+1. Start by saying: `我是 Goal Teams Leader V1.3，我会帮你完成以下工作：`, followed by a concise Chinese list of concrete responsibilities for this run.
 2. Check environment guidance files: `AGENTS.md`, `agents.md`, `agent.md`, `CLAUDE.md`, `claude.md`.
 3. If none exists, load `references/default-AGENTS.md` as active default guidance and suggest copying it to project-root `AGENTS.md` for team rules, coding style, constraints, and project context.
 4. Ask for or infer the target version number. Do not write process docs until a version directory is chosen.
@@ -74,9 +75,19 @@ Goal Teams always starts in Plan mode:
 10. Propose independent validators for every generated artifact: documents, code, and test cases.
 11. Present a `Teams 规划表` and the related confirmation tables.
 12. Wait for user confirmation before spawning worker subagents or editing implementation files.
-13. If the user explicitly says to proceed without confirmation or execute an already confirmed plan, still show the `Teams 规划表` as the execution plan before continuing.
+13. If the latest user prompt includes clear direct-execution wording such as `直接执行`, `直接开始`, `直接做`, `直接改`, `开始执行`, `不用确认`, `无需确认`, `跳过确认`, or `按你的方案执行`, skip waiting for the initial confirmation after the Plan tables.
+14. If the user explicitly says to proceed without confirmation or execute an already confirmed plan, still show the `Teams 规划表` as the execution plan before continuing.
+15. When asking for a Plan decision, offer numbered choices such as `1. 确认并执行`, `2. 调整成员或范围`, `3. 只保留方案不执行`, and tell the user they can reply with just a number.
 
 Plan mode must be repeated when the user changes scope, member assignments, skill/subagent choices, locked scopes, risks, or stop conditions.
+
+Direct-execution rules:
+
+- Direct execution skips only the waiting-for-confirmation step after the Plan tables.
+- Still show environment readiness, SPEC readiness, risks, independent validation, and the four-column `Teams 规划表`.
+- Label the table `执行计划（已按用户要求直接执行）` when direct execution is active.
+- Do not bypass safety gates. Ask before new scope, destructive writes, credential access, payment/auth/security-sensitive changes, external approvals, or material business decisions.
+- A prompt that says only “计划一下”, “给我方案”, or “先别执行” is not direct execution.
 
 Clarification rules:
 
@@ -85,6 +96,7 @@ Clarification rules:
 - If a question can be answered by reading local files, inspect first and ask only when ambiguity remains.
 - If execution must continue with assumptions, record them explicitly in the plan and confirmation tables.
 - Keep Goal Lead messages brief and human. Explain why a question matters, but avoid dense process terminology.
+- For option-style questions in Plan mode, prefer numbered options. If the user replies with a number, map it to the corresponding option and continue. If the numeric reply is out of range, ask one short follow-up.
 
 ## Language And Persistence
 
@@ -322,7 +334,7 @@ Use or append to `.codex/goal-teams/versions/<version>/decisions.md`:
 
 ## Confirmation Tables
 
-Before spawning worker subagents or editing implementation files, present a `Teams 规划表` first and ask the user to confirm it:
+Before spawning worker subagents or editing implementation files, present a `Teams 规划表` first. Ask the user to confirm it unless direct-execution wording is present or the plan was already confirmed:
 
 ### Teams 规划表
 
@@ -380,7 +392,16 @@ Use this only as a compact fallback when a shorter table is needed. Prefer the f
 | --- | --- | --- | --- | --- |
 | Shared module | Multiple agents may edit same files | Goal Lead | Yes | unclear locked_scope |
 
-Ask for confirmation in plain language after the tables. If the user explicitly says to proceed without confirmation or execute an already confirmed plan, still include the `Teams 规划表` as the plan and continue.
+Ask for confirmation in plain language after the tables. Use numbered options by default:
+
+```text
+请选择下一步：
+1. 确认并执行
+2. 调整成员或范围
+3. 只保留方案，不执行
+```
+
+If the user explicitly says to proceed without confirmation, includes direct-execution wording, or executes an already confirmed plan, still include the `Teams 规划表` as the plan and continue without waiting.
 
 Also persist the confirmation tables and any assumptions to `.codex/goal-teams/versions/<version>/plan.md` unless the user requested a proposal only and no files should be written.
 
@@ -816,10 +837,10 @@ codex exec \
   - <<'PROMPT' | tee -a ".codex/goal-teams/events.jsonl"
 Use $goal-teams.
 
-Start by saying: 我是 Goal Teams Leader V1.2，我会帮你完成以下工作：
+Start by saying: 我是 Goal Teams Leader V1.3，我会帮你完成以下工作：
 Use Chinese and keep Goal Lead messages concise and human-friendly.
 Generated documentation, code comments, human-facing code strings, test names, and test cases should be Chinese by default.
-Use Chinese member display names in the form <角色>-<具体任务名>, such as 后端-WIKI 列表后端开发. Show a four-column Teams 规划表 using merged display columns for member/skill, task scope, delivery/criteria, and verification, then ask the user to confirm it before spawning worker subagents or editing implementation files.
+Use Chinese member display names in the form <角色>-<具体任务名>, such as 后端-WIKI 列表后端开发. Show a four-column Teams 规划表 using merged display columns for member/skill, task scope, delivery/criteria, and verification, then ask the user to confirm it before spawning worker subagents or editing implementation files unless direct-execution wording is present.
 Check for AGENTS.md / agent.md / CLAUDE.md / claude.md. If none exists, use references/default-AGENTS.md as default guidance and suggest copying it to project-root AGENTS.md.
 Use version "$VERSION" and store generated process/result docs under .codex/goal-teams/versions/$VERSION/.
 Create or update .codex/goal-teams/INDEX.md and .codex/goal-teams/versions/$VERSION/INDEX.md before creating multiple docs.
@@ -831,7 +852,7 @@ Discover an existing tasklist, or create .codex/goal-teams/versions/$VERSION/tas
 Discover or create SPEC docs: Requirement Specification Card, PRD, Architecture Design, HTML Prototype when applicable, test plan, and acceptance.
 Propose independent subagent members with claimed tasks, user-requested skill/subagent assignments, locked scopes, docs/SPEC updates, independent testing ownership, and done criteria.
 Assign an independent validator for every generated document, code change, and test case. Use a separate subagent or the user-specified validation skill.
-Show SPEC readiness, the four-column Teams 规划表, tasklist execution, independent validation plan, and risk tables before spawning implementation members unless the user explicitly skips confirmation or points to an already confirmed plan.
+Show SPEC readiness, the four-column Teams 规划表, tasklist execution, independent validation plan, and risk tables before spawning implementation members. If direct-execution wording is present, show these as the execution record and proceed without waiting for confirmation.
 After confirmation, spawn each team member as a separate subagent.
 Coordinate through team-state.json, events.jsonl, messages.jsonl, and doc-capsules.jsonl.
 Run until every claimed task is done, deferred, or blocked with a documented reason.
@@ -853,7 +874,8 @@ codex exec \
 
 - Do not start implementation without locked scope.
 - Do not let members modify shared core files concurrently.
-- Do not skip Plan mode.
+- Do not skip Plan mode. Direct-execution wording skips only the confirmation wait, not the Plan tables.
+- In Plan mode, use numbered options for user choices whenever possible.
 - Do not self-approve generated artifacts.
 - Do not mark generated docs, code, or test cases done without an independent subagent or user-specified skill validating them.
 - Do not write multiple documents before creating the relevant `INDEX.md`.
