@@ -1,7 +1,6 @@
 ---
 name: goal-teams
-version: V1.3
-description: Run Codex Goal Mode as a coordinated team of independent subagents for any project. Use when the user asks for Goal Teams, goal-mode teams, multi-agent goal execution, version/module goals, versioned document directories, document indexes, default AGENTS guidance, Chinese-generated artifacts, role-plus-task Chinese member names, Teams planning table confirmation or direct-execution plan records before execution, numbered Plan options for simple user choice, independent validation of docs/code/tests, post-completion unfinished-work audits, automatic continuation cycles, requirement analysis, requirement specification cards, goal packets, Chinese-first team execution, Markdown persistence for process/results, planning-stage clarification questions, SPEC-driven execution, PRD, architecture design, HTML prototypes, tasklist creation, member task claiming, confirmation tables, progress tables, progressive document loading, Doc Capsules, or when combining Codex Goal Mode with Agent Teams so every team member runs as its own subagent.
+description: Coordinate Codex Goal Mode with independent subagents. Use for Goal Teams, multi-agent goal execution, Chinese-first SPEC/tasklist work, Teams planning tables, direct-execution plan records, numbered Plan choices, independent validation, and completion audits with auto-continuation.
 ---
 
 # Goal Teams

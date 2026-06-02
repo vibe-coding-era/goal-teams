@@ -122,11 +122,25 @@ def check_skill_frontmatter() -> None:
     if not match:
         fail("SKILL.md must start with YAML frontmatter")
     body = match.group("body")
-    for key in ("name: goal-teams", f"version: {version}", "description:"):
-        if key not in body:
-            fail(f"SKILL.md frontmatter missing {key!r}")
-    if len(body.split("description:", 1)[1].strip()) < 80:
+    fields = []
+    values = {}
+    for line in body.splitlines():
+        if not line.strip():
+            continue
+        field_match = re.match(r"^([A-Za-z0-9_-]+):\s*(.*)$", line)
+        if not field_match:
+            fail(f"SKILL.md frontmatter has unsupported YAML line: {line!r}")
+        field, value = field_match.groups()
+        fields.append(field)
+        values[field] = value.strip()
+    if fields != ["name", "description"]:
+        fail(f"SKILL.md frontmatter must contain only name and description, got {fields!r}")
+    if values["name"] != "goal-teams":
+        fail(f"SKILL.md frontmatter name should be 'goal-teams', got {values['name']!r}")
+    if len(values["description"]) < 80:
         fail("SKILL.md description is too short for skill discovery")
+    if len(body) > 500:
+        fail(f"SKILL.md frontmatter should stay compact, got {len(body)} characters")
 
 
 def check_subagents() -> None:

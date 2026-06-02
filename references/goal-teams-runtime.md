@@ -2,7 +2,7 @@
 
 This reference defines a project-agnostic Goal Teams runtime. It does not assume a business domain or an existing tasklist.
 
-Current Skill version: `V1.3`. Keep it aligned with the repository `VERSION` file and `SKILL.md` frontmatter.
+Current Skill version: `V1.3`. Keep it aligned with the repository `VERSION` file, `SKILL.md` body, README, and startup identity.
 
 ## Runtime Shape
 
