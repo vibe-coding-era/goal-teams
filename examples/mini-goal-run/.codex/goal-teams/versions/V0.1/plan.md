@@ -6,7 +6,7 @@
 
 ## 启动汇报
 
-我是 Goal Teams Leader V1.0，我会帮你完成以下工作：
+我是 Goal Teams Leader V1.3，我会帮你完成以下工作：
 
 - 检查示例项目执行规则和版本目录。
 - 创建索引、tasklist、SPEC、原型、测试计划和验收清单。
@@ -32,16 +32,16 @@
 
 | 成员 / Skill/Subagent | 任务范围 | 交付与标准 | 验证安排 |
 | --- | --- | --- | --- |
-| 成员：需求分析-登录页空状态需求澄清<br>Skill/Subagent：`goal_requirements_analyst` | 目标切片：梳理登录页空状态需求<br>认领任务：GT-001<br>锁定范围：`spec/` | 交付物：需求规格卡<br>完成标准：目标、流程、边界清楚<br>文档/tasklist：requirement-spec-card | 测试 Owner：评审-登录页空状态文档校验<br>校验者：评审-登录页空状态文档校验 |
-| 成员：产品-登录页空状态 PRD<br>Skill/Subagent：`goal_product` | 目标切片：生成登录页空状态 PRD<br>认领任务：GT-002<br>锁定范围：`spec/` | 交付物：PRD<br>完成标准：来源于需求规格卡<br>文档/tasklist：PRD | 测试 Owner：评审-登录页空状态文档校验<br>校验者：评审-登录页空状态文档校验 |
-| 成员：前端-登录页空状态 HTML 原型<br>Skill/Subagent：`goal_frontend` | 目标切片：登录页空状态原型<br>认领任务：GT-003<br>锁定范围：`spec/HTML-prototype.html` | 交付物：HTML 原型<br>完成标准：能表达空状态<br>文档/tasklist：HTML Prototype | 测试 Owner：测试-登录页空状态验收测试<br>校验者：评审-登录页空状态文档校验 |
-| 成员：测试-登录页空状态验收测试<br>Skill/Subagent：`goal_qa` | 目标切片：登录页空状态测试计划<br>认领任务：GT-004<br>锁定范围：`spec/test-plan.md` | 交付物：测试计划<br>完成标准：覆盖文案和流程<br>文档/tasklist：test-plan | 测试 Owner：测试-登录页空状态验收测试<br>校验者：评审-登录页空状态测试有效性 |
-| 成员：文档-登录页空状态验收文档<br>Skill/Subagent：`goal_docs` | 目标切片：登录页空状态收口文档<br>认领任务：GT-005<br>锁定范围：`spec/acceptance.md` | 交付物：验收清单<br>完成标准：证据完整<br>文档/tasklist：acceptance | 测试 Owner：评审-登录页空状态文档校验<br>校验者：评审-登录页空状态文档校验 |
-| 成员：评审-登录页空状态文档校验<br>Skill/Subagent：`goal_reviewer` | 目标切片：独立校验登录页空状态文档<br>认领任务：GT-006<br>锁定范围：只读 | 交付物：校验记录<br>完成标准：非作者校验通过<br>文档/tasklist：progress | 测试 Owner：不适用<br>校验者：不适用 |
-| 成员：收尾-登录页空状态未完成工作检查<br>Skill/Subagent：`goal_completion_auditor` | 目标切片：检查未完成工作和缺失证据<br>认领任务：GT-007<br>锁定范围：只读 | 交付物：收尾审计记录<br>完成标准：确认无未完成工作，或输出自动续跑任务<br>文档/tasklist：progress + acceptance | 测试 Owner：不适用<br>校验者：不适用 |
+| 成员：需求分析-登录页空状态需求澄清<br>Skill/Subagent：`goal_requirements_analyst` | 目标切片：梳理登录页空状态需求<br>认领任务：GT-001<br>Workflow：串行<br>前置任务：-<br>锁定范围：`spec/` | 交付物：需求规格卡<br>完成标准：目标、流程、边界清楚<br>文档/tasklist：requirement-spec-card | 测试 Owner：评审-登录页空状态文档校验<br>校验者：评审-登录页空状态文档校验 |
+| 成员：产品-登录页空状态 PRD<br>Skill/Subagent：`goal_product` | 目标切片：生成登录页空状态 PRD<br>认领任务：GT-002<br>Workflow：串行<br>前置任务：GT-001<br>锁定范围：`spec/` | 交付物：PRD<br>完成标准：来源于需求规格卡<br>文档/tasklist：PRD | 测试 Owner：评审-登录页空状态文档校验<br>校验者：评审-登录页空状态文档校验 |
+| 成员：前端-登录页空状态 HTML 原型<br>Skill/Subagent：`goal_frontend` | 目标切片：登录页空状态原型<br>认领任务：GT-003<br>Workflow：串行<br>前置任务：GT-002<br>锁定范围：`spec/HTML-prototype.html` | 交付物：HTML 原型<br>完成标准：能表达空状态<br>文档/tasklist：HTML Prototype | 测试 Owner：测试-登录页空状态验收测试<br>校验者：评审-登录页空状态文档校验 |
+| 成员：测试-登录页空状态验收测试<br>Skill/Subagent：`goal_qa` | 目标切片：登录页空状态测试计划<br>认领任务：GT-004<br>Workflow：串行<br>前置任务：GT-003<br>锁定范围：`spec/test-plan.md` | 交付物：测试计划<br>完成标准：覆盖文案和流程<br>文档/tasklist：test-plan | 测试 Owner：测试-登录页空状态验收测试<br>校验者：评审-登录页空状态测试有效性 |
+| 成员：文档-登录页空状态验收文档<br>Skill/Subagent：`goal_docs` | 目标切片：登录页空状态收口文档<br>认领任务：GT-005<br>Workflow：串行<br>前置任务：GT-004<br>锁定范围：`spec/acceptance.md` | 交付物：验收清单<br>完成标准：证据完整<br>文档/tasklist：acceptance | 测试 Owner：评审-登录页空状态文档校验<br>校验者：评审-登录页空状态文档校验 |
+| 成员：评审-登录页空状态文档校验<br>Skill/Subagent：`goal_reviewer` | 目标切片：独立校验登录页空状态文档<br>认领任务：GT-006<br>Workflow：串行<br>前置任务：GT-001, GT-002, GT-003, GT-004, GT-005<br>锁定范围：只读 | 交付物：校验记录<br>完成标准：非作者校验通过<br>文档/tasklist：progress | 测试 Owner：不适用<br>校验者：不适用 |
+| 成员：收尾-登录页空状态未完成工作检查<br>Skill/Subagent：`goal_completion_auditor` | 目标切片：检查未完成工作和缺失证据<br>认领任务：GT-007<br>Workflow：串行<br>前置任务：GT-006<br>锁定范围：只读 | 交付物：收尾审计记录<br>完成标准：确认无未完成工作，或输出自动续跑任务<br>文档/tasklist：progress + acceptance | 测试 Owner：不适用<br>校验者：不适用 |
 
 ## 风险与审批
 
-| Item | Risk | Owner | Approval Needed | Stop Condition |
+| 项目 | 风险 | Owner | 是否需审批 | 停止条件 |
 | --- | --- | --- | --- | --- |
 | 业务代码 | 示例误改实现文件 | Goal Lead | 是 | 出现实现文件改动 |

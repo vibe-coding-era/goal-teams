@@ -9,7 +9,11 @@
 - Added `scripts/check.sh` and `scripts/validate.py` for package validation.
 - Added `examples/mini-goal-run/` as a minimal Goal Teams output example.
 - Documented validation and example workflows in both READMEs.
-- Tightened member display names to role + concrete task names, such as `后端-WIKI 列表后端开发`.
+- Updated runtime subagent id, `member_id`, and display names to Chinese role + concrete task names, such as `后端-WIKI 列表后端开发`; when a user assigns a skill, the skill name is used, such as `browser-WIKI 列表页面验证`.
+- Kept loadable technical subagent names such as `goal_backend` only in `skill_or_subagent`.
+- Required task workflow safety fields in planning tables: serial/parallel workflow and predecessor tasks.
+- Required final status tables to include `资源消耗（用户 / tokens / 费用）` for each task or subagent, using `未提供` when runtime usage is unavailable.
+- Consolidated Chinese-output behavior into one core model prompt.
 - Required a `Teams 规划表` for user confirmation before worker execution.
 - Updated the `Teams 规划表` display to four merged columns while preserving the same planning fields.
 - Added `goal_completion_auditor` for post-completion unfinished-work audits and automatic continuation cycles inside the confirmed scope.

@@ -9,23 +9,35 @@
   },
   "members": [
     {
-      "id": "requirements-gt-001",
+      "id": "需求分析-登录页空状态需求澄清",
+      "subagent_id": "需求分析-登录页空状态需求澄清",
       "display_name": "需求分析-登录页空状态需求澄清",
+      "role": "需求分析",
       "skill_or_subagent": "goal_requirements_analyst",
+      "workflow_mode": "serial",
+      "depends_on": [],
       "status": "done",
       "claimed_tasks": ["GT-001"]
     },
     {
-      "id": "reviewer-gt-006",
+      "id": "评审-登录页空状态文档校验",
+      "subagent_id": "评审-登录页空状态文档校验",
       "display_name": "评审-登录页空状态文档校验",
+      "role": "评审",
       "skill_or_subagent": "goal_reviewer",
+      "workflow_mode": "serial",
+      "depends_on": ["GT-001", "GT-002", "GT-003", "GT-004", "GT-005"],
       "status": "done",
       "claimed_tasks": ["GT-006"]
     },
     {
-      "id": "completion-auditor-gt-007",
+      "id": "收尾-登录页空状态未完成工作检查",
+      "subagent_id": "收尾-登录页空状态未完成工作检查",
       "display_name": "收尾-登录页空状态未完成工作检查",
+      "role": "收尾",
       "skill_or_subagent": "goal_completion_auditor",
+      "workflow_mode": "serial",
+      "depends_on": ["GT-006"],
       "status": "done",
       "claimed_tasks": ["GT-007"],
       "verdict": "complete"

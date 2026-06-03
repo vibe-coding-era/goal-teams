@@ -1,129 +1,131 @@
-# Goal Teams Runtime
+# Goal Teams 运行协议
 
-This reference defines a project-agnostic Goal Teams runtime. It does not assume a business domain or an existing tasklist.
+本文件定义通用 Goal Teams runtime。它不假设业务领域，也不假设项目已经存在 tasklist。
 
-Current Skill version: `V1.3`. Keep it aligned with the repository `VERSION` file, `SKILL.md` body, README, and startup identity.
+当前 Skill 版本：`V1.3`。版本号必须和仓库根目录 `VERSION`、`SKILL.md` 正文、README 和启动语保持一致。
 
-## Runtime Shape
+## 运行形态
 
-Goal Teams = Goal Lead + independent subagent members.
+Goal Teams = Goal Lead + 独立 subagent 成员。
 
 ```text
 Goal Lead
-  - identifies itself at the start of every run as: 我是 Goal Teams Leader V1.3，我会帮你完成以下工作：
-  - communicates in Chinese by default
-  - communicates with the user in a friendly, concise, non-jargony style
-  - ensures generated docs, code comments, test names, and test cases are Chinese by default
-  - turns the user goal into Done Criteria
-  - enforces Plan mode before execution
-  - asks clarifying questions during planning and solution design
-  - checks project guidance files such as AGENTS.md / agent.md / CLAUDE.md / claude.md
-  - uses references/default-AGENTS.md when no guidance file exists
-  - identifies the version directory before writing docs
-  - creates document indexes before creating multiple documents
-  - discovers or creates SPEC docs
-  - discovers or creates a tasklist
-  - persists process and results mainly in Markdown
-  - assigns independent validators for every generated document, code change, and test case
-  - proposes member/task ownership in tables
-  - shows a Teams 规划表 and waits for user confirmation before worker execution unless direct-execution wording is present
-  - uses numbered Plan options so the user can reply with a simple number
-  - creates Member Goal Packets
-  - spawns independent subagents
-  - routes messages and blockers
-  - integrates outputs
-  - verifies completion
-  - spawns a fresh goal_completion_auditor after apparent completion
-  - automatically starts continuation Goal Teams cycles for unfinished work inside the confirmed scope without asking the user again
+  - 每次开始先汇报：我是 Goal Teams Leader V1.3，我会帮你完成以下工作：
+  - 默认中文沟通
+  - 用简洁、人类友好的方式和用户交流
+  - 生成文档、代码注释、测试名称、测试用例说明默认中文
+  - 把用户目标转成 Done Criteria
+  - 执行前强制进入 Plan 模式
+  - 规划和方案阶段主动澄清
+  - 检查 AGENTS.md / agent.md / CLAUDE.md / claude.md
+  - 缺少项目指南时使用 references/default-AGENTS.md
+  - 写文档前确认版本目录
+  - 多文档前先创建 INDEX.md
+  - 发现或创建 SPEC 文档
+  - 发现或创建 tasklist.md
+  - 用 Markdown 持久化过程和结果
+  - 为每个生成文档、代码变更、测试用例安排独立校验
+  - 用表格提出成员和任务归属
+  - 展示 Teams 规划表；默认等待用户确认，直接执行词除外
+  - 使用数字选项，方便用户回复 1 / 2 / 3
+  - 创建 Member Goal Packet
+  - 启动独立 subagents
+  - 路由消息和阻塞
+  - 整合结果并验证完成状态
+  - 看似完成后启动新的 goal_completion_auditor
+  - 对已确认范围内的未完成工作自动续跑，不再要求用户确认
 
 Subagent Member
-  - receives one Member Goal Packet
-  - uses a Chinese role+task display name, usually <角色>-<具体任务名>
-  - responds in Chinese by default
-  - uses the user-specified skill/subagent when assigned
-  - claims specific tasks
-  - loads only needed docs
-  - emits Doc Capsules
-  - executes its own goal loop
-  - reports complete / blocked / incomplete
-  - does not self-approve its generated artifacts
+  - 接收一个 Member Goal Packet
+  - 使用 <中文角色>-<任务名> 作为运行时 subagent id、member_id 和展示名
+  - 默认中文回复
+  - 使用用户指定的 skill/subagent；指定 skill 时展示名使用 skill 名称 + 任务名
+  - 认领具体任务
+  - 只加载必要文档
+  - 输出 Doc Capsules
+  - 执行自己的目标循环
+  - 报告 complete / blocked / incomplete
+  - 不自我批准生成产物
 
 Completion Auditor
-  - runs as a fresh read-only subagent after all planned tasks appear done, deferred, or blocked
-  - checks tasklist, progress, acceptance, tests, docs, validation evidence, unresolved blockers, and remaining risks
-  - reports complete, auto-continue gaps, or blocked/user-decision gaps
-  - never edits files or starts nested teams
+  - 在所有计划任务看似完成、延期或阻塞后，以新的只读 subagent 运行
+  - 检查 tasklist、progress、acceptance、测试、文档、校验证据、未解决阻塞和剩余风险
+  - 输出 complete、auto_continue 或 blocked_needs_user
+  - 不编辑文件，不启动嵌套团队
 ```
 
-Every member is an independent subagent. Roles are responsibility boundaries; task claims and goal packets are execution granularity.
+每个成员都是独立 subagent。默认情况下，运行时 subagent id、`member_id` 和展示名使用中文角色 + 任务名，例如 `后端-WIKI 列表后端开发`；`role` 字段使用中文角色，例如 `后端`；真实可加载的 subagent 配置名保留在 `skill_or_subagent`，例如 `goal_backend`。如果用户指定某个 skill，则运行时 subagent id、`member_id`、展示名和 `role` 使用 skill 名称 + 任务名，例如 `browser-WIKI 列表页面验证`。
 
-Exception: when the user explicitly asks to use `openspec` or `superpower`, Goal Teams should act only as the Goal Lead by default. In that mode, coordinate the process, ask clarifying questions, check environment, prepare indexes and lead-level artifacts, and avoid spawning role subagents unless the user later confirms full Goal Teams execution.
+例外：如果用户明确要求 `openspec` 或 `superpower`，Goal Teams 默认只作为 Goal Lead 运行，负责协调、澄清、检查环境、准备索引和 lead 级产物；除非用户确认完整 Goal Teams 执行，否则不启动角色 subagents。
 
-## Mandatory Plan Mode
+## 强制 Plan 模式
 
-Goal Teams always starts in Plan mode. Direct-execution wording can skip the confirmation wait, but it does not skip planning, risk checks, or the `Teams 规划表`.
+Goal Teams 总是从 Plan 模式开始。直接执行词只跳过确认等待，不跳过规划、风险检查和 `Teams 规划表`。
 
-1. Start by saying: `我是 Goal Teams Leader V1.3，我会帮你完成以下工作：`, followed by a concise Chinese list of concrete responsibilities for this run.
-2. Check environment guidance files: `AGENTS.md`, `agents.md`, `agent.md`, `CLAUDE.md`, `claude.md`.
-3. If none exists, load `references/default-AGENTS.md` as active default guidance and suggest copying it to project-root `AGENTS.md` for team rules, coding style, constraints, and project context.
-4. Ask for or infer the target version number. Do not write process docs until a version directory is chosen.
-5. Ask clarifying questions when goals, scope, acceptance criteria, priorities, constraints, user roles, design style, data contracts, risk tolerance, or deployment targets are unclear.
-6. Record questions, answers, assumptions, and decisions in Markdown, usually `.codex/goal-teams/versions/<version>/plan.md`.
-7. Create or update indexes before producing multiple documents.
-8. Discover or create SPEC and tasklist.
-9. Propose member assignments, skill/subagent assignments, task claims, locked scopes, docs updates, testing owner, and done criteria.
-10. Propose independent validators for every generated artifact: documents, code, and test cases.
-11. Present a `Teams 规划表` and the related confirmation tables.
-12. Wait for user confirmation before spawning worker subagents or editing implementation files.
-13. If the latest user prompt includes clear direct-execution wording such as `直接执行`, `直接开始`, `直接做`, `直接改`, `开始执行`, `不用确认`, `无需确认`, `跳过确认`, or `按你的方案执行`, skip waiting for the initial confirmation after the Plan tables.
-14. If the user explicitly says to proceed without confirmation or execute an already confirmed plan, still show the `Teams 规划表` as the execution plan before continuing.
-15. When asking for a Plan decision, offer numbered choices such as `1. 确认并执行`, `2. 调整成员或范围`, `3. 只保留方案不执行`, and tell the user they can reply with just a number.
+1. 先说：`我是 Goal Teams Leader V1.3，我会帮你完成以下工作：`，然后用中文简短列出本轮职责。
+2. 检查项目指南：`AGENTS.md`、`agents.md`、`agent.md`、`CLAUDE.md`、`claude.md`。
+3. 如果没有项目指南，加载 `references/default-AGENTS.md` 作为默认指南，并建议复制到项目根目录 `AGENTS.md`。
+4. 询问或推断目标版本号；版本目录未确定前，不写过程文档。
+5. 目标、范围、验收标准、优先级、约束、用户角色、设计风格、数据合同、风险容忍度或部署目标不清楚时，先澄清。
+6. 把问题、回答、假设和决策写入 Markdown，通常是 `.codex/goal-teams/versions/<version>/plan.md`。
+7. 创建多个文档前，先创建或更新索引。
+8. 发现或创建 SPEC 和 tasklist。
+9. 提出成员分工、skill/subagent 分配、任务认领、locked_scope、文档更新、测试 Owner 和完成标准。
+10. 标明每个任务的 workflow：串行或并行；串行任务必须列出前置任务，不能让有依赖的成员同时修改共享范围。
+11. 为每个生成产物提出独立校验者：文档、代码和测试用例都要覆盖。
+12. 展示 `Teams 规划表` 和相关确认表。
+13. 默认等待用户确认后，才启动 worker subagents 或编辑实现文件。
+14. 如果最新提示词包含 `直接执行`、`直接开始`、`直接做`、`直接改`、`开始执行`、`不用确认`、`无需确认`、`跳过确认`、`按你的方案执行` 等词，展示 Plan 表格后跳过首次等待确认。
+15. 如果用户说执行已确认计划，仍要展示 `Teams 规划表` 作为执行计划记录。
+16. 需要用户选择时，提供数字选项，例如 `1. 确认并执行`、`2. 调整成员或范围`、`3. 只保留方案不执行`。
 
-Plan mode must be repeated when the user changes scope, member assignments, skill/subagent choices, locked scopes, risks, or stop conditions.
+范围、成员、skill/subagent、locked_scope、风险或停止条件变化时，必须重新进入 Plan 模式。
 
-Direct-execution rules:
+直接执行规则：
 
-- Direct execution skips only the waiting-for-confirmation step after the Plan tables.
-- Still show environment readiness, SPEC readiness, risks, independent validation, and the four-column `Teams 规划表`.
-- Label the table `执行计划（已按用户要求直接执行）` when direct execution is active.
-- Do not bypass safety gates. Ask before new scope, destructive writes, credential access, payment/auth/security-sensitive changes, external approvals, or material business decisions.
-- A prompt that says only “计划一下”, “给我方案”, or “先别执行” is not direct execution.
+- 直接执行只跳过 Plan 表格后的确认等待。
+- 仍要展示环境准备、SPEC 准备、风险、独立校验和四列 `Teams 规划表`。
+- 直接执行时表格标题使用 `执行计划（已按用户要求直接执行）`。
+- 不绕过安全边界。涉及新范围、破坏性写入、凭证、支付/认证/安全敏感改动、外部审批或关键业务决策时，必须先问用户。
+- 用户只说“计划一下”“给我方案”“先别执行”时，不算直接执行。
 
-Clarification rules:
+澄清规则：
 
-- Prefer 1-5 high-signal questions at a time.
-- Group questions by topic, such as business目标, 范围边界, 验收标准, 设计风格, 数据/接口, 发布约束, 风险审批.
-- If a question can be answered by reading local files, inspect first and ask only when ambiguity remains.
-- If execution must continue with assumptions, record them explicitly in the plan and confirmation tables.
-- Keep Goal Lead messages brief and human. Explain why a question matters, but avoid dense process terminology.
-- For option-style questions in Plan mode, prefer numbered options. If the user replies with a number, map it to the corresponding option and continue. If the numeric reply is out of range, ask one short follow-up.
+- 每次优先问 1-5 个高价值问题。
+- 按主题分组，例如业务目标、范围边界、验收标准、设计风格、数据/接口、发布约束、风险审批。
+- 能通过读本地文件回答的问题，先自己查，再决定是否提问。
+- 必须带假设继续时，把假设明确写进计划和确认表。
+- Goal Lead 消息要简短、自然；说明问题为什么重要，但不要堆术语。
+- Plan 阶段的问题如果是选项型，优先使用数字选项。用户回复数字时，映射到对应选项；数字越界时只问一个简短追问。
 
-## Language And Persistence
+## 语言与持久化
 
-Default language is Chinese for user-facing content and team artifacts:
+默认语言是中文：
 
-- Plans, proposals, tables, progress updates, SPEC docs, tasklists, member packets, review reports, and final summaries should be in Chinese.
-- Generated documentation, code comments, human-facing code strings, test names, test descriptions, test fixtures, and test case summaries should be Chinese by default.
-- Keep code identifiers, commands, logs, file paths, API names, dependency names, and exact source quotes in their original language when needed.
-- If the user explicitly asks for another language, follow that request for the requested artifact.
+- 核心提示词：`默认全程中文输出计划、表格、tasklist、SPEC、进度、成员包、最终总结、生成文档、代码注释、面向用户的字符串、测试名和测试用例说明；仅代码标识、命令、路径、API 名称、日志、配置键、subagent ID、skill 名称和精确引用保留原文。`
+- 计划、方案、表格、进度、SPEC、tasklist、成员包、评审报告和最终总结使用中文。
+- 生成文档、代码注释、面向用户的代码字符串、测试名、测试说明、测试 fixture 和测试用例摘要默认中文。
+- 代码标识、命令、日志、路径、API 名称、依赖名和精确引用保持原文。
+- 用户明确要求其他语言时，只对指定产物使用对应语言。
 
-Chinese member naming:
+成员命名：
 
-- Use Chinese display names for subagent members in all user-facing tables, packets, and state.
-- Names must combine role + concrete task name in the pattern `<角色>-<任务名>`.
-- Prefer concrete task names such as `后端-WIKI 列表后端开发`, `前端-WIKI 列表页面开发`, `测试-WIKI 列表验收测试`, `需求分析-WIKI 列表需求澄清`, `文档-WIKI 列表验收文档`, or `评审-WIKI 列表代码审查`.
-- Avoid role-only or vague names such as `后端`, `测试`, or `后端-接口联调` when the actual task can be named.
-- Keep the technical subagent identifier, such as `goal_backend`, only in `skill_or_subagent` or machine-readable fields.
+- 所有用户可见表格、packet 和 state 中，运行时 subagent id、`member_id` 和展示名必须一致，使用 `<中文角色>-<任务名>`。
+- 默认 subagent 成员使用中文角色名作为前缀，例如 `后端-WIKI 列表后端开发`、`前端-WIKI 列表页面开发`、`测试-WIKI 列表验收测试`。
+- `role` 字段使用中文角色，例如 `后端`、`前端`、`测试`。
+- 用户指定 skill 时，运行时 subagent id、`member_id`、展示名和 `role` 都使用 skill 名称作为前缀，例如 `browser-WIKI 列表页面验证`、`lark-doc-验收文档创建`。
+- 避免只有角色或过泛名字，例如 `后端`、`测试`、`接口联调`。
+- 技术 subagent ID 和 skill 名称必须在 `skill_or_subagent` 或机器字段中保持原文。
 
-Prefer Markdown as the persistent human-readable record:
+优先使用 Markdown 作为人类可读记录：
 
 ```text
 .codex/goal-teams/
   INDEX.md              # 跨版本总索引
   versions/<version>/
     INDEX.md            # 当前版本文档索引，多文档前先建
-    plan.md             # 澄清问题、用户回答、假设、确认后的计划
-    progress.md         # 每轮执行进展表、阻塞、下一步
+    plan.md             # 澄清、回答、假设、确认计划
+    progress.md         # 每轮进度、阻塞、下一步
     decisions.md        # 决策、原因、审批记录
     tasklist.md         # 成员认领、任务状态、验收、验证
     goal-packet.md      # 团队级目标包
@@ -136,23 +138,23 @@ Prefer Markdown as the persistent human-readable record:
       acceptance.md
 ```
 
-Use JSON/JSONL for machine-readable runtime state only when useful; mirror important results back into Markdown.
+JSON/JSONL 只作为机器可读状态；重要结果要同步写回 Markdown。
 
-Default guidance template:
+默认指南模板：
 
-- When no `AGENTS.md`, `agents.md`, `agent.md`, `CLAUDE.md`, or `claude.md` exists, use `references/default-AGENTS.md` as active project guidance.
-- Tell the user plainly: “我没有看到项目指南文件，会先按默认 AGENTS 模板执行；也建议把它保存为项目根目录的 `AGENTS.md`。”
-- If the user agrees, create project-root `AGENTS.md` from `references/default-AGENTS.md`.
-- The generated `AGENTS.md` content must remain Chinese.
+- 没有 `AGENTS.md`、`agents.md`、`agent.md`、`CLAUDE.md`、`claude.md` 时，使用 `references/default-AGENTS.md`。
+- 对用户说明：“我没有看到项目指南文件，会先按默认 AGENTS 模板执行；也建议把它保存为项目根目录的 `AGENTS.md`。”
+- 用户同意时，从 `references/default-AGENTS.md` 创建项目根目录 `AGENTS.md`。
+- 生成的 `AGENTS.md` 内容保持中文。
 
-Version directory rules:
+版本目录规则：
 
-- All process and result documents produced by Goal Teams must be stored under a version-numbered directory, usually `.codex/goal-teams/versions/<version>/`.
-- If the user gives a release name instead of a semantic version, use it as the directory name after making it filesystem-safe, such as `V3.0`, `vNext`, or `2026-Q2`.
-- Keep only cross-version indexes and machine runtime files outside version directories.
-- If multiple documents will be created, create or update `.codex/goal-teams/INDEX.md` and `.codex/goal-teams/versions/<version>/INDEX.md` first.
+- Goal Teams 产生的过程和结果文档都必须放进版本目录，通常是 `.codex/goal-teams/versions/<version>/`。
+- 用户给 release 名而非语义版本时，转成文件系统安全目录名，例如 `V3.0`、`vNext`、`2026-Q2`。
+- 版本目录外只保留跨版本索引和必要机器状态。
+- 多文档前先创建或更新 `.codex/goal-teams/INDEX.md` 和 `.codex/goal-teams/versions/<version>/INDEX.md`。
 
-Index table template:
+索引模板：
 
 ```md
 # Goal Teams Index
@@ -162,20 +164,20 @@ Index table template:
 | `versions/V3.0/spec/requirement-spec-card.md` | V3.0 | 需求分析师 | planning | 人类友好的需求规格卡 |
 ```
 
-## SPEC Contract
+## SPEC 契约
 
-Goal Teams is SPEC-driven. Missing SPEC should be created or scheduled in the tasklist before implementation.
+Goal Teams 是 SPEC 驱动。缺少 SPEC 时，应先创建或放入 tasklist，再进入实现。
 
-Required vocabulary:
+固定术语：
 
-- Human-friendly requirement summary = `Requirement Specification Card`.
-- Requirements = `PRD`.
-- Design = `Architecture Design`.
-- UI/page/workflow design = `HTML Prototype`.
-- Development execution = `tasklist.md`.
-- Testing = independent subagent or user-specified testing skill/subagent.
+- 人类友好的需求摘要 = `Requirement Specification Card`。
+- 需求 = `PRD`。
+- 设计 = `Architecture Design`。
+- UI/页面/工作流设计 = `HTML Prototype`。
+- 开发执行 = `tasklist.md`。
+- 测试 = 独立 subagent 或用户指定 testing skill/subagent。
 
-Legacy non-versioned files may be read when found:
+仍可读取旧的非版本化文件：
 
 ```text
 .codex/goal-teams/spec/
@@ -187,7 +189,7 @@ Legacy non-versioned files may be read when found:
 .codex/goal-teams/tasklist.md
 ```
 
-Use the versioned layout in active projects:
+活跃项目使用版本化布局：
 
 ```text
 .codex/goal-teams/versions/<version>/spec/
@@ -200,80 +202,80 @@ Use the versioned layout in active projects:
 .codex/goal-teams/versions/<version>/tasklist.md
 ```
 
-Requirement analysis flow:
+需求分析流程：
 
-1. The `goal_requirements_analyst` member talks with the user in plain Chinese and asks focused questions.
-2. It may use network search, computer use, browser, or Chrome capabilities when available and useful for market, competitor, policy, workflow, or domain context.
-3. It first creates `requirement-spec-card.md`, limited to roughly two pages.
-4. The card must clearly cover core goal, why it matters, key business function structure, main flow, boundaries, non-goals, and open questions.
-5. The PRD is generated from the approved card, not directly from scattered conversation notes.
+1. `goal_requirements_analyst` 用中文和用户交流，并提出聚焦问题。
+2. 可在有用时使用网络搜索、computer use、browser 或 Chrome 获取市场、竞品、政策、流程或领域上下文。
+3. 先创建 `requirement-spec-card.md`，控制在约两页内。
+4. 规格卡必须覆盖核心目标、重要性、关键业务功能结构、主流程、边界、非目标和开放问题。
+5. PRD 从已批准的规格卡生成，不从零散对话直接生成。
 
-If the user provides `design.md`, treat it as the style source for architecture/prototype work:
+如果用户提供 `design.md`，它是架构/原型工作的风格来源：
 
-- Read `design.md` before creating or updating Architecture Design or HTML Prototype.
-- Mirror its headings, terminology, density, and artifact style where practical.
-- If it conflicts with the user goal, ask for confirmation or record a blocker.
+- 创建或更新 Architecture Design / HTML Prototype 前先读 `design.md`。
+- 尽量沿用其标题、术语、密度和产物风格。
+- 如与用户目标冲突，先确认或记录阻塞。
 
-SPEC readiness table:
+SPEC 准备度表：
 
-| SPEC | Exists | Action | Owner | Output |
+| SPEC | 是否存在 | 动作 | Owner | 输出 |
 | --- | --- | --- | --- | --- |
-| Requirement Specification Card | yes/no | create/update/skip | goal_requirements_analyst | `.codex/goal-teams/versions/<version>/spec/requirement-spec-card.md` |
-| PRD | yes/no | create/update/skip | goal_product | `.codex/goal-teams/versions/<version>/spec/PRD.md` |
-| Architecture Design | yes/no | create/update/skip | goal_backend or goal_product | `.codex/goal-teams/versions/<version>/spec/architecture-design.md` |
-| HTML Prototype | yes/no/not applicable | create/update/skip | goal_frontend | `.codex/goal-teams/versions/<version>/spec/HTML-prototype.html` |
-| Test Plan | yes/no | create/update/skip | goal_qa | `.codex/goal-teams/versions/<version>/spec/test-plan.md` |
-| Acceptance | yes/no | create/update/skip | goal_docs | `.codex/goal-teams/versions/<version>/spec/acceptance.md` |
+| Requirement Specification Card | 是/否 | 创建/更新/跳过 | goal_requirements_analyst | `.codex/goal-teams/versions/<version>/spec/requirement-spec-card.md` |
+| PRD | 是/否 | 创建/更新/跳过 | goal_product | `.codex/goal-teams/versions/<version>/spec/PRD.md` |
+| Architecture Design | 是/否 | 创建/更新/跳过 | goal_backend 或 goal_product | `.codex/goal-teams/versions/<version>/spec/architecture-design.md` |
+| HTML Prototype | 是/否/不适用 | 创建/更新/跳过 | goal_frontend | `.codex/goal-teams/versions/<version>/spec/HTML-prototype.html` |
+| Test Plan | 是/否 | 创建/更新/跳过 | goal_qa | `.codex/goal-teams/versions/<version>/spec/test-plan.md` |
+| Acceptance | 是/否 | 创建/更新/跳过 | goal_docs | `.codex/goal-teams/versions/<version>/spec/acceptance.md` |
 
-Independent validation table:
+独立校验表：
 
-| Artifact | Author Member | Validator Member/Skill | Method | Evidence |
+| 产物 | 作者成员 | 校验成员/Skill | 方法 | 证据 |
 | --- | --- | --- | --- | --- |
-| `spec/PRD.md` | 产品-WIKI 列表 PRD | 评审-WIKI 列表 PRD 校验 | checklist review | `progress.md` row |
-| `src/api/order.ts` | 后端-订单接口 | 测试-接口行为 | targeted tests + code review | command output |
-| `tests/order.test.ts` | 测试-订单规则 | 评审-测试有效性 | assertion review | review note |
+| `spec/PRD.md` | 产品-WIKI 列表 PRD | 评审-WIKI 列表 PRD 校验 | 清单审查 | `progress.md` 行 |
+| `src/api/order.ts` | 后端-订单接口 | 测试-接口行为测试 | 定向测试 + 代码审查 | 命令输出 |
+| `tests/order.test.ts` | 测试-订单规则测试 | 评审-测试有效性校验 | 断言审查 | 评审记录 |
 
-## Tasklist Discovery And Creation
+## 任务清单发现与创建（Tasklist）
 
-Discovery order:
+发现顺序：
 
-1. User-mentioned tasklist path.
-2. Project-local candidates: `TASKLIST.md`, `tasklist.md`, `TODO.md`, `docs/*task*`, `docs/*plan*`.
-3. Goal Teams version path: `.codex/goal-teams/versions/<version>/tasklist.md`.
-4. Legacy Goal Teams runtime path: `.codex/goal-teams/tasklist.md`.
-5. If no relevant tasklist exists, create `.codex/goal-teams/versions/<version>/tasklist.md`.
+1. 用户提到的 tasklist 路径。
+2. 项目本地候选：`TASKLIST.md`、`tasklist.md`、`TODO.md`、`docs/*task*`、`docs/*plan*`。
+3. Goal Teams 版本路径：`.codex/goal-teams/versions/<version>/tasklist.md`。
+4. 旧 runtime 路径：`.codex/goal-teams/tasklist.md`。
+5. 如果没有相关 tasklist，创建 `.codex/goal-teams/versions/<version>/tasklist.md`。
 
-Generated tasklists must include ownership and confirmation-ready structure from the start:
+生成 tasklist 时，必须从一开始包含 Owner 和可确认结构：
 
 ```md
 # Goal Teams Tasklist
 
-Goal: <user goal>
+Goal: <用户目标>
 Status: planning
 
-## Member Ownership
+## 成员归属
 
-| Task ID | Member | Skill/Subagent | Claimed By | Status | Locked Scope | Deliverable | Done Criteria | Verification | Docs/SPEC Update |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| GT-001 | 需求分析-WIKI 列表需求澄清 | goal_requirements_analyst or user-selected | unclaimed | pending | .codex/goal-teams/versions/<version>/spec/ | 需求规格卡 | 用户确认 | 评审-WIKI 列表需求校验 | 需求规格卡 + tasklist |
+| Task ID | 成员 | Skill/Subagent | Workflow | 前置任务 | 认领者 | 状态 | Locked Scope | 交付物 | 完成标准 | 验证 | Docs/SPEC 更新 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| GT-001 | 需求分析-WIKI 列表需求澄清 | goal_requirements_analyst | 串行 | - | unclaimed | pending | .codex/goal-teams/versions/<version>/spec/ | 需求规格卡 | 用户确认 | 评审-WIKI 列表需求校验 | 需求规格卡 + tasklist |
 
-## Tasks
+## 任务
 
-| Task ID | Title | Owner | Status | Depends On | Stop Condition |
-| --- | --- | --- | --- | --- | --- |
-| GT-001 | Clarify requirements and acceptance | 产品/需求 | pending | - | Missing stakeholder decision |
+| Task ID | 标题 | Owner | Workflow | 前置任务 | 状态 | 停止条件 |
+| --- | --- | --- | --- | --- | --- | --- |
+| GT-001 | 澄清需求和验收标准 | goal_requirements_analyst | 串行 | - | pending | 缺少业务决策 |
 
-## Decisions And Blockers
+## 决策与阻塞
 
-| ID | Type | Owner | Status | Summary | Decision Needed |
+| ID | 类型 | Owner | 状态 | 摘要 | 需要决策 |
 | --- | --- | --- | --- | --- | --- |
 ```
 
-Checkbox-only tasklists are allowed for human readability, but tables are preferred because they preserve ownership and completion status.
+纯 checkbox tasklist 可以用于人类可读性，但表格更能保留 Owner 和完成状态。
 
-## Markdown Persistence Templates
+## Markdown 持久化模板
 
-Use or append to `.codex/goal-teams/versions/<version>/plan.md`:
+追加到 `.codex/goal-teams/versions/<version>/plan.md`：
 
 ```md
 # Goal Teams Plan
@@ -307,7 +309,7 @@ Use or append to `.codex/goal-teams/versions/<version>/plan.md`:
 | --- | --- | --- | --- | --- |
 ```
 
-Use or append to `.codex/goal-teams/versions/<version>/progress.md`:
+追加到 `.codex/goal-teams/versions/<version>/progress.md`：
 
 ```md
 # Goal Teams Progress
@@ -323,7 +325,7 @@ Use or append to `.codex/goal-teams/versions/<version>/progress.md`:
 | --- | --- | --- | --- | --- |
 ```
 
-Use or append to `.codex/goal-teams/versions/<version>/decisions.md`:
+追加到 `.codex/goal-teams/versions/<version>/decisions.md`：
 
 ```md
 # Goal Teams Decisions
@@ -332,67 +334,67 @@ Use or append to `.codex/goal-teams/versions/<version>/decisions.md`:
 | --- | --- | --- | --- | --- |
 ```
 
-## Confirmation Tables
+## 确认表
 
-Before spawning worker subagents or editing implementation files, present a `Teams 规划表` first. Ask the user to confirm it unless direct-execution wording is present or the plan was already confirmed:
+启动 worker subagents 或编辑实现文件前，先展示 `Teams 规划表`。除非有直接执行词或已确认计划，否则请求用户确认。
 
 ### Teams 规划表
 
-The table uses merged display columns only. Keep the underlying planning logic fields intact: member, skill/subagent, goal slice, claimed tasks, locked scope, deliverable, done criteria, docs/tasklist updates, test owner, and validator.
+表格只用四个合并显示列，但底层逻辑字段必须保留：成员、skill/subagent、目标切片、认领任务、workflow、前置任务、locked_scope、交付物、完成标准、docs/tasklist 更新、测试 Owner、校验者。
 
 | 成员 / Skill/Subagent | 任务范围 | 交付与标准 | 验证安排 |
 | --- | --- | --- | --- |
-| 成员：后端-WIKI 列表后端开发<br>Skill/Subagent：`goal_backend` 或用户指定 skill | 目标切片：WIKI 列表 API<br>认领任务：GT-003<br>锁定范围：`src/api/wiki/` | 交付物：后端实现<br>完成标准：API 合同通过测试<br>文档/tasklist：Architecture Design + tasklist.md | 测试 Owner：测试-WIKI 列表验收测试<br>校验者：评审-WIKI 列表代码审查 |
-| 成员：前端-WIKI 列表页面开发<br>Skill/Subagent：`goal_frontend` 或用户指定 skill | 目标切片：WIKI 列表页面<br>认领任务：GT-004<br>锁定范围：`src/ui/wiki/` | 交付物：页面实现<br>完成标准：截图/E2E 通过<br>文档/tasklist：HTML Prototype + tasklist.md | 测试 Owner：测试-WIKI 列表验收测试<br>校验者：评审-WIKI 列表体验审查 |
+| 成员：后端-WIKI 列表后端开发<br>Skill/Subagent：`goal_backend` | 目标切片：WIKI 列表 API<br>认领任务：GT-003<br>Workflow：串行<br>前置任务：GT-001, GT-002<br>锁定范围：`src/api/wiki/` | 交付物：后端实现<br>完成标准：API 合同测试通过<br>文档/tasklist：Architecture Design + tasklist.md | 测试 Owner：测试-WIKI 列表验收测试<br>校验者：评审-WIKI 列表代码审查 |
+| 成员：browser-WIKI 列表页面验证<br>Skill/Subagent：`browser` skill | 目标切片：页面验证<br>认领任务：GT-004<br>Workflow：并行<br>前置任务：GT-003<br>锁定范围：`src/ui/wiki/` | 交付物：页面截图和控制台检查<br>完成标准：桌面/移动截图通过<br>文档/tasklist：HTML Prototype + tasklist.md | 测试 Owner：测试-WIKI 列表验收测试<br>校验者：评审-WIKI 列表体验审查 |
 
-### SPEC Readiness
+### SPEC 准备度
 
-| SPEC | Exists | Action | Owner | Output |
+| SPEC | 是否存在 | 动作 | Owner | 输出 |
 | --- | --- | --- | --- | --- |
 | Requirement Specification Card | no | create | 需求分析师 | `.codex/goal-teams/versions/<version>/spec/requirement-spec-card.md` |
 | PRD | no | create | 产品/需求 | `.codex/goal-teams/versions/<version>/spec/PRD.md` |
 
-### Environment Readiness
+### 环境准备度
 
-| Item | Status | Suggestion |
+| 项目 | 状态 | 建议 |
 | --- | --- | --- |
-| AGENTS/agent guidance | found/missing | 如果缺失，建议创建 `AGENTS.md` 或 `agent.md` |
-| CLAUDE guidance | found/missing | 如果缺失，建议创建 `CLAUDE.md` 或 `claude.md` |
-| Default guidance | active/not needed | 如果缺失项目指南，使用 `references/default-AGENTS.md` |
-| Version directory | ready/pending | `.codex/goal-teams/versions/<version>/` |
-| Document index | ready/pending | `.codex/goal-teams/INDEX.md` + `versions/<version>/INDEX.md` |
+| AGENTS/agent 指南 | found/missing | 如缺失，建议创建 `AGENTS.md` 或 `agent.md` |
+| CLAUDE 指南 | found/missing | 如缺失，建议创建 `CLAUDE.md` 或 `claude.md` |
+| 默认指南 | active/not needed | 如缺失项目指南，使用 `references/default-AGENTS.md` |
+| 版本目录 | ready/pending | `.codex/goal-teams/versions/<version>/` |
+| 文档索引 | ready/pending | `.codex/goal-teams/INDEX.md` + `versions/<version>/INDEX.md` |
 
 ### Teams 规划表（简版）
 
-Use this only as a compact fallback when a shorter table is needed. Prefer the full `Teams 规划表` above.
+仅在需要短表时使用；优先使用完整 `Teams 规划表`。
 
 | 成员 / Skill/Subagent | 任务范围 | 交付与标准 | 验证安排 |
 | --- | --- | --- | --- |
-| 成员：需求分析-WIKI 列表需求澄清<br>Skill/Subagent：`goal_requirements_analyst` 或用户指定 skill | 目标切片：梳理 WIKI 列表需求<br>认领任务：GT-001<br>锁定范围：`.codex/goal-teams/versions/<version>/spec/` | 交付物：需求规格卡<br>完成标准：用户确认核心目标/功能/流程/边界<br>文档/tasklist：requirement-spec-card.md + INDEX.md | 测试 Owner：评审-WIKI 列表需求校验<br>校验者：评审-WIKI 列表需求校验 |
-| 成员：产品-WIKI 列表 PRD<br>Skill/Subagent：`goal_product` 或用户指定 skill | 目标切片：生成 WIKI 列表 PRD<br>认领任务：GT-002<br>锁定范围：`.codex/goal-teams/versions/<version>/spec/` | 交付物：PRD<br>完成标准：PRD 来源于已确认需求规格卡<br>文档/tasklist：PRD + tasklist.md | 测试 Owner：评审-WIKI 列表 PRD 校验<br>校验者：评审-WIKI 列表 PRD 校验 |
+| 成员：需求分析-WIKI 列表需求澄清<br>Skill/Subagent：`goal_requirements_analyst` | 目标切片：梳理 WIKI 列表需求<br>认领任务：GT-001<br>Workflow：串行<br>前置任务：-<br>锁定范围：`.codex/goal-teams/versions/<version>/spec/` | 交付物：需求规格卡<br>完成标准：用户确认核心目标/功能/流程/边界<br>文档/tasklist：requirement-spec-card.md + INDEX.md | 测试 Owner：评审-WIKI 列表需求校验<br>校验者：评审-WIKI 列表需求校验 |
+| 成员：产品-WIKI 列表 PRD<br>Skill/Subagent：`goal_product` | 目标切片：生成 WIKI 列表 PRD<br>认领任务：GT-002<br>Workflow：串行<br>前置任务：GT-001<br>锁定范围：`.codex/goal-teams/versions/<version>/spec/` | 交付物：PRD<br>完成标准：PRD 来源于已确认需求规格卡<br>文档/tasklist：PRD + tasklist.md | 测试 Owner：评审-WIKI 列表 PRD 校验<br>校验者：评审-WIKI 列表 PRD 校验 |
 
-### Independent Validation Plan
+### 独立校验计划
 
-| Artifact Type | Author | Validator | Validation Method | Evidence Location |
+| 产物类型 | 作者 | 校验者 | 校验方法 | 证据位置 |
 | --- | --- | --- | --- | --- |
 | 文档 | 产出成员 | 非作者评审成员或用户指定 skill | 结构/事实/验收标准校验 | `progress.md` / `acceptance.md` |
 | 代码 | 实现成员 | 独立测试/评审成员或用户指定 skill | 代码审查 + 命令验证 | `progress.md` |
 | 测试用例 | 测试成员 | 独立评审成员或用户指定 skill | 断言有效性/边界覆盖校验 | `test-plan.md` / `progress.md` |
 
-### Tasklist Execution
+### Tasklist 执行
 
-| Task ID | Owner | Status | Depends On | Verification | Completion Evidence |
+| Task ID | Owner | 状态 | 依赖 | 验证 | 完成证据 |
 | --- | --- | --- | --- | --- | --- |
 | GT-001 | 需求分析师 | pending | - | 用户确认 | 需求规格卡完成 |
-| GT-002 | 产品/需求 | pending | GT-001 | PRD review | PRD section complete |
+| GT-002 | 产品/需求 | pending | GT-001 | PRD review | PRD 章节完成 |
 
-### Risk And Approval
+### 风险与审批
 
-| Item | Risk | Owner | Approval Needed | Stop Condition |
+| 项目 | 风险 | Owner | 是否需审批 | 停止条件 |
 | --- | --- | --- | --- | --- |
-| Shared module | Multiple agents may edit same files | Goal Lead | Yes | unclear locked_scope |
+| Shared module | 多成员可能编辑同一文件 | Goal Lead | 是 | locked_scope 不清楚 |
 
-Ask for confirmation in plain language after the tables. Use numbered options by default:
+表格后用中文询问，并默认给数字选项：
 
 ```text
 请选择下一步：
@@ -401,94 +403,92 @@ Ask for confirmation in plain language after the tables. Use numbered options by
 3. 只保留方案，不执行
 ```
 
-If the user explicitly says to proceed without confirmation, includes direct-execution wording, or executes an already confirmed plan, still include the `Teams 规划表` as the plan and continue without waiting.
+如果用户明确要求继续、包含直接执行词或执行已确认计划，仍展示 `Teams 规划表`，然后直接继续。
 
-Also persist the confirmation tables and any assumptions to `.codex/goal-teams/versions/<version>/plan.md` unless the user requested a proposal only and no files should be written.
+除非用户只要方案且不希望写文件，否则把确认表和假设持久化到 `.codex/goal-teams/versions/<version>/plan.md`。
 
-## Progress Feedback Tables
+## 进度反馈表
 
-During execution, summarize each meaningful round with tables:
+每个有意义轮次都用表格总结：
 
-| Member | Claimed Tasks | Status | Current Step | Evidence | Next |
+| 成员 | 认领任务 | 状态 | 当前步骤 | 证据 | 下一步 |
 | --- | --- | --- | --- | --- | --- |
-| 后端-WIKI 列表后端开发 | GT-003 | running | Test | `cargo test ...` | update docs |
+| 后端-WIKI 列表后端开发 | GT-003 | running | Test | `cargo test ...` | 更新文档 |
 
-For independent validation:
+独立校验：
 
-| Artifact | Author | Validator | Status | Evidence | Next |
+| 产物 | 作者 | 校验者 | 状态 | 证据 | 下一步 |
 | --- | --- | --- | --- | --- | --- |
-| `spec/PRD.md` | 产品-WIKI 列表 PRD | 评审-WIKI 列表 PRD 校验 | passed | review note | update acceptance |
+| `spec/PRD.md` | 产品-WIKI 列表 PRD | 评审-WIKI 列表 PRD 校验 | passed | review note | 更新 acceptance |
 
-For blockers:
+阻塞：
 
-| Blocker | Member | Task | Impact | Decision Needed | Suggested Next |
+| 阻塞 | 成员 | 任务 | 影响 | 需要决策 | 建议下一步 |
 | --- | --- | --- | --- | --- | --- |
 
-For final closeout:
+最终收尾：
 
-| Member | Claimed Tasks | Final Status | Evidence | Remaining |
-| --- | --- | --- | --- | --- |
+| 成员 | 认领任务 | Workflow / 前置任务 | 最终状态 | 证据 | 资源消耗（用户 / tokens / 费用） | 剩余 |
+| --- | --- | --- | --- | --- | --- | --- |
 
-Append progress tables, blockers, and final closeout evidence to `.codex/goal-teams/versions/<version>/progress.md` or the relevant Markdown artifact.
+把进度、阻塞和收尾证据追加到 `.codex/goal-teams/versions/<version>/progress.md` 或相关 Markdown 产物。
 
-## Cache-Friendly Prompt Layout
+## 提示词缓存友好布局（Prompt）
 
-Keep this layout stable:
+保持布局稳定：
 
 ```text
-[Stable Core Prompt]
-[Document Loading Manifest]
-[Goal Mode Loop]
-[Dynamic Goal Packet]
+[稳定核心提示词]
+[文档加载清单]
+[Goal Mode 循环]
+[动态目标包]
 ```
 
-Rules:
+规则：
 
-- Stable Core Prompt changes rarely.
-- Document Loading Manifest lists paths and loading rules, not long document bodies.
-- Dynamic Goal Packet goes last.
-- Each subagent gets only the packet and document slices it needs.
-- Read docs progressively and summarize into Doc Capsules.
+- 稳定核心提示词很少变化。
+- 文档加载清单只列路径和读取规则，不塞长文档正文。
+- 动态目标包放最后。
+- 每个 subagent 只拿自己的 packet 和必要文档切片。
+- 渐进读取文档，并总结成 Doc Capsules。
 
-## Document Loading Manifest
+## 文档加载清单
 
-Use a generic manifest:
+通用清单：
 
 ```text
-Always load first:
-1. User-provided goal and constraints.
-2. Project guidance files when present: `AGENTS.md`, `agents.md`, `agent.md`, `CLAUDE.md`, `claude.md`.
-3. `references/default-AGENTS.md` if no project guidance file exists.
-4. `.codex/goal-teams/INDEX.md` and `.codex/goal-teams/versions/<version>/INDEX.md` if present.
-5. `.codex/goal-teams/versions/<version>/plan.md` if present.
-6. Relevant tasklist if present; otherwise generated `.codex/goal-teams/versions/<version>/tasklist.md`.
-7. The current member's claimed task rows.
+总是先加载：
+1. 用户目标和约束。
+2. 项目指南文件：AGENTS.md、agents.md、agent.md、CLAUDE.md、claude.md。
+3. 没有项目指南时加载 references/default-AGENTS.md。
+4. 如存在，加载 .codex/goal-teams/INDEX.md 和 .codex/goal-teams/versions/<version>/INDEX.md。
+5. 如存在，加载 .codex/goal-teams/versions/<version>/plan.md。
+6. 如存在，加载相关 tasklist；否则创建 .codex/goal-teams/versions/<version>/tasklist.md。
+7. 当前成员认领任务行。
 ```
 
-Load on demand:
+按需加载：
 
-| Need | Load |
+| 需求 | 加载 |
 | --- | --- |
-| Product/user scope | Requirement Specification Card, PRD, issue, brief, or stakeholder notes if present |
-| Architecture/ownership | Architecture Design, design.md, module docs, code maps, dependency files |
-| UI/page/workflow design | HTML Prototype, design.md, screenshots, mockups, route maps |
-| API/contract semantics | API docs, schemas, route definitions, SDK docs |
-| Tests/acceptance | Test plan, existing tests, CI config, acceptance docs |
-| Release/deployment | README, deployment docs, changelog, runbooks |
+| 产品/用户范围 | Requirement Specification Card、PRD、issue、brief 或干系人备注 |
+| 架构/归属 | Architecture Design、design.md、模块文档、代码地图、依赖文件 |
+| UI/页面/工作流 | HTML Prototype、design.md、截图、mockup、route map |
+| API/合同语义 | API 文档、schema、route 定义、SDK 文档 |
+| 测试/验收 | Test Plan、现有测试、CI 配置、acceptance 文档 |
+| 发布/部署 | README、部署文档、changelog、runbook |
 
-If a needed document does not exist, create a small scoped doc only when it is part of the confirmed plan.
+所需文档不存在时，只有它属于已确认计划，才创建小范围文档。
 
-## Team Goal Packet
-
-Team-level packet:
+## 团队目标包（Team Goal Packet）
 
 ```text
-Goal Packet:
+Goal Packet（团队目标包）:
 - goal:
 - version:
 - version_dir:
 - done_criteria:
-- language: Chinese by default
+- language: 默认中文
 - constraints:
 - discovered_docs:
 - markdown_persistence:
@@ -503,114 +503,120 @@ Goal Packet:
 - forbidden_scope:
 - required_tests:
 - required_docs_after_done:
-  - Markdown progress/result updates
+  - Markdown 进度/结果更新
 - required_spec:
   - Requirement Specification Card
   - PRD
   - Architecture Design
-  - HTML Prototype when applicable
+  - HTML Prototype（适用时）
   - test plan
   - acceptance
 - stop_conditions:
 - confirmation_required:
 - team_members:
   - member_id:
+    subagent_id:
     display_name:
     role:
     skill_or_subagent:
-    communication_style: brief, human-friendly Chinese
+    workflow_mode: serial | parallel
+    depends_on:
+    communication_style: 简洁、人类友好的中文
     claimed_tasks:
     locked_scope:
     deliverable:
     validation_owner_for:
 ```
 
-Use the team packet to create one Member Goal Packet per subagent.
+用 Team Goal Packet 为每个 subagent 创建 Member Goal Packet。
 
-## Member Goal Packet
+## 成员目标包（Member Goal Packet）
 
 ```text
-Member Goal Packet:
-- member_id: backend-gt-003
+Member Goal Packet（成员目标包）:
+- member_id: 后端-WIKI 列表后端开发
+- subagent_id: 后端-WIKI 列表后端开发
 - display_name: 后端-WIKI 列表后端开发
-- role: backend
+- role: 后端
 - skill_or_subagent: goal_backend
+- workflow_mode: serial
+- depends_on:
+  - GT-001
+  - GT-002
 - version: V3.0
 - version_dir: .codex/goal-teams/versions/V3.0
-- language: Chinese by default
+- language: 默认中文
 - user_requested_skill:
 - user_requested_subagent:
-- lane_or_deliverable: API implementation
+- lane_or_deliverable: API 实现
 - target_task_ids:
   - GT-002
 - claimed_tasks:
-  - Implement the agreed API slice
+  - 实现已确认的 API 切片
 - goal:
-  Complete the assigned backend slice to a verifiable done state.
+  完成被分配的后端切片，并达到可验证 done 状态。
 - success_criteria:
-  - API behavior matches accepted contract.
-  - Targeted tests pass.
-  - Independent validator confirms generated code and tests.
+  - API 行为符合已接受合同。
+  - 定向测试通过。
+  - 独立校验者确认生成代码和测试。
 - required_doc_load:
   - .codex/goal-teams/versions/V3.0/tasklist.md#GT-003
-  - relevant API docs if present
+  - 相关 API 文档，如存在
 - allowed_scope:
   - src/api
   - tests/api
 - forbidden_scope:
-  - shared auth/payment/core modules unless approved
+  - 未审批不得修改 shared auth/payment/core modules
 - locked_scope:
   - src/api/specific-module
 - required_tests:
-  - targeted tests for touched module
+  - 被修改模块的定向测试
 - required_independent_validation:
-  - generated docs: validator must not be the author
-  - generated code: independent QA/reviewer or user-specified skill
-  - generated test cases: independent reviewer or user-specified skill
+  - 生成文档：校验者不能是作者
+  - 生成代码：独立 QA/reviewer 或用户指定 skill
+  - 生成测试用例：独立 reviewer 或用户指定 skill
 - required_docs_after_done:
-  - tasklist status
-  - versions/<version>/progress.md row
-  - API notes if changed
+  - tasklist 状态
+  - versions/<version>/progress.md 行
+  - API 说明（如有变化）
 - required_spec:
-  - Requirement Specification Card: read or confirm not applicable
-  - PRD: read or confirm not applicable
-  - Architecture Design: update if API structure changes
-  - HTML Prototype: not applicable unless UI changes
-  - Test Plan: update if coverage changes
-  - Acceptance: update if done criteria change
+  - Requirement Specification Card：读取或确认不适用
+  - PRD：读取或确认不适用
+  - Architecture Design：API 结构变化时更新
+  - HTML Prototype：无 UI 变化时不适用
+  - Test Plan：覆盖范围变化时更新
+  - Acceptance：Done Criteria 变化时更新
 - stop_conditions:
-  - unclear API contract
-  - required credentials unavailable
+  - API 合同不清楚
+  - 必要凭证不可用
 - output_contract:
   - Doc Capsules
   - plan
-  - files changed
-  - tests run
-  - docs updated
-  - Markdown progress/result updates
-  - independent validation evidence
-  - tasklist updates
-  - SPEC updates
-  - suggested team-state updates
-  - completion status
-  - blockers and risks
+  - 变更文件
+  - 运行测试
+  - 更新文档
+  - Markdown 进度/结果更新
+  - 独立校验证据
+  - tasklist 更新
+  - SPEC 更新
+  - 建议的 team-state 更新
+  - 完成状态
+  - 阻塞和风险
 ```
 
-## Doc Capsule JSONL
-
-Use this durable shape:
+## 文档摘要 JSONL（Doc Capsule）
 
 ```json
-{"ts":"2026-05-26T10:00:00+08:00","member_id":"backend-gt-003","source":".codex/goal-teams/versions/V3.0/tasklist.md#GT-003","decision":"Implement only the confirmed API slice.","must_do":["match accepted contract","run targeted tests"],"must_not_do":["edit shared auth without approval"],"test_refs":["targeted module tests"],"doc_update_refs":[".codex/goal-teams/versions/V3.0/tasklist.md"],"open_questions":[]}
+{"ts":"2026-05-26T10:00:00+08:00","member_id":"后端-WIKI 列表后端开发","subagent_id":"后端-WIKI 列表后端开发","source":".codex/goal-teams/versions/V3.0/tasklist.md#GT-003","decision":"只实现已确认 API 切片。","must_do":["符合已接受合同","运行定向测试"],"must_not_do":["未审批不得编辑 shared auth"],"test_refs":["定向模块测试"],"doc_update_refs":[".codex/goal-teams/versions/V3.0/tasklist.md"],"open_questions":[]}
 ```
 
-## Team State JSON
+## 团队状态 JSON（Team State）
 
 ```json
 {
   "team": {
     "mode": "goal-teams",
-    "goal": "Complete the confirmed user goal",
+    "goal": "完成已确认用户目标",
     "version": "V3.0",
     "version_dir": ".codex/goal-teams/versions/V3.0",
     "status": "planning",
@@ -619,112 +625,93 @@ Use this durable shape:
   },
   "members": [
     {
-      "id": "requirements-gt-001",
+      "id": "需求分析-WIKI 列表需求澄清",
+      "subagent_id": "需求分析-WIKI 列表需求澄清",
       "display_name": "需求分析-WIKI 列表需求澄清",
-      "role": "requirements_analyst",
+      "role": "需求分析",
       "skill_or_subagent": "goal_requirements_analyst",
-      "user_requested_skill": null,
-      "user_requested_subagent": null,
+      "workflow_mode": "serial",
+      "depends_on": [],
       "status": "pending",
       "claimed_tasks": ["GT-001"],
       "current": "创建 WIKI 列表需求规格卡",
       "locked_scope": [".codex/goal-teams/versions/V3.0/spec"]
     }
-  ],
-  "tasks": [
-    {
-      "id": "GT-001",
-      "title": "澄清需求并创建需求规格卡",
-      "owner": "requirements-gt-001",
-      "owner_display_name": "需求分析-WIKI 列表需求澄清",
-      "claimed_by": null,
-      "status": "pending",
-      "deliverable": "Requirement Specification Card",
-      "done_criteria": ["Core goals, functions, flows, and boundaries are clear", "User confirms the card"],
-      "locked_scope": [".codex/goal-teams/versions/V3.0/spec"],
-      "docs_update": [".codex/goal-teams/versions/V3.0/tasklist.md", ".codex/goal-teams/versions/V3.0/progress.md"],
-      "spec_update": [".codex/goal-teams/versions/V3.0/spec/requirement-spec-card.md"],
-      "validation": {
-        "required": true,
-        "validator": "评审-WIKI 列表需求校验",
-        "evidence": []
-      }
-    }
   ]
 }
 ```
 
-## Events JSONL
+## 事件 JSONL（Events）
 
 ```json
-{"ts":"2026-05-26T10:01:00+08:00","type":"goal_team_planned","goal":"Complete the confirmed user goal"}
+{"ts":"2026-05-26T10:01:00+08:00","type":"goal_team_planned","goal":"完成已确认用户目标"}
 {"ts":"2026-05-26T10:02:00+08:00","type":"version_dir_created","path":".codex/goal-teams/versions/V3.0"}
 {"ts":"2026-05-26T10:02:30+08:00","type":"index_created","path":".codex/goal-teams/versions/V3.0/INDEX.md"}
 {"ts":"2026-05-26T10:03:00+08:00","type":"tasklist_created","path":".codex/goal-teams/versions/V3.0/tasklist.md"}
 {"ts":"2026-05-26T10:03:00+08:00","type":"user_confirmed_plan","confirmation":"approved"}
-{"ts":"2026-05-26T10:04:00+08:00","type":"member_spawned","member_id":"requirements-gt-001","skill_or_subagent":"goal_requirements_analyst"}
-{"ts":"2026-05-26T10:20:00+08:00","type":"task_completed","task_id":"GT-001","member_id":"requirements-gt-001"}
+{"ts":"2026-05-26T10:04:00+08:00","type":"member_spawned","member_id":"需求分析-WIKI 列表需求澄清","subagent_id":"需求分析-WIKI 列表需求澄清","skill_or_subagent":"goal_requirements_analyst"}
+{"ts":"2026-05-26T10:20:00+08:00","type":"task_completed","task_id":"GT-001","member_id":"需求分析-WIKI 列表需求澄清","subagent_id":"需求分析-WIKI 列表需求澄清"}
 ```
 
-## Messages JSONL
+## 消息 JSONL（Messages）
 
 ```json
-{"ts":"2026-05-26T10:12:00+08:00","from":"qa-gt-003","to":"goal-lead","task_id":"GT-003","severity":"medium","message":"Need expected behavior for empty-state validation.","decision_needed":true,"status":"open"}
+{"ts":"2026-05-26T10:12:00+08:00","from":"qa-gt-003","to":"goal-lead","task_id":"GT-003","severity":"medium","message":"需要确认空状态验收的预期行为。","decision_needed":true,"status":"open"}
 ```
 
-## Goal Loop Details
+## 目标循环细节（Goal Loop）
 
-### Load
+### Load（加载）
 
-1. Read user goal and constraints.
-2. Check project guidance files: `AGENTS.md`, `agents.md`, `agent.md`, `CLAUDE.md`, `claude.md`.
-3. Read or create cross-version and version `INDEX.md` files.
-4. Read or create versioned SPEC docs.
-5. Read or create versioned tasklist.
-6. Read current member's claimed task rows.
-7. Read project docs only as needed.
-8. Produce Doc Capsules.
+1. 读取用户目标和约束。
+2. 检查项目指南：`AGENTS.md`、`agents.md`、`agent.md`、`CLAUDE.md`、`claude.md`。
+3. 读取或创建跨版本和版本 `INDEX.md`。
+4. 读取或创建版本化 SPEC。
+5. 读取或创建版本化 tasklist。
+6. 读取当前成员认领任务行。
+7. 只按需读取项目文档。
+8. 产出 Doc Capsules。
 
-### Plan
+### Plan（计划）
 
-Return up to five steps:
+最多返回五个执行步骤：
 
 ```text
-Plan:
-1. 环境/版本/索引 -> verify: docs directory and INDEX ready
-2. 需求规格卡 -> verify: user confirms goal/functions/flow/boundaries
-3. PRD task -> verify: accepted criteria
-4. Architecture Design task -> verify: design review
-5. HTML Prototype task -> verify: screenshot/E2E when applicable
-6. Implementation tasklist task -> verify: targeted test
-7. Independent QA task -> verify: command/report
-8. Docs/tasklist task -> verify: status and ownership updated
+Plan（计划）:
+1. 环境/版本/索引 -> 验证：文档目录和 INDEX 已准备
+2. 需求规格卡 -> 验证：用户确认目标/功能/流程/边界
+3. PRD 任务 -> 验证：验收标准已确认
+4. Architecture Design 任务 -> 验证：设计评审通过
+5. HTML Prototype 任务 -> 验证：适用时有截图/E2E
+6. 实现 tasklist 任务 -> 验证：定向测试通过
+7. 独立 QA 任务 -> 验证：命令/报告可追溯
+8. 文档/tasklist 任务 -> 验证：状态和 Owner 已更新
 ```
 
-### Implement
+### Implement（实现）
 
-Use tasklist order and dependencies. For engineering-heavy work, a common order is:
+按 tasklist 顺序和依赖执行。工程任务常见顺序：
 
-1. Environment guidance check and version directory.
-2. Cross-version and version `INDEX.md`.
-3. Requirement Specification Card.
-4. PRD generated from the approved card.
-5. Architecture Design.
-6. HTML Prototype if applicable.
-7. Tasklist implementation tasks.
-8. Independent QA/testing tasks.
-9. Docs, acceptance, and tasklist status updates.
+1. 环境指南检查和版本目录。
+2. 跨版本和版本 `INDEX.md`。
+3. Requirement Specification Card。
+4. 基于已确认规格卡生成 PRD。
+5. Architecture Design。
+6. 适用时生成 HTML Prototype。
+7. tasklist 实现任务。
+8. 独立 QA/testing 任务。
+9. 文档、acceptance 和 tasklist 状态更新。
 
-Skip layers only with an explicit reason.
+跳过层级时必须说明原因。
 
-### Test
+### Test（测试）
 
-Testing must be performed by an independent subagent or a user-specified testing skill/subagent. Use the smallest meaningful verification first, then broaden if shared behavior changed.
+测试必须由独立 subagent 或用户指定 testing skill/subagent 执行。先做最小有效验证；共享行为变化时再扩大范围。
 
-Failure report:
+失败报告：
 
 ```text
-Test failed:
+测试失败：
 - command:
 - failing test:
 - likely cause:
@@ -732,44 +719,44 @@ Test failed:
 - next verification:
 ```
 
-### Document
+### Document（记录）
 
-Every member should report whether it updated:
+每个成员都要说明是否更新：
 
-- tasklist status
-- owner/claimed_by fields
-- docs assigned in its packet
-- SPEC files assigned in its packet
-- version `INDEX.md` entries when documents are added or changed
-- reports or acceptance notes
-- independent validation evidence for generated docs/code/tests
-- remaining gaps
+- tasklist 状态
+- owner/claimed_by 字段
+- packet 中分配的 docs
+- packet 中分配的 SPEC
+- 新增或变更文档的版本 `INDEX.md`
+- 报告或 acceptance 备注
+- 生成 docs/code/tests 的独立校验证据
+- 剩余缺口
 
-### Review
+### Review（评审）
 
 ```text
-Review Checklist:
-- claimed task complete:
-- done criteria:
-- tests:
-- generated docs/code/tests independently validated:
+Review Checklist（评审清单）:
+- 认领任务完成:
+- 完成标准:
+- 测试:
+- 生成 docs/code/tests 是否独立校验:
 - docs/tasklist:
 - SPEC:
-- locked scope respected:
-- blockers:
-- remaining risks:
+- locked_scope 是否遵守:
+- 阻塞:
+- 剩余风险:
 ```
 
-Continue the loop until complete or blocked.
+持续循环，直到完成或阻塞。
 
-## Completion Audit And Auto-Continuation
+## 收尾审计与自动续跑
 
-After every apparent completion, Goal Lead must run a final audit before sending the final response.
+每次看似完成后，Goal Lead 必须先做最终审计，再发送最终回复。
 
-Use a new `goal_completion_auditor` subagent with a read-only packet:
+使用新的只读 `goal_completion_auditor`，packet 如下：
 
 ```text
-Completion Audit Packet:
+Completion Audit Packet（收尾审计包）:
 - display_name: 收尾-WIKI 列表未完成工作检查
 - skill_or_subagent: goal_completion_auditor
 - version:
@@ -782,47 +769,47 @@ Completion Audit Packet:
 - test_evidence:
 - validation_evidence:
 - audit_scope:
-  - task status
-  - done criteria
-  - docs/SPEC updates
-  - independent validation evidence
-  - tests and acceptance evidence
-  - unresolved blockers
-  - remaining risks
+  - 任务状态
+  - 完成标准
+  - docs/SPEC 更新
+  - 独立校验证据
+  - 测试和验收证据
+  - 未解决阻塞
+  - 剩余风险
 - output_contract:
-  - audit verdict: complete | auto_continue | blocked_needs_user
-  - unfinished items
-  - evidence
-  - recommended continuation tasks
-  - recommended members/subagents
-  - locked scopes
-  - stop conditions
+  - 审计结论：complete | auto_continue | blocked_needs_user
+  - 未完成项
+  - 证据
+  - 建议续跑任务
+  - 建议成员/subagents
+  - locked_scope
+  - 停止条件
 ```
 
-Auditor verdict handling:
+审计结论处理：
 
-| Verdict | Lead Action |
+| 结论 | Lead 动作 |
 | --- | --- |
-| `complete` | Send the final completion response. |
-| `auto_continue` | Convert unfinished items into tasklist entries, show a continuation `Teams 规划表` as the execution record, then spawn the needed Goal Teams members without asking the user for confirmation. |
-| `blocked_needs_user` | Record blocker/decision in `decisions.md` or `progress.md`, explain why auto-continuation is unsafe, and ask the user for the missing decision or approval. |
+| `complete` | 发送最终完成回复。 |
+| `auto_continue` | 把未完成项转成 tasklist 条目，展示续跑 `Teams 规划表`，不再要求用户确认，直接启动需要的成员。 |
+| `blocked_needs_user` | 在 `decisions.md` 或 `progress.md` 记录阻塞/决策，说明为何不能安全自动续跑，并询问用户缺失决策或审批。 |
 
-Auto-continuation is allowed only for unfinished work inside the already confirmed goal scope. Do not auto-continue into new scope, destructive writes, security-sensitive work, missing credentials, external approvals, or unresolved user decisions.
+自动续跑只允许处理已确认目标范围内的未完成工作。不要自动进入新范围、破坏性写入、安全敏感工作、缺少凭证、外部审批或未解决用户决策。
 
-For every auto-continuation cycle:
+每次自动续跑：
 
-1. Append an event such as `completion_audit_started`, `completion_audit_finished`, and `auto_continuation_started`.
-2. Update tasklist/progress with continuation task IDs and owners.
-3. Show the four-column continuation `Teams 规划表`.
-4. Spawn the required members concurrently where scopes do not conflict.
-5. Run independent testing and validation as usual.
-6. Repeat the completion audit after the continuation finishes.
+1. 追加 `completion_audit_started`、`completion_audit_finished`、`auto_continuation_started` 等事件。
+2. 用续跑任务 ID 和 Owner 更新 tasklist/progress。
+3. 展示四列续跑 `Teams 规划表`。
+4. 在范围不冲突时并发启动所需成员。
+5. 照常执行独立测试和独立校验。
+6. 续跑完成后再次执行收尾审计。
 
-## CLI Bridge
+## 命令行桥接（CLI Bridge）
 
-The dashboard should not execute shell commands directly. Use a local bridge if needed.
+dashboard 不直接执行 shell 命令；需要时用本地 bridge。
 
-Lead execution pattern:
+Lead 执行模式：
 
 ```bash
 PROJECT="/path/to/project"
@@ -837,30 +824,31 @@ codex exec \
   - <<'PROMPT' | tee -a ".codex/goal-teams/events.jsonl"
 Use $goal-teams.
 
-Start by saying: 我是 Goal Teams Leader V1.3，我会帮你完成以下工作：
-Use Chinese and keep Goal Lead messages concise and human-friendly.
-Generated documentation, code comments, human-facing code strings, test names, and test cases should be Chinese by default.
-Use Chinese member display names in the form <角色>-<具体任务名>, such as 后端-WIKI 列表后端开发. Show a four-column Teams 规划表 using merged display columns for member/skill, task scope, delivery/criteria, and verification, then ask the user to confirm it before spawning worker subagents or editing implementation files unless direct-execution wording is present.
-Check for AGENTS.md / agent.md / CLAUDE.md / claude.md. If none exists, use references/default-AGENTS.md as default guidance and suggest copying it to project-root AGENTS.md.
-Use version "$VERSION" and store generated process/result docs under .codex/goal-teams/versions/$VERSION/.
-Create or update .codex/goal-teams/INDEX.md and .codex/goal-teams/versions/$VERSION/INDEX.md before creating multiple docs.
-Turn the user goal into Done Criteria.
-Start with a requirements analyst. Use conversation plus web search, computer use, browser, or Chrome when available and useful to improve requirements.
-First create a human-friendly Requirement Specification Card, no more than two pages, covering core goal, key business function structure, flow, and boundaries.
-Generate PRD from the approved Requirement Specification Card.
-Discover an existing tasklist, or create .codex/goal-teams/versions/$VERSION/tasklist.md if none exists.
-Discover or create SPEC docs: Requirement Specification Card, PRD, Architecture Design, HTML Prototype when applicable, test plan, and acceptance.
-Propose independent subagent members with claimed tasks, user-requested skill/subagent assignments, locked scopes, docs/SPEC updates, independent testing ownership, and done criteria.
-Assign an independent validator for every generated document, code change, and test case. Use a separate subagent or the user-specified validation skill.
-Show SPEC readiness, the four-column Teams 规划表, tasklist execution, independent validation plan, and risk tables before spawning implementation members. If direct-execution wording is present, show these as the execution record and proceed without waiting for confirmation.
-After confirmation, spawn each team member as a separate subagent.
-Coordinate through team-state.json, events.jsonl, messages.jsonl, and doc-capsules.jsonl.
-Run until every claimed task is done, deferred, or blocked with a documented reason.
-After apparent completion, spawn goal_completion_auditor to check unfinished work. If it finds unfinished work inside the confirmed scope, create continuation tasks and restart Goal Teams members concurrently without asking the user for confirmation. Ask the user only for new scope, risky/destructive work, credentials, external approvals, or unresolved decisions.
+先汇报：我是 Goal Teams Leader V1.3，我会帮你完成以下工作：
+全程中文，Goal Lead 消息要简洁、人类友好。
+生成文档、代码注释、面向用户的代码字符串、测试名称和测试用例默认中文。
+运行时 subagent id、member_id 和成员展示名使用 <中文角色>-<具体任务名>，例如 后端-WIKI 列表后端开发；如果用户指定 skill，则使用 skill 名称，例如 browser-WIKI 列表页面验证。真实 subagent 配置名只写入 skill_or_subagent。
+启动 worker subagents 或编辑实现文件前，展示四列 Teams 规划表；除非有直接执行词，否则等待确认。
+检查 AGENTS.md / agent.md / CLAUDE.md / claude.md。缺失时使用 references/default-AGENTS.md，并建议复制为项目根目录 AGENTS.md。
+使用版本 "$VERSION"，过程和结果文档写入 .codex/goal-teams/versions/$VERSION/。
+多文档前先创建或更新 .codex/goal-teams/INDEX.md 和 .codex/goal-teams/versions/$VERSION/INDEX.md。
+把用户目标转成 Done Criteria。
+先安排需求分析成员；可在有用时使用 web search、computer use、browser 或 Chrome 改善需求质量。
+先创建人类友好的 Requirement Specification Card，控制在两页以内，覆盖核心目标、关键业务功能结构、流程和边界。
+从已确认的 Requirement Specification Card 生成 PRD。
+发现已有 tasklist；没有则创建 .codex/goal-teams/versions/$VERSION/tasklist.md。
+发现或创建 SPEC：Requirement Specification Card、PRD、Architecture Design、适用时的 HTML Prototype、test plan、acceptance。
+提出独立 subagent 成员，包含认领任务、用户指定 skill/subagent、locked_scope、docs/SPEC 更新、独立测试 Owner 和完成标准。
+每个生成文档、代码变更和测试用例都要安排独立校验者，可用单独 subagent 或用户指定校验 skill。
+启动实现成员前展示 SPEC 准备度、四列 Teams 规划表、tasklist 执行、独立校验计划和风险表。若提示词含直接执行词，展示为执行记录后直接继续。
+确认后，每个成员作为独立 subagent 运行。
+通过 team-state.json、events.jsonl、messages.jsonl、doc-capsules.jsonl 协调。
+持续运行，直到每个认领任务完成、延期或阻塞且原因明确。
+看似完成后，启动 goal_completion_auditor 检查未完成工作。若发现已确认范围内仍有未完成工作，创建续跑任务并并发重启 Goal Teams 成员，不再要求用户确认。只有新范围、高风险/破坏性工作、凭证、外部审批或未解决决策才问用户。
 PROMPT
 ```
 
-Planning-only pattern:
+只规划模式：
 
 ```bash
 codex exec \
@@ -870,49 +858,49 @@ codex exec \
   'Use $goal-teams. 全程中文。只做 Goal Lead：检查环境，询问版本号，提出澄清问题，生成确认表格。不要编辑文件。'
 ```
 
-## Safety And Coordination
+## 安全与协作
 
-- Do not start implementation without locked scope.
-- Do not let members modify shared core files concurrently.
-- Do not skip Plan mode. Direct-execution wording skips only the confirmation wait, not the Plan tables.
-- In Plan mode, use numbered options for user choices whenever possible.
-- Do not self-approve generated artifacts.
-- Do not mark generated docs, code, or test cases done without an independent subagent or user-specified skill validating them.
-- Do not write multiple documents before creating the relevant `INDEX.md`.
-- Do not write process/result Markdown outside the selected version directory except cross-version indexes.
-- Do not skip the requirement specification card before PRD unless the user explicitly chooses OpenSpec/Superpower lead-only mode or confirms an exception.
-- If the user specifies OpenSpec or Superpower, act only as Goal Lead by default and do not spawn role subagents without confirmation.
-- Do not skip SPEC. Create missing Requirement Specification Card, PRD, Architecture Design, HTML Prototype when applicable, test plan, acceptance, and tasklist work items.
-- Do not let implementation members be the only testers. Assign independent QA/testing skill/subagent.
-- Honor user-specified skill/subagent assignments for members.
-- Require lead approval for auth, payment, refund, migrations, destructive writes, security-sensitive integrations, or broad API changes.
-- Keep `max_depth = 1`; members do not spawn nested teams.
-- Keep team size around 3-6 concurrent members unless the user explicitly wants more.
-- Do not send a final completion response before a fresh `goal_completion_auditor` audit.
-- Do not ask the user to confirm auto-continuation for unfinished work inside the already confirmed goal scope; show the continuation plan and execute it.
-- Do ask the user when the audit exposes new scope, destructive or security-sensitive work, missing credentials, external approvals, or unresolved decisions.
+- 没有 locked_scope 不启动实现。
+- 不让多个成员同时编辑共享核心文件。
+- 不跳过 Plan 模式。直接执行词只跳过确认等待，不跳过 Plan 表格。
+- Plan 模式尽量用数字选项。
+- 不自我批准生成产物。
+- 生成 docs、code 或 test cases 没有独立校验，不标记 done。
+- 多文档前先创建相关 `INDEX.md`。
+- 除跨版本索引外，过程/结果 Markdown 不写到版本目录之外。
+- PRD 前不跳过需求规格卡，除非用户明确选择 OpenSpec/Superpower lead-only 模式或确认例外。
+- 用户指定 OpenSpec 或 Superpower 时，默认只做 Goal Lead，不经确认不启动角色 subagents。
+- 不跳过 SPEC；缺少 Requirement Specification Card、PRD、Architecture Design、适用时的 HTML Prototype、test plan、acceptance、tasklist 时，创建或加入任务。
+- 实现成员不能是唯一测试者；必须安排独立 QA/testing skill/subagent。
+- 尊重用户指定的成员 skill/subagent。
+- auth、payment、refund、migrations、破坏性写入、安全敏感集成或广泛 API 变化需要 Lead 审批。
+- `max_depth = 1`；成员不创建嵌套团队。
+- 并发成员通常控制在 3-6 个，除非用户明确要求更多。
+- 新的 `goal_completion_auditor` 审计前，不发送最终完成回复。
+- 已确认范围内的未完成工作自动续跑，不再要求用户确认；但要展示续跑计划。
+- 审计暴露新范围、破坏性或安全敏感工作、缺少凭证、外部审批或未解决决策时，必须问用户。
 
-## Completion Response
+## 完成回复
 
-Use a concise final shape:
+最终回复保持简洁：
 
 ```text
 完成：<一句话说明>
 
 版本与文档：
-| Version | Index | Main Docs |
+| 版本 | 索引 | 主要文档 |
 | --- | --- | --- |
 
 成员状态：
-| Member | Claimed Tasks | Status | Evidence | Remaining |
-| --- | --- | --- | --- | --- |
+| 成员 | 认领任务 | Workflow / 前置任务 | 状态 | 证据 | 资源消耗（用户 / tokens / 费用） | 剩余 |
+| --- | --- | --- | --- | --- | --- | --- |
 
 SPEC：
-| SPEC | Status | Owner | Evidence |
+| SPEC | 状态 | Owner | 证据 |
 | --- | --- | --- | --- |
 
 独立校验：
-| Artifact | Author | Validator | Status | Evidence |
+| 产物 | 作者 | 校验者 | 状态 | 证据 |
 | --- | --- | --- | --- | --- |
 
 验证：

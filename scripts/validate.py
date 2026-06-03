@@ -56,9 +56,21 @@ EXPECTED_SUBAGENTS = {
     "goal-reviewer.toml": "goal_reviewer",
 }
 
+EXPECTED_ROLE_PREFIXES = {
+    "goal_backend": "后端",
+    "goal_completion_auditor": "收尾",
+    "goal_docs": "文档",
+    "goal_frontend": "前端",
+    "goal_product": "产品",
+    "goal_qa": "测试",
+    "goal_requirements_analyst": "需求分析",
+    "goal_reviewer": "评审",
+}
+
 KEY_RULES = [
     "Goal Teams Leader V1.3",
     "我是 Goal Teams Leader V1.3，我会帮你完成以下工作：",
+    "中文优先",
     "Requirement Specification Card",
     "references/default-AGENTS.md",
     "Teams 规划表",
@@ -66,18 +78,63 @@ KEY_RULES = [
     "任务范围",
     "交付与标准",
     "验证安排",
+    "workflow",
+    "前置任务",
     "goal_completion_auditor",
     "自动续跑",
     "未完成工作",
     "后端-WIKI 列表后端开发",
+    "browser-WIKI 列表页面验证",
+    "运行时 subagent id",
+    "skill_or_subagent",
     "独立校验",
     "直接执行",
     "数字选项",
     "确认并执行",
+    "中文核心模型要点提示词",
+    "资源消耗（用户 / tokens / 费用）",
     "中文",
     "版本",
     "INDEX.md",
     "tasklist.md",
+]
+
+CHINESE_SURFACE_FILES = [
+    "SKILL.md",
+    "references/goal-teams-runtime.md",
+    "agents/openai.yaml",
+]
+
+STALE_ENGLISH_SURFACE_SNIPPETS = [
+    "Use this skill when",
+    "Core Model",
+    "Mandatory Plan Mode",
+    "SPEC First",
+    "No Tasklist Assumption",
+    "Teams Planning Confirmation",
+    "When To Use",
+    "Runtime Files",
+    "Goal Team Workflow",
+    "Stable Core Prompt",
+    "Completion Rules",
+    "This reference defines",
+    "Runtime Shape",
+    "Language And Persistence",
+    "Tasklist Discovery And Creation",
+    "Markdown Persistence Templates",
+    "Confirmation Tables",
+    "Progress Feedback Tables",
+    "Cache-Friendly Prompt Layout",
+    "Document Loading Manifest",
+    "Safety And Coordination",
+    "Completion Response",
+    "Act as an independent",
+    "Use Chinese by default",
+    "Return files changed",
+    "Member, Claimed Tasks",
+    "| Member | Claimed Tasks | Status | Current Step | Evidence | Next |",
+    "| Item | Status | Suggestion |",
+    "| Artifact | Author | Validator | Method | Status | Evidence |",
 ]
 
 README_RELEASE_ITEMS = [
@@ -139,6 +196,8 @@ def check_skill_frontmatter() -> None:
         fail(f"SKILL.md frontmatter name should be 'goal-teams', got {values['name']!r}")
     if len(values["description"]) < 80:
         fail("SKILL.md description is too short for skill discovery")
+    if not re.search(r"[\u4e00-\u9fff]", values["description"]):
+        fail("SKILL.md description should be Chinese-first")
     if len(body) > 500:
         fail(f"SKILL.md frontmatter should stay compact, got {len(body)} characters")
 
@@ -157,10 +216,17 @@ def check_subagents() -> None:
                 fail(f"{path} missing {key}")
         if data["name"] != expected_name:
             fail(f"{path} name should be {expected_name}, got {data['name']}")
-        if "Chinese" not in data["developer_instructions"] and "中文" not in data["developer_instructions"]:
+        if "中文" not in data["description"] and "中文" not in data["developer_instructions"]:
             fail(f"{path} does not mention Chinese output")
-        if "validation" not in data["developer_instructions"] and "校验" not in data["developer_instructions"]:
+        if "校验" not in data["developer_instructions"]:
             fail(f"{path} does not mention independent validation")
+        role_prefix = EXPECTED_ROLE_PREFIXES[data["name"]]
+        for candidate in data.get("nickname_candidates", []):
+            if not candidate.startswith(role_prefix + "-"):
+                fail(f"{path} nickname candidate should start with Chinese role prefix {role_prefix!r}: {candidate}")
+        for stale in STALE_ENGLISH_SURFACE_SNIPPETS:
+            if stale in data["description"] or stale in data["developer_instructions"]:
+                fail(f"{path} contains stale English instruction: {stale}")
 
 
 def check_readmes() -> None:
@@ -203,12 +269,36 @@ def check_key_rules() -> None:
         "产品-PRD",
         "前端-订单页面",
         "测试-验收证据",
+        "goal_requirements_analyst-WIKI 列表需求澄清",
+        "goal_product-WIKI 列表 PRD",
+        "goal_backend-WIKI 列表后端开发",
+        "goal_frontend-WIKI 列表页面开发",
+        "goal_qa-WIKI 列表验收测试",
+        "goal_docs-WIKI 列表验收文档",
+        "goal_reviewer-WIKI 列表代码审查",
+        "goal_completion_auditor-WIKI 列表未完成工作检查",
+        "subagent ID + 具体任务名",
         "| Member | Skill/Subagent | Goal Slice | Claimed Tasks | Locked Scope | Deliverable | Done Criteria | Docs/Tasklist Updates | Test Owner | Validator |",
         "| 成员 | Skill/Subagent | 目标切片 | 认领任务 | 锁定范围 | 交付物 | 完成标准 | 文档/tasklist 更新 | 测试 Owner | 校验者 |",
     ]
     for stale in stale_examples:
         if stale in combined:
             fail(f"Stale generic member-name example found: {stale}")
+
+
+def check_chinese_surface() -> None:
+    for path in CHINESE_SURFACE_FILES:
+        text = read(path)
+        if not re.search(r"[\u4e00-\u9fff]", text):
+            fail(f"{path} should contain Chinese instructions")
+        for stale in STALE_ENGLISH_SURFACE_SNIPPETS:
+            if stale in text:
+                fail(f"{path} contains stale English surface text: {stale}")
+
+    for path in (ROOT / "subagents").glob("goal-*.toml"):
+        text = path.read_text(encoding="utf-8")
+        if not re.search(r"[\u4e00-\u9fff]", text):
+            fail(f"{path} should contain Chinese instructions")
 
 
 def check_example() -> None:
@@ -226,6 +316,7 @@ def main() -> None:
     check_subagents()
     check_readmes()
     check_key_rules()
+    check_chinese_surface()
     check_example()
     print("Goal Teams validation passed.")
 
