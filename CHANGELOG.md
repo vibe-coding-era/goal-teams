@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- Bumped current Skill version to `V1.3` and startup identity to `我是 Goal Teams Leader V1.3，我会帮你完成以下工作：`.
+- Bumped current Skill version to `V1.4` and startup identity to `我是 Goal Teams Leader V1.4，我会帮你完成以下工作：`.
+- Added a Plan Mode startup clarification asking whether the user has historical documents, prior experience, or reference material to provide before planning.
 - Added direct-execution trigger wording such as `直接执行`, `不用确认`, and `跳过确认`; the lead still shows the `Teams 规划表` as an execution record, then proceeds without waiting for the initial confirmation unless a safety gate applies.
 - Added numbered Plan options so users can reply with simple choices like `1`, `2`, or `3`.
 - Added repository-level maintenance guidance in `AGENTS.md`.

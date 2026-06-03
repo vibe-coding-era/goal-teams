@@ -68,8 +68,9 @@ EXPECTED_ROLE_PREFIXES = {
 }
 
 KEY_RULES = [
-    "Goal Teams Leader V1.3",
-    "我是 Goal Teams Leader V1.3，我会帮你完成以下工作：",
+    "Goal Teams Leader V1.4",
+    "我是 Goal Teams Leader V1.4，我会帮你完成以下工作：",
+    "在开始规划前，有什么历史文档、历史经验或参考资料需要输入吗？",
     "中文优先",
     "Requirement Specification Card",
     "references/default-AGENTS.md",
@@ -173,8 +174,8 @@ def check_required_files() -> None:
 def check_skill_frontmatter() -> None:
     skill = read("SKILL.md")
     version = read("VERSION").strip()
-    if version != "V1.3":
-        fail(f"VERSION should be V1.3, got {version!r}")
+    if version != "V1.4":
+        fail(f"VERSION should be V1.4, got {version!r}")
     match = re.match(r"^---\n(?P<body>.*?)\n---\n", skill, flags=re.S)
     if not match:
         fail("SKILL.md must start with YAML frontmatter")
@@ -243,7 +244,7 @@ def check_readmes() -> None:
 
 
 def check_key_rules() -> None:
-    startup_line = "我是 Goal Teams Leader V1.3，我会帮你完成以下工作："
+    startup_line = "我是 Goal Teams Leader V1.4，我会帮你完成以下工作："
     combined = "\n".join(
         read(path)
         for path in [

@@ -4,7 +4,7 @@
 
 Author: 肉山@TGO Hangzhou
 
-Current version: `V1.3`
+Current version: `V1.4`
 
 `goal-teams` is a Codex Skill for running Goal Mode as a coordinated team. A Goal Lead turns one goal into a plan, assigns independent subagents or user-selected skills, controls serial/parallel workflow, records the process in Markdown, and closes the work with independent validation plus a completion audit.
 
@@ -13,7 +13,7 @@ Current version: `V1.3`
 Every run starts with:
 
 ```text
-我是 Goal Teams Leader V1.3，我会帮你完成以下工作：
+我是 Goal Teams Leader V1.4，我会帮你完成以下工作：
 ```
 
 中文核心模型要点提示词:
@@ -25,6 +25,7 @@ Every run starts with:
 How Goal Teams works:
 
 - The Goal Lead clarifies the target, splits tasks, confirms workflow, assigns members, integrates results, and routes blockers.
+- In Plan Mode, after the startup line and work items, ask: `在开始规划前，有什么历史文档、历史经验或参考资料需要输入吗？如果有，请提供路径、链接或要点；没有请回复“没有”。`
 - For default subagent members, the runtime subagent id, `member_id`, and display name use `<Chinese role>-<task>`, such as `后端-WIKI 列表后端开发`; the loadable subagent config name stays in `skill_or_subagent`, such as `goal_backend`.
 - If the user assigns a skill, the runtime subagent id, `member_id`, display name, and `role` use the skill name prefix, such as `browser-WIKI 列表页面验证`.
 - Every task states whether its workflow is serial or parallel; serial tasks list predecessors so shared scopes are not edited concurrently.
@@ -37,15 +38,16 @@ How Goal Teams works:
 ## Standard Flow
 
 1. Understand the goal and turn it into verifiable Done Criteria.
-2. Check `AGENTS.md`, `agent.md`, `CLAUDE.md`, and `claude.md`; if none exists, use `references/default-AGENTS.md`.
-3. Confirm the version and write process/results under `.codex/goal-teams/versions/<version>/`.
-4. Create or update `.codex/goal-teams/INDEX.md` and the version `INDEX.md` before multiple documents.
-5. Prepare SPEC: Requirement Specification Card, PRD, Architecture Design, HTML Prototype, Test Plan, and Acceptance.
-6. Find or create `.codex/goal-teams/versions/<version>/tasklist.md`.
-7. Show the four-column `Teams 规划表`: member/capability, task scope, delivery criteria, validation plan.
-8. Start independent members after confirmation or direct-execution wording; each member stays inside locked scope and workflow constraints.
-9. Persist plans, progress, decisions, test evidence, and acceptance evidence in versioned Markdown.
-10. Run `goal_completion_auditor`; auto-continue only unfinished work that remains inside the confirmed scope.
+2. Ask for historical documents, prior experience, or reference material, then record the answer in Plan assumptions.
+3. Check `AGENTS.md`, `agent.md`, `CLAUDE.md`, and `claude.md`; if none exists, use `references/default-AGENTS.md`.
+4. Confirm the version and write process/results under `.codex/goal-teams/versions/<version>/`.
+5. Create or update `.codex/goal-teams/INDEX.md` and the version `INDEX.md` before multiple documents.
+6. Prepare SPEC: Requirement Specification Card, PRD, Architecture Design, HTML Prototype, Test Plan, and Acceptance.
+7. Find or create `.codex/goal-teams/versions/<version>/tasklist.md`.
+8. Show the four-column `Teams 规划表`: member/capability, task scope, delivery criteria, validation plan.
+9. Start independent members after confirmation or direct-execution wording; each member stays inside locked scope and workflow constraints.
+10. Persist plans, progress, decisions, test evidence, and acceptance evidence in versioned Markdown.
+11. Run `goal_completion_auditor`; auto-continue only unfinished work that remains inside the confirmed scope.
 
 ## Teams 规划表
 
@@ -162,7 +164,7 @@ Direct execution:
 
 ```text
 Use $goal-teams。
-请直接执行：为 WIKI 列表 V1.3 规划并实现后端 API、页面验证、独立测试和验收文档。
+请直接执行：为 WIKI 列表 V1.4 规划并实现后端 API、页面验证、独立测试和验收文档。
 仍然先展示 Teams 规划表作为执行记录，但不用等我确认。
 ```
 

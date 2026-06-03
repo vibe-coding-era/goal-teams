@@ -4,7 +4,7 @@
 
 作者：肉山@TGO 杭州
 
-当前版本：`V1.3`
+当前版本：`V1.4`
 
 `goal-teams` 是一个面向 Codex 的 Goal Mode 团队化 Skill。它把一个目标拆成 Goal Lead 统筹、多个独立 subagent 或用户指定 skill 分工执行的闭环：先澄清和规划，再按 workflow 串并行推进，最后由独立校验和收尾审计确认没有遗漏。
 
@@ -13,7 +13,7 @@
 每次启动先汇报：
 
 ```text
-我是 Goal Teams Leader V1.3，我会帮你完成以下工作：
+我是 Goal Teams Leader V1.4，我会帮你完成以下工作：
 ```
 
 中文核心模型要点提示词：
@@ -25,6 +25,7 @@
 Goal Teams 的核心工作方式：
 
 - Goal Lead 负责澄清目标、拆解任务、确认 workflow、分配成员、整合结果和处理阻塞。
+- Plan 模式下，启动语和本轮事项之后先问：`在开始规划前，有什么历史文档、历史经验或参考资料需要输入吗？如果有，请提供路径、链接或要点；没有请回复“没有”。`
 - 默认 subagent 成员的运行时 subagent id、`member_id` 和展示名使用 `<中文角色>-<具体任务名>`，例如 `后端-WIKI 列表后端开发`；真实可加载的 subagent 配置名保留在 `skill_or_subagent`，例如 `goal_backend`。
 - 如果用户指定了 skill，运行时 subagent id、`member_id`、展示名和 `role` 使用 skill 名称作为前缀，例如 `browser-WIKI 列表页面验证`。
 - 每个任务都必须说明 workflow 是串行还是并行；串行任务要列出前置任务，避免共享范围被并发修改。
@@ -37,15 +38,16 @@ Goal Teams 的核心工作方式：
 ## 标准流程
 
 1. 理解目标，把用户请求转成可验证的 Done Criteria。
-2. 检查 `AGENTS.md` / `agent.md` / `CLAUDE.md` / `claude.md`；缺失时使用 `references/default-AGENTS.md` 作为默认指南。
-3. 确认版本，把过程和结果写入 `.codex/goal-teams/versions/<version>/`。
-4. 多文档前先创建或更新 `.codex/goal-teams/INDEX.md` 和版本 `INDEX.md`。
-5. 补齐 SPEC：Requirement Specification Card、PRD、Architecture Design、HTML Prototype、Test Plan、Acceptance。
-6. 发现或创建 `.codex/goal-teams/versions/<version>/tasklist.md`。
-7. 展示四列 `Teams 规划表`：成员与能力、任务范围、交付与标准、验证安排。
-8. 根据确认或直接执行语义启动独立成员，按 locked scope 和 workflow 推进。
-9. 将计划、进度、决策、测试证据和验收结果写入版本目录 Markdown。
-10. 完成后由 `goal_completion_auditor` 审计；需要续跑时只处理已确认目标范围内的剩余工作。
+2. 询问历史文档、历史经验或参考资料输入，并把回答写入 Plan 假设。
+3. 检查 `AGENTS.md` / `agent.md` / `CLAUDE.md` / `claude.md`；缺失时使用 `references/default-AGENTS.md` 作为默认指南。
+4. 确认版本，把过程和结果写入 `.codex/goal-teams/versions/<version>/`。
+5. 多文档前先创建或更新 `.codex/goal-teams/INDEX.md` 和版本 `INDEX.md`。
+6. 补齐 SPEC：Requirement Specification Card、PRD、Architecture Design、HTML Prototype、Test Plan、Acceptance。
+7. 发现或创建 `.codex/goal-teams/versions/<version>/tasklist.md`。
+8. 展示四列 `Teams 规划表`：成员与能力、任务范围、交付与标准、验证安排。
+9. 根据确认或直接执行语义启动独立成员，按 locked scope 和 workflow 推进。
+10. 将计划、进度、决策、测试证据和验收结果写入版本目录 Markdown。
+11. 完成后由 `goal_completion_auditor` 审计；需要续跑时只处理已确认目标范围内的剩余工作。
 
 ## Teams 规划表
 
@@ -162,7 +164,7 @@ Use $goal-teams。
 
 ```text
 Use $goal-teams。
-请直接执行：为 WIKI 列表 V1.3 规划并实现后端 API、页面验证、独立测试和验收文档。
+请直接执行：为 WIKI 列表 V1.4 规划并实现后端 API、页面验证、独立测试和验收文档。
 仍然先展示 Teams 规划表作为执行记录，但不用等我确认。
 ```
 
