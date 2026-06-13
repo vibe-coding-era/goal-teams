@@ -1,0 +1,74 @@
+schema: goal-teams.automation-protocol.sample.v1
+sample_only: true
+version: V0.1
+purpose: "展示 Goal Teams 自动化协议的静态记录形态，不代表存在可执行 runner。"
+constraints:
+  no_runner: true
+  no_external_services: true
+  no_real_production_integration: true
+  allowed_file_types:
+    - Markdown
+    - YAML
+    - JSON
+trigger:
+  type: manual
+  source: Goal Lead
+  prompt_ref: "../plan.md#启动汇报"
+  direct_execution: false
+stages:
+  - id: plan_gate
+    name: "规划门"
+    owner: Goal Lead
+    input_refs:
+      - "../plan.md"
+      - "../tasklist.md"
+    required_evidence:
+      - "Teams 规划表"
+      - "风险与审批表"
+      - "历史资料输入记录"
+    on_missing_evidence: block_and_record
+  - id: member_execution
+    name: "成员执行"
+    owner: "各任务 Owner"
+    input_refs:
+      - "../tasklist.md#member-ownership"
+    required_evidence:
+      - "每个任务的输出文件"
+      - "每个任务的验证安排"
+    on_missing_evidence: create_followup_task
+  - id: independent_validation
+    name: "独立校验"
+    owner: "评审-登录页空状态文档校验"
+    input_refs:
+      - "../progress.md#独立校验"
+    required_evidence:
+      - "Artifact / Author / Validator 对照"
+      - "Evidence 路径"
+    on_missing_evidence: create_followup_task
+  - id: completion_audit
+    name: "收尾审计"
+    owner: "收尾-登录页空状态未完成工作检查"
+    input_refs:
+      - "../progress.md#收尾审计"
+    required_evidence:
+      - "完成结论"
+      - "自动续跑判断"
+    on_missing_evidence: auto_continue_within_confirmed_scope
+auto_continue_policy:
+  allowed_when:
+    - "遗漏属于已确认目标范围"
+    - "不触及真实生产、凭证、支付、认证或破坏性写入"
+    - "可以通过新增静态文档或补充证据闭环"
+  blocked_when:
+    - "需要访问外部系统"
+    - "需要真实用户决策"
+    - "需要修改锁定范围外文件"
+  record_to:
+    - "../progress.md"
+    - "../decisions.md"
+final_report:
+  must_include:
+    - "变更文件"
+    - "校验证据"
+    - "资源消耗（用户 / tokens / 费用）"
+    - "阻塞和剩余风险"

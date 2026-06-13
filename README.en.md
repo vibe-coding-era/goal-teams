@@ -4,7 +4,7 @@
 
 Author: 肉山@TGO Hangzhou
 
-Current version: `V1.4`
+Current version: `V1.9`
 
 `goal-teams` is a Codex Skill for running Goal Mode as a coordinated team. A Goal Lead turns one goal into a plan, assigns independent subagents or user-selected skills, controls serial/parallel workflow, records the process in Markdown, and closes the work with independent validation plus a completion audit.
 
@@ -13,7 +13,7 @@ Current version: `V1.4`
 Every run starts with:
 
 ```text
-我是 Goal Teams Leader V1.4，我会帮你完成以下工作：
+我是 Goal Teams Leader V1.9，我会帮你完成以下工作：
 ```
 
 中文核心模型要点提示词:
@@ -29,6 +29,11 @@ How Goal Teams works:
 - For default subagent members, the runtime subagent id, `member_id`, and display name use `<Chinese role>-<task>`, such as `后端-WIKI 列表后端开发`; the loadable subagent config name stays in `skill_or_subagent`, such as `goal_backend`.
 - If the user assigns a skill, the runtime subagent id, `member_id`, display name, and `role` use the skill name prefix, such as `browser-WIKI 列表页面验证`.
 - Every task states whether its workflow is serial or parallel; serial tasks list predecessors so shared scopes are not edited concurrently.
+- `SPEC` defines completion criteria, `Harness` defines the verification contract, `Evidence` records traceable proof, `Pipeline` records R&D/release state, `Benchmark` defines the outer evaluation task set, and `Loop` defines member, Lead, and Skill Improvement cycles.
+- Harness is not a new runtime executor. It appears as checks, commands, manual checklists, evidence paths, and failure-report formats in the Plan, tasklist, Member Goal Packet, test plan, and acceptance docs.
+- V1.8 adds machine-readable protocol templates: `harness.yaml`, `evidence.jsonl`, `pipeline-state.json`, `failure_report`, and `approval_gate`.
+- V1.9 adds a production-flow protocol: `Build -> Verify -> Package -> Release Gate -> Observe -> Promote/Rollback`, with credentials, real deployment, destructive operations, and production rollback stopped behind human or external authorization gates.
+- Benchmark is not a default output for ordinary Goal Teams runs. Create or update `benchmarks/` only when the user asks, the plan confirms it, or a Skill Improvement task needs it.
 - By default, Goal Teams shows a `Teams 规划表` and waits for confirmation. If the prompt includes `直接执行`, `不用确认`, or `跳过确认`, it records the plan and starts execution.
 - Plan choices use numbers, such as `1. 确认并执行`, `2. 调整成员或范围`, `3. 只保留方案不执行`.
 - Generated documents, code changes, and test cases require independent validation; implementers cannot be the only testers.
@@ -43,21 +48,23 @@ How Goal Teams works:
 4. Confirm the version and write process/results under `.codex/goal-teams/versions/<version>/`.
 5. Create or update `.codex/goal-teams/INDEX.md` and the version `INDEX.md` before multiple documents.
 6. Prepare SPEC: Requirement Specification Card, PRD, Architecture Design, HTML Prototype, Test Plan, and Acceptance.
-7. Find or create `.codex/goal-teams/versions/<version>/tasklist.md`.
-8. Show the four-column `Teams 规划表`: member/capability, task scope, delivery criteria, validation plan.
-9. Start independent members after confirmation or direct-execution wording; each member stays inside locked scope and workflow constraints.
-10. Persist plans, progress, decisions, test evidence, and acceptance evidence in versioned Markdown.
-11. Run `goal_completion_auditor`; auto-continue only unfinished work that remains inside the confirmed scope.
+7. Write a Harness contract for each task; when not applicable, record the reason.
+8. Decide whether Benchmark applies; ordinary tasks do not create `benchmarks/` by default.
+9. Find or create `.codex/goal-teams/versions/<version>/tasklist.md`.
+10. Show the four-column `Teams 规划表`: member/capability, task scope, delivery criteria, validation plan.
+11. Start independent members after confirmation or direct-execution wording; each member stays inside locked scope, Harness, and workflow constraints.
+12. Persist plans, progress, decisions, test evidence, and acceptance evidence in versioned Markdown.
+13. Run `goal_completion_auditor`; auto-continue only unfinished work that remains inside the confirmed scope.
 
 ## Teams 规划表
 
-The table has four display columns, but every row keeps the underlying fields: member, skill/subagent, goal slice, claimed task, workflow, predecessor, locked scope, deliverable, done criteria, docs/tasklist update, test owner, and validator.
+The table has four display columns, but every row keeps the underlying fields: member, skill/subagent, goal slice, claimed task, workflow, predecessor, locked scope, deliverable, done criteria, Harness, docs/tasklist update, test owner, and validator.
 
 | 成员 / Skill(Subagent) | Scope | Delivery / Criteria | Validation |
 | --- | --- | --- | --- |
-| Member: `需求分析-WIKI 列表需求澄清`<br>Skill/Subagent: `goal_requirements_analyst` | Goal slice: clarify WIKI list requirements<br>Claimed task: GT-001<br>Workflow: serial<br>Predecessor: -<br>Locked scope: `spec/` | Deliverable: Requirement Specification Card<br>Done criteria: user confirms goals, flow, and boundaries<br>Docs/tasklist: requirement-spec-card + INDEX | Test owner: `评审-WIKI 列表需求校验`<br>Validator: `评审-WIKI 列表需求校验` |
-| Member: `后端-WIKI 列表后端开发`<br>Skill/Subagent: `goal_backend` | Goal slice: WIKI list API<br>Claimed task: GT-003<br>Workflow: serial<br>Predecessor: GT-001, GT-002<br>Locked scope: `src/api/wiki/` | Deliverable: backend implementation<br>Done criteria: API contract tests pass<br>Docs/tasklist: Architecture Design + tasklist.md | Test owner: `测试-WIKI 列表验收测试`<br>Validator: `评审-WIKI 列表代码审查` |
-| Member: `browser-WIKI 列表页面验证`<br>Skill/Subagent: `browser` skill | Goal slice: page verification<br>Claimed task: GT-004<br>Workflow: parallel<br>Predecessor: GT-003<br>Locked scope: `src/ui/wiki/` | Deliverable: screenshots and console checks<br>Done criteria: desktop/mobile verification passes<br>Docs/tasklist: HTML Prototype + tasklist.md | Test owner: `测试-WIKI 列表验收测试`<br>Validator: `评审-WIKI 列表体验审查` |
+| Member: `需求分析-WIKI 列表需求澄清`<br>Skill/Subagent: `goal_requirements_analyst` | Goal slice: clarify WIKI list requirements<br>Claimed task: GT-001<br>Workflow: serial<br>Predecessor: -<br>Locked scope: `spec/` | Deliverable: Requirement Specification Card<br>Done criteria: user confirms goals, flow, and boundaries<br>Harness: structure and boundary checklist review<br>Docs/tasklist: requirement-spec-card + INDEX | Test owner: `评审-WIKI 列表需求校验`<br>Validator: `评审-WIKI 列表需求校验` |
+| Member: `后端-WIKI 列表后端开发`<br>Skill/Subagent: `goal_backend` | Goal slice: WIKI list API<br>Claimed task: GT-003<br>Workflow: serial<br>Predecessor: GT-001, GT-002<br>Locked scope: `src/api/wiki/` | Deliverable: backend implementation<br>Done criteria: API contract tests pass<br>Harness: API contract tests + regression tests<br>Docs/tasklist: Architecture Design + tasklist.md | Test owner: `测试-WIKI 列表验收测试`<br>Validator: `评审-WIKI 列表代码审查` |
+| Member: `browser-WIKI 列表页面验证`<br>Skill/Subagent: `browser` skill | Goal slice: page verification<br>Claimed task: GT-004<br>Workflow: parallel<br>Predecessor: GT-003<br>Locked scope: `src/ui/wiki/` | Deliverable: screenshots and console checks<br>Done criteria: desktop/mobile verification passes<br>Harness: screenshots + console error + viewport checks<br>Docs/tasklist: HTML Prototype + tasklist.md | Test owner: `测试-WIKI 列表验收测试`<br>Validator: `评审-WIKI 列表体验审查` |
 
 Final report example:
 
@@ -81,10 +88,13 @@ goal-teams/
   agents/openai.yaml
   references/goal-teams-runtime.md
   references/default-AGENTS.md
+  references/goal-teams-automation-protocol.md
+  references/goal-teams-production-pipeline.md
   scripts/check.sh
   scripts/validate.py
   subagents/goal-*.toml
   examples/mini-goal-run/
+  benchmarks/
 ```
 
 Runtime files in target projects:
@@ -149,6 +159,8 @@ Validate before maintenance releases:
 
 `examples/mini-goal-run` provides a minimal output tree for checking indexes, SPEC, tasklist, the Teams plan table, independent validation, and completion audit. `goal-teams.md` records long-term user requirements and is the upstream reference for maintaining this Skill.
 
+`examples/mini-goal-run` also includes `harness/` replay material that demonstrates the minimal static `setup -> run -> checks -> report` chain, plus static automation protocol, evidence ledger, and pipeline gate samples. `benchmarks/` provides `GT-BENCH-001` and `GT-BENCH-002` templates for comparing baseline and Goal Teams output quality, evidence completeness, production gate judgment, and cost.
+
 ## Examples
 
 Plan and wait for confirmation:
@@ -164,7 +176,7 @@ Direct execution:
 
 ```text
 Use $goal-teams。
-请直接执行：为 WIKI 列表 V1.4 规划并实现后端 API、页面验证、独立测试和验收文档。
+请直接执行：为 WIKI 列表 V1.9 规划并实现后端 API、页面验证、独立测试和验收文档。
 仍然先展示 Teams 规划表作为执行记录，但不用等我确认。
 ```
 
@@ -180,7 +192,7 @@ Use $goal-teams。
 
 ## Release Contents
 
-This repository includes `VERSION`, `SKILL.md`, `agents/openai.yaml`, `references/goal-teams-runtime.md`, `references/default-AGENTS.md`, `subagents/goal-*.toml`, `goal-teams.md`, `AGENTS.md`, `scripts/check.sh`, `scripts/validate.py`, `examples/mini-goal-run`, `CHANGELOG.md`, `README.md`, and `README.en.md`.
+This repository includes `VERSION`, `SKILL.md`, `agents/openai.yaml`, `references/goal-teams-runtime.md`, `references/default-AGENTS.md`, `references/goal-teams-automation-protocol.md`, `references/goal-teams-production-pipeline.md`, `subagents/goal-*.toml`, `goal-teams.md`, `AGENTS.md`, `scripts/check.sh`, `scripts/validate.py`, `examples/mini-goal-run`, `benchmarks/`, `CHANGELOG.md`, `README.md`, and `README.en.md`.
 
 ## License
 

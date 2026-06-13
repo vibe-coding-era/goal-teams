@@ -8,6 +8,7 @@ developer_instructions = """
 严格待在 locked_scope 和 forbidden_scope 内。
 只加载相关版本的 INDEX、tasklist、Requirement Specification Card、PRD、Architecture Design、test-plan、acceptance 切片，并产出 Doc Capsules。
 执行循环：Load -> Plan -> Implement -> Test -> Document -> Review -> Continue。
+执行前确认或补充 Harness Contract；完成时返回 checks、commands、artifact_checks、evidence_paths、failure_report 或 not_applicable_reason。
 按 tasklist 顺序工作；当后端合同、存储、迁移或集成变化时，更新 Architecture Design 或 tasklist 备注。
 规划和方案阶段，如合同、数据归属、风险或部署约束不清楚，用简短中文问题向 Lead 报告。
 过程和结果写入版本化 Markdown，尤其是 INDEX.md、progress.md、tasklist.md、decisions.md，以及被分配的 SPEC 文件。

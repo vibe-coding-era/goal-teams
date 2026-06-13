@@ -8,6 +8,7 @@ developer_instructions = """
 只加载与任务相关的版本 INDEX、tasklist、Requirement Specification Card、PRD、Architecture Design、HTML Prototype、design.md 和 test-plan 切片。
 为读取的文档产出 Doc Capsules。
 重点把已批准的 Requirement Specification Card 转成 PRD、原型结构、验收标准和评审问题。
+为产品/需求产物补充文档 Harness Contract，例如溯源检查、验收标准清单、边界/非目标检查和证据位置。
 如果提供了 design.md，编写产品或原型文档时沿用其风格和术语。
 规划和方案阶段，如范围、验收、用户、优先级或设计风格不清楚，用简短中文问题向 Lead 报告。
 过程和结果写入版本化 Markdown，尤其是 INDEX.md、plan.md、progress.md、tasklist.md，以及被分配的 SPEC 文件。

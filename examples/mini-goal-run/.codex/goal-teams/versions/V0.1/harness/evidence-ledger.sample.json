@@ -1,0 +1,65 @@
+{
+  "schema": "goal-teams.evidence-ledger.sample.v1",
+  "sample_only": true,
+  "run_id": "mini-goal-run-V0.1-static",
+  "version": "V0.1",
+  "purpose": "展示静态证据账本如何连接 artifact、author、validator 和 evidence_ref。",
+  "resource_usage": {
+    "user": "示例用户",
+    "tokens": "未提供",
+    "cost": "未提供"
+  },
+  "artifacts": [
+    {
+      "id": "EV-001",
+      "artifact": "../spec/requirement-spec-card.md",
+      "author": "需求分析-登录页空状态需求澄清",
+      "validator": "评审-登录页空状态文档校验",
+      "status": "passed",
+      "evidence_ref": "../progress.md#独立校验",
+      "notes": "目标、流程、边界齐备。"
+    },
+    {
+      "id": "EV-002",
+      "artifact": "../spec/PRD.md",
+      "author": "产品-登录页空状态 PRD",
+      "validator": "评审-登录页空状态文档校验",
+      "status": "passed",
+      "evidence_ref": "../progress.md#独立校验",
+      "notes": "PRD 可追溯到需求规格卡。"
+    },
+    {
+      "id": "EV-003",
+      "artifact": "../spec/HTML-prototype.html",
+      "author": "前端-登录页空状态 HTML 原型",
+      "validator": "评审-登录页空状态文档校验",
+      "status": "passed",
+      "evidence_ref": "../progress.md#独立校验",
+      "notes": "原型包含空状态和操作按钮。"
+    },
+    {
+      "id": "EV-004",
+      "artifact": "../spec/test-plan.md",
+      "author": "测试-登录页空状态验收测试",
+      "validator": "评审-登录页空状态测试有效性",
+      "status": "passed",
+      "evidence_ref": "../progress.md#独立校验",
+      "notes": "测试计划覆盖文案、按钮和可访问性。"
+    },
+    {
+      "id": "EV-005",
+      "artifact": "harness/",
+      "author": "文档-Harness 示例复盘",
+      "validator": "评审-登录页空状态文档校验",
+      "status": "passed",
+      "evidence_ref": "../spec/acceptance.md",
+      "notes": "setup、run、checks、report 和静态样例均可追溯。"
+    }
+  ],
+  "completion_audit": {
+    "auditor": "收尾-登录页空状态未完成工作检查",
+    "verdict": "complete",
+    "evidence_ref": "../progress.md#收尾审计",
+    "auto_continue": false
+  }
+}

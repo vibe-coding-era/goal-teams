@@ -1,7 +1,7 @@
 {
   "team": {
     "mode": "goal-teams",
-    "goal": "规划登录页空状态提示 V0.1",
+    "goal": "规划登录页空状态提示 V0.1，并提供最小 Harness 复盘资料",
     "version": "V0.1",
     "version_dir": ".codex/goal-teams/versions/V0.1",
     "status": "done",
@@ -20,15 +20,32 @@
       "claimed_tasks": ["GT-001"]
     },
     {
+      "id": "文档-Harness 示例复盘",
+      "subagent_id": "文档-Harness 示例复盘",
+      "display_name": "文档-Harness 示例复盘",
+      "role": "文档",
+      "skill_or_subagent": "goal_docs",
+      "workflow_mode": "serial",
+      "depends_on": ["GT-005"],
+      "status": "done",
+      "claimed_tasks": ["GT-006"],
+      "evidence": [
+        ".codex/goal-teams/versions/V0.1/harness/setup.md",
+        ".codex/goal-teams/versions/V0.1/harness/run.md",
+        ".codex/goal-teams/versions/V0.1/harness/checks.md",
+        ".codex/goal-teams/versions/V0.1/harness/report.md"
+      ]
+    },
+    {
       "id": "评审-登录页空状态文档校验",
       "subagent_id": "评审-登录页空状态文档校验",
       "display_name": "评审-登录页空状态文档校验",
       "role": "评审",
       "skill_or_subagent": "goal_reviewer",
       "workflow_mode": "serial",
-      "depends_on": ["GT-001", "GT-002", "GT-003", "GT-004", "GT-005"],
+      "depends_on": ["GT-001", "GT-002", "GT-003", "GT-004", "GT-005", "GT-006"],
       "status": "done",
-      "claimed_tasks": ["GT-006"]
+      "claimed_tasks": ["GT-007"]
     },
     {
       "id": "收尾-登录页空状态未完成工作检查",
@@ -37,9 +54,9 @@
       "role": "收尾",
       "skill_or_subagent": "goal_completion_auditor",
       "workflow_mode": "serial",
-      "depends_on": ["GT-006"],
+      "depends_on": ["GT-007"],
       "status": "done",
-      "claimed_tasks": ["GT-007"],
+      "claimed_tasks": ["GT-008"],
       "verdict": "complete"
     }
   ]

@@ -9,6 +9,9 @@ developer_instructions = """
 不要编辑文件，不要启动嵌套团队。
 只加载相关版本的 INDEX、tasklist、progress、decisions、acceptance、SPEC、测试证据、校验记录和最终总结。
 检查每个已确认任务和 Done Criteria 是否有证据；docs/SPEC/tasklist 是否更新；测试和独立校验是否记录；阻塞、延期工作和风险是否清楚记录；剩余工作是否仍在已确认目标范围内。
+检查每个认领任务是否有 Harness Contract、验证证据、失败报告或 not_applicable_reason；如使用 Benchmark，检查运行记录和失败分类是否可追溯。
+如使用机器可读协议，检查 `harness.yaml`、`evidence.jsonl`、`pipeline-state.json`、`failure_report` 和 `approval_gate` 是否与 Markdown 记录一致。
+如使用生产流协议，检查 Release Gate、safety gate、Observe、Promote/Rollback 是否有阻塞/审批/授权记录；缺少凭证、真实部署、破坏性操作或生产回滚授权时归为 blocked_needs_user。
 审计结论必须归类为 complete、auto_continue 或 blocked_needs_user。
 只有没有未完成工作时使用 complete。
 已确认范围内仍有未完成工作，且可由下一轮 Goal Teams 无需用户确认完成时，使用 auto_continue。

@@ -11,6 +11,7 @@ developer_instructions = """
 在有用且可用时，可以使用网络搜索、computer use、browser 或 Chrome 能力，用市场、竞品、政策、流程、产品或领域上下文提高需求质量；总结来源，不要堆原始资料。
 在任何 PRD 之前，先产出人类友好的 Requirement Specification Card，并尽量控制在两页以内。
 规格卡必须清楚覆盖：核心目标、重要性、关键业务功能结构、主流程、边界、非目标、假设、开放问题和验收提示。
+为需求规格卡补充轻量 Harness Contract，例如结构清单、边界/非目标检查、开放问题检查和证据位置。
 除非 Lead 在规格卡确认后明确分配，否则不要直接写 PRD。
 过程和结果写入 Markdown，尤其是版本 INDEX.md、plan.md、progress.md、tasklist.md 和 spec/requirement-spec-card.md。
 不要自我批准 Requirement Specification Card；在它成为 PRD 来源前，必须请求独立校验者或用户指定校验 skill。

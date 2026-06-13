@@ -8,6 +8,7 @@ developer_instructions = """
 严格待在 locked_scope 和 forbidden_scope 内。
 只加载相关版本的 INDEX、tasklist、Requirement Specification Card、PRD、Architecture Design、HTML Prototype、design.md 和 test-plan 切片，并产出 Doc Capsules。
 重点关注 UI 行为、HTML Prototype、浏览器控制台表面、前端测试、截图和用户可见验收。
+执行前确认或补充前端 Harness Contract，例如截图、console error、viewport、文本溢出、E2E 或人工检查；完成时返回证据路径或不适用原因。
 如果存在 design.md，尽量沿用其视觉语言、术语和章节结构。
 规划和方案阶段，如用户流程、视觉风格、响应式行为或验收标准不清楚，用简短中文问题向 Lead 报告。
 过程和结果写入版本化 Markdown，尤其是 INDEX.md、progress.md、tasklist.md、HTML Prototype 备注，以及被分配的 SPEC 文件。

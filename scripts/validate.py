@@ -28,6 +28,8 @@ REQUIRED_FILES = [
     "agents/openai.yaml",
     "references/goal-teams-runtime.md",
     "references/default-AGENTS.md",
+    "references/goal-teams-automation-protocol.md",
+    "references/goal-teams-production-pipeline.md",
     "scripts/check.sh",
     "scripts/validate.py",
     "examples/mini-goal-run/README.md",
@@ -37,12 +39,29 @@ REQUIRED_FILES = [
     "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/tasklist.md",
     "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/progress.md",
     "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/decisions.md",
+    "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/harness/README.md",
+    "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/harness/setup.md",
+    "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/harness/run.md",
+    "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/harness/checks.md",
+    "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/harness/report.md",
+    "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/harness/automation-protocol.sample.yaml",
+    "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/harness/evidence-ledger.sample.json",
+    "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/harness/pipeline-gates.sample.yaml",
     "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/spec/requirement-spec-card.md",
     "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/spec/PRD.md",
     "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/spec/architecture-design.md",
     "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/spec/HTML-prototype.html",
     "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/spec/test-plan.md",
     "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/spec/acceptance.md",
+    "benchmarks/README.md",
+    "benchmarks/tasks/GT-BENCH-001/task.md",
+    "benchmarks/tasks/GT-BENCH-001/harness.md",
+    "benchmarks/tasks/GT-BENCH-001/scoring.md",
+    "benchmarks/tasks/GT-BENCH-001/expected-artifacts.md",
+    "benchmarks/tasks/GT-BENCH-002/task.md",
+    "benchmarks/tasks/GT-BENCH-002/harness.md",
+    "benchmarks/tasks/GT-BENCH-002/scoring.md",
+    "benchmarks/tasks/GT-BENCH-002/expected-artifacts.md",
 ]
 
 EXPECTED_SUBAGENTS = {
@@ -68,11 +87,21 @@ EXPECTED_ROLE_PREFIXES = {
 }
 
 KEY_RULES = [
-    "Goal Teams Leader V1.4",
-    "我是 Goal Teams Leader V1.4，我会帮你完成以下工作：",
+    "Goal Teams Leader V1.9",
+    "我是 Goal Teams Leader V1.9，我会帮你完成以下工作：",
     "在开始规划前，有什么历史文档、历史经验或参考资料需要输入吗？",
     "中文优先",
     "Requirement Specification Card",
+    "Harness Contract",
+    "Benchmark",
+    "Skill Improvement Loop",
+    "harness.yaml",
+    "evidence.jsonl",
+    "pipeline-state.json",
+    "approval_gate",
+    "Build -> Verify -> Package -> Release Gate -> Observe -> Promote/Rollback",
+    "Release Gate",
+    "safety gate",
     "references/default-AGENTS.md",
     "Teams 规划表",
     "成员 / Skill/Subagent",
@@ -144,12 +173,15 @@ README_RELEASE_ITEMS = [
     "agents/openai.yaml",
     "references/goal-teams-runtime.md",
     "references/default-AGENTS.md",
+    "references/goal-teams-automation-protocol.md",
+    "references/goal-teams-production-pipeline.md",
     "subagents/goal-*.toml",
     "goal-teams.md",
     "AGENTS.md",
     "scripts/check.sh",
     "scripts/validate.py",
     "examples/mini-goal-run",
+    "benchmarks/",
     "CHANGELOG.md",
     "README.md",
     "README.en.md",
@@ -174,8 +206,8 @@ def check_required_files() -> None:
 def check_skill_frontmatter() -> None:
     skill = read("SKILL.md")
     version = read("VERSION").strip()
-    if version != "V1.4":
-        fail(f"VERSION should be V1.4, got {version!r}")
+    if version != "V1.9":
+        fail(f"VERSION should be V1.9, got {version!r}")
     match = re.match(r"^---\n(?P<body>.*?)\n---\n", skill, flags=re.S)
     if not match:
         fail("SKILL.md must start with YAML frontmatter")
@@ -244,7 +276,7 @@ def check_readmes() -> None:
 
 
 def check_key_rules() -> None:
-    startup_line = "我是 Goal Teams Leader V1.4，我会帮你完成以下工作："
+    startup_line = "我是 Goal Teams Leader V1.9，我会帮你完成以下工作："
     combined = "\n".join(
         read(path)
         for path in [
@@ -303,12 +335,79 @@ def check_chinese_surface() -> None:
 
 
 def check_example() -> None:
+    example_plan = read("examples/mini-goal-run/.codex/goal-teams/versions/V0.1/plan.md")
+    startup_line = "我是 Goal Teams Leader V1.9，我会帮你完成以下工作："
+    if startup_line not in example_plan:
+        fail("Example plan must use the current V1.9 startup line")
+    example_tasklist = read("examples/mini-goal-run/.codex/goal-teams/versions/V0.1/tasklist.md")
+    for snippet in ("Harness Contract", "GT-001", "GT-006", "GT-008", "not_applicable_reason"):
+        if snippet not in example_tasklist:
+            fail(f"Example tasklist missing Harness coverage: {snippet}")
     html = read("examples/mini-goal-run/.codex/goal-teams/versions/V0.1/spec/HTML-prototype.html")
     if "<!doctype html>" not in html.lower():
         fail("Example HTML prototype must be a complete HTML document")
+    harness = "\n".join(
+        read(path)
+        for path in [
+            "examples/mini-goal-run/README.md",
+            "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/harness/README.md",
+            "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/harness/setup.md",
+            "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/harness/run.md",
+            "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/harness/checks.md",
+            "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/harness/report.md",
+            "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/harness/automation-protocol.sample.yaml",
+            "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/harness/pipeline-gates.sample.yaml",
+            "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/progress.md",
+            "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/spec/acceptance.md",
+        ]
+    )
+    for snippet in (
+        "setup -> run -> checks -> report",
+        "Harness",
+        "GT-006",
+        "acceptance",
+        "sample_only",
+        "pipeline",
+        "no_runner",
+    ):
+        if snippet not in harness:
+            fail(f"Example Harness missing {snippet}")
+    evidence_sample = json.loads(
+        read("examples/mini-goal-run/.codex/goal-teams/versions/V0.1/harness/evidence-ledger.sample.json")
+    )
+    if not evidence_sample.get("sample_only"):
+        fail("Example evidence ledger must be marked sample_only")
+    if "artifacts" not in evidence_sample or not evidence_sample["artifacts"]:
+        fail("Example evidence ledger must include artifact records")
     state_path = ROOT / "examples/mini-goal-run/.codex/goal-teams/team-state.json"
     if state_path.exists():
         json.loads(state_path.read_text(encoding="utf-8"))
+    benchmark = "\n".join(
+        read(path)
+        for path in [
+            "benchmarks/README.md",
+            "benchmarks/tasks/GT-BENCH-001/task.md",
+            "benchmarks/tasks/GT-BENCH-001/harness.md",
+            "benchmarks/tasks/GT-BENCH-001/scoring.md",
+            "benchmarks/tasks/GT-BENCH-001/expected-artifacts.md",
+            "benchmarks/tasks/GT-BENCH-002/task.md",
+            "benchmarks/tasks/GT-BENCH-002/harness.md",
+            "benchmarks/tasks/GT-BENCH-002/scoring.md",
+            "benchmarks/tasks/GT-BENCH-002/expected-artifacts.md",
+        ]
+    )
+    for snippet in (
+        "GT-BENCH-001",
+        "GT-BENCH-002",
+        "baseline",
+        "goal-teams",
+        "scoring",
+        "tokens",
+        "release gate",
+        "pipeline-gates",
+    ):
+        if snippet not in benchmark:
+            fail(f"Benchmark template missing {snippet}")
 
 
 def main() -> None:

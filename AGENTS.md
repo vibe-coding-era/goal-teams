@@ -8,6 +8,8 @@
 - `VERSION` 记录当前 Skill 版本号，需要和 `SKILL.md` 正文、README、runtime 启动语保持一致；`SKILL.md` frontmatter 只保留 `name` 和 `description`。
 - `SKILL.md` 是 Codex 发现和执行 skill 的主入口。
 - `references/goal-teams-runtime.md` 承载详细协议、模板和 CLI 示例。
+- `references/goal-teams-automation-protocol.md` 承载 V1.8 机器可读 Harness/Evidence/Pipeline 协议。
+- `references/goal-teams-production-pipeline.md` 承载 V1.9 生产流、Release Gate 和 safety gate 协议。
 - `subagents/goal-*.toml` 是实际可注册的成员 agent 配置。
 - `README.md` 和 `README.en.md` 只做介绍、安装、示例和发布说明，避免承载唯一规则。
 
@@ -19,11 +21,14 @@
 - `VERSION`
 - `SKILL.md`
 - `references/goal-teams-runtime.md`
+- `references/goal-teams-automation-protocol.md`
+- `references/goal-teams-production-pipeline.md`
 - `references/default-AGENTS.md`
 - `subagents/goal-*.toml`
 - `README.md`
 - `README.en.md`
 - `examples/mini-goal-run/`
+- `benchmarks/`
 
 如果只改拼写、链接或发布说明，可以只改相关文档，但要运行校验脚本确认没有破坏安装结构。
 

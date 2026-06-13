@@ -11,3 +11,8 @@
 | `versions/V0.1/spec/HTML-prototype.html` | V0.1 | 前端-登录页空状态 HTML 原型 | done | 示例 HTML 原型 |
 | `versions/V0.1/spec/test-plan.md` | V0.1 | 测试-登录页空状态验收测试 | done | 示例测试计划 |
 | `versions/V0.1/spec/acceptance.md` | V0.1 | 文档-登录页空状态验收文档 | done | 示例验收记录 |
+| `versions/V0.1/harness/README.md` | V0.1 | 文档-Harness 示例复盘 | done | setup/run/checks/report 复盘索引 |
+| `versions/V0.1/harness/setup.md` | V0.1 | 文档-Harness 示例复盘 | done | Harness 准备输入 |
+| `versions/V0.1/harness/run.md` | V0.1 | 文档-Harness 示例复盘 | done | Harness 执行记录 |
+| `versions/V0.1/harness/checks.md` | V0.1 | 文档-Harness 示例复盘 | done | Harness 校验清单 |
+| `versions/V0.1/harness/report.md` | V0.1 | 文档-Harness 示例复盘 | done | Harness 验收报告 |

@@ -12,3 +12,11 @@
 | `spec/HTML-prototype.html` | 前端-登录页空状态 HTML 原型 | done | 原型 |
 | `spec/test-plan.md` | 测试-登录页空状态验收测试 | done | 测试计划 |
 | `spec/acceptance.md` | 文档-登录页空状态验收文档 | done | 验收清单 |
+| `harness/README.md` | 文档-Harness 示例复盘 | done | Harness 复盘索引 |
+| `harness/setup.md` | 文档-Harness 示例复盘 | done | setup 输入和边界 |
+| `harness/run.md` | 文档-Harness 示例复盘 | done | run 执行记录 |
+| `harness/checks.md` | 文档-Harness 示例复盘 | done | checks 校验点 |
+| `harness/report.md` | 文档-Harness 示例复盘 | done | report 验收证据 |
+| `harness/automation-protocol.sample.yaml` | 文档-Harness 示例复盘 | done | automation protocol 静态样例 |
+| `harness/evidence-ledger.sample.json` | 文档-Harness 示例复盘 | done | evidence ledger 静态样例 |
+| `harness/pipeline-gates.sample.yaml` | 文档-Harness 示例复盘 | done | pipeline gates 静态样例 |

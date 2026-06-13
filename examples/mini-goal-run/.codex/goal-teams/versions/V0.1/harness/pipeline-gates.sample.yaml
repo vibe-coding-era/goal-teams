@@ -1,0 +1,57 @@
+schema: goal-teams.pipeline-gates.sample.v1
+sample_only: true
+version: V0.1
+pipeline_name: "登录页空状态提示 V0.1 文档流水线"
+purpose: "展示文档型流水线门禁记录，不连接真实生产或 CI。"
+inputs:
+  plan: "../plan.md"
+  tasklist: "../tasklist.md"
+  progress: "../progress.md"
+  acceptance: "../spec/acceptance.md"
+gates:
+  - id: G1
+    name: "范围门"
+    owner: Goal Lead
+    decision: pass
+    required_refs:
+      - "../plan.md#用户目标"
+      - "../plan.md#风险与审批"
+    pass_criteria:
+      - "只生成文档和 HTML 原型"
+      - "不修改真实业务代码"
+  - id: G2
+    name: "SPEC 门"
+    owner: "评审-登录页空状态文档校验"
+    decision: pass
+    required_refs:
+      - "../spec/requirement-spec-card.md"
+      - "../spec/PRD.md"
+      - "../spec/architecture-design.md"
+      - "../spec/test-plan.md"
+    pass_criteria:
+      - "需求、PRD、设计和测试计划齐备"
+      - "PRD 可追溯到需求规格卡"
+  - id: G3
+    name: "证据门"
+    owner: "评审-登录页空状态文档校验"
+    decision: pass
+    required_refs:
+      - "../progress.md#独立校验"
+      - "evidence-ledger.sample.json"
+    pass_criteria:
+      - "每个 artifact 有作者和校验者"
+      - "证据路径可打开并互相引用"
+  - id: G4
+    name: "收尾审计门"
+    owner: "收尾-登录页空状态未完成工作检查"
+    decision: pass
+    required_refs:
+      - "../progress.md#收尾审计"
+    pass_criteria:
+      - "无已确认范围内的未完成工作"
+      - "自动续跑判断已记录"
+overall_decision:
+  status: pass
+  release_type: "static_example_only"
+  reason: "示例产物完整，且不涉及真实生产发布。"
+  blocked_items: []

@@ -100,6 +100,30 @@ For multi-step tasks, state a brief plan:
 Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 <!-- 中文注释：明确的成功标准能让执行过程自主推进；含糊标准，例如“让它能用”，通常需要反复澄清。 -->
 
+### Harness Contract
+
+For non-trivial tasks, define a lightweight Harness Contract before claiming done:
+<!-- 中文注释：对于非平凡任务，在声称完成前先定义轻量 Harness 契约。 -->
+
+- `checks`: what must be checked.
+  <!-- 中文注释：需要检查什么。 -->
+- `commands`: exact commands when they exist.
+  <!-- 中文注释：如果有命令，写出精确命令。 -->
+- `artifact_checks`: files, screenshots, logs, reports, or docs that prove the result.
+  <!-- 中文注释：用来证明结果的文件、截图、日志、报告或文档。 -->
+- `evidence_paths`: where evidence will be recorded.
+  <!-- 中文注释：证据记录在哪里。 -->
+- `failure_report`: how failures should be reported.
+  <!-- 中文注释：失败时按什么格式报告。 -->
+- `not_applicable_reason`: why a harness is not useful for this task.
+  <!-- 中文注释：如果不适用，说明原因。 -->
+
+Do not invent commands, CI jobs, or tools that do not exist. Use manual checks when that is the honest harness.
+<!-- 中文注释：不要编造不存在的命令、CI 或工具。人工检查也是有效的 Harness，只要可复盘。 -->
+
+When machine-readable tracking is useful, record only protocol data such as `harness.yaml`, `evidence.jsonl`, `pipeline-state.json`, `failure_report`, and `approval_gate`. These artifacts do not imply a real runner, CI/CD system, production connection, or external approval system.
+<!-- 中文注释：需要机器可读跟踪时，只记录协议数据，例如 `harness.yaml`、`evidence.jsonl`、`pipeline-state.json`、`failure_report` 和 `approval_gate`。这些产物不代表已有真实 runner、CI/CD、生产连接或外部审批系统。 -->
+
 ## 5. Code Quality Principles
 
 **Use engineering principles as guardrails, not as excuses for abstraction.**
@@ -168,6 +192,12 @@ Do not introduce interfaces, factories, inheritance, or dependency injection jus
   <!-- 中文注释：测试用例也要校验测试目标、断言和边界覆盖是否合理。 -->
 - Record validation evidence in `progress.md`, `acceptance.md`, `test-plan.md`, or the relevant SPEC.
   <!-- 中文注释：校验证据应写入 `progress.md`、`acceptance.md`、`test-plan.md` 或相关 SPEC。 -->
+
+Benchmark tasks are outside ordinary delivery work unless explicitly requested. When used, they should compare the same input under the same constraints and record output quality, failures, time, tokens, and cost.
+<!-- 中文注释：Benchmark 任务不属于普通交付，除非用户明确要求。使用时应在同一输入和约束下比较，并记录产物质量、失败、耗时、tokens 和费用。 -->
+
+Production-flow work should follow `Build -> Verify -> Package -> Release Gate -> Observe -> Promote/Rollback` as a protocol only. Credentials, real deployments, destructive operations, production rollback, auth/payment/refund/permission changes, and security-sensitive modules require human approval or external system authorization before action.
+<!-- 中文注释：生产流工作只把 `Build -> Verify -> Package -> Release Gate -> Observe -> Promote/Rollback` 作为协议。凭证、真实部署、破坏性操作、生产回滚、认证/支付/退款/权限变更和安全敏感模块必须先获得人工审批或外部系统授权。 -->
 
 ## 7. Output Language
 

@@ -9,6 +9,9 @@ developer_instructions = """
 不要编辑文件。
 只加载相关版本的 INDEX、SPEC、tasklist、文档和代码切片；当文档约束重要时产出 Doc Capsules。
 查找 Requirement Specification Card、PRD、Architecture Design、适用时的 HTML Prototype、tasklist Owner、Done Criteria、产品范围、架构边界、独立测试、安全边界、兼容性、报告或剩余风险中的具体缺口。
+校验 Harness Contract 是否存在、是否引用真实检查、证据路径是否可追溯；如使用 Benchmark，校验评分和失败分类是否能支持结论。
+如使用 V1.8 机器可读协议，校验 `harness.yaml`、`evidence.jsonl`、`pipeline-state.json`、`failure_report` 和 `approval_gate` 只是协议/模板，没有暗示不存在的 runner、CI/CD、生产接入或外部审批系统。
+如使用 V1.9 生产流协议，校验 Release Gate、safety gate、Observe 和 Promote/Rollback 是否有明确证据与授权边界；凭证、真实部署、破坏性操作和生产回滚不能被自动绕过。
 被分配时，校验生成文档、代码和测试用例；重点判断产物是否有用、正确、足够完整，并能追溯到用户目标。
 规划和方案评审阶段，如假设、验收标准或风险决策不充分，用简短中文问题向 Lead 报告。
 建议需要写入版本化 Markdown 的过程和结果更新，尤其是 INDEX.md、plan.md、progress.md、decisions.md、tasklist.md 和相关 SPEC 文件。

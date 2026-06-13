@@ -2,14 +2,15 @@
 
 ## 用户目标
 
-为演示项目规划“登录页空状态提示 V0.1”，只生成文档和 HTML 原型，不修改业务代码。
+为演示项目规划“登录页空状态提示 V0.1”，只生成文档、HTML 原型和最小 Harness 复盘资料，不修改业务代码。
 
 ## 启动汇报
 
-我是 Goal Teams Leader V1.4，我会帮你完成以下工作：
+我是 Goal Teams Leader V1.9，我会帮你完成以下工作：
 
 - 检查示例项目执行规则和版本目录。
 - 创建索引、tasklist、SPEC、原型、测试计划和验收清单。
+- 补充最小 Harness 资料，记录 setup、run、checks、report 与验收证据。
 - 列出 Teams 规划表并记录独立校验安排。
 
 ## 历史资料输入
@@ -45,8 +46,9 @@
 | 成员：前端-登录页空状态 HTML 原型<br>Skill/Subagent：`goal_frontend` | 目标切片：登录页空状态原型<br>认领任务：GT-003<br>Workflow：串行<br>前置任务：GT-002<br>锁定范围：`spec/HTML-prototype.html` | 交付物：HTML 原型<br>完成标准：能表达空状态<br>文档/tasklist：HTML Prototype | 测试 Owner：测试-登录页空状态验收测试<br>校验者：评审-登录页空状态文档校验 |
 | 成员：测试-登录页空状态验收测试<br>Skill/Subagent：`goal_qa` | 目标切片：登录页空状态测试计划<br>认领任务：GT-004<br>Workflow：串行<br>前置任务：GT-003<br>锁定范围：`spec/test-plan.md` | 交付物：测试计划<br>完成标准：覆盖文案和流程<br>文档/tasklist：test-plan | 测试 Owner：测试-登录页空状态验收测试<br>校验者：评审-登录页空状态测试有效性 |
 | 成员：文档-登录页空状态验收文档<br>Skill/Subagent：`goal_docs` | 目标切片：登录页空状态收口文档<br>认领任务：GT-005<br>Workflow：串行<br>前置任务：GT-004<br>锁定范围：`spec/acceptance.md` | 交付物：验收清单<br>完成标准：证据完整<br>文档/tasklist：acceptance | 测试 Owner：评审-登录页空状态文档校验<br>校验者：评审-登录页空状态文档校验 |
-| 成员：评审-登录页空状态文档校验<br>Skill/Subagent：`goal_reviewer` | 目标切片：独立校验登录页空状态文档<br>认领任务：GT-006<br>Workflow：串行<br>前置任务：GT-001, GT-002, GT-003, GT-004, GT-005<br>锁定范围：只读 | 交付物：校验记录<br>完成标准：非作者校验通过<br>文档/tasklist：progress | 测试 Owner：不适用<br>校验者：不适用 |
-| 成员：收尾-登录页空状态未完成工作检查<br>Skill/Subagent：`goal_completion_auditor` | 目标切片：检查未完成工作和缺失证据<br>认领任务：GT-007<br>Workflow：串行<br>前置任务：GT-006<br>锁定范围：只读 | 交付物：收尾审计记录<br>完成标准：确认无未完成工作，或输出自动续跑任务<br>文档/tasklist：progress + acceptance | 测试 Owner：不适用<br>校验者：不适用 |
+| 成员：文档-Harness 示例复盘<br>Skill/Subagent：`goal_docs` | 目标切片：最小 Harness 复盘资料<br>认领任务：GT-006<br>Workflow：串行<br>前置任务：GT-005<br>锁定范围：`harness/` | 交付物：setup/run/checks/report 文档<br>完成标准：可从 Harness 文档追到验收证据<br>文档/tasklist：harness + progress + acceptance | 测试 Owner：测试-登录页空状态验收测试<br>校验者：评审-登录页空状态文档校验 |
+| 成员：评审-登录页空状态文档校验<br>Skill/Subagent：`goal_reviewer` | 目标切片：独立校验登录页空状态文档和 Harness 证据<br>认领任务：GT-007<br>Workflow：串行<br>前置任务：GT-001, GT-002, GT-003, GT-004, GT-005, GT-006<br>锁定范围：只读 | 交付物：校验记录<br>完成标准：非作者校验通过<br>文档/tasklist：progress | 测试 Owner：不适用<br>校验者：不适用 |
+| 成员：收尾-登录页空状态未完成工作检查<br>Skill/Subagent：`goal_completion_auditor` | 目标切片：检查未完成工作和缺失证据<br>认领任务：GT-008<br>Workflow：串行<br>前置任务：GT-007<br>锁定范围：只读 | 交付物：收尾审计记录<br>完成标准：确认无未完成工作，或输出自动续跑任务<br>文档/tasklist：progress + acceptance | 测试 Owner：不适用<br>校验者：不适用 |
 
 ## 风险与审批
 

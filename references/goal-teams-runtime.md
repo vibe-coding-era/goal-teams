@@ -2,7 +2,7 @@
 
 本文件定义通用 Goal Teams runtime。它不假设业务领域，也不假设项目已经存在 tasklist。
 
-当前 Skill 版本：`V1.4`。版本号必须和仓库根目录 `VERSION`、`SKILL.md` 正文、README 和启动语保持一致。
+当前 Skill 版本：`V1.9`。版本号必须和仓库根目录 `VERSION`、`SKILL.md` 正文、README 和启动语保持一致。
 
 ## 运行形态
 
@@ -10,12 +10,14 @@ Goal Teams = Goal Lead + 独立 subagent 成员。
 
 ```text
 Goal Lead
-  - 每次开始先汇报：我是 Goal Teams Leader V1.4，我会帮你完成以下工作：
+  - 每次开始先汇报：我是 Goal Teams Leader V1.9，我会帮你完成以下工作：
   - Plan 模式启动语后立即询问历史文档、历史经验或参考资料输入
   - 默认中文沟通
   - 用简洁、人类友好的方式和用户交流
   - 生成文档、代码注释、测试名称、测试用例说明默认中文
   - 把用户目标转成 Done Criteria
+  - 把 SPEC 转成可追溯 Harness 契约和证据要求
+  - 判断 Benchmark 是否适用，默认不创建外层评估目录
   - 执行前强制进入 Plan 模式
   - 规划和方案阶段主动澄清
   - 检查 AGENTS.md / agent.md / CLAUDE.md / claude.md
@@ -45,6 +47,7 @@ Subagent Member
   - 只加载必要文档
   - 输出 Doc Capsules
   - 执行自己的目标循环
+  - 按 Harness Contract 返回证据、失败报告或不适用原因
   - 报告 complete / blocked / incomplete
   - 不自我批准生成产物
 
@@ -63,7 +66,7 @@ Completion Auditor
 
 Goal Teams 总是从 Plan 模式开始。直接执行词只跳过确认等待，不跳过规划、风险检查和 `Teams 规划表`。
 
-1. 先说：`我是 Goal Teams Leader V1.4，我会帮你完成以下工作：`，然后用中文简短列出本轮职责。
+1. 先说：`我是 Goal Teams Leader V1.9，我会帮你完成以下工作：`，然后用中文简短列出本轮职责。
 2. 立即询问历史资料输入：`在开始规划前，有什么历史文档、历史经验或参考资料需要输入吗？如果有，请提供路径、链接或要点；没有请回复“没有”。`
 3. 如果用户提供历史资料路径、链接或经验要点，先纳入 Plan 的资料输入和假设；如果用户回复“没有”，继续规划；如果用户已明确要求直接执行且未提供历史资料，不因此阻塞，记录为“历史资料：未提供”。
 4. 检查项目指南：`AGENTS.md`、`agents.md`、`agent.md`、`CLAUDE.md`、`claude.md`。
@@ -72,10 +75,10 @@ Goal Teams 总是从 Plan 模式开始。直接执行词只跳过确认等待，
 7. 目标、范围、验收标准、优先级、约束、用户角色、设计风格、数据合同、风险容忍度或部署目标不清楚时，先澄清。
 8. 把问题、回答、假设和决策写入 Markdown，通常是 `.codex/goal-teams/versions/<version>/plan.md`。
 9. 创建多个文档前，先创建或更新索引。
-10. 发现或创建 SPEC 和 tasklist。
-11. 提出成员分工、skill/subagent 分配、任务认领、locked_scope、文档更新、测试 Owner 和完成标准。
+10. 发现或创建 SPEC、tasklist 和每个任务的 Harness 契约。
+11. 提出成员分工、skill/subagent 分配、任务认领、locked_scope、文档更新、测试 Owner、Harness 证据和完成标准。
 12. 标明每个任务的 workflow：串行或并行；串行任务必须列出前置任务，不能让有依赖的成员同时修改共享范围。
-13. 为每个生成产物提出独立校验者：文档、代码和测试用例都要覆盖。
+13. 为每个生成产物提出独立校验者：文档、代码和测试用例都要覆盖，并说明校验 Harness 或人工检查方式。
 14. 展示 `Teams 规划表` 和相关确认表。
 15. 默认等待用户确认后，才启动 worker subagents 或编辑实现文件。
 16. 如果最新提示词包含 `直接执行`、`直接开始`、`直接做`、`直接改`、`开始执行`、`不用确认`、`无需确认`、`跳过确认`、`按你的方案执行` 等词，展示 Plan 表格后跳过首次等待确认。
@@ -139,6 +142,9 @@ Goal Teams 总是从 Plan 模式开始。直接执行词只跳过确认等待，
       HTML-prototype.html
       test-plan.md
       acceptance.md
+    harness.yaml          # 可选机器可读 Harness 契约
+    evidence.jsonl        # 可选追加式证据日志
+    pipeline-state.json   # 可选流水线状态快照
 ```
 
 JSON/JSONL 只作为机器可读状态；重要结果要同步写回 Markdown。
@@ -238,6 +244,124 @@ SPEC 准备度表：
 | `src/api/order.ts` | 后端-订单接口 | 测试-接口行为测试 | 定向测试 + 代码审查 | 命令输出 |
 | `tests/order.test.ts` | 测试-订单规则测试 | 评审-测试有效性校验 | 断言审查 | 评审记录 |
 
+## Harness、Benchmark 与 Loop 契约
+
+Goal Teams 使用 `SPEC -> Harness -> Evidence -> Audit` 作为验证链。这里的 `Harness` 是验证契约和模板字段，不是新的 runtime 执行器；它可以指向已有命令、计划中要创建的测试、人工检查清单、截图、日志、CI 结果或外部评估脚本，但不能宣称会运行未验证、未授权或不存在的能力。
+
+定义：
+
+| 概念 | 含义 | Goal Teams 产物 |
+| --- | --- | --- |
+| `SPEC` | 定义什么算完成 | Requirement Specification Card、PRD、Architecture Design、test plan、acceptance、tasklist |
+| `Harness` | 定义怎么证明完成 | Plan、tasklist、Member Goal Packet、test plan、acceptance 中的验证契约 |
+| `Evidence` | 记录可追溯证据 | `progress.md`、`acceptance.md`、`evidence.jsonl`、命令输出、截图、人工检查 |
+| `Pipeline` | 记录研发/发布状态 | `pipeline-state.json`、Release Gate、Observe、Promote/Rollback 记录 |
+| `Benchmark` | 在多任务上评估工作流是否稳定 | `benchmarks/` 任务集、run matrix、scorecard、failure taxonomy |
+| `Loop` | 持续推进和改进机制 | 成员 Loop、Lead Loop、Skill Improvement Loop |
+
+Harness Contract 模板：
+
+```text
+Harness Contract（验证契约）:
+- purpose:
+- checks:
+- commands:
+- artifact_checks:
+- evidence_paths:
+- failure_report:
+  - command:
+  - failing_check:
+  - likely_cause:
+  - next_verification:
+- not_applicable_reason:
+```
+
+Harness 准备度表：
+
+| 任务 | Harness 类型 | 检查/命令 | 证据位置 | Owner | 状态 |
+| --- | --- | --- | --- | --- | --- |
+| GT-003 | automated + manual | `npm test -- wiki` + API 合同检查 | `progress.md` / CI 输出 | 测试-WIKI 列表验收测试 | planned |
+
+按任务类型选择 Harness：
+
+| 任务类型 | 常见 Harness |
+| --- | --- |
+| 前端 | Playwright、截图、console error、桌面/移动 viewport、文本溢出或遮挡检查 |
+| 后端 | API 边界、权限、异常路径、数据兼容性、迁移/回滚检查 |
+| 文档 | 结构完整性、链接、术语、版本一致性、README/CHANGELOG 同步检查 |
+| 测试用例 | 断言有效性、失败模式覆盖、fixture 可复现、不会只验证 happy path |
+| 评审/审计 | diff 审查、tasklist 状态、acceptance 证据、阻塞/风险清单 |
+
+规则：
+
+- 启动实现成员前，Plan 或 tasklist 必须给每个认领任务写出 Harness Contract；不适用时写 `not_applicable_reason`。
+- 成员完成时必须返回 Harness 证据或跳过原因；只有 Lead 和独立校验者都能追溯证据时，任务才可标记为 `done`。
+- 失败时按 Harness Contract 的 `failure_report` 格式报告，不用笼统写“测试失败”。
+- Harness 可以成为 Benchmark 的一部分，但普通 Goal Teams 任务不自动创建 benchmark。
+
+机器可读协议是 V1.8 的可选数据合同，详见 `references/goal-teams-automation-protocol.md`。它不代表已有 runner、CI/CD、生产接入或真实外部审批系统。
+
+| Artifact | 作用 | 建议位置 |
+| --- | --- | --- |
+| `harness.yaml` | 单任务或单版本的验证契约 | `.codex/goal-teams/versions/<version>/harness.yaml` |
+| `evidence.jsonl` | 追加式证据日志 | `.codex/goal-teams/versions/<version>/evidence.jsonl` |
+| `pipeline-state.json` | 研发/门禁状态快照 | `.codex/goal-teams/versions/<version>/pipeline-state.json` |
+| `failure_report` | 失败对象 | 嵌入 evidence 或 pipeline 状态 |
+| `approval_gate` | 人工或策略审批门对象 | 嵌入 pipeline 状态 |
+
+生产流协议是 V1.9 的发布门禁模板，详见 `references/goal-teams-production-pipeline.md`。它使用 `Build -> Verify -> Package -> Release Gate -> Observe -> Promote/Rollback` 组织候选产物、证据和审批。凭证、真实部署、破坏性操作、生产回滚、auth/payment/refund/权限和安全敏感模块必须人工审批或由外部系统授权；Goal Teams 不能自动绕过这些 safety gate。
+
+Benchmark 是外层评估目录与任务集，用于比较 Goal Teams、single agent、不同 skill 版本或 prompt 的稳定性。默认目录建议：
+
+```text
+benchmarks/
+  README.md
+  tasks/
+    GT-BENCH-001/
+      task.md
+      harness.md
+      scoring.md
+      expected-artifacts.md
+    GT-BENCH-002/
+      task.md
+      harness.md
+      scoring.md
+      expected-artifacts.md
+  runs/
+    <date>-<task>-<mode>/
+      report.md
+      artifacts/
+```
+
+Benchmark 任务包最少包含：
+
+- `task.md` 或 `SPEC.md`：目标、成功标准、非目标、禁止行为、可见/隐藏验收。
+- Harness：环境准备、可见测试、评分/检查、日志和证据收集。
+- `scoring.md`：分值、严重度、失败分类、人工介入记录和成本指标。
+- metadata（可选）：任务类型、难度、允许工具、时间/token/费用预算、基线信息。
+- 运行记录：模型/skill/prompt 版本、项目 commit、工具版本、联网/权限、运行日期、结果。
+- 失败分类：需求误解、上下文没读全、定位失败、工具失败、环境失败、实现错误、测试不足、过度修改、引入回归、证据缺失、权限/安全违规、长任务漂移、多 agent 协调失败。
+
+普通 Goal Teams 运行只在以下情况创建或更新 `benchmarks/`：
+
+- 用户明确要求构建 benchmark、运行 benchmark 或比较 workflow。
+- Lead 已在 `Teams 规划表` 中确认 Benchmark 任务和 Owner。
+- Skill Improvement 任务明确以 Benchmark 失败分类为输入。
+
+Loop 分三层：
+
+| Loop | 责任 | 状态流 | 产物 |
+| --- | --- | --- | --- |
+| 成员 Loop | 单个 subagent 完成认领切片 | `Load -> Plan -> Implement -> Test -> Document -> Review -> Continue` | Doc Capsules、Harness 证据、tasklist 更新 |
+| Lead Loop | 团队协调和完成闭环 | `Plan -> Dispatch -> Route -> Integrate -> Audit -> Continue` | `plan.md`、`progress.md`、team-state、续跑计划 |
+| Skill Improvement Loop | 维护 skill 规则和发布质量 | `Run/Eval -> Classify -> Update Rules/Templates -> Validate -> Release Notes` | `goal-teams.md`、`SKILL.md`、runtime、subagents、README/CHANGELOG、校验结果 |
+
+三层 Loop 的边界：
+
+- 成员不能启动嵌套团队，不能越过自己的 `locked_scope`。
+- Lead 负责把成员结果整合到 tasklist、acceptance、progress 和最终审计；不能用自己的感觉替代独立校验证据。
+- Skill Improvement 不在普通用户任务中自动发生；只有用户明确要求改 skill 或 benchmark/复盘任务进入该层。
+
 ## 任务清单发现与创建（Tasklist）
 
 发现顺序：
@@ -258,15 +382,15 @@ Status: planning
 
 ## 成员归属
 
-| Task ID | 成员 | Skill/Subagent | Workflow | 前置任务 | 认领者 | 状态 | Locked Scope | 交付物 | 完成标准 | 验证 | Docs/SPEC 更新 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| GT-001 | 需求分析-WIKI 列表需求澄清 | goal_requirements_analyst | 串行 | - | unclaimed | pending | .codex/goal-teams/versions/<version>/spec/ | 需求规格卡 | 用户确认 | 评审-WIKI 列表需求校验 | 需求规格卡 + tasklist |
+| Task ID | 成员 | Skill/Subagent | Workflow | 前置任务 | 认领者 | 状态 | Locked Scope | 交付物 | 完成标准 | Harness | 验证 | Docs/SPEC 更新 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| GT-001 | 需求分析-WIKI 列表需求澄清 | goal_requirements_analyst | 串行 | - | unclaimed | pending | .codex/goal-teams/versions/<version>/spec/ | 需求规格卡 | 用户确认 | 文档结构/边界清单 | 评审-WIKI 列表需求校验 | 需求规格卡 + tasklist |
 
 ## 任务
 
-| Task ID | 标题 | Owner | Workflow | 前置任务 | 状态 | 停止条件 |
-| --- | --- | --- | --- | --- | --- | --- |
-| GT-001 | 澄清需求和验收标准 | goal_requirements_analyst | 串行 | - | pending | 缺少业务决策 |
+| Task ID | 标题 | Owner | Workflow | 前置任务 | 状态 | Harness | 停止条件 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| GT-001 | 澄清需求和验收标准 | goal_requirements_analyst | 串行 | - | pending | 文档清单审查 | 缺少业务决策 |
 
 ## 决策与阻塞
 
@@ -310,6 +434,11 @@ Status: planning
 
 | 阶段 | 输出 | Owner | 验收标准 | 风险 |
 | --- | --- | --- | --- | --- |
+
+## Harness / Benchmark
+
+| 任务 | Harness 契约 | 证据位置 | Benchmark 是否适用 | 状态 |
+| --- | --- | --- | --- | --- |
 ```
 
 追加到 `.codex/goal-teams/versions/<version>/progress.md`：
@@ -343,12 +472,12 @@ Status: planning
 
 ### Teams 规划表
 
-表格只用四个合并显示列，但底层逻辑字段必须保留：成员、skill/subagent、目标切片、认领任务、workflow、前置任务、locked_scope、交付物、完成标准、docs/tasklist 更新、测试 Owner、校验者。
+表格只用四个合并显示列，但底层逻辑字段必须保留：成员、skill/subagent、目标切片、认领任务、workflow、前置任务、locked_scope、交付物、完成标准、Harness、docs/tasklist 更新、测试 Owner、校验者。
 
 | 成员 / Skill/Subagent | 任务范围 | 交付与标准 | 验证安排 |
 | --- | --- | --- | --- |
-| 成员：后端-WIKI 列表后端开发<br>Skill/Subagent：`goal_backend` | 目标切片：WIKI 列表 API<br>认领任务：GT-003<br>Workflow：串行<br>前置任务：GT-001, GT-002<br>锁定范围：`src/api/wiki/` | 交付物：后端实现<br>完成标准：API 合同测试通过<br>文档/tasklist：Architecture Design + tasklist.md | 测试 Owner：测试-WIKI 列表验收测试<br>校验者：评审-WIKI 列表代码审查 |
-| 成员：browser-WIKI 列表页面验证<br>Skill/Subagent：`browser` skill | 目标切片：页面验证<br>认领任务：GT-004<br>Workflow：并行<br>前置任务：GT-003<br>锁定范围：`src/ui/wiki/` | 交付物：页面截图和控制台检查<br>完成标准：桌面/移动截图通过<br>文档/tasklist：HTML Prototype + tasklist.md | 测试 Owner：测试-WIKI 列表验收测试<br>校验者：评审-WIKI 列表体验审查 |
+| 成员：后端-WIKI 列表后端开发<br>Skill/Subagent：`goal_backend` | 目标切片：WIKI 列表 API<br>认领任务：GT-003<br>Workflow：串行<br>前置任务：GT-001, GT-002<br>锁定范围：`src/api/wiki/` | 交付物：后端实现<br>完成标准：API 合同测试通过<br>Harness：API 合同测试 + 回归测试<br>文档/tasklist：Architecture Design + tasklist.md | 测试 Owner：测试-WIKI 列表验收测试<br>校验者：评审-WIKI 列表代码审查 |
+| 成员：browser-WIKI 列表页面验证<br>Skill/Subagent：`browser` skill | 目标切片：页面验证<br>认领任务：GT-004<br>Workflow：并行<br>前置任务：GT-003<br>锁定范围：`src/ui/wiki/` | 交付物：页面截图和控制台检查<br>完成标准：桌面/移动截图通过<br>Harness：截图 + console error + viewport 检查<br>文档/tasklist：HTML Prototype + tasklist.md | 测试 Owner：测试-WIKI 列表验收测试<br>校验者：评审-WIKI 列表体验审查 |
 
 ### SPEC 准备度
 
@@ -356,6 +485,20 @@ Status: planning
 | --- | --- | --- | --- | --- |
 | Requirement Specification Card | no | create | 需求分析师 | `.codex/goal-teams/versions/<version>/spec/requirement-spec-card.md` |
 | PRD | no | create | 产品/需求 | `.codex/goal-teams/versions/<version>/spec/PRD.md` |
+
+### Harness 准备度
+
+| 任务 | Harness 类型 | 检查/命令 | 证据位置 | Owner | 状态 |
+| --- | --- | --- | --- | --- | --- |
+| GT-003 | automated | API 合同测试 + 定向回归 | `progress.md` | 测试-WIKI 列表验收测试 | planned |
+
+### Benchmark 适用性
+
+| 项目 | 状态 | 说明 |
+| --- | --- | --- |
+| 是否创建/更新 `benchmarks/` | yes/no/not applicable | 只有用户要求或计划确认时启用 |
+| Benchmark 任务来源 | tasklist/SPEC/历史 issue/not applicable | 不适用时写明原因 |
+| 失败分类记录 | planned/not applicable | 使用 Benchmark 时必须记录 |
 
 ### 环境准备度
 
@@ -373,8 +516,8 @@ Status: planning
 
 | 成员 / Skill/Subagent | 任务范围 | 交付与标准 | 验证安排 |
 | --- | --- | --- | --- |
-| 成员：需求分析-WIKI 列表需求澄清<br>Skill/Subagent：`goal_requirements_analyst` | 目标切片：梳理 WIKI 列表需求<br>认领任务：GT-001<br>Workflow：串行<br>前置任务：-<br>锁定范围：`.codex/goal-teams/versions/<version>/spec/` | 交付物：需求规格卡<br>完成标准：用户确认核心目标/功能/流程/边界<br>文档/tasklist：requirement-spec-card.md + INDEX.md | 测试 Owner：评审-WIKI 列表需求校验<br>校验者：评审-WIKI 列表需求校验 |
-| 成员：产品-WIKI 列表 PRD<br>Skill/Subagent：`goal_product` | 目标切片：生成 WIKI 列表 PRD<br>认领任务：GT-002<br>Workflow：串行<br>前置任务：GT-001<br>锁定范围：`.codex/goal-teams/versions/<version>/spec/` | 交付物：PRD<br>完成标准：PRD 来源于已确认需求规格卡<br>文档/tasklist：PRD + tasklist.md | 测试 Owner：评审-WIKI 列表 PRD 校验<br>校验者：评审-WIKI 列表 PRD 校验 |
+| 成员：需求分析-WIKI 列表需求澄清<br>Skill/Subagent：`goal_requirements_analyst` | 目标切片：梳理 WIKI 列表需求<br>认领任务：GT-001<br>Workflow：串行<br>前置任务：-<br>锁定范围：`.codex/goal-teams/versions/<version>/spec/` | 交付物：需求规格卡<br>完成标准：用户确认核心目标/功能/流程/边界<br>Harness：文档结构与边界清单审查<br>文档/tasklist：requirement-spec-card.md + INDEX.md | 测试 Owner：评审-WIKI 列表需求校验<br>校验者：评审-WIKI 列表需求校验 |
+| 成员：产品-WIKI 列表 PRD<br>Skill/Subagent：`goal_product` | 目标切片：生成 WIKI 列表 PRD<br>认领任务：GT-002<br>Workflow：串行<br>前置任务：GT-001<br>锁定范围：`.codex/goal-teams/versions/<version>/spec/` | 交付物：PRD<br>完成标准：PRD 来源于已确认需求规格卡<br>Harness：PRD 溯源和验收标准清单<br>文档/tasklist：PRD + tasklist.md | 测试 Owner：评审-WIKI 列表 PRD 校验<br>校验者：评审-WIKI 列表 PRD 校验 |
 
 ### 独立校验计划
 
@@ -386,10 +529,10 @@ Status: planning
 
 ### Tasklist 执行
 
-| Task ID | Owner | 状态 | 依赖 | 验证 | 完成证据 |
-| --- | --- | --- | --- | --- | --- |
-| GT-001 | 需求分析师 | pending | - | 用户确认 | 需求规格卡完成 |
-| GT-002 | 产品/需求 | pending | GT-001 | PRD review | PRD 章节完成 |
+| Task ID | Owner | 状态 | 依赖 | Harness | 验证 | 完成证据 |
+| --- | --- | --- | --- | --- | --- | --- |
+| GT-001 | 需求分析师 | pending | - | 文档清单审查 | 用户确认 | 需求规格卡完成 |
+| GT-002 | 产品/需求 | pending | GT-001 | PRD 溯源检查 | PRD review | PRD 章节完成 |
 
 ### 风险与审批
 
@@ -468,6 +611,7 @@ Status: planning
 5. 如存在，加载 .codex/goal-teams/versions/<version>/plan.md。
 6. 如存在，加载相关 tasklist；否则创建 .codex/goal-teams/versions/<version>/tasklist.md。
 7. 当前成员认领任务行。
+8. 当前任务的 Harness Contract；如使用 Benchmark，加载对应 `benchmarks/` 任务包索引和报告。
 ```
 
 按需加载：
@@ -479,6 +623,8 @@ Status: planning
 | UI/页面/工作流 | HTML Prototype、design.md、截图、mockup、route map |
 | API/合同语义 | API 文档、schema、route 定义、SDK 文档 |
 | 测试/验收 | Test Plan、现有测试、CI 配置、acceptance 文档 |
+| Harness | tasklist 中的 Harness Contract、测试命令、人工检查清单、证据路径 |
+| Benchmark | `benchmarks/README.md`、任务 `task.md` 或 `SPEC.md`、metadata（如有）、Harness、scoring、reports |
 | 发布/部署 | README、部署文档、changelog、runbook |
 
 所需文档不存在时，只有它属于已确认计划，才创建小范围文档。
@@ -505,6 +651,17 @@ Goal Packet（团队目标包）:
 - allowed_scope:
 - forbidden_scope:
 - required_tests:
+- harness_policy:
+  - 每个任务必须有 Harness Contract、证据路径或 not_applicable_reason
+  - 不宣称未验证或未授权的运行能力
+- benchmark_policy:
+  - enabled: true/false
+  - benchmark_dir: benchmarks/（仅在用户要求或计划确认时）
+  - failure_taxonomy_required: true/false
+- loop_policy:
+  - member_loop: Load -> Plan -> Implement -> Test -> Document -> Review -> Continue
+  - lead_loop: Plan -> Dispatch -> Route -> Integrate -> Audit -> Continue
+  - skill_improvement_loop: 仅在用户明确要求改 skill 或 benchmark/复盘任务时启用
 - required_docs_after_done:
   - Markdown 进度/结果更新
 - required_spec:
@@ -528,6 +685,7 @@ Goal Packet（团队目标包）:
     claimed_tasks:
     locked_scope:
     deliverable:
+    harness_owner_for:
     validation_owner_for:
 ```
 
@@ -574,6 +732,28 @@ Member Goal Packet（成员目标包）:
   - src/api/specific-module
 - required_tests:
   - 被修改模块的定向测试
+- harness_contract:
+  purpose: 证明 API 切片符合已接受合同且不引入回归。
+  checks:
+    - API 合同测试
+    - 定向回归测试
+  commands:
+    - <按项目实际命令填写，未知时写需 Lead 确认>
+  artifact_checks:
+    - tasklist 状态更新
+    - progress 证据行
+  evidence_paths:
+    - .codex/goal-teams/versions/V3.0/progress.md
+  failure_report:
+    - command
+    - failing_check
+    - likely_cause
+    - next_verification
+  not_applicable_reason:
+- benchmark_refs:
+  - enabled: false
+  - task_id:
+  - report_path:
 - required_independent_validation:
   - 生成文档：校验者不能是作者
   - 生成代码：独立 QA/reviewer 或用户指定 skill
@@ -595,6 +775,7 @@ Member Goal Packet（成员目标包）:
 - output_contract:
   - Doc Capsules
   - plan
+  - Harness Contract
   - 变更文件
   - 运行测试
   - 更新文档
@@ -664,6 +845,10 @@ Member Goal Packet（成员目标包）:
 
 ## 目标循环细节（Goal Loop）
 
+Goal Loop 分三层：成员 Loop、Lead Loop、Skill Improvement Loop。普通执行默认只跑成员 Loop 和 Lead Loop；只有用户明确要求改进 skill、构建 benchmark 或进行复盘时，才进入 Skill Improvement Loop。
+
+### 成员 Loop
+
 ### Load（加载）
 
 1. 读取用户目标和约束。
@@ -673,11 +858,13 @@ Member Goal Packet（成员目标包）:
 5. 读取或创建版本化 tasklist。
 6. 读取当前成员认领任务行。
 7. 只按需读取项目文档。
-8. 产出 Doc Capsules。
+8. 读取当前任务的 Harness Contract；如果缺失，报告缺口，不编造验证方式。
+9. 如任务属于 Benchmark，读取对应 task package 的 `task.md` 或 `SPEC.md`、metadata（如有）和 Harness 说明。
+10. 产出 Doc Capsules。
 
 ### Plan（计划）
 
-最多返回五个执行步骤：
+优先返回精简执行步骤；复杂目标可展开，但每步都要带验证方式：
 
 ```text
 Plan（计划）:
@@ -686,9 +873,10 @@ Plan（计划）:
 3. PRD 任务 -> 验证：验收标准已确认
 4. Architecture Design 任务 -> 验证：设计评审通过
 5. HTML Prototype 任务 -> 验证：适用时有截图/E2E
-6. 实现 tasklist 任务 -> 验证：定向测试通过
-7. 独立 QA 任务 -> 验证：命令/报告可追溯
-8. 文档/tasklist 任务 -> 验证：状态和 Owner 已更新
+6. Harness 契约 -> 验证：检查、命令、证据路径或不适用原因已写明
+7. 实现 tasklist 任务 -> 验证：定向测试通过
+8. 独立 QA 任务 -> 验证：命令/报告可追溯
+9. 文档/tasklist 任务 -> 验证：状态和 Owner 已更新
 ```
 
 ### Implement（实现）
@@ -703,13 +891,16 @@ Plan（计划）:
 6. 适用时生成 HTML Prototype。
 7. tasklist 实现任务。
 8. 独立 QA/testing 任务。
-9. 文档、acceptance 和 tasklist 状态更新。
+9. Harness 证据、失败报告或不适用原因。
+10. 文档、acceptance 和 tasklist 状态更新。
 
 跳过层级时必须说明原因。
 
 ### Test（测试）
 
 测试必须由独立 subagent 或用户指定 testing skill/subagent 执行。先做最小有效验证；共享行为变化时再扩大范围。
+
+测试阶段优先执行 Member Goal Packet 中的 Harness Contract。命令未知或不可运行时，成员必须记录原因、风险和下一步验证建议，不能把缺失 Harness 当成通过。
 
 失败报告：
 
@@ -730,6 +921,8 @@ Plan（计划）:
 - owner/claimed_by 字段
 - packet 中分配的 docs
 - packet 中分配的 SPEC
+- Harness 证据、失败报告或不适用原因
+- Benchmark 运行记录或失败分类（如适用）
 - 新增或变更文档的版本 `INDEX.md`
 - 报告或 acceptance 备注
 - 生成 docs/code/tests 的独立校验证据
@@ -741,6 +934,9 @@ Plan（计划）:
 Review Checklist（评审清单）:
 - 认领任务完成:
 - 完成标准:
+- Harness 契约:
+- Harness 证据:
+- Benchmark 记录（如适用）:
 - 测试:
 - 生成 docs/code/tests 是否独立校验:
 - docs/tasklist:
@@ -751,6 +947,31 @@ Review Checklist（评审清单）:
 ```
 
 持续循环，直到完成或阻塞。
+
+### Lead Loop
+
+Goal Lead 的循环是 `Plan -> Dispatch -> Route -> Integrate -> Audit -> Continue`：
+
+1. `Plan`：把用户目标转为 Done Criteria、SPEC、tasklist、Harness 契约、Benchmark 适用性和风险表。
+2. `Dispatch`：按 `Teams 规划表` 分发 Member Goal Packet，保证每个实现成员有 `locked_scope` 和 Harness Contract。
+3. `Route`：处理成员阻塞、跨成员依赖、共享范围冲突、高风险审批和用户决策。
+4. `Integrate`：汇总成员输出，更新 Markdown、team-state、events、messages、doc-capsules 和 tasklist。
+5. `Audit`：启动只读 `goal_completion_auditor`，检查完成标准、Harness 证据、独立校验和剩余风险。
+6. `Continue`：已确认范围内遗漏自动续跑；新范围、高风险、凭证、外部审批或未解决决策才问用户。
+
+Lead Loop 不替代成员 Loop：Lead 负责协调和证据闭环，不直接把未验证产物标记为完成。
+
+### Skill Improvement Loop
+
+Skill Improvement Loop 是发布维护层，状态流是 `Run/Eval -> Classify -> Update Rules/Templates -> Validate -> Release Notes`：
+
+1. `Run/Eval`：收集真实 Goal Teams 运行、Benchmark 报告、收尾审计和用户反馈。
+2. `Classify`：按失败分类归因，例如需求误解、上下文没读全、定位失败、工具失败、环境失败、实现错误、测试不足、过度修改、引入回归、证据缺失、权限/安全违规、长任务漂移、多 agent 协调失败。
+3. `Update Rules/Templates`：按用户授权更新 `goal-teams.md`、`SKILL.md`、`references/goal-teams-runtime.md`、subagents、默认 AGENTS、README/CHANGELOG、examples 或校验脚本。
+4. `Validate`：运行 `./scripts/check.sh`，必要时补充示例复盘或 benchmark smoke run。
+5. `Release Notes`：记录版本阶段，例如 `V1.5` Harness 与三层 Loop 规则、`V1.6` 最小 Harness 示例、`V1.7` Benchmark 模板、`V1.8` 机器可读协议、`V1.9` 生产流门禁。
+
+普通用户任务不会自动进入 Skill Improvement Loop；只有用户明确要求改 skill、发布版本、构建 benchmark 或进行复盘时才进入。
 
 ## 收尾审计与自动续跑
 
@@ -775,6 +996,8 @@ Completion Audit Packet（收尾审计包）:
   - 任务状态
   - 完成标准
   - docs/SPEC 更新
+  - Harness 契约和证据
+  - Benchmark 运行记录和失败分类（如适用）
   - 独立校验证据
   - 测试和验收证据
   - 未解决阻塞
@@ -783,6 +1006,7 @@ Completion Audit Packet（收尾审计包）:
   - 审计结论：complete | auto_continue | blocked_needs_user
   - 未完成项
   - 证据
+  - 缺失 Harness 或 Benchmark 记录
   - 建议续跑任务
   - 建议成员/subagents
   - locked_scope
@@ -827,7 +1051,7 @@ codex exec \
   - <<'PROMPT' | tee -a ".codex/goal-teams/events.jsonl"
 Use $goal-teams.
 
-先汇报：我是 Goal Teams Leader V1.4，我会帮你完成以下工作：
+先汇报：我是 Goal Teams Leader V1.9，我会帮你完成以下工作：
 全程中文，Goal Lead 消息要简洁、人类友好。
 生成文档、代码注释、面向用户的代码字符串、测试名称和测试用例默认中文。
 运行时 subagent id、member_id 和成员展示名使用 <中文角色>-<具体任务名>，例如 后端-WIKI 列表后端开发；如果用户指定 skill，则使用 skill 名称，例如 browser-WIKI 列表页面验证。真实 subagent 配置名只写入 skill_or_subagent。
@@ -836,14 +1060,20 @@ Use $goal-teams.
 使用版本 "$VERSION"，过程和结果文档写入 .codex/goal-teams/versions/$VERSION/。
 多文档前先创建或更新 .codex/goal-teams/INDEX.md 和 .codex/goal-teams/versions/$VERSION/INDEX.md。
 把用户目标转成 Done Criteria。
+把 SPEC 定义为“什么算完成”，把 Harness 定义为验证契约/模板字段，不宣称新增 runtime 执行能力。
+每个任务在 Plan、tasklist 或 Member Goal Packet 中写清 Harness Contract：checks、commands、artifact_checks、evidence_paths、failure_report 或 not_applicable_reason。
+需要机器可读状态时，按 references/goal-teams-automation-protocol.md 记录 harness.yaml、evidence.jsonl、pipeline-state.json、failure_report 和 approval_gate；它们是协议模板，不代表已有 runner、CI/CD 或生产接入。
+面向生产流或发布门禁时，按 references/goal-teams-production-pipeline.md 组织 Build -> Verify -> Package -> Release Gate -> Observe -> Promote/Rollback；凭证、真实部署、破坏性操作和生产回滚必须人工审批或外部授权。
+Benchmark 是外层评估目录与任务集，默认不创建；只有用户要求或计划确认时才创建/更新 benchmarks/，并记录任务集、运行记录、评分协议和失败分类。
+三层 Loop：成员 Loop 是 Load -> Plan -> Implement -> Test -> Document -> Review -> Continue；Lead Loop 是 Plan -> Dispatch -> Route -> Integrate -> Audit -> Continue；Skill Improvement Loop 只在用户要求改 skill、benchmark 或复盘时启用。
 先安排需求分析成员；可在有用时使用 web search、computer use、browser 或 Chrome 改善需求质量。
 先创建人类友好的 Requirement Specification Card，控制在两页以内，覆盖核心目标、关键业务功能结构、流程和边界。
 从已确认的 Requirement Specification Card 生成 PRD。
 发现已有 tasklist；没有则创建 .codex/goal-teams/versions/$VERSION/tasklist.md。
 发现或创建 SPEC：Requirement Specification Card、PRD、Architecture Design、适用时的 HTML Prototype、test plan、acceptance。
-提出独立 subagent 成员，包含认领任务、用户指定 skill/subagent、locked_scope、docs/SPEC 更新、独立测试 Owner 和完成标准。
+提出独立 subagent 成员，包含认领任务、用户指定 skill/subagent、locked_scope、Harness Contract、docs/SPEC 更新、独立测试 Owner 和完成标准。
 每个生成文档、代码变更和测试用例都要安排独立校验者，可用单独 subagent 或用户指定校验 skill。
-启动实现成员前展示 SPEC 准备度、四列 Teams 规划表、tasklist 执行、独立校验计划和风险表。若提示词含直接执行词，展示为执行记录后直接继续。
+启动实现成员前展示 SPEC 准备度、Harness 准备度、Benchmark 适用性、四列 Teams 规划表、tasklist 执行、独立校验计划和风险表。若提示词含直接执行词，展示为执行记录后直接继续。
 确认后，每个成员作为独立 subagent 运行。
 通过 team-state.json、events.jsonl、messages.jsonl、doc-capsules.jsonl 协调。
 持续运行，直到每个认领任务完成、延期或阻塞且原因明确。
@@ -874,6 +1104,8 @@ codex exec \
 - PRD 前不跳过需求规格卡，除非用户明确选择 OpenSpec/Superpower lead-only 模式或确认例外。
 - 用户指定 OpenSpec 或 Superpower 时，默认只做 Goal Lead，不经确认不启动角色 subagents。
 - 不跳过 SPEC；缺少 Requirement Specification Card、PRD、Architecture Design、适用时的 HTML Prototype、test plan、acceptance、tasklist 时，创建或加入任务。
+- 不跳过 Harness；每个任务必须有验证契约、证据路径或不适用说明。
+- 不默认创建 Benchmark；只有用户要求或计划确认时，才创建或更新 `benchmarks/`。
 - 实现成员不能是唯一测试者；必须安排独立 QA/testing skill/subagent。
 - 尊重用户指定的成员 skill/subagent。
 - auth、payment、refund、migrations、破坏性写入、安全敏感集成或广泛 API 变化需要 Lead 审批。
@@ -900,6 +1132,10 @@ codex exec \
 
 SPEC：
 | SPEC | 状态 | Owner | 证据 |
+| --- | --- | --- | --- |
+
+Harness / Benchmark：
+| 项目 | 状态 | 证据 | 剩余 |
 | --- | --- | --- | --- |
 
 独立校验：
