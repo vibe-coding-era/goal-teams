@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Bumped current Skill version to `V1.91` and startup identity to `我是 Goal Teams Leader V1.91，我会帮你完成以下工作：`.
+- Required Goal Teams to prefer custom `goal_*` subagents and keep Chinese `member_id` / `display_name` in user-visible records even when the runtime or right sidebar returns English transport handles such as `Reviewer C`.
+- Required E2E Harness evidence for every UI-level task, and screenshot-based pixel-level comparison evidence for replica/recreation UI tasks.
 - Bumped current Skill version to `V1.9` and startup identity to `我是 Goal Teams Leader V1.9，我会帮你完成以下工作：`.
 - Added V1.8 machine-readable automation protocol reference with `harness.yaml`, `evidence.jsonl`, `pipeline-state.json`, `failure_report`, and `approval_gate` templates.
 - Added V1.9 production pipeline reference for `Build -> Verify -> Package -> Release Gate -> Observe -> Promote/Rollback`, including Release Gate and safety gate boundaries.

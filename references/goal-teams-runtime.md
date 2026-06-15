@@ -2,7 +2,7 @@
 
 本文件定义通用 Goal Teams runtime。它不假设业务领域，也不假设项目已经存在 tasklist。
 
-当前 Skill 版本：`V1.9`。版本号必须和仓库根目录 `VERSION`、`SKILL.md` 正文、README 和启动语保持一致。
+当前 Skill 版本：`V1.91`。版本号必须和仓库根目录 `VERSION`、`SKILL.md` 正文、README 和启动语保持一致。
 
 ## 运行形态
 
@@ -10,7 +10,7 @@ Goal Teams = Goal Lead + 独立 subagent 成员。
 
 ```text
 Goal Lead
-  - 每次开始先汇报：我是 Goal Teams Leader V1.9，我会帮你完成以下工作：
+  - 每次开始先汇报：我是 Goal Teams Leader V1.91，我会帮你完成以下工作：
   - Plan 模式启动语后立即询问历史文档、历史经验或参考资料输入
   - 默认中文沟通
   - 用简洁、人类友好的方式和用户交流
@@ -41,6 +41,8 @@ Goal Lead
 Subagent Member
   - 接收一个 Member Goal Packet
   - 使用 <中文角色>-<任务名> 作为运行时 subagent id、member_id 和展示名
+  - 优先使用 goal_* 自定义 subagents；内置 team_* 英文昵称只作为 transport handle
+  - 如果右边栏显示 Reviewer C / QA B 这类英文昵称，仍以中文 member_id 和 display_name 自称
   - 默认中文回复
   - 使用用户指定的 skill/subagent；指定 skill 时展示名使用 skill 名称 + 任务名
   - 认领具体任务
@@ -60,13 +62,15 @@ Completion Auditor
 
 每个成员都是独立 subagent。默认情况下，运行时 subagent id、`member_id` 和展示名使用中文角色 + 任务名，例如 `后端-WIKI 列表后端开发`；`role` 字段使用中文角色，例如 `后端`；真实可加载的 subagent 配置名保留在 `skill_or_subagent`，例如 `goal_backend`。如果用户指定某个 skill，则运行时 subagent id、`member_id`、展示名和 `role` 使用 skill 名称 + 任务名，例如 `browser-WIKI 列表页面验证`。
 
+V1.91 起，默认成员必须优先使用 `goal_*` 自定义 subagents。除非用户明确指定内置成员，不要把 Goal Teams 任务派给 `team_reviewer`、`team_qa`、`team_implementer`、`team_researcher`。如果运行时或 Codex 右边栏仍显示 `Reviewer C`、`QA B`、`Implementer A` 这类英文昵称，只把它记录为 `transport_handle`；所有用户可见表格、Member Goal Packet、tasklist、team-state、events 和最终汇报都必须使用中文 `member_id` / `display_name`。成员回复首行使用 `成员：<中文展示名>`。
+
 例外：如果用户明确要求 `openspec` 或 `superpower`，Goal Teams 默认只作为 Goal Lead 运行，负责协调、澄清、检查环境、准备索引和 lead 级产物；除非用户确认完整 Goal Teams 执行，否则不启动角色 subagents。
 
 ## 强制 Plan 模式
 
 Goal Teams 总是从 Plan 模式开始。直接执行词只跳过确认等待，不跳过规划、风险检查和 `Teams 规划表`。
 
-1. 先说：`我是 Goal Teams Leader V1.9，我会帮你完成以下工作：`，然后用中文简短列出本轮职责。
+1. 先说：`我是 Goal Teams Leader V1.91，我会帮你完成以下工作：`，然后用中文简短列出本轮职责。
 2. 立即询问历史资料输入：`在开始规划前，有什么历史文档、历史经验或参考资料需要输入吗？如果有，请提供路径、链接或要点；没有请回复“没有”。`
 3. 如果用户提供历史资料路径、链接或经验要点，先纳入 Plan 的资料输入和假设；如果用户回复“没有”，继续规划；如果用户已明确要求直接执行且未提供历史资料，不因此阻塞，记录为“历史资料：未提供”。
 4. 检查项目指南：`AGENTS.md`、`agents.md`、`agent.md`、`CLAUDE.md`、`claude.md`。
@@ -120,6 +124,8 @@ Goal Teams 总是从 Plan 模式开始。直接执行词只跳过确认等待，
 - 默认 subagent 成员使用中文角色名作为前缀，例如 `后端-WIKI 列表后端开发`、`前端-WIKI 列表页面开发`、`测试-WIKI 列表验收测试`。
 - `role` 字段使用中文角色，例如 `后端`、`前端`、`测试`。
 - 用户指定 skill 时，运行时 subagent id、`member_id`、展示名和 `role` 都使用 skill 名称作为前缀，例如 `browser-WIKI 列表页面验证`、`lark-doc-验收文档创建`。
+- 默认使用 `goal_*` 自定义 subagents；只有用户明确指定内置 `team_*` 成员时才使用。若工具返回英文昵称，如 `Reviewer C`，该值只进入 `transport_handle`，不得作为展示名。
+- Member Goal Packet 首段必须写明中文展示名，并要求成员在回复首行声明 `成员：<中文展示名>`。
 - 避免只有角色或过泛名字，例如 `后端`、`测试`、`接口联调`。
 - 技术 subagent ID 和 skill 名称必须在 `skill_or_subagent` 或机器字段中保持原文。
 
@@ -267,6 +273,8 @@ Harness Contract（验证契约）:
 - checks:
 - commands:
 - artifact_checks:
+- e2e_checks:
+- pixel_diff_checks:
 - evidence_paths:
 - failure_report:
   - command:
@@ -286,7 +294,8 @@ Harness 准备度表：
 
 | 任务类型 | 常见 Harness |
 | --- | --- |
-| 前端 | Playwright、截图、console error、桌面/移动 viewport、文本溢出或遮挡检查 |
+| 前端 / 界面级任务 | 必须包含 E2E；通常使用 Playwright、截图、console error、桌面/移动 viewport、文本溢出或遮挡检查 |
+| 复刻 / 还原界面 | 必须截图做像素级对比；记录基准图、实际图、diff 图或差异指标、阈值、viewport 和结论 |
 | 后端 | API 边界、权限、异常路径、数据兼容性、迁移/回滚检查 |
 | 文档 | 结构完整性、链接、术语、版本一致性、README/CHANGELOG 同步检查 |
 | 测试用例 | 断言有效性、失败模式覆盖、fixture 可复现、不会只验证 happy path |
@@ -295,6 +304,8 @@ Harness 准备度表：
 规则：
 
 - 启动实现成员前，Plan 或 tasklist 必须给每个认领任务写出 Harness Contract；不适用时写 `not_applicable_reason`。
+- 任何界面级任务都必须做 E2E 测试；如果 E2E 不能运行，任务不能标记为 `done`，必须记录阻塞、风险或用户批准的例外。
+- 复刻、临摹、还原、对照参考图/参考页面的界面任务，必须截图做像素级对比；缺少可比较参考、无法生成截图或无法计算差异时，必须记录阻塞或明确 `not_applicable_reason`。
 - 成员完成时必须返回 Harness 证据或跳过原因；只有 Lead 和独立校验者都能追溯证据时，任务才可标记为 `done`。
 - 失败时按 Harness Contract 的 `failure_report` 格式报告，不用笼统写“测试失败”。
 - Harness 可以成为 Benchmark 的一部分，但普通 Goal Teams 任务不自动创建 benchmark。
@@ -872,7 +883,7 @@ Plan（计划）:
 2. 需求规格卡 -> 验证：用户确认目标/功能/流程/边界
 3. PRD 任务 -> 验证：验收标准已确认
 4. Architecture Design 任务 -> 验证：设计评审通过
-5. HTML Prototype 任务 -> 验证：适用时有截图/E2E
+5. HTML Prototype 或界面级任务 -> 验证：必须有 E2E；复刻任务必须有截图像素级对比
 6. Harness 契约 -> 验证：检查、命令、证据路径或不适用原因已写明
 7. 实现 tasklist 任务 -> 验证：定向测试通过
 8. 独立 QA 任务 -> 验证：命令/报告可追溯
@@ -969,7 +980,7 @@ Skill Improvement Loop 是发布维护层，状态流是 `Run/Eval -> Classify -
 2. `Classify`：按失败分类归因，例如需求误解、上下文没读全、定位失败、工具失败、环境失败、实现错误、测试不足、过度修改、引入回归、证据缺失、权限/安全违规、长任务漂移、多 agent 协调失败。
 3. `Update Rules/Templates`：按用户授权更新 `goal-teams.md`、`SKILL.md`、`references/goal-teams-runtime.md`、subagents、默认 AGENTS、README/CHANGELOG、examples 或校验脚本。
 4. `Validate`：运行 `./scripts/check.sh`，必要时补充示例复盘或 benchmark smoke run。
-5. `Release Notes`：记录版本阶段，例如 `V1.5` Harness 与三层 Loop 规则、`V1.6` 最小 Harness 示例、`V1.7` Benchmark 模板、`V1.8` 机器可读协议、`V1.9` 生产流门禁。
+5. `Release Notes`：记录版本阶段，例如 `V1.5` Harness 与三层 Loop 规则、`V1.6` 最小 Harness 示例、`V1.7` Benchmark 模板、`V1.8` 机器可读协议、`V1.9` 生产流门禁、`V1.91` 中文成员显示名和界面验证强化。
 
 普通用户任务不会自动进入 Skill Improvement Loop；只有用户明确要求改 skill、发布版本、构建 benchmark 或进行复盘时才进入。
 
@@ -1051,17 +1062,18 @@ codex exec \
   - <<'PROMPT' | tee -a ".codex/goal-teams/events.jsonl"
 Use $goal-teams.
 
-先汇报：我是 Goal Teams Leader V1.9，我会帮你完成以下工作：
+先汇报：我是 Goal Teams Leader V1.91，我会帮你完成以下工作：
 全程中文，Goal Lead 消息要简洁、人类友好。
 生成文档、代码注释、面向用户的代码字符串、测试名称和测试用例默认中文。
-运行时 subagent id、member_id 和成员展示名使用 <中文角色>-<具体任务名>，例如 后端-WIKI 列表后端开发；如果用户指定 skill，则使用 skill 名称，例如 browser-WIKI 列表页面验证。真实 subagent 配置名只写入 skill_or_subagent。
+运行时 subagent id、member_id 和成员展示名使用 <中文角色>-<具体任务名>，例如 后端-WIKI 列表后端开发；如果用户指定 skill，则使用 skill 名称，例如 browser-WIKI 列表页面验证。真实 subagent 配置名只写入 skill_or_subagent。默认优先使用 goal_* 自定义 subagents；若运行时或右边栏显示 Reviewer C / QA B 这类英文昵称，只当作 transport handle，用户可见记录仍使用中文展示名。
 启动 worker subagents 或编辑实现文件前，展示四列 Teams 规划表；除非有直接执行词，否则等待确认。
 检查 AGENTS.md / agent.md / CLAUDE.md / claude.md。缺失时使用 references/default-AGENTS.md，并建议复制为项目根目录 AGENTS.md。
 使用版本 "$VERSION"，过程和结果文档写入 .codex/goal-teams/versions/$VERSION/。
 多文档前先创建或更新 .codex/goal-teams/INDEX.md 和 .codex/goal-teams/versions/$VERSION/INDEX.md。
 把用户目标转成 Done Criteria。
 把 SPEC 定义为“什么算完成”，把 Harness 定义为验证契约/模板字段，不宣称新增 runtime 执行能力。
-每个任务在 Plan、tasklist 或 Member Goal Packet 中写清 Harness Contract：checks、commands、artifact_checks、evidence_paths、failure_report 或 not_applicable_reason。
+每个任务在 Plan、tasklist 或 Member Goal Packet 中写清 Harness Contract：checks、commands、artifact_checks、e2e_checks、pixel_diff_checks、evidence_paths、failure_report 或 not_applicable_reason。
+任何界面级任务都必须做 E2E 测试；复刻任务必须截图做像素级对比，记录基准图、实际图、diff 图或差异指标、阈值、viewport 和结论。
 需要机器可读状态时，按 references/goal-teams-automation-protocol.md 记录 harness.yaml、evidence.jsonl、pipeline-state.json、failure_report 和 approval_gate；它们是协议模板，不代表已有 runner、CI/CD 或生产接入。
 面向生产流或发布门禁时，按 references/goal-teams-production-pipeline.md 组织 Build -> Verify -> Package -> Release Gate -> Observe -> Promote/Rollback；凭证、真实部署、破坏性操作和生产回滚必须人工审批或外部授权。
 Benchmark 是外层评估目录与任务集，默认不创建；只有用户要求或计划确认时才创建/更新 benchmarks/，并记录任务集、运行记录、评分协议和失败分类。

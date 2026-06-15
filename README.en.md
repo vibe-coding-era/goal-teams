@@ -4,7 +4,7 @@
 
 Author: 肉山@TGO Hangzhou
 
-Current version: `V1.9`
+Current version: `V1.91`
 
 `goal-teams` is a Codex Skill for running Goal Mode as a coordinated team. A Goal Lead turns one goal into a plan, assigns independent subagents or user-selected skills, controls serial/parallel workflow, records the process in Markdown, and closes the work with independent validation plus a completion audit.
 
@@ -13,7 +13,7 @@ Current version: `V1.9`
 Every run starts with:
 
 ```text
-我是 Goal Teams Leader V1.9，我会帮你完成以下工作：
+我是 Goal Teams Leader V1.91，我会帮你完成以下工作：
 ```
 
 中文核心模型要点提示词:
@@ -28,9 +28,11 @@ How Goal Teams works:
 - In Plan Mode, after the startup line and work items, ask: `在开始规划前，有什么历史文档、历史经验或参考资料需要输入吗？如果有，请提供路径、链接或要点；没有请回复“没有”。`
 - For default subagent members, the runtime subagent id, `member_id`, and display name use `<Chinese role>-<task>`, such as `后端-WIKI 列表后端开发`; the loadable subagent config name stays in `skill_or_subagent`, such as `goal_backend`.
 - If the user assigns a skill, the runtime subagent id, `member_id`, display name, and `role` use the skill name prefix, such as `browser-WIKI 列表页面验证`.
+- V1.91 prefers custom `goal_*` subagents by default. If the runtime or Codex right sidebar shows an English nickname such as `Reviewer C` or `QA B`, treat it only as a transport handle; user-visible tables, packets, state, and final reports still use Chinese member names.
 - Every task states whether its workflow is serial or parallel; serial tasks list predecessors so shared scopes are not edited concurrently.
 - `SPEC` defines completion criteria, `Harness` defines the verification contract, `Evidence` records traceable proof, `Pipeline` records R&D/release state, `Benchmark` defines the outer evaluation task set, and `Loop` defines member, Lead, and Skill Improvement cycles.
 - Harness is not a new runtime executor. It appears as checks, commands, manual checklists, evidence paths, and failure-report formats in the Plan, tasklist, Member Goal Packet, test plan, and acceptance docs.
+- Every UI-level task must run an E2E test. Replica/recreation tasks must take screenshots and perform pixel-level comparison, recording the baseline, actual screenshot, diff image or metric, threshold, viewport, and conclusion.
 - V1.8 adds machine-readable protocol templates: `harness.yaml`, `evidence.jsonl`, `pipeline-state.json`, `failure_report`, and `approval_gate`.
 - V1.9 adds a production-flow protocol: `Build -> Verify -> Package -> Release Gate -> Observe -> Promote/Rollback`, with credentials, real deployment, destructive operations, and production rollback stopped behind human or external authorization gates.
 - Benchmark is not a default output for ordinary Goal Teams runs. Create or update `benchmarks/` only when the user asks, the plan confirms it, or a Skill Improvement task needs it.
@@ -130,8 +132,8 @@ Runtime files in target projects:
 | `goal_requirements_analyst` | Clarification, research-assisted analysis, Requirement Specification Card, PRD handoff |
 | `goal_product` | PRD, acceptance criteria, prototype structure, product review |
 | `goal_backend` | Domain model, storage, API, CLI, MCP, migrations, integrations |
-| `goal_frontend` | UI, HTML prototype, browser verification, E2E, screenshot evidence |
-| `goal_qa` | Independent tests, integration tests, acceptance evidence, test reports |
+| `goal_frontend` | UI, HTML prototype, browser verification, E2E, replica pixel comparison, screenshot evidence |
+| `goal_qa` | Independent tests, integration tests, UI E2E, pixel-comparison acceptance, test reports |
 | `goal_docs` | tasklist, acceptance, README, reports, release notes |
 | `goal_reviewer` | Read-only review, architecture boundaries, security, coverage, compatibility, risk |
 | `goal_completion_auditor` | Completion audit, unfinished-work check, auto-continuation suggestions |
@@ -176,7 +178,7 @@ Direct execution:
 
 ```text
 Use $goal-teams。
-请直接执行：为 WIKI 列表 V1.9 规划并实现后端 API、页面验证、独立测试和验收文档。
+请直接执行：为 WIKI 列表 V1.91 规划并实现后端 API、页面验证、独立测试和验收文档。
 仍然先展示 Teams 规划表作为执行记录，但不用等我确认。
 ```
 

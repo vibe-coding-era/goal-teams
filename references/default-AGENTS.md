@@ -121,6 +121,9 @@ For non-trivial tasks, define a lightweight Harness Contract before claiming don
 Do not invent commands, CI jobs, or tools that do not exist. Use manual checks when that is the honest harness.
 <!-- 中文注释：不要编造不存在的命令、CI 或工具。人工检查也是有效的 Harness，只要可复盘。 -->
 
+For any UI-level task, include E2E testing in the Harness and record evidence. For replica/recreation tasks, take screenshots and perform pixel-level comparison against the reference; record the baseline, actual screenshot, diff image or metric, threshold, viewport, and conclusion.
+<!-- 中文注释：任何界面级任务都要做 E2E 测试并记录证据；复刻/还原任务必须截图并与参考做像素级对比，记录基准图、实际图、diff 图或指标、阈值、viewport 和结论。 -->
+
 When machine-readable tracking is useful, record only protocol data such as `harness.yaml`, `evidence.jsonl`, `pipeline-state.json`, `failure_report`, and `approval_gate`. These artifacts do not imply a real runner, CI/CD system, production connection, or external approval system.
 <!-- 中文注释：需要机器可读跟踪时，只记录协议数据，例如 `harness.yaml`、`evidence.jsonl`、`pipeline-state.json`、`failure_report` 和 `approval_gate`。这些产物不代表已有真实 runner、CI/CD、生产连接或外部审批系统。 -->
 

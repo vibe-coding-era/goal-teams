@@ -87,8 +87,8 @@ EXPECTED_ROLE_PREFIXES = {
 }
 
 KEY_RULES = [
-    "Goal Teams Leader V1.9",
-    "我是 Goal Teams Leader V1.9，我会帮你完成以下工作：",
+    "Goal Teams Leader V1.91",
+    "我是 Goal Teams Leader V1.91，我会帮你完成以下工作：",
     "在开始规划前，有什么历史文档、历史经验或参考资料需要输入吗？",
     "中文优先",
     "Requirement Specification Card",
@@ -115,6 +115,17 @@ KEY_RULES = [
     "未完成工作",
     "后端-WIKI 列表后端开发",
     "browser-WIKI 列表页面验证",
+    "Reviewer C",
+    "transport handle",
+    "右边栏",
+    "goal_*",
+    "成员：<中文展示名>",
+    "界面级任务",
+    "E2E",
+    "复刻",
+    "像素级对比",
+    "基准图",
+    "diff 图",
     "运行时 subagent id",
     "skill_or_subagent",
     "独立校验",
@@ -206,8 +217,8 @@ def check_required_files() -> None:
 def check_skill_frontmatter() -> None:
     skill = read("SKILL.md")
     version = read("VERSION").strip()
-    if version != "V1.9":
-        fail(f"VERSION should be V1.9, got {version!r}")
+    if version != "V1.91":
+        fail(f"VERSION should be V1.91, got {version!r}")
     match = re.match(r"^---\n(?P<body>.*?)\n---\n", skill, flags=re.S)
     if not match:
         fail("SKILL.md must start with YAML frontmatter")
@@ -253,6 +264,12 @@ def check_subagents() -> None:
             fail(f"{path} does not mention Chinese output")
         if "校验" not in data["developer_instructions"]:
             fail(f"{path} does not mention independent validation")
+        if "transport handle" not in data["developer_instructions"]:
+            fail(f"{path} does not mention transport handle for runtime nicknames")
+        if expected_name in {"goal_frontend", "goal_qa", "goal_reviewer", "goal_completion_auditor"}:
+            for snippet in ("E2E", "像素级对比"):
+                if snippet not in data["developer_instructions"]:
+                    fail(f"{path} missing V1.91 UI verification rule: {snippet}")
         role_prefix = EXPECTED_ROLE_PREFIXES[data["name"]]
         for candidate in data.get("nickname_candidates", []):
             if not candidate.startswith(role_prefix + "-"):
@@ -276,7 +293,7 @@ def check_readmes() -> None:
 
 
 def check_key_rules() -> None:
-    startup_line = "我是 Goal Teams Leader V1.9，我会帮你完成以下工作："
+    startup_line = "我是 Goal Teams Leader V1.91，我会帮你完成以下工作："
     combined = "\n".join(
         read(path)
         for path in [
@@ -336,9 +353,9 @@ def check_chinese_surface() -> None:
 
 def check_example() -> None:
     example_plan = read("examples/mini-goal-run/.codex/goal-teams/versions/V0.1/plan.md")
-    startup_line = "我是 Goal Teams Leader V1.9，我会帮你完成以下工作："
+    startup_line = "我是 Goal Teams Leader V1.91，我会帮你完成以下工作："
     if startup_line not in example_plan:
-        fail("Example plan must use the current V1.9 startup line")
+        fail("Example plan must use the current V1.91 startup line")
     example_tasklist = read("examples/mini-goal-run/.codex/goal-teams/versions/V0.1/tasklist.md")
     for snippet in ("Harness Contract", "GT-001", "GT-006", "GT-008", "not_applicable_reason"):
         if snippet not in example_tasklist:

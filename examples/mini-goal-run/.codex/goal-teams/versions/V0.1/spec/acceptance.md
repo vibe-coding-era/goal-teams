@@ -9,6 +9,7 @@
 | PRD 基于规格卡 | passed | `PRD.md` |
 | HTML 原型表达空状态 | passed | `HTML-prototype.html` |
 | 测试计划覆盖验收标准 | passed | `test-plan.md` |
+| V1.91 界面验证规则已说明 | passed | `tasklist.md` + `test-plan.md` |
 | 独立校验证据已记录 | passed | `progress.md` |
 | 收尾审计已完成 | passed | `progress.md#收尾审计` |
 | Harness setup 输入和边界清楚 | passed | `../harness/setup.md` |
@@ -22,6 +23,7 @@
 ## 剩余风险
 
 - 支持入口的真实目标地址仍需业务方确认。
-- 本示例没有运行浏览器截图验证，因为它只作为静态文档结构样例。
+- 本示例没有运行浏览器 E2E 或截图验证，因为它只作为 `sample_only` 静态文档结构样例；真实界面级任务必须做 E2E。
+- 本示例不是复刻任务且没有参考图，因此像素级对比不适用；真实复刻任务必须记录基准图、实际图、diff 图或差异指标。
 - Harness 是静态复盘资料，不代表存在可执行测试框架。
 - automation protocol、evidence ledger 和 pipeline gates 是静态样例，不代表真实生产流接入。

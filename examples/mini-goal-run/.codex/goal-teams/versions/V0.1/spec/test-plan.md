@@ -8,6 +8,8 @@
 | 主操作 | 检查按钮文案为“登录” | `HTML-prototype.html` |
 | 次操作 | 检查创建账号和联系支持链接 | `HTML-prototype.html` |
 | 可访问性 | 检查 `aria-labelledby` 和导航标签 | `HTML-prototype.html` |
+| 界面 E2E | `sample_only` 静态文档示例不运行；真实界面任务必须运行 E2E | `tasklist.md` not_applicable_reason |
+| 复刻像素级对比 | 无参考图，因此不适用；真实复刻任务必须记录基准图、实际图、diff 图或差异指标 | `tasklist.md` not_applicable_reason |
 | Harness 复盘链路 | 检查 setup/run/checks/report 是否能追到验收证据 | `../harness/` + `acceptance.md` |
 
 ## 不测试

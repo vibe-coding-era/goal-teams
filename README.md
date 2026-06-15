@@ -4,7 +4,7 @@
 
 作者：肉山@TGO 杭州
 
-当前版本：`V1.9`
+当前版本：`V1.91`
 
 `goal-teams` 是一个面向 Codex 的 Goal Mode 团队化 Skill。它把一个目标拆成 Goal Lead 统筹、多个独立 subagent 或用户指定 skill 分工执行的闭环：先澄清和规划，再按 workflow 串并行推进，最后由独立校验和收尾审计确认没有遗漏。
 
@@ -13,7 +13,7 @@
 每次启动先汇报：
 
 ```text
-我是 Goal Teams Leader V1.9，我会帮你完成以下工作：
+我是 Goal Teams Leader V1.91，我会帮你完成以下工作：
 ```
 
 中文核心模型要点提示词：
@@ -28,9 +28,11 @@ Goal Teams 的核心工作方式：
 - Plan 模式下，启动语和本轮事项之后先问：`在开始规划前，有什么历史文档、历史经验或参考资料需要输入吗？如果有，请提供路径、链接或要点；没有请回复“没有”。`
 - 默认 subagent 成员的运行时 subagent id、`member_id` 和展示名使用 `<中文角色>-<具体任务名>`，例如 `后端-WIKI 列表后端开发`；真实可加载的 subagent 配置名保留在 `skill_or_subagent`，例如 `goal_backend`。
 - 如果用户指定了 skill，运行时 subagent id、`member_id`、展示名和 `role` 使用 skill 名称作为前缀，例如 `browser-WIKI 列表页面验证`。
+- V1.91 默认优先使用 `goal_*` 自定义 subagents；如果运行时或 Codex 右边栏显示 `Reviewer C`、`QA B` 这类英文昵称，只当作 transport handle，用户可见表格、packet、state 和最终汇报仍使用中文成员名。
 - 每个任务都必须说明 workflow 是串行还是并行；串行任务要列出前置任务，避免共享范围被并发修改。
 - `SPEC` 定义完成条件，`Harness` 定义验证契约，`Evidence` 记录可追溯证据，`Pipeline` 记录研发/发布状态，`Benchmark` 定义外层评估任务集，`Loop` 定义成员、Lead 和 Skill Improvement 三层循环。
 - Harness 不是新的 runtime 执行器；它表现为 Plan、tasklist、Member Goal Packet、test plan 和 acceptance 中的检查、命令、人工清单、证据路径和失败报告格式。
+- 任何界面级任务必须做 E2E 测试；复刻、临摹或还原任务必须截图做像素级对比，并记录基准图、实际图、diff 图或差异指标、阈值、viewport 和结论。
 - V1.8 提供机器可读协议模板：`harness.yaml`、`evidence.jsonl`、`pipeline-state.json`、`failure_report`、`approval_gate`。
 - V1.9 提供生产流协议：`Build -> Verify -> Package -> Release Gate -> Observe -> Promote/Rollback`，并要求凭证、真实部署、破坏性操作和生产回滚停在人工或外部授权门前。
 - Benchmark 默认不属于普通 Goal Teams 产物；只有用户要求、计划确认或 Skill Improvement 任务需要时，才创建或更新 `benchmarks/`。
@@ -130,8 +132,8 @@ goal-teams/
 | `goal_requirements_analyst` | 澄清目标、调研辅助、需求规格卡、PRD 前置输入 |
 | `goal_product` | PRD、验收标准、原型结构、产品评审 |
 | `goal_backend` | 领域模型、存储、API、CLI、MCP、迁移、集成 |
-| `goal_frontend` | UI、HTML 原型、浏览器验证、E2E、截图证据 |
-| `goal_qa` | 独立测试、集成测试、验收证据、测试报告 |
+| `goal_frontend` | UI、HTML 原型、浏览器验证、E2E、复刻像素级对比、截图证据 |
+| `goal_qa` | 独立测试、集成测试、界面 E2E、像素级对比验收、测试报告 |
 | `goal_docs` | tasklist、acceptance、README、报告、发布说明 |
 | `goal_reviewer` | 只读评审、架构边界、安全、覆盖率、兼容性、风险 |
 | `goal_completion_auditor` | 收尾审计、未完成工作检查、自动续跑建议 |
@@ -176,7 +178,7 @@ Use $goal-teams。
 
 ```text
 Use $goal-teams。
-请直接执行：为 WIKI 列表 V1.9 规划并实现后端 API、页面验证、独立测试和验收文档。
+请直接执行：为 WIKI 列表 V1.91 规划并实现后端 API、页面验证、独立测试和验收文档。
 仍然先展示 Teams 规划表作为执行记录，但不用等我确认。
 ```
 

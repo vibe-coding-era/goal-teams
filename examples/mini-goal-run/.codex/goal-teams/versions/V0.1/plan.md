@@ -6,7 +6,7 @@
 
 ## 启动汇报
 
-我是 Goal Teams Leader V1.9，我会帮你完成以下工作：
+我是 Goal Teams Leader V1.91，我会帮你完成以下工作：
 
 - 检查示例项目执行规则和版本目录。
 - 创建索引、tasklist、SPEC、原型、测试计划和验收清单。

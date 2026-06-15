@@ -19,8 +19,8 @@
 | --- | --- | --- | --- | --- | --- |
 | `spec/requirement-spec-card.md` | 需求分析-登录页空状态需求澄清 | 评审-登录页空状态文档校验 | passed | 目标、流程、边界齐备 | 无 |
 | `spec/PRD.md` | 产品-登录页空状态 PRD | 评审-登录页空状态文档校验 | passed | 可追溯到规格卡 | 无 |
-| `spec/HTML-prototype.html` | 前端-登录页空状态 HTML 原型 | 评审-登录页空状态文档校验 | passed | 包含空状态和操作按钮 | 无 |
-| `spec/test-plan.md` | 测试-登录页空状态验收测试 | 评审-登录页空状态测试有效性 | passed | 覆盖文案、按钮、可访问性 | 无 |
+| `spec/HTML-prototype.html` | 前端-登录页空状态 HTML 原型 | 评审-登录页空状态文档校验 | passed | 包含空状态和操作按钮；E2E not_applicable_reason 为 sample_only 静态文档示例 | 无 |
+| `spec/test-plan.md` | 测试-登录页空状态验收测试 | 评审-登录页空状态测试有效性 | passed | 覆盖文案、按钮、可访问性，并说明真实界面任务必须 E2E、复刻任务必须像素级对比 | 无 |
 | `harness/setup.md` | 文档-Harness 示例复盘 | 评审-登录页空状态文档校验 | passed | 记录输入、锁定范围和不新增依赖约束 | 无 |
 | `harness/run.md` | 文档-Harness 示例复盘 | 评审-登录页空状态文档校验 | passed | 记录 setup -> run -> checks -> report 顺序和成员证据 | 无 |
 | `harness/checks.md` | 文档-Harness 示例复盘 | 评审-登录页空状态文档校验 | passed | 校验项可追到 plan/tasklist/spec/acceptance | 无 |

@@ -8,6 +8,7 @@
 | 计划可追溯 | 检查 Teams 规划表 | GT-006 记录 Harness Owner、锁定范围和验证安排 | `../plan.md` |
 | tasklist 可追溯 | 检查 Member Ownership | GT-006、GT-007、GT-008 状态为 done | `../tasklist.md` |
 | SPEC 不被 Harness 替代 | 检查 spec 目录 | PRD、设计、测试计划、验收清单仍保留 | `../spec/` |
+| V1.91 界面验证规则 | 检查 test-plan 和 tasklist | 静态样例写明 E2E 和复刻像素级对比的不适用原因；真实界面任务不得跳过 | `../tasklist.md`、`../spec/test-plan.md` |
 | 证据链完整 | 检查 progress 和 acceptance | setup/run/checks/report 均被验收记录引用 | `../progress.md`、`../spec/acceptance.md` |
 | automation protocol 样例 | 检查 YAML 字段 | 标记 `sample_only: true`，且声明不连接真实生产或外部服务 | `automation-protocol.sample.yaml` |
 | evidence ledger 样例 | 检查 JSON 字段 | artifact、author、validator、evidence_ref 可追溯 | `evidence-ledger.sample.json` |

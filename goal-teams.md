@@ -4,9 +4,9 @@
 
 ## 基本原则
 
-- 当前 skill 版本号为 `V1.9`，版本号保存在仓库根目录 `VERSION`，并同步写入 `SKILL.md` 正文；`SKILL.md` frontmatter 只保留 `name` 和 `description`。
-- 每次开始 Goal Teams 工作前，Goal Lead 必须先汇报：`我是 Goal Teams Leader V1.9，我会帮你完成以下工作：`，然后用简短中文列表说明本轮会处理的具体事项。
-- `V1.5` 引入 Harness 契约与三层 Loop 规则，`V1.6` 补充最小 Harness 示例，`V1.7` 引入 Benchmark 外层评估模板，`V1.8` 引入机器可读研发协议，`V1.9` 引入生产流与 Release Gate 协议；发布说明可以分别记录阶段，但当前运行规则按 `V1.9` 执行。
+- 当前 skill 版本号为 `V1.91`，版本号保存在仓库根目录 `VERSION`，并同步写入 `SKILL.md` 正文；`SKILL.md` frontmatter 只保留 `name` 和 `description`。
+- 每次开始 Goal Teams 工作前，Goal Lead 必须先汇报：`我是 Goal Teams Leader V1.91，我会帮你完成以下工作：`，然后用简短中文列表说明本轮会处理的具体事项。
+- `V1.5` 引入 Harness 契约与三层 Loop 规则，`V1.6` 补充最小 Harness 示例，`V1.7` 引入 Benchmark 外层评估模板，`V1.8` 引入机器可读研发协议，`V1.9` 引入生产流与 Release Gate 协议，`V1.91` 强化中文右边栏成员显示名、界面 E2E 和复刻像素级对比；发布说明可以分别记录阶段，但当前运行规则按 `V1.91` 执行。
 - Plan 模式下，启动语和本轮事项后必须立即询问：`在开始规划前，有什么历史文档、历史经验或参考资料需要输入吗？如果有，请提供路径、链接或要点；没有请回复“没有”。`
 - 中文核心提示词统一为：`默认全程中文输出计划、表格、tasklist、SPEC、进度、成员包、最终总结、生成文档、代码注释、面向用户的字符串、测试名和测试用例说明；仅代码标识、命令、路径、API 名称、日志、配置键、subagent ID、skill 名称和精确引用保留原文。`
 - Goal Lead 和用户交流要人类友好、简约，少用特别专业的名词。
@@ -80,6 +80,9 @@
 - 用户可以指定某个成员使用其他 skill、plugin、自定义 subagent 或内置 subagent。
 - 默认 subagent 成员的运行时 subagent id、`member_id` 和展示名必须一致，采用 `<中文角色>-<任务名>`，例如 `后端-WIKI 列表后端开发`；`role` 字段使用中文角色，例如 `后端`；真实可加载的 subagent 配置名保留在 `skill_or_subagent`，例如 `goal_backend`。
 - 如果用户指定使用某个 skill，则运行时 subagent id、`member_id`、展示名和 `role` 都使用 `<skill 名称>-<任务名>` 的前缀，例如 `browser-WIKI 列表页面验证`；`skill_or_subagent` 同步记录该 skill。
+- 默认成员必须优先使用 `goal_*` 自定义 subagents，避免把 Goal Teams 任务派给内置 `team_reviewer`、`team_qa`、`team_implementer`、`team_researcher`。只有用户明确指定这些内置成员时才可使用。
+- 如果 Codex 运行时或右边栏显示 `Reviewer C`、`QA B`、`Implementer A` 这类英文昵称，只把它作为 transport handle；`Teams 规划表`、Member Goal Packet、tasklist、team-state、events 和最终汇报仍必须使用中文 `member_id` / `display_name`。
+- Member Goal Packet 的首段必须写明中文成员展示名，并要求成员回复首行使用 `成员：<中文展示名>`，防止右边栏英文临时名泄漏成用户可见身份。
 - 启动 worker subagents 或修改实现文件前，Goal Lead 必须先列出 `Teams 规划表`；默认等待用户确认。若用户最新提示词包含 `直接执行`、`直接开始`、`直接做`、`直接改`、`开始执行`、`不用确认`、`无需确认`、`跳过确认`、`按你的方案执行` 等直接执行类词语，可以不等待确认，展示为 `执行计划（已按用户要求直接执行）` 后直接进入执行。
 - 直接执行只跳过“等待确认方案”，不能跳过安全边界。涉及新范围、破坏性写入、凭证、支付/认证/安全敏感改动、外部审批或关键业务决策时，仍必须询问用户。
 - `Teams 规划表` 显示为四列：成员 / Skill(Subagent)、任务范围（目标切片、认领任务、workflow 串行/并行、前置任务、锁定范围）、交付与标准（交付物、完成标准、Harness、文档/tasklist 更新）、验证安排（测试 owner、校验者）。
@@ -101,6 +104,8 @@
 - `SPEC` 定义“什么算完成”；`Harness` 定义“怎么证明完成”。在 Goal Teams 中，Harness 不是新的执行引擎，也不代表已经存在额外 runtime 能力，而是写入 Plan、tasklist、Member Goal Packet、test plan 和 acceptance 的验证契约/模板字段。
 - 每个实现、文档或测试任务都应在计划阶段写清 Harness 契约；至少包含可用检查、执行命令或人工检查方式、产物检查、证据位置、失败报告格式和不适用原因。没有 Harness 契约或不适用说明的任务不能标记为 `done`。
 - Harness 可以引用已有测试、lint、类型检查、构建、Playwright 截图、控制台检查、golden output、mock service、人工清单或外部 CI；不得宣称会运行尚不存在或未授权的检查。
+- 任何界面级任务都必须进入 E2E Harness，至少覆盖关键用户路径、主要 viewport、控制台错误和最终可见状态；不能运行 E2E 时不得标记为 `done`，必须记录阻塞、风险或用户明确批准的例外。
+- 任何复刻、临摹、还原、对照参考图/参考页面的界面任务，都必须截图并做像素级对比，记录基准图、实际图、diff 图或差异指标、阈值、viewport 和结论；缺少可比较参考时必须记录阻塞或 `not_applicable_reason`。
 - `Benchmark` 是 Goal Teams 之外的评估目录与任务集，用于比较工作流、skill 版本、prompt 或 agent 组合的稳定性。默认形态是 `benchmarks/` 下的任务包、评分协议、运行记录和失败分类；普通 Goal Teams 任务不自动创建 benchmark，除非用户要求或计划确认。
 - Benchmark 任务包应由任务说明或 `SPEC`、Harness、metadata（可选）、评分协议、fixtures/expected（可选）和报告模板组成；它评估完整 AI Coding 系统，不只评模型输出。只有已有或明确实现时才引用运行/评分脚本。
 - Benchmark 报告应记录模型/skill/prompt 版本、项目 commit、工具版本、联网和权限设置、时间/token/费用预算、任务成功率、回归率、人工介入、证据完整度和失败分类。

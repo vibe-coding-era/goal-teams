@@ -9,8 +9,8 @@ Status: done
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | GT-001 | 需求分析-登录页空状态需求澄清 | goal_requirements_analyst | 需求分析-登录页空状态需求澄清 | 串行 | - | done | `spec/` | 需求规格卡 | 目标/流程/边界清楚 | 结构清单、边界/非目标检查，证据：`progress.md` | 评审-登录页空状态文档校验 | requirement-spec-card |
 | GT-002 | 产品-登录页空状态 PRD | goal_product | 产品-登录页空状态 PRD | 串行 | GT-001 | done | `spec/` | PRD | 基于规格卡 | PRD 溯源和验收标准清单，证据：`progress.md` | 评审-登录页空状态文档校验 | PRD |
-| GT-003 | 前端-登录页空状态 HTML 原型 | goal_frontend | 前端-登录页空状态 HTML 原型 | 串行 | GT-002 | done | `spec/HTML-prototype.html` | HTML 原型 | 展示空状态 | HTML 静态结构和文案检查，证据：`progress.md` | 评审-登录页空状态文档校验 | HTML Prototype |
-| GT-004 | 测试-登录页空状态验收测试 | goal_qa | 测试-登录页空状态验收测试 | 串行 | GT-003 | done | `spec/test-plan.md` | 测试计划 | 覆盖验收点 | 测试计划边界和断言有效性检查，证据：`progress.md` | 评审-登录页空状态测试有效性 | test-plan |
+| GT-003 | 前端-登录页空状态 HTML 原型 | goal_frontend | 前端-登录页空状态 HTML 原型 | 串行 | GT-002 | done | `spec/HTML-prototype.html` | HTML 原型 | 展示空状态 | HTML 静态结构和文案检查；E2E not_applicable_reason：sample_only 静态文档示例，无真实运行应用；复刻像素级对比 not_applicable_reason：无参考图 | 评审-登录页空状态文档校验 | HTML Prototype |
+| GT-004 | 测试-登录页空状态验收测试 | goal_qa | 测试-登录页空状态验收测试 | 串行 | GT-003 | done | `spec/test-plan.md` | 测试计划 | 覆盖验收点 | 测试计划边界和断言有效性检查；真实界面任务必须补 E2E，复刻任务必须补截图像素级对比 | 评审-登录页空状态测试有效性 | test-plan |
 | GT-005 | 文档-登录页空状态验收文档 | goal_docs | 文档-登录页空状态验收文档 | 串行 | GT-004 | done | `spec/acceptance.md` | 验收清单 | 证据完整 | 验收证据完整性检查，证据：`spec/acceptance.md` | 评审-登录页空状态文档校验 | acceptance |
 | GT-006 | 文档-Harness 示例复盘 | goal_docs | 文档-Harness 示例复盘 | 串行 | GT-005 | done | `harness/` | Harness 复盘资料和静态样例 | setup/run/checks/report、automation protocol、evidence ledger、pipeline gates 可追溯到验收证据 | setup/run/checks/report 和静态样例追溯检查，证据：`harness/report.md` | 评审-登录页空状态文档校验 | harness + progress + acceptance |
 | GT-007 | 评审-登录页空状态文档校验 | goal_reviewer | 评审-登录页空状态文档校验 | 串行 | GT-001, GT-002, GT-003, GT-004, GT-005, GT-006 | done | read-only | 校验记录 | 非作者校验完成 | 人工只读评审清单，证据：`progress.md` | 不适用 | progress |
