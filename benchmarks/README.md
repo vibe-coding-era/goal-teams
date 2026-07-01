@@ -1,6 +1,6 @@
 # Goal Teams Benchmarks
 
-本目录用于沉淀可复盘的 benchmark 任务，评估 Goal Teams 相比单会话或临时协作方式是否真的带来更好的结果。这里不提供复杂 runner，也不声明未验证 CLI；每个 benchmark 只定义输入、人工执行方法、评分标准和期望产物。
+本目录用于沉淀可复盘的 benchmark 任务，评估 Goal Teams 相比单会话或临时协作方式是否真的带来更好的结果。这里只提供轻量 task package 检查脚本，不声明真实自动执行 runner；每个 benchmark 主要定义输入、人工执行方法、评分标准和期望产物。
 
 ## 目标
 
@@ -21,6 +21,11 @@ benchmarks/
       scoring.md
       expected-artifacts.md
     GT-BENCH-002/
+      task.md
+      harness.md
+      scoring.md
+      expected-artifacts.md
+    GT-BENCH-003/
       task.md
       harness.md
       scoring.md
@@ -66,3 +71,6 @@ benchmarks/runs/
 
 - [`tasks/GT-BENCH-001/task.md`](tasks/GT-BENCH-001/task.md)：benchmark 文档模板新增任务。
 - [`tasks/GT-BENCH-002/task.md`](tasks/GT-BENCH-002/task.md)：生产流门禁包任务，比较 release gate、证据完整度、自动续跑和安全边界。
+- [`tasks/GT-BENCH-003/task.md`](tasks/GT-BENCH-003/task.md)：界面 E2E、复刻像素级对比和证据不足打回任务。
+
+可用 `scripts/benchmark/benchmark-runner.py --check-only` 检查 benchmark task package 结构；兼容入口 `scripts/benchmark-runner.py --check-only` 仍可用。该脚本只检查文件和关键字段，不执行真实任务。

@@ -124,6 +124,24 @@ Do not invent commands, CI jobs, or tools that do not exist. Use manual checks w
 For any UI-level task, include E2E testing in the Harness and record evidence. For replica/recreation tasks, take screenshots and perform pixel-level comparison against the reference; record the baseline, actual screenshot, diff image or metric, threshold, viewport, and conclusion.
 <!-- 中文注释：任何界面级任务都要做 E2E 测试并记录证据；复刻/还原任务必须截图并与参考做像素级对比，记录基准图、实际图、diff 图或指标、阈值、viewport 和结论。 -->
 
+For long-running, multi-agent, UI E2E, pixel comparison, benchmark, or production-flow work, record a Budget Gate and Conflict Policy before claiming completion.
+<!-- 中文注释：长任务、多 agent、界面 E2E、像素对比、benchmark 或生产流任务，在完成前必须记录预算门和冲突策略。 -->
+
+For Goal Teams projects, create the versioned `TaskList.md` before implementation or test execution. SSOT outputs belong under `GoalTeamsWork-<project_version>/versions/<artifact_version>/` unless the user specifies another output directory.
+<!-- 中文注释：Goal Teams 项目必须先创建版本子目录内的 `TaskList.md`，再执行实现或测试。SSOT 产出物默认放在 `GoalTeamsWork-<project_version>/versions/<artifact_version>/`。 -->
+
+Backend work follows architecture-first TDD: write/update Backend Architecture Design, have an independent subagent write unit tests, implement code, then have another independent subagent run unit tests. API integration tests default to Python + pytest and run after unit tests pass.
+<!-- 中文注释：后端工作遵循架构先行和 TDD：先写/更新后端架构设计，由独立 subagent 写单元测试，再实现代码，再由另一个独立 subagent 执行单元测试。API 集成测试默认 Python + pytest，并在单测通过后执行。 -->
+
+Frontend work requires independent E2E generation and execution after implementation: one subagent writes E2E cases, another runs them and records screenshots, traces, console/network evidence, and failures.
+<!-- 中文注释：前端开发完成后，必须由独立 subagent 生成 E2E 用例，再由另一个 subagent 执行并记录截图、trace、console/network 证据和失败信息。 -->
+
+Insufficient evidence cannot be marked complete. Missing E2E evidence, missing pixel diff evidence, self-validation-only work, missing independent review, or missing production approval/rollback/monitoring evidence must remain blocked or failed until resolved.
+<!-- 中文注释：证据不足不能标记完成。缺少 E2E、缺少像素对比、只有自测、缺少独立评审、缺少生产审批/回滚/监控证据时，必须保持阻塞或失败状态，直到补齐。 -->
+
+Comparison and validation tasks require dual review: deterministic script evidence plus an independent LLM reviewer record. Neither side replaces the other.
+<!-- 中文注释：对比和校验类任务需要双重复核：确定性脚本证据 + 独立 LLM reviewer 记录，二者不能互相替代。 -->
+
 When machine-readable tracking is useful, record only protocol data such as `harness.yaml`, `evidence.jsonl`, `pipeline-state.json`, `failure_report`, and `approval_gate`. These artifacts do not imply a real runner, CI/CD system, production connection, or external approval system.
 <!-- 中文注释：需要机器可读跟踪时，只记录协议数据，例如 `harness.yaml`、`evidence.jsonl`、`pipeline-state.json`、`failure_report` 和 `approval_gate`。这些产物不代表已有真实 runner、CI/CD、生产连接或外部审批系统。 -->
 
@@ -193,7 +211,7 @@ Do not introduce interfaces, factories, inheritance, or dependency injection jus
   <!-- 中文注释：代码应由独立 QA、评审成员或用户指定 skill 校验。 -->
 - Test cases also need validation for target, assertions, and edge coverage.
   <!-- 中文注释：测试用例也要校验测试目标、断言和边界覆盖是否合理。 -->
-- Record validation evidence in `progress.md`, `acceptance.md`, `test-plan.md`, or the relevant SPEC.
+- Record validation evidence in the version subdirectory, usually `progress.md`, `acceptance.md`, `test-plan.md`, `reports/`, or the relevant SPEC.
   <!-- 中文注释：校验证据应写入 `progress.md`、`acceptance.md`、`test-plan.md` 或相关 SPEC。 -->
 
 Benchmark tasks are outside ordinary delivery work unless explicitly requested. When used, they should compare the same input under the same constraints and record output quality, failures, time, tokens, and cost.

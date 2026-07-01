@@ -2,6 +2,41 @@
 
 ## Unreleased
 
+- Bumped current Skill version to `V2.0` and startup identity to `我是 Goal Teams Leader V2.0，我会帮你完成以下工作：`.
+- Required all SSOT outputs to live under output-directory version subdirectories such as `GoalTeamsWork-<project_version>/versions/<artifact_version>/`.
+- Required each project to create `TaskList.md` before implementation or test execution, with feature-level rows for requirement spec, PRD, page spec, HTML prototype, frontend/backend architecture, backend TDD, backend implementation, API integration testing, E2E, BugFix, and test report.
+- Added independent TDD/API/E2E subagents: `goal_unit_test_designer`, `goal_unit_test_runner`, `goal_api_integration_test_designer`, `goal_api_integration_test_runner`, `goal_e2e_test_designer`, and `goal_e2e_test_runner`.
+- Required backend development to generate Backend Architecture Design before code, then follow TDD with independent unit-test authoring and execution.
+- Required API integration test scripts to be generated after architecture design, defaulting to Python + pytest unless the project specifies another stack, and executed only after unit tests pass.
+- Required frontend E2E tests to be generated after frontend development by a separate subagent and executed by another independent subagent.
+- Bumped current Skill version to `V1.97` and startup identity to `我是 Goal Teams Leader V1.97，我会帮你完成以下工作：`.
+- Added local bilingual Google OKF guidance in `references/google-okf-bilingual-spec.md` and made generated Markdown outputs default to OKF frontmatter with a required `type`.
+- Changed the default output directory to `GoalTeamsWork-<project_version>/` when the user does not specify a directory.
+- Added `prompts/packets/memory.md` and required output-directory `memory.md` to record important user settings, configuration, component library decisions, and context summaries from old to new with author `GoalTeams`.
+- Added `prompts/packets/html-prototype-mock.md` and required HTML Prototype MOCK outputs to embed OKF metadata plus component library information.
+- Extended page-spec-card, frontend, QA, reviewer, completion-auditor, runtime, README, and validation rules so page prototypes must clarify component library name/version/source or record a blocking question before generation.
+- Added `prompts/packets/page-spec-card.md` for PRD-after page specification before HTML Prototype or frontend implementation.
+- Added `references/ui-visual-contract-protocol.md` to prevent UI replica leaks from full-page-only pixel diff, visual overlays, missing component assertions, and missing dialog/form interaction states.
+- Required frontend, QA, reviewer, and completion-auditor workflows to enforce page specs, component-level visual contracts, locked/unlocked screenshots, local crop/geometric assertions, and visual-risk coverage.
+- Added `prompts/packets/handoff-artifacts.md` as the SSOT for Goal Teams handoff artifacts, Owner subagent, validator subagent, and status fields.
+- Required every handoff artifact to be written into `tasklist.md` during execution with `handoff_status`, `independent_check_status`, Harness, evidence path, and blocker/defer reason.
+- Updated member workflows, templates, runtime examples, README docs, subagent configs, and validation checks to enforce independent checks for every deliverable.
+- Bumped current Skill version to `V1.96` and startup identity to `我是 Goal Teams Leader V1.96，我会帮你完成以下工作：`.
+- Added user stories and functional acceptance criteria as required fields in requirement cards, Requirement Specification Cards, and PRD handoff.
+- Required functional acceptance criteria to flow into tasklist, Harness, test plan, and acceptance evidence.
+- Bumped current Skill version to `V1.95` and startup identity to `我是 Goal Teams Leader V1.95，我会帮你完成以下工作：`.
+- Added Plan Mode `需求卡片` as a required pre-SPEC concise plan covering core goal, key functions, boundaries, constraints, and risks.
+- Added `prompts/lead/requirement-card.md`, `prompts/packets/requirement-card.md`, and the mini-goal-run `spec/requirement-card.md` example.
+- Bumped current Skill version to `V1.94` and startup identity to `我是 Goal Teams Leader V1.94，我会帮你完成以下工作：`.
+- Added V1.94 member packages under `prompts/members/<role>/` with `prompt.md`, `template.md`, `workflow.md`, and `scripts.md`.
+- Added LLM + script dual-review protocol plus artifact comparison and dual-review validation scripts.
+- Slimmed `SKILL.md` into a compact core-question and progressive-loading entrypoint.
+- Added role prompt directories under `prompts/lead/`, `prompts/members/`, and `prompts/packets/`.
+- Moved real scripts into `scripts/checks/`, `scripts/harness/`, `scripts/benchmark/`, and `scripts/install/` while preserving root compatibility wrappers.
+- Bumped current Skill version to `V1.92` and startup identity to `我是 Goal Teams Leader V1.92，我会帮你完成以下工作：`.
+- Added V1.92 scripted tooling: local install, version sync, agent-name checks, Harness contract validation, pixel diff, and benchmark package validation.
+- Added dispatch, Budget Gate, Conflict Policy, UI E2E/pixel protocol, and evidence-insufficiency rules.
+- Added `GT-BENCH-003` for UI E2E, replica pixel comparison, and insufficient-evidence rejection.
 - Bumped current Skill version to `V1.91` and startup identity to `我是 Goal Teams Leader V1.91，我会帮你完成以下工作：`.
 - Required Goal Teams to prefer custom `goal_*` subagents and keep Chinese `member_id` / `display_name` in user-visible records even when the runtime or right sidebar returns English transport handles such as `Reviewer C`.
 - Required E2E Harness evidence for every UI-level task, and screenshot-based pixel-level comparison evidence for replica/recreation UI tasks.

@@ -6,6 +6,8 @@
 | --- | --- | --- |
 | 总索引和版本索引已创建 | passed | `INDEX.md` |
 | 需求规格卡已完成 | passed | `requirement-spec-card.md` |
+| 用户故事已从需求卡片流向需求规格卡和 PRD | passed | `requirement-card.md` + `requirement-spec-card.md` + `PRD.md` |
+| 功能验收标准已流向测试计划和验收清单 | passed | `requirement-card.md` + `PRD.md` + `test-plan.md` |
 | PRD 基于规格卡 | passed | `PRD.md` |
 | HTML 原型表达空状态 | passed | `HTML-prototype.html` |
 | 测试计划覆盖验收标准 | passed | `test-plan.md` |

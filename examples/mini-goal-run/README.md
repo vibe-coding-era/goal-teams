@@ -13,10 +13,10 @@
 ```text
 Use $goal-teams。
 请为“登录页空状态提示 V0.1”生成一个最小 Goal Teams 示例。
-先汇报：我是 Goal Teams Leader V1.91，我会帮你完成以下工作：
+先汇报：我是 Goal Teams Leader V2.0，我会帮你完成以下工作：
 只做规划和文档产物，不修改实现文件。
 过程和结果保存到 V0.1 版本目录。
-必须先列出四列合并展示的 Teams 规划表，并包含 workflow、前置任务、需求规格卡、PRD、架构设计、HTML 原型、测试计划、验收清单、独立校验计划和收尾审计。
+必须先写入包含用户故事和功能验收标准的需求卡片，再列出四列合并展示的 Teams 规划表，并包含 workflow、前置任务、需求规格卡、PRD、架构设计、HTML 原型、TaskList、测试计划、验收清单、独立校验计划和收尾审计。真实后端/前端项目还要按 V2.0 拆出后端 TDD、API 集成测试和 E2E 生成/执行任务；本示例不涉及真实代码时写 `not_applicable_reason`。
 ```
 
 如果希望示例直接进入执行，可以写：
@@ -38,8 +38,10 @@ Use $goal-teams。
     plan.md
     progress.md
     decisions.md
+    TaskList.md
     tasklist.md
     spec/
+      requirement-card.md
       requirement-spec-card.md
       PRD.md
       architecture-design.md
@@ -63,11 +65,12 @@ Use $goal-teams。
 
 - 多文档前是否先有总索引和版本索引。
 - `plan.md` 是否先列出四列合并展示的 Teams 规划表，且运行时 subagent id、member_id 和成员展示名是否采用 `<中文角色>-<具体任务名>`，例如 `后端-WIKI 列表后端开发`；如果用户指定 skill，则使用 skill 名称，例如 `browser-WIKI 列表页面验证`。
-- 开始前是否先汇报 `我是 Goal Teams Leader V1.91，我会帮你完成以下工作：`。
+- 开始前是否先汇报 `我是 Goal Teams Leader V2.0，我会帮你完成以下工作：`。
 - 启动语后是否询问 `在开始规划前，有什么历史文档、历史经验或参考资料需要输入吗？`，并在 `plan.md` 记录回答或 `历史资料：未提供`。
 - 如果提示词包含 `直接执行` / `不用确认` / `跳过确认`，是否仍展示执行计划并跳过等待确认。
 - 如果等待用户选择，是否使用数字选项让用户能回复 `1`、`2` 或 `3`。
-- tasklist 是否包含成员、认领、workflow、前置任务、锁定范围、验收和校验者。
+- TaskList 是否包含成员、认领、workflow、前置任务、锁定范围、验收和校验者；真实项目是否拆到 V2.0 最小颗粒度。
+- Plan 是否先写入 `spec/requirement-card.md` 并覆盖核心目标、关键功能、用户故事、功能验收标准、边界、约束和风险。
 - SPEC 是否从需求规格卡到 PRD 再到设计/测试/验收逐层展开。
 - 涉及 HTML 原型时是否说明界面级 E2E 要求；静态示例可写 `sample_only` 例外，真实界面任务必须运行 E2E，复刻任务必须截图做像素级对比。
 - 独立校验证据是否进入 `progress.md` 或 `acceptance.md`。

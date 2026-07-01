@@ -4,6 +4,7 @@
 
 | 成员 | 认领任务 | Workflow / 前置任务 | 状态 | 当前步骤 | 证据 | 下一步 |
 | --- | --- | --- | --- | --- | --- | --- |
+| Goal Lead | 需求卡片 | 串行 / 历史资料输入后 | done | Plan | `spec/requirement-card.md` | 交给需求分析 |
 | 需求分析-登录页空状态需求澄清 | GT-001 | 串行 / - | done | Document | `spec/requirement-spec-card.md` | 等待 PRD |
 | 产品-登录页空状态 PRD | GT-002 | 串行 / GT-001 | done | Document | `spec/PRD.md` | 等待校验 |
 | 前端-登录页空状态 HTML 原型 | GT-003 | 串行 / GT-002 | done | Document | `spec/HTML-prototype.html` | 等待校验 |
@@ -17,8 +18,9 @@
 
 | Artifact | Author | Validator | Status | Evidence | Next |
 | --- | --- | --- | --- | --- | --- |
-| `spec/requirement-spec-card.md` | 需求分析-登录页空状态需求澄清 | 评审-登录页空状态文档校验 | passed | 目标、流程、边界齐备 | 无 |
-| `spec/PRD.md` | 产品-登录页空状态 PRD | 评审-登录页空状态文档校验 | passed | 可追溯到规格卡 | 无 |
+| `spec/requirement-card.md` | Goal Lead | 评审-登录页空状态文档校验 | passed | 覆盖核心目标、关键功能、用户故事、功能验收标准、边界、约束和风险 | 无 |
+| `spec/requirement-spec-card.md` | 需求分析-登录页空状态需求澄清 | 评审-登录页空状态文档校验 | passed | 目标、用户故事、功能验收标准、流程、边界齐备 | 无 |
+| `spec/PRD.md` | 产品-登录页空状态 PRD | 评审-登录页空状态文档校验 | passed | 用户故事和功能验收标准可追溯到规格卡 | 无 |
 | `spec/HTML-prototype.html` | 前端-登录页空状态 HTML 原型 | 评审-登录页空状态文档校验 | passed | 包含空状态和操作按钮；E2E not_applicable_reason 为 sample_only 静态文档示例 | 无 |
 | `spec/test-plan.md` | 测试-登录页空状态验收测试 | 评审-登录页空状态测试有效性 | passed | 覆盖文案、按钮、可访问性，并说明真实界面任务必须 E2E、复刻任务必须像素级对比 | 无 |
 | `harness/setup.md` | 文档-Harness 示例复盘 | 评审-登录页空状态文档校验 | passed | 记录输入、锁定范围和不新增依赖约束 | 无 |

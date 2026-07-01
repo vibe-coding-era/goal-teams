@@ -1,0 +1,109 @@
+---
+type: Member Goal Packet Template
+title: Member Goal Packet OKF 模板
+description: 独立 subagent 成员目标包模板。
+tags: [goal-teams, okf, member-goal-packet]
+timestamp: 2026-07-01T00:00:00+08:00
+okf_version: "0.1"
+---
+
+# Member Goal Packet
+
+```text
+Member Goal Packet（成员目标包）:
+- member_id: <中文角色>-<具体任务名>；若用户指定 skill，则使用 <skill 名称>-<具体任务名>
+- display_name: 与 member_id 完全一致
+- transport_handle: 仅记录运行时可能返回的英文昵称；不得替代 display_name
+- role: 默认使用中文角色；若用户指定 skill，则使用 skill 名称
+- skill_or_subagent:
+- version:
+- output_dir: GoalTeamsWork-<project_version> 或用户指定目录
+- artifact_version:
+- version_dir: <output_dir>/versions/<artifact_version>
+- tasklist_path: <version_dir>/TaskList.md 或 tasklist.md
+- okf_required: true
+- workflow_mode: serial | parallel
+- depends_on:
+- budget_gate:
+- conflict_policy:
+- user_requested_skill:
+- user_requested_subagent:
+- lane_or_deliverable:
+- handoff_artifacts:
+  - task_id
+  - handoff_artifact
+  - artifact_type
+  - source_ssot: prompts/packets/handoff-artifacts.md
+  - owner_subagent
+  - validator_subagent
+  - handoff_status
+  - independent_check_status
+  - evidence_path
+- target_task_ids:
+- claimed_tasks:
+- goal:
+- success_criteria:
+- user_stories:
+- functional_acceptance_criteria:
+- required_doc_load:
+- allowed_scope:
+- forbidden_scope:
+- locked_scope:
+- required_tests:
+- harness_contract:
+  - checks
+  - commands
+  - artifact_checks
+  - e2e_checks
+  - pixel_diff_checks
+  - evidence_paths
+  - failure_report
+  - not_applicable_reason
+- dual_review_contract:
+  - script_review
+  - llm_review
+  - final_decision
+- benchmark_refs:
+- required_independent_validation:
+  - documents
+  - code
+  - test cases
+  - handoff artifacts
+- required_docs_after_done:
+- spec_updates:
+  - 需求卡片
+  - 用户故事
+  - 功能验收标准
+  - PRD
+  - Requirement Specification Card
+  - Page Specification Card
+  - Backend Architecture Design
+  - Frontend Architecture Design
+  - HTML Prototype
+  - TaskList
+  - test plan
+- v1_98_flow:
+  - tasklist_first: true
+  - backend_architecture_before_backend_dev: true
+  - unit_test_designer: goal_unit_test_designer
+  - unit_test_runner: goal_unit_test_runner
+  - api_integration_test_designer: goal_api_integration_test_designer
+  - api_integration_test_runner: goal_api_integration_test_runner
+  - e2e_test_designer: goal_e2e_test_designer
+  - e2e_test_runner: goal_e2e_test_runner
+- stop_conditions:
+- output_contract:
+  - Doc Capsules
+  - plan
+  - Harness Contract
+  - handoff artifact status updates
+  - 变更文件
+  - 运行测试
+  - independent validation evidence
+  - 更新文档
+  - tasklist updates
+  - SPEC updates
+  - team-state updates
+  - completion status
+  - 阻塞和风险
+```
