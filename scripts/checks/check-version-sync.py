@@ -37,7 +37,10 @@ def main() -> None:
     if not re.fullmatch(r"V\d+\.\d+", version):
         fail(f"VERSION must look like V1.x, got {version!r}")
 
-    startup = f"我是 Goal Teams Leader {version}，我会帮你完成以下工作："
+    startup = (
+        f"我是 Goal Teams Leader {version}，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，"
+        "并使用 Harness + SPEC 做为过程与结果产物的约束："
+    )
     for path in VERSION_FILES:
         text = read(path)
         if version not in text:

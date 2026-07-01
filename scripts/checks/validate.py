@@ -16,6 +16,16 @@ except ModuleNotFoundError:  # pragma: no cover
 
 
 ROOT = Path(__file__).resolve().parents[2]
+CURRENT_VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+STARTUP_LINE = (
+    f"我是 Goal Teams Leader {CURRENT_VERSION}，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，"
+    "并使用 Harness + SPEC 做为过程与结果产物的约束："
+)
+PLAN_HISTORY_LINE = "在开始规划前，如果有什么历史文档、历史经验或参考资料需要输入吗？"
+CHINESE_CORE_LINE = (
+    "默认全程中文表格化输出计划、tasklist、SPEC、进度、成员包、最终总结、生成文档、代码注释、"
+    "面向用户的字符串、测试名和测试用例说明；"
+)
 
 REQUIRED_FILES = [
     "AGENTS.md",
@@ -161,9 +171,10 @@ EXPECTED_ROLE_PREFIXES = {
 }
 
 KEY_RULES = [
-    "Goal Teams Leader V2.0",
-    "我是 Goal Teams Leader V2.0，我会帮你完成以下工作：",
-    "在开始规划前，有什么历史文档、历史经验或参考资料需要输入吗？",
+    f"Goal Teams Leader {CURRENT_VERSION}",
+    STARTUP_LINE,
+    PLAN_HISTORY_LINE,
+    CHINESE_CORE_LINE,
     "需求卡片",
     "核心目标",
     "关键功能",
@@ -435,8 +446,8 @@ def check_required_files() -> None:
 def check_skill_frontmatter() -> None:
     skill = read("SKILL.md")
     version = read("VERSION").strip()
-    if version != "V2.0":
-        fail(f"VERSION should be V2.0, got {version!r}")
+    if not re.fullmatch(r"V\d+\.\d+", version):
+        fail(f"VERSION should look like Vx.y, got {version!r}")
     match = re.match(r"^---\n(?P<body>.*?)\n---\n", skill, flags=re.S)
     if not match:
         fail("SKILL.md must start with YAML frontmatter")
@@ -542,7 +553,6 @@ def check_readmes() -> None:
 
 
 def check_key_rules() -> None:
-    startup_line = "我是 Goal Teams Leader V2.0，我会帮你完成以下工作："
     combined = "\n".join(
         read(path)
         for path in [
@@ -625,7 +635,7 @@ def check_key_rules() -> None:
         if rule not in combined:
             fail(f"Key rule missing from docs: {rule}")
     for path in ["SKILL.md", "references/goal-teams-runtime.md", "agents/openai.yaml", "README.md", "README.en.md", "goal-teams.md"]:
-        if startup_line not in read(path):
+        if STARTUP_LINE not in read(path):
             fail(f"Startup line missing from {path}")
     stale_examples = [
         "需求分析-规格卡",
@@ -666,9 +676,8 @@ def check_chinese_surface() -> None:
 
 def check_example() -> None:
     example_plan = read("examples/mini-goal-run/.codex/goal-teams/versions/V0.1/plan.md")
-    startup_line = "我是 Goal Teams Leader V2.0，我会帮你完成以下工作："
-    if startup_line not in example_plan:
-        fail("Example plan must use the current V2.0 startup line")
+    if STARTUP_LINE not in example_plan:
+        fail(f"Example plan must use the current {CURRENT_VERSION} startup line")
     requirement_card = read("examples/mini-goal-run/.codex/goal-teams/versions/V0.1/spec/requirement-card.md")
     for snippet in ("核心目标", "关键功能", "用户故事", "功能验收标准", "边界", "约束", "风险"):
         if snippet not in requirement_card:

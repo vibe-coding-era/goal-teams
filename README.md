@@ -4,7 +4,7 @@
 
 作者：肉山@TGO 杭州
 
-当前版本：`V2.0`
+当前版本：`V2.01`
 
 `goal-teams` 是一个面向 Codex 的 Goal Mode 团队化 Skill。它把一个目标拆成 Goal Lead 统筹、多个独立 subagent 或用户指定 skill 分工执行的闭环：先澄清和规划，再按 workflow 串并行推进，最后由独立校验和收尾审计确认没有遗漏。
 
@@ -13,13 +13,13 @@
 每次启动先汇报：
 
 ```text
-我是 Goal Teams Leader V2.0，我会帮你完成以下工作：
+我是 Goal Teams Leader V2.01，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，并使用 Harness + SPEC 做为过程与结果产物的约束：
 ```
 
 中文核心模型要点提示词：
 
 ```text
-默认全程中文输出计划、表格、tasklist、SPEC、进度、成员包、最终总结、生成文档、代码注释、面向用户的字符串、测试名和测试用例说明；仅代码标识、命令、路径、API 名称、日志、配置键、subagent ID、skill 名称和精确引用保留原文。
+默认全程中文表格化输出计划、tasklist、SPEC、进度、成员包、最终总结、生成文档、代码注释、面向用户的字符串、测试名和测试用例说明；仅代码标识、命令、路径、API 名称、日志、配置键、subagent ID、skill 名称和精确引用保留原文。
 ```
 
 核心规则：
@@ -31,7 +31,7 @@
 Goal Teams 的核心工作方式：
 
 - Goal Lead 负责澄清目标、拆解任务、确认 workflow、分配成员、整合结果和处理阻塞。
-- Plan 模式下，启动语和本轮事项之后先问：`在开始规划前，有什么历史文档、历史经验或参考资料需要输入吗？如果有，请提供路径、链接或要点；没有请回复“没有”。`
+- Plan 模式下，启动语和本轮事项之后先问：`在开始规划前，如果有什么历史文档、历史经验或参考资料需要输入吗？如果有，请提供路径、链接或要点；没有请回复“2”。`
 - Plan 模式接到需求后，先写入 `需求卡片`，用简洁方案说明核心目标、关键功能、用户故事、功能验收标准、边界、约束和风险，再进入完整 SPEC、tasklist 和 Teams 规划表。
 - 默认 subagent 成员的运行时 subagent id、`member_id` 和展示名使用 `<中文角色>-<具体任务名>`，例如 `后端-WIKI 列表后端开发`；真实可加载的 subagent 配置名保留在 `skill_or_subagent`，例如 `goal_backend`。
 - 如果用户指定了 skill，运行时 subagent id、`member_id`、展示名和 `role` 使用 skill 名称作为前缀，例如 `browser-WIKI 列表页面验证`。
@@ -250,6 +250,8 @@ V1.95 新增 `prompts/lead/requirement-card.md` 和 `prompts/packets/requirement
 V1.96 新增用户故事和功能验收标准要求：需求卡片先写“作为...我想要...以便...”格式的用户故事，并给出可验证的功能验收标准；后续 PRD、tasklist、Harness、test plan 和 acceptance 必须承接。
 
 V1.97 新增 `references/google-okf-bilingual-spec.md`、`prompts/packets/page-spec-card.md`、`prompts/packets/memory.md`、`prompts/packets/html-prototype-mock.md`，并强化 `references/ui-visual-contract-protocol.md` 与 `references/ui-e2e-pixel-protocol.md`。所有生成 Markdown 文档默认采用 OKF；无指定目录时写入 `GoalTeamsWork-<project_version>/`；页面规格卡和 HTML 原型必须记录组件库名称、版本、来源、元素级组件库归属和必要数据模型。
+
+V2.01 更新启动语，明确使用 Goal + Plan 模式完成规划、执行和应用交付，并要求使用 Harness + SPEC 作为过程与结果产物约束；Plan 历史资料输入支持 `没有请回复“2”`，中文输出规则强调表格化。
 
 V2.0 新增版本子目录 SSOT、TaskList 先行、后端架构先行、独立 TDD 单测用例/执行、API 集成测试脚本/执行和前端 E2E 用例/执行规则，并新增对应 subagent 成员包和 `goal_*.toml`。
 

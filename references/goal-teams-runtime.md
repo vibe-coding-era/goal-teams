@@ -2,7 +2,7 @@
 
 本文件定义通用 Goal Teams runtime。它不假设业务领域，也不假设项目已经存在 tasklist。
 
-当前 Skill 版本：`V2.0`。版本号必须和仓库根目录 `VERSION`、`SKILL.md` 正文、README 和启动语保持一致。
+当前 Skill 版本：`V2.01`。版本号必须和仓库根目录 `VERSION`、`SKILL.md` 正文、README 和启动语保持一致。
 
 V2.0 结构约定：`SKILL.md` 只保留核心问题、硬边界、工作流摘要和渐进式加载路由；详细 Lead 提示词放在 `prompts/lead/`，成员角色按包放在 `prompts/members/<role>/`，packet 模板放在 `prompts/packets/`；确定性脚本按职责放在 `scripts/checks/`、`scripts/harness/`、`scripts/review/`、`scripts/benchmark/` 和 `scripts/install/`，根 `scripts/*.py` 与 `scripts/*.sh` 保留兼容入口。Plan 模式新增 `需求卡片`，由 Lead 在完整 SPEC 前写入；需求卡片必须包含用户故事和功能验收标准。所有生成 Markdown 文档默认采用 Google OKF，未指定生成目录时输出根目录为 `GoalTeamsWork-<project_version>/`，根部维护 `memory.md`；所有 SSOT 产出物写入 `versions/<artifact_version>/`。V2.0 起每个项目先生成 TaskList，后端先架构设计再 TDD/实现，API 集成默认 Python + pytest，前端 E2E 用例生成和执行由独立 subagent 完成。
 
@@ -12,7 +12,7 @@ Goal Teams = Goal Lead + 独立 subagent 成员。
 
 ```text
 Goal Lead
-  - 每次开始先汇报：我是 Goal Teams Leader V2.0，我会帮你完成以下工作：
+  - 每次开始先汇报：我是 Goal Teams Leader V2.01，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，并使用 Harness + SPEC 做为过程与结果产物的约束：
   - Plan 模式启动语后立即询问历史文档、历史经验或参考资料输入
   - 默认中文沟通
   - 用简洁、人类友好的方式和用户交流
@@ -76,8 +76,8 @@ V1.91 起，默认成员必须优先使用 `goal_*` 自定义 subagents。除非
 
 Goal Teams 总是从 Plan 模式开始。直接执行词只跳过确认等待，不跳过规划、风险检查和 `Teams 规划表`。
 
-1. 先说：`我是 Goal Teams Leader V2.0，我会帮你完成以下工作：`，然后用中文简短列出本轮职责。
-2. 立即询问历史资料输入：`在开始规划前，有什么历史文档、历史经验或参考资料需要输入吗？如果有，请提供路径、链接或要点；没有请回复“没有”。`
+1. 先说：`我是 Goal Teams Leader V2.01，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，并使用 Harness + SPEC 做为过程与结果产物的约束：`，然后用中文简短列出本轮职责。
+2. 立即询问历史资料输入：`在开始规划前，如果有什么历史文档、历史经验或参考资料需要输入吗？如果有，请提供路径、链接或要点；没有请回复“2”。`
 3. 如果用户提供历史资料路径、链接或经验要点，先纳入 Plan 的资料输入和假设；如果用户回复“没有”，继续规划；如果用户已明确要求直接执行且未提供历史资料，不因此阻塞，记录为“历史资料：未提供”。
 4. 检查项目指南：`AGENTS.md`、`agents.md`、`agent.md`、`CLAUDE.md`、`claude.md`。
 5. 如果没有项目指南，加载 `references/default-AGENTS.md` 作为默认指南，并建议复制到项目根目录 `AGENTS.md`。
@@ -122,7 +122,7 @@ Goal Teams 总是从 Plan 模式开始。直接执行词只跳过确认等待，
 
 默认语言是中文：
 
-- 核心提示词：`默认全程中文输出计划、表格、tasklist、SPEC、进度、成员包、最终总结、生成文档、代码注释、面向用户的字符串、测试名和测试用例说明；仅代码标识、命令、路径、API 名称、日志、配置键、subagent ID、skill 名称和精确引用保留原文。`
+- 核心提示词：`默认全程中文表格化输出计划、tasklist、SPEC、进度、成员包、最终总结、生成文档、代码注释、面向用户的字符串、测试名和测试用例说明；仅代码标识、命令、路径、API 名称、日志、配置键、subagent ID、skill 名称和精确引用保留原文。`
 - 计划、方案、表格、进度、SPEC、tasklist、成员包、评审报告和最终总结使用中文。
 - 生成文档、代码注释、面向用户的代码字符串、测试名、测试说明、测试 fixture 和测试用例摘要默认中文。
 - 代码标识、命令、日志、路径、API 名称、依赖名和精确引用保持原文。
@@ -1236,7 +1236,7 @@ codex exec \
   - <<'PROMPT' | tee -a ".codex/goal-teams/events.jsonl"
 Use $goal-teams.
 
-先汇报：我是 Goal Teams Leader V2.0，我会帮你完成以下工作：
+先汇报：我是 Goal Teams Leader V2.01，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，并使用 Harness + SPEC 做为过程与结果产物的约束：
 全程中文，Goal Lead 消息要简洁、人类友好。
 生成文档、代码注释、面向用户的代码字符串、测试名称和测试用例默认中文。
 运行时 subagent id、member_id 和成员展示名使用 <中文角色>-<具体任务名>，例如 后端-WIKI 列表后端开发；如果用户指定 skill，则使用 skill 名称，例如 browser-WIKI 列表页面验证。真实 subagent 配置名只写入 skill_or_subagent。默认优先使用 goal_* 自定义 subagents；若运行时或右边栏显示 Reviewer C / QA B 这类英文昵称，只当作 transport handle，用户可见记录仍使用中文展示名。

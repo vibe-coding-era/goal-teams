@@ -4,7 +4,7 @@
 
 Author: 肉山@TGO Hangzhou
 
-Current version: `V2.0`
+Current version: `V2.01`
 
 `goal-teams` is a Codex Skill for running Goal Mode as a coordinated team. A Goal Lead turns one goal into a plan, assigns independent subagents or user-selected skills, controls serial/parallel workflow, records the process in Markdown, and closes the work with independent validation plus a completion audit.
 
@@ -13,13 +13,13 @@ Current version: `V2.0`
 Every run starts with:
 
 ```text
-我是 Goal Teams Leader V2.0，我会帮你完成以下工作：
+我是 Goal Teams Leader V2.01，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，并使用 Harness + SPEC 做为过程与结果产物的约束：
 ```
 
 中文核心模型要点提示词:
 
 ```text
-默认全程中文输出计划、表格、tasklist、SPEC、进度、成员包、最终总结、生成文档、代码注释、面向用户的字符串、测试名和测试用例说明；仅代码标识、命令、路径、API 名称、日志、配置键、subagent ID、skill 名称和精确引用保留原文。
+默认全程中文表格化输出计划、tasklist、SPEC、进度、成员包、最终总结、生成文档、代码注释、面向用户的字符串、测试名和测试用例说明；仅代码标识、命令、路径、API 名称、日志、配置键、subagent ID、skill 名称和精确引用保留原文。
 ```
 
 Core rules:
@@ -31,7 +31,7 @@ Core rules:
 How Goal Teams works:
 
 - The Goal Lead clarifies the target, splits tasks, confirms workflow, assigns members, integrates results, and routes blockers.
-- In Plan Mode, after the startup line and work items, ask: `在开始规划前，有什么历史文档、历史经验或参考资料需要输入吗？如果有，请提供路径、链接或要点；没有请回复“没有”。`
+- In Plan Mode, after the startup line and work items, ask: `在开始规划前，如果有什么历史文档、历史经验或参考资料需要输入吗？如果有，请提供路径、链接或要点；没有请回复“2”。`
 - In Plan Mode, write a `需求卡片` first: a concise plan covering core goal, key functions, user stories, functional acceptance criteria, boundaries, constraints, and risks before full SPEC, tasklist, and the Teams plan table.
 - For default subagent members, the runtime subagent id, `member_id`, and display name use `<Chinese role>-<task>`, such as `后端-WIKI 列表后端开发`; the loadable subagent config name stays in `skill_or_subagent`, such as `goal_backend`.
 - If the user assigns a skill, the runtime subagent id, `member_id`, display name, and `role` use the skill name prefix, such as `browser-WIKI 列表页面验证`.
@@ -250,6 +250,8 @@ V1.95 adds `prompts/lead/requirement-card.md` and `prompts/packets/requirement-c
 V1.96 adds user-story and functional-acceptance requirements: the requirement card uses “作为...我想要...以便...” stories and verifiable functional acceptance criteria; PRD, tasklist, Harness, test plan, and acceptance must carry them forward.
 
 V1.97 adds `references/google-okf-bilingual-spec.md`, `prompts/packets/page-spec-card.md`, `prompts/packets/memory.md`, and `prompts/packets/html-prototype-mock.md`, while strengthening `references/ui-visual-contract-protocol.md` and `references/ui-e2e-pixel-protocol.md`. Generated Markdown defaults to OKF; unspecified outputs go to `GoalTeamsWork-<project_version>/`; Page Specification Cards and HTML prototypes must record component library name, version, source, per-element library ownership, and data models where applicable.
+
+V2.01 updates the startup identity to make Goal + Plan execution explicit for planning, execution, and application delivery, with Harness + SPEC as the process and result constraints. The Plan-mode history prompt now supports `没有请回复“2”`, and the Chinese-output rule emphasizes table-first delivery.
 
 V2.0 adds version-subdirectory SSOT, TaskList-first execution, backend architecture-first TDD, independent unit-test authoring/execution, API integration script/execution roles, frontend E2E case/execution roles, and matching member packages plus `goal_*.toml` subagents.
 
