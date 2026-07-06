@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Bumped current Skill version to `V2.02`.
+- Added `RULES.md` as the Response Contract for Goal Lead and member responses: execute first, report verified facts, avoid unverified success claims, distinguish observation from conclusion, and minimize unrelated commentary.
 - Bumped current Skill version to `V2.01` and startup identity to `我是 Goal Teams Leader V2.01，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，并使用 Harness + SPEC 做为过程与结果产物的约束：`.
 - Updated the Plan-mode historical-context prompt to use the `没有请回复“2”` shortcut and made the core Chinese output rule table-first.
 - Bumped current Skill version to `V2.0` and startup identity to `我是 Goal Teams Leader V2.0，我会帮你完成以下工作：`.

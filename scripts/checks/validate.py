@@ -29,6 +29,7 @@ CHINESE_CORE_LINE = (
 
 REQUIRED_FILES = [
     "AGENTS.md",
+    "RULES.md",
     "VERSION",
     "SKILL.md",
     "README.md",
@@ -173,6 +174,14 @@ EXPECTED_ROLE_PREFIXES = {
 KEY_RULES = [
     f"Goal Teams Leader {CURRENT_VERSION}",
     STARTUP_LINE,
+    "RULES.md",
+    "Response Contract",
+    "响应规范",
+    "Execute first",
+    "执行优先",
+    "Report facts only",
+    "只汇报事实",
+    "Not verified",
     PLAN_HISTORY_LINE,
     CHINESE_CORE_LINE,
     "需求卡片",
@@ -371,6 +380,7 @@ STALE_ENGLISH_SURFACE_SNIPPETS = [
 README_RELEASE_ITEMS = [
     "VERSION",
     "SKILL.md",
+    "RULES.md",
     "agents/openai.yaml",
     "references/goal-teams-runtime.md",
     "references/default-AGENTS.md",
@@ -478,6 +488,7 @@ def check_skill_frontmatter() -> None:
     if line_count > 190:
         fail(f"SKILL.md body should stay as a compact progressive loader, got {line_count} lines")
     for route in (
+        "RULES.md",
         "prompts/lead/core.md",
         "prompts/lead/planning.md",
         "prompts/lead/requirement-card.md",
@@ -557,6 +568,7 @@ def check_key_rules() -> None:
         read(path)
         for path in [
             "VERSION",
+            "RULES.md",
             "goal-teams.md",
             "SKILL.md",
             "references/goal-teams-runtime.md",

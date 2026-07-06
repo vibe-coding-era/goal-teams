@@ -5,6 +5,7 @@
 ## 维护原则
 
 - `goal-teams.md` 记录长期用户指定要求，是规则变更的上游依据。
+- `RULES.md` 承载 V2.02 Response Contract（响应规范），Goal Lead 和所有成员必须遵守。
 - `VERSION` 记录当前 Skill 版本号，需要和 `SKILL.md` 正文、README、runtime 启动语保持一致；`SKILL.md` frontmatter 只保留 `name` 和 `description`。
 - `SKILL.md` 是 Codex 发现和执行 skill 的主入口。
 - `references/goal-teams-runtime.md` 承载详细协议、模板和 CLI 示例。
@@ -20,6 +21,7 @@
 - V1.96 起需求卡片、需求规格卡和 PRD 必须承接用户故事与功能验收标准，并让功能验收标准流向 tasklist、Harness、test plan 和 acceptance。
 - V1.97 起所有生成 Markdown 文档默认采用 Google OKF；未指定生成目录时输出到 `GoalTeamsWork-<project_version>/`；输出目录必须维护 `memory.md`；页面规格卡和 HTML 原型 MOCK 必须记录组件库信息。
 - V2.0 起所有 SSOT 产出物必须写入输出目录下的版本号子目录；每个项目先生成 `TaskList.md`；后端先架构设计再 TDD/实现；单元测试用例、单元测试执行、API 集成测试脚本/执行、E2E 用例/执行均由独立 subagent 负责。
+- V2.02 起 `RULES.md` 定义执行期响应规范：执行优先、事实优先、未验证不宣称成功、区分观察和结论、减少无关解释。
 - `prompts/members/<role>/` 承载 V1.94 各角色成员包，每个目录包含 `prompt.md`、`template.md`、`workflow.md` 和 `scripts.md`。
 - `prompts/packets/*.md` 承载 V1.93 Member Goal Packet、Doc Capsule、Harness Contract 和 Teams 表格模板。
 - `prompts/packets/handoff-artifacts.md` 承载交接物 SSOT、Owner subagent、独立检查者、状态字段和 tasklist 账本规则。
@@ -38,6 +40,7 @@
 更新运行规则时，通常需要同步检查：
 
 - `goal-teams.md`
+- `RULES.md`
 - `VERSION`
 - `SKILL.md`
 - `references/goal-teams-runtime.md`

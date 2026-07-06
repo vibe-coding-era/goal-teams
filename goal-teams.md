@@ -4,10 +4,11 @@
 
 ## 基本原则
 
-- 当前 skill 版本号为 `V2.01`，版本号保存在仓库根目录 `VERSION`，并同步写入 `SKILL.md` 正文；`SKILL.md` frontmatter 只保留 `name` 和 `description`。
-- 每次开始 Goal Teams 工作前，Goal Lead 必须先汇报：`我是 Goal Teams Leader V2.01，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，并使用 Harness + SPEC 做为过程与结果产物的约束：`，然后用简短中文列表说明本轮会处理的具体事项。
-- `V1.5` 引入 Harness 契约与三层 Loop 规则，`V1.6` 补充最小 Harness 示例，`V1.7` 引入 Benchmark 外层评估模板，`V1.8` 引入机器可读研发协议，`V1.9` 引入生产流与 Release Gate 协议，`V1.91` 强化中文右边栏成员显示名、界面 E2E 和复刻像素级对比，`V1.92` 引入脚本化工具链、派发协议、冲突策略、预算门和证据不足打回规则，`V1.93` 引入 `SKILL.md` 轻量入口、`prompts/` 角色提示词目录和脚本分目录，`V1.94` 引入成员包子目录和 LLM + 脚本双重复核，`V1.95` 引入 Plan 模式 `需求卡片`，`V1.96` 引入用户故事和功能验收标准，`V1.97` 引入 Google OKF、默认输出目录、memory.md、页面规格卡/HTML 原型组件库记录，`V2.0` 引入版本子目录 SSOT、TaskList 先行、后端架构先行、TDD 单测生成/执行、API 集成 pytest 和前端 E2E 生成/执行；发布说明可以分别记录阶段，但当前运行规则按 `V2.01` 执行。
+- 当前 skill 版本号为 `V2.02`，版本号保存在仓库根目录 `VERSION`，并同步写入 `SKILL.md` 正文；`SKILL.md` frontmatter 只保留 `name` 和 `description`。
+- 每次开始 Goal Teams 工作前，Goal Lead 必须先汇报：`我是 Goal Teams Leader V2.02，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，并使用 Harness + SPEC 做为过程与结果产物的约束：`，然后用简短中文列表说明本轮会处理的具体事项。
+- `V1.5` 引入 Harness 契约与三层 Loop 规则，`V1.6` 补充最小 Harness 示例，`V1.7` 引入 Benchmark 外层评估模板，`V1.8` 引入机器可读研发协议，`V1.9` 引入生产流与 Release Gate 协议，`V1.91` 强化中文右边栏成员显示名、界面 E2E 和复刻像素级对比，`V1.92` 引入脚本化工具链、派发协议、冲突策略、预算门和证据不足打回规则，`V1.93` 引入 `SKILL.md` 轻量入口、`prompts/` 角色提示词目录和脚本分目录，`V1.94` 引入成员包子目录和 LLM + 脚本双重复核，`V1.95` 引入 Plan 模式 `需求卡片`，`V1.96` 引入用户故事和功能验收标准，`V1.97` 引入 Google OKF、默认输出目录、memory.md、页面规格卡/HTML 原型组件库记录，`V2.0` 引入版本子目录 SSOT、TaskList 先行、后端架构先行、TDD 单测生成/执行、API 集成 pytest 和前端 E2E 生成/执行，`V2.02` 引入 `RULES.md` 响应规范；发布说明可以分别记录阶段，但当前运行规则按 `V2.02` 执行。
 - `SKILL.md` 只保留核心问题、硬边界、工作流摘要和渐进式加载路由；详细 Lead 提示词、成员角色提示词和 packet 模板放入 `prompts/`。
+- `RULES.md` 承载 Goal Lead 和所有成员的 Response Contract，要求执行优先、只报告已验证事实、未验证不宣称完成、区分观察和结论、避免无关解释和建议。
 - SSOT 是核心原则：交接物类型、Owner 字段、独立检查字段和状态字段以 `prompts/packets/handoff-artifacts.md` 为 Single Source of Truth；其他 workflow、template、README 和 runtime 示例只能引用或同步它，不能另起一套口径。
 - Google OKF 是生成文档的核心格式：所有 Markdown 输出默认使用 YAML frontmatter，且必须包含非空 `type`；本地双语规范为 `references/google-okf-bilingual-spec.md`。
 - 用户未指定生成目录时，输出根目录默认写入 `GoalTeamsWork-<project_version>/`；该目录必须包含 OKF `memory.md`，按时间线从老到新记录重要用户设置、配置、组件库、上下文摘要和决策，作者固定为 `GoalTeams`。
@@ -163,6 +164,7 @@
 - V1.96 要求需求卡片、需求规格卡和 PRD 都承接 `用户故事` 与 `功能验收标准`；功能验收标准必须能流向 tasklist、Harness、test plan 和 acceptance。
 - V1.97 要求所有生成 Markdown 文档默认采用 Google OKF；用户没有指定生成目录时，所有输出默认进入 `GoalTeamsWork-<project_version>/`；输出目录根部必须维护 `memory.md`；页面规格卡和 HTML Prototype MOCK 必须记录组件库及元素级组件库归属。
 - V2.0 要求所有 SSOT 产出物按版本子目录隔离；每个项目先生成 TaskList；后端先架构设计再 TDD/开发；API 集成测试默认 Python + pytest；前端开发后由独立 subagent 生成并执行 E2E。
+- V2.02 要求 Goal Lead 和所有成员遵守 `RULES.md` 响应规范：简洁、事实优先、执行优先，未验证时明确标注。
 - 可用脚本包括兼容入口 `scripts/install-local.sh`、`scripts/check-version-sync.py`、`scripts/check-agent-names.py`、`scripts/check-member-layout.py`、`scripts/validate-harness.py`、`scripts/pixel-diff.py`、`scripts/compare-artifacts.py`、`scripts/validate-dual-review.py` 和 `scripts/benchmark-runner.py`；真实脚本按职责放入 `scripts/install/`、`scripts/checks/`、`scripts/harness/`、`scripts/review/` 和 `scripts/benchmark/`。
 - 证据不足不能完成。缺少 E2E、缺少像素级对比、只有实现者自测、缺少独立校验或生产流缺少真实审批/回滚/监控证据时，必须打回并记录 `failure_report`、`blocked` 或 `blocked_needs_user`。
 - `Benchmark` 是 Goal Teams 之外的评估目录与任务集，用于比较工作流、skill 版本、prompt 或 agent 组合的稳定性。默认形态是 `benchmarks/` 下的任务包、评分协议、运行记录和失败分类；普通 Goal Teams 任务不自动创建 benchmark，除非用户要求或计划确认。
@@ -180,6 +182,7 @@
 
 - 更新 skill 规则时，同步更新：
   - `AGENTS.md`
+  - `RULES.md`
   - `VERSION`
   - `SKILL.md`
   - `references/goal-teams-runtime.md`

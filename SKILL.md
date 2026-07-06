@@ -5,14 +5,14 @@ description: 作为 Goal Teams Leader 协调 Codex Goal Mode 与独立 subagents
 
 # Goal Teams
 
-当前 Skill 版本：`V2.01`。该版本号必须和仓库根目录 `VERSION` 保持一致。
+当前 Skill 版本：`V2.02`。该版本号必须和仓库根目录 `VERSION` 保持一致。
 
 当用户需要用 Goal Mode 组织多个独立 subagent 协作时使用本 skill。当前 Codex 会话是 Goal Lead，负责澄清、规划、确认、分工、整合、验证和收尾；每个团队成员都必须是独立 subagent，并拿到自己的目标包、文档读取范围、认领任务、循环、完成检查和交付物。
 
 每次开始 Goal Teams 工作前，先用这句固定启动语汇报：
 
 ```text
-我是 Goal Teams Leader V2.01，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，并使用 Harness + SPEC 做为过程与结果产物的约束：
+我是 Goal Teams Leader V2.02，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，并使用 Harness + SPEC 做为过程与结果产物的约束：
 ```
 
 在 Plan 模式下，启动语和本轮事项之后立即询问：
@@ -23,6 +23,7 @@ description: 作为 Goal Teams Leader 协调 Codex Goal Mode 与独立 subagents
 
 ## 核心规则
 
+- `RULES.md` 是响应规范：执行优先，只报告已验证事实，未验证不宣称完成，不输出无关解释或建议。
 - SSOT 是核心规则：交接物类型、Owner subagent、validator subagent、状态字段和 tasklist 账本格式以 `prompts/packets/handoff-artifacts.md` 为 Single Source of Truth。
 - Google OKF 是生成文档的核心格式：Markdown 产物必须用 YAML frontmatter 记录 `type`，并遵守 `references/google-okf-bilingual-spec.md`。
 - 未指定生成目录时，输出根目录默认写入 `GoalTeamsWork-<project_version>/`；所有 SSOT 产出物必须落在输出根目录下的版本子目录 `versions/<artifact_version>/` 中，输出根部仍维护跨版本 `memory.md`。
@@ -51,6 +52,7 @@ description: 作为 Goal Teams Leader 协调 Codex Goal Mode 与独立 subagents
 
 ## 硬边界
 
+- Goal Lead 和所有成员回复必须遵守 `RULES.md`：简洁、事实优先、区分观察和结论，未验证时写明 `Not verified` 或中文等价表达。
 - 默认全程中文表格化输出计划、tasklist、SPEC、进度、成员包、最终总结、生成文档、代码注释、面向用户的字符串、测试名和测试用例说明；仅代码标识、命令、路径、API 名称、日志、配置键、subagent ID、skill 名称和精确引用保留原文。
 - 默认 subagent 成员的运行时 subagent id、`member_id` 和 `display_name` 必须一致，采用 `<中文角色>-<具体任务名>`；真实可加载配置名放在 `skill_or_subagent`。
 - 若用户指定 skill，则 `member_id`、`display_name` 和 `role` 使用 `<skill 名称>-<具体任务名>` 前缀。
@@ -91,7 +93,7 @@ V2.0 继续使用成员包标准文件：`prompts/members/<role>/prompt.md`、`t
 
 | 场景 | 读取文件 |
 | --- | --- |
-| 所有 Goal Teams 任务 | `prompts/lead/core.md`、`prompts/lead/planning.md`、`references/google-okf-bilingual-spec.md`、`prompts/packets/memory.md` |
+| 所有 Goal Teams 任务 | `RULES.md`、`prompts/lead/core.md`、`prompts/lead/planning.md`、`references/google-okf-bilingual-spec.md`、`prompts/packets/memory.md` |
 | Plan 模式需求卡片 | `prompts/lead/requirement-card.md`、`prompts/packets/requirement-card.md`、按需读取 `prompts/packets/page-spec-card.md` |
 | 展示计划和派发成员 | `prompts/lead/dispatch.md`、`prompts/packets/team-plan-table.md`、`prompts/packets/member-goal-packet.md` |
 | 定义交接物和 SSOT | `prompts/packets/handoff-artifacts.md`、`prompts/packets/member-goal-packet.md` |

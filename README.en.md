@@ -4,7 +4,7 @@
 
 Author: 肉山@TGO Hangzhou
 
-Current version: `V2.01`
+Current version: `V2.02`
 
 `goal-teams` is a Codex Skill for running Goal Mode as a coordinated team. A Goal Lead turns one goal into a plan, assigns independent subagents or user-selected skills, controls serial/parallel workflow, records the process in Markdown, and closes the work with independent validation plus a completion audit.
 
@@ -13,7 +13,7 @@ Current version: `V2.01`
 Every run starts with:
 
 ```text
-我是 Goal Teams Leader V2.01，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，并使用 Harness + SPEC 做为过程与结果产物的约束：
+我是 Goal Teams Leader V2.02，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，并使用 Harness + SPEC 做为过程与结果产物的约束：
 ```
 
 中文核心模型要点提示词:
@@ -24,6 +24,7 @@ Every run starts with:
 
 Core rules:
 
+- `RULES.md` defines the runtime response contract: execute first, report verified facts only, never claim completion without verification, and avoid unrelated explanation, recommendations, or filler.
 - SSOT is a core rule: handoff artifact types, Owner subagent, validator subagent, status fields, and the tasklist ledger format are defined by `prompts/packets/handoff-artifacts.md` as the Single Source of Truth.
 - Any role workflow, template, README, runtime example, or Member Goal Packet that mentions handoff artifacts must reference or stay synchronized with this SSOT; do not create a separate handoff vocabulary.
 - During execution, every handoff artifact must be recorded in the tasklist with Owner subagent, validator subagent, completion status, independent check status, Harness, evidence path, and blocker/defer reason.
@@ -47,6 +48,7 @@ How Goal Teams works:
 - V1.96 requires the requirement card, Requirement Specification Card, and PRD to carry user stories and functional acceptance criteria through tasklist, Harness, test plan, and acceptance.
 - V1.97 makes Google OKF the default generated Markdown format. If no output directory is specified, outputs go to `GoalTeamsWork-<project_version>/` with a maintained `memory.md`.
 - V2.0 requires all SSOT outputs under `GoalTeamsWork-<project_version>/versions/<artifact_version>/`, creates `TaskList.md` before work, runs backend architecture-before-TDD, defaults API integration tests to Python + pytest, and separates frontend E2E case generation from execution.
+- V2.02 adds `RULES.md` as the Response Contract for the Goal Lead and all members.
 - UI pages, replicas, recreations, screenshot alignment, and frontend interaction pages must produce `page-spec-card.md` after PRD and before HTML Prototype MOCK, static page development, or dynamic frontend implementation.
 - Page prototype tasks must clarify the component library name, version, URL, or Git repository first; if already provided, record it in `memory.md`, the Page Specification Card, and HTML OKF metadata.
 - The UI visual leak-prevention protocol forbids relying only on full-page pixel diff; visual locks or overlays require both locked and unlocked real-DOM evidence; key components require component-level visual contracts and executable assertions.
@@ -106,6 +108,7 @@ goal-teams/
   SKILL.md
   goal-teams.md
   AGENTS.md
+  RULES.md
   CHANGELOG.md
   README.md
   README.en.md
@@ -251,6 +254,8 @@ V1.96 adds user-story and functional-acceptance requirements: the requirement ca
 
 V1.97 adds `references/google-okf-bilingual-spec.md`, `prompts/packets/page-spec-card.md`, `prompts/packets/memory.md`, and `prompts/packets/html-prototype-mock.md`, while strengthening `references/ui-visual-contract-protocol.md` and `references/ui-e2e-pixel-protocol.md`. Generated Markdown defaults to OKF; unspecified outputs go to `GoalTeamsWork-<project_version>/`; Page Specification Cards and HTML prototypes must record component library name, version, source, per-element library ownership, and data models where applicable.
 
+V2.02 adds the `RULES.md` response contract, requiring the Goal Lead and all members to execute first, report facts, avoid unverified success claims, and reduce unrelated explanation.
+
 V2.01 updates the startup identity to make Goal + Plan execution explicit for planning, execution, and application delivery, with Harness + SPEC as the process and result constraints. The Plan-mode history prompt now supports `没有请回复“2”`, and the Chinese-output rule emphasizes table-first delivery.
 
 V2.0 adds version-subdirectory SSOT, TaskList-first execution, backend architecture-first TDD, independent unit-test authoring/execution, API integration script/execution roles, frontend E2E case/execution roles, and matching member packages plus `goal_*.toml` subagents.
@@ -286,7 +291,7 @@ Use $goal-teams。
 
 ## Release Contents
 
-This repository includes `VERSION`, `SKILL.md`, `agents/openai.yaml`, `references/goal-teams-runtime.md`, `references/default-AGENTS.md`, `references/goal-teams-automation-protocol.md`, `references/goal-teams-production-pipeline.md`, `references/goal-teams-scripted-tooling.md`, `references/google-okf-bilingual-spec.md`, `references/ui-e2e-pixel-protocol.md`, `references/ui-visual-contract-protocol.md`, `references/subagent-dispatch-protocol.md`, `references/dual-review-protocol.md`, `prompts/lead/core.md`, `prompts/lead/requirement-card.md`, `prompts/members/shared.md`, `prompts/members/backend/prompt.md`, `prompts/members/backend/template.md`, `prompts/members/backend/workflow.md`, `prompts/members/backend/scripts.md`, `prompts/members/unit-test-designer/prompt.md`, `prompts/members/unit-test-runner/prompt.md`, `prompts/members/api-integration-test-designer/prompt.md`, `prompts/members/api-integration-test-runner/prompt.md`, `prompts/members/e2e-test-designer/prompt.md`, `prompts/members/e2e-test-runner/prompt.md`, `prompts/packets/member-goal-packet.md`, `prompts/packets/handoff-artifacts.md`, `prompts/packets/page-spec-card.md`, `prompts/packets/memory.md`, `prompts/packets/html-prototype-mock.md`, `prompts/packets/requirement-card.md`, `prompts/packets/dual-review-record.md`, `subagents/goal-*.toml`, `goal-teams.md`, `AGENTS.md`, `scripts/check.sh`, `scripts/validate.py`, `scripts/install-local.sh`, `scripts/check-version-sync.py`, `scripts/check-agent-names.py`, `scripts/check-member-layout.py`, `scripts/validate-harness.py`, `scripts/pixel-diff.py`, `scripts/compare-artifacts.py`, `scripts/validate-dual-review.py`, `scripts/benchmark-runner.py`, `scripts/checks/`, `scripts/harness/`, `scripts/review/`, `scripts/benchmark/`, `scripts/install/`, `prompts/`, `examples/mini-goal-run`, `benchmarks/`, `CHANGELOG.md`, `README.md`, and `README.en.md`.
+This repository includes `VERSION`, `SKILL.md`, `RULES.md`, `agents/openai.yaml`, `references/goal-teams-runtime.md`, `references/default-AGENTS.md`, `references/goal-teams-automation-protocol.md`, `references/goal-teams-production-pipeline.md`, `references/goal-teams-scripted-tooling.md`, `references/google-okf-bilingual-spec.md`, `references/ui-e2e-pixel-protocol.md`, `references/ui-visual-contract-protocol.md`, `references/subagent-dispatch-protocol.md`, `references/dual-review-protocol.md`, `prompts/lead/core.md`, `prompts/lead/requirement-card.md`, `prompts/members/shared.md`, `prompts/members/backend/prompt.md`, `prompts/members/backend/template.md`, `prompts/members/backend/workflow.md`, `prompts/members/backend/scripts.md`, `prompts/members/unit-test-designer/prompt.md`, `prompts/members/unit-test-runner/prompt.md`, `prompts/members/api-integration-test-designer/prompt.md`, `prompts/members/api-integration-test-runner/prompt.md`, `prompts/members/e2e-test-designer/prompt.md`, `prompts/members/e2e-test-runner/prompt.md`, `prompts/packets/member-goal-packet.md`, `prompts/packets/handoff-artifacts.md`, `prompts/packets/page-spec-card.md`, `prompts/packets/memory.md`, `prompts/packets/html-prototype-mock.md`, `prompts/packets/requirement-card.md`, `prompts/packets/dual-review-record.md`, `subagents/goal-*.toml`, `goal-teams.md`, `AGENTS.md`, `scripts/check.sh`, `scripts/validate.py`, `scripts/install-local.sh`, `scripts/check-version-sync.py`, `scripts/check-agent-names.py`, `scripts/check-member-layout.py`, `scripts/validate-harness.py`, `scripts/pixel-diff.py`, `scripts/compare-artifacts.py`, `scripts/validate-dual-review.py`, `scripts/benchmark-runner.py`, `scripts/checks/`, `scripts/harness/`, `scripts/review/`, `scripts/benchmark/`, `scripts/install/`, `prompts/`, `examples/mini-goal-run`, `benchmarks/`, `CHANGELOG.md`, `README.md`, and `README.en.md`.
 
 ## License
 
