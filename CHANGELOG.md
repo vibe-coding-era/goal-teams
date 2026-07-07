@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Bumped current Skill version to `V2.1`.
+- Added `prompts/lead/loop.md` as the Lead LOOP Protocol with Loop Decision, Loop Gate, integration audit, state snapshot, auto-continuation, stop-boundary, and resume-state rules.
+- Added `loop_decision_record` to the handoff artifact SSOT and propagated Lead LOOP fields into Lead planning, dispatch, audit, completion, Member Goal Packet, and Teams plan templates.
+- Added `GT-BENCH-004` to benchmark Lead LOOP behavior across `baseline`, `goal-teams-v2.02`, and `goal-teams-v2.1-loop` modes.
 - Bumped current Skill version to `V2.02`.
 - Added `RULES.md` as the Response Contract for Goal Lead and member responses: execute first, report verified facts, avoid unverified success claims, distinguish observation from conclusion, and minimize unrelated commentary.
 - Bumped current Skill version to `V2.01` and startup identity to `我是 Goal Teams Leader V2.01，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，并使用 Harness + SPEC 做为过程与结果产物的约束：`.

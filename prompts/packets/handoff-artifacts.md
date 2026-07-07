@@ -90,6 +90,7 @@ Tasklist Handoff Row（tasklist 交接物行）:
 | `implementation_change` | 代码或配置变更 | 实现 Owner subagent | `goal_qa` 和/或 `goal_reviewer` | 是 | diff 摘要、测试输出、review 记录 |
 | `test_plan` | Test Plan、测试用例、测试说明 | `goal_qa` | `goal_reviewer` | 是 | `spec/test-plan.md`、测试命令、断言审查 |
 | `evidence_record` | Evidence、脚本报告、截图、日志 | 测试 Owner 或认领任务 Owner | `goal_reviewer` 或 `goal_completion_auditor` | 是 | `progress.md`、报告路径、截图路径、JSONL |
+| `loop_decision_record` | Lead LOOP Decision、Loop Gate、状态快照、续跑决策 | Goal Lead | `goal_completion_auditor` | 长任务、自动续跑、生产流、Benchmark、浏览器 E2E、像素对比或跨成员依赖任务必须写入 | `progress.md`、`loop-state.json`、续跑 Teams 规划表 |
 | `acceptance_record` | Acceptance、验收记录 | `goal_docs` 或 Goal Lead | `goal_reviewer` 或 `goal_completion_auditor` | 是 | `spec/acceptance.md`、验收清单、最终结论 |
 | `doc_capsule` | Doc Capsule | 读取文档的成员 | Goal Lead 或下游接收者 | 需要长期复用时写入 | `.codex/goal-teams/doc-capsules.jsonl` |
 | `dual_review_record` | Dual Review Record | 执行校验的 QA/reviewer | `goal_completion_auditor` | 对比和校验类任务必须写入 | 脚本复核、LLM 复核、最终决策 |

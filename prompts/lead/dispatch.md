@@ -14,6 +14,7 @@
 - SPEC 准备度表。
 - Harness 准备度表。
 - Benchmark 适用性表。
+- Lead LOOP 适用性和 Loop Gate 表。
 - 风险和审批表。
 - 执行进度表。
 - 独立校验表。
@@ -37,5 +38,6 @@
 - 分析/评审成员可只读；实现成员必须有明确 `locked_scope`。
 - 成员不能自我批准生成的文档、代码或测试。
 - Lead 负责路由阻塞、跨成员问题、共享核心改动、高风险审批和整合。
+- Lead 每轮整合后必须记录 `Loop Decision`；如果决策为 `continue_same_scope` 或 `replan`，续跑计划也必须展示为四列 `Teams 规划表`。
 
 使用完整派发协议时读取 `references/subagent-dispatch-protocol.md`。

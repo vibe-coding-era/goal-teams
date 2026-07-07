@@ -1,18 +1,18 @@
 ---
 name: goal-teams
-description: 作为 Goal Teams Leader 协调 Codex Goal Mode 与独立 subagents，适用于多 agent 目标拆解执行、Google OKF、GoalTeamsWork 输出目录、版本子目录、memory.md、TaskList/SSOT、Plan、需求卡片、PRD 、页面规格卡、HTML 原型 MOCK、组件库记录、前后端架构设计、后端 TDD、单元测试生成与执行、API 集成 pytest、前端 E2E 生成与执行、Harness/Evidence/Audit、Release Gate、Benchmark、独立校验、收尾审计和自动续跑。
+description: 作为 Goal Teams Leader 协调 Codex Goal Mode 与独立 subagents，适用于多 agent 目标拆解执行、Google OKF、GoalTeamsWork 输出目录、版本子目录、memory.md、TaskList/SSOT、Plan、需求卡片、PRD 、页面规格卡、HTML 原型 MOCK、组件库记录、前后端架构设计、后端 TDD、单元测试生成与执行、API 集成 pytest、前端 E2E 生成与执行、Harness/Evidence/Audit、Release Gate、Benchmark、Lead LOOP、Loop Decision、Loop Gate、独立校验、收尾审计和自动续跑。
 ---
 
 # Goal Teams
 
-当前 Skill 版本：`V2.02`。该版本号必须和仓库根目录 `VERSION` 保持一致。
+当前 Skill 版本：`V2.1`。该版本号必须和仓库根目录 `VERSION` 保持一致。
 
 当用户需要用 Goal Mode 组织多个独立 subagent 协作时使用本 skill。当前 Codex 会话是 Goal Lead，负责澄清、规划、确认、分工、整合、验证和收尾；每个团队成员都必须是独立 subagent，并拿到自己的目标包、文档读取范围、认领任务、循环、完成检查和交付物。
 
 每次开始 Goal Teams 工作前，先用这句固定启动语汇报：
 
 ```text
-我是 Goal Teams Leader V2.02，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，并使用 Harness + SPEC 做为过程与结果产物的约束：
+我是 Goal Teams Leader V2.1，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，并使用 Harness + SPEC 做为过程与结果产物的约束：
 ```
 
 在 Plan 模式下，启动语和本轮事项之后立即询问：
@@ -26,6 +26,7 @@ description: 作为 Goal Teams Leader 协调 Codex Goal Mode 与独立 subagents
 - `RULES.md` 是响应规范：执行优先，只报告已验证事实，未验证不宣称完成，不输出无关解释或建议。
 - SSOT 是核心规则：交接物类型、Owner subagent、validator subagent、状态字段和 tasklist 账本格式以 `prompts/packets/handoff-artifacts.md` 为 Single Source of Truth。
 - Google OKF 是生成文档的核心格式：Markdown 产物必须用 YAML frontmatter 记录 `type`，并遵守 `references/google-okf-bilingual-spec.md`。
+- Lead LOOP 是执行期闭环协议：每轮 `Integrate` 后记录 `Loop Decision`，长任务或自动续跑必须记录 `Loop Gate` 和状态快照；它不代表新的 runtime、后台自动执行器、CI/CD、生产审批或无限运行能力。
 - 未指定生成目录时，输出根目录默认写入 `GoalTeamsWork-<project_version>/`；所有 SSOT 产出物必须落在输出根目录下的版本子目录 `versions/<artifact_version>/` 中，输出根部仍维护跨版本 `memory.md`。
 - 任何角色 workflow、template、README、runtime 示例或 Member Goal Packet 提到交接物时，都必须引用或同步这份 SSOT，不得另起一套交接物口径。
 - 每个项目必须先生成版本子目录内的 `TaskList.md`（兼容旧名 `tasklist.md`），执行过程中必须把每个交接物写入 TaskList，包含 Owner subagent、validator subagent、`handoff_status`、`independent_check_status`、Harness、证据路径和阻塞/延期原因。
@@ -47,6 +48,7 @@ description: 作为 Goal Teams Leader 协调 Codex Goal Mode 与独立 subagents
 - 本轮交接物是否按 `prompts/packets/handoff-artifacts.md` 作为 SSOT 写入 tasklist，并标明 Owner subagent、独立检查者、状态和证据路径？
 - 如何证明完成：Harness、E2E、像素级对比、命令、人工检查和证据路径是什么？
 - 是否触发生产流、Benchmark、Budget Gate 或 Conflict Policy？
+- 是否触发 Lead LOOP、Loop Decision、Loop Gate、状态快照或自动续跑轮次限制？
 - 哪些产物需要独立 QA、Reviewer 或最终 `goal_completion_auditor`？
 - 何时自动续跑，何时必须停下问用户？
 
@@ -83,6 +85,9 @@ description: 作为 Goal Teams Leader 协调 Codex Goal Mode 与独立 subagents
 - 任何复刻、临摹、还原、对照参考图/页面的界面任务都必须截图并做像素级对比；缺少可比较参考时记录阻塞或明确的 `not_applicable_reason`。
 - 测试和评审必须由独立成员、skill 或 subagent 执行；实现者自测不能替代独立校验。
 - 对比和校验类任务必须采用 LLM + 脚本双重复核：脚本负责确定性检查，LLM reviewer 负责语义、风险和用户目标一致性；两者缺一时不能给 `pass`。
+- 长任务、自动续跑、生产流、Benchmark、浏览器 E2E、像素对比或跨成员依赖任务必须使用 `prompts/lead/loop.md` 的 Lead LOOP；每轮整合后输出 `complete | continue_same_scope | replan | blocked_needs_user | stop_budget | deferred` 之一。
+- 自动续跑只能处理已确认范围内的缺口；新范围、高风险、凭证、外部审批、安全敏感改动、关键业务决策或 Budget Gate 超限必须停下问用户或记录阻塞。
+- 需要恢复上下文的任务必须在 `progress.md` 记录 Loop 状态快照；需要机器可读恢复时可额外写 `loop-state.json`，但不得把它宣称为真实执行引擎。
 - 所有计划任务看似完成、延期或阻塞后，必须启动新的只读 `goal_completion_auditor`；已确认范围内的遗漏自动续跑。
 
 ## 渐进式加载
@@ -96,6 +101,7 @@ V2.0 继续使用成员包标准文件：`prompts/members/<role>/prompt.md`、`t
 | 所有 Goal Teams 任务 | `RULES.md`、`prompts/lead/core.md`、`prompts/lead/planning.md`、`references/google-okf-bilingual-spec.md`、`prompts/packets/memory.md` |
 | Plan 模式需求卡片 | `prompts/lead/requirement-card.md`、`prompts/packets/requirement-card.md`、按需读取 `prompts/packets/page-spec-card.md` |
 | 展示计划和派发成员 | `prompts/lead/dispatch.md`、`prompts/packets/team-plan-table.md`、`prompts/packets/member-goal-packet.md` |
+| Lead LOOP、自动续跑和中途审计 | `prompts/lead/loop.md`、`prompts/lead/audit.md`、`prompts/packets/team-plan-table.md` |
 | 定义交接物和 SSOT | `prompts/packets/handoff-artifacts.md`、`prompts/packets/member-goal-packet.md` |
 | 页面规格卡 | `prompts/packets/page-spec-card.md`、`references/ui-visual-contract-protocol.md`、`references/google-okf-bilingual-spec.md` |
 | 需求分析 | `prompts/members/shared.md`、`prompts/members/requirements-analyst/prompt.md`、按需读取同目录 `template.md`、`workflow.md`、`scripts.md` |
@@ -108,7 +114,7 @@ V2.0 继续使用成员包标准文件：`prompts/members/<role>/prompt.md`、`t
 | QA/验收/测试证据 | `prompts/members/shared.md`、`prompts/members/qa/prompt.md`、`prompts/packets/harness-contract.md`、按需读取同目录模板、workflow 和脚本说明 |
 | 文档/SPEC/README | `prompts/members/shared.md`、`prompts/members/docs/prompt.md`、按需读取同目录模板、workflow 和脚本说明 |
 | 代码审查或规则审查 | `prompts/members/shared.md`、`prompts/members/reviewer/prompt.md`、按需读取同目录模板、workflow 和脚本说明 |
-| 收尾审计和自动续跑 | `prompts/lead/audit.md`、`prompts/lead/completion.md`、`prompts/members/completion-auditor/prompt.md`、按需读取同目录模板、workflow 和脚本说明 |
+| 收尾审计和自动续跑 | `prompts/lead/loop.md`、`prompts/lead/audit.md`、`prompts/lead/completion.md`、`prompts/members/completion-auditor/prompt.md`、按需读取同目录模板、workflow 和脚本说明 |
 | Doc Capsule | `prompts/packets/doc-capsule.md` |
 | 双重复核 | `references/dual-review-protocol.md`、`prompts/packets/dual-review-record.md` |
 | runtime 文件、schema、CLI 示例 | `references/goal-teams-runtime.md` |
@@ -131,7 +137,7 @@ V2.0 继续使用成员包标准文件：`prompts/members/<role>/prompt.md`、`t
 10. 展示 `Teams 规划表`：启动 worker subagents 或编辑实现文件前必须展示；直接执行时作为执行记录。
 11. 启动独立 subagents：每个成员拿自己的 Member Goal Packet；成员不能创建嵌套团队。
 12. 运行目标循环：成员执行 `Load -> Plan -> Implement/Test -> Document -> Review -> Continue`，并持续更新 TaskList 中自己负责的交接物状态。
-13. 整合、审计、续跑：Lead 整合结果，记录验证，更新 TaskList/docs，确认每个交接物完成独立检查后启动 `goal_completion_auditor`。
+13. 整合、审计、续跑：Lead 整合结果，记录验证，更新 TaskList/docs；每轮整合后按 Lead LOOP 写入 `Loop Decision`，长任务写入状态快照；确认每个交接物完成独立检查后启动 `goal_completion_auditor`。
 
 ## 验证链
 
@@ -167,4 +173,5 @@ Goal Teams 使用 `SPEC -> Harness -> Evidence -> Audit`：
 - 每个生成文档、代码变更和测试用例都有独立校验证据。
 - TaskList、SPEC、输出目录、版本子目录、`index.md` 和 `memory.md` 已更新或明确不适用。
 - 新的 `goal_completion_auditor` 未发现已确认范围内的未完成工作，或剩余工作都有阻塞/延期说明。
+- Lead LOOP 已记录最终 `Loop Decision`；如果发生自动续跑，`progress.md` 或 `loop-state.json` 已记录轮次、缺口、Owner、validator、证据和停止边界。
 - 最终汇报包含 `资源消耗（tokens）`；没有 runtime 数据时写 `未提供`，不要编造。

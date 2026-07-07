@@ -49,6 +49,7 @@ REQUIRED_FILES = [
     "references/dual-review-protocol.md",
     "prompts/lead/core.md",
     "prompts/lead/planning.md",
+    "prompts/lead/loop.md",
     "prompts/lead/requirement-card.md",
     "prompts/lead/dispatch.md",
     "prompts/lead/audit.md",
@@ -135,6 +136,10 @@ REQUIRED_FILES = [
     "benchmarks/tasks/GT-BENCH-003/harness.md",
     "benchmarks/tasks/GT-BENCH-003/scoring.md",
     "benchmarks/tasks/GT-BENCH-003/expected-artifacts.md",
+    "benchmarks/tasks/GT-BENCH-004/task.md",
+    "benchmarks/tasks/GT-BENCH-004/harness.md",
+    "benchmarks/tasks/GT-BENCH-004/scoring.md",
+    "benchmarks/tasks/GT-BENCH-004/expected-artifacts.md",
 ]
 
 EXPECTED_SUBAGENTS = {
@@ -219,6 +224,14 @@ KEY_RULES = [
     "Harness Contract",
     "Benchmark",
     "Skill Improvement Loop",
+    "Lead LOOP",
+    "Loop Decision",
+    "Loop Gate",
+    "loop-state.json",
+    "prompts/lead/loop.md",
+    "complete | continue_same_scope | replan | blocked_needs_user | stop_budget | deferred",
+    "block_completion_when_evidence_missing",
+    "stop_when_budget_exceeded",
     "harness.yaml",
     "evidence.jsonl",
     "pipeline-state.json",
@@ -582,6 +595,7 @@ def check_key_rules() -> None:
             "references/dual-review-protocol.md",
             "prompts/lead/core.md",
             "prompts/lead/planning.md",
+            "prompts/lead/loop.md",
             "prompts/lead/requirement-card.md",
             "prompts/lead/dispatch.md",
             "prompts/lead/audit.md",
@@ -646,7 +660,17 @@ def check_key_rules() -> None:
     for rule in KEY_RULES:
         if rule not in combined:
             fail(f"Key rule missing from docs: {rule}")
-    for path in ["SKILL.md", "references/goal-teams-runtime.md", "agents/openai.yaml", "README.md", "README.en.md", "goal-teams.md"]:
+    for path in [
+        "SKILL.md",
+        "references/goal-teams-runtime.md",
+        "prompts/lead/core.md",
+        "agents/openai.yaml",
+        "README.md",
+        "README.en.md",
+        "goal-teams.md",
+        "examples/mini-goal-run/README.md",
+        "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/plan.md",
+    ]:
         if STARTUP_LINE not in read(path):
             fail(f"Startup line missing from {path}")
     stale_examples = [
@@ -777,19 +801,34 @@ def check_example() -> None:
             "benchmarks/tasks/GT-BENCH-003/harness.md",
             "benchmarks/tasks/GT-BENCH-003/scoring.md",
             "benchmarks/tasks/GT-BENCH-003/expected-artifacts.md",
+            "benchmarks/tasks/GT-BENCH-004/task.md",
+            "benchmarks/tasks/GT-BENCH-004/harness.md",
+            "benchmarks/tasks/GT-BENCH-004/scoring.md",
+            "benchmarks/tasks/GT-BENCH-004/expected-artifacts.md",
         ]
     )
     for snippet in (
         "GT-BENCH-001",
         "GT-BENCH-002",
         "GT-BENCH-003",
+        "GT-BENCH-004",
         "baseline",
         "goal-teams",
+        "goal-teams-v2.1-loop",
         "scoring",
         "tokens",
         "release gate",
         "pipeline-gates",
         "pixel",
+        "Loop Decision",
+        "Loop Gate",
+        "loop-state.json",
+        "complete",
+        "continue_same_scope",
+        "replan",
+        "blocked_needs_user",
+        "stop_budget",
+        "deferred",
     ):
         if snippet not in benchmark:
             fail(f"Benchmark template missing {snippet}")

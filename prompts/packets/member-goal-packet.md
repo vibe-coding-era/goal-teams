@@ -25,6 +25,14 @@ Member Goal Packet（成员目标包）:
 - workflow_mode: serial | parallel
 - depends_on:
 - budget_gate:
+- loop_gate:
+  - max_loop_rounds:
+  - max_auto_continue_rounds:
+  - confirmed_scope:
+  - block_completion_when_evidence_missing:
+  - stop_when_new_scope:
+  - stop_when_safety_gate:
+  - stop_when_budget_exceeded:
 - conflict_policy:
 - user_requested_skill:
 - user_requested_subagent:
@@ -64,6 +72,12 @@ Member Goal Packet（成员目标包）:
   - llm_review
   - final_decision
 - benchmark_refs:
+- loop_refs:
+  - loop_id
+  - round
+  - prior_decision
+  - open_gaps
+  - expected_loop_decision_update
 - required_independent_validation:
   - documents
   - code

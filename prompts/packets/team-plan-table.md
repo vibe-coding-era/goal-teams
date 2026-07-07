@@ -32,6 +32,17 @@ Harness 准备度：
 | 任务 | Harness 类型 | 检查/命令 | 证据位置 | Owner | 状态 |
 | --- | --- | --- | --- | --- | --- |
 
+Lead LOOP 准备度：
+
+| 任务 | 是否触发 Lead LOOP | Loop Gate | 当前轮次 | 停止条件 | 状态 |
+| --- | --- | --- | --- | --- | --- |
+
+续跑 Teams 规划表：
+
+| 成员 / Skill(Subagent) | 任务范围 | 交付与标准 | 验证安排 |
+| --- | --- | --- | --- |
+| 成员：<Owner><br>Skill/Subagent：`<subagent>` | Loop round：<round><br>缺口：<gap><br>来源证据：<source_evidence><br>范围状态：confirmed_scope / new_scope / safety_gate / user_decision<br>锁定范围：<locked_scope> | 预期证据：<expected_evidence><br>Loop Decision：continue_same_scope / replan<br>TaskList：Owner 和 validator 已写入 | 校验者：<validator><br>Harness：<checks/evidence_path><br>是否需用户确认：true / false |
+
 执行进度：
 
 | 成员 | 认领任务 | 状态 | 当前步骤 | 证据 | 下一步 |

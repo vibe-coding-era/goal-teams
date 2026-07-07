@@ -15,12 +15,13 @@ Goal Teams 工作总是先规划，再派发或编辑实现文件。直接执行
 9. 涉及 UI 页面、复刻、还原、截图对齐或前端交互页面时，把 `page-spec-card.md` 放在 PRD 之后、HTML Prototype 或前端实现之前；非 UI 任务记录 `not_applicable_reason`。
 10. 用户要求页面原型、HTML Prototype MOCK、静态页面 MOCK 或动态前端页面时，若缺少组件库名称、版本、URL 或 Git 仓库，先澄清；若已给出，写入 `memory.md`、页面规格卡和 HTML OKF 元数据。
 11. 在 TaskList 中为每个交接物写入 `handoff_artifact`、`artifact_type`、`owner_subagent`、`validator_subagent`、`handoff_status`、`independent_check_status`、Harness 和证据路径。
-12. 每个功能切片必须先拆到 V2.0 最小颗粒度：需求规格卡、PRD、页面规格卡、HTML 原型、前端开发、前后端架构设计、后端 TDD、后端开发、后端执行 TDD、API 集成测试脚本生成、API 集成测试、API 集成测试执行、生成 E2E 测试用例、执行 E2E 测试用例、BugFix、测试报告生成；不适用项写 `not_applicable_reason`。
-13. 后端任务必须安排：后端架构设计 -> `goal_unit_test_designer` 写单元测试 -> `goal_backend` 实现 -> `goal_unit_test_runner` 跑单测 -> `goal_api_integration_test_runner` 跑 API 集成测试。API 集成测试脚本可在架构设计后由 `goal_api_integration_test_designer` 并行生成，默认 Python + pytest。
-14. 前端任务必须安排：前端架构设计/页面规格卡/HTML 原型 -> `goal_frontend` 开发 -> `goal_e2e_test_designer` 生成 E2E 用例 -> `goal_e2e_test_runner` 执行。
-15. 生成 Plan 表格前，不启动实现 subagents，也不编辑实现文件。
+12. 长任务、自动续跑、生产流、Benchmark、浏览器 E2E、像素对比或跨成员依赖任务必须读取 `prompts/lead/loop.md`，并在 Plan 中写入 `Loop Gate`：最大轮次、最大自动续跑轮次、成员数、时间、tokens、费用、已确认范围和停止条件。
+13. 每个功能切片必须先拆到 V2.0 最小颗粒度：需求规格卡、PRD、页面规格卡、HTML 原型、前端开发、前后端架构设计、后端 TDD、后端开发、后端执行 TDD、API 集成测试脚本生成、API 集成测试、API 集成测试执行、生成 E2E 测试用例、执行 E2E 测试用例、BugFix、测试报告生成；不适用项写 `not_applicable_reason`。
+14. 后端任务必须安排：后端架构设计 -> `goal_unit_test_designer` 写单元测试 -> `goal_backend` 实现 -> `goal_unit_test_runner` 跑单测 -> `goal_api_integration_test_runner` 跑 API 集成测试。API 集成测试脚本可在架构设计后由 `goal_api_integration_test_designer` 并行生成，默认 Python + pytest。
+15. 前端任务必须安排：前端架构设计/页面规格卡/HTML 原型 -> `goal_frontend` 开发 -> `goal_e2e_test_designer` 生成 E2E 用例 -> `goal_e2e_test_runner` 执行。
+16. 生成 Plan 表格前，不启动实现 subagents，也不编辑实现文件。
 
-有效 Plan 必须包含：澄清状态、假设、项目版本、输出目录、artifact version、版本子目录、memory.md 状态、TaskList 状态、需求卡片路径、用户故事、功能验收标准、SPEC 状态、页面规格卡状态、组件库状态、交接物 SSOT、Harness 契约、Benchmark 适用性、成员分工、任务认领、workflow、前置任务、锁定范围、交接物 Owner、独立检查者、测试 Owner、文档 Owner、风险和停止条件。
+有效 Plan 必须包含：澄清状态、假设、项目版本、输出目录、artifact version、版本子目录、memory.md 状态、TaskList 状态、需求卡片路径、用户故事、功能验收标准、SPEC 状态、页面规格卡状态、组件库状态、交接物 SSOT、Harness 契约、Benchmark 适用性、Lead LOOP 适用性、Loop Gate、成员分工、任务认领、workflow、前置任务、锁定范围、交接物 Owner、独立检查者、测试 Owner、文档 Owner、风险和停止条件。
 
 SPEC 固定术语：
 
@@ -49,6 +50,7 @@ GoalTeamsWork-<project_version>/
       plan.md
       progress.md
       decisions.md
+      loop-state.json
       spec/
         requirement-card.md
         requirement-spec-card.md

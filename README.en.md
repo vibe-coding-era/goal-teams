@@ -4,7 +4,7 @@
 
 Author: 肉山@TGO Hangzhou
 
-Current version: `V2.02`
+Current version: `V2.1`
 
 `goal-teams` is a Codex Skill for running Goal Mode as a coordinated team. A Goal Lead turns one goal into a plan, assigns independent subagents or user-selected skills, controls serial/parallel workflow, records the process in Markdown, and closes the work with independent validation plus a completion audit.
 
@@ -13,7 +13,7 @@ Current version: `V2.02`
 Every run starts with:
 
 ```text
-我是 Goal Teams Leader V2.02，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，并使用 Harness + SPEC 做为过程与结果产物的约束：
+我是 Goal Teams Leader V2.1，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，并使用 Harness + SPEC 做为过程与结果产物的约束：
 ```
 
 中文核心模型要点提示词:
@@ -39,6 +39,7 @@ How Goal Teams works:
 - V1.91 prefers custom `goal_*` subagents by default. If the runtime or Codex right sidebar shows an English nickname such as `Reviewer C` or `QA B`, treat it only as a transport handle; user-visible tables, packets, state, and final reports still use Chinese member names.
 - Every task states whether its workflow is serial or parallel; serial tasks list predecessors so shared scopes are not edited concurrently.
 - `SPEC` defines completion criteria, `Harness` defines the verification contract, `Evidence` records traceable proof, `Pipeline` records R&D/release state, `Benchmark` defines the outer evaluation task set, and `Loop` defines member, Lead, and Skill Improvement cycles.
+- V2.1 adds the Lead LOOP runtime protocol: after every `Integrate`, the Lead records a `Loop Decision`; long-running or auto-continuation work records `Loop Gate`, state snapshots, and stop boundaries. This protocol is not a new runtime, background executor, CI/CD system, or production approval system.
 - Harness is not a new runtime executor. It appears as checks, commands, manual checklists, evidence paths, and failure-report formats in the Plan, tasklist, Member Goal Packet, test plan, and acceptance docs.
 - Every UI-level task must run an E2E test. Replica/recreation tasks must take screenshots and perform pixel-level comparison, recording the baseline, actual screenshot, diff image or metric, threshold, viewport, and conclusion.
 - V1.92 uses a prompt + scripted-tooling split: prompts handle goal interpretation, dispatch, conflicts, budgets, and risk judgment; scripts handle version sync, agent naming, Harness schema, pixel diff, benchmark package checks, and local installation.
@@ -80,7 +81,8 @@ How Goal Teams works:
 14. Show the four-column `Teams 规划表`: member/capability, task scope, delivery criteria, validation plan.
 15. Start independent members after confirmation or direct-execution wording; each member stays inside locked scope, Harness, and workflow constraints.
 16. Persist plans, progress, decisions, test evidence, and acceptance evidence in output-directory OKF Markdown.
-17. Run `goal_completion_auditor`; auto-continue only unfinished work that remains inside the confirmed scope.
+17. After each integration, record the Lead LOOP `Loop Decision`; for long-running or auto-continuation work, also update `progress.md` or `loop-state.json`.
+18. Run `goal_completion_auditor`; auto-continue only unfinished work that remains inside the confirmed scope.
 
 ## Teams 规划表
 
@@ -240,7 +242,7 @@ Validate before maintenance releases:
 
 `examples/mini-goal-run` provides a minimal output tree for checking indexes, SPEC, tasklist, the Teams plan table, independent validation, and completion audit. `goal-teams.md` records long-term user requirements and is the upstream reference for maintaining this Skill.
 
-`examples/mini-goal-run` also includes `harness/` replay material that demonstrates the minimal static `setup -> run -> checks -> report` chain, plus static automation protocol, evidence ledger, and pipeline gate samples. `benchmarks/` provides `GT-BENCH-001`, `GT-BENCH-002`, and `GT-BENCH-003` templates for comparing baseline and Goal Teams output quality, evidence completeness, production gate judgment, UI E2E/pixel evidence handling, and cost.
+`examples/mini-goal-run` also includes `harness/` replay material that demonstrates the minimal static `setup -> run -> checks -> report` chain, plus static automation protocol, evidence ledger, and pipeline gate samples. `benchmarks/` provides `GT-BENCH-001`, `GT-BENCH-002`, `GT-BENCH-003`, and `GT-BENCH-004` templates for comparing baseline and Goal Teams output quality, evidence completeness, production gate judgment, UI E2E/pixel evidence handling, Lead LOOP state recovery, and cost.
 
 V1.92 adds `references/goal-teams-scripted-tooling.md`, `references/ui-e2e-pixel-protocol.md`, and `references/subagent-dispatch-protocol.md`.
 
@@ -253,6 +255,8 @@ V1.95 adds `prompts/lead/requirement-card.md` and `prompts/packets/requirement-c
 V1.96 adds user-story and functional-acceptance requirements: the requirement card uses “作为...我想要...以便...” stories and verifiable functional acceptance criteria; PRD, tasklist, Harness, test plan, and acceptance must carry them forward.
 
 V1.97 adds `references/google-okf-bilingual-spec.md`, `prompts/packets/page-spec-card.md`, `prompts/packets/memory.md`, and `prompts/packets/html-prototype-mock.md`, while strengthening `references/ui-visual-contract-protocol.md` and `references/ui-e2e-pixel-protocol.md`. Generated Markdown defaults to OKF; unspecified outputs go to `GoalTeamsWork-<project_version>/`; Page Specification Cards and HTML prototypes must record component library name, version, source, per-element library ownership, and data models where applicable.
+
+V2.1 adds `prompts/lead/loop.md`, Lead LOOP Protocol, Loop Decision, Loop Gate, state snapshot rules, and `GT-BENCH-004` for evaluating mid-run evidence gaps, auto-continuation, stop boundaries, and state recovery.
 
 V2.02 adds the `RULES.md` response contract, requiring the Goal Lead and all members to execute first, report facts, avoid unverified success claims, and reduce unrelated explanation.
 
@@ -291,7 +295,7 @@ Use $goal-teams。
 
 ## Release Contents
 
-This repository includes `VERSION`, `SKILL.md`, `RULES.md`, `agents/openai.yaml`, `references/goal-teams-runtime.md`, `references/default-AGENTS.md`, `references/goal-teams-automation-protocol.md`, `references/goal-teams-production-pipeline.md`, `references/goal-teams-scripted-tooling.md`, `references/google-okf-bilingual-spec.md`, `references/ui-e2e-pixel-protocol.md`, `references/ui-visual-contract-protocol.md`, `references/subagent-dispatch-protocol.md`, `references/dual-review-protocol.md`, `prompts/lead/core.md`, `prompts/lead/requirement-card.md`, `prompts/members/shared.md`, `prompts/members/backend/prompt.md`, `prompts/members/backend/template.md`, `prompts/members/backend/workflow.md`, `prompts/members/backend/scripts.md`, `prompts/members/unit-test-designer/prompt.md`, `prompts/members/unit-test-runner/prompt.md`, `prompts/members/api-integration-test-designer/prompt.md`, `prompts/members/api-integration-test-runner/prompt.md`, `prompts/members/e2e-test-designer/prompt.md`, `prompts/members/e2e-test-runner/prompt.md`, `prompts/packets/member-goal-packet.md`, `prompts/packets/handoff-artifacts.md`, `prompts/packets/page-spec-card.md`, `prompts/packets/memory.md`, `prompts/packets/html-prototype-mock.md`, `prompts/packets/requirement-card.md`, `prompts/packets/dual-review-record.md`, `subagents/goal-*.toml`, `goal-teams.md`, `AGENTS.md`, `scripts/check.sh`, `scripts/validate.py`, `scripts/install-local.sh`, `scripts/check-version-sync.py`, `scripts/check-agent-names.py`, `scripts/check-member-layout.py`, `scripts/validate-harness.py`, `scripts/pixel-diff.py`, `scripts/compare-artifacts.py`, `scripts/validate-dual-review.py`, `scripts/benchmark-runner.py`, `scripts/checks/`, `scripts/harness/`, `scripts/review/`, `scripts/benchmark/`, `scripts/install/`, `prompts/`, `examples/mini-goal-run`, `benchmarks/`, `CHANGELOG.md`, `README.md`, and `README.en.md`.
+This repository includes `VERSION`, `SKILL.md`, `RULES.md`, `agents/openai.yaml`, `references/goal-teams-runtime.md`, `references/default-AGENTS.md`, `references/goal-teams-automation-protocol.md`, `references/goal-teams-production-pipeline.md`, `references/goal-teams-scripted-tooling.md`, `references/google-okf-bilingual-spec.md`, `references/ui-e2e-pixel-protocol.md`, `references/ui-visual-contract-protocol.md`, `references/subagent-dispatch-protocol.md`, `references/dual-review-protocol.md`, `prompts/lead/core.md`, `prompts/lead/loop.md`, `prompts/lead/requirement-card.md`, `prompts/members/shared.md`, `prompts/members/backend/prompt.md`, `prompts/members/backend/template.md`, `prompts/members/backend/workflow.md`, `prompts/members/backend/scripts.md`, `prompts/members/unit-test-designer/prompt.md`, `prompts/members/unit-test-runner/prompt.md`, `prompts/members/api-integration-test-designer/prompt.md`, `prompts/members/api-integration-test-runner/prompt.md`, `prompts/members/e2e-test-designer/prompt.md`, `prompts/members/e2e-test-runner/prompt.md`, `prompts/packets/member-goal-packet.md`, `prompts/packets/handoff-artifacts.md`, `prompts/packets/page-spec-card.md`, `prompts/packets/memory.md`, `prompts/packets/html-prototype-mock.md`, `prompts/packets/requirement-card.md`, `prompts/packets/dual-review-record.md`, `subagents/goal-*.toml`, `goal-teams.md`, `AGENTS.md`, `scripts/check.sh`, `scripts/validate.py`, `scripts/install-local.sh`, `scripts/check-version-sync.py`, `scripts/check-agent-names.py`, `scripts/check-member-layout.py`, `scripts/validate-harness.py`, `scripts/pixel-diff.py`, `scripts/compare-artifacts.py`, `scripts/validate-dual-review.py`, `scripts/benchmark-runner.py`, `scripts/checks/`, `scripts/harness/`, `scripts/review/`, `scripts/benchmark/`, `scripts/install/`, `prompts/`, `examples/mini-goal-run`, `benchmarks/`, `CHANGELOG.md`, `README.md`, and `README.en.md`.
 
 ## License
 

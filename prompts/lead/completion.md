@@ -10,6 +10,7 @@
 - 如使用 Benchmark，相关任务的运行记录和失败分类已写入报告或 progress。
 - 最终汇报包含每个任务或 subagent 的资源消耗列，格式为 `资源消耗（用户 / tokens / 费用）`；运行时没有返回 tokens 或费用时写 `未提供`。
 - 新的 `goal_completion_auditor` 未发现已确认范围内的未完成工作，或剩余工作都有阻塞/延期说明。
+- Lead LOOP 最终决策已记录为 `complete`、`blocked_needs_user`、`stop_budget` 或 `deferred`；如果发生自动续跑，`progress.md` 或 `loop-state.json` 已记录轮次、open gaps、Owner、validator、证据和停止边界。
 - 必要测试已运行，或说明跳过原因和风险。
 - 测试由独立成员、skill 或 subagent 执行，例外必须记录。
 - 每个生成文档、代码变更和测试用例都有独立校验证据。

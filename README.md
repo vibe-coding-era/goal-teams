@@ -4,7 +4,7 @@
 
 作者：肉山@TGO 杭州
 
-当前版本：`V2.02`
+当前版本：`V2.1`
 
 `goal-teams` 是一个面向 Codex 的 Goal Mode 团队化 Skill。它把一个目标拆成 Goal Lead 统筹、多个独立 subagent 或用户指定 skill 分工执行的闭环：先澄清和规划，再按 workflow 串并行推进，最后由独立校验和收尾审计确认没有遗漏。
 
@@ -13,7 +13,7 @@
 每次启动先汇报：
 
 ```text
-我是 Goal Teams Leader V2.02，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，并使用 Harness + SPEC 做为过程与结果产物的约束：
+我是 Goal Teams Leader V2.1，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，并使用 Harness + SPEC 做为过程与结果产物的约束：
 ```
 
 中文核心模型要点提示词：
@@ -39,6 +39,7 @@ Goal Teams 的核心工作方式：
 - V1.91 默认优先使用 `goal_*` 自定义 subagents；如果运行时或 Codex 右边栏显示 `Reviewer C`、`QA B` 这类英文昵称，只当作 transport handle，用户可见表格、packet、state 和最终汇报仍使用中文成员名。
 - 每个任务都必须说明 workflow 是串行还是并行；串行任务要列出前置任务，避免共享范围被并发修改。
 - `SPEC` 定义完成条件，`Harness` 定义验证契约，`Evidence` 记录可追溯证据，`Pipeline` 记录研发/发布状态，`Benchmark` 定义外层评估任务集，`Loop` 定义成员、Lead 和 Skill Improvement 三层循环。
+- V2.1 新增 Lead LOOP 执行期闭环协议：每轮 `Integrate` 后记录 `Loop Decision`，长任务或自动续跑记录 `Loop Gate`、状态快照和停止边界；该协议不代表新的 runtime、后台执行器、CI/CD 或生产审批系统。
 - Harness 不是新的 runtime 执行器；它表现为 Plan、tasklist、Member Goal Packet、test plan 和 acceptance 中的检查、命令、人工清单、证据路径和失败报告格式。
 - 任何界面级任务必须做 E2E 测试；复刻、临摹或还原任务必须截图做像素级对比，并记录基准图、实际图、diff 图或差异指标、阈值、viewport 和结论。
 - V1.92 采用提示词 + 脚本混合模式：提示词负责目标理解、调度、冲突、预算和风险判断；脚本负责版本同步、agent 命名、Harness schema、像素 diff、benchmark 包检查和本地安装。
@@ -80,7 +81,8 @@ Goal Teams 的核心工作方式：
 14. 展示四列 `Teams 规划表`：成员与能力、任务范围、交付与标准、验证安排。
 15. 根据确认或直接执行语义启动独立成员，按 locked scope、Harness 和 workflow 推进。
 16. 将计划、进度、决策、测试证据和验收结果写入输出目录 OKF Markdown。
-17. 完成后由 `goal_completion_auditor` 审计；需要续跑时只处理已确认目标范围内的剩余工作。
+17. 每轮整合后记录 Lead LOOP 的 `Loop Decision`；长任务或自动续跑同步 `progress.md` 或 `loop-state.json`。
+18. 完成后由 `goal_completion_auditor` 审计；需要续跑时只处理已确认目标范围内的剩余工作。
 
 ## Teams 规划表
 
@@ -240,7 +242,7 @@ cp ~/.codex/skills/goal-teams/subagents/goal-*.toml ~/.codex/agents/
 
 `examples/mini-goal-run` 提供最小产物树，可用于检查索引、SPEC、tasklist、Teams 规划表、独立校验和收尾审计是否齐全。`goal-teams.md` 记录长期用户指定要求，是维护时的上游依据。
 
-`examples/mini-goal-run` 还包含 `harness/` 复盘资料，展示 `setup -> run -> checks -> report` 的最小静态链路，并提供 automation protocol、evidence ledger 和 pipeline gates 静态样本。`benchmarks/` 提供 `GT-BENCH-001` 与 `GT-BENCH-002` 模板，用于比较 baseline 与 Goal Teams 的产物质量、证据完整度、生产门禁判断和成本。
+`examples/mini-goal-run` 还包含 `harness/` 复盘资料，展示 `setup -> run -> checks -> report` 的最小静态链路，并提供 automation protocol、evidence ledger 和 pipeline gates 静态样本。`benchmarks/` 提供 `GT-BENCH-001`、`GT-BENCH-002`、`GT-BENCH-003` 和 `GT-BENCH-004` 模板，用于比较 baseline 与 Goal Teams 的产物质量、证据完整度、生产门禁判断、UI 证据处理、Lead LOOP 状态恢复和成本。
 
 V1.92 新增 `references/goal-teams-scripted-tooling.md`、`references/ui-e2e-pixel-protocol.md` 和 `references/subagent-dispatch-protocol.md`，并提供 `GT-BENCH-003` 用于验证 UI E2E、复刻像素级对比和证据不足打回。
 
@@ -253,6 +255,8 @@ V1.95 新增 `prompts/lead/requirement-card.md` 和 `prompts/packets/requirement
 V1.96 新增用户故事和功能验收标准要求：需求卡片先写“作为...我想要...以便...”格式的用户故事，并给出可验证的功能验收标准；后续 PRD、tasklist、Harness、test plan 和 acceptance 必须承接。
 
 V1.97 新增 `references/google-okf-bilingual-spec.md`、`prompts/packets/page-spec-card.md`、`prompts/packets/memory.md`、`prompts/packets/html-prototype-mock.md`，并强化 `references/ui-visual-contract-protocol.md` 与 `references/ui-e2e-pixel-protocol.md`。所有生成 Markdown 文档默认采用 OKF；无指定目录时写入 `GoalTeamsWork-<project_version>/`；页面规格卡和 HTML 原型必须记录组件库名称、版本、来源、元素级组件库归属和必要数据模型。
+
+V2.1 新增 `prompts/lead/loop.md`、Lead LOOP Protocol、Loop Decision、Loop Gate、状态快照规则和 `GT-BENCH-004`，用于评估中途缺证、自动续跑、停止边界和状态恢复。
 
 V2.02 新增 `RULES.md` 响应规范，要求 Goal Lead 和所有成员执行优先、事实优先、未验证不宣称完成、减少无关解释。
 
@@ -291,7 +295,7 @@ Use $goal-teams。
 
 ## 发布内容
 
-当前仓库发布内容包括 `VERSION`、`SKILL.md`、`RULES.md`、`agents/openai.yaml`、`references/goal-teams-runtime.md`、`references/default-AGENTS.md`、`references/goal-teams-automation-protocol.md`、`references/goal-teams-production-pipeline.md`、`references/goal-teams-scripted-tooling.md`、`references/google-okf-bilingual-spec.md`、`references/ui-e2e-pixel-protocol.md`、`references/ui-visual-contract-protocol.md`、`references/subagent-dispatch-protocol.md`、`references/dual-review-protocol.md`、`prompts/lead/core.md`、`prompts/lead/requirement-card.md`、`prompts/members/shared.md`、`prompts/members/backend/prompt.md`、`prompts/members/backend/template.md`、`prompts/members/backend/workflow.md`、`prompts/members/backend/scripts.md`、`prompts/members/unit-test-designer/prompt.md`、`prompts/members/unit-test-runner/prompt.md`、`prompts/members/api-integration-test-designer/prompt.md`、`prompts/members/api-integration-test-runner/prompt.md`、`prompts/members/e2e-test-designer/prompt.md`、`prompts/members/e2e-test-runner/prompt.md`、`prompts/packets/member-goal-packet.md`、`prompts/packets/handoff-artifacts.md`、`prompts/packets/page-spec-card.md`、`prompts/packets/memory.md`、`prompts/packets/html-prototype-mock.md`、`prompts/packets/requirement-card.md`、`prompts/packets/dual-review-record.md`、`subagents/goal-*.toml`、`goal-teams.md`、`AGENTS.md`、`scripts/check.sh`、`scripts/validate.py`、`scripts/install-local.sh`、`scripts/check-version-sync.py`、`scripts/check-agent-names.py`、`scripts/check-member-layout.py`、`scripts/validate-harness.py`、`scripts/pixel-diff.py`、`scripts/compare-artifacts.py`、`scripts/validate-dual-review.py`、`scripts/benchmark-runner.py`、`scripts/checks/`、`scripts/harness/`、`scripts/review/`、`scripts/benchmark/`、`scripts/install/`、`prompts/`、`examples/mini-goal-run`、`benchmarks/`、`CHANGELOG.md`、`README.md` 和 `README.en.md`。
+当前仓库发布内容包括 `VERSION`、`SKILL.md`、`RULES.md`、`agents/openai.yaml`、`references/goal-teams-runtime.md`、`references/default-AGENTS.md`、`references/goal-teams-automation-protocol.md`、`references/goal-teams-production-pipeline.md`、`references/goal-teams-scripted-tooling.md`、`references/google-okf-bilingual-spec.md`、`references/ui-e2e-pixel-protocol.md`、`references/ui-visual-contract-protocol.md`、`references/subagent-dispatch-protocol.md`、`references/dual-review-protocol.md`、`prompts/lead/core.md`、`prompts/lead/loop.md`、`prompts/lead/requirement-card.md`、`prompts/members/shared.md`、`prompts/members/backend/prompt.md`、`prompts/members/backend/template.md`、`prompts/members/backend/workflow.md`、`prompts/members/backend/scripts.md`、`prompts/members/unit-test-designer/prompt.md`、`prompts/members/unit-test-runner/prompt.md`、`prompts/members/api-integration-test-designer/prompt.md`、`prompts/members/api-integration-test-runner/prompt.md`、`prompts/members/e2e-test-designer/prompt.md`、`prompts/members/e2e-test-runner/prompt.md`、`prompts/packets/member-goal-packet.md`、`prompts/packets/handoff-artifacts.md`、`prompts/packets/page-spec-card.md`、`prompts/packets/memory.md`、`prompts/packets/html-prototype-mock.md`、`prompts/packets/requirement-card.md`、`prompts/packets/dual-review-record.md`、`subagents/goal-*.toml`、`goal-teams.md`、`AGENTS.md`、`scripts/check.sh`、`scripts/validate.py`、`scripts/install-local.sh`、`scripts/check-version-sync.py`、`scripts/check-agent-names.py`、`scripts/check-member-layout.py`、`scripts/validate-harness.py`、`scripts/pixel-diff.py`、`scripts/compare-artifacts.py`、`scripts/validate-dual-review.py`、`scripts/benchmark-runner.py`、`scripts/checks/`、`scripts/harness/`、`scripts/review/`、`scripts/benchmark/`、`scripts/install/`、`prompts/`、`examples/mini-goal-run`、`benchmarks/`、`CHANGELOG.md`、`README.md` 和 `README.en.md`。
 
 ## License
 
