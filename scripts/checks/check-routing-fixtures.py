@@ -19,9 +19,26 @@ class RouteFixture:
     row_pattern: str
     expected_refs: tuple[str, ...]
     forbidden_refs: tuple[str, ...] = ()
+    description_terms: tuple[str, ...] = ()
 
 
 FIXTURES = (
+    RouteFixture(
+        name="plan-mode-only",
+        prompt="请先只规划一个登录页空状态方案，生成需求卡片和 PRD，等我确认后再执行。",
+        row_pattern="Plan 模式需求卡片",
+        expected_refs=(
+            "prompts/lead/requirement-card.md",
+            "prompts/packets/requirement-card.md",
+            "references/google-okf-bilingual-spec.md",
+        ),
+        forbidden_refs=(
+            "references/rules-ui.md",
+            "references/rules-testing.md",
+            "references/rules-loop.md",
+        ),
+        description_terms=("Plan Mode", "先规划", "只规划", "需求卡片"),
+    ),
     RouteFixture(
         name="backend-cli",
         prompt="Use $goal-teams。请直接执行：为本地 CLI 增加后端 API 参数解析、TDD 单测和 API 集成测试。",
@@ -47,9 +64,8 @@ FIXTURES = (
             "references/ui-visual-contract-protocol.md",
             "references/ui-e2e-pixel-protocol.md",
             "prompts/packets/page-spec-card.md",
-            "scripts/harness/pixel-diff.py",
         ),
-        forbidden_refs=("references/rules-loop.md",),
+        forbidden_refs=("references/rules-loop.md", "scripts/harness/pixel-diff.py"),
     ),
     RouteFixture(
         name="long-running-loop",
@@ -71,6 +87,18 @@ def fail(message: str) -> None:
     sys.exit(1)
 
 
+def load_skill_description() -> str:
+    skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+    match = re.match(r"^---\n(?P<body>.*?)\n---\n", skill, flags=re.S)
+    if not match:
+        fail("SKILL.md missing YAML frontmatter")
+    for line in match.group("body").splitlines():
+        if line.startswith("description:"):
+            return line.partition(":")[2].strip()
+    fail("SKILL.md frontmatter missing description")
+    return ""
+
+
 def load_route_rows() -> dict[str, str]:
     skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
     match = re.search(r"^## 渐进式加载\n(?P<section>.*?)(?:\n## |\Z)", skill, flags=re.S | re.M)
@@ -88,8 +116,12 @@ def load_route_rows() -> dict[str, str]:
 
 
 def main() -> None:
+    description = load_skill_description()
     rows = load_route_rows()
     for fixture in FIXTURES:
+        for term in fixture.description_terms:
+            if term not in description:
+                fail(f"{fixture.name}: skill description missing trigger term {term!r}")
         matches = [content for label, content in rows.items() if fixture.row_pattern in label]
         if len(matches) != 1:
             fail(f"{fixture.name}: expected one route row matching {fixture.row_pattern!r}, got {len(matches)}")

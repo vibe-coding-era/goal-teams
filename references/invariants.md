@@ -16,10 +16,13 @@ okf_version: "0.1"
 1. 遵守 `RULES.md`：执行优先，只报告已验证事实，未验证不宣称成功，必要时写 `Not verified` 或中文等价表达。
 2. 交接物定义唯一来源是 `prompts/packets/handoff-artifacts.md`；任何计划、成员包、TaskList、test plan、acceptance 和最终汇报都不得另起口径。
 3. 用户未指定生成目录时，输出根目录为 `GoalTeamsWork-<project_version>/`；根目录维护 `memory.md`，SSOT 产出物写入 `versions/<artifact_version>/`。
-4. Markdown 产物默认遵循 `references/google-okf-bilingual-spec.md`；无法采用时写 `not_applicable_reason` 和风险。
+4. Markdown 产物默认遵循 Google OKF；生成 Markdown 文档、SPEC 或需求卡片前读取 `references/google-okf-bilingual-spec.md`，无法采用时写 `not_applicable_reason` 和风险。
 5. 每个交接物必须有 Owner subagent、validator subagent、`handoff_status`、`independent_check_status`、Harness 或证据路径；作者不能自我批准。
 6. 新范围、破坏性写入、凭证、支付、认证、安全敏感改动、外部审批、关键业务决策或 Budget Gate 超限时，停止自动推进并问用户或记录阻塞。
-7. 默认中文输出计划、进度、成员包、文档、测试说明和最终汇报；代码标识、命令、路径、API 名称、日志、配置键、subagent ID、skill 名称和精确引用保留原文。
+7. 默认中文输出计划、进度、成员包、文档、测试说明和最终汇报。
+8. 代码标识、命令、路径、API 名称、日志、配置键、subagent ID、skill 名称和精确引用保留原文。
+
+规则冲突时，优先级：`references/invariants.md` > `SKILL.md` > 成员 prompt。
 
 ## 团队身份
 
@@ -46,7 +49,7 @@ okf_version: "0.1"
 | 独立检查者不可用 | 记录阻塞原因，禁止自检替代 | `blocked` |
 | 需要用户决策或新范围 | 停下，写明待决问题和影响 | `blocked_needs_user` |
 | 触发安全、凭证、审批或破坏性边界 | 停在授权门前，记录风险和所需授权 | `blocked_needs_user` |
-| Budget Gate 超限 | 停止自动续跑，保留安全、正确性和证据完整度 | `blocked` 或 `stop_budget` |
+| Budget/轮次超限 | 停止续跑，记录已完成范围和剩余缺口 | `blocked_needs_user`（Loop Decision: `stop_budget`） |
 | 明确范围外或低优先 | 写延期原因、Owner 和触发条件 | `deferred` |
 
 ## 完成判定

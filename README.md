@@ -6,187 +6,78 @@
 
 当前版本：`V2.2`
 
-`goal-teams` 是一个面向 Codex 的 Goal Mode 团队化 Skill。它把一个目标拆成 Goal Lead 统筹、多个独立 subagent 或用户指定 skill 分工执行的闭环：先澄清和规划，再按 workflow 串并行推进，最后由独立校验和收尾审计确认没有遗漏。
+Goal Teams 是一个面向 Codex 的团队协作 Skill。它会以一个 Goal Lead 的身份，把一个目标拆成可验证的计划，再协调多个独立 subagent（不同上下文执行）或用户指定的外部 skill 完成需求、设计、实现、测试、证据记录和收尾审计。过程中会应用到：
+- 应用Goal + Plan + Loop 模式
+- 构建和严格遵循 SPEC + Harness + SSOT 三大原则
+- 建立过程 Benchmark 基准
+- 开放兼容 OpenSPEC 和 Superpower
 
-## 核心模型
+适合使用它的场景：
 
-每次启动先汇报：
+- 任务需要先规划，再分给多个角色在独立 Subagent 上下文中隔离判断和交付。
+- 任务需要留下 SPEC、TaskList、Harness、Evidence 和验收记录。
+- 任务包含后端 TDD、API 集成测试、前端 E2E、UI 复刻或像素对比。
+- 任务较长，需要 Lead LOOP 记录状态、续跑缺口，并在越界时停下。
+- 任务需要和外部 Skill、项目已有工具或用户指定 Subagent 组合使用。
 
-```text
-我是 Goal Teams Leader V2.2，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，并使用 Harness + SPEC 做为过程与结果产物的约束：
-```
+不适合使用它的场景：
 
-中文核心模型要点提示词：
+- 只需要一次简单问答。
+- 只改一个很小的文件，且不需要团队分工、证据链或审计。
+- 需要真实生产审批、CI/CD 或后台执行器；Goal Teams 只提供协作协议和可运行脚本，不替代外部系统。
 
-```text
-默认全程中文表格化输出计划、tasklist、SPEC、进度、成员包、最终总结、生成文档、代码注释、面向用户的字符串、测试名和测试用例说明；仅代码标识、命令、路径、API 名称、日志、配置键、subagent ID、skill 名称和精确引用保留原文。
-```
+## 核心机制
 
-## 规则入口
+### Goal + Plan + Loop
 
-- `SKILL.md` 是触发导向入口，保留启动语、7 条不变量、规划检查、失败降级摘要和渐进式加载路由。
-- `references/invariants.md` 保存永远生效的不变量、硬边界和失败降级协议。
-- `references/compat.md` 集中说明 `TaskList.md`/`tasklist.md`、脚本兼容入口、成员包布局和版本说明。
-- `references/rules-ui.md`、`references/rules-testing.md`、`references/rules-loop.md` 分别按 UI、测试和长任务续跑场景加载。
-- `prompts/packets/handoff-artifacts.md` 是交接物 SSOT；`RULES.md` 是 Goal Lead 和成员的响应规范。
+Goal Teams 把一次复杂协作拆成三个层次：
 
-## 标准流程
+- Goal 定义目标和 Done Criteria，让团队先对“完成是什么”达成一致。
+- Plan 把目标转成成员、Subagent 上下文、范围、交接物、验证方式和停止条件，降低范围漂移和并发冲突。
+- Loop 在每轮整合后记录 `Loop Decision`，把继续、重规划、阻塞、延期或完成这些判断写下来，方便长任务恢复和审计。
 
-1. 将用户目标转成 Done Criteria，确认项目版本、artifact version 和输出目录。
-2. 创建或更新 `GoalTeamsWork-<project_version>/`、`memory.md` 和 `versions/<artifact_version>/TaskList.md`。
-3. 写入 `spec/requirement-card.md`，再补齐必要 SPEC、架构、测试计划和验收文档。
-4. 按任务类型加载 UI、测试或 LOOP 条件规则，生成 `Teams 规划表`。
-5. 派发独立成员，所有成员按 locked scope、Harness、交接物和独立校验推进。
-6. 整合证据，更新 TaskList、progress、acceptance 和必要的 `Loop Decision`。
-7. 完成前启动 `goal_completion_auditor`；已确认范围内缺口按 Lead LOOP 续跑，越界问题记录阻塞。
+这个模式的先进性不在于多派几个 agent，而在于让不同角色在独立上下文中工作，同时由 Goal Lead 保持目标、范围和证据的一致性。它把一次聊天式请求变成可以追踪的工程过程。
 
-## Teams 规划表
+### SPEC + Harness + SSOT
 
-表格只做四列展示，但每行必须保留成员、skill/subagent、目标切片、认领任务、workflow、前置任务、锁定范围、交接物、artifact_type、Owner subagent、validator subagent、交接状态、检查状态、完成标准、Harness、文档/tasklist 更新、测试 Owner 和校验者。
+Goal Teams 用 `SPEC -> Harness -> Evidence -> Audit` 做验证链，并用 SSOT 约束交接物口径：
 
-| 成员 / Skill(Subagent) | 任务范围 | 交付与标准 | 验证安排 |
-| --- | --- | --- | --- |
-| 成员：`需求分析-WIKI 列表需求澄清`<br>Skill/Subagent：`goal_requirements_analyst` | 目标切片：梳理 WIKI 列表需求<br>认领任务：GT-001<br>Workflow：串行<br>前置任务：-<br>锁定范围：`spec/` | 交接物：需求规格卡（`requirement_spec_card`）<br>完成标准：用户确认目标、流程和边界<br>Harness：结构和边界清单审查<br>tasklist：Owner=`goal_requirements_analyst`，状态=`planned` | 测试 Owner：`评审-WIKI 列表需求校验`<br>校验者：`评审-WIKI 列表需求校验`<br>检查状态：`not_started` |
-| 成员：`后端-WIKI 列表后端开发`<br>Skill/Subagent：`goal_backend` | 目标切片：WIKI 列表 API<br>认领任务：GT-003<br>Workflow：串行<br>前置任务：GT-001, GT-002<br>锁定范围：`src/api/wiki/` | 交付物：后端实现<br>完成标准：API 合同测试通过<br>Harness：API 合同测试 + 回归测试<br>文档/tasklist：Architecture Design + tasklist.md | 测试 Owner：`测试-WIKI 列表验收测试`<br>校验者：`评审-WIKI 列表代码审查` |
-| 成员：`browser-WIKI 列表页面验证`<br>Skill/Subagent：`browser` skill | 目标切片：页面验证<br>认领任务：GT-004<br>Workflow：并行<br>前置任务：GT-003<br>锁定范围：`src/ui/wiki/` | 交付物：截图和控制台检查<br>完成标准：桌面/移动验证通过<br>Harness：截图 + console error + viewport 检查<br>文档/tasklist：HTML Prototype + tasklist.md | 测试 Owner：`测试-WIKI 列表验收测试`<br>校验者：`评审-WIKI 列表体验审查` |
+- SPEC 说明要完成什么，包括需求、边界、用户故事、功能验收标准、架构和测试计划。
+- Harness 说明如何证明完成，包括命令、脚本、E2E、截图、人工检查清单和证据路径。
+- SSOT 说明交接物只有一个权威定义，包括 artifact 类型、Owner、validator、状态字段和 TaskList 账本格式。
 
-最终完成汇报示例：
+这组机制让 Skill 的产物不只是一份计划，而是一套可以被成员执行、被脚本检查、被 reviewer 复核、被 auditor 收尾的证据结构。对复杂应用开发来说，这比单纯输出代码更稳，因为它要求“完成”必须能被证明。
 
-| 成员 | 认领任务 | Workflow / 前置任务 | 状态 | 证据 | 资源消耗（用户 / tokens / 费用） | 剩余 |
-| --- | --- | --- | --- | --- | --- | --- |
-| `后端-WIKI 列表后端开发` | GT-003 | 串行 / GT-001, GT-002 | done | `npm test -- wiki` | 用户：Rou；tokens：未提供；费用：未提供 | 无 |
+### Benchmark
 
-## 目录结构
+Goal Teams 内置 `benchmarks/` 任务包，用来比较不同工作流、prompt 或 skill 版本的表现。Benchmark 不用于普通任务的默认输出，而是在用户要求、计划确认或 Skill Improvement 场景中启用。
 
-安装后的 Skill 包包含：
+Benchmark 的价值是把“感觉变好了”变成可复盘的比较：同一任务可以对比 baseline 和 Goal Teams 在产物完整度、证据质量、UI 验证、生产门禁判断、Loop 状态恢复和成本上的差异。当前仓库提供 `GT-BENCH-001` 到 `GT-BENCH-004`，覆盖从基础产物质量到 Lead LOOP 恢复的几个典型维度。
 
-```text
-goal-teams/
-  VERSION
-  SKILL.md
-  goal-teams.md
-  AGENTS.md
-  RULES.md
-  CHANGELOG.md
-  README.md
-  README.en.md
-  agents/openai.yaml
-  references/goal-teams-runtime.md
-  references/default-AGENTS.md
-  references/invariants.md
-  references/compat.md
-  references/rules-ui.md
-  references/rules-testing.md
-  references/rules-loop.md
-  references/goal-teams-automation-protocol.md
-  references/goal-teams-production-pipeline.md
-  references/goal-teams-scripted-tooling.md
-  references/google-okf-bilingual-spec.md
-  references/ui-e2e-pixel-protocol.md
-  references/ui-visual-contract-protocol.md
-  references/subagent-dispatch-protocol.md
-  references/dual-review-protocol.md
-  prompts/lead/*.md
-  prompts/packets/handoff-artifacts.md
-  prompts/packets/page-spec-card.md
-  prompts/packets/memory.md
-  prompts/packets/html-prototype-mock.md
-  prompts/members/shared.md
-  prompts/members/<role>/prompt.md
-  prompts/members/<role>/template.md
-  prompts/members/<role>/workflow.md
-  prompts/members/<role>/scripts.md
-  prompts/packets/*.md
-  scripts/check.sh
-  scripts/validate.py
-  scripts/install-local.sh
-  scripts/check-version-sync.py
-  scripts/check-routing-fixtures.py
-  scripts/check-agent-names.py
-  scripts/validate-harness.py
-  scripts/pixel-diff.py
-  scripts/compare-artifacts.py
-  scripts/validate-dual-review.py
-  scripts/check-member-layout.py
-  scripts/benchmark-runner.py
-  scripts/checks/*.py
-  scripts/checks/check.sh
-  scripts/harness/*.py
-  scripts/review/*.py
-  scripts/benchmark/*.py
-  scripts/install/install-local.sh
-  subagents/goal-*.toml
-  examples/mini-goal-run/
-  benchmarks/
-```
+### 开放性和外部 Skill
 
-运行目标时，项目中会优先使用或创建：
+Goal Teams 不要求所有能力都来自内置 subagent。Plan 阶段可以把外部 skill、项目已有脚本、浏览器工具、测试工具或用户指定 subagent 纳入 `Teams 规划表`，并为它们定义 locked scope、输入、输出、Harness 和 validator。
 
-```text
-GoalTeamsWork-<project_version>/
-  index.md
-  memory.md
-  versions/
-    <artifact_version>/
-      index.md
-      TaskList.md
-      tasklist.md
-      plan.md
-      progress.md
-      decisions.md
-      goal-packet.md
-      spec/
-        requirement-card.md
-        requirement-spec-card.md
-        PRD.md
-        page-spec-card.md
-        frontend-architecture-design.md
-        backend-architecture-design.md
-        HTML-prototype.html
-        test-plan.md
-        acceptance.md
-      tests/
-        unit/
-        api-integration/
-        e2e/
-        reports/
-      artifacts/
-      harness.yaml
-      evidence.jsonl
-      pipeline-state.json
-```
+这种开放性让 Goal Teams 更像一个协作编排层：它负责目标、计划、交接物和证据的一致性；具体能力可以来自 `goal_*` subagent，也可以来自外部 skill，例如 browser 验证、文档生成、安全审查、PDF/表格处理或项目自定义工具。外部能力进入团队后仍遵守 SSOT、Harness 和独立校验规则。
 
-## 默认成员
+## 快速开始
 
-| Subagent ID / 角色名 | 主要职责 |
-| --- | --- |
-| `goal_requirements_analyst` | 澄清目标、调研辅助、需求规格卡、PRD 前置输入 |
-| `goal_product` | PRD、验收标准、原型结构、产品评审 |
-| `goal_backend` | 领域模型、存储、API、CLI、MCP、迁移、集成 |
-| `goal_frontend` | UI、HTML 原型、浏览器验证、E2E、复刻像素级对比、截图证据 |
-| `goal_unit_test_designer` | 后端 TDD 单元测试用例、断言、覆盖说明 |
-| `goal_unit_test_runner` | 后端 TDD 单元测试执行、红绿证据、失败报告 |
-| `goal_api_integration_test_designer` | API 集成测试脚本和测试矩阵，默认 Python + pytest |
-| `goal_api_integration_test_runner` | API 集成测试执行、日志、报告和失败响应 |
-| `goal_e2e_test_designer` | 前端完成后的 E2E 测试用例、viewport 和组件断言 |
-| `goal_e2e_test_runner` | E2E 执行、截图、trace、console/network 证据 |
-| `goal_qa` | 独立测试、集成测试、界面 E2E、像素级对比验收、测试报告 |
-| `goal_docs` | tasklist、acceptance、README、报告、发布说明 |
-| `goal_reviewer` | 只读评审、架构边界、安全、覆盖率、兼容性、风险 |
-| `goal_completion_auditor` | 收尾审计、未完成工作检查、自动续跑建议 |
-
-## 安装
-
-克隆到 Codex skills 目录：
+安装到本地 Codex skills 目录：
 
 ```bash
 git clone https://github.com/vibe-coding-era/goal-teams.git ~/.codex/skills/goal-teams
 ```
 
-或直接运行本地安装脚本：
+从本仓库安装或更新本地副本：
 
 ```bash
 ./scripts/install-local.sh --update-team-fallback
+```
+
+维护或发布前运行检查：
+
+```bash
+./scripts/check.sh
 ```
 
 手动复制 subagents：
@@ -196,43 +87,7 @@ mkdir -p ~/.codex/agents
 cp ~/.codex/skills/goal-teams/subagents/goal-*.toml ~/.codex/agents/
 ```
 
-维护或发布前运行：
-
-```bash
-./scripts/check.sh
-```
-
-`examples/mini-goal-run` 提供最小产物树，可用于检查索引、SPEC、tasklist、Teams 规划表、独立校验和收尾审计是否齐全。`goal-teams.md` 记录长期用户指定要求，是维护时的上游依据。
-
-`examples/mini-goal-run` 还包含 `harness/` 复盘资料，展示 `setup -> run -> checks -> report` 的最小静态链路，并提供 automation protocol、evidence ledger 和 pipeline gates 静态样本。`benchmarks/` 提供 `GT-BENCH-001`、`GT-BENCH-002`、`GT-BENCH-003` 和 `GT-BENCH-004` 模板，用于比较 baseline 与 Goal Teams 的产物质量、证据完整度、生产门禁判断、UI 证据处理、Lead LOOP 状态恢复和成本。
-
-V1.92 新增 `references/goal-teams-scripted-tooling.md`、`references/ui-e2e-pixel-protocol.md` 和 `references/subagent-dispatch-protocol.md`，并提供 `GT-BENCH-003` 用于验证 UI E2E、复刻像素级对比和证据不足打回。
-
-V1.93 新增 `prompts/lead/`、`prompts/members/`、`prompts/packets/`，并将真实脚本迁入 `scripts/checks/`、`scripts/harness/`、`scripts/benchmark/` 和 `scripts/install/`；`scripts/check.sh` 等旧入口保持可用。
-
-V1.94 新增成员包子目录、`references/dual-review-protocol.md`、`prompts/packets/dual-review-record.md`、`scripts/checks/check-member-layout.py`、`scripts/review/compare-artifacts.py` 和 `scripts/review/validate-dual-review.py`。对比和校验类任务必须同时有脚本复核证据和 LLM reviewer 复核证据。
-
-V1.95 新增 `prompts/lead/requirement-card.md` 和 `prompts/packets/requirement-card.md`，要求 Plan 模式先写入 `spec/requirement-card.md`，用简洁方案讲清核心目标、关键功能、边界、约束和风险。
-
-V1.96 新增用户故事和功能验收标准要求：需求卡片先写“作为...我想要...以便...”格式的用户故事，并给出可验证的功能验收标准；后续 PRD、tasklist、Harness、test plan 和 acceptance 必须承接。
-
-V1.97 新增 `references/google-okf-bilingual-spec.md`、`prompts/packets/page-spec-card.md`、`prompts/packets/memory.md`、`prompts/packets/html-prototype-mock.md`，并强化 `references/ui-visual-contract-protocol.md` 与 `references/ui-e2e-pixel-protocol.md`。所有生成 Markdown 文档默认采用 OKF；无指定目录时写入 `GoalTeamsWork-<project_version>/`；页面规格卡和 HTML 原型必须记录组件库名称、版本、来源、元素级组件库归属和必要数据模型。
-
-V2.2 新增精简入口、条件加载 rules、路由 fixtures、文件级规则校验和 README 瘦身，用于降低前置上下文和维护风险。
-
-V2.2 维护结构将 `SKILL.md` 收缩为触发导向入口和加载路由，新增 `references/invariants.md`、`references/compat.md`、`references/rules-ui.md`、`references/rules-testing.md` 和 `references/rules-loop.md`，用于按场景加载不变量、兼容口径、UI、测试和 LOOP 规则。
-
-V2.1 新增 `prompts/lead/loop.md`、Lead LOOP Protocol、Loop Decision、Loop Gate、状态快照规则和 `GT-BENCH-004`，用于评估中途缺证、自动续跑、停止边界和状态恢复。
-
-版本说明：当前版本以 `VERSION` 为准；历史 `V2.02` 与 `V2.1` 是 `V2.2` 前的补丁线，后续版本优先使用 `V2.3`、`V2.4` 这类递增格式。
-
-V2.02 新增 `RULES.md` 响应规范，要求 Goal Lead 和所有成员执行优先、事实优先、未验证不宣称完成、减少无关解释。
-
-V2.01 更新启动语，明确使用 Goal + Plan 模式完成规划、执行和应用交付，并要求使用 Harness + SPEC 作为过程与结果产物约束；Plan 历史资料输入支持 `没有请回复“2”`，中文输出规则强调表格化。
-
-V2.0 新增版本子目录 SSOT、TaskList 先行、后端架构先行、独立 TDD 单测用例/执行、API 集成测试脚本/执行和前端 E2E 用例/执行规则，并新增对应 subagent 成员包和 `goal_*.toml`。
-
-## 使用示例
+## 使用方式
 
 规划并等待确认：
 
@@ -261,10 +116,138 @@ Use $goal-teams。
 安全审核使用 goal_reviewer，只读模式。
 ```
 
+每次启动先汇报：
+
+```text
+我是 Goal Teams Leader V2.2，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：
+```
+
+中文核心模型要点提示词：默认用中文表格化呈现计划、TaskList、SPEC、进度、成员包、测试说明和最终总结；代码标识、命令、路径、API 名称、配置键、subagent ID 和精确引用保留原文。
+
+## 规则入口
+
+`SKILL.md` 是触发导向入口。它只保留启动语、不变量、规划检查、失败降级摘要和渐进式加载路由。更细的规则放在 references 和 prompts 中，按任务类型读取。
+
+| 文件 | 作用 |
+| --- | --- |
+| `RULES.md` | Goal Lead 和成员的响应规范：执行优先、事实优先、未验证不宣称完成。 |
+| `SKILL.md` | Skill 发现入口和加载路由。`description` 保留 `$goal-teams`、`Goal Mode`、`Plan Mode`、`先规划`、`只规划`、`需求卡片` 等触发词。 |
+| `references/invariants.md` | 永远生效的不变量、硬边界和失败降级协议。 |
+| `references/compat.md` | `TaskList.md`/`tasklist.md`、脚本兼容入口、成员包布局和版本同步口径。 |
+| `references/rules-ui.md` | UI、页面规格卡、HTML Prototype MOCK、E2E 和像素对比规则。 |
+| `references/rules-testing.md` | 后端架构先行、TDD、API 集成 pytest、前端 E2E 和独立测试规则。 |
+| `references/rules-loop.md` | Lead LOOP、Loop Decision、Loop Gate、Budget Gate 和自动续跑边界。 |
+| `prompts/packets/handoff-artifacts.md` | 交接物 SSOT，定义 artifact 类型、Owner、validator、状态字段和 TaskList 账本格式。 |
+
+## 工作流
+
+1. 把用户目标转成 Done Criteria。
+2. 确认项目版本、artifact version 和输出目录。
+3. 创建或更新 `GoalTeamsWork-<project_version>/memory.md` 和 `versions/<artifact_version>/TaskList.md`。
+4. 在 Plan 模式先写 `spec/requirement-card.md`，再补齐 PRD、架构、测试计划和验收文档。
+5. 按任务类型加载 UI、测试或 LOOP 条件规则。
+6. 展示四列 `Teams 规划表`，然后派发独立成员。
+7. 每个成员只在自己的 locked scope 内执行，并写回 Harness、Evidence 和交接物状态。
+8. Goal Lead 整合结果，记录 `Loop Decision`。
+9. 完成前启动新的只读 `goal_completion_auditor`。已确认范围内的缺口自动续跑；新范围、高风险或授权问题停下问用户。
+
+## 输出结构
+
+默认输出目录：
+
+```text
+GoalTeamsWork-<project_version>/
+  index.md
+  memory.md
+  versions/
+    <artifact_version>/
+      index.md
+      TaskList.md
+      plan.md
+      progress.md
+      decisions.md
+      goal-packet.md
+      spec/
+        requirement-card.md
+        requirement-spec-card.md
+        PRD.md
+        page-spec-card.md
+        frontend-architecture-design.md
+        backend-architecture-design.md
+        HTML-prototype.html
+        test-plan.md
+        acceptance.md
+      tests/
+        unit/
+        api-integration/
+        e2e/
+        reports/
+      artifacts/
+      harness.yaml
+      evidence.jsonl
+      pipeline-state.json
+```
+
+`tasklist.md` 仍可读取，但新输出优先写 `TaskList.md`。
+
+## 默认成员
+
+| Subagent ID | 主要职责 |
+| --- | --- |
+| `goal_requirements_analyst` | 澄清目标、调研辅助、需求规格卡、PRD 前置输入。 |
+| `goal_product` | PRD、验收标准、原型结构和产品评审。 |
+| `goal_backend` | 领域模型、存储、API、CLI、MCP、迁移和集成。 |
+| `goal_frontend` | UI、HTML 原型、浏览器验证、E2E、复刻像素级对比和截图证据。 |
+| `goal_unit_test_designer` | 后端 TDD 单元测试用例、断言和覆盖说明。 |
+| `goal_unit_test_runner` | 后端 TDD 单元测试执行、红绿证据和失败报告。 |
+| `goal_api_integration_test_designer` | API 集成测试脚本和测试矩阵，默认 Python + pytest。 |
+| `goal_api_integration_test_runner` | API 集成测试执行、日志、报告和失败响应。 |
+| `goal_e2e_test_designer` | 前端完成后的 E2E 用例、viewport 和组件断言。 |
+| `goal_e2e_test_runner` | E2E 执行、截图、trace、console/network 证据。 |
+| `goal_qa` | 独立测试、集成测试、UI E2E、像素级对比验收和测试报告。 |
+| `goal_docs` | TaskList、acceptance、README、报告和发布说明。 |
+| `goal_reviewer` | 只读评审、架构边界、安全、覆盖率、兼容性和风险。 |
+| `goal_completion_auditor` | 收尾审计、未完成工作检查和自动续跑建议。 |
+
+## 设计依据和出处
+
+| 原则或技术 | 为什么采用 | 出处 |
+| --- | --- | --- |
+| Codex Skill | Goal Teams 本质上是可复用工作流，不是业务应用。Skill 可以把 instructions、references 和 scripts 打包，让 Codex 在需要时加载。 | [OpenAI Codex Agent Skills](https://developers.openai.com/codex/skills) |
+| 触发导向 `description` | Codex 会根据 skill 的 `description` 做隐式匹配，所以关键触发词必须前置且明确。 | [OpenAI Codex Agent Skills: How Codex uses skills](https://developers.openai.com/codex/skills) |
+| 渐进式加载 | 先加载少量入口信息，只有任务需要时再读取细分规则，能减少上下文占用，也降低无关规则干扰。 | [OpenAI Codex Agent Skills](https://developers.openai.com/codex/skills), [NN/g Progressive Disclosure](https://www.nngroup.com/articles/progressive-disclosure/) |
+| SSOT | 交接物、Owner、validator 和状态字段必须只有一个权威定义，避免成员包、TaskList 和验收记录各说各话。 | [Atlassian: Single Source of Truth](https://www.atlassian.com/work-management/knowledge-sharing/documentation/building-a-single-source-of-truth-ssot-for-your-team), `prompts/packets/handoff-artifacts.md` |
+| OKF Markdown | Goal Teams 产物需要同时给人和 agent 读取。OKF 使用 Markdown + YAML frontmatter，适合版本控制、索引和跨工具交换。 | [GoogleCloudPlatform Open Knowledge Format SPEC](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md), `references/google-okf-bilingual-spec.md` |
+| 需求到测试的可追溯性 | 需求、测试、证据和验收要能互相追踪，才能判断“是否真的完成”。 | [NASA Software Test Procedures](https://swehb.nasa.gov/display/SWEHBVD/5.14%2B-%2BTest%2B-%2BSoftware%2BTest%2BProcedures?desktop=true&macroName=show-if) |
+| TDD | 后端任务先写测试再实现，可以把需求转成可执行约束，并在实现阶段及时暴露偏差。 | [Martin Fowler: Test-Driven Development](https://martinfowler.com/bliki/TestDrivenDevelopment.html) |
+| pytest | API 集成测试默认用 Python + pytest，因为 pytest 语法直接、失败信息清楚，并能扩展到复杂测试。 | [pytest documentation](https://docs.pytest.org/en/stable/) |
+| Playwright E2E | UI 任务需要真实浏览器证据。Playwright 支持浏览器、viewport、trace、截图和 pytest 集成。 | [Playwright Python Pytest plugin](https://playwright.dev/python/docs/test-runners), `references/ui-e2e-pixel-protocol.md` |
+| Lead LOOP | 长任务常见问题不是“不会做”，而是证据缺口、范围漂移和中途状态丢失。Loop Decision 把每轮整合后的选择固定下来。 | `references/rules-loop.md`, `prompts/lead/loop.md` |
+
+## 示例和回归
+
+`examples/mini-goal-run` 提供一个最小输出树，用来检查 index、SPEC、TaskList、Teams 规划表、Harness、Evidence、独立校验和收尾审计是否齐全。
+
+`benchmarks/` 提供 `GT-BENCH-001`、`GT-BENCH-002`、`GT-BENCH-003` 和 `GT-BENCH-004` 模板，用于比较 baseline 和 Goal Teams 在产物质量、证据完整度、生产门禁判断、UI 证据处理、Lead LOOP 状态恢复和成本方面的差异。
+
+`goal-teams.md` 记录长期用户指定要求，是维护规则时的上游依据。
+
+## 版本说明
+
+当前版本以 `VERSION` 为准。`V2.2` 的重点是精简入口、条件加载 rules、路由 fixtures、文件级规则校验和 README 瘦身。历史 `V2.02` 与 `V2.1` 是 `V2.2` 前的补丁线，后续版本优先使用 `V2.3`、`V2.4` 这类递增格式。
+
+更完整的历史记录见 `CHANGELOG.md`。
+
 ## 发布内容
 
-当前仓库发布内容包括 `VERSION`、`SKILL.md`、`RULES.md`、`agents/openai.yaml`、`references/goal-teams-runtime.md`、`references/default-AGENTS.md`、`references/invariants.md`、`references/compat.md`、`references/rules-ui.md`、`references/rules-testing.md`、`references/rules-loop.md`、`references/goal-teams-automation-protocol.md`、`references/goal-teams-production-pipeline.md`、`references/goal-teams-scripted-tooling.md`、`references/google-okf-bilingual-spec.md`、`references/ui-e2e-pixel-protocol.md`、`references/ui-visual-contract-protocol.md`、`references/subagent-dispatch-protocol.md`、`references/dual-review-protocol.md`、`prompts/lead/core.md`、`prompts/lead/loop.md`、`prompts/lead/requirement-card.md`、`prompts/members/shared.md`、`prompts/members/backend/prompt.md`、`prompts/members/backend/template.md`、`prompts/members/backend/workflow.md`、`prompts/members/backend/scripts.md`、`prompts/members/unit-test-designer/prompt.md`、`prompts/members/unit-test-runner/prompt.md`、`prompts/members/api-integration-test-designer/prompt.md`、`prompts/members/api-integration-test-runner/prompt.md`、`prompts/members/e2e-test-designer/prompt.md`、`prompts/members/e2e-test-runner/prompt.md`、`prompts/packets/member-goal-packet.md`、`prompts/packets/handoff-artifacts.md`、`prompts/packets/page-spec-card.md`、`prompts/packets/memory.md`、`prompts/packets/html-prototype-mock.md`、`prompts/packets/requirement-card.md`、`prompts/packets/dual-review-record.md`、`subagents/goal-*.toml`、`goal-teams.md`、`AGENTS.md`、`scripts/check.sh`、`scripts/validate.py`、`scripts/install-local.sh`、`scripts/check-version-sync.py`、`scripts/check-routing-fixtures.py`、`scripts/check-agent-names.py`、`scripts/check-member-layout.py`、`scripts/validate-harness.py`、`scripts/pixel-diff.py`、`scripts/compare-artifacts.py`、`scripts/validate-dual-review.py`、`scripts/benchmark-runner.py`、`scripts/checks/`、`scripts/checks/check-routing-fixtures.py`、`scripts/harness/`、`scripts/review/`、`scripts/benchmark/`、`scripts/install/`、`prompts/`、`examples/mini-goal-run`、`benchmarks/`、`CHANGELOG.md`、`README.md` 和 `README.en.md`。
+当前仓库包含：
+
+- 根文件：`VERSION`、`SKILL.md`、`RULES.md`、`goal-teams.md`、`AGENTS.md`、`CHANGELOG.md`、`README.md`、`README.en.md`、`agents/openai.yaml`。
+- references：`references/goal-teams-runtime.md`、`references/default-AGENTS.md`、`references/invariants.md`、`references/compat.md`、`references/rules-ui.md`、`references/rules-testing.md`、`references/rules-loop.md`、`references/goal-teams-automation-protocol.md`、`references/goal-teams-production-pipeline.md`、`references/goal-teams-scripted-tooling.md`、`references/google-okf-bilingual-spec.md`、`references/ui-e2e-pixel-protocol.md`、`references/ui-visual-contract-protocol.md`、`references/subagent-dispatch-protocol.md`、`references/dual-review-protocol.md`。
+- prompts：`prompts/`、`prompts/lead/core.md`、`prompts/lead/requirement-card.md`、`prompts/members/shared.md`、`prompts/members/backend/prompt.md`、`prompts/members/backend/template.md`、`prompts/members/backend/workflow.md`、`prompts/members/backend/scripts.md`、`prompts/members/unit-test-designer/prompt.md`、`prompts/members/unit-test-runner/prompt.md`、`prompts/members/api-integration-test-designer/prompt.md`、`prompts/members/api-integration-test-runner/prompt.md`、`prompts/members/e2e-test-designer/prompt.md`、`prompts/members/e2e-test-runner/prompt.md`、`prompts/packets/member-goal-packet.md`、`prompts/packets/handoff-artifacts.md`、`prompts/packets/page-spec-card.md`、`prompts/packets/memory.md`、`prompts/packets/html-prototype-mock.md`、`prompts/packets/requirement-card.md`、`prompts/packets/dual-review-record.md`。
+- scripts：`scripts/check.sh`、`scripts/validate.py`、`scripts/install-local.sh`、`scripts/check-version-sync.py`、`scripts/check-routing-fixtures.py`、`scripts/check-agent-names.py`、`scripts/check-member-layout.py`、`scripts/validate-harness.py`、`scripts/pixel-diff.py`、`scripts/compare-artifacts.py`、`scripts/validate-dual-review.py`、`scripts/benchmark-runner.py`、`scripts/checks/`、`scripts/checks/check-routing-fixtures.py`、`scripts/harness/`、`scripts/benchmark/`、`scripts/review/`、`scripts/install/`。
+- 运行和示例：`subagents/goal-*.toml`、`examples/mini-goal-run`、`benchmarks/`。
 
 ## License
 
-如需开源发布，建议后续补充明确的 License 文件，例如 MIT、Apache-2.0 或内部共享协议。
+当前仓库还没有声明开源 License。发布前请由 owner 明确选择 License 或内部共享协议。

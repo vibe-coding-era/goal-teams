@@ -2,8 +2,13 @@
 
 ## Unreleased
 
+- Tightened V2.2 maintenance rules: startup text now says `规划、执行和交付`, Plan history input accepts `无` or `2`, and completion rules are a checklist.
+- Added hard validation that all `SKILL.md` version strings match `VERSION`, and kept progressive-loading path existence checks in `./scripts/check.sh`.
+- Moved OKF spec loading out of the all-tasks route and moved `scripts/harness/pixel-diff.py` from the UI route into `references/rules-ui.md` as an executable tool.
+- Added Budget/round-limit failure degradation and explicit rule-conflict precedence.
+- Restored `Plan Mode` / `先规划` / `只规划` / `需求卡片` trigger terms in `SKILL.md` description and added a routing fixture regression check.
 - Bumped current Skill version to `V2.2`.
-- Slimmed `SKILL.md` into a trigger-oriented entrypoint with 7 invariants, planning checks, failure-degradation summary, and a progressive-loading router.
+- Slimmed `SKILL.md` into a trigger-oriented entrypoint with invariants, planning checks, failure-degradation summary, and a progressive-loading router.
 - Added conditional rule references: `references/invariants.md`, `references/compat.md`, `references/rules-ui.md`, `references/rules-testing.md`, and `references/rules-loop.md`.
 - Extended validation to enforce compact Skill description length, progressive-loading path existence, required conditional references, and repeated-rule limits in `SKILL.md`.
 - Added `scripts/check-routing-fixtures.py` for 3 route fixtures: backend CLI, UI replica, and long-running Lead LOOP.

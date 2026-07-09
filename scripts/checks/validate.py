@@ -18,7 +18,7 @@ except ModuleNotFoundError:  # pragma: no cover
 ROOT = Path(__file__).resolve().parents[2]
 CURRENT_VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 STARTUP_LINE = (
-    f"我是 Goal Teams Leader {CURRENT_VERSION}，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，"
+    f"我是 Goal Teams Leader {CURRENT_VERSION}，使用 Goal + Plan 模式帮你完成规划、执行和交付，"
     "并使用 Harness + SPEC 做为过程与结果产物的约束："
 )
 PLAN_HISTORY_LINE = "在开始规划前，如果有什么历史文档、历史经验或参考资料需要输入吗？"
@@ -369,6 +369,10 @@ FILE_RULES = {
         "references/rules-ui.md",
         "references/rules-testing.md",
         "references/rules-loop.md",
+        "规则冲突时",
+        "Budget/轮次超限",
+        "全部满足才算完成",
+        "- [ ] Done Criteria 满足",
         "失败降级",
         "渐进式加载",
     ),
@@ -378,6 +382,8 @@ FILE_RULES = {
         "证据不足不能完成",
         "goal_completion_auditor",
         "transport_handle",
+        "规则冲突时",
+        "Budget/轮次超限",
     ),
     "references/compat.md": (
         "TaskList.md",
@@ -393,6 +399,7 @@ FILE_RULES = {
         "locked screenshot",
         "unlocked real DOM screenshot",
         "scripts/harness/pixel-diff.py",
+        "可用工具",
     ),
     "references/rules-testing.md": (
         "Backend Architecture Design",
@@ -579,9 +586,19 @@ def check_skill_frontmatter() -> None:
         fail(f"SKILL.md description should be at most 500 characters, got {len(values['description'])}")
     if not re.search(r"[\u4e00-\u9fff]", values["description"]):
         fail("SKILL.md description should be Chinese-first")
+    for trigger in ("$goal-teams", "Goal Mode", "Plan Mode", "先规划", "只规划", "需求卡片"):
+        if trigger not in values["description"]:
+            fail(f"SKILL.md description missing skill discovery trigger {trigger!r}")
     if len(body) > 500:
         fail(f"SKILL.md frontmatter should stay compact, got {len(body)} characters")
     markdown_body = skill[match.end():]
+    skill_versions = set(re.findall(r"\bV\d+(?:\.\d+)+\b", skill))
+    unexpected_versions = sorted(found for found in skill_versions if found != version)
+    if unexpected_versions:
+        fail(
+            "SKILL.md version strings must match VERSION "
+            f"{version!r}; unexpected: {', '.join(unexpected_versions)}"
+        )
     line_count = len(markdown_body.splitlines())
     if line_count > 190:
         fail(f"SKILL.md body should stay as a compact progressive loader, got {line_count} lines")
@@ -613,7 +630,6 @@ def check_skill_frontmatter() -> None:
         "prompts/packets/dual-review-record.md",
         "references/ui-visual-contract-protocol.md",
         "references/google-okf-bilingual-spec.md",
-        "scripts/harness/pixel-diff.py",
         "scripts/review/validate-dual-review.py",
     ):
         if route not in markdown_body:

@@ -23,7 +23,7 @@ V1.93 保留这套边界，并把脚本按职责分目录。V1.94 增加 review 
 | `scripts/check.sh` -> `scripts/checks/check.sh` | 总校验入口，串联结构、版本、agent 命名、Harness、pixel diff、benchmark 包检查 | 本地 |
 | `scripts/install-local.sh` -> `scripts/install/install-local.sh` | 安装/更新本地 skill 和 `goal-*.toml`，可选更新 fallback `team-*.toml` 中文昵称 | 手动运行 |
 | `scripts/check-version-sync.py` -> `scripts/checks/check-version-sync.py` | 检查 `VERSION`、启动语、README、runtime、`agents/openai.yaml` 一致 | `./scripts/check.sh` |
-| `scripts/check-routing-fixtures.py` -> `scripts/checks/check-routing-fixtures.py` | 运行纯后端 CLI、UI 复刻、长任务续跑 3 个路由 fixtures，检查条件加载不会互相污染 | `./scripts/check.sh` |
+| `scripts/check-routing-fixtures.py` -> `scripts/checks/check-routing-fixtures.py` | 运行只规划/需求卡片、纯后端 CLI、UI 复刻、长任务续跑 4 个路由 fixtures，检查触发词覆盖和条件加载不会互相污染 | `./scripts/check.sh` |
 | `scripts/check-agent-names.py` -> `scripts/checks/check-agent-names.py` | 检查 subagent 中文昵称、`member_id` / `display_name` / `transport_handle` 规则 | `./scripts/check.sh` |
 | `scripts/check-member-layout.py` -> `scripts/checks/check-member-layout.py` | 检查成员包目录和 `prompt/template/workflow/scripts` 文件完整性 | `./scripts/check.sh` |
 | `scripts/validate-harness.py` -> `scripts/harness/validate-harness.py` | 校验 Harness contract JSON/YAML 字段；UI 要求 E2E，复刻要求 pixel diff | `./scripts/check.sh` |

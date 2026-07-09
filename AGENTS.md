@@ -37,7 +37,7 @@
 - `prompts/members/unit-test-designer/`、`unit-test-runner/`、`api-integration-test-designer/`、`api-integration-test-runner/`、`e2e-test-designer/`、`e2e-test-runner/` 承载 V2.0 TDD/API/E2E 独立测试成员包。
 - `references/dual-review-protocol.md` 承载 V1.94 LLM + 脚本双重复核协议。
 - `scripts/checks/`、`scripts/harness/`、`scripts/review/`、`scripts/benchmark/`、`scripts/install/` 承载 V1.94 分目录脚本；根 `scripts/*.py` 和 `scripts/*.sh` 保留兼容入口。
-- `scripts/checks/check-routing-fixtures.py` 承载纯后端 CLI、UI 复刻和长任务续跑的渐进式加载路由 fixtures。
+- `scripts/checks/check-routing-fixtures.py` 承载只规划/需求卡片、纯后端 CLI、UI 复刻和长任务续跑的渐进式加载路由 fixtures。
 - `subagents/goal-*.toml` 是实际可注册的成员 agent 配置。
 - `README.md` 和 `README.en.md` 只做介绍、安装、示例和发布说明，避免承载唯一规则。
 

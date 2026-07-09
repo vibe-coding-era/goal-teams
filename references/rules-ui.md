@@ -46,4 +46,6 @@ okf_version: "0.1"
 | 局部组件 | crop、bbox、宽高、可见性、状态切换截图 |
 | 组件库元数据 | OKF frontmatter、`application/okf+yaml`、`data-component-library` |
 
-像素对比优先使用 `scripts/harness/pixel-diff.py`；兼容入口见 `references/compat.md`。
+## 可用工具
+
+- 像素对比优先执行 `scripts/harness/pixel-diff.py`；兼容入口见 `references/compat.md`。

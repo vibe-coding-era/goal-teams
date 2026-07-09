@@ -6,15 +6,15 @@
 
 - 当前 skill 版本号为 `V2.2`，版本号保存在仓库根目录 `VERSION`，并同步写入 `SKILL.md` 正文；`SKILL.md` frontmatter 只保留 `name` 和 `description`。
 - 历史 `V2.02` 与 `V2.1` 是 `V2.2` 前的补丁线；后续版本优先使用 `V2.3`、`V2.4` 这类递增格式，避免继续新增 `V2.0x` 版本叙事。
-- 每次开始 Goal Teams 工作前，Goal Lead 必须先汇报：`我是 Goal Teams Leader V2.2，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，并使用 Harness + SPEC 做为过程与结果产物的约束：`，然后用简短中文列表说明本轮会处理的具体事项。
+- 每次开始 Goal Teams 工作前，Goal Lead 必须先汇报：`我是 Goal Teams Leader V2.2，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：`，然后用简短中文列表说明本轮会处理的具体事项。
 - `V1.5` 引入 Harness 契约与三层 Loop 规则，`V1.6` 补充最小 Harness 示例，`V1.7` 引入 Benchmark 外层评估模板，`V1.8` 引入机器可读研发协议，`V1.9` 引入生产流与 Release Gate 协议，`V1.91` 强化中文右边栏成员显示名、界面 E2E 和复刻像素级对比，`V1.92` 引入脚本化工具链、派发协议、冲突策略、预算门和证据不足打回规则，`V1.93` 引入 `SKILL.md` 轻量入口、`prompts/` 角色提示词目录和脚本分目录，`V1.94` 引入成员包子目录和 LLM + 脚本双重复核，`V1.95` 引入 Plan 模式 `需求卡片`，`V1.96` 引入用户故事和功能验收标准，`V1.97` 引入 Google OKF、默认输出目录、memory.md、页面规格卡/HTML 原型组件库记录，`V2.0` 引入版本子目录 SSOT、TaskList 先行、后端架构先行、TDD 单测生成/执行、API 集成 pytest 和前端 E2E 生成/执行，`V2.02` 引入 `RULES.md` 响应规范，`V2.1` 引入 Lead LOOP、Loop Decision、Loop Gate、状态快照和 `GT-BENCH-004`，`V2.2` 引入精简入口、条件加载 rules、路由 fixtures 和文件级规则校验；发布说明可以分别记录阶段，但当前运行规则按 `V2.2` 执行。
-- `SKILL.md` 只保留触发导向 description、固定启动语、7 条不变量、规划检查、失败降级摘要、工作流摘要和渐进式加载路由；完整硬边界和条件规则分别放入 `references/invariants.md`、`references/rules-ui.md`、`references/rules-testing.md`、`references/rules-loop.md` 和 `references/compat.md`。
+- `SKILL.md` 只保留触发导向 description、固定启动语、不变量、规划检查、失败降级摘要、工作流摘要和渐进式加载路由；完整硬边界和条件规则分别放入 `references/invariants.md`、`references/rules-ui.md`、`references/rules-testing.md`、`references/rules-loop.md` 和 `references/compat.md`。
 - `RULES.md` 承载 Goal Lead 和所有成员的 Response Contract，要求执行优先、只报告已验证事实、未验证不宣称完成、区分观察和结论、避免无关解释和建议。
 - SSOT 是核心原则：交接物类型、Owner 字段、独立检查字段和状态字段以 `prompts/packets/handoff-artifacts.md` 为 Single Source of Truth；其他 workflow、template、README 和 runtime 示例只能引用或同步它，不能另起一套口径。
 - Google OKF 是生成文档的核心格式：所有 Markdown 输出默认使用 YAML frontmatter，且必须包含非空 `type`；本地双语规范为 `references/google-okf-bilingual-spec.md`。
 - 用户未指定生成目录时，输出根目录默认写入 `GoalTeamsWork-<project_version>/`；该目录必须包含 OKF `memory.md`，按时间线从老到新记录重要用户设置、配置、组件库、上下文摘要和决策，作者固定为 `GoalTeams`。
 - 所有 SSOT 产出物必须写入输出目录下的版本号子目录，例如 `GoalTeamsWork-<project_version>/versions/<artifact_version>/`；不同版本的 SPEC、TaskList、Harness、Evidence 和 Acceptance 不得混放。
-- Plan 模式下，启动语和本轮事项后必须立即询问：`在开始规划前，如果有什么历史文档、历史经验或参考资料需要输入吗？如果有，请提供路径、链接或要点；没有请回复“2”。`
+- Plan 模式下，启动语和本轮事项后必须立即询问：`在开始规划前，如果有什么历史文档、历史经验或参考资料需要输入吗？如果有，请提供路径、链接或要点；没有请回复“无”或“2”。`
 - Plan 模式接到需求后，必须先写入 `需求卡片`，用简洁方案把核心目标、关键功能、用户故事、功能验收标准、边界、约束和风险讲清楚，再进入完整 SPEC、tasklist 和 Teams 规划表。
 - 中文核心提示词统一为：`默认全程中文表格化输出计划、tasklist、SPEC、进度、成员包、最终总结、生成文档、代码注释、面向用户的字符串、测试名和测试用例说明；仅代码标识、命令、路径、API 名称、日志、配置键、subagent ID、skill 名称和精确引用保留原文。`
 - UI 页面、复刻、还原、截图对齐或前端交互页面必须在 PRD 完成后先产出 `page-spec-card.md`，再进入 HTML Prototype MOCK、静态页面开发或动态前端页面开发；非 UI 任务必须写 `not_applicable_reason`。

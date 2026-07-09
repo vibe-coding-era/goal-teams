@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check V1.x version and startup identity synchronization."""
+"""Check version and startup identity synchronization."""
 
 from __future__ import annotations
 
@@ -35,12 +35,19 @@ def read(path: str) -> str:
 def main() -> None:
     version = read("VERSION").strip()
     if not re.fullmatch(r"V\d+\.\d+", version):
-        fail(f"VERSION must look like V1.x, got {version!r}")
+        fail(f"VERSION must look like Vx.y, got {version!r}")
 
     startup = (
-        f"我是 Goal Teams Leader {version}，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，"
+        f"我是 Goal Teams Leader {version}，使用 Goal + Plan 模式帮你完成规划、执行和交付，"
         "并使用 Harness + SPEC 做为过程与结果产物的约束："
     )
+    skill_versions = set(re.findall(r"\bV\d+(?:\.\d+)+\b", read("SKILL.md")))
+    unexpected_skill_versions = sorted(found for found in skill_versions if found != version)
+    if unexpected_skill_versions:
+        fail(
+            "SKILL.md version strings must match VERSION "
+            f"{version!r}; unexpected: {', '.join(unexpected_skill_versions)}"
+        )
     for path in VERSION_FILES:
         text = read(path)
         if version not in text:

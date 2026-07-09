@@ -8,7 +8,7 @@ Goal Teams 工作总是先规划，再派发或编辑实现文件。直接执行
 2. 将用户目标转成可验证 Done Criteria。
 3. 确认或推断项目版本号；无法推断时询问。
 4. 确认输出目录。用户未指定生成目录时，默认使用 `GoalTeamsWork-<project_version>/`；确认 artifact version，并创建 `versions/<artifact_version>/`。
-5. 读取 `references/google-okf-bilingual-spec.md` 和 `prompts/packets/memory.md`，创建或更新输出目录根部的 OKF `index.md`、`memory.md`，再创建版本子目录的 OKF `index.md` 和 `TaskList.md`（兼容 `tasklist.md`）。
+5. 读取 `prompts/packets/memory.md`，创建或更新输出目录根部的 `index.md`、`memory.md`，再创建版本子目录的 `index.md` 和 `TaskList.md`（兼容 `tasklist.md`）；需要生成 Markdown 文档、SPEC 或需求卡片时再读取 `references/google-okf-bilingual-spec.md`。
 6. 创建或更新 `spec/requirement-card.md`，用 OKF 简洁方案写清核心目标、关键功能、用户故事、功能验收标准、边界、约束和风险。
 7. 发现已有 SPEC、TaskList、前后端架构设计、prototype、test plan、acceptance 和页面规格卡。
 8. 读取 `prompts/packets/handoff-artifacts.md`，把本轮交接物类型、Owner subagent、独立检查者和状态字段作为 SSOT。
