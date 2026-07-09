@@ -8,6 +8,11 @@
 - `RULES.md` 承载 V2.02 Response Contract（响应规范），Goal Lead 和所有成员必须遵守。
 - `VERSION` 记录当前 Skill 版本号，需要和 `SKILL.md` 正文、README、runtime 启动语保持一致；`SKILL.md` frontmatter 只保留 `name` 和 `description`。
 - `SKILL.md` 是 Codex 发现和执行 skill 的主入口。
+- `references/invariants.md` 承载所有任务永远生效的不变量、硬边界和失败降级协议。
+- `references/compat.md` 集中声明 `TaskList.md`/`tasklist.md`、脚本兼容入口、成员包布局和版本同步口径。
+- `references/rules-ui.md` 承载 UI、页面规格卡、HTML Prototype MOCK、E2E 和像素对比的条件规则。
+- `references/rules-testing.md` 承载后端架构先行、TDD、API 集成 pytest、前端 E2E 和独立测试派发条件规则。
+- `references/rules-loop.md` 承载 Lead LOOP、Loop Decision、Loop Gate、Budget Gate、Conflict Policy 和自动续跑边界。
 - `references/goal-teams-runtime.md` 承载详细协议、模板和 CLI 示例。
 - `references/goal-teams-automation-protocol.md` 承载 V1.8 机器可读 Harness/Evidence/Pipeline 协议。
 - `references/goal-teams-production-pipeline.md` 承载 V1.9 生产流、Release Gate 和 safety gate 协议。
@@ -32,6 +37,7 @@
 - `prompts/members/unit-test-designer/`、`unit-test-runner/`、`api-integration-test-designer/`、`api-integration-test-runner/`、`e2e-test-designer/`、`e2e-test-runner/` 承载 V2.0 TDD/API/E2E 独立测试成员包。
 - `references/dual-review-protocol.md` 承载 V1.94 LLM + 脚本双重复核协议。
 - `scripts/checks/`、`scripts/harness/`、`scripts/review/`、`scripts/benchmark/`、`scripts/install/` 承载 V1.94 分目录脚本；根 `scripts/*.py` 和 `scripts/*.sh` 保留兼容入口。
+- `scripts/checks/check-routing-fixtures.py` 承载纯后端 CLI、UI 复刻和长任务续跑的渐进式加载路由 fixtures。
 - `subagents/goal-*.toml` 是实际可注册的成员 agent 配置。
 - `README.md` 和 `README.en.md` 只做介绍、安装、示例和发布说明，避免承载唯一规则。
 
@@ -43,6 +49,11 @@
 - `RULES.md`
 - `VERSION`
 - `SKILL.md`
+- `references/invariants.md`
+- `references/compat.md`
+- `references/rules-ui.md`
+- `references/rules-testing.md`
+- `references/rules-loop.md`
 - `references/goal-teams-runtime.md`
 - `references/goal-teams-automation-protocol.md`
 - `references/goal-teams-production-pipeline.md`

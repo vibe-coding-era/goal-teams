@@ -27,6 +27,7 @@ fi
 
 "$PYTHON_BIN" scripts/checks/validate.py
 "$PYTHON_BIN" scripts/checks/check-version-sync.py
+"$PYTHON_BIN" scripts/checks/check-routing-fixtures.py
 "$PYTHON_BIN" scripts/checks/check-agent-names.py
 "$PYTHON_BIN" scripts/checks/check-member-layout.py
 "$PYTHON_BIN" scripts/harness/validate-harness.py --self-test

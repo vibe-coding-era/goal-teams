@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Bumped current Skill version to `V2.2`.
+- Slimmed `SKILL.md` into a trigger-oriented entrypoint with 7 invariants, planning checks, failure-degradation summary, and a progressive-loading router.
+- Added conditional rule references: `references/invariants.md`, `references/compat.md`, `references/rules-ui.md`, `references/rules-testing.md`, and `references/rules-loop.md`.
+- Extended validation to enforce compact Skill description length, progressive-loading path existence, required conditional references, and repeated-rule limits in `SKILL.md`.
+- Added `scripts/check-routing-fixtures.py` for 3 route fixtures: backend CLI, UI replica, and long-running Lead LOOP.
+- Added file-level rule validation so missing key rules report the exact owning file instead of only a combined-doc failure.
+- Slimmed README/README.en rule sections into entrypoint indexes and centralized version narrative in `references/compat.md`.
 - Bumped current Skill version to `V2.1`.
 - Added `prompts/lead/loop.md` as the Lead LOOP Protocol with Loop Decision, Loop Gate, integration audit, state snapshot, auto-continuation, stop-boundary, and resume-state rules.
 - Added `loop_decision_record` to the handoff artifact SSOT and propagated Lead LOOP fields into Lead planning, dispatch, audit, completion, Member Goal Packet, and Teams plan templates.

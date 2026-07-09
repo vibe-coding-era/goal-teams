@@ -39,6 +39,11 @@ REQUIRED_FILES = [
     "agents/openai.yaml",
     "references/goal-teams-runtime.md",
     "references/default-AGENTS.md",
+    "references/invariants.md",
+    "references/compat.md",
+    "references/rules-ui.md",
+    "references/rules-testing.md",
+    "references/rules-loop.md",
     "references/goal-teams-automation-protocol.md",
     "references/goal-teams-production-pipeline.md",
     "references/goal-teams-scripted-tooling.md",
@@ -83,6 +88,7 @@ REQUIRED_FILES = [
     "scripts/validate.py",
     "scripts/install-local.sh",
     "scripts/check-version-sync.py",
+    "scripts/check-routing-fixtures.py",
     "scripts/check-agent-names.py",
     "scripts/validate-harness.py",
     "scripts/pixel-diff.py",
@@ -90,6 +96,7 @@ REQUIRED_FILES = [
     "scripts/checks/check.sh",
     "scripts/checks/validate.py",
     "scripts/checks/check-version-sync.py",
+    "scripts/checks/check-routing-fixtures.py",
     "scripts/checks/check-agent-names.py",
     "scripts/checks/check-member-layout.py",
     "scripts/harness/validate-harness.py",
@@ -267,6 +274,8 @@ KEY_RULES = [
     "scripts/install/install-local.sh",
     "scripts/check-version-sync.py",
     "scripts/checks/check-version-sync.py",
+    "scripts/check-routing-fixtures.py",
+    "scripts/checks/check-routing-fixtures.py",
     "scripts/check-agent-names.py",
     "scripts/checks/check-agent-names.py",
     "scripts/validate-harness.py",
@@ -352,6 +361,73 @@ KEY_RULES = [
     "test_report",
 ]
 
+FILE_RULES = {
+    "SKILL.md": (
+        STARTUP_LINE,
+        "references/invariants.md",
+        "references/compat.md",
+        "references/rules-ui.md",
+        "references/rules-testing.md",
+        "references/rules-loop.md",
+        "失败降级",
+        "渐进式加载",
+    ),
+    "references/invariants.md": (
+        "L0 不变量",
+        "失败降级协议",
+        "证据不足不能完成",
+        "goal_completion_auditor",
+        "transport_handle",
+    ),
+    "references/compat.md": (
+        "TaskList.md",
+        "tasklist.md",
+        "scripts/check-routing-fixtures.py",
+        "scripts/checks/check-routing-fixtures.py",
+        "后续版本优先使用",
+    ),
+    "references/rules-ui.md": (
+        "page-spec-card.md",
+        "HTML Prototype MOCK",
+        "组件库",
+        "locked screenshot",
+        "unlocked real DOM screenshot",
+        "scripts/harness/pixel-diff.py",
+    ),
+    "references/rules-testing.md": (
+        "Backend Architecture Design",
+        "goal_unit_test_designer",
+        "goal_unit_test_runner",
+        "Python",
+        "pytest",
+        "goal_e2e_test_runner",
+    ),
+    "references/rules-loop.md": (
+        "Loop Decision",
+        "Loop Gate",
+        "complete | continue_same_scope | replan | blocked_needs_user | stop_budget | deferred",
+        "Budget Gate",
+        "goal_completion_auditor",
+    ),
+    "references/goal-teams-scripted-tooling.md": (
+        "scripts/check-routing-fixtures.py",
+        "scripts/checks/check-routing-fixtures.py",
+        "路由 fixtures",
+    ),
+    "README.md": (
+        "规则入口",
+        "版本说明",
+        "references/rules-ui.md",
+        "scripts/check-routing-fixtures.py",
+    ),
+    "README.en.md": (
+        "Rule Entrypoints",
+        "Version Note",
+        "references/rules-ui.md",
+        "scripts/check-routing-fixtures.py",
+    ),
+}
+
 CHINESE_SURFACE_FILES = [
     "SKILL.md",
     "references/goal-teams-runtime.md",
@@ -397,6 +473,11 @@ README_RELEASE_ITEMS = [
     "agents/openai.yaml",
     "references/goal-teams-runtime.md",
     "references/default-AGENTS.md",
+    "references/invariants.md",
+    "references/compat.md",
+    "references/rules-ui.md",
+    "references/rules-testing.md",
+    "references/rules-loop.md",
     "references/goal-teams-automation-protocol.md",
     "references/goal-teams-production-pipeline.md",
     "references/goal-teams-scripted-tooling.md",
@@ -412,6 +493,7 @@ README_RELEASE_ITEMS = [
     "scripts/validate.py",
     "scripts/install-local.sh",
     "scripts/check-version-sync.py",
+    "scripts/check-routing-fixtures.py",
     "scripts/check-agent-names.py",
     "scripts/check-member-layout.py",
     "scripts/validate-harness.py",
@@ -420,6 +502,7 @@ README_RELEASE_ITEMS = [
     "scripts/validate-dual-review.py",
     "scripts/benchmark-runner.py",
     "scripts/checks/",
+    "scripts/checks/check-routing-fixtures.py",
     "scripts/harness/",
     "scripts/benchmark/",
     "scripts/review/",
@@ -492,6 +575,8 @@ def check_skill_frontmatter() -> None:
         fail(f"SKILL.md frontmatter name should be 'goal-teams', got {values['name']!r}")
     if len(values["description"]) < 80:
         fail("SKILL.md description is too short for skill discovery")
+    if len(values["description"]) > 500:
+        fail(f"SKILL.md description should be at most 500 characters, got {len(values['description'])}")
     if not re.search(r"[\u4e00-\u9fff]", values["description"]):
         fail("SKILL.md description should be Chinese-first")
     if len(body) > 500:
@@ -502,6 +587,11 @@ def check_skill_frontmatter() -> None:
         fail(f"SKILL.md body should stay as a compact progressive loader, got {line_count} lines")
     for route in (
         "RULES.md",
+        "references/invariants.md",
+        "references/compat.md",
+        "references/rules-ui.md",
+        "references/rules-testing.md",
+        "references/rules-loop.md",
         "prompts/lead/core.md",
         "prompts/lead/planning.md",
         "prompts/lead/requirement-card.md",
@@ -528,6 +618,41 @@ def check_skill_frontmatter() -> None:
     ):
         if route not in markdown_body:
             fail(f"SKILL.md progressive loading route missing {route}")
+    check_skill_loading_paths(markdown_body)
+    check_skill_rule_repetition(markdown_body)
+
+
+def check_skill_loading_paths(markdown_body: str) -> None:
+    match = re.search(r"^## 渐进式加载\n(?P<section>.*?)(?:\n## |\Z)", markdown_body, flags=re.S | re.M)
+    if not match:
+        fail("SKILL.md must contain a progressive loading section")
+    section = match.group("section")
+    prefixes = ("references/", "prompts/", "scripts/")
+    direct_files = {"RULES.md", "VERSION", "AGENTS.md", "goal-teams.md", "SKILL.md", "README.md", "README.en.md"}
+    checked = set()
+    for value in re.findall(r"`([^`\n]+)`", section):
+        if value.startswith(prefixes) or value in direct_files:
+            if "<" in value or "*" in value:
+                continue
+            checked.add(value)
+            if not (ROOT / value).exists():
+                fail(f"SKILL.md progressive loading path does not exist: {value}")
+    if not checked:
+        fail("SKILL.md progressive loading section did not expose any checkable file paths")
+
+
+def check_skill_rule_repetition(markdown_body: str) -> None:
+    limits = {
+        "prompts/packets/handoff-artifacts.md": 4,
+        "Single Source of Truth": 2,
+        "TaskList.md": 8,
+        "page-spec-card.md": 4,
+        "not_applicable_reason": 6,
+    }
+    for phrase, limit in limits.items():
+        count = markdown_body.count(phrase)
+        if count > limit:
+            fail(f"SKILL.md repeats {phrase!r} {count} times; keep repeated rules in references")
 
 
 def check_subagents() -> None:
@@ -576,7 +701,16 @@ def check_readmes() -> None:
             fail(f"READMEs must mention {snippet}")
 
 
+def check_file_rule_sets() -> None:
+    for path, snippets in FILE_RULES.items():
+        text = read(path)
+        for snippet in snippets:
+            if snippet not in text:
+                fail(f"{path} missing file-level rule snippet: {snippet}")
+
+
 def check_key_rules() -> None:
+    check_file_rule_sets()
     combined = "\n".join(
         read(path)
         for path in [
@@ -587,6 +721,11 @@ def check_key_rules() -> None:
             "references/goal-teams-runtime.md",
             "agents/openai.yaml",
             "references/default-AGENTS.md",
+            "references/invariants.md",
+            "references/compat.md",
+            "references/rules-ui.md",
+            "references/rules-testing.md",
+            "references/rules-loop.md",
             "references/goal-teams-scripted-tooling.md",
             "references/google-okf-bilingual-spec.md",
             "references/ui-e2e-pixel-protocol.md",

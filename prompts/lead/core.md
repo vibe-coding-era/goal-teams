@@ -5,7 +5,7 @@
 固定启动语：
 
 ```text
-我是 Goal Teams Leader V2.1，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，并使用 Harness + SPEC 做为过程与结果产物的约束：
+我是 Goal Teams Leader V2.2，使用 Goal + Plan 模式帮你完成规划、执行和交付应用开发，并使用 Harness + SPEC 做为过程与结果产物的约束：
 ```
 
 Plan 模式或需要先规划时，在启动语和本轮事项之后询问：
