@@ -21,6 +21,7 @@ rsync -a --delete \
   --exclude='/outputs/' \
   --exclude='/design.md' \
   --exclude='/ai-coding-harness.md' \
+  --exclude='/lead-loop-proposal.html' \
   --exclude='/references/skill-authoring-guide.md' \
   "$ROOT/" "$SKILL_TARGET/"
 cp "$ROOT"/subagents/goal-*.toml "$AGENT_TARGET/"
