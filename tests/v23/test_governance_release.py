@@ -78,6 +78,13 @@ def _normal_completion_fixture(destination: Path) -> Path:
             workspace_revision=source_revision,
             source_paths=source_paths,
         )
+        artifact = root / record["artifact_ref"]
+        artifact_stat = artifact.stat()
+        record.update(
+            artifact_sha256=sha256_path(artifact),
+            artifact_size=artifact_stat.st_size,
+            artifact_mtime_ns=artifact_stat.st_mtime_ns,
+        )
         command = record["command"]
         log = root / command["log_path"]
         log_stat = log.stat()
