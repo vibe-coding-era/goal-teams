@@ -3498,13 +3498,38 @@ def route(features: Any) -> dict[str, Any]:
         refs.append("references/rules-loop.md")
     if features.get("external_write") or features.get("security_sensitive"):
         refs.append("references/dual-review-protocol.md")
+    preview_policy: dict[str, Any] | None = None
+    if "request_text" in features or "intent" in features:
+        preview_policy = plan_preview_policy(features)
+        preview_mode = preview_policy["plan_preview"] is True
+    else:
+        # Structured callers that have already classified the request retain
+        # the V2.3 compatibility entrypoint.  Text-bearing callers must pass
+        # the V2.33 policy and cannot force preview with a boolean flag.
+        preview_mode = features.get("plan_preview") is True
+    reference_request = features.get("reference_policy")
+    if reference_request is None:
+        reference_request = {
+            "required_refs": sorted(set(refs)),
+            "triggered_conditional_refs": [],
+            "optional_refs": [],
+            "available_refs": [],
+            "low_risk": profile == "lite",
+            "acceptance_blocking": profile != "lite",
+            "independent_validation_required": profile != "lite",
+        }
+    reference_result = reference_policy(reference_request)
+    if reference_result["state"] == "blocked":
+        reasons.append("reference_policy_blocked")
     return {
         "schema_version": SCHEMA_VERSION,
         "profile": profile,
-        "mode": "plan_preview" if features.get("plan_preview") is True else "execute",
-        "writes_created": False if features.get("plan_preview") is True else None,
+        "mode": "plan_preview" if preview_mode else "execute",
+        "writes_created": False if preview_mode else None,
         "rule_set": sorted(set(refs)),
         "route_explanation": reasons,
+        "plan_preview_policy": preview_policy,
+        "reference_policy": reference_result,
     }
 
 
@@ -3524,11 +3549,15 @@ def plan_preview_policy(request: Any) -> dict[str, Any]:
     text = raw_text.casefold()
     plan_markers = ("只规划", "仅规划", "只做计划", "只要计划", "只给方案", "仅给方案", "plan only")
     no_write_markers = ("不落盘", "不写文件", "不创建文件", "不修改文件", "聊天内", "no-write", "chat-only")
-    execute_markers = ("直接执行", "开始执行", "直接做", "直接改", "创建文件", "写入文件", "落盘执行", "一次完成")
+    execute_markers = (
+        "直接执行", "开始执行", "直接做", "直接改", "创建文件", "写入文件",
+        "落盘执行", "一次完成", "创建任务", "创建需求卡", "创建任务卡",
+    )
+    negated_execute_markers = ("不直接执行", "不开始执行", "不直接做", "不直接改", "不创建任务", "不创建需求卡", "不创建任务卡", "不写入文件")
     has_plan = any(marker in text for marker in plan_markers)
     has_no_write = any(marker in text for marker in no_write_markers)
     text_without_no_write = text
-    for marker in no_write_markers:
+    for marker in (*no_write_markers, *negated_execute_markers):
         text_without_no_write = text_without_no_write.replace(marker, "")
     has_execute = any(marker in text_without_no_write for marker in execute_markers)
     enabled = has_plan and has_no_write and not has_execute
@@ -3562,10 +3591,17 @@ def reference_policy(request: Any) -> dict[str, Any]:
     required = read_list("required_refs")
     triggered = read_list("triggered_conditional_refs")
     optional = read_list("optional_refs")
-    available = read_list("available_refs")
-    missing_required = sorted(required - available)
-    missing_triggered = sorted(triggered - available)
-    missing_optional = sorted(optional - available)
+    reported_available = read_list("available_refs")
+    root = Path(__file__).resolve().parents[2]
+
+    def exists_as_regular_file(relative: str) -> bool:
+        candidate = resolve_under(root, relative)
+        return bool(candidate is not None and candidate.is_file() and not candidate.is_symlink())
+
+    observed_available = {reference for reference in required | triggered | optional if exists_as_regular_file(reference)}
+    missing_required = sorted(required - observed_available)
+    missing_triggered = sorted(triggered - observed_available)
+    missing_optional = sorted(optional - observed_available)
     low_risk = request.get("low_risk", False)
     acceptance_blocking = request.get("acceptance_blocking", True)
     independent_validation_required = request.get("independent_validation_required", True)
@@ -3592,6 +3628,8 @@ def reference_policy(request: Any) -> dict[str, Any]:
         "missing_required_refs": missing_required,
         "missing_triggered_conditional_refs": missing_triggered,
         "missing_optional_refs": missing_optional,
+        "reported_available_refs": sorted(reported_available),
+        "observed_available_refs": sorted(observed_available),
         "reason": reason,
     }
 
@@ -5935,7 +5973,7 @@ def _self_test() -> None:
     assert reference_policy({
         "required_refs": ["RULES.md"],
         "triggered_conditional_refs": [],
-        "optional_refs": ["references/rules-ui.md"],
+        "optional_refs": ["references/does-not-exist.md"],
         "available_refs": ["RULES.md"],
         "low_risk": True,
         "acceptance_blocking": False,

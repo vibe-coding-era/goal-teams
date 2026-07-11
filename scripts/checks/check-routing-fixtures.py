@@ -59,7 +59,7 @@ POLICY_FIXTURES = (
         "missing-required-reference-is-blocked",
         "reference-policy",
         {
-            "required_refs": ["RULES.md", "references/invariants.md"],
+            "required_refs": ["RULES.md", "references/does-not-exist.md"],
             "triggered_conditional_refs": [],
             "optional_refs": [],
             "available_refs": ["RULES.md"],
@@ -67,21 +67,21 @@ POLICY_FIXTURES = (
             "acceptance_blocking": False,
             "independent_validation_required": False,
         },
-        {"state": "blocked", "execution_mode": "blocked", "acceptance_allowed": False, "missing_required_refs": ["references/invariants.md"]},
+        {"state": "blocked", "execution_mode": "blocked", "acceptance_allowed": False, "missing_required_refs": ["references/does-not-exist.md"]},
     ),
     PolicyFixture(
         "missing-triggered-reference-is-blocked",
         "reference-policy",
         {
             "required_refs": ["RULES.md"],
-            "triggered_conditional_refs": ["references/rules-ui.md"],
+            "triggered_conditional_refs": ["references/does-not-exist.md"],
             "optional_refs": [],
             "available_refs": ["RULES.md"],
             "low_risk": True,
             "acceptance_blocking": False,
             "independent_validation_required": False,
         },
-        {"state": "blocked", "execution_mode": "blocked", "acceptance_allowed": False, "missing_triggered_conditional_refs": ["references/rules-ui.md"]},
+        {"state": "blocked", "execution_mode": "blocked", "acceptance_allowed": False, "missing_triggered_conditional_refs": ["references/does-not-exist.md"]},
     ),
     PolicyFixture(
         "missing-optional-reference-safe-single-agent",
@@ -89,7 +89,7 @@ POLICY_FIXTURES = (
         {
             "required_refs": ["RULES.md"],
             "triggered_conditional_refs": [],
-            "optional_refs": ["references/rules-ui.md"],
+            "optional_refs": ["references/does-not-exist.md"],
             "available_refs": ["RULES.md"],
             "low_risk": True,
             "acceptance_blocking": False,
@@ -103,7 +103,7 @@ POLICY_FIXTURES = (
         {
             "required_refs": ["RULES.md"],
             "triggered_conditional_refs": [],
-            "optional_refs": ["references/rules-ui.md"],
+            "optional_refs": ["references/does-not-exist.md"],
             "available_refs": ["RULES.md"],
             "low_risk": True,
             "acceptance_blocking": False,

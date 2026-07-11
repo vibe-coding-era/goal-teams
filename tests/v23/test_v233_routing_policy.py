@@ -26,6 +26,17 @@ class PlanPreviewPolicyTests(unittest.TestCase):
         self.assertEqual(incomplete["reason"], "explicit_pair_incomplete")
         self.assertEqual(executing["reason"], "execution_or_write_intent_present")
 
+    def test_negated_execution_does_not_cancel_preview_but_artifact_creation_does(self) -> None:
+        negated = gt.plan_preview_policy({"request_text": "只规划，不落盘，不直接执行"})
+        create_artifact = gt.plan_preview_policy({"request_text": "只规划，不创建文件，但创建任务卡"})
+        self.assertTrue(negated["plan_preview"])
+        self.assertFalse(create_artifact["plan_preview"])
+
+    def test_text_bearing_route_cannot_force_preview_with_a_boolean(self) -> None:
+        route = gt.route({"plan_preview": True, "request_text": "只规划，不落盘，然后一次完成"})
+        self.assertEqual(route["mode"], "execute")
+        self.assertFalse(route["plan_preview_policy"]["plan_preview"])
+
     def test_preview_route_declares_no_write_mode(self) -> None:
         route = gt.route({"risk": "low", "plan_preview": True})
         self.assertEqual(route["mode"], "plan_preview")
@@ -58,10 +69,10 @@ class ReferenceAvailabilityPolicyTests(unittest.TestCase):
 
     def test_missing_required_or_triggered_reference_is_blocked(self) -> None:
         missing_required = gt.reference_policy(
-            self.request(required_refs=["RULES.md", "references/invariants.md"])
+            self.request(required_refs=["RULES.md", "references/does-not-exist.md"])
         )
         missing_triggered = gt.reference_policy(
-            self.request(triggered_conditional_refs=["references/rules-ui.md"])
+            self.request(triggered_conditional_refs=["references/does-not-exist.md"])
         )
         for policy in (missing_required, missing_triggered):
             self.assertEqual(policy["state"], "blocked")
@@ -70,11 +81,11 @@ class ReferenceAvailabilityPolicyTests(unittest.TestCase):
 
     def test_optional_reference_can_only_degrade_non_acceptance_work(self) -> None:
         safe = gt.reference_policy(
-            self.request(optional_refs=["references/rules-ui.md"])
+            self.request(optional_refs=["references/does-not-exist.md"])
         )
         validation_required = gt.reference_policy(
             self.request(
-                optional_refs=["references/rules-ui.md"],
+                optional_refs=["references/does-not-exist.md"],
                 independent_validation_required=True,
             )
         )
@@ -84,6 +95,16 @@ class ReferenceAvailabilityPolicyTests(unittest.TestCase):
         self.assertEqual(validation_required["state"], "degraded")
         self.assertEqual(validation_required["execution_mode"], "blocked")
         self.assertFalse(validation_required["acceptance_allowed"])
+
+    def test_reported_reference_cannot_override_missing_file(self) -> None:
+        policy = gt.reference_policy(
+            self.request(
+                required_refs=["references/does-not-exist.md"],
+                available_refs=["references/does-not-exist.md"],
+            )
+        )
+        self.assertEqual(policy["state"], "blocked")
+        self.assertFalse(policy["acceptance_allowed"])
 
     def test_reference_policy_rejects_malformed_lists(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
