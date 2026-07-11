@@ -744,11 +744,11 @@ prefix tests/v23/
                 "examples/canonical-v23/versions/V2.3/evidence/integrity.log",
                 staged_paths,
             )
+            self.assertIn("scripts/review/review.py", staged_paths)
             forbidden_leaks = {
                 "README.md",
                 "GoalTeams-PRD-V2.3.md",
                 "scripts/checks/check-v23.py",
-                "scripts/review/review.py",
                 "scripts/install/package-manifest.txt",
                 "tests/v23/answer.py",
                 "benchmarks/tasks/answer.md",
