@@ -125,7 +125,7 @@ okf_version: "0.1"
 - run_outcome: `achieved`
 - stop_reason: `achieved`
 - open_gaps: `[]`
-- source_commit: `87f2f604967d00e06e729cd218fa8104f0527295`
+- source_commit: `7983e344a3984e98b6ce1a779e45bf7b289c747d`
 - real_blind: `9/9`, `provider_trust_level=local_process_attested`
 - deterministic_release_composition: `exit_code=0`, source/index/status/tree unchanged
 - required_tasks: `13/13 accepted`

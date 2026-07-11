@@ -1,7 +1,7 @@
 {
   "artifact": {
     "artifact_ref": "versions/V2.3/evidence/release-gate.log",
-    "artifact_sha256": "b335710d608677c40f2ccd5e91830665813d2132dd18525ba11d49cc56ee8493",
+    "artifact_sha256": "a1527699ac764841cc47ced29af320fde9affcb0bf13a657aebf7909db13c305",
     "artifact_version": "V2.3"
   },
   "author_run_id": "RUN-ROOT-V23-CLOSURE",
@@ -10,10 +10,10 @@
     "status": "pass"
   },
   "llm_review": {
-    "artifact_sha256": "b335710d608677c40f2ccd5e91830665813d2132dd18525ba11d49cc56ee8493",
+    "artifact_sha256": "a1527699ac764841cc47ced29af320fde9affcb0bf13a657aebf7909db13c305",
     "artifact_version": "V2.3",
     "evidence_path": "versions/V2.3/reviews/semantic-review.md",
-    "evidence_sha256": "3368bccd6e7fb54861827566bc1cfe97d02a286e86923c5c64e79b190b59022b",
+    "evidence_sha256": "94d86e26e524d4b1665406ba35f7240811d20c26caa084b68a3624f410f36df8",
     "evidence_size": 332,
     "reviewer": "独立评审-V2.3冻结复核",
     "reviewer_run_id": "RUN-R236-FRESH-REVIEW-20260711-01",
@@ -24,11 +24,11 @@
   "reviewer_run_id": "RUN-R236-FRESH-REVIEW-20260711-01",
   "schema_version": "goal-teams-v2.3",
   "script_review": {
-    "artifact_sha256": "b335710d608677c40f2ccd5e91830665813d2132dd18525ba11d49cc56ee8493",
+    "artifact_sha256": "a1527699ac764841cc47ced29af320fde9affcb0bf13a657aebf7909db13c305",
     "artifact_version": "V2.3",
     "evidence_path": "versions/V2.3/reviews/script-review.json",
-    "evidence_sha256": "ffe344ea0ce9b135982227ea770cdf6d87537f247907a1940404969dedc1c4ff",
-    "evidence_size": 2892,
+    "evidence_sha256": "ef063f4a9d91c0f8b9379807d9d1206f18d7e389e40560e32e472812864d7823",
+    "evidence_size": 2898,
     "exit_code": 0,
     "reviewer_run_id": "RUN-V23-RELEASE-SCRIPT-REVIEW",
     "status": "passed",

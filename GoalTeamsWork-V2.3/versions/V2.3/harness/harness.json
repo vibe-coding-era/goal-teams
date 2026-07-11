@@ -37,7 +37,7 @@
             "--mode",
             "rc",
             "--blind-summary",
-            "/private/tmp/goal-teams-v23-closure-blind/summary.json"
+            "/private/tmp/goal-teams-v23-final-blind-7983e34/summary.json"
           ],
           "cwd": "."
         },
@@ -47,7 +47,7 @@
       }
     ],
     "commands": [
-      "python3 scripts/v23/goalteams_v23.py release-gate examples/canonical-v23 --mode rc --blind-summary /private/tmp/goal-teams-v23-closure-blind/summary.json"
+      "python3 scripts/v23/goalteams_v23.py release-gate examples/canonical-v23 --mode rc --blind-summary /private/tmp/goal-teams-v23-final-blind-7983e34/summary.json"
     ],
     "e2e_checks": [
       "real nine-scenario blind-agent run"
@@ -70,14 +70,14 @@
     {
       "attempt_id": "ATT-V23-RELEASE-CLOSURE",
       "check_id": "CHECK-V23-RELEASE-CLOSURE",
-      "ended_at": "2026-07-11T01:51:33.937861Z",
+      "ended_at": "2026-07-11T02:25:29.774501Z",
       "evidence_refs": [
         "EVD-V23-RELEASE-GATE"
       ],
       "producer_run_id": "RUN-ROOT-V23-CLOSURE",
       "run_id": "RUN-V23-RELEASE-GATE",
       "schema_version": "goal-teams-v2.3",
-      "started_at": "2026-07-11T01:38:59.541233Z",
+      "started_at": "2026-07-11T02:14:30.455045Z",
       "status": "passed"
     }
   ],

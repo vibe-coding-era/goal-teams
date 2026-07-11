@@ -85,7 +85,7 @@
           "--mode",
           "rc",
           "--blind-summary",
-          "/private/tmp/goal-teams-v23-closure-blind/summary.json"
+          "/private/tmp/goal-teams-v23-final-blind-7983e34/summary.json"
         ],
         "cwd": "."
       },
@@ -96,9 +96,9 @@
   ],
   "evidence": [
     {
-      "artifact_mtime_ns": 1783734622384296954,
+      "artifact_mtime_ns": 1783736729549751891,
       "artifact_ref": "versions/V2.3/evidence/release-gate.log",
-      "artifact_sha256": "b335710d608677c40f2ccd5e91830665813d2132dd18525ba11d49cc56ee8493",
+      "artifact_sha256": "a1527699ac764841cc47ced29af320fde9affcb0bf13a657aebf7909db13c305",
       "artifact_size": 2237,
       "attempt_id": "ATT-V23-RELEASE-CLOSURE",
       "check_id": "CHECK-V23-RELEASE-CLOSURE",
@@ -111,24 +111,24 @@
           "--mode",
           "rc",
           "--blind-summary",
-          "/private/tmp/goal-teams-v23-closure-blind/summary.json"
+          "/private/tmp/goal-teams-v23-final-blind-7983e34/summary.json"
         ],
         "cwd": ".",
-        "ended_at": "2026-07-11T01:50:22.383066Z",
+        "ended_at": "2026-07-11T02:25:29.549224Z",
         "execution_record_path": "versions/V2.3/evidence/execution-EVD-V23-RELEASE-GATE.json",
-        "execution_record_sha256": "e4f56217045f07235937899739d4f0e12c25a50a9dc6336db7bf5763e069bbba",
-        "execution_record_size": 799,
+        "execution_record_sha256": "e32480bda0c6dd7250121435cd93ba582d975487d2bcbb36f85de11c6131aabd",
+        "execution_record_size": 805,
         "exit_code": 0,
-        "log_mtime_ns": 1783734622384296954,
+        "log_mtime_ns": 1783736729549751891,
         "log_path": "versions/V2.3/evidence/release-gate.log",
-        "log_sha256": "b335710d608677c40f2ccd5e91830665813d2132dd18525ba11d49cc56ee8493",
+        "log_sha256": "a1527699ac764841cc47ced29af320fde9affcb0bf13a657aebf7909db13c305",
         "log_size": 2237,
-        "started_at": "2026-07-11T01:38:59.542233Z"
+        "started_at": "2026-07-11T02:14:30.456045Z"
       },
-      "created_at": "2026-07-11T01:51:33.937861Z",
+      "created_at": "2026-07-11T02:25:29.774501Z",
       "environment": {
-        "commit": "87f2f604967d00e06e729cd218fa8104f0527295",
-        "ledger_prefix_sha256": "336f331de292075f580332fa244652b4da36affc5f54e6dbb9c705ceab302c37",
+        "commit": "7983e344a3984e98b6ce1a779e45bf7b289c747d",
+        "ledger_prefix_sha256": "8ccab341b014cc990fb9ab62c8001e131e12dd7ec3250ec2616392fefbf5799d",
         "ledger_revision": 39,
         "platform": "darwin",
         "python_version": "3.14.3",
@@ -141,7 +141,7 @@
           "scripts/install/install-local.sh",
           "tests/v23/fixtures/behavior/blind-agent-codex.json"
         ],
-        "workspace_revision": "eabfc7e82235cac4abcc48a7e0940a4960afbc5edc3612020addc0a7704f1c73"
+        "workspace_revision": "739b6db51ba4b9bae18b54f1f591d2b3ffe61b7e3c81ba4ea3a4449330f8bd2f"
       },
       "evidence_id": "EVD-V23-RELEASE-GATE",
       "evidence_kind": "command_execution",
@@ -152,17 +152,17 @@
           "-c",
           "import hashlib,json,pathlib,sys\nif len(sys.argv) != 4:\n    raise SystemExit(64)\nroot = pathlib.Path.cwd().resolve()\nraw = pathlib.Path(sys.argv[1])\ncandidate_input = raw if raw.is_absolute() else root / raw\nif candidate_input.is_symlink():\n    raise SystemExit(65)\ncandidate = candidate_input.resolve()\ntry:\n    candidate.relative_to(root)\nexcept (OSError,RuntimeError,ValueError):\n    raise SystemExit(66)\nif not candidate.is_file():\n    raise SystemExit(67)\ndigest = hashlib.sha256()\nwith candidate.open(\"rb\") as stream:\n    for chunk in iter(lambda: stream.read(1048576), b\"\"):\n        digest.update(chunk)\nactual = digest.hexdigest()\nif actual != sys.argv[2]:\n    raise SystemExit(68)\npayload = {\"artifact_ref\": sys.argv[1], \"artifact_sha256\": actual, \"binding_digest\": sys.argv[3], \"verifier\": \"goal-teams-v2.3-safe-artifact-verifier-v1\"}\nsys.stdout.write(json.dumps(payload, ensure_ascii=True, sort_keys=True, separators=(\",\", \":\")) + \"\\n\")\n",
           "versions/V2.3/evidence/release-gate.log",
-          "b335710d608677c40f2ccd5e91830665813d2132dd18525ba11d49cc56ee8493",
-          "37c035928e941a015fe482721200a22331bb3a6c047ad6f3720a68b90751cdc8"
+          "a1527699ac764841cc47ced29af320fde9affcb0bf13a657aebf7909db13c305",
+          "825243b2507bcd39bbcd4c9a77480fefe79881565b41a1e28b2b5ed22e93a713"
         ],
         "cwd": ".",
-        "ended_at": "2026-07-11T01:51:33.936861Z",
+        "ended_at": "2026-07-11T02:25:29.773501Z",
         "exit_code": 0,
-        "log_mtime_ns": 1783734693937052271,
+        "log_mtime_ns": 1783736729773666824,
         "log_path": "versions/V2.3/evidence/integrity-EVD-V23-RELEASE-GATE.log",
-        "log_sha256": "df16d9678e5031d81931245c3ea26c8fd5ec0d4116d1da5541ced9d4a99bcdab",
+        "log_sha256": "4c33d12b5623c30b53466266f8f826ce97deee2c1339fd904b66a51823e88072",
         "log_size": 283,
-        "started_at": "2026-07-11T01:51:33.907894Z"
+        "started_at": "2026-07-11T02:25:29.746515Z"
       },
       "producer_run_id": "RUN-ROOT-V23-CLOSURE",
       "run_id": "RUN-V23-RELEASE-GATE",
@@ -215,14 +215,14 @@
     {
       "attempt_id": "ATT-V23-RELEASE-CLOSURE",
       "check_id": "CHECK-V23-RELEASE-CLOSURE",
-      "ended_at": "2026-07-11T01:51:33.937861Z",
+      "ended_at": "2026-07-11T02:25:29.774501Z",
       "evidence_refs": [
         "EVD-V23-RELEASE-GATE"
       ],
       "producer_run_id": "RUN-ROOT-V23-CLOSURE",
       "run_id": "RUN-V23-RELEASE-GATE",
       "schema_version": "goal-teams-v2.3",
-      "started_at": "2026-07-11T01:38:59.541233Z",
+      "started_at": "2026-07-11T02:14:30.455045Z",
       "status": "passed"
     }
   ],
@@ -238,7 +238,7 @@
       ],
       "attempt_id": "ATT-V23-RELEASE-CLOSURE",
       "check_state": "passed",
-      "event_digest": "a2daddfcb40f860fa9fec24ff5b7e5ee58e774e464c686f88be0775b4c4a8279",
+      "event_digest": "7cc1c038290ff3eb17a88876f53247d5f1916ea8ba288c25ad5c38a1b519d63d",
       "evidence_refs": [
         "EVD-V23-RELEASE-GATE"
       ],
@@ -260,7 +260,7 @@
       "task_id": "TASK-23-001",
       "task_state": "accepted",
       "title": "Schema SSOT、闭合枚举与统一 envelope",
-      "updated_at": "2026-07-11T01:52:15.963243Z",
+      "updated_at": "2026-07-11T02:26:11.800462Z",
       "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
       "validation_run_id": "RUN-V23-RELEASE-GATE",
       "validator_member_id": "独立评审-V2.3冻结复核",
@@ -276,7 +276,7 @@
       ],
       "attempt_id": "ATT-V23-RELEASE-CLOSURE",
       "check_state": "passed",
-      "event_digest": "ace28556980af27705b3785e9101a4ad7adbe2b1e038fd8587d266880a1ef614",
+      "event_digest": "3818327953898891dd9a54949769c1860a6071445d8eaa819efe2a3da7335ae5",
       "evidence_refs": [
         "EVD-V23-RELEASE-GATE"
       ],
@@ -298,7 +298,7 @@
       "task_id": "TASK-23-002",
       "task_state": "accepted",
       "title": "状态转换、CAS、append-only ledger 与 deterministic TaskList",
-      "updated_at": "2026-07-11T01:52:17.963243Z",
+      "updated_at": "2026-07-11T02:26:13.800462Z",
       "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
       "validation_run_id": "RUN-V23-RELEASE-GATE",
       "validator_member_id": "独立评审-V2.3冻结复核",
@@ -314,7 +314,7 @@
       ],
       "attempt_id": "ATT-V23-RELEASE-CLOSURE",
       "check_state": "passed",
-      "event_digest": "63d794ff01af335a3ec5d3edfe047f53d5547d42b8057ce82d064421a02f3e5e",
+      "event_digest": "462301705af2059a56c61f9d94bc4760390b2a63d35436be769fe527649de952",
       "evidence_refs": [
         "EVD-V23-RELEASE-GATE"
       ],
@@ -336,7 +336,7 @@
       "task_id": "TASK-23-003",
       "task_state": "accepted",
       "title": "Evidence、逐 AC Traceability、Dual Review 与错误合同",
-      "updated_at": "2026-07-11T01:52:19.963243Z",
+      "updated_at": "2026-07-11T02:26:15.800462Z",
       "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
       "validation_run_id": "RUN-V23-RELEASE-GATE",
       "validator_member_id": "独立评审-V2.3冻结复核",
@@ -352,7 +352,7 @@
       ],
       "attempt_id": "ATT-V23-RELEASE-CLOSURE",
       "check_state": "passed",
-      "event_digest": "26881042da80f5751ba193d5ccef79b7e7af421cd1735c46f6e51f3d3489ba67",
+      "event_digest": "d71e2fed7d909bc7914045070cfb56c6d9c52ee38e2ee0eb2325fafd5c98001a",
       "evidence_refs": [
         "EVD-V23-RELEASE-GATE"
       ],
@@ -374,7 +374,7 @@
       "task_id": "TASK-23-004",
       "task_state": "accepted",
       "title": "Canonical 成功/阻塞/失败/恢复全链",
-      "updated_at": "2026-07-11T01:52:21.963243Z",
+      "updated_at": "2026-07-11T02:26:17.800462Z",
       "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
       "validation_run_id": "RUN-V23-RELEASE-GATE",
       "validator_member_id": "独立评审-V2.3冻结复核",
@@ -390,7 +390,7 @@
       ],
       "attempt_id": "ATT-V23-RELEASE-CLOSURE",
       "check_state": "passed",
-      "event_digest": "a816aea717695dcd292bd7df8d824972860d55a755061c906eaed3cc81790bfe",
+      "event_digest": "ece489a16f9333267e97354aa46b07091caae59af4939758e707662e283d6985",
       "evidence_refs": [
         "EVD-V23-RELEASE-GATE"
       ],
@@ -412,7 +412,7 @@
       "task_id": "TASK-23-005",
       "task_state": "accepted",
       "title": "真实九场景 Behavior/Benchmark 与防假绿重评分",
-      "updated_at": "2026-07-11T01:52:23.963243Z",
+      "updated_at": "2026-07-11T02:26:19.800462Z",
       "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
       "validation_run_id": "RUN-V23-RELEASE-GATE",
       "validator_member_id": "独立评审-V2.3冻结复核",
@@ -428,7 +428,7 @@
       ],
       "attempt_id": "ATT-V23-RELEASE-CLOSURE",
       "check_state": "passed",
-      "event_digest": "5b754b2aa171eab6ffdbfc43b7784e4edd84cbf27ef9e2bebf58ab7847903eab",
+      "event_digest": "f90abddbf3d1c3bc52bee19986ff020f71f04ce5d4c48c5d6e017cfa09389887",
       "evidence_refs": [
         "EVD-V23-RELEASE-GATE"
       ],
@@ -450,7 +450,7 @@
       "task_id": "TASK-23-006",
       "task_state": "accepted",
       "title": "Typed migration scan/plan/apply/verify/rollback 与数据保护",
-      "updated_at": "2026-07-11T01:52:25.963243Z",
+      "updated_at": "2026-07-11T02:26:21.800462Z",
       "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
       "validation_run_id": "RUN-V23-RELEASE-GATE",
       "validator_member_id": "独立评审-V2.3冻结复核",
@@ -466,7 +466,7 @@
       ],
       "attempt_id": "ATT-V23-RELEASE-CLOSURE",
       "check_state": "passed",
-      "event_digest": "56fbdcdc2612940b7f34a338abe462053b53dee1274681249a0841518049365e",
+      "event_digest": "70faaf716317f3b3131bd16a451c23651c47f8cd3731cf1055fd16b92433acf9",
       "evidence_refs": [
         "EVD-V23-RELEASE-GATE"
       ],
@@ -488,7 +488,7 @@
       "task_id": "TASK-23-007",
       "task_state": "accepted",
       "title": "Manifest 驱动事务安装、TOCTOU 防护与 rollback/uninstall",
-      "updated_at": "2026-07-11T01:52:27.963243Z",
+      "updated_at": "2026-07-11T02:26:23.800462Z",
       "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
       "validation_run_id": "RUN-V23-RELEASE-GATE",
       "validator_member_id": "独立评审-V2.3冻结复核",
@@ -504,7 +504,7 @@
       ],
       "attempt_id": "ATT-V23-RELEASE-CLOSURE",
       "check_state": "passed",
-      "event_digest": "6c7a60f6f8696abe79cd89415c3a9d139ea7e8f49e888d3a87e02be2d6827f7a",
+      "event_digest": "c75532495008d78b8c2c6dcd2d1bc689b666c2a8928fa3f575d1c7cd418b99eb",
       "evidence_refs": [
         "EVD-V23-RELEASE-GATE"
       ],
@@ -526,7 +526,7 @@
       "task_id": "TASK-23-008",
       "task_state": "accepted",
       "title": "Capability、Profile Router 与 Context Gate",
-      "updated_at": "2026-07-11T01:52:29.963243Z",
+      "updated_at": "2026-07-11T02:26:25.800462Z",
       "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
       "validation_run_id": "RUN-V23-RELEASE-GATE",
       "validator_member_id": "独立评审-V2.3冻结复核",
@@ -542,7 +542,7 @@
       ],
       "attempt_id": "ATT-V23-RELEASE-CLOSURE",
       "check_state": "passed",
-      "event_digest": "9ea2163bad9d3b95eb55afe3c0d12903e1ba045fc06d2b99f6b7dd65783751a5",
+      "event_digest": "4767b5de4f67eceec7fd555ef323abf2930a2b8a6685289068f7ea11f84c6148",
       "evidence_refs": [
         "EVD-V23-RELEASE-GATE"
       ],
@@ -564,7 +564,7 @@
       "task_id": "TASK-23-009",
       "task_state": "accepted",
       "title": "Pixel、安全 redaction、symlink/mode 与 prompt-injection 门禁",
-      "updated_at": "2026-07-11T01:52:31.963243Z",
+      "updated_at": "2026-07-11T02:26:27.800462Z",
       "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
       "validation_run_id": "RUN-V23-RELEASE-GATE",
       "validator_member_id": "独立评审-V2.3冻结复核",
@@ -580,7 +580,7 @@
       ],
       "attempt_id": "ATT-V23-RELEASE-CLOSURE",
       "check_state": "passed",
-      "event_digest": "785fde5b108c00d68b284bdc70ac7d964f08b552eaf3943b328eb1ebe1dd7ac3",
+      "event_digest": "d98511e0b208d2b8b38d0f876da065cb15972a3d4eab99b97609fbff3b05719b",
       "evidence_refs": [
         "EVD-V23-RELEASE-GATE"
       ],
@@ -602,7 +602,7 @@
       "task_id": "TASK-23-010",
       "task_state": "accepted",
       "title": "RULES/SKILL/runtime/README/PRD 语义与 GA 边界同步",
-      "updated_at": "2026-07-11T01:52:33.963243Z",
+      "updated_at": "2026-07-11T02:26:29.800462Z",
       "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
       "validation_run_id": "RUN-V23-RELEASE-GATE",
       "validator_member_id": "独立评审-V2.3冻结复核",
@@ -618,7 +618,7 @@
       ],
       "attempt_id": "ATT-V23-RELEASE-CLOSURE",
       "check_state": "passed",
-      "event_digest": "e2fa32e196ec08e7ca03222ff555b82be38fd44f90c8a9498ab3e1c34587b2b6",
+      "event_digest": "e8233377eff423e68659cdc20f802e89f3565ffe1c2dd1d807a06d59edb29495",
       "evidence_refs": [
         "EVD-V23-RELEASE-GATE"
       ],
@@ -640,7 +640,7 @@
       "task_id": "TASK-23-011",
       "task_state": "accepted",
       "title": "CI 聚合 Contract 到 Distribution 全部门禁",
-      "updated_at": "2026-07-11T01:52:35.963243Z",
+      "updated_at": "2026-07-11T02:26:31.800462Z",
       "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
       "validation_run_id": "RUN-V23-RELEASE-GATE",
       "validator_member_id": "独立评审-V2.3冻结复核",
@@ -656,7 +656,7 @@
       ],
       "attempt_id": "ATT-V23-RELEASE-CLOSURE",
       "check_state": "passed",
-      "event_digest": "63db2f612ba92b86f9e5d0c477a9a4700ca5606a7def8361c83cf7939f2abdc5",
+      "event_digest": "d4ea890570a2bff354a1c2dfa2633eea7c76938a964e5eab5a04ee28188fc4dc",
       "evidence_refs": [
         "EVD-V23-RELEASE-GATE"
       ],
@@ -678,7 +678,7 @@
       "task_id": "TASK-23-012",
       "task_state": "accepted",
       "title": "本项目 Harness/Evidence/Traceability/Review/Audit 机器闭环",
-      "updated_at": "2026-07-11T01:52:37.963243Z",
+      "updated_at": "2026-07-11T02:26:33.800462Z",
       "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
       "validation_run_id": "RUN-V23-RELEASE-GATE",
       "validator_member_id": "独立评审-V2.3冻结复核",
@@ -694,7 +694,7 @@
       ],
       "attempt_id": "ATT-V23-RELEASE-CLOSURE",
       "check_state": "passed",
-      "event_digest": "6b1a6df0e605d41d9e8489f4da04b20ab89ad11147e5006591f84b0043050541",
+      "event_digest": "396440ab96a3cbc6d1d2337e6a09c9a9f956e93ce2f8044a280a07b4fa78f000",
       "evidence_refs": [
         "EVD-V23-RELEASE-GATE"
       ],
@@ -716,7 +716,7 @@
       "task_id": "TASK-23-013",
       "task_state": "accepted",
       "title": "独立脚本复核、fresh semantic review 与 RC 冻结验证",
-      "updated_at": "2026-07-11T01:52:39.963243Z",
+      "updated_at": "2026-07-11T02:26:35.800462Z",
       "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
       "validation_run_id": "RUN-V23-RELEASE-GATE",
       "validator_member_id": "独立评审-V2.3冻结复核",
