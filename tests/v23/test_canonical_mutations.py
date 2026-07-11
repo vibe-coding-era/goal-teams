@@ -9,6 +9,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from tests.v23.common import ROOT, gt, parse_envelope, run_cli, sha256_path
 
@@ -118,6 +119,31 @@ class CanonicalChainTests(unittest.TestCase):
             )
             self.assertEqual(status.stdout, "")
             self.assertEqual(gt.validate_canonical(copied), [])
+
+    def test_installer_validated_stage_survives_gitless_transport_mtime_changes(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            copied = Path(td) / "canonical-v23"
+            shutil.copytree(CANONICAL, copied)
+            for record in jsonl(copied / VERSION / "evidence/evidence.jsonl"):
+                for relative in (
+                    record["artifact_ref"],
+                    record["command"]["log_path"],
+                    record["integrity_replay"]["log_path"],
+                ):
+                    path = copied / relative
+                    stat = path.stat()
+                    os.utime(path, ns=(stat.st_atime_ns, stat.st_mtime_ns + 5_000_000_000))
+            self.assertFalse((copied / ".git").exists())
+            with mock.patch.dict(os.environ, {"GOAL_TEAMS_INSTALL_VALIDATION": "1"}):
+                records = jsonl(copied / VERSION / "evidence/evidence.jsonl")
+                events = jsonl(copied / VERSION / "ledger/events.jsonl")
+                _, errors = gt.build_evidence_registry(
+                    records,
+                    copied,
+                    ledger_events=events,
+                    allow_portable_fixture=True,
+                )
+                self.assertEqual(errors, [])
 
     def test_ledger_replay_is_byte_equivalent_to_checked_in_tasklist(self) -> None:
         events = jsonl(CANONICAL / VERSION / "ledger/events.jsonl")

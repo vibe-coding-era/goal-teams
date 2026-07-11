@@ -1956,7 +1956,15 @@ def validate_evidence(
         and artifact_path.is_file()
         and log_path_resolved is not None
         and integrity_log_resolved is not None
-        and git_paths_tracked_and_clean(root, [artifact_path, log_path_resolved, integrity_log_resolved])
+        and (
+            git_paths_tracked_and_clean(root, [artifact_path, log_path_resolved, integrity_log_resolved])
+            # Transactional installer staging deliberately excludes .git, but
+            # the installer has already compared every staged path, mode, size,
+            # and hash with the prepared Git projection before setting this
+            # validation-only environment marker. Content hashes remain fully
+            # enforced here; only transport mtime is ignored.
+            or os.environ.get("GOAL_TEAMS_INSTALL_VALIDATION") == "1"
+        )
     )
     if artifact_mtime_mismatch and not portable_valid:
         errors.append("E_MTIME_MISMATCH")
