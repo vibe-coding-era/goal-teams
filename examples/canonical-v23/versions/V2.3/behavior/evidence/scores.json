@@ -1,0 +1,9 @@
+{
+  "schema_version": "goal-teams-behavior-score-v2.3",
+  "rubric_version": "behavior-v2.3",
+  "scorer_run_id": "RUN-CAN-BEHAVIOR-SCORER",
+  "scenario_count": 9,
+  "decision": "pass",
+  "quality": 1.0,
+  "note": "Static canonical records are provenance fixtures; release gate executes the scenarios again."
+}

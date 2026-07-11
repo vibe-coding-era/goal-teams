@@ -1,0 +1,66 @@
+{
+  "ended_at": "2026-07-10T00:01:01Z",
+  "environment": {
+    "commit": "HEAD",
+    "platform": "darwin",
+    "python_version": "3.14.3"
+  },
+  "evaluation_class": "deterministic_contract",
+  "evidence": [
+    {
+      "path": "evidence/plan-preview/subject.log",
+      "sha256": "d2823aef4ed4c16f194049b218da00f809935e3bc2e706af498d4c27ccf20928"
+    }
+  ],
+  "executed": true,
+  "input": {
+    "features": {
+      "risk": "low"
+    },
+    "prompt": "只规划"
+  },
+  "output": {
+    "profile": "lite",
+    "writes": []
+  },
+  "provenance": {
+    "command": {
+      "argv": [
+        "goalteams-contract-runner",
+        "plan-preview"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "log_path": "evidence/plan-preview/subject.log",
+      "log_sha256": "d2823aef4ed4c16f194049b218da00f809935e3bc2e706af498d4c27ccf20928"
+    },
+    "expected_exit_code": 0,
+    "generated_at": "2026-07-10T00:01:01.500000Z",
+    "input_sha256": "a1c80f844df57a9781f3fae9fcefc6d511a1d3bf4bb8c522f565e74ea9d26b5c",
+    "output_sha256": "d194f40d0ec7c17db7173e42f5338e9fd7600d59f39732ab546a3beabbb1a69a",
+    "run_nonce": "CANONICAL-plan-preview-20260710",
+    "runner_id": "goal-teams-benchmark-contract-runner",
+    "runner_version": "V2.3"
+  },
+  "release_eligible": false,
+  "result": "passed",
+  "scenario_class": "core",
+  "scenario_id": "plan-preview",
+  "schema_version": "goal-teams-v2.3",
+  "score": {
+    "evidence_path": "evidence/plan-preview/score.json",
+    "evidence_sha256": "5fc04ba8771bd47e34f25a02f18e428dd265b91674f5d671b1b9507a19911659",
+    "quality": 1.0,
+    "rubric_version": "behavior-v2.3",
+    "scorer_run_id": "RUN-CAN-SCORER-PLAN-PREVIEW"
+  },
+  "scorer_run_id": "RUN-CAN-SCORER-PLAN-PREVIEW",
+  "started_at": "2026-07-10T00:01:00Z",
+  "subject_run_id": "RUN-CAN-SUBJECT-PLAN-PREVIEW",
+  "trace": [
+    {
+      "path": "evidence/plan-preview/trace.jsonl",
+      "sha256": "1dc7e42ac92ac183c14f9b715f14768340113738d20fa2642b61a4cf73d0268c"
+    }
+  ]
+}

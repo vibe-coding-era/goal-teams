@@ -1,0 +1,62 @@
+{
+  "ended_at": "2026-07-10T00:01:11Z",
+  "environment": {
+    "commit": "HEAD",
+    "platform": "darwin",
+    "python_version": "3.14.3"
+  },
+  "evaluation_class": "deterministic_contract",
+  "evidence": [
+    {
+      "path": "evidence/forged-evidence/subject.log",
+      "sha256": "b5ac058933ddc6b171c4ae73a0cde2c8501b4e7ce0598f01ed1030a4957e2bf8"
+    }
+  ],
+  "executed": true,
+  "input": {
+    "artifact_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "output": {
+    "rejected": "E_HASH_MISMATCH"
+  },
+  "provenance": {
+    "command": {
+      "argv": [
+        "goalteams-contract-runner",
+        "forged-evidence"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "log_path": "evidence/forged-evidence/subject.log",
+      "log_sha256": "b5ac058933ddc6b171c4ae73a0cde2c8501b4e7ce0598f01ed1030a4957e2bf8"
+    },
+    "expected_exit_code": 0,
+    "generated_at": "2026-07-10T00:01:11.500000Z",
+    "input_sha256": "573aaab2a8b8fcf5a1cb16a3b4544b32f3f7c496189765375a44f361e161dbf5",
+    "output_sha256": "9f398b742f79e34b2fd2fde262cdb330c07b48ac55f9996a83987b626dcc651b",
+    "run_nonce": "CANONICAL-forged-evidence-20260710",
+    "runner_id": "goal-teams-benchmark-contract-runner",
+    "runner_version": "V2.3"
+  },
+  "release_eligible": false,
+  "result": "passed",
+  "scenario_class": "stress",
+  "scenario_id": "forged-evidence",
+  "schema_version": "goal-teams-v2.3",
+  "score": {
+    "evidence_path": "evidence/forged-evidence/score.json",
+    "evidence_sha256": "8d6eca837dc627c407307eadcc1c28a09508777e889a284ecf2b5e7289d7bf1a",
+    "quality": 1.0,
+    "rubric_version": "behavior-v2.3",
+    "scorer_run_id": "RUN-CAN-SCORER-FORGED"
+  },
+  "scorer_run_id": "RUN-CAN-SCORER-FORGED",
+  "started_at": "2026-07-10T00:01:10Z",
+  "subject_run_id": "RUN-CAN-SUBJECT-FORGED",
+  "trace": [
+    {
+      "path": "evidence/forged-evidence/trace.jsonl",
+      "sha256": "affde6e2692943d0434210e5de6d476e34c9345f0197689722dbdbfeba9643b7"
+    }
+  ]
+}

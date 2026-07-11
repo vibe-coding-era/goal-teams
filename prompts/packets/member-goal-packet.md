@@ -11,16 +11,19 @@ okf_version: "0.1"
 
 ```text
 Member Goal Packet（成员目标包）:
-- member_id: <中文角色>-<具体任务名>；若用户指定 skill，则使用 <skill 名称>-<具体任务名>
-- display_name: 与 member_id 完全一致
-- transport_handle: 仅记录运行时可能返回的英文昵称；不得替代 display_name
+- agent_type: goal_* 配置名或用户指定 skill
+- agent_run_id: 每次派发唯一且不可用 display_name 替代
+- member_id: 本项目内稳定成员 ID
+- display_name: <中文角色>-<具体任务名>；若用户指定 skill，则使用 <skill 名称>-<具体任务名>
+- transport_handle: 仅记录宿主返回的路由 handle；不得替代 member_id、display_name 或 agent_run_id
 - role: 默认使用中文角色；若用户指定 skill，则使用 skill 名称
 - skill_or_subagent:
 - version:
 - output_dir: GoalTeamsWork-<project_version> 或用户指定目录
 - artifact_version:
 - version_dir: <output_dir>/versions/<artifact_version>
-- tasklist_path: <version_dir>/TaskList.md 或 tasklist.md
+- tasklist_path: <version_dir>/TaskList.md
+- ledger_path: <version_dir>/ledger/events.jsonl
 - okf_required: true
 - workflow_mode: serial | parallel
 - depends_on:
@@ -38,36 +41,59 @@ Member Goal Packet（成员目标包）:
 - user_requested_subagent:
 - lane_or_deliverable:
 - handoff_artifacts:
+  - schema_version: goal-teams-v2.3
   - task_id
+  - title
   - handoff_artifact
   - artifact_type
   - source_ssot: prompts/packets/handoff-artifacts.md
-  - owner_subagent
-  - validator_subagent
-  - handoff_status
-  - independent_check_status
-  - evidence_path
+  - owner_agent_type
+  - owner_member_id
+  - owner_run_id
+  - validator_agent_type
+  - validator_member_id
+  - validator_run_id
+  - merge_owner_run_id
+  - task_state
+  - check_state
+  - required_for_done
+  - acceptance_blocking
+  - attempt_id
+  - revision
+  - base_revision
+  - requirement_refs
+  - acceptance_criteria_refs
+  - artifact_refs
+  - evidence_refs
+  - harness_refs
 - target_task_ids:
 - claimed_tasks:
 - goal:
 - success_criteria:
 - user_stories:
 - functional_acceptance_criteria:
-- required_doc_load:
+- context_refs: <只列本成员所需 path/section/digest>
+- fetch_recipe: <缺上下文时由 Lead 按需提供的精确读取步骤；不得扫描整个输出目录>
+- required_doc_load: <兼容的人类可读列表；机器路由以 context_refs/fetch_recipe 为准>
 - allowed_scope:
 - forbidden_scope:
 - locked_scope:
 - required_tests:
 - harness_contract:
-  - checks
+  - task_type: <review policy 的权威任务类型>
+  - required_review_class: structural | comparison | safety | semantic
+  - risk: <可选；只能提升最低等级>
+  - checks: <完整 V2.3 Check 对象>
+  - runs: <完整 V2.3 Run 对象>
   - commands
   - artifact_checks
   - e2e_checks
   - pixel_diff_checks
-  - evidence_paths
+  - evidence_paths: <versions/<artifact_version>/evidence/evidence.jsonl 等>
   - failure_report
   - not_applicable_reason
 - dual_review_contract:
+  - review_class: <不得低于 harness_contract 推导结果>
   - script_review
   - llm_review
   - final_decision
@@ -96,8 +122,9 @@ Member Goal Packet（成员目标包）:
   - HTML Prototype
   - TaskList
   - test plan
-- v1_98_flow:
-  - tasklist_first: true
+- v2_3_flow:
+  - ledger_first: true
+  - tasklist_projection_only: true
   - backend_architecture_before_backend_dev: true
   - unit_test_designer: goal_unit_test_designer
   - unit_test_runner: goal_unit_test_runner
@@ -110,12 +137,12 @@ Member Goal Packet（成员目标包）:
   - Doc Capsules
   - plan
   - Harness Contract
-  - handoff artifact status updates
+  - revision-bound ledger events/patches
   - 变更文件
   - 运行测试
   - independent validation evidence
   - 更新文档
-  - tasklist updates
+  - TaskList projection change requests（不得直接编辑）
   - SPEC updates
   - team-state updates
   - completion status

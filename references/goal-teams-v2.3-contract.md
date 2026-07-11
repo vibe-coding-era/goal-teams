@@ -1,0 +1,69 @@
+---
+type: Goal Teams V2.3 Contract
+title: Goal Teams V2.3 Contract
+description: V2.3 机器可检查契约、Release Gate 与迁移边界摘要。
+tags: [goal-teams, v2.3, contract]
+timestamp: 2026-07-10T00:00:00Z
+okf_version: "0.1"
+---
+
+# Goal Teams V2.3 Contract
+
+## Capability Snapshot
+
+- 启动时记录宿主是否支持 `custom_goal_subagents`、上下文隔离、并发、遥测和恢复。
+- 未暴露 `goal_*` 时，只有 capability manifest 证明通用 subagent 能力等价、身份独立且权限不扩大才可自动 fallback；否则串行降级、blocked 或请求用户，并记录原因。
+- `display_name` 可中文本地化；`transport_handle` 只承担宿主路由，不作为独立性证据。
+
+## 状态闭包
+
+- `task_state`: `planned | running | review | accepted | blocked | deferred | cancelled`。
+- `run_outcome`: `achieved | partial | blocked | aborted`。
+- `loop_decision`: `continue | replan | stop`。
+- `check_state`: `not_required | not_started | running | passed | failed | blocked | waived`。
+- `required_for_done` 与 `acceptance_blocking` 共同决定完成谓词；阻断任务未 `accepted` 时不得输出 `achieved`。
+
+## 单写者账本
+
+- 成员提交 append-only event；每条含 `schema_version`、`event_id`、`event_type`、`task_id`、`attempt_id`、`base_revision`、`actor_run_id`、`ledger_owner_run_id`、`timestamp` 和 `payload`。
+- Reducer 使用 revision/CAS 合并；重复 `event_id` 幂等，过期 `base_revision` 返回冲突。
+- `TaskList.md` 是 reducer 生成的人类视图，不是多成员自由编辑的 SSOT。
+
+## Evidence Gate
+
+- Evidence 以 `evidence_kind=command_execution|failure_record|manual_observation|external_reference` 判别，并绑定 check/run/attempt/producer、artifact snapshot/hash、trust level、完整 ancestor commit、非空 `source_paths` 的 path/size/hash manifest digest 与 `ledger_revision>0`/`ledger_prefix_sha256`。普通 Evidence 的 source path 必须在绑定 commit 中且当前 bytes 相同；symbolic `HEAD` 仅允许 `validate-canonical` 内部 portable fixture，通用 validator 报 `E_PORTABLE_FIXTURE_SCOPE`。prefix 是前 N 条 event 去 `event_digest` 后的有序 canonical digest，允许后续合法 append，但拒绝空/未来/伪 prefix、跨 task 借用 attempt 与错误时间顺序。
+- required/acceptance Check 必须声明 `expected_domain_execution.argv/cwd`；acceptance Evidence 精确匹配，且 Run 包络 command→integrity replay，随后才是 Evidence created 与引用 event。无关成功命令不能覆盖 AC。
+- Validator 必须做路径 containment、文件存在、hash、字段类型、reviewer 独立性及 prefix→领域执行→integrity replay→Evidence→引用 event 顺序检查。`command` 记录真实领域执行和 execution record，Completion 绝不重跑；只有独立日志的 `integrity_replay` runtime-locked verifier 可执行，其 argv 精确绑定领域 provenance、artifact ref/hash 与 Evidence/Review binding。
+- Evidence 的 `artifact_sha256` 与 current artifact 不一致时，标准机器错误码固定为 `E_HASH_MISMATCH`；不得输出 `E_ARTIFACT_HASH_MISMATCH` 等近义码。
+- 只有 current `local_verified` 的成功 `command_execution` 可进入 acceptance registry；failure/manual/external/unverified 只记录事实。
+- token、Authorization header、secret、敏感 URL query 必须脱敏后进入 Evidence、memory 或报告。
+- Completion Audit 是任务图之外的只读外部门禁，在候选收尾时运行；failed/blocked 可驱动 LOOP 或结构化停止，只有 passed/achieved 要求 required task 全 accepted。required/blocking Task 或 Audit Evidence 指向本次实际 audit 文件时必须以 `E_AUDIT_SELF_REFERENCE` 失败。
+- Review 最低等级来自 `harness_contract.task_type`、`required_review_class` 与风险；outer 字段不能覆盖，semantic/structural 不可互代，replica 至少 comparison，security/external-write/regulated 至少 safety。
+- comparison 义务在升级 safety 后仍保留；generic comparison 只接受当前 hash 锁定的 trusted `compare-artifacts` exact-hash 模式、不同 path/inode 的 actual/baseline、registry-bound 预批准者和 exact passed log。pixel 阈值走专用 validator。
+
+## Profile 与 Router
+
+机器字段只使用 schema 小写枚举 `lite|standard|full|regulated`；下列首字母大写名称仅为正文展示，不是可另造的机器值。
+
+- Lite：低风险、非 UI、非后端、非外部写入的小任务；不生成空仪式任务。
+- Standard：中等风险常规任务；保留关键 artifact 独立检查。
+- Full：后端、测试、UI、复刻、长任务等需要完整 Harness/Evidence 的任务。
+- Regulated：高风险、外部写入、安全/审批/凭证/破坏性任务；必须升级授权和独立复核。
+
+## Migration
+
+- V2.2 `tasklist.md` 可读；V2.3 只写 `TaskList.md`。
+- 同时存在 `tasklist.md` 与 `TaskList.md` 时进入 `manual_review`，禁止双写。
+- 旧 `done` / `checked` 不直接映射为 `accepted`，必须经 V2.3 Evidence 重验。
+- rollback 必须保持原目录、原 TaskList 和原配置 byte-equivalent。
+- apply 后的 target tree 由 manifest exact 绑定；rollback 前若 current path/type/mode/content 漂移，必须 `E_MIGRATION_ROLLBACK_DRIFT` 且不得覆盖 post-apply 数据。
+
+## Distribution
+
+- Installer 与 blind runner 共用 manifest-driven Git-index selection；blind 只取声明的安全投影。
+- manifest、全部 installer files 及每个祖先组件逐级拒绝 symlink/nonregular/越界与 mode drift。
+- 准备期 package manifest 必须在 copy 后、staging validation 后和 post-switch 后按 path/mode/size/hash exact 重验；并发 source mutation只能 fail/rollback或保持原 snapshot。
+
+## Release Gate
+
+V2.3 发布候选必须通过 Contract、State、Ledger、Evidence、Canonical、Routing、Capability、Context、Migration、Behavior、Distribution 与 Security Gate。先用唯一官方 manifest 运行隔离 blind-agent eval；它锁定当前环境解析的 CLI path/hash，`provider_trust_level=local_process_attested`，不证明远程模型或签名身份。RC 会从固定 output/trace/evidence 重评分，并在同一调用内直接执行 `scripts/checks/check.sh`。GA 的本地 License 文件只算 proposal；缺仓库外可信 host/signature attestation 时必须 `E_LICENSE_ATTESTATION_UNVERIFIED`。

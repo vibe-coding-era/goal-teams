@@ -1,0 +1,10 @@
+{
+  "browser": "Chromium",
+  "browser_version": "fixture-1",
+  "dpr": 1,
+  "fonts": [
+    "Goal Teams Fixture Sans"
+  ],
+  "os": "portable-fixture",
+  "viewport": "2x2"
+}

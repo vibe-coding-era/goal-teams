@@ -17,7 +17,7 @@
 - 任何复刻、临摹、还原、对照参考图/页面的界面任务，都必须截图并做像素级对比，记录基准图、实际图、diff 图或差异指标、阈值和结论。
 - 使用视觉锁层、baseline overlay 或截图遮挡层时，必须同时提供 locked screenshot 和 unlocked real DOM screenshot。
 - 弹窗、表单、菜单、头像、表格、分页等用户可见组件必须覆盖至少一个交互态证据；弹窗必须覆盖打开态、错误态、切换态、关闭态和移动端态。
-- 不能执行 E2E 或缺少可比较参考时，不得标记完成，必须记录阻塞或 `not_applicable_reason`。
+- 不能执行 E2E 或缺少可比较参考时不得标记完成，真实 UI/复刻范围必须 blocked；只有范围明确改为非 UI/`sample_only` 时才可使用非 required、非阻断 N/A。
 - 可使用 `scripts/harness/pixel-diff.py` 或兼容入口 `scripts/pixel-diff.py` 计算 changed ratio 和 MAE。
 
 停止条件：

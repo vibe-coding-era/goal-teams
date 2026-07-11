@@ -1,0 +1,62 @@
+{
+  "ended_at": "2026-07-10T00:01:17Z",
+  "environment": {
+    "commit": "HEAD",
+    "platform": "darwin",
+    "python_version": "3.14.3"
+  },
+  "evaluation_class": "deterministic_contract",
+  "evidence": [
+    {
+      "path": "evidence/no-custom-agent/subject.log",
+      "sha256": "2671c2b09f7a5ebe75f139b3938f0d35f902263e1e7cad4e0568b1a0043612ac"
+    }
+  ],
+  "executed": true,
+  "input": {
+    "custom_goal_subagents": false
+  },
+  "output": {
+    "dispatch_mode": "generic_subagent_or_serial"
+  },
+  "provenance": {
+    "command": {
+      "argv": [
+        "goalteams-contract-runner",
+        "no-custom-agent"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "log_path": "evidence/no-custom-agent/subject.log",
+      "log_sha256": "2671c2b09f7a5ebe75f139b3938f0d35f902263e1e7cad4e0568b1a0043612ac"
+    },
+    "expected_exit_code": 0,
+    "generated_at": "2026-07-10T00:01:17.500000Z",
+    "input_sha256": "3ccc1bd2bd4c9d64c73fab65c7e88ddc59a7b5d3d178eb5ce75dd52bf951c149",
+    "output_sha256": "ca7e6b69a7a5b85ccc86df4bca3fdf414933a6ca286dd33bde1676967bb3af36",
+    "run_nonce": "CANONICAL-no-custom-agent-20260710",
+    "runner_id": "goal-teams-benchmark-contract-runner",
+    "runner_version": "V2.3"
+  },
+  "release_eligible": false,
+  "result": "passed",
+  "scenario_class": "stress",
+  "scenario_id": "no-custom-agent",
+  "schema_version": "goal-teams-v2.3",
+  "score": {
+    "evidence_path": "evidence/no-custom-agent/score.json",
+    "evidence_sha256": "c6b24a2e11e5682fefd87adaf58372f84f60404b7da7037802441b233d516613",
+    "quality": 1.0,
+    "rubric_version": "behavior-v2.3",
+    "scorer_run_id": "RUN-CAN-SCORER-NO-CUSTOM"
+  },
+  "scorer_run_id": "RUN-CAN-SCORER-NO-CUSTOM",
+  "started_at": "2026-07-10T00:01:16Z",
+  "subject_run_id": "RUN-CAN-SUBJECT-NO-CUSTOM",
+  "trace": [
+    {
+      "path": "evidence/no-custom-agent/trace.jsonl",
+      "sha256": "00bc8099d5cc033500973522fdd53f91411c1028e7d6bc824818cb945e469214"
+    }
+  ]
+}

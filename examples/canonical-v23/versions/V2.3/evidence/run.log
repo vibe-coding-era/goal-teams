@@ -1,0 +1,61 @@
+{
+    "identities": [
+        {
+            "agent_run_id": "RUN-CAN-OWNER",
+            "agent_type": "goal_backend",
+            "display_name": "\u5b9e\u73b0-Canonical",
+            "member_id": "\u5b9e\u73b0-Canonical",
+            "transport_handle": "canonical_owner"
+        },
+        {
+            "agent_run_id": "RUN-CAN-REVIEWER",
+            "agent_type": "goal_reviewer",
+            "display_name": "\u8bc4\u5ba1-Canonical",
+            "member_id": "\u8bc4\u5ba1-Canonical",
+            "transport_handle": "canonical_reviewer"
+        },
+        {
+            "agent_run_id": "RUN-CAN-LEDGER-OWNER",
+            "agent_type": "goal_merge_owner",
+            "display_name": "\u5408\u5e76\u6240\u6709\u8005-Canonical",
+            "member_id": "\u5408\u5e76\u6240\u6709\u8005-Canonical",
+            "transport_handle": "canonical_ledger_owner"
+        },
+        {
+            "agent_run_id": "RUN-CAN-SCRIPT-REVIEWER",
+            "agent_type": "goal_reviewer",
+            "display_name": "\u811a\u672c\u8bc4\u5ba1-Canonical",
+            "member_id": "\u811a\u672c\u8bc4\u5ba1-Canonical",
+            "transport_handle": "canonical_script_reviewer"
+        },
+        {
+            "agent_run_id": "RUN-CAN-SEMANTIC-REVIEWER",
+            "agent_type": "goal_reviewer",
+            "display_name": "\u8bed\u4e49\u8bc4\u5ba1-Canonical",
+            "member_id": "\u8bed\u4e49\u8bc4\u5ba1-Canonical",
+            "transport_handle": "canonical_semantic_reviewer"
+        },
+        {
+            "agent_run_id": "RUN-CAN-COMPLETION-AUDITOR",
+            "agent_type": "goal_completion_auditor",
+            "display_name": "\u5b8c\u6210\u5ba1\u8ba1-Canonical",
+            "member_id": "\u5b8c\u6210\u5ba1\u8ba1-Canonical",
+            "transport_handle": "canonical_completion_auditor"
+        },
+        {
+            "agent_run_id": "RUN-CAN-PIXEL-REVIEWER",
+            "agent_type": "goal_reviewer",
+            "display_name": "\u50cf\u7d20\u8bc4\u5ba1-Canonical",
+            "member_id": "\u50cf\u7d20\u8bc4\u5ba1-Canonical",
+            "transport_handle": "canonical_pixel_reviewer"
+        },
+        {
+            "agent_run_id": "RUN-REPOSITORY-OWNER-FIXTURE",
+            "agent_type": "repository_owner",
+            "display_name": "\u4ed3\u5e93\u6240\u6709\u8005-\u6388\u6743\u5939\u5177",
+            "member_id": "\u4ed3\u5e93\u6240\u6709\u8005-\u6388\u6743\u5939\u5177",
+            "transport_handle": "canonical_repository_owner_fixture"
+        }
+    ],
+    "schema_version": "goal-teams-v2.3"
+}

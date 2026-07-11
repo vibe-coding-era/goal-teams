@@ -1,0 +1,22 @@
+{
+  "argv": [
+    "python3",
+    "-m",
+    "json.tool",
+    "versions/V2.3/identity/registry.json"
+  ],
+  "attempt_id": "ATT-CAN-SUCCESS",
+  "check_id": "CHECK-CAN-SUCCESS",
+  "cwd": ".",
+  "ended_at": "2026-07-10T00:00:04Z",
+  "evidence_id": "EVD-CAN-001",
+  "exit_code": 0,
+  "log_path": "versions/V2.3/evidence/run.log",
+  "log_sha256": "c516dd8157f5dd44cc0adee48df2482f11acdc0f392897e8d5528ba8f09f7836",
+  "log_size": 2537,
+  "producer_run_id": "RUN-CAN-OWNER",
+  "record_type": "command_execution",
+  "run_id": "RUN-CAN-SUCCESS",
+  "schema_version": "goal-teams-v2.3",
+  "started_at": "2026-07-10T00:00:03Z"
+}

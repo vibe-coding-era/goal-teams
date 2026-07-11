@@ -1,0 +1,9 @@
+plan-preview: route produced lite with no writes
+backend-cli: route produced full with testing rules
+ui-replica: route produced full with pixel rules
+long-task-recovery: ledger reconciled blocked task to running
+revision-conflict: stale task revision rejected
+forged-evidence: artifact hash mismatch rejected
+self-review: identical author and reviewer run rejected
+telemetry-unavailable: budget metric degraded without fabrication
+no-custom-agent: dispatch degraded without privilege expansion

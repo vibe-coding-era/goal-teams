@@ -17,7 +17,7 @@ Lead LOOP 是 Goal Lead 的执行期闭环协议。它不代表新的 runtime、
 | `Plan` | 用户目标、Done Criteria、已发现文档、风险 | SPEC、TaskList、Harness、Budget Gate、Conflict Policy |
 | `Dispatch` | TaskList、Teams 规划表、成员包 | Member Goal Packet、locked_scope、Owner/validator |
 | `Route` | 成员阻塞、依赖、冲突、审批需求 | 阻塞路由、用户问题、串并行调整 |
-| `Integrate` | 成员交付、证据、失败报告、TaskList 更新 | progress、evidence index、team-state、open gaps |
+| `Integrate` | 成员交付、Evidence、失败报告、revision-bound events | ledger merge、TaskList projection、progress、Evidence index、open gaps |
 | `Audit` | Done Criteria、Harness、Evidence、独立校验 | integration audit；结束前 completion audit |
 | `Continue` | open gaps、预算、范围和风险 | Loop Decision、续跑计划或停止请求 |
 
@@ -29,7 +29,8 @@ Lead LOOP 是 Goal Lead 的执行期闭环协议。它不代表新的 runtime、
 Loop Decision:
 - loop_id:
 - round:
-- decision: complete | continue_same_scope | replan | blocked_needs_user | stop_budget | deferred
+- loop_decision: continue | replan | stop
+- run_outcome: achieved | partial | blocked | aborted
 - basis:
 - confirmed_scope:
 - open_gaps:
@@ -44,12 +45,9 @@ Loop Decision:
 
 | decision | 触发条件 | Lead 动作 |
 | --- | --- | --- |
-| `complete` | Done Criteria 满足，证据完整，最终 auditor 未发现已确认范围内遗漏 | 发送最终汇报 |
-| `continue_same_scope` | 缺口仍在已确认范围内，且不触发安全、审批或预算边界 | 展示续跑 Teams 规划表并继续 |
-| `replan` | 原计划依赖、Owner、Harness 或顺序不适配，但范围未变 | 更新 TaskList、依赖、Budget Gate、Conflict Policy |
-| `blocked_needs_user` | 需要新范围、凭证、外部审批、破坏性操作、安全敏感改动或关键业务决策 | 记录阻塞并询问用户 |
-| `stop_budget` | 达到最大轮次、成员数、时间、tokens 或费用上限 | 停止自动续跑，汇报缺口 |
-| `deferred` | 用户允许延期，或剩余项不影响本轮验收且已记录风险 | 写入延期原因、Owner 和触发条件 |
+| `continue` | 缺口仍在已确认范围内，且不触发安全、审批或预算边界 | 展示续跑 Teams 规划表并继续 |
+| `replan` | 原计划依赖、Owner、Harness 或顺序不适配，但范围未变 | 写入修订事件，更新依赖、Budget Gate、Conflict Policy，并由 reducer 重建 TaskList |
+| `stop` | 已完成、需用户输入、预算耗尽、延期或中止 | 分别记录 `run_outcome` 与 `stop_reason`；只有完成谓词和审计通过时才可 `achieved` |
 
 ## Loop Gate
 
@@ -71,7 +69,7 @@ loop_gate:
   stop_when_budget_exceeded: true
 ```
 
-`block_completion_when_evidence_missing` 的含义是缺证时不得输出 `complete`；如果缺口仍在已确认范围内，且未触发预算、安全、审批或用户决策边界，Lead 应使用 `continue_same_scope` 或 `replan` 补证。
+`block_completion_when_evidence_missing` 的含义是缺证时不得输出 `audit_state=passed` 或 `run_outcome=achieved`；如果缺口仍在已确认范围内，且未触发预算、安全、审批或用户决策边界，Lead 应使用 `loop_decision=continue|replan` 补证。
 
 Budget Gate 或 Loop Gate 超限时，优先保留安全、正确性、证据完整度和可复盘性；不得为了完成表面进度而跳过独立校验。
 
@@ -81,10 +79,18 @@ Budget Gate 或 Loop Gate 超限时，优先保留安全、正确性、证据完
 
 ```json
 {
+  "schema_version": "goal-teams-v2.3",
   "loop_id": "lead-loop-<timestamp>",
   "round": 1,
+  "artifact_version": "<artifact_version>",
+  "workspace_commit": "<git commit or unavailable>",
+  "ledger_revision": 0,
+  "attempt_id": "<attempt_id>",
+  "last_event_id": "<non-empty event_id; bootstrap must first append an event>",
+  "updated_at": "<ISO 8601>",
+  "active_member_runs": [],
   "confirmed_scope": [],
-  "done_criteria_status": "partial | satisfied | blocked",
+  "run_outcome": "partial",
   "open_gaps": [
     {
       "id": "gap-001",
@@ -95,7 +101,7 @@ Budget Gate 或 Loop Gate 超限时，优先保留安全、正确性、证据完
       "validator": ""
     }
   ],
-  "last_decision": "continue_same_scope",
+  "loop_decision": "continue",
   "next_dispatch": []
 }
 ```
@@ -110,8 +116,8 @@ Budget Gate 或 Loop Gate 超限时，优先保留安全、正确性、证据完
 | `gap` | 需要补齐的缺口 |
 | `source_evidence` | 缺口来源，例如 auditor、QA、脚本输出 |
 | `scope_status` | confirmed_scope / new_scope / safety_gate / user_decision |
-| `owner_subagent` | 下一轮 Owner |
-| `validator_subagent` | 独立检查者 |
+| `owner_member_id` + `owner_run_id` | 下一轮具体 Owner 身份；必须绑定 identity registry |
+| `validator_member_id` + `validator_run_id` | 具体独立检查者身份；不得等于 Owner run |
 | `harness` | 检查方式和证据路径 |
 | `expected_evidence` | 续跑完成后必须新增的证据 |
 | `user_confirmation_required` | 是否必须问用户 |

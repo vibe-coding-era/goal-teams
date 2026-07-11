@@ -1,139 +1,62 @@
 #!/usr/bin/env python3
-"""Validate Goal Teams progressive-loading routes against scenario fixtures."""
+"""Validate Goal Teams V2.3 routing through the real pure router."""
 
 from __future__ import annotations
-
-import re
-import sys
+import json, subprocess, sys, tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[2]
-
+TOOL = ROOT / "scripts" / "v23" / "goalteams_v23.py"
 
 @dataclass(frozen=True)
 class RouteFixture:
     name: str
-    prompt: str
-    row_pattern: str
+    features: dict[str, object]
+    expected_profile: str
     expected_refs: tuple[str, ...]
     forbidden_refs: tuple[str, ...] = ()
-    description_terms: tuple[str, ...] = ()
-
 
 FIXTURES = (
-    RouteFixture(
-        name="plan-mode-only",
-        prompt="请先只规划一个登录页空状态方案，生成需求卡片和 PRD，等我确认后再执行。",
-        row_pattern="Plan 模式需求卡片",
-        expected_refs=(
-            "prompts/lead/requirement-card.md",
-            "prompts/packets/requirement-card.md",
-            "references/google-okf-bilingual-spec.md",
-        ),
-        forbidden_refs=(
-            "references/rules-ui.md",
-            "references/rules-testing.md",
-            "references/rules-loop.md",
-        ),
-        description_terms=("Plan Mode", "先规划", "只规划", "需求卡片"),
-    ),
-    RouteFixture(
-        name="backend-cli",
-        prompt="Use $goal-teams。请直接执行：为本地 CLI 增加后端 API 参数解析、TDD 单测和 API 集成测试。",
-        row_pattern="后端、API、TDD 或测试编排",
-        expected_refs=(
-            "references/rules-testing.md",
-            "prompts/members/backend/prompt.md",
-            "prompts/members/unit-test-designer/prompt.md",
-            "prompts/members/api-integration-test-runner/prompt.md",
-        ),
-        forbidden_refs=(
-            "references/rules-ui.md",
-            "references/ui-visual-contract-protocol.md",
-            "references/ui-e2e-pixel-protocol.md",
-        ),
-    ),
-    RouteFixture(
-        name="ui-replica",
-        prompt="Use $goal-teams。请复刻这个管理后台列表页，要求截图对齐、组件库记录、E2E 和像素级对比。",
-        row_pattern="UI 页面、复刻、截图或前端交互",
-        expected_refs=(
-            "references/rules-ui.md",
-            "references/ui-visual-contract-protocol.md",
-            "references/ui-e2e-pixel-protocol.md",
-            "prompts/packets/page-spec-card.md",
-        ),
-        forbidden_refs=("references/rules-loop.md", "scripts/harness/pixel-diff.py"),
-    ),
-    RouteFixture(
-        name="long-running-loop",
-        prompt="Use $goal-teams。请直接执行长任务续跑：多成员并行补齐缺失证据，记录 Loop Gate 和预算停止边界。",
-        row_pattern="Lead LOOP、自动续跑和中途审计",
-        expected_refs=(
-            "references/rules-loop.md",
-            "prompts/lead/loop.md",
-            "prompts/lead/audit.md",
-            "prompts/packets/team-plan-table.md",
-        ),
-        forbidden_refs=("references/rules-ui.md",),
-    ),
+    RouteFixture("plan-preview-lite", {"risk":"low", "plan_preview": True}, "lite", ("RULES.md",), ("references/rules-ui.md", "references/rules-testing.md")),
+    RouteFixture("backend-cli-full", {"backend": True, "tests": True, "risk":"medium"}, "full", ("references/rules-testing.md",), ("references/rules-ui.md",)),
+    RouteFixture("original-ui-full-no-pixel", {"ui": True, "replica": False}, "full", ("references/rules-ui.md",), ("references/ui-e2e-pixel-protocol.md",)),
+    RouteFixture("ui-replica-full-pixel", {"ui": True, "replica": True}, "full", ("references/rules-ui.md", "references/ui-e2e-pixel-protocol.md"), ()),
+    RouteFixture("long-running-full", {"long_running": True}, "full", ("references/rules-loop.md",), ("references/rules-ui.md",)),
+    RouteFixture("external-write-regulated", {"external_write": True, "risk":"high"}, "regulated", ("references/dual-review-protocol.md",), ()),
+    RouteFixture("standard-doc", {"risk":"medium", "standard": True}, "standard", ("RULES.md",), ("references/rules-ui.md", "references/rules-testing.md")),
 )
-
 
 def fail(message: str) -> None:
     print(f"[FAIL] {message}")
     sys.exit(1)
 
-
-def load_skill_description() -> str:
-    skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
-    match = re.match(r"^---\n(?P<body>.*?)\n---\n", skill, flags=re.S)
-    if not match:
-        fail("SKILL.md missing YAML frontmatter")
-    for line in match.group("body").splitlines():
-        if line.startswith("description:"):
-            return line.partition(":")[2].strip()
-    fail("SKILL.md frontmatter missing description")
-    return ""
-
-
-def load_route_rows() -> dict[str, str]:
-    skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
-    match = re.search(r"^## 渐进式加载\n(?P<section>.*?)(?:\n## |\Z)", skill, flags=re.S | re.M)
-    if not match:
-        fail("SKILL.md missing progressive-loading section")
-    rows: dict[str, str] = {}
-    for line in match.group("section").splitlines():
-        if not line.startswith("| ") or line.startswith("| ---"):
-            continue
-        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
-        if len(cells) != 2 or cells[0] == "场景":
-            continue
-        rows[cells[0]] = cells[1]
-    return rows
-
+def run_route(features: dict[str, object]) -> dict[str, object]:
+    with tempfile.NamedTemporaryFile("w", encoding="utf-8", suffix=".json", delete=False) as fh:
+        json.dump(features, fh)
+        tmp = fh.name
+    try:
+        proc = subprocess.run([sys.executable, str(TOOL), "route", tmp], cwd=ROOT, text=True, capture_output=True)
+    finally:
+        Path(tmp).unlink(missing_ok=True)
+    if proc.returncode != 0:
+        fail(proc.stdout + proc.stderr)
+    payload = json.loads(proc.stdout)
+    return payload["route"]
 
 def main() -> None:
-    description = load_skill_description()
-    rows = load_route_rows()
     for fixture in FIXTURES:
-        for term in fixture.description_terms:
-            if term not in description:
-                fail(f"{fixture.name}: skill description missing trigger term {term!r}")
-        matches = [content for label, content in rows.items() if fixture.row_pattern in label]
-        if len(matches) != 1:
-            fail(f"{fixture.name}: expected one route row matching {fixture.row_pattern!r}, got {len(matches)}")
-        content = matches[0]
+        route = run_route(fixture.features)
+        if route["profile"] != fixture.expected_profile:
+            fail(f"{fixture.name}: profile {route['profile']} != {fixture.expected_profile}")
+        refs = set(route["rule_set"])
         for ref in fixture.expected_refs:
-            if ref not in content:
-                fail(f"{fixture.name}: route row missing expected reference {ref}")
+            if ref not in refs:
+                fail(f"{fixture.name}: missing {ref}")
         for ref in fixture.forbidden_refs:
-            if ref in content:
-                fail(f"{fixture.name}: route row unexpectedly includes {ref}")
-    print(f"Routing fixture validation passed for {len(FIXTURES)} scenarios.")
-
+            if ref in refs:
+                fail(f"{fixture.name}: unexpected {ref}")
+    print(f"Routing fixture validation passed for {len(FIXTURES)} V2.3 scenarios.")
 
 if __name__ == "__main__":
     main()

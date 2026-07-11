@@ -12,4 +12,4 @@
 - 失败响应：<path or none>
 - BugFix 任务：<created/not_applicable>
 - 证据路径：<report/progress path>
-- 独立检查者：<validator_subagent>
+- 独立检查者：<validator_agent_type>; <validator_member_id>; <validator_run_id>

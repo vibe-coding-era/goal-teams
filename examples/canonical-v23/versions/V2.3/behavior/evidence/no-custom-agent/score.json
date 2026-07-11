@@ -1,0 +1,11 @@
+{
+  "decision": "pass",
+  "input_sha256": "3ccc1bd2bd4c9d64c73fab65c7e88ddc59a7b5d3d178eb5ce75dd52bf951c149",
+  "output_sha256": "ca7e6b69a7a5b85ccc86df4bca3fdf414933a6ca286dd33bde1676967bb3af36",
+  "quality": 1.0,
+  "release_eligible": false,
+  "rubric_version": "behavior-v2.3",
+  "scenario_id": "no-custom-agent",
+  "schema_version": "goal-teams-behavior-score-v2.3",
+  "scorer_run_id": "RUN-CAN-SCORER-NO-CUSTOM"
+}

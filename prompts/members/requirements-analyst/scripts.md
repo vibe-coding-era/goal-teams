@@ -8,5 +8,4 @@
 
 规则：
 
-- 脚本检查结构完整性。
-- LLM 复核业务合理性、隐含需求和开放问题。
+- 从 Harness 推导最低 review_class。comparison/safety 同时执行脚本和独立 LLM；semantic/structural 不互代，只要求 class matrix 的必需半边，另一半不得伪写 passed。

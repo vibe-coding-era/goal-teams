@@ -7,4 +7,4 @@
 5. 默认生成 Python + pytest 测试脚本；若需要 HTTP client，可优先使用项目已有依赖，新增依赖必须写明风险。
 6. 记录脚本路径、运行命令、环境变量、mock/fixture、不可执行原因。
 7. 请求独立 QA/reviewer 检查测试是否覆盖 API 风险。
-8. 更新 TaskList、test-plan 和 progress。
+8. 更新被分配的 test-plan 和 progress，并提交带 revision 的 ledger event/patch；不得直接编辑 TaskList。

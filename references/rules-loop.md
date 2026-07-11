@@ -30,22 +30,22 @@ okf_version: "0.1"
 - 用户给出时间、tokens 或费用限制。
 - 存在共享核心模块、高风险改动、认证、支付、迁移、安全敏感代码或大范围 API 合同变更。
 
+telemetry 不可用时不得伪造 tokens/cost；Budget Gate 的机器回退值固定为 `telemetry_status=unavailable`、`budget_metric=round_time_member_file_size`，并记录 round time、成员数和文件规模。
+
 ## Loop Decision
 
 每轮 `Integrate` 后记录一个决策：
 
 ```text
-complete | continue_same_scope | replan | blocked_needs_user | stop_budget | deferred
+loop_decision: continue | replan | stop
+run_outcome: achieved | partial | blocked | aborted
 ```
 
 | decision | 动作 |
 | --- | --- |
-| `complete` | Done Criteria 满足，证据完整，最终 auditor 未发现已确认范围内遗漏 |
-| `continue_same_scope` | 缺口仍在已确认范围内，且不触发安全、审批或预算边界；展示续跑 Teams 规划表并继续 |
-| `replan` | 原计划依赖、Owner、Harness 或顺序不适配；更新 TaskList、依赖、Budget Gate 和 Conflict Policy |
-| `blocked_needs_user` | 需要新范围、凭证、外部审批、破坏性操作、安全敏感改动或关键业务决策；记录阻塞并询问用户 |
-| `stop_budget` | 达到最大轮次、成员数、时间、tokens 或费用上限；停止自动续跑并汇报缺口 |
-| `deferred` | 用户允许延期，或剩余项不影响本轮验收且已记录风险、Owner 和触发条件 |
+| `continue` | 缺口仍在已确认范围内，且不触发安全、审批或预算边界；展示续跑 Teams 规划表并继续 |
+| `replan` | 原计划依赖、Owner、Harness 或顺序不适配；写入修订事件，更新依赖、Budget Gate、Conflict Policy，并由 reducer 重建 TaskList |
+| `stop` | 循环停止；必须另写 `run_outcome` 和 `stop_reason=achieved | user_input_required | authorization_required | budget_exceeded | deferred | aborted`，不得把停止自动等同完成 |
 
 ## 自动续跑边界
 

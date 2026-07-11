@@ -1,0 +1,11 @@
+{
+  "decision": "pass",
+  "input_sha256": "b8aa87813d503086de91613c198783660a188fb8c71654fab869e46218c5bad3",
+  "output_sha256": "b7dbbf81aa024aad8612ef4f8fd9238664464f049a195a7c1981f67f857cfe23",
+  "quality": 1.0,
+  "release_eligible": false,
+  "rubric_version": "behavior-v2.3",
+  "scenario_id": "long-task-recovery",
+  "schema_version": "goal-teams-behavior-score-v2.3",
+  "scorer_run_id": "RUN-CAN-SCORER-RECOVERY"
+}

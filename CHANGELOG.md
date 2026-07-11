@@ -2,12 +2,23 @@
 
 ## Unreleased
 
-- Tightened V2.2 maintenance rules: startup text now says `规划、执行和交付`, Plan history input accepts `无` or `2`, and completion rules are a checklist.
+### V2.3
+
+- Breaking contract: replaced legacy handoff/loop completion labels with orthogonal `task_state`, `check_state`, `run_outcome`, `loop_decision`, and `audit_state`; unknown core enums fail closed.
+- Breaking persistence: append-only ledger events are the execution SSOT; members submit revision-bound events/patches and only the reducer writes `TaskList.md`. Lowercase `tasklist.md` is read-only V2.2 migration input.
+- Separated `agent_type`, `agent_run_id`, `member_id`, localized `display_name`, and `transport_handle`; author/reviewer independence is bound to concrete run identity and artifact hash.
+- Added versioned schema/source lock, task-local CAS, deterministic replay/projection, atomic checkpoints, strict Evidence/Traceability/Dual Review/Completion Audit, stable JSON envelopes, and negative mutation gates.
+- Added Lite/Standard/Full/Regulated routing, capability manifests and non-escalating fallback, a 12 KiB base-context gate, secret redaction/trust boundaries, and environment-aware pixel validation.
+- Added typed V2.2 `scan -> plan -> apply -> verify -> rollback` migration, manifest-driven atomic install/update/rollback/uninstall, dirty-source provenance, Linux/macOS CI, canonical success/blocked/failure/recovery replay, and fresh behavior scenarios.
+- Capability boundary: Goal Teams remains a session-scoped orchestration protocol, not a persistent background runner, CI/CD service, or production approval system. OpenSpec and Superpowers coexist without claiming a V2.3 adapter.
+- Release boundary: technical RC gates are independently testable; public GA remains fail-closed until the repository owner records a License or internal-sharing decision.
+
+- Tightened V2.3 maintenance rules: startup text now says `规划、执行和交付`, Plan history input accepts `无` or `2`, and completion rules are a checklist.
 - Added hard validation that all `SKILL.md` version strings match `VERSION`, and kept progressive-loading path existence checks in `./scripts/check.sh`.
 - Moved OKF spec loading out of the all-tasks route and moved `scripts/harness/pixel-diff.py` from the UI route into `references/rules-ui.md` as an executable tool.
 - Added Budget/round-limit failure degradation and explicit rule-conflict precedence.
 - Restored `Plan Mode` / `先规划` / `只规划` / `需求卡片` trigger terms in `SKILL.md` description and added a routing fixture regression check.
-- Bumped current Skill version to `V2.2`.
+- Bumped current Skill version to `V2.3`.
 - Slimmed `SKILL.md` into a trigger-oriented entrypoint with invariants, planning checks, failure-degradation summary, and a progressive-loading router.
 - Added conditional rule references: `references/invariants.md`, `references/compat.md`, `references/rules-ui.md`, `references/rules-testing.md`, and `references/rules-loop.md`.
 - Extended validation to enforce compact Skill description length, progressive-loading path existence, required conditional references, and repeated-rule limits in `SKILL.md`.

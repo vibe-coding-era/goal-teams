@@ -9,4 +9,4 @@
 
 规则：
 
-- 文档一致性先脚本检查，再 LLM 复核语义是否丢规则。
+- 从 Harness 推导最低 review_class；comparison 使用脚本 + 独立 LLM，纯 semantic 可将脚本半边以独立接受的结构化 N/A 记录，纯 structural 反向处理，二者不可互代。

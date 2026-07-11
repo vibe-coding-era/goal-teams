@@ -11,5 +11,5 @@
 - 数据准备：<fixtures/mocks/env>
 - 执行命令：<pytest command>
 - 证据路径：<test-plan/progress path>
-- 独立检查者：<validator_subagent>
+- 独立检查者：<validator_agent_type>; <validator_member_id>; <validator_run_id>
 - 阻塞/风险：<none or details>

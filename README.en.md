@@ -4,7 +4,7 @@
 
 Author: 肉山@TGO Hangzhou
 
-Current version: `V2.2`
+Current version: `V2.3`
 
 Goal Teams is a Codex Skill for coordinated agent work. It turns one goal into a verifiable plan, then lets a Goal Lead coordinate independent subagents running in separate contexts, or user-selected external skills, across requirements, design, implementation, tests, evidence, and completion audit.
 
@@ -31,7 +31,7 @@ Goal Teams splits complex collaboration into three layers:
 
 - Goal defines the target and Done Criteria, so the team agrees on what completion means.
 - Plan turns the target into members, Subagent contexts, scope, handoff artifacts, verification method, and stop conditions. This reduces scope drift and concurrent-edit conflicts.
-- Loop records a `Loop Decision` after each integration, making continue, replan, blocked, deferred, or complete decisions recoverable and auditable.
+- Loop records `loop_decision=continue|replan|stop` after each integration and keeps `run_outcome`, task/check state, and stop reasons orthogonal for recovery and audit.
 
 The useful part is not simply running more agents. The useful part is that different roles work in isolated contexts while the Goal Lead keeps the target, scope, and evidence consistent. A chat request becomes an engineering process that can be traced.
 
@@ -77,6 +77,21 @@ Validate before maintenance or release:
 ./scripts/check.sh
 ```
 
+The standalone deterministic routing check is `scripts/checks/check-routing-fixtures.py` (compatibility entrypoint: `scripts/check-routing-fixtures.py`).
+
+`./scripts/check.sh` covers deterministic contract/mutation gates only; it is not real Behavior release evidence. Before RC, choose a new persistent directory outside the source repository, run the nine isolated blind scenarios, and pass their summary to the combined gate:
+
+```bash
+BLIND_OUTPUT=/absolute/path/outside/goal-teams/blind-v23-<run-id>
+python3 scripts/benchmark/benchmark-runner.py --mode blind-agent --release-gate \
+  --manifest tests/v23/fixtures/behavior/blind-agent-codex.json \
+  --output-dir "$BLIND_OUTPUT"
+python3 scripts/v23/goalteams_v23.py release-gate examples/canonical-v23 \
+  --mode rc --blind-summary "$BLIND_OUTPUT/summary.json"
+```
+
+This eval invokes the Codex CLI resolved in the current environment and locks its local hash. Its trust level is `local_process_attested`, not a remote-model or code-signature attestation. Mocks/fixtures, reused directories, alternate manifests, incomplete scenarios, or a missing summary cannot satisfy RC. The combined gate rescans the fixed output/trace/evidence set and runs the full `scripts/check.sh` in the same call. A local License file is only a GA proposal until a trusted external owner attestation exists.
+
 Copy subagents manually:
 
 ```bash
@@ -113,13 +128,13 @@ Use $goal-teams。
 安全审核使用 goal_reviewer，只读模式。
 ```
 
-Every run starts with:
+Use this identity line on an explicit Goal Teams invocation or when the session first needs to establish identity; do not repeat it when full context already exists:
 
 ```text
-我是 Goal Teams Leader V2.2，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：
+我是 Goal Teams Leader V2.3，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：
 ```
 
-中文核心模型要点提示词: use Chinese table-first output for plans, TaskList, SPEC, progress, member packets, test notes, and final reports; keep code identifiers, commands, paths, API names, config keys, subagent IDs, and exact references in their original form.
+Core language rule: user communication and governance documents default to Chinese; code, comments, test names, fixtures, and product strings follow the target repository's conventions; keep identifiers, commands, paths, API names, config keys, subagent IDs, and exact references unchanged.
 
 ## Rule Entrypoints
 
@@ -140,13 +155,13 @@ Every run starts with:
 
 1. Convert the user goal into Done Criteria.
 2. Confirm project version, artifact version, and output directory.
-3. Create or update `GoalTeamsWork-<project_version>/memory.md` and `versions/<artifact_version>/TaskList.md`.
-4. In Plan Mode, write `spec/requirement-card.md` before PRD, architecture, test plan, and acceptance docs.
+3. If the user explicitly requests an in-chat `plan_preview` / no-write result, return the plan without creating files, a ledger, TaskList, or subagents. Other modes create or update `GoalTeamsWork-<project_version>/memory.md`, establish the versioned append-only ledger, and generate `TaskList.md` through the reducer.
+4. Outside `plan_preview`, Plan Mode writes `spec/requirement-card.md` before the applicable PRD, architecture, test-plan, and acceptance artifacts.
 5. Load UI, testing, or LOOP conditional rules as needed.
 6. Show the four-column `Teams 规划表`, then dispatch independent members.
-7. Each member works inside its locked scope and writes back Harness, Evidence, and handoff status.
-8. The Goal Lead integrates results and records a `Loop Decision`.
-9. Before completion, launch a fresh read-only `goal_completion_auditor`. Gaps inside confirmed scope continue through Lead LOOP; new scope, high-risk work, or authorization issues stop for the user.
+7. Each member works inside its locked scope and submits revision-bound events/patches, Harness, and Evidence; members do not edit the central TaskList.
+8. The ledger owner merges events and renders the TaskList projection; the Goal Lead records `loop_decision` and `run_outcome` separately.
+9. Before completion, launch a fresh read-only `goal_completion_auditor`. Gaps inside confirmed scope continue only in the current session when the host supports it; new scope, high-risk work, or authorization issues stop for the user.
 
 ## Output Layout
 
@@ -160,6 +175,9 @@ GoalTeamsWork-<project_version>/
     <artifact_version>/
       index.md
       TaskList.md
+      ledger/events.jsonl
+      ledger/checkpoint.json
+      identity/registry.json
       plan.md
       progress.md
       decisions.md
@@ -180,12 +198,17 @@ GoalTeamsWork-<project_version>/
         e2e/
         reports/
       artifacts/
-      harness.yaml
-      evidence.jsonl
-      pipeline-state.json
+      harness/harness.json
+      harness/traceability.json
+      evidence/evidence.jsonl
+      reviews/dual-review.json
+      reviews/semantic-review.md
+      audit/completion-audit.json
+      capability/manifest.json       # when host capabilities need a record
+      release/license-decision.json  # only when the repository owner authorizes GA
 ```
 
-`tasklist.md` remains readable for compatibility, but new outputs prefer `TaskList.md`.
+`tasklist.md` remains readable as legacy input; V2.3 writes only the reducer-generated `TaskList.md`. Machine paths are defined by `schemas/v2.3/goal-teams.schema.json`; root-level V1.8 `harness.yaml`, `evidence.jsonl`, and `pipeline-state.json` are legacy/optional protocol artifacts and do not form a V2.3 completion closure.
 
 ## Default Members
 
@@ -202,9 +225,9 @@ GoalTeamsWork-<project_version>/
 | `goal_e2e_test_designer` | E2E cases, viewport coverage, and component assertions after frontend work. |
 | `goal_e2e_test_runner` | E2E execution, screenshots, traces, and console/network evidence. |
 | `goal_qa` | Independent tests, integration tests, UI E2E, pixel-comparison acceptance, and test reports. |
-| `goal_docs` | TaskList, acceptance, README, reports, and release notes. |
+| `goal_docs` | Acceptance, README, reports, and release notes; TaskList changes are handed off as events/patches. |
 | `goal_reviewer` | Read-only review, architecture boundaries, security, coverage, compatibility, and risk. |
-| `goal_completion_auditor` | Completion audit, unfinished-work checks, and auto-continuation suggestions. |
+| `goal_completion_auditor` | Completion audit, unfinished-work checks, and session-scoped continuation suggestions. |
 
 ## Design Sources
 
@@ -231,7 +254,7 @@ GoalTeamsWork-<project_version>/
 
 ## Version Note
 
-The current version is read from `VERSION`. `V2.2` focuses on the slim entrypoint, conditional rule files, routing fixtures, file-level rule validation, and a clearer README. Historical `V2.02` and `V2.1` are patch lines before `V2.2`; future releases should prefer increasing labels such as `V2.3` and `V2.4`.
+The current version is read from `VERSION`. `V2.3` focuses on orthogonal state machines, a single-writer event ledger, strict Evidence/Traceability/Dual Review, Profile routing and capability degradation, safe migration, atomic distribution, real canonical/behavior negative gates, and a bounded base context. Historical V2.2 output is read through the typed migration adapter; `tasklist.md` is no longer a writable SSOT.
 
 See `CHANGELOG.md` for the full history.
 
@@ -242,9 +265,14 @@ This repository includes:
 - Root files: `VERSION`, `SKILL.md`, `RULES.md`, `goal-teams.md`, `AGENTS.md`, `CHANGELOG.md`, `README.md`, `README.en.md`, `agents/openai.yaml`.
 - References: `references/goal-teams-runtime.md`, `references/default-AGENTS.md`, `references/invariants.md`, `references/compat.md`, `references/rules-ui.md`, `references/rules-testing.md`, `references/rules-loop.md`, `references/goal-teams-automation-protocol.md`, `references/goal-teams-production-pipeline.md`, `references/goal-teams-scripted-tooling.md`, `references/google-okf-bilingual-spec.md`, `references/ui-e2e-pixel-protocol.md`, `references/ui-visual-contract-protocol.md`, `references/subagent-dispatch-protocol.md`, `references/dual-review-protocol.md`.
 - Prompts: `prompts/`, `prompts/lead/core.md`, `prompts/lead/requirement-card.md`, `prompts/members/shared.md`, `prompts/members/backend/prompt.md`, `prompts/members/backend/template.md`, `prompts/members/backend/workflow.md`, `prompts/members/backend/scripts.md`, `prompts/members/unit-test-designer/prompt.md`, `prompts/members/unit-test-runner/prompt.md`, `prompts/members/api-integration-test-designer/prompt.md`, `prompts/members/api-integration-test-runner/prompt.md`, `prompts/members/e2e-test-designer/prompt.md`, `prompts/members/e2e-test-runner/prompt.md`, `prompts/packets/member-goal-packet.md`, `prompts/packets/handoff-artifacts.md`, `prompts/packets/page-spec-card.md`, `prompts/packets/memory.md`, `prompts/packets/html-prototype-mock.md`, `prompts/packets/requirement-card.md`, `prompts/packets/dual-review-record.md`.
-- Scripts: `scripts/check.sh`, `scripts/validate.py`, `scripts/install-local.sh`, `scripts/check-version-sync.py`, `scripts/check-routing-fixtures.py`, `scripts/check-agent-names.py`, `scripts/check-member-layout.py`, `scripts/validate-harness.py`, `scripts/pixel-diff.py`, `scripts/compare-artifacts.py`, `scripts/validate-dual-review.py`, `scripts/benchmark-runner.py`, `scripts/checks/`, `scripts/checks/check-routing-fixtures.py`, `scripts/harness/`, `scripts/benchmark/`, `scripts/review/`, `scripts/install/`.
-- Runtime and examples: `subagents/goal-*.toml`, `examples/mini-goal-run`, `benchmarks/`.
+- Scripts: compatibility entrypoints `scripts/check.sh`, `scripts/validate.py`, `scripts/install-local.sh`, `scripts/check-version-sync.py`, `scripts/check-routing-fixtures.py`, `scripts/check-agent-names.py`, `scripts/check-member-layout.py`, `scripts/validate-harness.py`, `scripts/pixel-diff.py`, `scripts/compare-artifacts.py`, `scripts/validate-dual-review.py`, and `scripts/benchmark-runner.py`; implementation directories `scripts/v23/`, `scripts/checks/` (including `check-routing-fixtures.py`, `check-context-budget.py`, `check-install-lifecycle.py`, `check-security-fixtures.py`, and `check-ci-pins.py`), `scripts/harness/`, `scripts/benchmark/`, `scripts/review/`, and `scripts/install/`.
+- Machine contracts and validation: `schemas/`, `tests/v23/`, and `.github/workflows/`.
+- Runtime and examples: `subagents/goal-*.toml`, `examples/mini-goal-run`, `examples/canonical-v23/`, and `benchmarks/`.
 
 ## License
 
-This repository does not currently declare an open-source license. The owner should choose a license or internal sharing agreement before public release.
+This repository does not currently declare an open-source license. The owner should first choose a license or internal sharing agreement; that local decision is only a proposal, and GA authorization additionally requires a trusted external host/signature attestation. The current technical deliverable is RC at most.
+
+## V2.3 Contract and Release Boundary
+
+V2.3 adds deterministic machine contracts for closed state enums, a single-writer ledger, strict Evidence/Traceability, capability degradation, Profile routing, typed migration, and release gates. See `references/goal-teams-v2.3-contract.md` and run `./scripts/check.sh` before release. Technical RC and authorized GA distribution are evaluated separately; even with an owner License/internal-sharing decision, the GA gate must remain fail-closed until a trusted external host/signature attestation exists.

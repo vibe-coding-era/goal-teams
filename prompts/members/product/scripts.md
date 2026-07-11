@@ -8,4 +8,4 @@
 
 规则：
 
-- 脚本检查结构，LLM 复核需求语义、边界和冲突。
+- 从 Harness 推导最低 review_class；comparison/safety 强制脚本 + LLM，semantic/structural 不互代并按 class matrix 执行，对不适用半边记录独立接受的结构化 N/A。

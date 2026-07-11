@@ -1,0 +1,21 @@
+# Goal Teams V2.3 install package allowlist.
+# The installer copies only Git-tracked files that match one of these entries.
+file AGENTS.md
+file CHANGELOG.md
+file GoalTeams-PRD-V2.3.md
+file README.en.md
+file README.md
+file RULES.md
+file SKILL.md
+file VERSION
+file goal-teams.md
+prefix agents/
+prefix benchmarks/
+prefix examples/
+prefix prompts/
+prefix references/
+prefix schemas/
+file scripts/checks/check-ci-pins.py
+prefix scripts/
+prefix subagents/
+prefix tests/v23/

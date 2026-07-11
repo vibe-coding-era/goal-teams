@@ -37,8 +37,10 @@ GoalTeamsWork-<project_version>/
   versions/
     <artifact_version>/
       index.md
-      TaskList.md
-      tasklist.md
+      ledger/events.jsonl
+      ledger/checkpoint.json
+      TaskList.md        # reducer-generated projection
+      identity/registry.json
       plan.md
       progress.md
       decisions.md
@@ -62,9 +64,15 @@ GoalTeamsWork-<project_version>/
         e2e/
         pixel/
         review/
+      harness/harness.json
+      harness/traceability.json
+      evidence/evidence.jsonl
+      reviews/dual-review.json
+      reviews/semantic-review.md
+      audit/completion-audit.json
 ```
 
-根部 `index.md` 用于跨版本渐进式索引，`log.md` 可记录目录更新历史，`memory.md` 用于记录用户重要设置、配置和上下文摘要。所有 SSOT 产出物必须位于 `versions/<artifact_version>/`；不同版本的 SPEC、TaskList、Harness、Evidence 和 Acceptance 不得混放。用户明确指定其他生成目录时，按用户目录执行，但仍在该目录下创建或更新 `memory.md`，并用版本子目录隔离 SSOT。
+根部 `index.md` 用于跨版本渐进式索引，`log.md` 可记录目录更新历史，`memory.md` 用于记录用户重要设置、配置和上下文摘要。所有 SSOT 产出物必须位于 `versions/<artifact_version>/`；机器闭包路径以 `schemas/v2.3/goal-teams.schema.json` 为准，不得用 V1.8 根级 `harness.yaml` / `evidence.jsonl` / `pipeline-state.json` 替代。用户明确指定其他生成目录时仍用版本子目录隔离 SSOT。
 
 ## 3. Concept Document
 
@@ -81,8 +89,12 @@ timestamp: <ISO 8601 datetime>
 okf_version: "0.1"
 goal_teams_version: <Vx.x>
 project_version: <项目版本号>
-owner_subagent: <Owner>
-validator_subagent: <Validator>
+owner_agent_type: <Owner agent type>
+owner_member_id: <Owner member ID>
+owner_agent_run_id: <Owner run ID>
+validator_agent_type: <Validator agent type>
+validator_member_id: <Validator member ID>
+validator_agent_run_id: <Validator run ID>
 source_ssot: <适用时填写 SSOT 文件>
 ---
 ```
@@ -101,7 +113,9 @@ source_ssot: <适用时填写 SSOT 文件>
 - `okf_version`：当前使用 `"0.1"`。
 - `goal_teams_version`：当前 Skill 版本。
 - `project_version`：用户项目版本。
-- `owner_subagent` / `validator_subagent`：交接物负责人和独立检查者。
+- `owner_agent_type` / `validator_agent_type`：可加载角色或 skill。
+- `owner_member_id` / `validator_member_id`：项目内稳定成员身份。
+- `owner_agent_run_id` / `validator_agent_run_id`：本次具体运行身份；用于独立性判断。
 
 扩展字段允许存在，消费者不得因为未知字段拒绝读取。Goal Teams 常用扩展字段包括 `harness_ref`、`evidence_paths`、`component_library`、`data_model_ref`、`acceptance_refs`、`not_applicable_reason`。
 
@@ -120,7 +134,7 @@ source_ssot: <适用时填写 SSOT 文件>
 ## 5. 链接和引用
 
 - 目录内文档优先使用相对链接，例如 `[PRD](PRD.md)`。
-- 跨目录引用可以使用 bundle-relative 路径，例如 `[tasklist](/tasklist.md)`。
+- 跨目录引用可以使用 bundle-relative 路径，例如 `[TaskList](/versions/<artifact_version>/TaskList.md)`。
 - 外部来源、附件、URL、Git 仓库和参考资产放入 `# Citations` 或 `# 参考资产`。
 - 消费者应容忍暂时断开的链接；断链应进入待办或风险，不应导致整个 bundle 不可读。
 
@@ -134,7 +148,7 @@ source_ssot: <适用时填写 SSOT 文件>
 
 - 需求卡片、需求规格卡、PRD、页面规格卡、测试计划、验收记录、评审记录、Doc Capsule 和 memory 都必须是 OKF Markdown 文档。
 - `HTML-prototype.html` 不是 Markdown，但必须内嵌 OKF 元数据块，见 `prompts/packets/html-prototype-mock.md`。
-- 所有交接物必须写入 `tasklist.md`，并保持 `prompts/packets/handoff-artifacts.md` 的 SSOT 字段。
+- 所有交接物变化必须先写入版本目录 append-only ledger，并保持 `prompts/packets/handoff-artifacts.md` 的 SSOT 字段；`TaskList.md` 只由 reducer 生成，`tasklist.md` 仅作为 V2.2 migration 输入。
 - 用户未指定目录时，所有输出默认进入 `GoalTeamsWork-<project_version>/`。
 - 每次新建或更新输出目录时，必须创建或更新 `memory.md`，记录重要设置、组件库、输出目录、项目版本、关键上下文摘要和用户偏好。
 
@@ -171,7 +185,7 @@ The recommended structure mirrors the Chinese section above: the root contains c
 
 ## 3. Concept Documents
 
-Every non-reserved Markdown file should include YAML frontmatter with a required non-empty `type` field. Recommended fields include `title`, `description`, `resource`, `tags`, `timestamp`, `okf_version`, `goal_teams_version`, `project_version`, `owner_subagent`, and `validator_subagent`. Producers may add extension fields; consumers should preserve and tolerate unknown keys.
+Every non-reserved Markdown file should include YAML frontmatter with a required non-empty `type` field. Recommended fields include `title`, `description`, `resource`, `tags`, `timestamp`, `okf_version`, `goal_teams_version`, `project_version`, `owner_agent_type`, `owner_member_id`, `owner_agent_run_id`, `validator_agent_type`, `validator_member_id`, and `validator_agent_run_id`. Producers may add extension fields; consumers should preserve and tolerate unknown keys.
 
 ## 4. Body
 

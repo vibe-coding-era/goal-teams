@@ -8,19 +8,23 @@
 2. `goal_*` 自定义 subagents。
 3. 内置 `team_*` fallback，仅在用户明确要求或 `goal_*` 不可用时使用。
 
-默认不要把 Goal Teams 任务派给内置 `team_reviewer`、`team_qa`、`team_implementer`、`team_researcher`。如果必须使用，用户可见 `member_id` 和 `display_name` 仍使用中文任务名。
+默认不要把 Goal Teams 任务派给内置 `team_reviewer`、`team_qa`、`team_implementer`、`team_researcher`。只有 capability manifest 证明 fallback 能力等价且不扩大权限时才可自动降级；否则进入 blocked 或请求用户。用户可见内容仍使用本地化 `display_name`。
+
+自定义 `goal_*` 不可用但 generic subagent 或串行执行可安全降级时，机器记录固定使用 `dispatch_mode=generic_subagent_or_serial`、`privilege_escalated=false` 并记录 degradation；不得另造近义枚举。
 
 ## 命名映射
 
 | 字段 | 规则 |
 | --- | --- |
-| `member_id` | `<中文角色>-<具体任务名>` 或 `<skill 名称>-<具体任务名>` |
-| `display_name` | 与 `member_id` 完全一致 |
+| `agent_type` | 真实可加载配置或 skill，例如 `goal_frontend`、`browser` |
+| `agent_run_id` | 每次派发唯一；重试时生成新值并引用 parent attempt |
+| `member_id` | 项目内稳定成员 ID，不承担展示或宿主路由 |
+| `display_name` | `<中文角色>-<具体任务名>` 或 `<skill 名称>-<具体任务名>` |
 | `role` | 中文角色或用户指定 skill 名称 |
-| `skill_or_subagent` | 真实可加载名称，例如 `goal_frontend`、`browser` |
+| `skill_or_subagent` | `agent_type` 的兼容别名；新机器记录优先使用 `agent_type` |
 | `transport_handle` | 运行时可能返回的英文昵称，例如 `Reviewer C`，只能做路由句柄 |
 
-任何用户可见表格、packet、tasklist、state、events、progress、acceptance 和最终总结都不得用 `transport_handle` 替代中文展示名。
+任何用户可见表格、packet、TaskList、state、events、progress、acceptance 和最终总结都不得用 `transport_handle` 替代 display_name；任何独立性检查也不得使用 display_name 或 transport_handle 代替 agent_run_id。
 
 ## Member Goal Packet 首段
 
@@ -28,18 +32,19 @@
 
 ```text
 你是 Goal Teams 成员：<中文展示名>。
-你的 member_id 和 display_name 都是：<中文展示名>。
+你的 member_id 是：<稳定成员 ID>；本次 agent_run_id 是：<唯一运行 ID>。
+你的 display_name 是：<中文展示名>。
 如果运行时或右边栏显示英文昵称，只把它当作 transport_handle。
 回复首行必须写：成员：<中文展示名>
 ```
 
 ## 交接物派发
 
-- 交接物类型、Owner subagent、validator subagent 和状态字段以 `prompts/packets/handoff-artifacts.md` 为 SSOT。
-- Lead 派发前必须在 tasklist 中创建或补齐交接物行。
-- V2.0 起 Lead 派发前必须先创建版本子目录 `TaskList.md`，并把 SSOT 产出物放到 `versions/<artifact_version>/`。
-- Member Goal Packet 必须包含本成员认领的 `handoff_artifacts`，每项至少包含 `artifact_type`、`owner_subagent`、`validator_subagent`、`handoff_status`、`independent_check_status`、Harness 和证据路径。
-- 成员执行过程中必须更新 tasklist 中自己负责的交接物状态；只读 reviewer 或 auditor 返回状态更新建议，由 Lead 或 tasklist Owner 写入。
+- 交接物类型、具体 Owner/Validator identity 和状态字段以 `prompts/packets/handoff-artifacts.md` 为 SSOT。
+- Lead 派发前必须在 ledger 中创建或补齐交接物事件，并由 reducer 生成 TaskList 行。
+- Lead 派发前必须先在版本子目录建立 ledger，由 reducer 生成 `TaskList.md`，并把 SSOT 产出物放到 `versions/<artifact_version>/`。
+- Member Goal Packet 必须包含本成员认领的交接物，每项至少包含 `artifact_type`、具体 Owner/Validator、`task_state`、`check_state`、Harness、Evidence 和 `base_revision`。
+- 成员执行过程中只提交 event/patch；只读 reviewer 或 auditor 也返回结构化 review event，由 ledger owner 合并。
 - 每个交接物必须由独立成员、skill 或 subagent 检查；Owner 不能自我批准。
 
 ## V2.0 默认测试派发

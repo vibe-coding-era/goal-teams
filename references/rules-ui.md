@@ -21,6 +21,7 @@ okf_version: "0.1"
 
 ## 规划规则
 
+- UI、复刻、截图对齐或完整 E2E 使用 schema 机器值 `profile=full`；高风险外部写入或安全审批才升级为 `regulated`。
 - UI 页面、复刻、还原、截图对齐或前端交互页面必须在 PRD 后生成或更新 `spec/page-spec-card.md`；非 UI 任务写 `not_applicable_reason`。
 - 页面原型、HTML Prototype MOCK、静态页面 MOCK 或动态前端页面任务，若未提供组件库名称、版本、URL 或 Git 仓库，必须先澄清；已提供时写入 `memory.md`、`page-spec-card.md` 和 HTML OKF 元数据。
 - 页面规格卡必须在 OKF 头部记录组件库名称、版本和来源；每个用户可见元素都要记录组件库归属，有数据模型的组件还要记录数据模型或 mock 引用。
@@ -29,7 +30,7 @@ okf_version: "0.1"
 ## 视觉证据规则
 
 - 任何界面级任务都必须有 E2E Harness，覆盖关键用户路径、主要 viewport、控制台错误和可见状态；不能执行 E2E 时不得标记完成。
-- 复刻、临摹、还原、对照参考图或参考页面的界面任务必须截图并做像素级对比；缺少可比较参考时记录阻塞或 `not_applicable_reason`。
+- 复刻、临摹、还原、对照参考图或参考页面的界面任务必须截图并做像素级对比；缺少可比较参考时保持 blocked。只有用户明确把目标改为非 UI/`sample_only`，才可创建非 required、非阻断的 `not_required` Check。
 - 使用视觉锁层、baseline overlay 或截图遮挡层时，不能只用锁层截图作为通过证据；必须同时提供 locked screenshot 和 unlocked real DOM screenshot。
 - 关键组件必须有组件级视觉契约和可执行断言；头像、图标、小按钮等小组件必须有局部 crop 或几何断言。
 - 弹窗、表单、菜单、头像、表格、分页等用户可见组件必须覆盖至少一个交互态证据；弹窗必须覆盖打开态、错误态、切换态、关闭态和移动端态。
@@ -48,4 +49,4 @@ okf_version: "0.1"
 
 ## 可用工具
 
-- 像素对比优先执行 `scripts/harness/pixel-diff.py`；兼容入口见 `references/compat.md`。
+- 像素对比优先执行 `scripts/harness/pixel-diff.py`；原创 UI 使用 `--ui-mode original`，复刻/reference-driven UI 使用 `--ui-mode replica` 并强制环境指纹与独立 baseline approval；兼容入口见 `references/compat.md`。

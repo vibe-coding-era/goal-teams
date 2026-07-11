@@ -30,8 +30,17 @@ fi
 "$PYTHON_BIN" scripts/checks/check-routing-fixtures.py
 "$PYTHON_BIN" scripts/checks/check-agent-names.py
 "$PYTHON_BIN" scripts/checks/check-member-layout.py
+"$PYTHON_BIN" scripts/checks/check-context-budget.py
+"$PYTHON_BIN" scripts/checks/check-security-fixtures.py
+if [[ -f .github/workflows/check.yml ]]; then
+  "$PYTHON_BIN" scripts/checks/check-ci-pins.py
+fi
 "$PYTHON_BIN" scripts/harness/validate-harness.py --self-test
 "$PYTHON_BIN" scripts/harness/pixel-diff.py --self-test
 "$PYTHON_BIN" scripts/review/compare-artifacts.py --self-test
 "$PYTHON_BIN" scripts/review/validate-dual-review.py --self-test
+GOAL_TEAMS_INSTALL_VALIDATION=1 "$PYTHON_BIN" scripts/checks/check-v23.py
 "$PYTHON_BIN" scripts/benchmark/benchmark-runner.py --check-only
+if [[ "${GOAL_TEAMS_INSTALL_VALIDATION:-0}" != "1" ]]; then
+  "$PYTHON_BIN" scripts/checks/check-install-lifecycle.py
+fi

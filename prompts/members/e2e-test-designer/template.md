@@ -12,4 +12,4 @@
 - 组件/交互态断言：<list>
 - 执行命令：<commands>
 - 证据目录：<screenshots/traces path>
-- 独立检查者：<validator_subagent>
+- 独立检查者：<validator_agent_type>; <validator_member_id>; <validator_run_id>

@@ -11,5 +11,5 @@
 - 命令：<test command>
 - 证据路径：<progress/test-plan/report path>
 - 需要后端实现承接：<yes/no + notes>
-- 独立检查者：<validator_subagent>
+- 独立检查者：<validator_agent_type>; <validator_member_id>; <validator_run_id>
 - 阻塞/风险：<none or details>

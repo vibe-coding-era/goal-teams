@@ -21,8 +21,12 @@ okf_version: "0.1"
 goal_teams_version: <Vx.x>
 project_version: <项目版本号>
 output_dir: <GoalTeamsWork-project_version 或用户指定目录>
-owner_subagent: Goal Lead
-validator_subagent: goal_reviewer 或用户确认
+owner_agent_type: Goal Lead
+owner_member_id: <稳定成员 ID>
+owner_agent_run_id: <本次运行 ID>
+validator_agent_type: goal_reviewer 或 user
+validator_member_id: <独立检查成员 ID 或 user>
+validator_agent_run_id: <独立检查运行 ID 或 user-approval-ID>
 source_ssot: prompts/packets/handoff-artifacts.md
 ---
 

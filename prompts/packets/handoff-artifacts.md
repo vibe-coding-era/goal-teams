@@ -14,59 +14,79 @@ okf_version: "0.1"
 ## SSOT 规则
 
 - `prompts/packets/handoff-artifacts.md` 定义交接物类型和状态字段。
-- `tasklist.md` 是执行中的状态账本，必须逐项记录交接物、Owner subagent、独立检查者、状态和证据路径。
-- V2.0 起用户可见状态账本名称为 `TaskList.md`，保留 `tasklist.md` 作为兼容旧名；所有 SSOT 产出物必须写入输出根目录下的版本子目录 `versions/<artifact_version>/`。
+- append-only event ledger 是执行事实源；`TaskList.md` 是 reducer 生成的人类投影视图，记录交接物、具体 Owner/Validator、状态和 Evidence。
+- `tasklist.md` 只作为 V2.2 legacy migration 输入；V2.3 禁止双写。所有 SSOT 产出物写入 `versions/<artifact_version>/`。
 - `Member Goal Packet` 是成员执行契约，必须只认领 tasklist 中已有或计划创建的交接物。
-- 交接物没有独立检查者、检查状态或证据路径时，不能标记为 `done`。
+- 交接物没有独立检查者、有效 `check_state` 或 Evidence 时，不能标记为 `accepted`。
 - 交接物字段变化时，先更新本文件，再同步 workflow、template、README 和 runtime 示例。
 
-## 状态字段
+## V2.3 正交状态字段
 
 ```text
-handoff_status:
+task_state:
 - planned
-- claimed
-- in_progress
-- ready_for_review
-- changes_requested
-- checked
-- done
+- running
+- review
+- accepted
 - blocked
 - deferred
+- cancelled
 
-independent_check_status:
+check_state:
+- not_required
 - not_started
 - running
 - passed
 - failed
 - blocked
-- not_applicable
+- waived
+
+run_outcome: achieved | partial | blocked | aborted
+loop_decision: continue | replan | stop
 ```
 
-## Tasklist 必填字段
+## V2.3 Task 机器必填字段
 
 ```text
-Tasklist Handoff Row（tasklist 交接物行）:
+Task Handoff Record（ledger checkpoint 与 TaskList 投影的同一任务）:
+- schema_version: goal-teams-v2.3
 - task_id:
+- title:
 - handoff_artifact:
 - artifact_type:
 - source_ssot: prompts/packets/handoff-artifacts.md
-- owner_subagent:
-- validator_subagent:
-- handoff_status:
-- independent_check_status:
-- harness_contract:
-- evidence_path:
-- tasklist_update_owner:
-- last_updated:
-- blocked_or_deferred_reason:
+- owner_agent_type:
+- owner_member_id:
+- owner_run_id:
+- validator_agent_type:
+- validator_member_id:
+- validator_run_id:
+- merge_owner_run_id:
+- task_state:
+- check_state:
+- required_for_done: true | false
+- acceptance_blocking: true | false
+- attempt_id:
+- revision:
+- requirement_refs:
+- acceptance_criteria_refs:
+- artifact_refs:
+- evidence_refs:
+- harness_refs:
+- validation_check_id: <accepted 时与 valid Evidence 绑定>
+- validation_run_id: <accepted 时与 valid Evidence 绑定>
+- last_event_id:
+- last_actor_run_id:
+- blocked_reason | deferred_reason: <对应状态时>
 ```
+
+`owner_agent_type` / `validator_agent_type` 是人类可读扩展；机器验证和独立性使用 identity registry 中的 `owner_run_id` / `validator_run_id`。旧名 `owner_agent_run_id`、`validator_agent_run_id`、`ledger_merge_owner_run_id` 不得写入 V2.3 canonical Task。
 
 ## 交接物类型
 
-| artifact_type | 交接物 | 默认 Owner subagent | 默认独立检查者 | 必须写入 tasklist | 典型证据 |
+| artifact_type | 交接物 | 默认 Owner agent_type | 默认独立检查者 agent_type | 必须登记到 ledger | 典型证据 |
 | --- | --- | --- | --- | --- | --- |
-| `tasklist` | TaskList、任务状态账本、交接物账本 | Goal Lead 或 `goal_docs` | `goal_completion_auditor` | 每个项目必须先写入 | `versions/<artifact_version>/TaskList.md`、交接物行完整性检查 |
+| `tasklist_projection` | reducer 生成的 TaskList 人类视图 | ledger owner / reducer | `goal_completion_auditor` | 每个项目先建立 ledger 后生成 | `ledger/events.jsonl`、checkpoint、`TaskList.md` byte-equivalent replay |
 | `requirement_card` | 需求卡片 | Goal Lead | `goal_reviewer` 或用户确认 | 是 | `spec/requirement-card.md`、确认记录 |
 | `requirement_spec_card` | Requirement Specification Card | `goal_requirements_analyst` | `goal_product` 或 `goal_reviewer` | 是 | `spec/requirement-spec-card.md`、结构检查、LLM 复核 |
 | `prd` | PRD、用户故事、功能验收标准 | `goal_product` | `goal_reviewer` | 是 | `spec/PRD.md`、溯源检查、评审记录 |
@@ -84,33 +104,35 @@ Tasklist Handoff Row（tasklist 交接物行）:
 | `api_integration_test_execution` | API 集成测试执行 | `goal_api_integration_test_runner` | `goal_qa` 或 `goal_reviewer` | 单元测试通过后必须写入或写阻塞 | pytest 命令、日志、报告、失败截图/响应 |
 | `e2e_test_cases` | 生成 E2E 测试用例 | `goal_e2e_test_designer` | `goal_reviewer` 或 `goal_qa` | 前端开发完成后必须写入或写原因 | Playwright/浏览器脚本、路径覆盖、viewport |
 | `e2e_test_execution` | 执行 E2E 测试用例 | `goal_e2e_test_runner` | `goal_qa` 或 `goal_reviewer` | E2E 用例生成后必须写入或写阻塞 | 命令、截图、trace、console/network 记录 |
-| `bugfix` | BugFix、缺陷修复 | 对应实现 Owner subagent | 发现问题的测试/评审 subagent | 有失败证据时必须写入 | failure_report、修复 diff、回归证据 |
+| `bugfix` | BugFix、缺陷修复 | 对应实现 Owner agent_type | 发现问题的测试/评审 agent_type；必须派发具体 run | 有失败证据时必须写入 | failure_report、修复 diff、回归证据 |
 | `test_report` | 测试报告生成 | `goal_qa` 或 `goal_docs` | `goal_completion_auditor` | 收尾前必须写入 | `reports/test-report.md`、覆盖/失败/风险汇总 |
 | `harness_contract` | Harness Contract | 认领任务 Owner | `goal_qa` 或 `goal_reviewer` | 是 | Harness 字段、命令、人工检查、失败报告格式 |
-| `implementation_change` | 代码或配置变更 | 实现 Owner subagent | `goal_qa` 和/或 `goal_reviewer` | 是 | diff 摘要、测试输出、review 记录 |
+| `implementation_change` | 代码或配置变更 | 实现 Owner agent_type；ledger 记录具体 member/run | `goal_qa` 和/或 `goal_reviewer` 的具体 run | 是 | diff 摘要、测试输出、review 记录 |
 | `test_plan` | Test Plan、测试用例、测试说明 | `goal_qa` | `goal_reviewer` | 是 | `spec/test-plan.md`、测试命令、断言审查 |
 | `evidence_record` | Evidence、脚本报告、截图、日志 | 测试 Owner 或认领任务 Owner | `goal_reviewer` 或 `goal_completion_auditor` | 是 | `progress.md`、报告路径、截图路径、JSONL |
 | `loop_decision_record` | Lead LOOP Decision、Loop Gate、状态快照、续跑决策 | Goal Lead | `goal_completion_auditor` | 长任务、自动续跑、生产流、Benchmark、浏览器 E2E、像素对比或跨成员依赖任务必须写入 | `progress.md`、`loop-state.json`、续跑 Teams 规划表 |
 | `acceptance_record` | Acceptance、验收记录 | `goal_docs` 或 Goal Lead | `goal_reviewer` 或 `goal_completion_auditor` | 是 | `spec/acceptance.md`、验收清单、最终结论 |
 | `doc_capsule` | Doc Capsule | 读取文档的成员 | Goal Lead 或下游接收者 | 需要长期复用时写入 | `.codex/goal-teams/doc-capsules.jsonl` |
 | `dual_review_record` | Dual Review Record | 执行校验的 QA/reviewer | `goal_completion_auditor` | 对比和校验类任务必须写入 | 脚本复核、LLM 复核、最终决策 |
-| `tasklist_update` | tasklist 状态更新 | 当前任务 Owner 或 Goal Lead | `goal_completion_auditor` | 是 | `tasklist.md` 行变更、progress 记录 |
+| `ledger_event` | Task 状态或交接物变化事件 | 当前任务 Owner；合并者只能是 ledger owner | `goal_completion_auditor` | 是 | `ledger/events.jsonl` event、revision/CAS 结果、reducer 生成的 `TaskList.md` |
 
 ## 交接顺序
 
-1. Goal Lead 在 Plan 阶段把每个交接物写入 `tasklist.md`，至少达到 `planned`。
-2. 成员认领任务后，把自己的交接物更新为 `claimed` 或 `in_progress`。
-3. 交接物完成初稿或变更后，Owner 更新为 `ready_for_review` 并填入证据路径。
-4. 独立检查者完成检查后，更新 `independent_check_status`，并把结论写入证据路径。
-5. 只有 `handoff_status` 和 `independent_check_status` 都支持完成结论时，Goal Lead 才能把任务标记为 `done`。
+1. Goal Lead 在 Plan 阶段先注册 identity，再写入初始 `task_patch` event，由 reducer 生成 `planned` TaskList 行。
+2. 成员认领后提交带 `attempt_id` 和 `base_revision` 的 event，将任务迁移到 `running`。
+3. Owner 用 `artifact_created` 只登记非空 `artifact_refs`；状态变化另用 `task_patch`，让被验任务先进入 `running|review`。此时记录非空 ledger prefix 的 `ledger_revision` 与 digest。
+4. Runner 在该 prefix 后按 Check 的 `expected_domain_execution.argv/cwd` 执行真实领域命令，固化 domain log 与 exact execution record；再用不同日志运行 runtime-locked `integrity_replay`，最后生成 Evidence。Run 必须完整包络两层执行，随后才是 Evidence created 与引用 event；Completion 只重放完整性层。然后独立 validator 才追加 `check_executed`，绑定 `check_state`、`validation_check_id`、`validation_run_id` 和 `evidence_refs`。
+   `artifact_sha256` 与 current artifact 不一致时，标准机器错误码是 `E_HASH_MISMATCH`；不得改写为自然语言别名，也不得用于 acceptance。
+5. 独立检查者按 Harness 内层 `task_type` / `required_review_class` 约束 Review；需要脚本时报告必须含 `domain_execution`、独立 `integrity_replay` 与 `binding_digest`。comparison（含升级 safety）另绑定 trusted exact-hash tool、不同 path/inode 的 actual/baseline 与 registry 中独立预批准者。随后提交 `review_completed` event；它必须由 `validator_run_id` 对应 run 发出，且 `task_state=accepted` 与 valid Evidence registry 的 Check/Run 一致。
+6. ledger owner 只负责持锁/CAS 合并；不代替 reviewer。TaskList、checkpoint 和 traceability 的 Task 对象由 reducer 重建并 byte-equivalent 校验。Completion Audit 在候选收尾时作为外部门禁运行：failed/blocked 驱动 LOOP/停止，只有 passed/achieved 要求 required task 全 accepted；Audit 不得成为 required/blocking 自证任务。
 
 ## V2.0 TaskList 最小颗粒度
 
-每个功能切片都必须在版本子目录的 `TaskList.md`/`tasklist.md` 中先拆到以下颗粒度；不适用项必须写 `not_applicable_reason`：
+Full/Regulated Profile 的每个功能切片在版本子目录 `TaskList.md` 中按以下颗粒度拆分；Lite/Standard 只创建适用任务，不适用项使用结构化 `not_applicable_reason`，不得生成空仪式任务：
 
-| 顺序 | 功能级任务 | artifact_type | 默认 Owner subagent | 默认前置 |
+| 顺序 | 功能级任务 | artifact_type | 默认 Owner agent_type（派发时必须具体到 member/run） | 默认前置 |
 | --- | --- | --- | --- | --- |
-| 1 | 某功能的需求规格卡 | `requirement_spec_card` | `goal_requirements_analyst` | `tasklist` |
+| 1 | 某功能的需求规格卡 | `requirement_spec_card` | `goal_requirements_analyst` | `tasklist_projection`（其事实源为 ledger） |
 | 2 | 某功能的 PRD | `prd` | `goal_product` | `requirement_spec_card` |
 | 3 | 某功能的页面规格卡 | `page_spec_card` | `goal_product` 或 `goal_frontend` | `prd` |
 | 4 | 某功能的 HTML 原型 | `html_prototype` | `goal_frontend` | `page_spec_card` |

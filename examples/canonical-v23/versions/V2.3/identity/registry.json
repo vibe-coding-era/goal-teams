@@ -1,0 +1,61 @@
+{
+  "identities": [
+    {
+      "agent_run_id": "RUN-CAN-OWNER",
+      "agent_type": "goal_backend",
+      "display_name": "实现-Canonical",
+      "member_id": "实现-Canonical",
+      "transport_handle": "canonical_owner"
+    },
+    {
+      "agent_run_id": "RUN-CAN-REVIEWER",
+      "agent_type": "goal_reviewer",
+      "display_name": "评审-Canonical",
+      "member_id": "评审-Canonical",
+      "transport_handle": "canonical_reviewer"
+    },
+    {
+      "agent_run_id": "RUN-CAN-LEDGER-OWNER",
+      "agent_type": "goal_merge_owner",
+      "display_name": "合并所有者-Canonical",
+      "member_id": "合并所有者-Canonical",
+      "transport_handle": "canonical_ledger_owner"
+    },
+    {
+      "agent_run_id": "RUN-CAN-SCRIPT-REVIEWER",
+      "agent_type": "goal_reviewer",
+      "display_name": "脚本评审-Canonical",
+      "member_id": "脚本评审-Canonical",
+      "transport_handle": "canonical_script_reviewer"
+    },
+    {
+      "agent_run_id": "RUN-CAN-SEMANTIC-REVIEWER",
+      "agent_type": "goal_reviewer",
+      "display_name": "语义评审-Canonical",
+      "member_id": "语义评审-Canonical",
+      "transport_handle": "canonical_semantic_reviewer"
+    },
+    {
+      "agent_run_id": "RUN-CAN-COMPLETION-AUDITOR",
+      "agent_type": "goal_completion_auditor",
+      "display_name": "完成审计-Canonical",
+      "member_id": "完成审计-Canonical",
+      "transport_handle": "canonical_completion_auditor"
+    },
+    {
+      "agent_run_id": "RUN-CAN-PIXEL-REVIEWER",
+      "agent_type": "goal_reviewer",
+      "display_name": "像素评审-Canonical",
+      "member_id": "像素评审-Canonical",
+      "transport_handle": "canonical_pixel_reviewer"
+    },
+    {
+      "agent_run_id": "RUN-REPOSITORY-OWNER-FIXTURE",
+      "agent_type": "repository_owner",
+      "display_name": "仓库所有者-授权夹具",
+      "member_id": "仓库所有者-授权夹具",
+      "transport_handle": "canonical_repository_owner_fixture"
+    }
+  ],
+  "schema_version": "goal-teams-v2.3"
+}

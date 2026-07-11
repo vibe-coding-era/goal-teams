@@ -1,0 +1,11 @@
+{
+  "decision": "pass",
+  "input_sha256": "e7efba65e148c151b32bed4f8f97bd720e536f87324c994e6586a32f080e2b7b",
+  "output_sha256": "9b8f24ead4d9000b4700dae66720103311bd7e7c594434909b3aef9b06a05592",
+  "quality": 1.0,
+  "release_eligible": false,
+  "rubric_version": "behavior-v2.3",
+  "scenario_id": "telemetry-unavailable",
+  "schema_version": "goal-teams-behavior-score-v2.3",
+  "scorer_run_id": "RUN-CAN-SCORER-TELEMETRY"
+}

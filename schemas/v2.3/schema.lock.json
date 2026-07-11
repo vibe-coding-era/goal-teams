@@ -1,0 +1,6 @@
+{
+  "artifact_version": "V2.3",
+  "generator": "scripts/v23/goalteams_v23.py",
+  "source": "goal-teams.schema.json",
+  "source_sha256": "15a17896593626e56410e668c82d4f016e0c35e3f8ac8e94c5bfbb9030e97f6b"
+}

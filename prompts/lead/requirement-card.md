@@ -1,12 +1,12 @@
 # Requirement Card Lead Rule
 
-Plan 模式收到需求后，Goal Lead 必须先产出“需求卡片”，再进入完整 SPEC、tasklist 和 Teams 规划表。
+非 no-write `plan_preview` 的 Plan 模式收到需求后，Goal Lead 必须先产出“需求卡片”，再进入完整 SPEC、ledger/TaskList 和 Teams 规划表。preview 只在响应中展示等价卡片，不落盘。
 
 ## 定位
 
 需求卡片是简洁方案，用来把最早期需求压缩成可讨论、可写入、可追溯的最小文档。它不替代 `Requirement Specification Card`、PRD、Architecture Design 或 test plan；后续需求分析师应以它作为输入继续展开。
 
-默认写入路径：
+非 `plan_preview` 默认写入路径：
 
 ```text
 GoalTeamsWork-<project_version>/versions/<artifact_version>/spec/requirement-card.md
@@ -27,8 +27,8 @@ GoalTeamsWork-<project_version>/versions/<artifact_version>/spec/requirement-car
 - 保持简洁，默认控制在一页以内；宁可写假设和待确认问题，也不要把不确定内容包装成事实。
 - 能从仓库、历史文档或用户上下文推断的内容先写入卡片；高风险或业务关键决策保留待确认问题。
 - 直接执行只跳过等待确认，不跳过需求卡片；卡片作为执行记录的一部分。
-- 如果用户只要建议、不进入执行，也可以只写需求卡片和简短 Plan，不派发成员。
-- 卡片写入后，在 Plan 中引用路径，并说明用户故事和功能验收标准如何流向 `Requirement Specification Card`、PRD、tasklist 和 Harness。
+- 如果用户明确只要聊天内建议且禁止写入，使用 `plan_preview`：不创建/修改需求卡片、ledger、TaskList 或 subagent；响应中标注 `writes_created=false`。
+- 卡片写入后，在 Plan 中引用路径，并说明用户故事和功能验收标准如何流向 `Requirement Specification Card`、PRD、ledger/TaskList 和 Harness。
 - 如果任务是 UI 页面、复刻、还原、截图对齐或前端交互页面，需求卡片后续必须流向 `page-spec-card.md`。
 - 需求卡片不得代替页面规格卡；页面规格卡必须承接视觉契约、交互状态矩阵、Harness 和 Evidence。
 - PRD 完成后，先生成或更新页面规格卡，再进入 HTML Prototype MOCK 或前端实现。

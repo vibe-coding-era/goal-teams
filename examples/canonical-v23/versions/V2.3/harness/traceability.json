@@ -1,0 +1,418 @@
+{
+  "acceptance_criteria": [
+    {
+      "id": "AC-CAN-001",
+      "required": true
+    },
+    {
+      "id": "AC-CAN-002",
+      "required": true
+    },
+    {
+      "id": "AC-CAN-003",
+      "required": false
+    },
+    {
+      "id": "AC-CAN-004",
+      "required": false
+    }
+  ],
+  "checks": [
+    {
+      "acceptance_blocking": true,
+      "acceptance_criteria_refs": [
+        "AC-CAN-001"
+      ],
+      "check_id": "CHECK-CAN-SUCCESS",
+      "check_state": "passed",
+      "evidence_refs": [
+        "EVD-CAN-001"
+      ],
+      "expected_domain_execution": {
+        "argv": [
+          "python3",
+          "-m",
+          "json.tool",
+          "versions/V2.3/identity/registry.json"
+        ],
+        "cwd": "."
+      },
+      "required": true,
+      "schema_version": "goal-teams-v2.3",
+      "validator_run_id": "RUN-CAN-REVIEWER"
+    },
+    {
+      "acceptance_blocking": true,
+      "acceptance_criteria_refs": [
+        "AC-CAN-002"
+      ],
+      "check_id": "CHECK-CAN-RECOVERY",
+      "check_state": "passed",
+      "evidence_refs": [
+        "EVD-CAN-002"
+      ],
+      "expected_domain_execution": {
+        "argv": [
+          "python3",
+          "-m",
+          "json.tool",
+          "versions/V2.3/identity/registry.json"
+        ],
+        "cwd": "."
+      },
+      "required": true,
+      "schema_version": "goal-teams-v2.3",
+      "validator_run_id": "RUN-CAN-REVIEWER"
+    },
+    {
+      "acceptance_blocking": false,
+      "acceptance_criteria_refs": [
+        "AC-CAN-003",
+        "AC-CAN-004"
+      ],
+      "check_id": "CHECK-CAN-UI-BEHAVIOR",
+      "check_state": "not_required",
+      "evidence_refs": [],
+      "not_applicable_reason": "Optional branches do not block the canonical completion claim.",
+      "required": false,
+      "reviewer_run_id": "RUN-CAN-REVIEWER",
+      "schema_version": "goal-teams-v2.3",
+      "validator_run_id": "RUN-CAN-REVIEWER"
+    }
+  ],
+  "evidence": [
+    {
+      "artifact_mtime_ns": 1783726763678378481,
+      "artifact_ref": "versions/V2.3/evidence/artifact.txt",
+      "artifact_sha256": "b397bfdefd2f7c201a2f15ca9247438d2359384734c039db880b75315178f789",
+      "artifact_size": 27,
+      "artifact_transport": "git",
+      "attempt_id": "ATT-CAN-SUCCESS",
+      "check_id": "CHECK-CAN-SUCCESS",
+      "command": {
+        "argv": [
+          "python3",
+          "-m",
+          "json.tool",
+          "versions/V2.3/identity/registry.json"
+        ],
+        "cwd": ".",
+        "ended_at": "2026-07-10T00:00:04Z",
+        "execution_record_path": "versions/V2.3/evidence/execution-EVD-CAN-001.json",
+        "execution_record_sha256": "2884542f6e845b2cd1b348d47f030c1956e59c7002128645243404f93ff9fd07",
+        "execution_record_size": 615,
+        "exit_code": 0,
+        "log_mtime_ns": 1783726763714038015,
+        "log_path": "versions/V2.3/evidence/run.log",
+        "log_sha256": "c516dd8157f5dd44cc0adee48df2482f11acdc0f392897e8d5528ba8f09f7836",
+        "log_size": 2537,
+        "started_at": "2026-07-10T00:00:03Z"
+      },
+      "created_at": "2026-07-10T00:00:04Z",
+      "environment": {
+        "commit": "HEAD",
+        "ledger_prefix_sha256": "a940c908e26a14f4409d2ecfceec018366154d57c0aecbb0db110ebbf66f671a",
+        "ledger_revision": 3,
+        "platform": "darwin",
+        "python_version": "3.14.3",
+        "workspace_revision": "HEAD"
+      },
+      "evidence_id": "EVD-CAN-001",
+      "evidence_kind": "command_execution",
+      "integrity_replay": {
+        "argv": [
+          "python3",
+          "-I",
+          "-c",
+          "import hashlib,json,pathlib,sys\nif len(sys.argv) != 4:\n    raise SystemExit(64)\nroot = pathlib.Path.cwd().resolve()\nraw = pathlib.Path(sys.argv[1])\ncandidate_input = raw if raw.is_absolute() else root / raw\nif candidate_input.is_symlink():\n    raise SystemExit(65)\ncandidate = candidate_input.resolve()\ntry:\n    candidate.relative_to(root)\nexcept (OSError,RuntimeError,ValueError):\n    raise SystemExit(66)\nif not candidate.is_file():\n    raise SystemExit(67)\ndigest = hashlib.sha256()\nwith candidate.open(\"rb\") as stream:\n    for chunk in iter(lambda: stream.read(1048576), b\"\"):\n        digest.update(chunk)\nactual = digest.hexdigest()\nif actual != sys.argv[2]:\n    raise SystemExit(68)\npayload = {\"artifact_ref\": sys.argv[1], \"artifact_sha256\": actual, \"binding_digest\": sys.argv[3], \"verifier\": \"goal-teams-v2.3-safe-artifact-verifier-v1\"}\nsys.stdout.write(json.dumps(payload, ensure_ascii=True, sort_keys=True, separators=(\",\", \":\")) + \"\\n\")\n",
+          "versions/V2.3/evidence/artifact.txt",
+          "b397bfdefd2f7c201a2f15ca9247438d2359384734c039db880b75315178f789",
+          "80110871fddf41192bbd1c22c95d18e9b561439b8fa13822417f35afd9692c66"
+        ],
+        "cwd": ".",
+        "ended_at": "2026-07-10T00:00:04Z",
+        "exit_code": 0,
+        "log_mtime_ns": 1783726763739800082,
+        "log_path": "versions/V2.3/evidence/integrity-EVD-CAN-001.log",
+        "log_sha256": "933d262b3f50058edd096c792a12ac998ed1baa7a67c99435ca451cbf66a27ce",
+        "log_size": 279,
+        "started_at": "2026-07-10T00:00:04Z"
+      },
+      "mtime_policy": "transport_agnostic",
+      "portable_fixture": true,
+      "producer_run_id": "RUN-CAN-OWNER",
+      "run_id": "RUN-CAN-SUCCESS",
+      "schema_version": "goal-teams-v2.3",
+      "trust_level": "local_verified"
+    },
+    {
+      "artifact_mtime_ns": 1783726763678434022,
+      "artifact_ref": "versions/V2.3/evidence/recovery.txt",
+      "artifact_sha256": "9cf03722179d9a4ded13c6477953dc4508bc54bafdf02f98089df4d25ba833b3",
+      "artifact_size": 28,
+      "artifact_transport": "git",
+      "attempt_id": "ATT-CAN-BLOCKED-RECOVERY",
+      "check_id": "CHECK-CAN-RECOVERY",
+      "command": {
+        "argv": [
+          "python3",
+          "-m",
+          "json.tool",
+          "versions/V2.3/identity/registry.json"
+        ],
+        "cwd": ".",
+        "ended_at": "2026-07-10T00:00:20Z",
+        "execution_record_path": "versions/V2.3/evidence/execution-EVD-CAN-002.json",
+        "execution_record_sha256": "139a5fbbeb9c9fa45caa3a7e39aedb05d82ba5a1fb9c539a74cb216c7569a785",
+        "execution_record_size": 638,
+        "exit_code": 0,
+        "log_mtime_ns": 1783726763772693947,
+        "log_path": "versions/V2.3/evidence/recovery.log",
+        "log_sha256": "c516dd8157f5dd44cc0adee48df2482f11acdc0f392897e8d5528ba8f09f7836",
+        "log_size": 2537,
+        "started_at": "2026-07-10T00:00:19Z"
+      },
+      "created_at": "2026-07-10T00:00:20Z",
+      "environment": {
+        "commit": "HEAD",
+        "ledger_prefix_sha256": "e04fdca301196eb7382740eae63ccca4b13cf577bedbcfe53991f327a4c2b42f",
+        "ledger_revision": 19,
+        "platform": "darwin",
+        "python_version": "3.14.3",
+        "workspace_revision": "HEAD"
+      },
+      "evidence_id": "EVD-CAN-002",
+      "evidence_kind": "command_execution",
+      "integrity_replay": {
+        "argv": [
+          "python3",
+          "-I",
+          "-c",
+          "import hashlib,json,pathlib,sys\nif len(sys.argv) != 4:\n    raise SystemExit(64)\nroot = pathlib.Path.cwd().resolve()\nraw = pathlib.Path(sys.argv[1])\ncandidate_input = raw if raw.is_absolute() else root / raw\nif candidate_input.is_symlink():\n    raise SystemExit(65)\ncandidate = candidate_input.resolve()\ntry:\n    candidate.relative_to(root)\nexcept (OSError,RuntimeError,ValueError):\n    raise SystemExit(66)\nif not candidate.is_file():\n    raise SystemExit(67)\ndigest = hashlib.sha256()\nwith candidate.open(\"rb\") as stream:\n    for chunk in iter(lambda: stream.read(1048576), b\"\"):\n        digest.update(chunk)\nactual = digest.hexdigest()\nif actual != sys.argv[2]:\n    raise SystemExit(68)\npayload = {\"artifact_ref\": sys.argv[1], \"artifact_sha256\": actual, \"binding_digest\": sys.argv[3], \"verifier\": \"goal-teams-v2.3-safe-artifact-verifier-v1\"}\nsys.stdout.write(json.dumps(payload, ensure_ascii=True, sort_keys=True, separators=(\",\", \":\")) + \"\\n\")\n",
+          "versions/V2.3/evidence/recovery.txt",
+          "9cf03722179d9a4ded13c6477953dc4508bc54bafdf02f98089df4d25ba833b3",
+          "193d803b8367e3db2483e6f7aaffebb5df932a701f2181ff8a9618b4abb5549d"
+        ],
+        "cwd": ".",
+        "ended_at": "2026-07-10T00:00:20Z",
+        "exit_code": 0,
+        "log_mtime_ns": 1783726763795339969,
+        "log_path": "versions/V2.3/evidence/integrity-EVD-CAN-002.log",
+        "log_sha256": "7a33c4fbdd7eaaa504449bc6c9aa05d8ca7e152e51c6c33c16c218b01312a5e8",
+        "log_size": 279,
+        "started_at": "2026-07-10T00:00:20Z"
+      },
+      "mtime_policy": "transport_agnostic",
+      "portable_fixture": true,
+      "producer_run_id": "RUN-CAN-OWNER",
+      "run_id": "RUN-CAN-RECOVERY-PASSED",
+      "schema_version": "goal-teams-v2.3",
+      "trust_level": "local_verified"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "REQ-CAN-001"
+    },
+    {
+      "id": "REQ-CAN-002"
+    },
+    {
+      "id": "REQ-CAN-003"
+    },
+    {
+      "id": "REQ-CAN-004"
+    }
+  ],
+  "runs": [
+    {
+      "attempt_id": "ATT-CAN-SUCCESS",
+      "check_id": "CHECK-CAN-SUCCESS",
+      "ended_at": "2026-07-10T00:00:04Z",
+      "evidence_refs": [
+        "EVD-CAN-001"
+      ],
+      "producer_run_id": "RUN-CAN-OWNER",
+      "run_id": "RUN-CAN-SUCCESS",
+      "schema_version": "goal-teams-v2.3",
+      "started_at": "2026-07-10T00:00:02Z",
+      "status": "passed"
+    },
+    {
+      "attempt_id": "ATT-CAN-BLOCKED-RECOVERY",
+      "check_id": "CHECK-CAN-RECOVERY",
+      "ended_at": "2026-07-10T00:00:15Z",
+      "evidence_refs": [],
+      "log_path": "versions/V2.3/evidence/failed-run.log",
+      "producer_run_id": "RUN-CAN-OWNER",
+      "run_id": "RUN-CAN-RECOVERY-FAILED",
+      "schema_version": "goal-teams-v2.3",
+      "started_at": "2026-07-10T00:00:14Z",
+      "status": "failed"
+    },
+    {
+      "attempt_id": "ATT-CAN-BLOCKED-RECOVERY",
+      "check_id": "CHECK-CAN-RECOVERY",
+      "ended_at": "2026-07-10T00:00:20Z",
+      "evidence_refs": [
+        "EVD-CAN-002"
+      ],
+      "producer_run_id": "RUN-CAN-OWNER",
+      "recovery_of_run_id": "RUN-CAN-RECOVERY-FAILED",
+      "run_id": "RUN-CAN-RECOVERY-PASSED",
+      "schema_version": "goal-teams-v2.3",
+      "started_at": "2026-07-10T00:00:18Z",
+      "status": "passed"
+    }
+  ],
+  "schema_version": "goal-teams-v2.3",
+  "tasks": [
+    {
+      "acceptance_blocking": false,
+      "acceptance_criteria_refs": [
+        "AC-CAN-003"
+      ],
+      "artifact_refs": [],
+      "attempt_id": "ATT-CAN-BLOCKED",
+      "blocked_reason": "documented optional dependency unavailable",
+      "check_state": "not_started",
+      "event_digest": "6dd4982a45c609c6293c48dcfca1da7a7734ef857d4f348abd306d4ee4eafbfd",
+      "evidence_refs": [],
+      "harness_refs": [
+        "versions/V2.3/harness/harness.json"
+      ],
+      "last_actor_run_id": "RUN-CAN-OWNER",
+      "last_event_id": "EVT-CAN-007",
+      "merge_owner_run_id": "RUN-CAN-LEDGER-OWNER",
+      "owner_member_id": "实现-Canonical",
+      "owner_run_id": "RUN-CAN-OWNER",
+      "parent_attempt_id": null,
+      "required_for_done": false,
+      "requirement_refs": [
+        "REQ-CAN-003"
+      ],
+      "revision": 2,
+      "schema_version": "goal-teams-v2.3",
+      "task_id": "TASK-CAN-BLOCKED",
+      "task_state": "blocked",
+      "title": "Optional blocked branch",
+      "updated_at": "2026-07-10T00:00:07Z",
+      "validator_member_id": "评审-Canonical",
+      "validator_run_id": "RUN-CAN-REVIEWER"
+    },
+    {
+      "acceptance_blocking": true,
+      "acceptance_criteria_refs": [
+        "AC-CAN-002"
+      ],
+      "artifact_refs": [
+        "versions/V2.3/evidence/recovery.txt"
+      ],
+      "attempt_id": "ATT-CAN-BLOCKED-RECOVERY",
+      "blocked_reason": null,
+      "check_state": "passed",
+      "event_digest": "f98553869b5e4cff3ea4b1dafbc5eaea0ca90d2d900dad533a1f0edd0660eb2c",
+      "evidence_refs": [
+        "EVD-CAN-002"
+      ],
+      "harness_refs": [
+        "versions/V2.3/harness/harness.json"
+      ],
+      "last_actor_run_id": "RUN-CAN-REVIEWER",
+      "last_event_id": "EVT-CAN-021",
+      "merge_owner_run_id": "RUN-CAN-LEDGER-OWNER",
+      "owner_member_id": "实现-Canonical",
+      "owner_run_id": "RUN-CAN-OWNER",
+      "parent_attempt_id": null,
+      "recovery_note": "dependency restored",
+      "required_for_done": true,
+      "requirement_refs": [
+        "REQ-CAN-002"
+      ],
+      "revision": 7,
+      "schema_version": "goal-teams-v2.3",
+      "task_id": "TASK-CAN-BLOCKED-RECOVERY",
+      "task_state": "accepted",
+      "title": "Required blocked then recovered branch",
+      "updated_at": "2026-07-10T00:00:21Z",
+      "validation_check_id": "CHECK-CAN-RECOVERY",
+      "validation_run_id": "RUN-CAN-RECOVERY-PASSED",
+      "validator_member_id": "评审-Canonical",
+      "validator_run_id": "RUN-CAN-REVIEWER"
+    },
+    {
+      "acceptance_blocking": false,
+      "acceptance_criteria_refs": [
+        "AC-CAN-004"
+      ],
+      "artifact_refs": [],
+      "attempt_id": "ATT-CAN-RECOVERY",
+      "check_state": "failed",
+      "event_digest": "38202c772000cc8666795da0c1df5cfca63138e61ba8178a832a0ede7b23ed45",
+      "evidence_refs": [],
+      "harness_refs": [
+        "versions/V2.3/harness/harness.json"
+      ],
+      "last_actor_run_id": "RUN-CAN-REVIEWER",
+      "last_event_id": "EVT-CAN-014",
+      "merge_owner_run_id": "RUN-CAN-LEDGER-OWNER",
+      "nonblocking_reason": "historical recovery branch remains explicitly nonblocking and unaccepted",
+      "owner_member_id": "实现-Canonical",
+      "owner_run_id": "RUN-CAN-OWNER",
+      "parent_attempt_id": "ATT-CAN-FAILURE",
+      "recovery_of_attempt_id": "ATT-CAN-FAILURE",
+      "required_for_done": false,
+      "requirement_refs": [
+        "REQ-CAN-004"
+      ],
+      "revision": 7,
+      "schema_version": "goal-teams-v2.3",
+      "task_id": "TASK-CAN-FAILURE-RECOVERY",
+      "task_state": "review",
+      "title": "Historical check failure and recovery branch",
+      "updated_at": "2026-07-10T00:00:14Z",
+      "validation_check_id": "CHECK-CAN-RECOVERY",
+      "validation_run_id": "RUN-CAN-RECOVERY-FAILED",
+      "validator_member_id": "评审-Canonical",
+      "validator_run_id": "RUN-CAN-REVIEWER"
+    },
+    {
+      "acceptance_blocking": true,
+      "acceptance_criteria_refs": [
+        "AC-CAN-001"
+      ],
+      "artifact_refs": [
+        "versions/V2.3/evidence/artifact.txt"
+      ],
+      "attempt_id": "ATT-CAN-SUCCESS",
+      "check_state": "passed",
+      "event_digest": "a9174686fb7008e4af3a8186549eff1830c112f8068230cbf27a30ce4cf7b725",
+      "evidence_refs": [
+        "EVD-CAN-001"
+      ],
+      "harness_refs": [
+        "versions/V2.3/harness/harness.json"
+      ],
+      "last_actor_run_id": "RUN-CAN-REVIEWER",
+      "last_event_id": "EVT-CAN-005",
+      "merge_owner_run_id": "RUN-CAN-LEDGER-OWNER",
+      "owner_member_id": "实现-Canonical",
+      "owner_run_id": "RUN-CAN-OWNER",
+      "parent_attempt_id": null,
+      "required_for_done": true,
+      "requirement_refs": [
+        "REQ-CAN-001"
+      ],
+      "revision": 5,
+      "schema_version": "goal-teams-v2.3",
+      "task_id": "TASK-CAN-SUCCESS",
+      "task_state": "accepted",
+      "title": "Required success branch",
+      "updated_at": "2026-07-10T00:00:05Z",
+      "validation_check_id": "CHECK-CAN-SUCCESS",
+      "validation_run_id": "RUN-CAN-SUCCESS",
+      "validator_member_id": "评审-Canonical",
+      "validator_run_id": "RUN-CAN-REVIEWER"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "decision": "pass",
+  "input_sha256": "da5910cccd849fa00f2f8a0244ff8b794d8c508185f5dd7ebc94ebd85d50f0cb",
+  "output_sha256": "18c28d76abe6264277770793feee9d385310d446f55c1fb9af1af2efbd8d80ff",
+  "quality": 1.0,
+  "release_eligible": false,
+  "rubric_version": "behavior-v2.3",
+  "scenario_id": "backend-cli",
+  "schema_version": "goal-teams-behavior-score-v2.3",
+  "scorer_run_id": "RUN-CAN-SCORER-BACKEND"
+}

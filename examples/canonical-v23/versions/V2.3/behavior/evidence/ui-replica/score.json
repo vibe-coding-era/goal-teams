@@ -1,0 +1,11 @@
+{
+  "decision": "pass",
+  "input_sha256": "13921c4bdeeed4d7d392117880920f63b4292214fcda44bc9f56a698b04e7323",
+  "output_sha256": "815f0527a912044e2895c77ccd064bf4eeaccfac072fc40a3be6be10e203110a",
+  "quality": 1.0,
+  "release_eligible": false,
+  "rubric_version": "behavior-v2.3",
+  "scenario_id": "ui-replica",
+  "schema_version": "goal-teams-behavior-score-v2.3",
+  "scorer_run_id": "RUN-CAN-SCORER-UI"
+}

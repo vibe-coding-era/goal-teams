@@ -48,8 +48,12 @@ HTML 文件不是 Markdown，但必须在 `<head>` 内嵌 OKF 元数据。推荐
       version_or_range: <组件库版本>
       source: <URL/Git 仓库/本地路径>
       lock_status: confirmed | assumed | unknown
-    owner_subagent: goal_frontend
-    validator_subagent: goal_qa 或 goal_reviewer
+    owner_agent_type: goal_frontend
+    owner_member_id: <稳定成员 ID>
+    owner_agent_run_id: <本次运行 ID>
+    validator_agent_type: goal_qa 或 goal_reviewer
+    validator_member_id: <独立检查成员 ID>
+    validator_agent_run_id: <独立检查运行 ID>
   end_okf_frontmatter
   -->
   <script type="application/okf+yaml" id="goalteams-okf-metadata">

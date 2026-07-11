@@ -117,6 +117,8 @@ For non-trivial tasks, define a lightweight Harness Contract before claiming don
   <!-- 中文注释：失败时按什么格式报告。 -->
 - `not_applicable_reason`: why a harness is not useful for this task.
   <!-- 中文注释：如果不适用，说明原因。 -->
+- `harness_contract.task_type` and `required_review_class`: authoritative review policy inputs; outer fields cannot lower the class.
+  <!-- 中文注释：Harness 内层任务类型和最低复核等级是权威输入；外层字段不能降级。 -->
 
 Do not invent commands, CI jobs, or tools that do not exist. Use manual checks when that is the honest harness.
 <!-- 中文注释：不要编造不存在的命令、CI 或工具。人工检查也是有效的 Harness，只要可复盘。 -->
@@ -127,8 +129,8 @@ For any UI-level task, include E2E testing in the Harness and record evidence. F
 For long-running, multi-agent, UI E2E, pixel comparison, benchmark, or production-flow work, record a Budget Gate and Conflict Policy before claiming completion.
 <!-- 中文注释：长任务、多 agent、界面 E2E、像素对比、benchmark 或生产流任务，在完成前必须记录预算门和冲突策略。 -->
 
-For Goal Teams projects, create the versioned `TaskList.md` before implementation or test execution. SSOT outputs belong under `GoalTeamsWork-<project_version>/versions/<artifact_version>/` unless the user specifies another output directory.
-<!-- 中文注释：Goal Teams 项目必须先创建版本子目录内的 `TaskList.md`，再执行实现或测试。SSOT 产出物默认放在 `GoalTeamsWork-<project_version>/versions/<artifact_version>/`。 -->
+For Goal Teams projects, establish `ledger/events.jsonl` first and let the V2.3 reducer generate `TaskList.md`; members never edit that projection directly. SSOT outputs belong under `GoalTeamsWork-<project_version>/versions/<artifact_version>/` unless the user specifies another output directory. A chat-only `plan_preview` is the no-write exception and must not create either file.
+<!-- 中文注释：Goal Teams 项目先建立 ledger，再由 reducer 生成 TaskList；成员不得直接编辑投影。聊天内 plan_preview 是不写文件的例外。 -->
 
 Backend work follows architecture-first TDD: write/update Backend Architecture Design, have an independent subagent write unit tests, implement code, then have another independent subagent run unit tests. API integration tests default to Python + pytest and run after unit tests pass.
 <!-- 中文注释：后端工作遵循架构先行和 TDD：先写/更新后端架构设计，由独立 subagent 写单元测试，再实现代码，再由另一个独立 subagent 执行单元测试。API 集成测试默认 Python + pytest，并在单测通过后执行。 -->
@@ -139,11 +141,14 @@ Frontend work requires independent E2E generation and execution after implementa
 Insufficient evidence cannot be marked complete. Missing E2E evidence, missing pixel diff evidence, self-validation-only work, missing independent review, or missing production approval/rollback/monitoring evidence must remain blocked or failed until resolved.
 <!-- 中文注释：证据不足不能标记完成。缺少 E2E、缺少像素对比、只有自测、缺少独立评审、缺少生产审批/回滚/监控证据时，必须保持阻塞或失败状态，直到补齐。 -->
 
-Comparison and validation tasks require dual review: deterministic script evidence plus an independent LLM reviewer record. Neither side replaces the other.
-<!-- 中文注释：对比和校验类任务需要双重复核：确定性脚本证据 + 独立 LLM reviewer 记录，二者不能互相替代。 -->
+Derive reviews from the Harness first. Comparison/safety reviews require deterministic script evidence plus an independent LLM reviewer; structural/semantic are not interchangeable and may mark only the non-applicable half with an independently accepted structured reason. Command evidence records the real domain execution separately from the runtime-locked integrity replay; Completion executes only the latter.
+<!-- 中文注释：先从 Harness 推导 review_class；semantic/structural 不互代。命令证据分开真实领域执行与完整性重放，Completion 只执行后者。 -->
 
-When machine-readable tracking is useful, record only protocol data such as `harness.yaml`, `evidence.jsonl`, `pipeline-state.json`, `failure_report`, and `approval_gate`. These artifacts do not imply a real runner, CI/CD system, production connection, or external approval system.
-<!-- 中文注释：需要机器可读跟踪时，只记录协议数据，例如 `harness.yaml`、`evidence.jsonl`、`pipeline-state.json`、`failure_report` 和 `approval_gate`。这些产物不代表已有真实 runner、CI/CD、生产连接或外部审批系统。 -->
+Required checks bind exact expected domain argv/cwd and keep domain plus integrity execution inside the Run. Generic comparison uses the trusted exact-hash tool with a distinct, independently pre-approved baseline; a stricter review class inherits that obligation.
+<!-- 中文注释：required Check 精确绑定领域命令；generic comparison 使用可信 exact-hash 工具和独立预批准 baseline，升级 review class 不移除该义务。 -->
+
+V2.3 machine closure uses `ledger/checkpoint.json`, `identity/registry.json`, `harness/harness.json`, `harness/traceability.json`, `evidence/evidence.jsonl`, `reviews/dual-review.json`, and `audit/completion-audit.json`. Older root-level `harness.yaml`, `evidence.jsonl`, and `pipeline-state.json` are legacy/optional protocol data and cannot prove V2.3 completion. None of these artifacts implies a real runner, CI/CD system, production connection, or external approval system.
+<!-- 中文注释：V2.3 使用版本目录内的 checkpoint、identity、Harness、Traceability、Evidence、Review 和 Audit 严格路径；旧根级文件不能证明 V2.3 完成。 -->
 
 ## 5. Code Quality Principles
 

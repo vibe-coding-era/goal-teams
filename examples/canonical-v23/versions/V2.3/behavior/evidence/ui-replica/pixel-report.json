@@ -1,0 +1,68 @@
+{
+  "actual_sha256": "69ab3fddd803fbba30bb63724c6d5820da2dcef5b36f1dcef512e5c4848881a9",
+  "baseline_approval": {
+    "approved_at": "2026-07-10T00:00:00Z",
+    "change_reason": "Independent approval of deterministic canonical replica baseline.",
+    "hash_matches": true,
+    "missing_fields": [],
+    "provided": true,
+    "reason": "Independent approval of deterministic canonical replica baseline.",
+    "required": true,
+    "reviewer_run_id": "RUN-CAN-PIXEL-REVIEWER",
+    "timestamp_valid": true,
+    "valid": true
+  },
+  "baseline_sha256": "69ab3fddd803fbba30bb63724c6d5820da2dcef5b36f1dcef512e5c4848881a9",
+  "changed_pixels": 0,
+  "changed_ratio": 0.0,
+  "changed_ratio_threshold": 0.0,
+  "color_tolerance": 0,
+  "critical_regions": [],
+  "diff_path": "evidence/ui-replica/diff.ppm",
+  "environment": {
+    "actual": {
+      "browser": "Chromium",
+      "browser_version": "fixture-1",
+      "dpr": 1,
+      "fonts": [
+        "Goal Teams Fixture Sans"
+      ],
+      "os": "portable-fixture",
+      "viewport": "2x2"
+    },
+    "baseline": {
+      "browser": "Chromium",
+      "browser_version": "fixture-1",
+      "dpr": 1,
+      "fonts": [
+        "Goal Teams Fixture Sans"
+      ],
+      "os": "portable-fixture",
+      "viewport": "2x2"
+    },
+    "comparable": true,
+    "mismatched_fields": [],
+    "provided": true,
+    "required": true
+  },
+  "evaluated_pixels": 4,
+  "global_passed": true,
+  "height": 2,
+  "ignored_pixels": 0,
+  "mae": 0.0,
+  "mae_threshold": 0.0,
+  "mask_sha256": null,
+  "max_effective_delta": 0,
+  "passed": true,
+  "raw_mae": 0.0,
+  "reference_driven": true,
+  "requirements": {
+    "baseline_change_reason": true,
+    "environment_fingerprint": true,
+    "independent_baseline_approval": true
+  },
+  "schema_version": "goal-teams-pixel-diff-v2.3",
+  "total_pixels": 4,
+  "ui_mode": "replica",
+  "width": 2
+}

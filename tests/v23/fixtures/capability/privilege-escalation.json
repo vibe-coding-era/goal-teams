@@ -1,0 +1,17 @@
+{
+  "naming_constraints": {
+    "transport_handle_pattern": "host-defined",
+    "localized_display_name": true
+  },
+  "custom_goal_subagents": false,
+  "concurrency": {
+    "max_members": 1,
+    "parallel": false
+  },
+  "context_inheritance": "unknown",
+  "shared_filesystem": true,
+  "recovery": "none",
+  "telemetry": "unavailable",
+  "requested_permissions": ["read_workspace"],
+  "fallback_permissions": ["read_workspace", "network"]
+}

@@ -1,5 +1,7 @@
 # Goal Teams Automation Protocol
 
+> V2.3 compatibility note：本文件中的 V1.8 schema 和状态只作为 legacy migration 输入与历史示例；V2.3 新写入必须使用 `goal-teams-v2.3` schema、正交 `task_state/check_state/run_outcome/loop_decision`、append-only ledger 和 reducer 生成的 `TaskList.md`，不得双写或直接复用下方旧枚举。
+
 ## 定位
 
 本文定义 V1.8 的机器可读研发协议模板，用于把 Goal Teams 的 `Harness`、`Evidence`、`Pipeline` 状态写成可解析、可审计、可交接的数据合同。
@@ -370,7 +372,7 @@ failure_status:
 ## 与现有 Goal Teams 文件的关系
 
 - Markdown 仍是面向人的主记录，JSON/YAML/JSONL 是机器状态和证据层。
-- `TaskList.md`/`tasklist.md` 记录 Owner、状态、Locked Scope 和完成标准；V2.0 起必须先创建版本子目录 TaskList，并拆到需求规格卡、PRD、页面规格卡、HTML 原型、前端开发、前后端架构设计、后端 TDD、后端开发、后端执行 TDD、API 集成测试脚本生成、API 集成测试、API 集成测试执行、E2E 用例生成、E2E 执行、BugFix、测试报告生成。
+- V2.3 使用 ledger 作为事实源并生成 `TaskList.md`；本节 `tasklist.md` 只描述 V1.8/V2.2 legacy 输入，由 migration adapter 读取。
 - `progress.md` 记录执行摘要和关键证据。
 - `spec/test-plan.md` 记录本版本如何校验协议。
 - `spec/acceptance.md` 记录人工验收和剩余风险。

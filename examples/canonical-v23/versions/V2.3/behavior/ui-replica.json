@@ -1,0 +1,84 @@
+{
+  "ended_at": "2026-07-10T00:01:05Z",
+  "environment": {
+    "commit": "HEAD",
+    "platform": "darwin",
+    "python_version": "3.14.3"
+  },
+  "evaluation_class": "deterministic_contract",
+  "evidence": [
+    {
+      "path": "evidence/ui-replica/subject.log",
+      "sha256": "6aa687de9294d8afa90d81146614d36f47bad88d6177f5aa7651a8c09e876a4c"
+    },
+    {
+      "path": "evidence/ui-replica/pixel-report.json",
+      "sha256": "96a7dba18d0100f9c7d3fd6d55bbc01bfd8fe73e60ce31c50aa97f230ad4c004"
+    }
+  ],
+  "executed": true,
+  "input": {
+    "features": {
+      "replica": true,
+      "ui": true
+    },
+    "task": "replica UI"
+  },
+  "output": {
+    "pixel_gate": "passed",
+    "profile": "full"
+  },
+  "pixel_validation": {
+    "actual": "evidence/ui-replica/actual.ppm",
+    "actual_environment": "evidence/ui-replica/actual-environment.json",
+    "actual_sha256": "69ab3fddd803fbba30bb63724c6d5820da2dcef5b36f1dcef512e5c4848881a9",
+    "baseline": "evidence/ui-replica/baseline.ppm",
+    "baseline_approval": "evidence/ui-replica/baseline-approval.json",
+    "baseline_environment": "evidence/ui-replica/baseline-environment.json",
+    "baseline_sha256": "69ab3fddd803fbba30bb63724c6d5820da2dcef5b36f1dcef512e5c4848881a9",
+    "diff": "evidence/ui-replica/diff.ppm",
+    "diff_sha256": "e0552fba8ce2f9d328d1729c9ea058a65dd6b7898fa2720014433dcd5a64cbff",
+    "report": "evidence/ui-replica/pixel-report.json",
+    "report_sha256": "96a7dba18d0100f9c7d3fd6d55bbc01bfd8fe73e60ce31c50aa97f230ad4c004"
+  },
+  "provenance": {
+    "command": {
+      "argv": [
+        "goalteams-contract-runner",
+        "ui-replica"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "log_path": "evidence/ui-replica/subject.log",
+      "log_sha256": "6aa687de9294d8afa90d81146614d36f47bad88d6177f5aa7651a8c09e876a4c"
+    },
+    "expected_exit_code": 0,
+    "generated_at": "2026-07-10T00:01:05.500000Z",
+    "input_sha256": "13921c4bdeeed4d7d392117880920f63b4292214fcda44bc9f56a698b04e7323",
+    "output_sha256": "815f0527a912044e2895c77ccd064bf4eeaccfac072fc40a3be6be10e203110a",
+    "run_nonce": "CANONICAL-ui-replica-20260710",
+    "runner_id": "goal-teams-benchmark-contract-runner",
+    "runner_version": "V2.3"
+  },
+  "release_eligible": false,
+  "result": "passed",
+  "scenario_class": "core",
+  "scenario_id": "ui-replica",
+  "schema_version": "goal-teams-v2.3",
+  "score": {
+    "evidence_path": "evidence/ui-replica/score.json",
+    "evidence_sha256": "76f15a3b641e96379d27b41ccf68f87b8d98ca8412b7c464ca1746aa941582ed",
+    "quality": 1.0,
+    "rubric_version": "behavior-v2.3",
+    "scorer_run_id": "RUN-CAN-SCORER-UI"
+  },
+  "scorer_run_id": "RUN-CAN-SCORER-UI",
+  "started_at": "2026-07-10T00:01:04Z",
+  "subject_run_id": "RUN-CAN-SUBJECT-UI",
+  "trace": [
+    {
+      "path": "evidence/ui-replica/trace.jsonl",
+      "sha256": "a1d9a5d4d52923f740ad0c6a518dcfcd0764013b4aefa8ab9b0ac18d31fc9148"
+    }
+  ]
+}

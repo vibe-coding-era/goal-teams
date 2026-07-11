@@ -1,0 +1,69 @@
+{
+  "ended_at": "2026-07-10T00:01:03Z",
+  "environment": {
+    "commit": "HEAD",
+    "platform": "darwin",
+    "python_version": "3.14.3"
+  },
+  "evaluation_class": "deterministic_contract",
+  "evidence": [
+    {
+      "path": "evidence/backend-cli/subject.log",
+      "sha256": "169c80889b78813a69d13d43f9c567ca2cb240a84fb16fe7d50cae80c46a6bb3"
+    }
+  ],
+  "executed": true,
+  "input": {
+    "features": {
+      "backend": true,
+      "tests": true
+    },
+    "task": "pure backend CLI"
+  },
+  "output": {
+    "profile": "full",
+    "required_rules": [
+      "references/rules-testing.md"
+    ]
+  },
+  "provenance": {
+    "command": {
+      "argv": [
+        "goalteams-contract-runner",
+        "backend-cli"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "log_path": "evidence/backend-cli/subject.log",
+      "log_sha256": "169c80889b78813a69d13d43f9c567ca2cb240a84fb16fe7d50cae80c46a6bb3"
+    },
+    "expected_exit_code": 0,
+    "generated_at": "2026-07-10T00:01:03.500000Z",
+    "input_sha256": "da5910cccd849fa00f2f8a0244ff8b794d8c508185f5dd7ebc94ebd85d50f0cb",
+    "output_sha256": "18c28d76abe6264277770793feee9d385310d446f55c1fb9af1af2efbd8d80ff",
+    "run_nonce": "CANONICAL-backend-cli-20260710",
+    "runner_id": "goal-teams-benchmark-contract-runner",
+    "runner_version": "V2.3"
+  },
+  "release_eligible": false,
+  "result": "passed",
+  "scenario_class": "core",
+  "scenario_id": "backend-cli",
+  "schema_version": "goal-teams-v2.3",
+  "score": {
+    "evidence_path": "evidence/backend-cli/score.json",
+    "evidence_sha256": "59420e1d6e2132525cd479dcd53c4f1b0c882de4171f010f16eaf4fc6aa110c5",
+    "quality": 1.0,
+    "rubric_version": "behavior-v2.3",
+    "scorer_run_id": "RUN-CAN-SCORER-BACKEND"
+  },
+  "scorer_run_id": "RUN-CAN-SCORER-BACKEND",
+  "started_at": "2026-07-10T00:01:02Z",
+  "subject_run_id": "RUN-CAN-SUBJECT-BACKEND",
+  "trace": [
+    {
+      "path": "evidence/backend-cli/trace.jsonl",
+      "sha256": "274fd2989feb89995fb79c40ed8cc8597cc3b3d57c67b32bbe90eb1eea59861f"
+    }
+  ]
+}

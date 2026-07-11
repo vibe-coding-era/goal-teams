@@ -1,0 +1,11 @@
+{
+  "decision": "pass",
+  "input_sha256": "a1c80f844df57a9781f3fae9fcefc6d511a1d3bf4bb8c522f565e74ea9d26b5c",
+  "output_sha256": "d194f40d0ec7c17db7173e42f5338e9fd7600d59f39732ab546a3beabbb1a69a",
+  "quality": 1.0,
+  "release_eligible": false,
+  "rubric_version": "behavior-v2.3",
+  "scenario_id": "plan-preview",
+  "schema_version": "goal-teams-behavior-score-v2.3",
+  "scorer_run_id": "RUN-CAN-SCORER-PLAN-PREVIEW"
+}

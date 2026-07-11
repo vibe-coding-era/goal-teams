@@ -1,0 +1,9 @@
+{"scenario_id":"plan-preview","command":"route","result":"lite","writes":[]}
+{"scenario_id":"backend-cli","command":"route","result":"full","rules":["references/rules-testing.md"]}
+{"scenario_id":"ui-replica","command":"route","result":"full","rules":["references/rules-ui.md","references/ui-e2e-pixel-protocol.md"]}
+{"scenario_id":"long-task-recovery","command":"reduce-ledger","result":"reconciled"}
+{"scenario_id":"revision-conflict","command":"reduce-ledger","result":"E_REVISION_CONFLICT"}
+{"scenario_id":"forged-evidence","command":"validate-evidence","result":"E_HASH_MISMATCH"}
+{"scenario_id":"self-review","command":"validate-dual-review","result":"E_REVIEW_SELF"}
+{"scenario_id":"telemetry-unavailable","command":"capability","result":"round_time_member_file_size"}
+{"scenario_id":"no-custom-agent","command":"capability","result":"generic_subagent_or_serial"}

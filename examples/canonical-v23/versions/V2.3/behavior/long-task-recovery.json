@@ -1,0 +1,68 @@
+{
+  "ended_at": "2026-07-10T00:01:07Z",
+  "environment": {
+    "commit": "HEAD",
+    "platform": "darwin",
+    "python_version": "3.14.3"
+  },
+  "evaluation_class": "deterministic_contract",
+  "evidence": [
+    {
+      "path": "evidence/long-task-recovery/subject.log",
+      "sha256": "f49196a63485cdac9b950f0a78b82bac4a58002820c1f1e7355e8295e7e549bc"
+    }
+  ],
+  "executed": true,
+  "input": {
+    "events": [
+      "planned",
+      "running",
+      "blocked",
+      "running"
+    ]
+  },
+  "output": {
+    "reconciled": true,
+    "task_state": "running"
+  },
+  "provenance": {
+    "command": {
+      "argv": [
+        "goalteams-contract-runner",
+        "long-task-recovery"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "log_path": "evidence/long-task-recovery/subject.log",
+      "log_sha256": "f49196a63485cdac9b950f0a78b82bac4a58002820c1f1e7355e8295e7e549bc"
+    },
+    "expected_exit_code": 0,
+    "generated_at": "2026-07-10T00:01:07.500000Z",
+    "input_sha256": "b8aa87813d503086de91613c198783660a188fb8c71654fab869e46218c5bad3",
+    "output_sha256": "b7dbbf81aa024aad8612ef4f8fd9238664464f049a195a7c1981f67f857cfe23",
+    "run_nonce": "CANONICAL-long-task-recovery-20260710",
+    "runner_id": "goal-teams-benchmark-contract-runner",
+    "runner_version": "V2.3"
+  },
+  "release_eligible": false,
+  "result": "passed",
+  "scenario_class": "core",
+  "scenario_id": "long-task-recovery",
+  "schema_version": "goal-teams-v2.3",
+  "score": {
+    "evidence_path": "evidence/long-task-recovery/score.json",
+    "evidence_sha256": "076cc26f48cba509d1fff70311a013f7462d1fe04f5a26f032fd5a8b0441f63a",
+    "quality": 1.0,
+    "rubric_version": "behavior-v2.3",
+    "scorer_run_id": "RUN-CAN-SCORER-RECOVERY"
+  },
+  "scorer_run_id": "RUN-CAN-SCORER-RECOVERY",
+  "started_at": "2026-07-10T00:01:06Z",
+  "subject_run_id": "RUN-CAN-SUBJECT-RECOVERY",
+  "trace": [
+    {
+      "path": "evidence/long-task-recovery/trace.jsonl",
+      "sha256": "5864ab294107ca2643e33fa9235ff9de1f7248109825ea9077871cd25851925f"
+    }
+  ]
+}

@@ -7,4 +7,4 @@
 5. 编写或更新单元测试用例；测试应先表达期望行为，允许在实现前处于红灯状态。
 6. 记录测试文件、命令、预期红/绿状态、不可执行原因或缺失 fixture。
 7. 请求独立 reviewer/QA 检查测试是否真实约束实现。
-8. 更新 TaskList、test-plan 和 progress，返回证据路径和阻塞。
+8. 更新被分配的 test-plan 和 progress，提交带 revision 的 ledger event/patch，返回 Evidence 路径和阻塞；不得直接编辑 TaskList。

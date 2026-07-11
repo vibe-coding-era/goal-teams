@@ -1,0 +1,49 @@
+{
+  "accepted_required_task_ids": [
+    "TASK-CAN-BLOCKED-RECOVERY",
+    "TASK-CAN-SUCCESS"
+  ],
+  "audit_id": "AUD-CAN-001",
+  "audit_state": "passed",
+  "auditor_run_id": "RUN-CAN-COMPLETION-AUDITOR",
+  "author_run_id": "RUN-CAN-OWNER",
+  "conclusion": "achieved",
+  "covered_acceptance_criteria": [
+    "AC-CAN-001",
+    "AC-CAN-002"
+  ],
+  "documented_nonblocking_tasks": [
+    {
+      "reason": "documented optional dependency unavailable",
+      "task_id": "TASK-CAN-BLOCKED",
+      "task_state": "blocked"
+    },
+    {
+      "reason": "historical recovery branch remains explicitly nonblocking and unaccepted",
+      "task_id": "TASK-CAN-FAILURE-RECOVERY",
+      "task_state": "review"
+    }
+  ],
+  "dual_review_valid": true,
+  "evidence_refs": [
+    "EVD-CAN-001",
+    "EVD-CAN-002"
+  ],
+  "ledger_revision": 21,
+  "loop_decision": "stop",
+  "open_acceptance_blocking_task_ids": [],
+  "required_acceptance_criteria": [
+    "AC-CAN-001",
+    "AC-CAN-002"
+  ],
+  "required_task_ids": [
+    "TASK-CAN-BLOCKED-RECOVERY",
+    "TASK-CAN-SUCCESS"
+  ],
+  "review_ref": "versions/V2.3/reviews/dual-review.json",
+  "run_outcome": "achieved",
+  "schema_version": "goal-teams-v2.3",
+  "stop_reason": "achieved",
+  "task_state_digest": "35663960a62ae7c78bfb6f6f86eb131389528586c8b48b349b2ab975ee9770cb",
+  "traceability_valid": true
+}

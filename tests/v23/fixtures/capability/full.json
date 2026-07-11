@@ -1,0 +1,17 @@
+{
+  "naming_constraints": {
+    "transport_handle_pattern": "^[a-z][a-z0-9_-]{1,31}$",
+    "localized_display_name": true
+  },
+  "custom_goal_subagents": true,
+  "concurrency": {
+    "max_members": 4,
+    "parallel": true
+  },
+  "context_inheritance": "forked",
+  "shared_filesystem": true,
+  "recovery": "persistent",
+  "telemetry": "available",
+  "requested_permissions": ["read_workspace", "write_locked_scope"],
+  "fallback_permissions": ["read_workspace", "write_locked_scope"]
+}

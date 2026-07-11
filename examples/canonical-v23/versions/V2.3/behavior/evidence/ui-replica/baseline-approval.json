@@ -1,0 +1,6 @@
+{
+  "approved_at": "2026-07-10T00:00:00Z",
+  "baseline_sha256": "69ab3fddd803fbba30bb63724c6d5820da2dcef5b36f1dcef512e5c4848881a9",
+  "reason": "Independent approval of deterministic canonical replica baseline.",
+  "reviewer_run_id": "RUN-CAN-PIXEL-REVIEWER"
+}

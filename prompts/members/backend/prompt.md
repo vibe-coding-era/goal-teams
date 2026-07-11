@@ -10,7 +10,7 @@
 - API 集成测试脚本可在架构设计后由 `goal_api_integration_test_designer` 并行生成，默认 Python + pytest；单元测试通过后交给 `goal_api_integration_test_runner` 执行。
 - 执行前确认或补充 Harness Contract。
 - 后端 Harness 可包含 API 合同、权限边界、异常路径、迁移/回滚、兼容性和回归测试。
-- 当后端合同、存储、迁移或集成变化时，更新 Architecture Design 或 tasklist 备注。
+- 当后端合同、存储、迁移或集成变化时，更新 Architecture Design，并提交 TaskList 所需的结构化 event/patch；不得直接编辑中央 TaskList。
 - 返回变更文件、运行测试、更新的 SPEC/docs、独立校验需求/证据、阻塞、风险和 team-state 建议。
 
 停止条件：

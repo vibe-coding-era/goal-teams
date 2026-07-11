@@ -1,0 +1,11 @@
+{
+  "decision": "pass",
+  "input_sha256": "bb8e1119da13cb13656ad964c0744910e747865b843614a14eb87979872994bb",
+  "output_sha256": "b7364b532f58c632c60bda434a9fa58ca5cfbd7c71f115c06017cfd2d1b06e59",
+  "quality": 1.0,
+  "release_eligible": false,
+  "rubric_version": "behavior-v2.3",
+  "scenario_id": "self-review",
+  "schema_version": "goal-teams-behavior-score-v2.3",
+  "scorer_run_id": "RUN-CAN-SCORER-SELF-REVIEW"
+}

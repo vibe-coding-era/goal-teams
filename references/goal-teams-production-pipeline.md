@@ -1,5 +1,7 @@
 # Goal Teams Production Pipeline V1.9
 
+> V2.3 compatibility note：本文件是 V1.9 生产流模板。V2.3 任务状态、检查状态、循环决策和 Evidence 必须通过 V2.3 schema/validator；旧状态只作为 migration 输入，不得成为第二套可写 SSOT。
+
 本文定义 Goal Teams 面向全自动化研发生产流程的协议模板，用于把 `SPEC -> Harness -> Evidence -> Audit` 扩展为可发布、可观察、可回退的生产流。它不表示仓库已经具备真实 runner、CI/CD、生产部署、凭证接入或自动回滚能力。
 
 ## 目标
@@ -198,7 +200,7 @@ Goal Teams 可以生成 rollback_plan 和检查清单；不能宣称已经执行
 ## 与 Goal Teams 运行时的关系
 
 - `plan.md`：记录 Pipeline Loop 是否适用、阶段 Owner 和审批边界。
-- `TaskList.md`/`tasklist.md`：每个任务写明 Harness Contract、证据路径和 safety gate；V2.0 起放在 `versions/<artifact_version>/`，并覆盖后端架构、TDD、API 集成测试、E2E 用例/执行、BugFix 和测试报告。
+- ledger / `TaskList.md`：成员提交 event，reducer 生成版本目录 TaskList；`tasklist.md` 只作为 legacy 输入。每个任务写明 Harness、Evidence 和 safety gate。
 - `progress.md`：记录阶段状态、命令结果、失败报告和人工审批证据。
 - `acceptance.md`：汇总 Release Gate、Observe、Promote/Rollback 的验收结果。
 - `decisions.md`：记录人工决策、风险接受和外部授权引用。

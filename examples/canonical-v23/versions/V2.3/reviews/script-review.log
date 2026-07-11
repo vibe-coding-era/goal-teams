@@ -1,0 +1,10 @@
+{
+  "tool": "compare-artifacts",
+  "left": "versions/V2.3/evidence/artifact.txt",
+  "right": "versions/V2.3/evidence/baseline/artifact.txt",
+  "status": "passed",
+  "same_count": 1,
+  "changed": [],
+  "missing_left": [],
+  "missing_right": []
+}

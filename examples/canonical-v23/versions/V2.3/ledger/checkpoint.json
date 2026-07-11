@@ -1,0 +1,204 @@
+{
+  "conflicts": [],
+  "event_digests": {
+    "EVT-CAN-001": "1bc49daeee31c96ab0a6606c92048e30a590c5fcebfd0356db5e1c1bee957f7d",
+    "EVT-CAN-002": "946facce28566aeaae0d834deffbf55c2318db6e0002d54644b734db365e30b4",
+    "EVT-CAN-003": "c0a70b7b2565e8fccafe9b4b2163debaf82f8ae06d9bf35899e7b24d7f2832ed",
+    "EVT-CAN-004": "aee39790da2558e20d815817ee27eafe52e8b582e0615ee58240b39162ac0d19",
+    "EVT-CAN-005": "a9174686fb7008e4af3a8186549eff1830c112f8068230cbf27a30ce4cf7b725",
+    "EVT-CAN-006": "2bf7a476eaaea9275324c2a4dab41dca3bd79b0984c0d3656e6b48a52a7db815",
+    "EVT-CAN-007": "6dd4982a45c609c6293c48dcfca1da7a7734ef857d4f348abd306d4ee4eafbfd",
+    "EVT-CAN-008": "effa344f0fd352a285b2fc327f0a01674c88e0b26a52c32257c54582903b2e0d",
+    "EVT-CAN-009": "600c02a2aa0373122442ac5ef096223a29c8340c2a67ab50dbe8b404966448c7",
+    "EVT-CAN-010": "03c2675f4f4fc67d65370c08b8f7442d37c0b78a2940d390ceae81b75844e2bf",
+    "EVT-CAN-011": "0d008fefe8908375c121928dab5dd6b31ec450636499d1cdcc4e5b4304ea2aaa",
+    "EVT-CAN-012": "83a8ec0c3eb3a8ed4ad307227d263de854d3a496b18a4cb25b34cd64217e8455",
+    "EVT-CAN-013": "236d441ecc768252f17086687f94ccfd9771c0891b44d31033def26ef77b3a03",
+    "EVT-CAN-014": "38202c772000cc8666795da0c1df5cfca63138e61ba8178a832a0ede7b23ed45",
+    "EVT-CAN-015": "c5f90bbf37274f0a769f669239617b5989335357f27fdc8c0c9f08813db49a5f",
+    "EVT-CAN-016": "bd09a994844f0a007fb1a9a10ecf9ab2b3ba1f5e2058ee3c347b9cb0c4633da8",
+    "EVT-CAN-017": "2b5b4cb339b0c6f7cbcb9134850396f4bc44043128a51331867c4dfa773ab77e",
+    "EVT-CAN-018": "4099efa4bdde2b93689b9a7ce43b0fe76df7389f580b80d134bb6bbab93c3895",
+    "EVT-CAN-019": "1774e86583ab15114df59fde852c7375bab0e248d222f6184c29afca7013154d",
+    "EVT-CAN-020": "e51b76e2a8e0be1fca46f17c5b8bed4d5536d175ce00aa453d8f65615772f288",
+    "EVT-CAN-021": "f98553869b5e4cff3ea4b1dafbc5eaea0ca90d2d900dad533a1f0edd0660eb2c"
+  },
+  "ledger_owner_run_id": "RUN-CAN-LEDGER-OWNER",
+  "ledger_revision": 21,
+  "revision": 21,
+  "schema_source_hash": "15a17896593626e56410e668c82d4f016e0c35e3f8ac8e94c5bfbb9030e97f6b",
+  "schema_version": "goal-teams-v2.3",
+  "seen_events": [
+    "EVT-CAN-001",
+    "EVT-CAN-002",
+    "EVT-CAN-003",
+    "EVT-CAN-004",
+    "EVT-CAN-005",
+    "EVT-CAN-006",
+    "EVT-CAN-007",
+    "EVT-CAN-008",
+    "EVT-CAN-009",
+    "EVT-CAN-010",
+    "EVT-CAN-011",
+    "EVT-CAN-012",
+    "EVT-CAN-013",
+    "EVT-CAN-014",
+    "EVT-CAN-015",
+    "EVT-CAN-016",
+    "EVT-CAN-017",
+    "EVT-CAN-018",
+    "EVT-CAN-019",
+    "EVT-CAN-020",
+    "EVT-CAN-021"
+  ],
+  "tasks": {
+    "TASK-CAN-BLOCKED": {
+      "acceptance_blocking": false,
+      "acceptance_criteria_refs": [
+        "AC-CAN-003"
+      ],
+      "artifact_refs": [],
+      "attempt_id": "ATT-CAN-BLOCKED",
+      "blocked_reason": "documented optional dependency unavailable",
+      "check_state": "not_started",
+      "event_digest": "6dd4982a45c609c6293c48dcfca1da7a7734ef857d4f348abd306d4ee4eafbfd",
+      "evidence_refs": [],
+      "harness_refs": [
+        "versions/V2.3/harness/harness.json"
+      ],
+      "last_actor_run_id": "RUN-CAN-OWNER",
+      "last_event_id": "EVT-CAN-007",
+      "merge_owner_run_id": "RUN-CAN-LEDGER-OWNER",
+      "owner_member_id": "实现-Canonical",
+      "owner_run_id": "RUN-CAN-OWNER",
+      "parent_attempt_id": null,
+      "required_for_done": false,
+      "requirement_refs": [
+        "REQ-CAN-003"
+      ],
+      "revision": 2,
+      "schema_version": "goal-teams-v2.3",
+      "task_id": "TASK-CAN-BLOCKED",
+      "task_state": "blocked",
+      "title": "Optional blocked branch",
+      "updated_at": "2026-07-10T00:00:07Z",
+      "validator_member_id": "评审-Canonical",
+      "validator_run_id": "RUN-CAN-REVIEWER"
+    },
+    "TASK-CAN-BLOCKED-RECOVERY": {
+      "acceptance_blocking": true,
+      "acceptance_criteria_refs": [
+        "AC-CAN-002"
+      ],
+      "artifact_refs": [
+        "versions/V2.3/evidence/recovery.txt"
+      ],
+      "attempt_id": "ATT-CAN-BLOCKED-RECOVERY",
+      "blocked_reason": null,
+      "check_state": "passed",
+      "event_digest": "f98553869b5e4cff3ea4b1dafbc5eaea0ca90d2d900dad533a1f0edd0660eb2c",
+      "evidence_refs": [
+        "EVD-CAN-002"
+      ],
+      "harness_refs": [
+        "versions/V2.3/harness/harness.json"
+      ],
+      "last_actor_run_id": "RUN-CAN-REVIEWER",
+      "last_event_id": "EVT-CAN-021",
+      "merge_owner_run_id": "RUN-CAN-LEDGER-OWNER",
+      "owner_member_id": "实现-Canonical",
+      "owner_run_id": "RUN-CAN-OWNER",
+      "parent_attempt_id": null,
+      "recovery_note": "dependency restored",
+      "required_for_done": true,
+      "requirement_refs": [
+        "REQ-CAN-002"
+      ],
+      "revision": 7,
+      "schema_version": "goal-teams-v2.3",
+      "task_id": "TASK-CAN-BLOCKED-RECOVERY",
+      "task_state": "accepted",
+      "title": "Required blocked then recovered branch",
+      "updated_at": "2026-07-10T00:00:21Z",
+      "validation_check_id": "CHECK-CAN-RECOVERY",
+      "validation_run_id": "RUN-CAN-RECOVERY-PASSED",
+      "validator_member_id": "评审-Canonical",
+      "validator_run_id": "RUN-CAN-REVIEWER"
+    },
+    "TASK-CAN-FAILURE-RECOVERY": {
+      "acceptance_blocking": false,
+      "acceptance_criteria_refs": [
+        "AC-CAN-004"
+      ],
+      "artifact_refs": [],
+      "attempt_id": "ATT-CAN-RECOVERY",
+      "check_state": "failed",
+      "event_digest": "38202c772000cc8666795da0c1df5cfca63138e61ba8178a832a0ede7b23ed45",
+      "evidence_refs": [],
+      "harness_refs": [
+        "versions/V2.3/harness/harness.json"
+      ],
+      "last_actor_run_id": "RUN-CAN-REVIEWER",
+      "last_event_id": "EVT-CAN-014",
+      "merge_owner_run_id": "RUN-CAN-LEDGER-OWNER",
+      "nonblocking_reason": "historical recovery branch remains explicitly nonblocking and unaccepted",
+      "owner_member_id": "实现-Canonical",
+      "owner_run_id": "RUN-CAN-OWNER",
+      "parent_attempt_id": "ATT-CAN-FAILURE",
+      "recovery_of_attempt_id": "ATT-CAN-FAILURE",
+      "required_for_done": false,
+      "requirement_refs": [
+        "REQ-CAN-004"
+      ],
+      "revision": 7,
+      "schema_version": "goal-teams-v2.3",
+      "task_id": "TASK-CAN-FAILURE-RECOVERY",
+      "task_state": "review",
+      "title": "Historical check failure and recovery branch",
+      "updated_at": "2026-07-10T00:00:14Z",
+      "validation_check_id": "CHECK-CAN-RECOVERY",
+      "validation_run_id": "RUN-CAN-RECOVERY-FAILED",
+      "validator_member_id": "评审-Canonical",
+      "validator_run_id": "RUN-CAN-REVIEWER"
+    },
+    "TASK-CAN-SUCCESS": {
+      "acceptance_blocking": true,
+      "acceptance_criteria_refs": [
+        "AC-CAN-001"
+      ],
+      "artifact_refs": [
+        "versions/V2.3/evidence/artifact.txt"
+      ],
+      "attempt_id": "ATT-CAN-SUCCESS",
+      "check_state": "passed",
+      "event_digest": "a9174686fb7008e4af3a8186549eff1830c112f8068230cbf27a30ce4cf7b725",
+      "evidence_refs": [
+        "EVD-CAN-001"
+      ],
+      "harness_refs": [
+        "versions/V2.3/harness/harness.json"
+      ],
+      "last_actor_run_id": "RUN-CAN-REVIEWER",
+      "last_event_id": "EVT-CAN-005",
+      "merge_owner_run_id": "RUN-CAN-LEDGER-OWNER",
+      "owner_member_id": "实现-Canonical",
+      "owner_run_id": "RUN-CAN-OWNER",
+      "parent_attempt_id": null,
+      "required_for_done": true,
+      "requirement_refs": [
+        "REQ-CAN-001"
+      ],
+      "revision": 5,
+      "schema_version": "goal-teams-v2.3",
+      "task_id": "TASK-CAN-SUCCESS",
+      "task_state": "accepted",
+      "title": "Required success branch",
+      "updated_at": "2026-07-10T00:00:05Z",
+      "validation_check_id": "CHECK-CAN-SUCCESS",
+      "validation_run_id": "RUN-CAN-SUCCESS",
+      "validator_member_id": "评审-Canonical",
+      "validator_run_id": "RUN-CAN-REVIEWER"
+    }
+  },
+  "valid_evidence_registry_digest": "3f335fde9d4887862655441642ebea9f63487cc3a03b4fae609292acb6137ee8"
+}

@@ -1,0 +1,11 @@
+{
+  "decision": "pass",
+  "input_sha256": "e17bd9d953659aa5490dee3ad9c01846f33bd75880eaaa1907e47841bca4861a",
+  "output_sha256": "5a04ed820243a3666b260080ee4db68ae0894285548476b67bafe818bb9144af",
+  "quality": 1.0,
+  "release_eligible": false,
+  "rubric_version": "behavior-v2.3",
+  "scenario_id": "revision-conflict",
+  "schema_version": "goal-teams-behavior-score-v2.3",
+  "scorer_run_id": "RUN-CAN-SCORER-CONFLICT"
+}

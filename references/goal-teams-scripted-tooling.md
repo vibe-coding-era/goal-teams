@@ -2,7 +2,7 @@
 
 V1.92 采用“提示词负责判断，脚本负责确定性”的混合模型。Goal Lead 仍负责澄清、拆解、风险判断和最终整合；重复、易漏、需要精确一致的动作必须交给脚本。
 
-V1.93 保留这套边界，并把脚本按职责分目录。V1.94 增加 review 类脚本，要求对比和校验类任务采用 LLM + 脚本双重复核。根 `scripts/*.py` 和 `scripts/*.sh` 是兼容入口；真实脚本位于 `scripts/checks/`、`scripts/harness/`、`scripts/review/`、`scripts/benchmark/` 和 `scripts/install/`。
+V2.3 从 `harness_contract.task_type`、`required_review_class` 与风险推导最低 `review_class`：comparison/safety 采用 LLM + 脚本双重复核，structural/semantic 不互代，只执行适用复核并记录结构化 N/A。根 `scripts/*.py` 和 `scripts/*.sh` 是兼容入口；真实脚本位于 `scripts/checks/`、`scripts/harness/`、`scripts/review/`、`scripts/benchmark/` 和 `scripts/install/`。
 
 ## 分工边界
 
@@ -34,7 +34,7 @@ V1.93 保留这套边界，并把脚本按职责分目录。V1.94 增加 review 
 
 ## 双重复核边界
 
-脚本复核负责可机械判断的事实，例如文件存在、hash、schema、字段、路径、像素指标和报告格式。LLM 复核负责语义正确性、用户目标一致性、风险取舍和规则遗漏。脚本失败、LLM 失败或任一缺失时，不允许给 `pass`。
+脚本复核负责可机械判断的事实；LLM 复核负责语义、用户目标和风险。当前 Harness 最低 review_class 的任一必需复核失败或缺失时不允许 `pass`；不适用项必须有独立接受的结构化 N/A。脚本报告把真实 `domain_execution` 与唯一可重放的 `integrity_replay` 分开记录。
 
 ## Budget Gate
 
@@ -50,7 +50,7 @@ Budget Gate:
 - stop_when_exceeded:
 ```
 
-缺少实际 tokens 或费用时写 `未提供`，不能估算成事实。预算不足时，Goal Lead 必须缩小范围、降级验证或记录 `blocked_needs_user`。
+缺少实际 tokens 或费用时写 `unavailable`，不能估算成事实。预算不足时，Goal Lead 必须缩小范围、降级验证，或记录 `loop_decision=stop`、`run_outcome=partial|blocked` 与 `stop_reason=budget_exceeded`。
 
 ## Conflict Policy
 
@@ -78,4 +78,4 @@ Conflict Policy:
 - Harness 只写了“人工检查通过”，没有检查项、证据路径或校验者。
 - 生产流门禁缺少审批、凭证、监控或回滚证据却给出无条件 `pass`。
 
-打回时使用 `failure_report` 或 `blocked_needs_user`，不要把缺口改写成完成。
+打回时使用 `failure_report`、`check_state=failed|blocked` 和合法的 run/loop 字段，不要把缺口改写成完成。

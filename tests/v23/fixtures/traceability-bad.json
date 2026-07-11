@@ -1,0 +1,1 @@
+{"requirements":[{"id":"REQ-1"}],"acceptance_criteria":[{"id":"AC-1","required":true}],"tasks":[{"task_id":"TASK-ORPHAN","requirement_refs":[],"acceptance_criteria_refs":[]}],"checks":[],"evidence":[{"evidence_id":"EVD-ORPHAN","check_id":"CHECK-MISSING","run_id":"RUN-1"}]}

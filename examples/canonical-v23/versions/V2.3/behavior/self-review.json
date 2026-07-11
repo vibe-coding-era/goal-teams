@@ -1,0 +1,63 @@
+{
+  "ended_at": "2026-07-10T00:01:13Z",
+  "environment": {
+    "commit": "HEAD",
+    "platform": "darwin",
+    "python_version": "3.14.3"
+  },
+  "evaluation_class": "deterministic_contract",
+  "evidence": [
+    {
+      "path": "evidence/self-review/subject.log",
+      "sha256": "44c8679c81f90d3b7104e6fe2a2365f801efc8e5f13f8c14eb8578e8fba63480"
+    }
+  ],
+  "executed": true,
+  "input": {
+    "author_run_id": "RUN-SAME",
+    "reviewer_run_id": "RUN-SAME"
+  },
+  "output": {
+    "rejected": "E_REVIEW_SELF"
+  },
+  "provenance": {
+    "command": {
+      "argv": [
+        "goalteams-contract-runner",
+        "self-review"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "log_path": "evidence/self-review/subject.log",
+      "log_sha256": "44c8679c81f90d3b7104e6fe2a2365f801efc8e5f13f8c14eb8578e8fba63480"
+    },
+    "expected_exit_code": 0,
+    "generated_at": "2026-07-10T00:01:13.500000Z",
+    "input_sha256": "bb8e1119da13cb13656ad964c0744910e747865b843614a14eb87979872994bb",
+    "output_sha256": "b7364b532f58c632c60bda434a9fa58ca5cfbd7c71f115c06017cfd2d1b06e59",
+    "run_nonce": "CANONICAL-self-review-20260710",
+    "runner_id": "goal-teams-benchmark-contract-runner",
+    "runner_version": "V2.3"
+  },
+  "release_eligible": false,
+  "result": "passed",
+  "scenario_class": "stress",
+  "scenario_id": "self-review",
+  "schema_version": "goal-teams-v2.3",
+  "score": {
+    "evidence_path": "evidence/self-review/score.json",
+    "evidence_sha256": "731ad1e8b39fca60af41f2151197d64464a08abf890984e1307990a53b8fad50",
+    "quality": 1.0,
+    "rubric_version": "behavior-v2.3",
+    "scorer_run_id": "RUN-CAN-SCORER-SELF-REVIEW"
+  },
+  "scorer_run_id": "RUN-CAN-SCORER-SELF-REVIEW",
+  "started_at": "2026-07-10T00:01:12Z",
+  "subject_run_id": "RUN-CAN-SUBJECT-SELF-REVIEW",
+  "trace": [
+    {
+      "path": "evidence/self-review/trace.jsonl",
+      "sha256": "a449ddcb54c39c14481b9d3c4c9519a2690e21c840578a01de3471aa273322d4"
+    }
+  ]
+}

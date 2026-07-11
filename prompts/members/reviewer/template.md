@@ -6,6 +6,10 @@
 脚本报告：
 - path:
 - status:
+- harness_task_type / required_review_class / derived_minimum:
+- domain_execution:
+- integrity_replay:
+- binding_digest:
 LLM 发现：
 - severity:
 - file:
@@ -13,8 +17,10 @@ LLM 发现：
 - recommendation:
 tasklist 检查建议：
 - artifact_type:
-- validator_subagent:
-- independent_check_status:
+- validator_agent_type:
+- validator_member_id:
+- validator_run_id:
+- check_state:
 - evidence_path:
 结论：approve | reject | conditional
 ```

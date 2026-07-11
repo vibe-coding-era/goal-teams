@@ -1,0 +1,148 @@
+{
+  "harness_contract": {
+    "artifact_checks": [
+      "ledger replay",
+      "TaskList byte equivalence",
+      "artifact, log, and command-execution SHA-256"
+    ],
+    "checks": [
+      {
+        "acceptance_blocking": true,
+        "acceptance_criteria_refs": [
+          "AC-CAN-001"
+        ],
+        "check_id": "CHECK-CAN-SUCCESS",
+        "check_state": "passed",
+        "evidence_refs": [
+          "EVD-CAN-001"
+        ],
+        "expected_domain_execution": {
+          "argv": [
+            "python3",
+            "-m",
+            "json.tool",
+            "versions/V2.3/identity/registry.json"
+          ],
+          "cwd": "."
+        },
+        "required": true,
+        "schema_version": "goal-teams-v2.3",
+        "validator_run_id": "RUN-CAN-REVIEWER"
+      },
+      {
+        "acceptance_blocking": true,
+        "acceptance_criteria_refs": [
+          "AC-CAN-002"
+        ],
+        "check_id": "CHECK-CAN-RECOVERY",
+        "check_state": "passed",
+        "evidence_refs": [
+          "EVD-CAN-002"
+        ],
+        "expected_domain_execution": {
+          "argv": [
+            "python3",
+            "-m",
+            "json.tool",
+            "versions/V2.3/identity/registry.json"
+          ],
+          "cwd": "."
+        },
+        "required": true,
+        "schema_version": "goal-teams-v2.3",
+        "validator_run_id": "RUN-CAN-REVIEWER"
+      },
+      {
+        "acceptance_blocking": false,
+        "acceptance_criteria_refs": [
+          "AC-CAN-003",
+          "AC-CAN-004"
+        ],
+        "check_id": "CHECK-CAN-UI-BEHAVIOR",
+        "check_state": "not_required",
+        "evidence_refs": [],
+        "not_applicable_reason": "Optional branches do not block the canonical completion claim.",
+        "required": false,
+        "reviewer_run_id": "RUN-CAN-REVIEWER",
+        "schema_version": "goal-teams-v2.3",
+        "validator_run_id": "RUN-CAN-REVIEWER"
+      }
+    ],
+    "commands": [
+      "python3 scripts/v23/goalteams_v23.py validate-canonical examples/canonical-v23",
+      "python3 scripts/checks/check-v23.py"
+    ],
+    "e2e_checks": [
+      "ui-replica pixel evidence",
+      "fresh benchmark execution"
+    ],
+    "evidence_paths": [
+      "versions/V2.3/evidence/evidence.jsonl",
+      "versions/V2.3/reviews/dual-review.json",
+      "versions/V2.3/audit/completion-audit.json"
+    ],
+    "evidence_records": [
+      "versions/V2.3/evidence/evidence.json",
+      "versions/V2.3/evidence/evidence-recovery.json"
+    ],
+    "failure_report": {
+      "failing_check": "required",
+      "stable_error_envelope": true
+    },
+    "pixel_diff_checks": [
+      {
+        "baseline_approval_required": true,
+        "changed_ratio_threshold": 0.0,
+        "color_tolerance": 3,
+        "critical_regions_required": true,
+        "environment_required": true,
+        "mae_threshold": 0.0,
+        "ui_mode": "replica"
+      }
+    ],
+    "required_review_class": "comparison",
+    "task_type": "replica"
+  },
+  "runs": [
+    {
+      "attempt_id": "ATT-CAN-SUCCESS",
+      "check_id": "CHECK-CAN-SUCCESS",
+      "ended_at": "2026-07-10T00:00:04Z",
+      "evidence_refs": [
+        "EVD-CAN-001"
+      ],
+      "producer_run_id": "RUN-CAN-OWNER",
+      "run_id": "RUN-CAN-SUCCESS",
+      "schema_version": "goal-teams-v2.3",
+      "started_at": "2026-07-10T00:00:02Z",
+      "status": "passed"
+    },
+    {
+      "attempt_id": "ATT-CAN-BLOCKED-RECOVERY",
+      "check_id": "CHECK-CAN-RECOVERY",
+      "ended_at": "2026-07-10T00:00:15Z",
+      "evidence_refs": [],
+      "log_path": "versions/V2.3/evidence/failed-run.log",
+      "producer_run_id": "RUN-CAN-OWNER",
+      "run_id": "RUN-CAN-RECOVERY-FAILED",
+      "schema_version": "goal-teams-v2.3",
+      "started_at": "2026-07-10T00:00:14Z",
+      "status": "failed"
+    },
+    {
+      "attempt_id": "ATT-CAN-BLOCKED-RECOVERY",
+      "check_id": "CHECK-CAN-RECOVERY",
+      "ended_at": "2026-07-10T00:00:20Z",
+      "evidence_refs": [
+        "EVD-CAN-002"
+      ],
+      "producer_run_id": "RUN-CAN-OWNER",
+      "recovery_of_run_id": "RUN-CAN-RECOVERY-FAILED",
+      "run_id": "RUN-CAN-RECOVERY-PASSED",
+      "schema_version": "goal-teams-v2.3",
+      "started_at": "2026-07-10T00:00:18Z",
+      "status": "passed"
+    }
+  ],
+  "schema_version": "goal-teams-v2.3"
+}

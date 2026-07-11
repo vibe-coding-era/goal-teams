@@ -4,25 +4,31 @@
 
 职责：
 
-- 只读检查 tasklist、progress、decisions、acceptance、SPEC、测试证据、校验记录和最终总结。
+- 只读检查 ledger、reducer 生成的 TaskList、progress、decisions、acceptance、SPEC、测试证据、校验记录和最终总结。
 - 检查每个已确认任务和 Done Criteria 是否有证据。
-- 检查 docs/SPEC/tasklist 是否更新，测试和独立校验是否记录。
+- 检查 docs/SPEC/ledger/TaskList projection 是否一致，测试和独立校验是否记录。
 - 检查输出目录是否为用户指定目录或默认 `GoalTeamsWork-<project_version>/`，且包含 OKF `memory.md`。
 - 检查所有 SSOT 产出物是否写入输出目录下 `versions/<artifact_version>/`，不同版本不得混放。
-- 检查每个项目是否先生成版本子目录 `TaskList.md`/`tasklist.md`，并按 V2.0 最小颗粒度列出需求规格卡、PRD、页面规格卡、HTML 原型、前端开发、前后端架构设计、后端 TDD、后端开发、后端执行 TDD、API 集成测试脚本生成、API 集成测试、API 集成测试执行、E2E 用例生成、E2E 执行、BugFix、测试报告。
+- 检查 ledger 是否先建立、版本子目录 `TaskList.md` 是否由 reducer 生成；Full/Regulated 覆盖完整研发测试颗粒度，Lite/Standard 只要求适用任务及结构化不适用原因。
 - 后端任务必须审查后端架构设计先行、TDD 测试作者和实现者分离、单测执行者独立、API 集成测试默认 Python + pytest 或有替代说明、API 集成测试在单测通过后执行。
 - 前端任务必须审查 E2E 用例生成和执行由不同独立 subagent 完成。
 - 检查 Markdown 产物是否符合 OKF，至少包含可解析 frontmatter 和非空 `type`。
 - 检查每个认领任务是否有 Harness Contract、验证证据、失败报告或 `not_applicable_reason`。
+- 只从 `harness_contract.task_type`、`required_review_class` 与风险重算最低 review class；外层字段无效，review 不得降级。
+- 对命令 Evidence 与脚本 Review 分别检查真实领域执行/record、独立日志的 `integrity_replay`、先后时间和 binding；只允许重放 runtime-locked 完整性 verifier，不执行领域 argv。
 - 检查 Budget Gate、Conflict Policy、E2E、像素级对比、生产流审批/回滚/监控证据。
 - UI 任务必须审查证据是否覆盖页面规格卡中的视觉风险，而不只是证据是否存在。
 - 页面原型和 HTML Prototype MOCK 必须审查组件库信息是否覆盖到 `memory.md`、页面规格卡头部、每个元素和 HTML OKF 元数据。
 - 对视觉锁层、baseline overlay、截图遮挡层、小组件、弹窗、表单、菜单、头像、表格和分页风险，必须检查是否有补偿性 Harness 和独立复核结论。
 
-审计结论只能是：
+审计必须输出 V2.3 正交字段：
 
-- `complete`：没有未完成工作。
-- `auto_continue`：已确认范围内仍有未完成工作，且下一轮无需用户确认。
-- `blocked_needs_user`：需要新范围、高风险或破坏性改动、凭证、外部审批或用户决策。
+- `audit_state=passed`：required tasks 全部 accepted、当前 Evidence/Traceability/Dual Review 有效，且完成谓词成立；对应 `run_outcome=achieved`。
+- `audit_state=failed`：已确认范围内仍有可修复缺口；对应 `run_outcome=partial`，并建议 `loop_decision=continue|replan`。
+- `audit_state=blocked`：缺口需要新范围、安全授权、凭证、外部审批或用户决策；对应 `run_outcome=blocked` 与 `loop_decision=stop`。
+
+Completion Audit 是候选收尾时运行、且位于任务图之外的只读门禁；failed/blocked 结论可在 required task 未 accepted 时驱动 LOOP/停止，只有 passed/achieved 要求 required task 全 accepted。不得把本次 audit artifact/Evidence 放入 required 或 acceptance-blocking task 来证明自身完成；标准或自定义 audit 路径命中这种闭环时必须报告 `E_AUDIT_SELF_REFERENCE`。
+
+不得输出 legacy `complete`、`auto_continue` 或 `blocked_needs_user` 作为机器状态；人类原因写入 `stop_reason` 和 open gaps。
 
 不要编辑文件，不要启动嵌套团队。

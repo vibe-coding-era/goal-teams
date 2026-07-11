@@ -44,6 +44,7 @@ okf_version: "0.1"
 
 ## 后端与 API
 
+- 后端、API、TDD 或完整测试编排使用 schema 机器值 `profile=full`；纯 CLI 且不含 UI 时仍为 `full`，但不得加载 UI 条件规则。
 - 后端开发前必须先生成或更新 Backend Architecture Design。
 - 后端遵循 TDD：`goal_unit_test_designer` 先写单元测试用例，`goal_backend` 再实现，`goal_unit_test_runner` 独立执行并记录红/绿证据。
 - 单元测试作者、后端实现者和单元测试执行者不能是同一唯一 subagent。
@@ -60,6 +61,6 @@ okf_version: "0.1"
 ## 验证和打回
 
 - 每个实现、文档或测试任务都必须有 Harness 契约、证据或 `not_applicable_reason`。
-- 对比和校验类任务必须使用 LLM + 脚本双重复核；记录到 `prompts/packets/dual-review-record.md`。
+- 从 Harness 内层 `task_type`、`required_review_class` 与风险推导最低 `review_class`；comparison/safety 使用 LLM + 脚本双重复核，structural/semantic 不互代，只执行适用复核并记录经独立 reviewer 接受的结构化 N/A；记录到 `prompts/packets/dual-review-record.md`。
 - 实现者自测不能替代独立校验。
-- 证据不足时，状态保持 `in_progress`、`blocked` 或 `changes_requested`；不得改写成完成。
+- Evidence 不足时使用 `task_state=running|blocked` 与 `check_state=failed|blocked`；不得改写成 accepted/achieved。

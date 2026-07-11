@@ -1,0 +1,37 @@
+{
+  "artifact": {
+    "artifact_ref": "versions/V2.3/evidence/artifact.txt",
+    "artifact_sha256": "b397bfdefd2f7c201a2f15ca9247438d2359384734c039db880b75315178f789",
+    "artifact_version": "V2.3"
+  },
+  "author_run_id": "RUN-CAN-OWNER",
+  "final_decision": {
+    "reason": "Independent script and semantic reviews bind to the same artifact hash and version.",
+    "status": "pass"
+  },
+  "llm_review": {
+    "artifact_sha256": "b397bfdefd2f7c201a2f15ca9247438d2359384734c039db880b75315178f789",
+    "artifact_version": "V2.3",
+    "evidence_path": "versions/V2.3/reviews/semantic-review.md",
+    "evidence_sha256": "0d95f0df54fc030abd4f965977c36b772a5aa0089dbb52844c3b966ced7b600d",
+    "evidence_size": 461,
+    "reviewer": "语义评审-Canonical",
+    "reviewer_run_id": "RUN-CAN-SEMANTIC-REVIEWER",
+    "status": "passed",
+    "summary": "需求、状态分支、Evidence 与风险语义一致。"
+  },
+  "review_class": "comparison",
+  "reviewer_run_id": "RUN-CAN-SEMANTIC-REVIEWER",
+  "schema_version": "goal-teams-v2.3",
+  "script_review": {
+    "artifact_sha256": "b397bfdefd2f7c201a2f15ca9247438d2359384734c039db880b75315178f789",
+    "artifact_version": "V2.3",
+    "evidence_path": "versions/V2.3/reviews/script-review.json",
+    "evidence_sha256": "e5e977c2e38630114ab8f1513cb766ca8d1c0359a2949044256194b8fa0f416b",
+    "evidence_size": 3145,
+    "exit_code": 0,
+    "reviewer_run_id": "RUN-CAN-SCRIPT-REVIEWER",
+    "status": "passed",
+    "tool": "compare-artifacts"
+  }
+}
