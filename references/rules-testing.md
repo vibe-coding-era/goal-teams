@@ -63,4 +63,4 @@ okf_version: "0.1"
 - 每个实现、文档或测试任务都必须有 Harness 契约、证据或 `not_applicable_reason`。
 - 从 Harness 内层 `task_type`、`required_review_class` 与风险推导最低 `review_class`；comparison/safety 使用 LLM + 脚本双重复核，structural/semantic 不互代，只执行适用复核并记录经独立 reviewer 接受的结构化 N/A；记录到 `prompts/packets/dual-review-record.md`。
 - 实现者自测不能替代独立校验。
-- Evidence 不足时使用 `task_state=running|blocked` 与 `check_state=failed|blocked`；不得改写成 accepted/achieved。
+- Evidence 不足时按原因使用 `task_state=running` 或 `blocked`，并把已执行失败/证据无效记录为 `check_state=failed`，无法执行/完成记录为 `check_state=blocked`；不得改写成 accepted/achieved。

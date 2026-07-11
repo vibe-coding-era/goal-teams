@@ -78,4 +78,4 @@ Conflict Policy:
 - Harness 只写了“人工检查通过”，没有检查项、证据路径或校验者。
 - 生产流门禁缺少审批、凭证、监控或回滚证据却给出无条件 `pass`。
 
-打回时使用 `failure_report`、`check_state=failed|blocked` 和合法的 run/loop 字段，不要把缺口改写成完成。
+打回时使用 `failure_report`、单一 `check_state`（已执行失败为 `failed`，无法执行为 `blocked`）和合法的 run/loop 字段，不要把缺口改写成完成。

@@ -1958,6 +1958,11 @@ def validate_evidence(
         and integrity_log_resolved is not None
         and (
             git_paths_tracked_and_clean(root, [artifact_path, log_path_resolved, integrity_log_resolved])
+            # Canonical mutation tests copy the fixture under the repository
+            # without a nested .git worktree.  This path is still restricted
+            # to ``validate_canonical`` through allow_portable_fixture; hashes,
+            # sizes, paths, symbolic HEAD binding, and replay remain enforced.
+            or (allow_portable_fixture and not (root / ".git").exists())
             # Transactional installer staging deliberately excludes .git, but
             # the installer has already compared every staged path, mode, size,
             # and hash with the prepared Git projection before setting this
@@ -3496,8 +3501,98 @@ def route(features: Any) -> dict[str, Any]:
     return {
         "schema_version": SCHEMA_VERSION,
         "profile": profile,
+        "mode": "plan_preview" if features.get("plan_preview") is True else "execute",
+        "writes_created": False if features.get("plan_preview") is True else None,
         "rule_set": sorted(set(refs)),
         "route_explanation": reasons,
+    }
+
+
+def plan_preview_policy(request: Any) -> dict[str, Any]:
+    """Classify only explicit chat-only planning requests without writing state.
+
+    The router deliberately consumes structured features.  This small policy is
+    its deterministic boundary adapter: callers must first turn user input into
+    a request object and may only set ``plan_preview`` when both planning-only
+    and no-write language are explicit.  Ambiguous requests stay out of preview.
+    """
+    if not isinstance(request, dict):
+        raise ContractError("E_PLAN_PREVIEW_POLICY_TYPE", ["E_PLAN_PREVIEW_POLICY_TYPE"])
+    raw_text = request.get("request_text", request.get("intent", ""))
+    if not isinstance(raw_text, str):
+        raise ContractError("E_PLAN_PREVIEW_POLICY_TEXT", ["E_PLAN_PREVIEW_POLICY_TEXT"])
+    text = raw_text.casefold()
+    plan_markers = ("只规划", "仅规划", "只做计划", "只要计划", "只给方案", "仅给方案", "plan only")
+    no_write_markers = ("不落盘", "不写文件", "不创建文件", "不修改文件", "聊天内", "no-write", "chat-only")
+    execute_markers = ("直接执行", "开始执行", "直接做", "直接改", "创建文件", "写入文件", "落盘执行", "一次完成")
+    has_plan = any(marker in text for marker in plan_markers)
+    has_no_write = any(marker in text for marker in no_write_markers)
+    text_without_no_write = text
+    for marker in no_write_markers:
+        text_without_no_write = text_without_no_write.replace(marker, "")
+    has_execute = any(marker in text_without_no_write for marker in execute_markers)
+    enabled = has_plan and has_no_write and not has_execute
+    if enabled:
+        reason = "explicit_planning_only_and_no_write"
+    elif has_execute:
+        reason = "execution_or_write_intent_present"
+    elif has_plan or has_no_write:
+        reason = "explicit_pair_incomplete"
+    else:
+        reason = "no_explicit_preview_intent"
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "plan_preview": enabled,
+        "persistence": "forbidden" if enabled else "required_or_unspecified",
+        "reason": reason,
+    }
+
+
+def reference_policy(request: Any) -> dict[str, Any]:
+    """Apply V2.33 reference availability policy without weakening acceptance."""
+    if not isinstance(request, dict):
+        raise ContractError("E_REFERENCE_POLICY_TYPE", ["E_REFERENCE_POLICY_TYPE"])
+
+    def read_list(key: str) -> set[str]:
+        value = request.get(key, [])
+        if not _string_list(value):
+            raise ContractError("E_REFERENCE_POLICY_LIST", [f"E_REFERENCE_POLICY_LIST:{key}"])
+        return set(value)
+
+    required = read_list("required_refs")
+    triggered = read_list("triggered_conditional_refs")
+    optional = read_list("optional_refs")
+    available = read_list("available_refs")
+    missing_required = sorted(required - available)
+    missing_triggered = sorted(triggered - available)
+    missing_optional = sorted(optional - available)
+    low_risk = request.get("low_risk", False)
+    acceptance_blocking = request.get("acceptance_blocking", True)
+    independent_validation_required = request.get("independent_validation_required", True)
+    if not all(isinstance(value, bool) for value in (low_risk, acceptance_blocking, independent_validation_required)):
+        raise ContractError("E_REFERENCE_POLICY_FLAG", ["E_REFERENCE_POLICY_FLAG"])
+    if missing_required or missing_triggered:
+        state = "blocked"
+        execution_mode = "blocked"
+        reason = "required_or_triggered_reference_missing"
+    elif missing_optional:
+        state = "degraded"
+        safe_single_agent = low_risk and not acceptance_blocking and not independent_validation_required
+        execution_mode = "single_agent_degraded" if safe_single_agent else "blocked"
+        reason = "optional_reference_missing"
+    else:
+        state = "ready"
+        execution_mode = "normal"
+        reason = "all_required_references_available"
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "state": state,
+        "execution_mode": execution_mode,
+        "acceptance_allowed": state == "ready",
+        "missing_required_refs": missing_required,
+        "missing_triggered_conditional_refs": missing_triggered,
+        "missing_optional_refs": missing_optional,
+        "reason": reason,
     }
 
 
@@ -5745,6 +5840,10 @@ def _build_parser() -> argparse.ArgumentParser:
     command.add_argument("--license-decision")
     command = sub.add_parser("route")
     command.add_argument("features")
+    command = sub.add_parser("plan-preview-policy")
+    command.add_argument("request")
+    command = sub.add_parser("reference-policy")
+    command.add_argument("request")
     command = sub.add_parser("capability")
     command.add_argument("manifest")
     command = sub.add_parser("reduce-ledger")
@@ -5831,6 +5930,17 @@ def _self_test() -> None:
     assert state["tasks"]["TASK-1"]["task_state"] == "running" and not state["conflicts"]
     assert goal_outcome([], "passed") == "partial"
     assert route({"external_write": True})["profile"] == "regulated"
+    assert plan_preview_policy({"request_text": "只规划，不落盘"})["plan_preview"] is True
+    assert plan_preview_policy({"request_text": "先做计划"})["plan_preview"] is False
+    assert reference_policy({
+        "required_refs": ["RULES.md"],
+        "triggered_conditional_refs": [],
+        "optional_refs": ["references/rules-ui.md"],
+        "available_refs": ["RULES.md"],
+        "low_risk": True,
+        "acceptance_blocking": False,
+        "independent_validation_required": False,
+    })["execution_mode"] == "single_agent_degraded"
     assert "abc123" not in redact_text("Authorization: Basic abc123")
 
 
@@ -6038,6 +6148,10 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
         ), 0 if not errors else 1
     if args.cmd == "route":
         return envelope(True, route=route(load_json(Path(args.features)))), 0
+    if args.cmd == "plan-preview-policy":
+        return envelope(True, policy=plan_preview_policy(load_json(Path(args.request)))), 0
+    if args.cmd == "reference-policy":
+        return envelope(True, policy=reference_policy(load_json(Path(args.request)))), 0
     if args.cmd == "capability":
         result = capability(load_json(Path(args.manifest)))
         code = result["errors"][0] if result["errors"] else "E_CAPABILITY"

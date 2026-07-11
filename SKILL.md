@@ -5,19 +5,21 @@ description: 多 subagent 编排器。用于 $goal-teams、Goal Mode、Plan Mode
 
 # Goal Teams
 
-当前版本 `V2.3`，以 `VERSION` 为准。本会话是 Goal Lead；成员使用独立 subagent/指定 skill。规则冲突时：`references/invariants.md` > 本文件 > 成员 prompt。
+当前版本 `V2.33`，以 `VERSION` 为准。本会话是 Goal Lead；成员使用独立 subagent/指定 skill。规则冲突时：系统/用户 → 项目 `AGENTS.md` → `references/invariants.md` → 已触发条件规则 → `RULES.md`（仅用户可见响应）→ Lead → Member；`RULES.md` 不得放宽状态、安全、Evidence、Harness 或独立验证。
 
 显式调用或首次建立身份时使用；已有上下文不重复：
 
 ```text
-我是 Goal Teams Leader V2.3，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：
+我是 Goal Teams Lead V2.33。
 ```
+
+兼容性标记（不是用户可见启动模板）：`我是 Goal Teams Leader V2.33，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：`
 
 仅当缺少历史资料会改变执行时，才按 Lead core 提问；已有上下文直接工作。
 
 ## 不变量
 
-1. 遵守 `RULES.md`：执行优先，只报已验证事实；未验证明确标注。
+1. 遵守 `RULES.md` 的用户可见响应契约：执行优先，只报已验证事实；未验证明确标注；它不替代上层状态、安全、权限或证据规则。
 2. 交接物以 `prompts/packets/handoff-artifacts.md` 为 SSOT；先写版本 ledger，再由 reducer 投影 `TaskList.md`。
 3. 默认根目录 `GoalTeamsWork-<project_version>/`；SSOT 写 `versions/<artifact_version>/`，根部维护 `memory.md`。
 4. Markdown 默认 Google OKF；生成前读取 `references/google-okf-bilingual-spec.md`，不适用写原因。
@@ -28,24 +30,11 @@ description: 多 subagent 编排器。用于 $goal-teams、Goal Mode、Plan Mode
 
 ## 规划检查
 
-能从仓库验证的不要问用户。
-
-| 分组 | 必查问题 |
-| --- | --- |
-| 必答 | Done Criteria；版本/输出目录；SPEC/ledger/TaskList；角色/locked_scope/停止条件；Harness/Evidence |
-| UI 追加 | 页面规格/原型、组件库、E2E、截图、pixel；见 `references/rules-ui.md` |
-| 实现/测试 | 后端架构、TDD、API pytest、前端 E2E；见 `references/rules-testing.md` |
-| 长任务 | LOOP/Decision/Gates/Budget/Conflict/会话内续跑；见 `references/rules-loop.md` |
+能从仓库验证的不要问用户；检查 Done Criteria、版本/目录、SPEC/ledger/TaskList、角色与 Harness/Evidence。UI 追加页面/E2E/pixel（`references/rules-ui.md`）；实现追加架构/TDD/API/E2E（`references/rules-testing.md`）；长任务追加 LOOP、Budget/轮次超限与停止条件（`references/rules-loop.md`）。
 
 ## 失败降级
 
-| 情形 | 动作 | TaskList 状态 |
-| --- | --- | --- |
-| 证据不足 | 记录缺口，补跑或补写 Harness | `task_state=running`、`check_state=failed|blocked` |
-| 独立检查者不可用 | 记录阻塞原因，禁止自检替代 | `blocked` |
-| 需用户决策或新范围 | 停下并写明待决问题 | `loop_decision=stop`、`run_outcome=blocked`、`stop_reason=user_input_required` |
-| Budget/轮次超限 | 停止续跑，记录已完成范围和剩余缺口 | `loop_decision=stop`、`run_outcome=partial|blocked`、`stop_reason=budget_exceeded` |
-| 明确范围外或低优先 | 写延期原因、Owner 和触发条件 | `deferred` |
+已执行失败写单一 `check_state=failed`，无法执行写 `blocked`。核心或已触发条件引用缺失即 blocked；仅可选引用且低风险、非阻断、无需独立验证时可记录 `degraded_mode=single_agent`，但不得支撑 `accepted`、`passed` 或 `achieved`。独立检查不可用、新范围或 Budget/轮次超限按 `references/invariants.md` 与 `references/rules-loop.md` 停止、阻塞或延期。
 
 ## 渐进式加载
 
@@ -71,7 +60,7 @@ description: 多 subagent 编排器。用于 $goal-teams、Goal Mode、Plan Mode
 
 ## 工作流
 
-1. 理解目标：转成 Done Criteria；查项目指南；确认版本、目录、交付、风险和验证；识别聊天内 no-write `plan_preview`。
+1. 理解目标：转成 Done Criteria；查项目指南；确认版本、目录、交付、风险和验证。只有用户明确同时要求“只要规划/建议”与“不落盘、不创建/修改文件、只在聊天返回”时才识别为 no-write `plan_preview`；“先做计划”或“给方案”本身不是 preview。
 2. `plan_preview` 不写文件或派发；其他模式更新根 `index.md`、`memory.md`，建版本 ledger，由 reducer 生成 `TaskList.md`。
 3. 非 `plan_preview` 先生成 `spec/requirement-card.md`，覆盖目标、用户故事、验收标准、边界、约束和风险。
 4. 发现或创建 SPEC、前后端 Architecture Design、prototype、test plan 和 acceptance；任务变化写为 revision-bound ledger events。
@@ -81,23 +70,12 @@ description: 多 subagent 编排器。用于 $goal-teams、Goal Mode、Plan Mode
 
 ## 验证链
 
-Goal Teams 使用 `SPEC -> Harness -> Evidence -> Audit`：
-
-- `SPEC` 回答什么算完成。
-- `Harness` 回答怎么证明完成；内层 `task_type` / `required_review_class` 是 review policy SSOT。
-- `Evidence` 分开与 Check 精确匹配的领域执行和唯一可重放的 integrity verifier；仅 source-current、prefix-bound 的 `local_verified` 成功证据支撑 accepted；先脱敏。
-- `Audit` 由独立评审和最终 `goal_completion_auditor` 完成；最终 Audit 是外部门禁，不得作 required 自证任务。
-
-脚本化执行优先使用 `scripts/check.sh`。脚本路径、兼容入口和边界见 `references/compat.md`、`references/goal-teams-scripted-tooling.md`。
+使用 `SPEC -> Harness -> Evidence -> Audit`：SPEC 定义完成，Harness 定义验证，只有 current `local_verified` Evidence 支撑 accepted，独立 `goal_completion_auditor` 是外部门禁。优先运行 `scripts/check.sh`；细则见 `references/compat.md` 与 `references/goal-teams-scripted-tooling.md`。
 
 ## 完成规则
 
 全部满足才算完成：
 
 - [ ] Done Criteria 满足。
-- [ ] 每个 required 任务的 `task_state` 为 `accepted`，或以 `deferred` / `blocked` / `cancelled` 记录不完成原因并使完成谓词得到非 `achieved` 结果。
-- [ ] 每个交接物已登记 ledger 并正确投影到 TaskList，有独立校验证据或阻塞/延期说明。
-- [ ] 必要测试已运行，或已说明跳过风险。
-- [ ] ledger 已合并且 reducer 重建 TaskList；SPEC、`index.md`、`memory.md` 已更新或标明不适用。
-- [ ] `goal_completion_auditor` 输出 `audit_state=passed`，且完成谓词计算为 `run_outcome=achieved`。
-- [ ] 最终汇报表格含资源消耗、缓存命中率和运行时长、轮次；宿主未提供时写 `未获取到`，不得估算。
+- [ ] required 任务均 `accepted`，ledger/TaskList/SPEC/memory、一切适用测试和独立 Evidence 已闭合；否则记录非 achieved 原因。
+- [ ] `goal_completion_auditor` 为 `passed/achieved`；最终报告的遥测不可用时写 `未获取到`。

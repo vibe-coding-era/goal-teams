@@ -3,6 +3,10 @@
 file AGENTS.md
 file CHANGELOG.md
 file GoalTeams-PRD-V2.3.md
+file docs/change-history.en.md
+file docs/change-history.md
+file docs/release-contents.en.md
+file docs/release-contents.md
 file README.en.md
 file README.md
 file RULES.md

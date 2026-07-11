@@ -9,6 +9,23 @@ okf_version: "0.1"
 
 # Goal Teams V2.3 Contract
 
+## V2.33 Clarifications (V2.3 Schema Compatible)
+
+### Rule precedence and response scope
+
+- 规则优先级为：系统/用户 → 项目 `AGENTS.md` → `references/invariants.md` → 已触发的条件规则 → `RULES.md`（仅用户可见响应）→ Lead prompt → Member prompt。
+- `RULES.md` 约束事实标签、汇报内容和措辞，不得覆盖状态机、权限、locked scope、Harness、Evidence、独立性、安全门或完成谓词。
+
+### Explicit preview and missing-reference handling
+
+- `mode=plan_preview` 仅在用户明确同时要求“只要规划/建议”与“不落盘、不创建/修改文件、只在聊天中返回”时可用。要求生成计划文档、需求卡片、TaskList、ledger、SPEC、实施、派发、测试或提交时不得使用；单独的“先做计划”不构成 no-write 授权。
+- 核心引用（invariants、schema、当前范围的 ledger/Harness/Evidence/独立验证契约）或已触发条件引用缺失时，必须记录缺失路径和影响，并使用 `task_state=blocked`、`check_state=blocked`。不得以单 agent、缓存或作者自检绕过独立验证。
+- 只有低风险、非 acceptance-blocking，且 Harness 明确不要求独立验证的工作，可在未触发条件/可选引用缺失时记录 `degraded_mode=single_agent`。该记录不是 V2.3 schema 字段，不能支持 `accepted`、`passed` 或 `achieved`，并且不适用于外部写入、安全、迁移、UI/E2E、后端/API、长任务和 Completion Audit。
+
+### Single-valued check state
+
+- V2.3 schema 不变：`check_state` 必须是单个枚举值。已运行但检查未通过或 Evidence 无效使用 `failed`；因授权、能力、核心依赖或已触发条件引用缺失而无法运行/完成使用 `blocked`。文档里的“failed 或 blocked”不是允许写入的组合态。
+
 ## Capability Snapshot
 
 - 启动时记录宿主是否支持 `custom_goal_subagents`、上下文隔离、并发、遥测和恢复。

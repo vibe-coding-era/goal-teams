@@ -382,7 +382,7 @@ class InstallerLifecycleTests(unittest.TestCase):
             self.assertNotEqual(payload["dependencies"]["python"]["version"], validation_version)
             self.assertEqual(
                 [item["status"] for item in payload["validation"]],
-                ["passed", "passed"],
+                ["passed", "passed", "passed", "passed"],
                 payload,
             )
 

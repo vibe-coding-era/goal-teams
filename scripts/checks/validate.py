@@ -147,6 +147,14 @@ REQUIRED_FILES = [
     "benchmarks/tasks/GT-BENCH-004/expected-artifacts.md",
 ]
 
+
+V233_PUBLICATION_FILES = (
+    "docs/release-contents.md",
+    "docs/release-contents.en.md",
+    "docs/change-history.md",
+    "docs/change-history.en.md",
+)
+
 EXPECTED_SUBAGENTS = {
     "goal-backend.toml": "goal_backend",
     "goal-completion-auditor.toml": "goal_completion_auditor",
@@ -562,7 +570,10 @@ def read(path: str) -> str:
 
 
 def check_required_files() -> None:
-    missing = [path for path in REQUIRED_FILES if not (ROOT / path).is_file()]
+    required_files = list(REQUIRED_FILES)
+    if CURRENT_VERSION == "V2.33":
+        required_files.extend(V233_PUBLICATION_FILES)
+    missing = [path for path in required_files if not (ROOT / path).is_file()]
     if missing:
         fail("Missing required files: " + ", ".join(missing))
 
@@ -718,11 +729,31 @@ def check_subagents() -> None:
 def check_readmes() -> None:
     zh = read("README.md")
     en = read("README.en.md")
-    for item in README_RELEASE_ITEMS:
-        if item not in zh:
-            fail(f"README.md release/usage docs missing {item}")
-        if item not in en:
-            fail(f"README.en.md release/usage docs missing {item}")
+    if CURRENT_VERSION == "V2.33":
+        v233_readme_links = {
+            "README.md": ("docs/release-contents.md", "docs/change-history.md"),
+            "README.en.md": ("docs/release-contents.en.md", "docs/change-history.en.md"),
+        }
+        for path, links in v233_readme_links.items():
+            text = read(path)
+            for link in links:
+                if link not in text:
+                    fail(f"{path} must link to split V2.33 publication/history document {link}")
+        if re.search(r"^## 发布内容\s*$", zh, flags=re.M):
+            fail("README.md must not retain the V2.33 publication-content section")
+        if re.search(r"^## Release Contents\s*$", en, flags=re.M):
+            fail("README.en.md must not retain the V2.33 publication-content section")
+        for publication_path in ("docs/release-contents.md", "docs/release-contents.en.md"):
+            publication = read(publication_path)
+            for item in README_RELEASE_ITEMS:
+                if item not in publication:
+                    fail(f"{publication_path} release contents missing {item}")
+    else:
+        for item in README_RELEASE_ITEMS:
+            if item not in zh:
+                fail(f"README.md release/usage docs missing {item}")
+            if item not in en:
+                fail(f"README.en.md release/usage docs missing {item}")
     for snippet in ("./scripts/check.sh", "examples/mini-goal-run", "goal-teams.md"):
         if snippet not in zh or snippet not in en:
             fail(f"READMEs must mention {snippet}")
@@ -738,9 +769,7 @@ def check_file_rule_sets() -> None:
 
 def check_key_rules() -> None:
     check_file_rule_sets()
-    combined = "\n".join(
-        read(path)
-        for path in [
+    source_paths = [
             "VERSION",
             "RULES.md",
             "goal-teams.md",
@@ -822,8 +851,10 @@ def check_key_rules() -> None:
             "README.md",
             "README.en.md",
             "CHANGELOG.md",
-        ]
-    )
+    ]
+    if CURRENT_VERSION == "V2.33":
+        source_paths.extend(("docs/release-contents.md", "docs/release-contents.en.md"))
+    combined = "\n".join(read(path) for path in source_paths)
     for rule in KEY_RULES:
         if rule not in combined:
             fail(f"Key rule missing from docs: {rule}")

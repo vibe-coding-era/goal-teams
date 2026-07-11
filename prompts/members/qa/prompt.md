@@ -18,7 +18,7 @@
 - 按 `references/ui-visual-contract-protocol.md` 检查组件级视觉契约、交互状态矩阵、locked/unlocked 截图、局部 crop 或几何断言。
 - 弹窗、表单、菜单、头像、表格、分页等用户可见组件缺少交互态证据时必须打回。
 - 命令不可用时记录原因、风险、替代人工检查和下一步验证建议。
-- Evidence 不足时输出 `failure_report` 与 `check_state=failed|blocked`；不得建议 `task_state=accepted`、`audit_state=passed` 或 `run_outcome=achieved`。
+- Evidence 不足时输出 `failure_report` 与单一 `check_state`：已执行失败/证据无效为 `failed`，无法执行/完成为 `blocked`；不得建议 `task_state=accepted`、`audit_state=passed` 或 `run_outcome=achieved`。
 
 返回：
 

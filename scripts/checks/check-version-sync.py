@@ -23,6 +23,14 @@ VERSION_FILES = [
 ]
 
 
+V233_PUBLICATION_FILES = {
+    "release_zh": "docs/release-contents.md",
+    "release_en": "docs/release-contents.en.md",
+    "history_zh": "docs/change-history.md",
+    "history_en": "docs/change-history.en.md",
+}
+
+
 def fail(message: str) -> None:
     print(f"[FAIL] {message}")
     sys.exit(1)
@@ -30,6 +38,48 @@ def fail(message: str) -> None:
 
 def read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
+
+
+def check_v233_publication_sync(version: str) -> None:
+    """Require V2.33's bilingual publication/history split only for V2.33.
+
+    Keeping this gate version-conditional lets older installed packages remain
+    verifiable while making a V2.33 release fail closed if it restores the
+    publication list or changelog to either README.
+    """
+    if version != "V2.33":
+        return
+
+    missing = [path for path in V233_PUBLICATION_FILES.values() if not (ROOT / path).is_file()]
+    if missing:
+        fail("V2.33 publication/history files are missing: " + ", ".join(missing))
+
+    required_markers = {
+        "release_zh": ("发布内容", version),
+        "release_en": ("Release Contents", version),
+        "history_zh": ("版本变更记录", version),
+        "history_en": ("Change History", version),
+    }
+    for key, markers in required_markers.items():
+        path = V233_PUBLICATION_FILES[key]
+        text = read(path)
+        for marker in markers:
+            if marker not in text:
+                fail(f"{path} missing V2.33 publication/history marker {marker!r}")
+
+    readme_links = {
+        "README.md": (V233_PUBLICATION_FILES["release_zh"], V233_PUBLICATION_FILES["history_zh"]),
+        "README.en.md": (V233_PUBLICATION_FILES["release_en"], V233_PUBLICATION_FILES["history_en"]),
+    }
+    for path, links in readme_links.items():
+        text = read(path)
+        for link in links:
+            if link not in text:
+                fail(f"{path} must link to V2.33 split publication/history document {link}")
+    if re.search(r"^## 发布内容\s*$", read("README.md"), flags=re.M):
+        fail("README.md must not contain the V2.33 publication-content section")
+    if re.search(r"^## (?:Release Contents|发布内容)\s*$", read("README.en.md"), flags=re.M):
+        fail("README.en.md must not contain the V2.33 publication-content section")
 
 
 def main() -> None:
@@ -54,6 +104,8 @@ def main() -> None:
             fail(f"{path} does not mention current version {version}")
         if startup not in text:
             fail(f"{path} missing current startup line")
+
+    check_v233_publication_sync(version)
 
     openai = read("agents/openai.yaml")
     if f'Goal Teams {version}' not in openai:

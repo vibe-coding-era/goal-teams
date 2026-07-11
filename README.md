@@ -4,7 +4,7 @@
 
 作者：肉山@TGO 杭州
 
-当前版本：`V2.3`
+当前版本：`V2.33`
 
 Goal Teams 是一个面向 Codex 的团队协作 Skill。它会以一个 Goal Lead 的身份，把一个目标拆成可验证的计划，再协调多个独立 subagent（不同上下文执行）或用户指定的外部 skill 完成需求、设计、实现、测试、证据记录和收尾审计。过程中会应用到：
 - 应用Goal + Plan + Loop 模式
@@ -135,7 +135,7 @@ Use $goal-teams。
 显式调用 Goal Teams 或当前会话首次需要建立身份时汇报；已有完整上下文时不重复：
 
 ```text
-我是 Goal Teams Leader V2.3，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：
+我是 Goal Teams Leader V2.33，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：
 ```
 
 中文核心模型要点提示词：用户沟通和治理文档默认中文；代码、注释、测试名、fixture 和产品字符串遵循目标仓库约定；代码标识、命令、路径、API 名称、配置键、subagent ID 和精确引用保留原文。
@@ -258,20 +258,11 @@ GoalTeamsWork-<project_version>/
 
 ## 版本说明
 
-当前版本以 `VERSION` 为准。`V2.3` 的重点是正交状态机、单写者事件账本、严格 Evidence/Traceability/Dual Review、Profile 路由与能力降级、安全迁移、原子分发、真实 canonical/behavior 负向门禁和上下文预算。历史 V2.2 输出通过 typed migration adapter 读取；`tasklist.md` 不再作为可写 SSOT。
+当前版本以 `VERSION` 为准。`V2.33` 在 V2.3 的机器契约基线上明确规则优先级、引用文件的 fail-closed 分级降级、`plan_preview` 的显式 no-write 判定、单值 `check_state` 表述，以及发布内容和历史记录的独立双语文档入口。`V2.3` 的重点仍是正交状态机、单写者事件账本、严格 Evidence/Traceability/Dual Review、Profile 路由与能力降级、安全迁移、原子分发、真实 canonical/behavior 负向门禁和上下文预算；历史 V2.2 输出通过 typed migration adapter 读取，`tasklist.md` 不再作为可写 SSOT。
 
-更完整的历史记录见 `CHANGELOG.md`。
+发布包的可见组成见[发布内容](docs/release-contents.md)；英文读者见[Release Contents](docs/release-contents.en.md)。该清单不会替代运行规则、`VERSION` 或安装校验。
 
-## 发布内容
-
-当前仓库包含：
-
-- 根文件：`VERSION`、`SKILL.md`、`RULES.md`、`goal-teams.md`、`AGENTS.md`、`CHANGELOG.md`、`README.md`、`README.en.md`、`agents/openai.yaml`。
-- references：`references/goal-teams-runtime.md`、`references/default-AGENTS.md`、`references/invariants.md`、`references/compat.md`、`references/rules-ui.md`、`references/rules-testing.md`、`references/rules-loop.md`、`references/goal-teams-automation-protocol.md`、`references/goal-teams-production-pipeline.md`、`references/goal-teams-scripted-tooling.md`、`references/google-okf-bilingual-spec.md`、`references/ui-e2e-pixel-protocol.md`、`references/ui-visual-contract-protocol.md`、`references/subagent-dispatch-protocol.md`、`references/dual-review-protocol.md`。
-- prompts：`prompts/`、`prompts/lead/core.md`、`prompts/lead/requirement-card.md`、`prompts/members/shared.md`、`prompts/members/backend/prompt.md`、`prompts/members/backend/template.md`、`prompts/members/backend/workflow.md`、`prompts/members/backend/scripts.md`、`prompts/members/unit-test-designer/prompt.md`、`prompts/members/unit-test-runner/prompt.md`、`prompts/members/api-integration-test-designer/prompt.md`、`prompts/members/api-integration-test-runner/prompt.md`、`prompts/members/e2e-test-designer/prompt.md`、`prompts/members/e2e-test-runner/prompt.md`、`prompts/packets/member-goal-packet.md`、`prompts/packets/handoff-artifacts.md`、`prompts/packets/page-spec-card.md`、`prompts/packets/memory.md`、`prompts/packets/html-prototype-mock.md`、`prompts/packets/requirement-card.md`、`prompts/packets/dual-review-record.md`。
-- scripts：兼容入口 `scripts/check.sh`、`scripts/validate.py`、`scripts/install-local.sh`、`scripts/check-version-sync.py`、`scripts/check-routing-fixtures.py`、`scripts/check-agent-names.py`、`scripts/check-member-layout.py`、`scripts/validate-harness.py`、`scripts/pixel-diff.py`、`scripts/compare-artifacts.py`、`scripts/validate-dual-review.py`、`scripts/benchmark-runner.py`；真实实现目录 `scripts/v23/`、`scripts/checks/`（含 `check-routing-fixtures.py`、`check-context-budget.py`、`check-install-lifecycle.py`、`check-security-fixtures.py`、`check-ci-pins.py`）、`scripts/harness/`、`scripts/benchmark/`、`scripts/review/`、`scripts/install/`。
-- 机器契约与验证：`schemas/`、`tests/v23/`、`.github/workflows/`。
-- 运行和示例：`subagents/goal-*.toml`、`examples/mini-goal-run`、`examples/canonical-v23/`、`benchmarks/`。
+按时间整理的版本改动见[版本变更记录](docs/change-history.md)；英文读者见[Change History](docs/change-history.en.md)。`CHANGELOG.md` 保留逐项技术变更的兼容记录。
 
 ## License
 

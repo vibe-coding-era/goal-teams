@@ -6,7 +6,7 @@
 
 ## 启动汇报
 
-我是 Goal Teams Leader V2.3，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：
+我是 Goal Teams Leader V2.33，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：
 
 - 检查示例项目执行规则和版本目录。
 - 创建索引、tasklist、SPEC、原型、测试计划和验收清单。

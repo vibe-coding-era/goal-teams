@@ -4,7 +4,7 @@
 
 Author: 肉山@TGO Hangzhou
 
-Current version: `V2.3`
+Current version: `V2.33`
 
 Goal Teams is a Codex Skill for coordinated agent work. It turns one goal into a verifiable plan, then lets a Goal Lead coordinate independent subagents running in separate contexts, or user-selected external skills, across requirements, design, implementation, tests, evidence, and completion audit.
 
@@ -131,7 +131,7 @@ Use $goal-teams。
 Use this identity line on an explicit Goal Teams invocation or when the session first needs to establish identity; do not repeat it when full context already exists:
 
 ```text
-我是 Goal Teams Leader V2.3，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：
+我是 Goal Teams Leader V2.33，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：
 ```
 
 Core language rule: user communication and governance documents default to Chinese; code, comments, test names, fixtures, and product strings follow the target repository's conventions; keep identifiers, commands, paths, API names, config keys, subagent IDs, and exact references unchanged.
@@ -254,20 +254,11 @@ GoalTeamsWork-<project_version>/
 
 ## Version Note
 
-The current version is read from `VERSION`. `V2.3` focuses on orthogonal state machines, a single-writer event ledger, strict Evidence/Traceability/Dual Review, Profile routing and capability degradation, safe migration, atomic distribution, real canonical/behavior negative gates, and a bounded base context. Historical V2.2 output is read through the typed migration adapter; `tasklist.md` is no longer a writable SSOT.
+The current version is read from `VERSION`. On the V2.3 machine-contract baseline, `V2.33` defines rule precedence, fail-closed dependency classification and degradation, explicit no-write `plan_preview` selection, single-value `check_state` language, and separate bilingual release-contents and history entrypoints. `V2.3` continues to provide orthogonal state machines, a single-writer event ledger, strict Evidence/Traceability/Dual Review, Profile routing and capability degradation, safe migration, atomic distribution, real canonical/behavior negative gates, and a bounded base context. Historical V2.2 output is read through the typed migration adapter; `tasklist.md` is no longer a writable SSOT.
 
-See `CHANGELOG.md` for the full history.
+See [Release Contents](docs/release-contents.en.md) for the visible package inventory, or [发布内容](docs/release-contents.md) for Chinese. The inventory does not replace runtime rules, `VERSION`, or installation validation.
 
-## Release Contents
-
-This repository includes:
-
-- Root files: `VERSION`, `SKILL.md`, `RULES.md`, `goal-teams.md`, `AGENTS.md`, `CHANGELOG.md`, `README.md`, `README.en.md`, `agents/openai.yaml`.
-- References: `references/goal-teams-runtime.md`, `references/default-AGENTS.md`, `references/invariants.md`, `references/compat.md`, `references/rules-ui.md`, `references/rules-testing.md`, `references/rules-loop.md`, `references/goal-teams-automation-protocol.md`, `references/goal-teams-production-pipeline.md`, `references/goal-teams-scripted-tooling.md`, `references/google-okf-bilingual-spec.md`, `references/ui-e2e-pixel-protocol.md`, `references/ui-visual-contract-protocol.md`, `references/subagent-dispatch-protocol.md`, `references/dual-review-protocol.md`.
-- Prompts: `prompts/`, `prompts/lead/core.md`, `prompts/lead/requirement-card.md`, `prompts/members/shared.md`, `prompts/members/backend/prompt.md`, `prompts/members/backend/template.md`, `prompts/members/backend/workflow.md`, `prompts/members/backend/scripts.md`, `prompts/members/unit-test-designer/prompt.md`, `prompts/members/unit-test-runner/prompt.md`, `prompts/members/api-integration-test-designer/prompt.md`, `prompts/members/api-integration-test-runner/prompt.md`, `prompts/members/e2e-test-designer/prompt.md`, `prompts/members/e2e-test-runner/prompt.md`, `prompts/packets/member-goal-packet.md`, `prompts/packets/handoff-artifacts.md`, `prompts/packets/page-spec-card.md`, `prompts/packets/memory.md`, `prompts/packets/html-prototype-mock.md`, `prompts/packets/requirement-card.md`, `prompts/packets/dual-review-record.md`.
-- Scripts: compatibility entrypoints `scripts/check.sh`, `scripts/validate.py`, `scripts/install-local.sh`, `scripts/check-version-sync.py`, `scripts/check-routing-fixtures.py`, `scripts/check-agent-names.py`, `scripts/check-member-layout.py`, `scripts/validate-harness.py`, `scripts/pixel-diff.py`, `scripts/compare-artifacts.py`, `scripts/validate-dual-review.py`, and `scripts/benchmark-runner.py`; implementation directories `scripts/v23/`, `scripts/checks/` (including `check-routing-fixtures.py`, `check-context-budget.py`, `check-install-lifecycle.py`, `check-security-fixtures.py`, and `check-ci-pins.py`), `scripts/harness/`, `scripts/benchmark/`, `scripts/review/`, and `scripts/install/`.
-- Machine contracts and validation: `schemas/`, `tests/v23/`, and `.github/workflows/`.
-- Runtime and examples: `subagents/goal-*.toml`, `examples/mini-goal-run`, `examples/canonical-v23/`, and `benchmarks/`.
+See [Change History](docs/change-history.en.md) for the chronological version summary, or [版本变更记录](docs/change-history.md) for Chinese. `CHANGELOG.md` retains the compatibility record of individual technical changes.
 
 ## License
 

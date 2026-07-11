@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate Goal Teams V2.3 routing through the real pure router."""
+"""Validate V2.3 routing plus V2.33 preview/reference policy gates."""
 
 from __future__ import annotations
 import json, subprocess, sys, tempfile
@@ -16,9 +16,18 @@ class RouteFixture:
     expected_profile: str
     expected_refs: tuple[str, ...]
     forbidden_refs: tuple[str, ...] = ()
+    expected_mode: str = "execute"
+
+
+@dataclass(frozen=True)
+class PolicyFixture:
+    name: str
+    command: str
+    request: dict[str, object]
+    expected: dict[str, object]
 
 FIXTURES = (
-    RouteFixture("plan-preview-lite", {"risk":"low", "plan_preview": True}, "lite", ("RULES.md",), ("references/rules-ui.md", "references/rules-testing.md")),
+    RouteFixture("plan-preview-lite", {"risk":"low", "plan_preview": True}, "lite", ("RULES.md",), ("references/rules-ui.md", "references/rules-testing.md"), "plan_preview"),
     RouteFixture("backend-cli-full", {"backend": True, "tests": True, "risk":"medium"}, "full", ("references/rules-testing.md",), ("references/rules-ui.md",)),
     RouteFixture("original-ui-full-no-pixel", {"ui": True, "replica": False}, "full", ("references/rules-ui.md",), ("references/ui-e2e-pixel-protocol.md",)),
     RouteFixture("ui-replica-full-pixel", {"ui": True, "replica": True}, "full", ("references/rules-ui.md", "references/ui-e2e-pixel-protocol.md"), ()),
@@ -27,28 +36,113 @@ FIXTURES = (
     RouteFixture("standard-doc", {"risk":"medium", "standard": True}, "standard", ("RULES.md",), ("references/rules-ui.md", "references/rules-testing.md")),
 )
 
+POLICY_FIXTURES = (
+    PolicyFixture(
+        "preview-explicit-no-write",
+        "plan-preview-policy",
+        {"request_text": "只规划，不落盘"},
+        {"plan_preview": True, "persistence": "forbidden", "reason": "explicit_planning_only_and_no_write"},
+    ),
+    PolicyFixture(
+        "preview-plan-only-is-not-enough",
+        "plan-preview-policy",
+        {"request_text": "只规划"},
+        {"plan_preview": False, "persistence": "required_or_unspecified", "reason": "explicit_pair_incomplete"},
+    ),
+    PolicyFixture(
+        "preview-execution-overrides-no-write",
+        "plan-preview-policy",
+        {"request_text": "只规划，不落盘，然后一次完成"},
+        {"plan_preview": False, "persistence": "required_or_unspecified", "reason": "execution_or_write_intent_present"},
+    ),
+    PolicyFixture(
+        "missing-required-reference-is-blocked",
+        "reference-policy",
+        {
+            "required_refs": ["RULES.md", "references/invariants.md"],
+            "triggered_conditional_refs": [],
+            "optional_refs": [],
+            "available_refs": ["RULES.md"],
+            "low_risk": True,
+            "acceptance_blocking": False,
+            "independent_validation_required": False,
+        },
+        {"state": "blocked", "execution_mode": "blocked", "acceptance_allowed": False, "missing_required_refs": ["references/invariants.md"]},
+    ),
+    PolicyFixture(
+        "missing-triggered-reference-is-blocked",
+        "reference-policy",
+        {
+            "required_refs": ["RULES.md"],
+            "triggered_conditional_refs": ["references/rules-ui.md"],
+            "optional_refs": [],
+            "available_refs": ["RULES.md"],
+            "low_risk": True,
+            "acceptance_blocking": False,
+            "independent_validation_required": False,
+        },
+        {"state": "blocked", "execution_mode": "blocked", "acceptance_allowed": False, "missing_triggered_conditional_refs": ["references/rules-ui.md"]},
+    ),
+    PolicyFixture(
+        "missing-optional-reference-safe-single-agent",
+        "reference-policy",
+        {
+            "required_refs": ["RULES.md"],
+            "triggered_conditional_refs": [],
+            "optional_refs": ["references/rules-ui.md"],
+            "available_refs": ["RULES.md"],
+            "low_risk": True,
+            "acceptance_blocking": False,
+            "independent_validation_required": False,
+        },
+        {"state": "degraded", "execution_mode": "single_agent_degraded", "acceptance_allowed": False},
+    ),
+    PolicyFixture(
+        "missing-optional-reference-required-validation-stays-blocked",
+        "reference-policy",
+        {
+            "required_refs": ["RULES.md"],
+            "triggered_conditional_refs": [],
+            "optional_refs": ["references/rules-ui.md"],
+            "available_refs": ["RULES.md"],
+            "low_risk": True,
+            "acceptance_blocking": False,
+            "independent_validation_required": True,
+        },
+        {"state": "degraded", "execution_mode": "blocked", "acceptance_allowed": False},
+    ),
+)
+
 def fail(message: str) -> None:
     print(f"[FAIL] {message}")
     sys.exit(1)
 
 def run_route(features: dict[str, object]) -> dict[str, object]:
+    return run_policy("route", features)["route"]
+
+
+def run_policy(command: str, request: dict[str, object]) -> dict[str, object]:
     with tempfile.NamedTemporaryFile("w", encoding="utf-8", suffix=".json", delete=False) as fh:
-        json.dump(features, fh)
+        json.dump(request, fh)
         tmp = fh.name
     try:
-        proc = subprocess.run([sys.executable, str(TOOL), "route", tmp], cwd=ROOT, text=True, capture_output=True)
+        proc = subprocess.run([sys.executable, str(TOOL), command, tmp], cwd=ROOT, text=True, capture_output=True)
     finally:
         Path(tmp).unlink(missing_ok=True)
     if proc.returncode != 0:
         fail(proc.stdout + proc.stderr)
     payload = json.loads(proc.stdout)
-    return payload["route"]
+    return payload
 
 def main() -> None:
     for fixture in FIXTURES:
         route = run_route(fixture.features)
         if route["profile"] != fixture.expected_profile:
             fail(f"{fixture.name}: profile {route['profile']} != {fixture.expected_profile}")
+        if route.get("mode") != fixture.expected_mode:
+            fail(f"{fixture.name}: mode {route.get('mode')!r} != {fixture.expected_mode!r}")
+        if fixture.expected_mode == "plan_preview" and route.get("writes_created") is not False:
+            fail(f"{fixture.name}: preview route must declare no writes")
         refs = set(route["rule_set"])
         for ref in fixture.expected_refs:
             if ref not in refs:
@@ -56,7 +150,18 @@ def main() -> None:
         for ref in fixture.forbidden_refs:
             if ref in refs:
                 fail(f"{fixture.name}: unexpected {ref}")
-    print(f"Routing fixture validation passed for {len(FIXTURES)} V2.3 scenarios.")
+    for fixture in POLICY_FIXTURES:
+        payload = run_policy(fixture.command, fixture.request)
+        policy = payload.get("policy")
+        if not isinstance(policy, dict):
+            fail(f"{fixture.name}: {fixture.command} did not return a policy object")
+        for key, expected in fixture.expected.items():
+            if policy.get(key) != expected:
+                fail(f"{fixture.name}: {key} {policy.get(key)!r} != {expected!r}")
+    print(
+        "Routing and V2.33 policy fixture validation passed for "
+        f"{len(FIXTURES)} routes and {len(POLICY_FIXTURES)} policy scenarios."
+    )
 
 if __name__ == "__main__":
     main()

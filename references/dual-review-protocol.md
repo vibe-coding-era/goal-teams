@@ -24,7 +24,7 @@ V2.3 按 `review_class` 分级。脚本负责可机械判断的事实，LLM revi
 
 - 当前 review_class 要求脚本时，脚本失败则最终结论不能是 `pass`。
 - 当前 review_class 要求 LLM 复核时，LLM 失败则最终结论不能是 `pass`。
-- 适用复核结论不一致时，`check_state=failed|blocked`，交给 Lead replan。
+- 适用复核结论不一致时，按可执行性记录单一 `check_state=failed` 或 `blocked`，交给 Lead replan。
 - 只有该 review_class 的全部必需复核通过，证据文件与 artifact version/hash 绑定，且 author/reviewer `agent_run_id` 不同，才允许 `final_decision.status=pass`。
 - author/reviewer `agent_run_id` 相同时必须拒绝，标准机器错误码是 `E_REVIEW_SELF`。
 - 不适用原因必须结构化并由独立 reviewer 接受；自由文本不能绕过门禁。

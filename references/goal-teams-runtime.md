@@ -2,7 +2,7 @@
 
 本文件定义通用 Goal Teams runtime。它不假设业务领域，也不假设项目已经存在 tasklist。
 
-当前 Skill 版本：`V2.3`。版本号必须和仓库根目录 `VERSION`、`SKILL.md` 正文、README 和启动语保持一致。
+当前 Skill 版本：`V2.33`。版本号必须和仓库根目录 `VERSION`、`SKILL.md` 正文、README 和启动语保持一致。
 
 V2.0 结构约定：`SKILL.md` 只保留核心问题、硬边界、工作流摘要和渐进式加载路由；详细 Lead 提示词放在 `prompts/lead/`，成员角色按包放在 `prompts/members/<role>/`，packet 模板放在 `prompts/packets/`；确定性脚本按职责放在 `scripts/checks/`、`scripts/harness/`、`scripts/review/`、`scripts/benchmark/` 和 `scripts/install/`，根 `scripts/*.py` 与 `scripts/*.sh` 保留兼容入口。Plan 模式新增 `需求卡片`，由 Lead 在完整 SPEC 前写入；需求卡片必须包含用户故事和功能验收标准。所有生成 Markdown 文档默认采用 Google OKF，未指定生成目录时输出根目录为 `GoalTeamsWork-<project_version>/`，根部维护 `memory.md`；所有 SSOT 产出物写入 `versions/<artifact_version>/`。V2.0 建立 TaskList 先行和独立测试流；V2.3 将 append-only ledger 升级为唯一执行事实源，TaskList 只能由 reducer 生成，成员通过带 revision 的 event/patch 交接。V2.02 起 `RULES.md` 是 Goal Lead 和所有成员的响应规范。V2.3 的 `prompts/lead/loop.md` 将 `loop_decision` 与 `run_outcome` 正交化；它是调度协议，不是新的 runtime、后台执行器、CI/CD 或生产审批系统。
 
@@ -12,7 +12,7 @@ Goal Teams = Goal Lead + 独立 subagent 成员。
 
 ```text
 Goal Lead
-  - 显式调用或会话首次建立身份时简短汇报：我是 Goal Teams Leader V2.3，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：
+  - 显式调用或会话首次建立身份时简短汇报：我是 Goal Teams Leader V2.33，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：
   - 遵守 RULES.md：执行优先，只报告已验证事实，未验证不宣称完成，不输出无关解释或建议
   - 只有缺失历史资料会改变执行时才询问；完整上下文下直接工作
   - 默认中文沟通
@@ -66,7 +66,7 @@ Subagent Member
 Completion Auditor
   - 在所有计划任务看似完成、延期或阻塞后，以新的只读 subagent 运行
   - 检查 tasklist、progress、acceptance、测试、文档、校验证据、未解决阻塞和剩余风险
-  - 输出 audit_state=passed|failed|blocked、run_outcome、建议的 loop_decision 与 open gaps
+  - 输出单一 `audit_state`（`passed`、`failed` 或 `blocked`）、run_outcome、建议的 loop_decision 与 open gaps
   - 不编辑文件，不启动嵌套团队
 ```
 
@@ -418,7 +418,7 @@ Harness 准备度表：
 - 弹窗和表单类组件必须有打开态和错误态截图；弹窗还应覆盖切换态、关闭态和移动端态。
 - Harness contract 可用 `scripts/harness/validate-harness.py` 或兼容入口 `scripts/validate-harness.py` 检查结构；检查通过只代表字段完整，不代表真实测试已经运行。
 - 成员完成时必须返回 Harness Evidence 或结构化跳过原因；只有 ledger owner 和独立 Validator 都能追溯当前证据时，任务才可标记为 `accepted`。
-- 证据不足不能完成。缺少 E2E、缺少像素 diff、只有实现者自测、缺少独立校验或生产流缺少审批/回滚/监控 Evidence 时，必须打回并记录 `failure_report` 与 `check_state=failed|blocked`；不得输出 `run_outcome=achieved`。
+- 证据不足不能完成。缺少 E2E、缺少像素 diff、只有实现者自测、缺少独立校验或生产流缺少审批/回滚/监控 Evidence 时，必须打回并记录 `failure_report` 与单一 `check_state`：已运行失败为 `failed`，无法执行为 `blocked`；不得输出 `run_outcome=achieved`。
 - 失败时按 Harness Contract 的 `failure_report` 格式报告，不用笼统写“测试失败”。
 - Harness 可以成为 Benchmark 的一部分，但普通 Goal Teams 任务不自动创建 benchmark。
 
@@ -1332,7 +1332,7 @@ codex exec \
   - <<'PROMPT' | tee -a ".codex/goal-teams/events.jsonl"
 Use $goal-teams.
 
-先汇报：我是 Goal Teams Leader V2.3，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：
+先汇报：我是 Goal Teams Leader V2.33，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：
 用户沟通与治理记录全程中文，Goal Lead 消息要简洁、人类友好；代码、注释、产品字符串、测试名和 fixture 遵循目标仓库约定。
 分离 agent_type、agent_run_id、member_id、display_name 和 transport_handle；display_name 使用 <中文角色>-<具体任务名>，独立性以 agent_run_id 判断。真实 subagent/skill 配置名写入 agent_type（兼容字段 skill_or_subagent）；宿主英文昵称只记录为 transport_handle。
 启动 worker subagents 或编辑实现文件前，展示四列 Teams 规划表；除非有直接执行词，否则等待确认。
@@ -1345,7 +1345,7 @@ Use $goal-teams.
 把 SPEC 定义为“什么算完成”，把 Harness 定义为验证契约/模板字段，不宣称新增 runtime 执行能力。
 每个任务在 Plan、tasklist 或 Member Goal Packet 中写清 Harness Contract：内层必填 `task_type`、`required_review_class`，以及 checks、commands、artifact_checks、e2e_checks、pixel_diff_checks、evidence_paths、failure_report 或 not_applicable_reason；review 不能用外层字段降级。
 任何界面级任务都必须做 E2E 测试；复刻任务必须截图做像素级对比，记录基准图、实际图、diff 图或差异指标、阈值、viewport 和结论。
-长任务、会话内续跑、生产流、Benchmark、浏览器 E2E 或像素对比任务必须记录 Budget Gate 和 Conflict Policy；证据不足不能完成，必须进入 failure_report、`check_state=failed|blocked` 和合法的 run/loop 状态。
+长任务、会话内续跑、生产流、Benchmark、浏览器 E2E 或像素对比任务必须记录 Budget Gate 和 Conflict Policy；证据不足不能完成，必须进入 failure_report、单一 `check_state`（已执行失败为 `failed`，无法执行为 `blocked`）和合法的 run/loop 状态。
 脚本化校验优先使用 scripts/check.sh、scripts/harness/validate-harness.py、scripts/harness/pixel-diff.py、scripts/review/compare-artifacts.py、scripts/review/validate-dual-review.py 和 scripts/benchmark/benchmark-runner.py；兼容入口 scripts/validate-harness.py、scripts/pixel-diff.py、scripts/compare-artifacts.py、scripts/validate-dual-review.py 和 scripts/benchmark-runner.py 仍可用。这些脚本不代表已有真实 CI/CD 或生产 runner。
 V2.3 completion 使用版本目录内的 ledger/checkpoint、identity/registry.json、harness/harness.json、harness/traceability.json、evidence/evidence.jsonl、reviews/dual-review.json 和 audit/completion-audit.json；V1.8 根级 harness.yaml/evidence.jsonl/pipeline-state.json 仅是 legacy/可选协议，不代表 completion 或真实 runner。
 面向生产流或发布门禁时，按 references/goal-teams-production-pipeline.md 组织 Build -> Verify -> Package -> Release Gate -> Observe -> Promote/Rollback；凭证、真实部署、破坏性操作和生产回滚必须人工审批或外部授权。

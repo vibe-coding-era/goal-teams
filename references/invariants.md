@@ -13,7 +13,7 @@ okf_version: "0.1"
 
 ## L0 不变量
 
-1. 遵守 `RULES.md`：执行优先，未验证不宣称成功，混合确定性内容使用 V2.3 Fact Labels。
+1. 遵守 `RULES.md` 的用户可见 Response Contract：执行优先，未验证不宣称成功，混合确定性内容使用 V2.3 Fact Labels；它不能覆盖本文件的状态、安全、证据或权限不变量。
 2. append-only ledger 是执行事实源；成员提交 revision-bound event/patch，只有 ledger owner 合并，`TaskList.md` 只能由 reducer 生成。
 3. 交接物类型和字段以 `prompts/packets/handoff-artifacts.md` 为 SSOT，不得在计划、成员包或验收中另起口径。
 4. 默认输出根目录为 `GoalTeamsWork-<project_version>/`；根部维护 `memory.md`，SSOT 写入 `versions/<artifact_version>/`。
@@ -22,13 +22,19 @@ okf_version: "0.1"
 7. 用户沟通和治理文档默认中文；代码、注释、测试名、fixture 与产品字符串遵循目标仓库约定。
 8. 路径、命令、API、日志、配置键、agent/skill 名称和精确引用保留原文。
 
-规则冲突时：系统/用户 → 项目 AGENTS → invariants → 条件规则 → Lead prompt → Member prompt。
+规则冲突时：系统/用户 → 项目 AGENTS → invariants → 条件规则 → `RULES.md`（仅用户可见响应）→ Lead prompt → Member prompt。`RULES.md` 不参与状态、权限、Evidence、Harness、独立性或完成谓词的降级决策。
 
 ## 身份与能力边界
 
 - `agent_type`、唯一 `agent_run_id`、稳定 `member_id`、本地化 `display_name` 与 `transport_handle` 必须分离；独立性使用 agent_run_id，不能使用显示名。
 - `goal_*` 不可用时，只有 capability manifest 证明能力等价且权限不扩大才可自动 fallback；否则 blocked 或请求用户。
 - Lead LOOP 只是在当前会话、宿主支持时的协议驱动 continuation，不是后台 runner、CI/CD 或生产审批系统。
+
+## 引用文件缺失与受限降级
+
+- 引用文件分为三类：核心（本文件、schema、Harness/Evidence/ledger/独立验证所需契约）、条件（由 UI、后端、测试、LOOP、迁移、安全等已触发范围决定）和可选（不影响当前范围的说明或示例）。分类与加载路径由 `references/compat.md` 集中声明。
+- 缺少核心文件、已触发范围的条件文件，或无法确认引用完整性时，记录缺失路径和影响，使用 `task_state=blocked`、`check_state=blocked`；不得用简化 prompt、旧缓存或作者自检绕过独立验证、Evidence 或完成门禁。
+- 仅当任务为低风险、非 acceptance-blocking，且其 Harness 明确不要求独立验证时，缺少未触发的条件/可选文件才可记录 `degraded_mode=single_agent` 继续。该降级不得创建 `accepted`、`passed` 或 `achieved` 结论，且一旦触及 required check、外部写入、安全、迁移、UI/E2E、后端/API、长任务或审计即停止并按 blocked 处理。
 
 ## 执行边界
 
@@ -46,7 +52,8 @@ okf_version: "0.1"
 
 | 情形 | 机器结果 |
 | --- | --- |
-| Evidence 不足或检查失败 | `task_state=running|blocked`，`check_state=failed|blocked` |
+| 已执行的 Evidence 不足、无效或检查未通过 | `task_state=running`，`check_state=failed`；补跑后再决定状态 |
+| 因授权、核心依赖、能力或已触发条件引用缺失而无法检查 | `task_state=blocked`，`check_state=blocked` |
 | 独立 Validator 不可用 | blocked；禁止自审替代 |
 | 需要用户、新范围或安全授权 | `loop_decision=stop`，`run_outcome=blocked`，结构化 stop_reason |
 | Budget/轮次超限 | `loop_decision=stop`，`run_outcome=partial|blocked`，`stop_reason=budget_exceeded` |

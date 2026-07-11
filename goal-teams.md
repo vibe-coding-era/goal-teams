@@ -4,10 +4,10 @@
 
 ## 基本原则
 
-- 当前 skill 版本号为 `V2.3`，版本号保存在仓库根目录 `VERSION`，并同步写入 `SKILL.md` 正文；`SKILL.md` frontmatter 只保留 `name` 和 `description`。
+- 当前 skill 版本号为 `V2.33`，版本号保存在仓库根目录 `VERSION`，并同步写入 `SKILL.md` 正文；`SKILL.md` frontmatter 只保留 `name` 和 `description`。
 - 历史 `V2.02` 与 `V2.1` 是 `V2.3` 前的补丁线；后续版本优先使用 `V2.3`、`V2.4` 这类递增格式，避免继续新增 `V2.0x` 版本叙事。
-- 显式调用 Goal Teams 或当前会话首次需要建立身份时，Goal Lead 简短汇报：`我是 Goal Teams Leader V2.3，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：`；已有完整上下文时直接执行，不重复仪式。
-- `V1.5` 引入 Harness 契约与三层 Loop 规则，`V1.6` 补充最小 Harness 示例，`V1.7` 引入 Benchmark 外层评估模板，`V1.8` 引入机器可读研发协议，`V1.9` 引入生产流与 Release Gate 协议，`V1.91` 强化中文右边栏成员显示名、界面 E2E 和复刻像素级对比，`V1.92` 引入脚本化工具链、派发协议、冲突策略、预算门和证据不足打回规则，`V1.93` 引入 `SKILL.md` 轻量入口、`prompts/` 角色提示词目录和脚本分目录，`V1.94` 引入成员包子目录和 LLM + 脚本双重复核，`V1.95` 引入 Plan 模式 `需求卡片`，`V1.96` 引入用户故事和功能验收标准，`V1.97` 引入 Google OKF、默认输出目录、memory.md、页面规格卡/HTML 原型组件库记录，`V2.0` 引入版本子目录 SSOT、TaskList 先行、后端架构先行、TDD 单测生成/执行、API 集成 pytest 和前端 E2E 生成/执行，`V2.02` 引入 `RULES.md` 响应规范，`V2.1` 引入 Lead LOOP、Loop Decision、Loop Gate、状态快照和 `GT-BENCH-004`，`V2.3` 引入精简入口、条件加载 rules、路由 fixtures 和文件级规则校验；发布说明可以分别记录阶段，但当前运行规则按 `V2.3` 执行。
+- 显式调用 Goal Teams 或当前会话首次需要建立身份时，Goal Lead 简短汇报：`我是 Goal Teams Leader V2.33，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：`；已有完整上下文时直接执行，不重复仪式。
+- `V1.5` 引入 Harness 契约与三层 Loop 规则，`V1.6` 补充最小 Harness 示例，`V1.7` 引入 Benchmark 外层评估模板，`V1.8` 引入机器可读研发协议，`V1.9` 引入生产流与 Release Gate 协议，`V1.91` 强化中文右边栏成员显示名、界面 E2E 和复刻像素级对比，`V1.92` 引入脚本化工具链、派发协议、冲突策略、预算门和证据不足打回规则，`V1.93` 引入 `SKILL.md` 轻量入口、`prompts/` 角色提示词目录和脚本分目录，`V1.94` 引入成员包子目录和 LLM + 脚本双重复核，`V1.95` 引入 Plan 模式 `需求卡片`，`V1.96` 引入用户故事和功能验收标准，`V1.97` 引入 Google OKF、默认输出目录、memory.md、页面规格卡/HTML 原型组件库记录，`V2.0` 引入版本子目录 SSOT、TaskList 先行、后端架构先行、TDD 单测生成/执行、API 集成 pytest 和前端 E2E 生成/执行，`V2.02` 引入 `RULES.md` 响应规范，`V2.1` 引入 Lead LOOP、Loop Decision、Loop Gate、状态快照和 `GT-BENCH-004`，`V2.3` 引入机器契约与 release gates，`V2.33` 明确规则优先级、显式 preview、引用降级和双语发布结构；当前运行规则按 `V2.33` 执行。
 - `SKILL.md` 只保留触发导向 description、固定启动语、不变量、规划检查、失败降级摘要、工作流摘要和渐进式加载路由；完整硬边界和条件规则分别放入 `references/invariants.md`、`references/rules-ui.md`、`references/rules-testing.md`、`references/rules-loop.md` 和 `references/compat.md`。
 - `RULES.md` 承载 Goal Lead 和所有成员的 Response Contract，要求执行优先、只报告已验证事实、未验证不宣称完成、区分观察和结论、避免无关解释和建议。
 - SSOT 是核心原则：交接物类型、Owner 字段、独立检查字段和状态字段以 `prompts/packets/handoff-artifacts.md` 为 Single Source of Truth；其他 workflow、template、README 和 runtime 示例只能引用或同步它，不能另起一套口径。
@@ -168,7 +168,7 @@
 - V2.02 要求 Goal Lead 和所有成员遵守 `RULES.md` 响应规范：简洁、事实优先、执行优先，未验证时明确标注。
 - V2.1 要求 Lead LOOP 成为执行期闭环协议：每轮 `Integrate` 后记录 `Loop Decision`，长任务、自动续跑、生产流、Benchmark、浏览器 E2E、像素对比或跨成员依赖任务必须记录 `Loop Gate` 和状态快照；Lead LOOP 不代表新的 runtime、后台执行器、CI/CD 或生产审批系统。
 - 可用脚本包括兼容入口 `scripts/install-local.sh`、`scripts/check-version-sync.py`、`scripts/check-routing-fixtures.py`、`scripts/check-agent-names.py`、`scripts/check-member-layout.py`、`scripts/validate-harness.py`、`scripts/pixel-diff.py`、`scripts/compare-artifacts.py`、`scripts/validate-dual-review.py` 和 `scripts/benchmark-runner.py`；真实脚本按职责放入 `scripts/install/`、`scripts/checks/`、`scripts/harness/`、`scripts/review/` 和 `scripts/benchmark/`。
-- 证据不足不能完成。缺少 E2E、缺少像素级对比、只有实现者自测、缺少独立校验或生产流缺少真实审批/回滚/监控 Evidence 时，必须打回并记录 `failure_report`、`check_state=failed|blocked`；不得输出 `run_outcome=achieved`。
+- 证据不足不能完成。缺少 E2E、缺少像素级对比、只有实现者自测、缺少独立校验或生产流缺少真实审批/回滚/监控 Evidence 时，必须打回并记录 `failure_report`、单一 `check_state`（已执行失败/证据无效为 `failed`，无法执行/完成为 `blocked`）；不得输出 `run_outcome=achieved`。
 - `Benchmark` 是 Goal Teams 之外的评估目录与任务集，用于比较工作流、skill 版本、prompt 或 agent 组合的稳定性。默认形态是 `benchmarks/` 下的任务包、评分协议、运行记录和失败分类；普通 Goal Teams 任务不自动创建 benchmark，除非用户要求或计划确认。
 - Benchmark 任务包应由任务说明或 `SPEC`、Harness、metadata（可选）、评分协议、fixtures/expected（可选）和报告模板组成；它评估完整 AI Coding 系统，不只评模型输出。只有已有或明确实现时才引用运行/评分脚本。
 - Benchmark 报告应记录模型/skill/prompt 版本、项目 commit、工具版本、联网和权限设置、时间/token/费用预算、任务成功率、回归率、人工介入、证据完整度和失败分类。
@@ -181,6 +181,10 @@
 - 三层 Loop 不能互相替代：成员不能创建嵌套团队；Lead 不能把未验证产物直接标记完成；Skill Improvement 不在普通用户任务中自动修改 skill 规则，除非用户明确要求。
 
 ## 发布仓库维护
+
+- 发布信息采用独立双语文档：`docs/release-contents.md` / `docs/release-contents.en.md` 记录可见发布包构成，`docs/change-history.md` / `docs/change-history.en.md` 记录按版本整理的变更摘要；README 只链接这些文档，不重复发布清单正文。`CHANGELOG.md` 保留逐项技术变更的兼容记录。
+- `docs/后续版本规划 V3.3-3.5.md` 是用户维护的后续版本规划源文件：AI 不得修改；在用户未单独授权前不得将其纳入 GitHub 提交或发布范围。该文件的建议不是已实现能力，也不改变当前 `VERSION` 或运行契约。
+- 发布文档只陈述当前仓库可验证的内容。规划、提案或未通过验证的能力必须明确标为未实现，不能作为版本发布声明。
 
 - 更新 skill 规则时，同步更新：
   - `AGENTS.md`
