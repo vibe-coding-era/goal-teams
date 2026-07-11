@@ -1,0 +1,26 @@
+{
+  "argv": [
+    "python3",
+    "scripts/v23/goalteams_v23.py",
+    "release-gate",
+    "examples/canonical-v23",
+    "--mode",
+    "rc",
+    "--blind-summary",
+    "/private/tmp/goal-teams-v23-closure-blind/summary.json"
+  ],
+  "attempt_id": "ATT-V23-RELEASE-CLOSURE",
+  "check_id": "CHECK-V23-RELEASE-CLOSURE",
+  "cwd": ".",
+  "ended_at": "2026-07-11T01:50:22.383066Z",
+  "evidence_id": "EVD-V23-RELEASE-GATE",
+  "exit_code": 0,
+  "log_path": "versions/V2.3/evidence/release-gate.log",
+  "log_sha256": "b335710d608677c40f2ccd5e91830665813d2132dd18525ba11d49cc56ee8493",
+  "log_size": 2237,
+  "producer_run_id": "RUN-ROOT-V23-CLOSURE",
+  "record_type": "command_execution",
+  "run_id": "RUN-V23-RELEASE-GATE",
+  "schema_version": "goal-teams-v2.3",
+  "started_at": "2026-07-11T01:38:59.542233Z"
+}

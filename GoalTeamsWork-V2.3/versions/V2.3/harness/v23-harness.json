@@ -1,0 +1,36 @@
+{
+  "schema_version": "goal-teams-v2.3",
+  "harness_contract": {
+    "checks": [
+      {"check_id": "CHECK-23-RG01-CONTRACT", "acceptance_criteria_refs": ["AC-23-001", "AC-23-027", "AC-23-028"], "required": true},
+      {"check_id": "CHECK-23-RG02-STATE", "acceptance_criteria_refs": ["AC-23-002"], "required": true},
+      {"check_id": "CHECK-23-RG03-LEDGER", "acceptance_criteria_refs": ["AC-23-003", "AC-23-004"], "required": true},
+      {"check_id": "CHECK-23-RG04-EVIDENCE", "acceptance_criteria_refs": ["AC-23-005", "AC-23-006", "AC-23-007", "AC-23-031"], "required": true},
+      {"check_id": "CHECK-23-RG05-CANONICAL", "acceptance_criteria_refs": ["AC-23-008", "AC-23-016", "AC-23-017"], "required": true},
+      {"check_id": "CHECK-23-RG06-ROUTING", "acceptance_criteria_refs": ["AC-23-011", "AC-23-012"], "required": true},
+      {"check_id": "CHECK-23-RG07-CAPABILITY", "acceptance_criteria_refs": ["AC-23-013", "AC-23-014"], "required": true},
+      {"check_id": "CHECK-23-RG08-CONTEXT", "acceptance_criteria_refs": ["AC-23-009", "AC-23-010", "AC-23-011"], "required": true},
+      {"check_id": "CHECK-23-RG09-MIGRATION", "acceptance_criteria_refs": ["AC-23-015", "AC-23-023", "AC-23-024", "AC-23-025"], "required": true},
+      {"check_id": "CHECK-23-RG10-BEHAVIOR", "acceptance_criteria_refs": ["AC-23-020", "AC-23-022"], "required": true},
+      {"check_id": "CHECK-23-RG11-DISTRIBUTION", "acceptance_criteria_refs": ["AC-23-018", "AC-23-019", "AC-23-026", "AC-23-029", "AC-23-030"], "required": true},
+      {"check_id": "CHECK-23-RG12-SECURITY", "acceptance_criteria_refs": ["AC-23-021", "AC-23-022"], "required": true}
+    ],
+    "commands": [
+      ["./scripts/check.sh"],
+      ["python3", "scripts/checks/check-v23.py"],
+      ["python3", "-m", "unittest", "discover", "-s", "tests/v23", "-v"]
+    ],
+    "evidence_paths": [
+      "versions/V2.3/evidence/release-gates.json",
+      "versions/V2.3/evidence/test-run.log",
+      "versions/V2.3/reviews/dual-review.json",
+      "versions/V2.3/audit/completion-audit.json"
+    ],
+    "failure_report": {
+      "required": true,
+      "failing_check": "required",
+      "next_verification": "repair the failing gate and rerun the complete release chain"
+    },
+    "not_applicable_reason": "The repository is a local Codex Skill package; production deployment is outside V2.3. GA still requires the repository owner License decision."
+  }
+}

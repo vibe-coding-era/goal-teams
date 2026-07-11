@@ -1,0 +1,53 @@
+{
+  "artifact_ref": "versions/V2.3/evidence/release-gate.log",
+  "artifact_sha256": "b335710d608677c40f2ccd5e91830665813d2132dd18525ba11d49cc56ee8493",
+  "artifact_version": "V2.3",
+  "binding_digest": "9c22b0f0072a4c808808242991269cebf8fbb4b0103c5cfe5c034e3b6fa32fc1",
+  "domain_execution": {
+    "argv": [
+      "python3",
+      "scripts/v23/goalteams_v23.py",
+      "release-gate",
+      "examples/canonical-v23",
+      "--mode",
+      "rc",
+      "--blind-summary",
+      "/private/tmp/goal-teams-v23-closure-blind/summary.json"
+    ],
+    "cwd": ".",
+    "ended_at": "2026-07-11T01:50:22.383066Z",
+    "execution_record_path": "versions/V2.3/evidence/execution-EVD-V23-RELEASE-GATE.json",
+    "execution_record_sha256": "e4f56217045f07235937899739d4f0e12c25a50a9dc6336db7bf5763e069bbba",
+    "execution_record_size": 799,
+    "exit_code": 0,
+    "log_mtime_ns": 1783734622384296954,
+    "log_path": "versions/V2.3/evidence/release-gate.log",
+    "log_sha256": "b335710d608677c40f2ccd5e91830665813d2132dd18525ba11d49cc56ee8493",
+    "log_size": 2237,
+    "started_at": "2026-07-11T01:38:59.542233Z"
+  },
+  "error_code": null,
+  "exit_code": 0,
+  "integrity_replay": {
+    "argv": [
+      "python3",
+      "-I",
+      "-c",
+      "import hashlib,json,pathlib,sys\nif len(sys.argv) != 4:\n    raise SystemExit(64)\nroot = pathlib.Path.cwd().resolve()\nraw = pathlib.Path(sys.argv[1])\ncandidate_input = raw if raw.is_absolute() else root / raw\nif candidate_input.is_symlink():\n    raise SystemExit(65)\ncandidate = candidate_input.resolve()\ntry:\n    candidate.relative_to(root)\nexcept (OSError,RuntimeError,ValueError):\n    raise SystemExit(66)\nif not candidate.is_file():\n    raise SystemExit(67)\ndigest = hashlib.sha256()\nwith candidate.open(\"rb\") as stream:\n    for chunk in iter(lambda: stream.read(1048576), b\"\"):\n        digest.update(chunk)\nactual = digest.hexdigest()\nif actual != sys.argv[2]:\n    raise SystemExit(68)\npayload = {\"artifact_ref\": sys.argv[1], \"artifact_sha256\": actual, \"binding_digest\": sys.argv[3], \"verifier\": \"goal-teams-v2.3-safe-artifact-verifier-v1\"}\nsys.stdout.write(json.dumps(payload, ensure_ascii=True, sort_keys=True, separators=(\",\", \":\")) + \"\\n\")\n",
+      "versions/V2.3/evidence/release-gate.log",
+      "b335710d608677c40f2ccd5e91830665813d2132dd18525ba11d49cc56ee8493",
+      "9c22b0f0072a4c808808242991269cebf8fbb4b0103c5cfe5c034e3b6fa32fc1"
+    ],
+    "cwd": ".",
+    "ended_at": "2026-07-11T01:51:33.963243Z",
+    "exit_code": 0,
+    "log_path": "versions/V2.3/reviews/script-review-integrity.log",
+    "log_sha256": "60b261f026ae20534ad8379098cc64863a8d4e54e180a6ff03db327920c260f7",
+    "log_size": 283,
+    "started_at": "2026-07-11T01:51:33.937808Z"
+  },
+  "ok": true,
+  "reviewer_run_id": "RUN-V23-RELEASE-SCRIPT-REVIEW",
+  "schema_version": "goal-teams-v2.3",
+  "tool": "goalteams-v23-release-gate"
+}

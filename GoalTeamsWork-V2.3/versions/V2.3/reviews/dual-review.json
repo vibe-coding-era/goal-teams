@@ -1,0 +1,37 @@
+{
+  "artifact": {
+    "artifact_ref": "versions/V2.3/evidence/release-gate.log",
+    "artifact_sha256": "b335710d608677c40f2ccd5e91830665813d2132dd18525ba11d49cc56ee8493",
+    "artifact_version": "V2.3"
+  },
+  "author_run_id": "RUN-ROOT-V23-CLOSURE",
+  "final_decision": {
+    "reason": "Independent script and safety reviews passed.",
+    "status": "pass"
+  },
+  "llm_review": {
+    "artifact_sha256": "b335710d608677c40f2ccd5e91830665813d2132dd18525ba11d49cc56ee8493",
+    "artifact_version": "V2.3",
+    "evidence_path": "versions/V2.3/reviews/semantic-review.md",
+    "evidence_sha256": "3368bccd6e7fb54861827566bc1cfe97d02a286e86923c5c64e79b190b59022b",
+    "evidence_size": 332,
+    "reviewer": "独立评审-V2.3冻结复核",
+    "reviewer_run_id": "RUN-R236-FRESH-REVIEW-20260711-01",
+    "status": "passed",
+    "summary": "Frozen release closure is consistent and GA remains fail-closed."
+  },
+  "review_class": "safety",
+  "reviewer_run_id": "RUN-R236-FRESH-REVIEW-20260711-01",
+  "schema_version": "goal-teams-v2.3",
+  "script_review": {
+    "artifact_sha256": "b335710d608677c40f2ccd5e91830665813d2132dd18525ba11d49cc56ee8493",
+    "artifact_version": "V2.3",
+    "evidence_path": "versions/V2.3/reviews/script-review.json",
+    "evidence_sha256": "ffe344ea0ce9b135982227ea770cdf6d87537f247907a1940404969dedc1c4ff",
+    "evidence_size": 2892,
+    "exit_code": 0,
+    "reviewer_run_id": "RUN-V23-RELEASE-SCRIPT-REVIEW",
+    "status": "passed",
+    "tool": "goalteams-v23-release-gate"
+  }
+}

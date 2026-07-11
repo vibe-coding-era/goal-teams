@@ -1,0 +1,74 @@
+{
+  "artifact_mtime_ns": 1783734622384296954,
+  "artifact_ref": "versions/V2.3/evidence/release-gate.log",
+  "artifact_sha256": "b335710d608677c40f2ccd5e91830665813d2132dd18525ba11d49cc56ee8493",
+  "artifact_size": 2237,
+  "attempt_id": "ATT-V23-RELEASE-CLOSURE",
+  "check_id": "CHECK-V23-RELEASE-CLOSURE",
+  "command": {
+    "argv": [
+      "python3",
+      "scripts/v23/goalteams_v23.py",
+      "release-gate",
+      "examples/canonical-v23",
+      "--mode",
+      "rc",
+      "--blind-summary",
+      "/private/tmp/goal-teams-v23-closure-blind/summary.json"
+    ],
+    "cwd": ".",
+    "ended_at": "2026-07-11T01:50:22.383066Z",
+    "execution_record_path": "versions/V2.3/evidence/execution-EVD-V23-RELEASE-GATE.json",
+    "execution_record_sha256": "e4f56217045f07235937899739d4f0e12c25a50a9dc6336db7bf5763e069bbba",
+    "execution_record_size": 799,
+    "exit_code": 0,
+    "log_mtime_ns": 1783734622384296954,
+    "log_path": "versions/V2.3/evidence/release-gate.log",
+    "log_sha256": "b335710d608677c40f2ccd5e91830665813d2132dd18525ba11d49cc56ee8493",
+    "log_size": 2237,
+    "started_at": "2026-07-11T01:38:59.542233Z"
+  },
+  "created_at": "2026-07-11T01:51:33.937861Z",
+  "environment": {
+    "commit": "87f2f604967d00e06e729cd218fa8104f0527295",
+    "ledger_prefix_sha256": "336f331de292075f580332fa244652b4da36affc5f54e6dbb9c705ceab302c37",
+    "ledger_revision": 39,
+    "platform": "darwin",
+    "python_version": "3.14.3",
+    "source_paths": [
+      "GoalTeams-PRD-V2.3.md",
+      "schemas/v2.3/goal-teams.schema.json",
+      "scripts/v23/goalteams_v23.py",
+      "scripts/v23/package_selection.py",
+      "scripts/checks/check.sh",
+      "scripts/install/install-local.sh",
+      "tests/v23/fixtures/behavior/blind-agent-codex.json"
+    ],
+    "workspace_revision": "eabfc7e82235cac4abcc48a7e0940a4960afbc5edc3612020addc0a7704f1c73"
+  },
+  "evidence_id": "EVD-V23-RELEASE-GATE",
+  "evidence_kind": "command_execution",
+  "integrity_replay": {
+    "argv": [
+      "python3",
+      "-I",
+      "-c",
+      "import hashlib,json,pathlib,sys\nif len(sys.argv) != 4:\n    raise SystemExit(64)\nroot = pathlib.Path.cwd().resolve()\nraw = pathlib.Path(sys.argv[1])\ncandidate_input = raw if raw.is_absolute() else root / raw\nif candidate_input.is_symlink():\n    raise SystemExit(65)\ncandidate = candidate_input.resolve()\ntry:\n    candidate.relative_to(root)\nexcept (OSError,RuntimeError,ValueError):\n    raise SystemExit(66)\nif not candidate.is_file():\n    raise SystemExit(67)\ndigest = hashlib.sha256()\nwith candidate.open(\"rb\") as stream:\n    for chunk in iter(lambda: stream.read(1048576), b\"\"):\n        digest.update(chunk)\nactual = digest.hexdigest()\nif actual != sys.argv[2]:\n    raise SystemExit(68)\npayload = {\"artifact_ref\": sys.argv[1], \"artifact_sha256\": actual, \"binding_digest\": sys.argv[3], \"verifier\": \"goal-teams-v2.3-safe-artifact-verifier-v1\"}\nsys.stdout.write(json.dumps(payload, ensure_ascii=True, sort_keys=True, separators=(\",\", \":\")) + \"\\n\")\n",
+      "versions/V2.3/evidence/release-gate.log",
+      "b335710d608677c40f2ccd5e91830665813d2132dd18525ba11d49cc56ee8493",
+      "37c035928e941a015fe482721200a22331bb3a6c047ad6f3720a68b90751cdc8"
+    ],
+    "cwd": ".",
+    "ended_at": "2026-07-11T01:51:33.936861Z",
+    "exit_code": 0,
+    "log_mtime_ns": 1783734693937052271,
+    "log_path": "versions/V2.3/evidence/integrity-EVD-V23-RELEASE-GATE.log",
+    "log_sha256": "df16d9678e5031d81931245c3ea26c8fd5ec0d4116d1da5541ced9d4a99bcdab",
+    "log_size": 283,
+    "started_at": "2026-07-11T01:51:33.907894Z"
+  },
+  "producer_run_id": "RUN-ROOT-V23-CLOSURE",
+  "run_id": "RUN-V23-RELEASE-GATE",
+  "schema_version": "goal-teams-v2.3",
+  "trust_level": "local_verified"
+}

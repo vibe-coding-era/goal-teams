@@ -1,0 +1,85 @@
+{
+  "harness_contract": {
+    "artifact_checks": [
+      "source commit",
+      "blind 9/9",
+      "full deterministic suite"
+    ],
+    "checks": [
+      {
+        "acceptance_blocking": true,
+        "acceptance_criteria_refs": [
+          "AC-23-001",
+          "AC-23-002",
+          "AC-23-003",
+          "AC-23-004",
+          "AC-23-005",
+          "AC-23-006",
+          "AC-23-007",
+          "AC-23-008",
+          "AC-23-009",
+          "AC-23-010",
+          "AC-23-011",
+          "AC-23-012",
+          "AC-23-013"
+        ],
+        "check_id": "CHECK-V23-RELEASE-CLOSURE",
+        "check_state": "passed",
+        "evidence_refs": [
+          "EVD-V23-RELEASE-GATE"
+        ],
+        "expected_domain_execution": {
+          "argv": [
+            "python3",
+            "scripts/v23/goalteams_v23.py",
+            "release-gate",
+            "examples/canonical-v23",
+            "--mode",
+            "rc",
+            "--blind-summary",
+            "/private/tmp/goal-teams-v23-closure-blind/summary.json"
+          ],
+          "cwd": "."
+        },
+        "required": true,
+        "schema_version": "goal-teams-v2.3",
+        "validator_run_id": "RUN-R236-FRESH-REVIEW-20260711-01"
+      }
+    ],
+    "commands": [
+      "python3 scripts/v23/goalteams_v23.py release-gate examples/canonical-v23 --mode rc --blind-summary /private/tmp/goal-teams-v23-closure-blind/summary.json"
+    ],
+    "e2e_checks": [
+      "real nine-scenario blind-agent run"
+    ],
+    "evidence_paths": [
+      "versions/V2.3/evidence/evidence.jsonl"
+    ],
+    "evidence_records": [
+      "versions/V2.3/evidence/evidence.json"
+    ],
+    "failure_report": {
+      "failing_check": "required",
+      "stable_error_envelope": true
+    },
+    "pixel_diff_checks": [],
+    "required_review_class": "safety",
+    "task_type": "security"
+  },
+  "runs": [
+    {
+      "attempt_id": "ATT-V23-RELEASE-CLOSURE",
+      "check_id": "CHECK-V23-RELEASE-CLOSURE",
+      "ended_at": "2026-07-11T01:51:33.937861Z",
+      "evidence_refs": [
+        "EVD-V23-RELEASE-GATE"
+      ],
+      "producer_run_id": "RUN-ROOT-V23-CLOSURE",
+      "run_id": "RUN-V23-RELEASE-GATE",
+      "schema_version": "goal-teams-v2.3",
+      "started_at": "2026-07-11T01:38:59.541233Z",
+      "status": "passed"
+    }
+  ],
+  "schema_version": "goal-teams-v2.3"
+}

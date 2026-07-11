@@ -1,0 +1,40 @@
+{
+  "identities": [
+    {
+      "agent_run_id": "RUN-ROOT-V23-CLOSURE",
+      "agent_type": "goal_lead",
+      "display_name": "Goal Lead-V2.3收尾",
+      "member_id": "Goal Lead-V2.3收尾",
+      "transport_handle": "v23_closure_owner"
+    },
+    {
+      "agent_run_id": "RUN-R236-FRESH-REVIEW-20260711-01",
+      "agent_type": "goal_reviewer",
+      "display_name": "独立评审-V2.3冻结复核",
+      "member_id": "独立评审-V2.3冻结复核",
+      "transport_handle": "v23_fresh_reviewer"
+    },
+    {
+      "agent_run_id": "RUN-V23-RELEASE-SCRIPT-REVIEW",
+      "agent_type": "goal_reviewer",
+      "display_name": "脚本评审-V2.3发布门",
+      "member_id": "脚本评审-V2.3发布门",
+      "transport_handle": "v23_script_reviewer"
+    },
+    {
+      "agent_run_id": "RUN-ROOT-V23-LEDGER",
+      "agent_type": "goal_merge_owner",
+      "display_name": "账本所有者-V2.3",
+      "member_id": "账本所有者-V2.3",
+      "transport_handle": "v23_ledger_owner"
+    },
+    {
+      "agent_run_id": "RUN-V23-COMPLETION-AUDITOR-20260711-01",
+      "agent_type": "goal_completion_auditor",
+      "display_name": "完成审计-V2.3",
+      "member_id": "完成审计-V2.3",
+      "transport_handle": "v23_completion_auditor"
+    }
+  ],
+  "schema_version": "goal-teams-v2.3"
+}

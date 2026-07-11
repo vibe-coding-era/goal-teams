@@ -1,0 +1,639 @@
+{
+  "conflicts": [],
+  "event_digests": {
+    "EVT-V23-001": "ac062fd0f977e2567fea161033c0f79e0171a77b7d5e6c38cdfc2a44a1fe8fd3",
+    "EVT-V23-002": "9e27cc95e18777f3a226a594450bf3b19da2fd498415cf845a55d3278cb9efc0",
+    "EVT-V23-003": "ab1dbc08a8cc917ff872a5126f3b531da0afc880f2cb4079c4c16c2ba906c904",
+    "EVT-V23-004": "75e20e1b8f4fce8cd9525c3e8e9a50d9e7f7b5eee73131c0623b7d9cc64ff2dd",
+    "EVT-V23-005": "1716efd0f5d695c64db1c108992ce156fe6158e7d4ef4998ecdb0e5e8c0f7b0c",
+    "EVT-V23-006": "c81abb6ec9f7b974a7020f23ce81f256975e022c5d40224b6be039c7c2d487ce",
+    "EVT-V23-007": "5eb1ff66b73aaa6451345f8ee21f42f5421dfb8f201fe4dafdf2225e17ad8a8b",
+    "EVT-V23-008": "5d61d91ffac7dae2df72cc3dfbb43556b60a85d2d6faacd4c84bbf168901f175",
+    "EVT-V23-009": "055d40db65ef3a8188234e4bea43f328f64ffc665440ee99176f8e05227f154f",
+    "EVT-V23-010": "d159afb498fe3fac84db274a997c3f91536a50f8e658356b9dff934bb1e3387a",
+    "EVT-V23-011": "22087134c8bfee644845e1c95518c75b6c06fddd739c310451217b379b3d71c4",
+    "EVT-V23-012": "2649e056609543fc88ed30fe9e781fedb6cf9f5b30d48d85866d31d5d5b8c73c",
+    "EVT-V23-013": "2b187f27ea2e2b594c2c451be8aae7717859fcab7d4c74ee4cbfc66f3e23b80f",
+    "EVT-V23-014": "ff7bab37e42f346630c89d2455d32ebefb587913e7102f3b5fff604534a6d2df",
+    "EVT-V23-015": "6c6d91d418649b6ed85dd1465943bdec98966bcf17351075d8cbf87cf3407ec9",
+    "EVT-V23-016": "2d201fa899700d6e5eec7ae8c8b4c969955ba86b8396ac8fdf7d99bef54c13da",
+    "EVT-V23-017": "d133e065137f3ef0247616089681464c7fc90a4ffbdfcc61de436e503f773db0",
+    "EVT-V23-018": "cc36a06faaa4aca08cfc364c41b79caa261d8efb4ece96757efcf4d1578a1116",
+    "EVT-V23-019": "629de9b3fafbc8eb29d2a2b1c3e4f644a059a521d5dbe8bf37ac52c4fa554c4a",
+    "EVT-V23-020": "bb6684eb070d7281d96eb8597af62aeb5cca560281dfec958b6417719aa4f6fc",
+    "EVT-V23-021": "e57a654f80875f2c9129e0b9c6b2f275abd1cd29602c00d1d6e18755443b76b6",
+    "EVT-V23-022": "b21402ff4097324fc78e90e6ef589da829892b8e563bb91373cce9a7240e5989",
+    "EVT-V23-023": "de0f0effa2aedfc74d082b045358f5e70663dfd004ad7a844114eb6370bfb4bb",
+    "EVT-V23-024": "ce8c18499ef9d05a34d80e66db654939b36a8ccb80159d18175549373c6942ad",
+    "EVT-V23-025": "a8718d123d37f0e6c8dfaeab9b980b1d4350eba4ea2d17cb87baa19553a96d13",
+    "EVT-V23-026": "789beb59fdfc0215c9de85d2a7493b8d9ec6e7f78c4c7e60ace2c0e2f7f7332e",
+    "EVT-V23-027": "401cf36305fec9e8e23b441e631070ca0cf6f7e8dc24b8a74b04d64d74c6794e",
+    "EVT-V23-028": "3181a52251e9995f11e43a39dde2b68bc43070e4458cefbb598aac0c35d26ab9",
+    "EVT-V23-029": "590453abd151a55919ca42de2a7a9713e21396c409853e833125ae49a3886b56",
+    "EVT-V23-030": "782b6fe9d7da6d358c9ca7e6672c7c28e92f0136c632f7e602d45d7b0062045f",
+    "EVT-V23-031": "d77bbecff377a34935b2a682df4af8b3eec989e6090e93b399a73fa957e47d01",
+    "EVT-V23-032": "64a6761237cbb329dc232b1c7069cf3d28516e03119bc8099dbf61c8f0d14b22",
+    "EVT-V23-033": "7a22afe83076d67b1dc8501c52db1006dbde5d7e82ce28790401f8627b1f920b",
+    "EVT-V23-034": "d53a69621644cacb8480658517dde3109d7a2776259460b426711fcfb06724a6",
+    "EVT-V23-035": "8a26a96db0fa5515334f57601f6044f0c1acc5539ff99d28936c25049dc5381a",
+    "EVT-V23-036": "2e313e8032f88260a7c1e43e830047257fffd34ddb213a73f032aa1e7576b5f1",
+    "EVT-V23-037": "4b6ab968cb5556c4a76e06b2ce9342e3a6f336c39b8a19e2af2daaf0bf19523d",
+    "EVT-V23-038": "f8570adee0f548c9b425072457c7cb90b446e107bfd17376ababff89ad0604c6",
+    "EVT-V23-039": "7f930f8ebc9cf01b524984c01fe38a6b297c7ea2ef9b3e32a2eb8eca750b1f84",
+    "EVT-V23-040": "6a295a0c5a3f82514d1a2bb150958a1aa6f1f9758fd31bb3a7b380d18a04163d",
+    "EVT-V23-041": "a2daddfcb40f860fa9fec24ff5b7e5ee58e774e464c686f88be0775b4c4a8279",
+    "EVT-V23-042": "ba118916bd296fd9c4ec609e1142a219519cd4c0afb20951cc1c7dbdebaab12b",
+    "EVT-V23-043": "ace28556980af27705b3785e9101a4ad7adbe2b1e038fd8587d266880a1ef614",
+    "EVT-V23-044": "607dfa3dca5ebebf136edcbc5d3e80a5624d9edce7b141e23e689af76ef1c261",
+    "EVT-V23-045": "63d794ff01af335a3ec5d3edfe047f53d5547d42b8057ce82d064421a02f3e5e",
+    "EVT-V23-046": "302473c22feacb3eb0dc7ae0b57d250ebbbf95a44db6eef352616310a88c7937",
+    "EVT-V23-047": "26881042da80f5751ba193d5ccef79b7e7af421cd1735c46f6e51f3d3489ba67",
+    "EVT-V23-048": "ba935e1f9776acb1967fb2beb765d6a41a686c8c934179422e557b70a960a1b7",
+    "EVT-V23-049": "a816aea717695dcd292bd7df8d824972860d55a755061c906eaed3cc81790bfe",
+    "EVT-V23-050": "cad53b8aabcdad95a18c0e3559199c5289e4ebc6f1020c46969a7a32af850f39",
+    "EVT-V23-051": "5b754b2aa171eab6ffdbfc43b7784e4edd84cbf27ef9e2bebf58ab7847903eab",
+    "EVT-V23-052": "22f491015644dd78c092afc85e103305ae93ef4c85af266141098d192d7b06f2",
+    "EVT-V23-053": "56fbdcdc2612940b7f34a338abe462053b53dee1274681249a0841518049365e",
+    "EVT-V23-054": "e5b639f198f0ef296af29bb35a2332328b54c83597a777bd9513a10beb0508d3",
+    "EVT-V23-055": "6c7a60f6f8696abe79cd89415c3a9d139ea7e8f49e888d3a87e02be2d6827f7a",
+    "EVT-V23-056": "40a4b635f07be1e91ee2395e3cafc65095e5f510680a3a67dbdbbc882e7d2815",
+    "EVT-V23-057": "9ea2163bad9d3b95eb55afe3c0d12903e1ba045fc06d2b99f6b7dd65783751a5",
+    "EVT-V23-058": "f163bf5b480728cf6ca730b3b765a62fb2203f84f3ac45f5269924bfe1baf469",
+    "EVT-V23-059": "785fde5b108c00d68b284bdc70ac7d964f08b552eaf3943b328eb1ebe1dd7ac3",
+    "EVT-V23-060": "65b8ef5d81bd1a66afc5ff69f26fbeb1d55afb3715580c00bd266ed9d8619b12",
+    "EVT-V23-061": "e2fa32e196ec08e7ca03222ff555b82be38fd44f90c8a9498ab3e1c34587b2b6",
+    "EVT-V23-062": "e970b6af67ddab374b1b4959bce28ab22889b2a5b54636154c3b05d252453c7b",
+    "EVT-V23-063": "63db2f612ba92b86f9e5d0c477a9a4700ca5606a7def8361c83cf7939f2abdc5",
+    "EVT-V23-064": "4ff33740220b2db4c8ea5f27134e7ec6ad28e4fcc82bef10389b1968d204e842",
+    "EVT-V23-065": "6b1a6df0e605d41d9e8489f4da04b20ab89ad11147e5006591f84b0043050541"
+  },
+  "ledger_owner_run_id": "RUN-ROOT-V23-LEDGER",
+  "ledger_revision": 65,
+  "revision": 65,
+  "schema_source_hash": "15a17896593626e56410e668c82d4f016e0c35e3f8ac8e94c5bfbb9030e97f6b",
+  "schema_version": "goal-teams-v2.3",
+  "seen_events": [
+    "EVT-V23-001",
+    "EVT-V23-002",
+    "EVT-V23-003",
+    "EVT-V23-004",
+    "EVT-V23-005",
+    "EVT-V23-006",
+    "EVT-V23-007",
+    "EVT-V23-008",
+    "EVT-V23-009",
+    "EVT-V23-010",
+    "EVT-V23-011",
+    "EVT-V23-012",
+    "EVT-V23-013",
+    "EVT-V23-014",
+    "EVT-V23-015",
+    "EVT-V23-016",
+    "EVT-V23-017",
+    "EVT-V23-018",
+    "EVT-V23-019",
+    "EVT-V23-020",
+    "EVT-V23-021",
+    "EVT-V23-022",
+    "EVT-V23-023",
+    "EVT-V23-024",
+    "EVT-V23-025",
+    "EVT-V23-026",
+    "EVT-V23-027",
+    "EVT-V23-028",
+    "EVT-V23-029",
+    "EVT-V23-030",
+    "EVT-V23-031",
+    "EVT-V23-032",
+    "EVT-V23-033",
+    "EVT-V23-034",
+    "EVT-V23-035",
+    "EVT-V23-036",
+    "EVT-V23-037",
+    "EVT-V23-038",
+    "EVT-V23-039",
+    "EVT-V23-040",
+    "EVT-V23-041",
+    "EVT-V23-042",
+    "EVT-V23-043",
+    "EVT-V23-044",
+    "EVT-V23-045",
+    "EVT-V23-046",
+    "EVT-V23-047",
+    "EVT-V23-048",
+    "EVT-V23-049",
+    "EVT-V23-050",
+    "EVT-V23-051",
+    "EVT-V23-052",
+    "EVT-V23-053",
+    "EVT-V23-054",
+    "EVT-V23-055",
+    "EVT-V23-056",
+    "EVT-V23-057",
+    "EVT-V23-058",
+    "EVT-V23-059",
+    "EVT-V23-060",
+    "EVT-V23-061",
+    "EVT-V23-062",
+    "EVT-V23-063",
+    "EVT-V23-064",
+    "EVT-V23-065"
+  ],
+  "tasks": {
+    "TASK-23-001": {
+      "acceptance_blocking": true,
+      "acceptance_criteria_refs": [
+        "AC-23-001"
+      ],
+      "artifact_refs": [
+        "versions/V2.3/evidence/release-gate.log"
+      ],
+      "attempt_id": "ATT-V23-RELEASE-CLOSURE",
+      "check_state": "passed",
+      "event_digest": "a2daddfcb40f860fa9fec24ff5b7e5ee58e774e464c686f88be0775b4c4a8279",
+      "evidence_refs": [
+        "EVD-V23-RELEASE-GATE"
+      ],
+      "harness_refs": [
+        "versions/V2.3/harness/harness.json"
+      ],
+      "last_actor_run_id": "RUN-R236-FRESH-REVIEW-20260711-01",
+      "last_event_id": "EVT-V23-041",
+      "merge_owner_run_id": "RUN-ROOT-V23-LEDGER",
+      "owner_member_id": "Goal Lead-V2.3收尾",
+      "owner_run_id": "RUN-ROOT-V23-CLOSURE",
+      "parent_attempt_id": null,
+      "required_for_done": true,
+      "requirement_refs": [
+        "REQ-23-001"
+      ],
+      "revision": 5,
+      "schema_version": "goal-teams-v2.3",
+      "task_id": "TASK-23-001",
+      "task_state": "accepted",
+      "title": "Schema SSOT、闭合枚举与统一 envelope",
+      "updated_at": "2026-07-11T01:52:15.963243Z",
+      "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
+      "validation_run_id": "RUN-V23-RELEASE-GATE",
+      "validator_member_id": "独立评审-V2.3冻结复核",
+      "validator_run_id": "RUN-R236-FRESH-REVIEW-20260711-01"
+    },
+    "TASK-23-002": {
+      "acceptance_blocking": true,
+      "acceptance_criteria_refs": [
+        "AC-23-002"
+      ],
+      "artifact_refs": [
+        "versions/V2.3/evidence/release-gate.log"
+      ],
+      "attempt_id": "ATT-V23-RELEASE-CLOSURE",
+      "check_state": "passed",
+      "event_digest": "ace28556980af27705b3785e9101a4ad7adbe2b1e038fd8587d266880a1ef614",
+      "evidence_refs": [
+        "EVD-V23-RELEASE-GATE"
+      ],
+      "harness_refs": [
+        "versions/V2.3/harness/harness.json"
+      ],
+      "last_actor_run_id": "RUN-R236-FRESH-REVIEW-20260711-01",
+      "last_event_id": "EVT-V23-043",
+      "merge_owner_run_id": "RUN-ROOT-V23-LEDGER",
+      "owner_member_id": "Goal Lead-V2.3收尾",
+      "owner_run_id": "RUN-ROOT-V23-CLOSURE",
+      "parent_attempt_id": null,
+      "required_for_done": true,
+      "requirement_refs": [
+        "REQ-23-002"
+      ],
+      "revision": 5,
+      "schema_version": "goal-teams-v2.3",
+      "task_id": "TASK-23-002",
+      "task_state": "accepted",
+      "title": "状态转换、CAS、append-only ledger 与 deterministic TaskList",
+      "updated_at": "2026-07-11T01:52:17.963243Z",
+      "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
+      "validation_run_id": "RUN-V23-RELEASE-GATE",
+      "validator_member_id": "独立评审-V2.3冻结复核",
+      "validator_run_id": "RUN-R236-FRESH-REVIEW-20260711-01"
+    },
+    "TASK-23-003": {
+      "acceptance_blocking": true,
+      "acceptance_criteria_refs": [
+        "AC-23-003"
+      ],
+      "artifact_refs": [
+        "versions/V2.3/evidence/release-gate.log"
+      ],
+      "attempt_id": "ATT-V23-RELEASE-CLOSURE",
+      "check_state": "passed",
+      "event_digest": "63d794ff01af335a3ec5d3edfe047f53d5547d42b8057ce82d064421a02f3e5e",
+      "evidence_refs": [
+        "EVD-V23-RELEASE-GATE"
+      ],
+      "harness_refs": [
+        "versions/V2.3/harness/harness.json"
+      ],
+      "last_actor_run_id": "RUN-R236-FRESH-REVIEW-20260711-01",
+      "last_event_id": "EVT-V23-045",
+      "merge_owner_run_id": "RUN-ROOT-V23-LEDGER",
+      "owner_member_id": "Goal Lead-V2.3收尾",
+      "owner_run_id": "RUN-ROOT-V23-CLOSURE",
+      "parent_attempt_id": null,
+      "required_for_done": true,
+      "requirement_refs": [
+        "REQ-23-003"
+      ],
+      "revision": 5,
+      "schema_version": "goal-teams-v2.3",
+      "task_id": "TASK-23-003",
+      "task_state": "accepted",
+      "title": "Evidence、逐 AC Traceability、Dual Review 与错误合同",
+      "updated_at": "2026-07-11T01:52:19.963243Z",
+      "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
+      "validation_run_id": "RUN-V23-RELEASE-GATE",
+      "validator_member_id": "独立评审-V2.3冻结复核",
+      "validator_run_id": "RUN-R236-FRESH-REVIEW-20260711-01"
+    },
+    "TASK-23-004": {
+      "acceptance_blocking": true,
+      "acceptance_criteria_refs": [
+        "AC-23-004"
+      ],
+      "artifact_refs": [
+        "versions/V2.3/evidence/release-gate.log"
+      ],
+      "attempt_id": "ATT-V23-RELEASE-CLOSURE",
+      "check_state": "passed",
+      "event_digest": "26881042da80f5751ba193d5ccef79b7e7af421cd1735c46f6e51f3d3489ba67",
+      "evidence_refs": [
+        "EVD-V23-RELEASE-GATE"
+      ],
+      "harness_refs": [
+        "versions/V2.3/harness/harness.json"
+      ],
+      "last_actor_run_id": "RUN-R236-FRESH-REVIEW-20260711-01",
+      "last_event_id": "EVT-V23-047",
+      "merge_owner_run_id": "RUN-ROOT-V23-LEDGER",
+      "owner_member_id": "Goal Lead-V2.3收尾",
+      "owner_run_id": "RUN-ROOT-V23-CLOSURE",
+      "parent_attempt_id": null,
+      "required_for_done": true,
+      "requirement_refs": [
+        "REQ-23-004"
+      ],
+      "revision": 5,
+      "schema_version": "goal-teams-v2.3",
+      "task_id": "TASK-23-004",
+      "task_state": "accepted",
+      "title": "Canonical 成功/阻塞/失败/恢复全链",
+      "updated_at": "2026-07-11T01:52:21.963243Z",
+      "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
+      "validation_run_id": "RUN-V23-RELEASE-GATE",
+      "validator_member_id": "独立评审-V2.3冻结复核",
+      "validator_run_id": "RUN-R236-FRESH-REVIEW-20260711-01"
+    },
+    "TASK-23-005": {
+      "acceptance_blocking": true,
+      "acceptance_criteria_refs": [
+        "AC-23-005"
+      ],
+      "artifact_refs": [
+        "versions/V2.3/evidence/release-gate.log"
+      ],
+      "attempt_id": "ATT-V23-RELEASE-CLOSURE",
+      "check_state": "passed",
+      "event_digest": "a816aea717695dcd292bd7df8d824972860d55a755061c906eaed3cc81790bfe",
+      "evidence_refs": [
+        "EVD-V23-RELEASE-GATE"
+      ],
+      "harness_refs": [
+        "versions/V2.3/harness/harness.json"
+      ],
+      "last_actor_run_id": "RUN-R236-FRESH-REVIEW-20260711-01",
+      "last_event_id": "EVT-V23-049",
+      "merge_owner_run_id": "RUN-ROOT-V23-LEDGER",
+      "owner_member_id": "Goal Lead-V2.3收尾",
+      "owner_run_id": "RUN-ROOT-V23-CLOSURE",
+      "parent_attempt_id": null,
+      "required_for_done": true,
+      "requirement_refs": [
+        "REQ-23-005"
+      ],
+      "revision": 5,
+      "schema_version": "goal-teams-v2.3",
+      "task_id": "TASK-23-005",
+      "task_state": "accepted",
+      "title": "真实九场景 Behavior/Benchmark 与防假绿重评分",
+      "updated_at": "2026-07-11T01:52:23.963243Z",
+      "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
+      "validation_run_id": "RUN-V23-RELEASE-GATE",
+      "validator_member_id": "独立评审-V2.3冻结复核",
+      "validator_run_id": "RUN-R236-FRESH-REVIEW-20260711-01"
+    },
+    "TASK-23-006": {
+      "acceptance_blocking": true,
+      "acceptance_criteria_refs": [
+        "AC-23-006"
+      ],
+      "artifact_refs": [
+        "versions/V2.3/evidence/release-gate.log"
+      ],
+      "attempt_id": "ATT-V23-RELEASE-CLOSURE",
+      "check_state": "passed",
+      "event_digest": "5b754b2aa171eab6ffdbfc43b7784e4edd84cbf27ef9e2bebf58ab7847903eab",
+      "evidence_refs": [
+        "EVD-V23-RELEASE-GATE"
+      ],
+      "harness_refs": [
+        "versions/V2.3/harness/harness.json"
+      ],
+      "last_actor_run_id": "RUN-R236-FRESH-REVIEW-20260711-01",
+      "last_event_id": "EVT-V23-051",
+      "merge_owner_run_id": "RUN-ROOT-V23-LEDGER",
+      "owner_member_id": "Goal Lead-V2.3收尾",
+      "owner_run_id": "RUN-ROOT-V23-CLOSURE",
+      "parent_attempt_id": null,
+      "required_for_done": true,
+      "requirement_refs": [
+        "REQ-23-006"
+      ],
+      "revision": 5,
+      "schema_version": "goal-teams-v2.3",
+      "task_id": "TASK-23-006",
+      "task_state": "accepted",
+      "title": "Typed migration scan/plan/apply/verify/rollback 与数据保护",
+      "updated_at": "2026-07-11T01:52:25.963243Z",
+      "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
+      "validation_run_id": "RUN-V23-RELEASE-GATE",
+      "validator_member_id": "独立评审-V2.3冻结复核",
+      "validator_run_id": "RUN-R236-FRESH-REVIEW-20260711-01"
+    },
+    "TASK-23-007": {
+      "acceptance_blocking": true,
+      "acceptance_criteria_refs": [
+        "AC-23-007"
+      ],
+      "artifact_refs": [
+        "versions/V2.3/evidence/release-gate.log"
+      ],
+      "attempt_id": "ATT-V23-RELEASE-CLOSURE",
+      "check_state": "passed",
+      "event_digest": "56fbdcdc2612940b7f34a338abe462053b53dee1274681249a0841518049365e",
+      "evidence_refs": [
+        "EVD-V23-RELEASE-GATE"
+      ],
+      "harness_refs": [
+        "versions/V2.3/harness/harness.json"
+      ],
+      "last_actor_run_id": "RUN-R236-FRESH-REVIEW-20260711-01",
+      "last_event_id": "EVT-V23-053",
+      "merge_owner_run_id": "RUN-ROOT-V23-LEDGER",
+      "owner_member_id": "Goal Lead-V2.3收尾",
+      "owner_run_id": "RUN-ROOT-V23-CLOSURE",
+      "parent_attempt_id": null,
+      "required_for_done": true,
+      "requirement_refs": [
+        "REQ-23-007"
+      ],
+      "revision": 5,
+      "schema_version": "goal-teams-v2.3",
+      "task_id": "TASK-23-007",
+      "task_state": "accepted",
+      "title": "Manifest 驱动事务安装、TOCTOU 防护与 rollback/uninstall",
+      "updated_at": "2026-07-11T01:52:27.963243Z",
+      "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
+      "validation_run_id": "RUN-V23-RELEASE-GATE",
+      "validator_member_id": "独立评审-V2.3冻结复核",
+      "validator_run_id": "RUN-R236-FRESH-REVIEW-20260711-01"
+    },
+    "TASK-23-008": {
+      "acceptance_blocking": true,
+      "acceptance_criteria_refs": [
+        "AC-23-008"
+      ],
+      "artifact_refs": [
+        "versions/V2.3/evidence/release-gate.log"
+      ],
+      "attempt_id": "ATT-V23-RELEASE-CLOSURE",
+      "check_state": "passed",
+      "event_digest": "6c7a60f6f8696abe79cd89415c3a9d139ea7e8f49e888d3a87e02be2d6827f7a",
+      "evidence_refs": [
+        "EVD-V23-RELEASE-GATE"
+      ],
+      "harness_refs": [
+        "versions/V2.3/harness/harness.json"
+      ],
+      "last_actor_run_id": "RUN-R236-FRESH-REVIEW-20260711-01",
+      "last_event_id": "EVT-V23-055",
+      "merge_owner_run_id": "RUN-ROOT-V23-LEDGER",
+      "owner_member_id": "Goal Lead-V2.3收尾",
+      "owner_run_id": "RUN-ROOT-V23-CLOSURE",
+      "parent_attempt_id": null,
+      "required_for_done": true,
+      "requirement_refs": [
+        "REQ-23-008"
+      ],
+      "revision": 5,
+      "schema_version": "goal-teams-v2.3",
+      "task_id": "TASK-23-008",
+      "task_state": "accepted",
+      "title": "Capability、Profile Router 与 Context Gate",
+      "updated_at": "2026-07-11T01:52:29.963243Z",
+      "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
+      "validation_run_id": "RUN-V23-RELEASE-GATE",
+      "validator_member_id": "独立评审-V2.3冻结复核",
+      "validator_run_id": "RUN-R236-FRESH-REVIEW-20260711-01"
+    },
+    "TASK-23-009": {
+      "acceptance_blocking": true,
+      "acceptance_criteria_refs": [
+        "AC-23-009"
+      ],
+      "artifact_refs": [
+        "versions/V2.3/evidence/release-gate.log"
+      ],
+      "attempt_id": "ATT-V23-RELEASE-CLOSURE",
+      "check_state": "passed",
+      "event_digest": "9ea2163bad9d3b95eb55afe3c0d12903e1ba045fc06d2b99f6b7dd65783751a5",
+      "evidence_refs": [
+        "EVD-V23-RELEASE-GATE"
+      ],
+      "harness_refs": [
+        "versions/V2.3/harness/harness.json"
+      ],
+      "last_actor_run_id": "RUN-R236-FRESH-REVIEW-20260711-01",
+      "last_event_id": "EVT-V23-057",
+      "merge_owner_run_id": "RUN-ROOT-V23-LEDGER",
+      "owner_member_id": "Goal Lead-V2.3收尾",
+      "owner_run_id": "RUN-ROOT-V23-CLOSURE",
+      "parent_attempt_id": null,
+      "required_for_done": true,
+      "requirement_refs": [
+        "REQ-23-009"
+      ],
+      "revision": 5,
+      "schema_version": "goal-teams-v2.3",
+      "task_id": "TASK-23-009",
+      "task_state": "accepted",
+      "title": "Pixel、安全 redaction、symlink/mode 与 prompt-injection 门禁",
+      "updated_at": "2026-07-11T01:52:31.963243Z",
+      "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
+      "validation_run_id": "RUN-V23-RELEASE-GATE",
+      "validator_member_id": "独立评审-V2.3冻结复核",
+      "validator_run_id": "RUN-R236-FRESH-REVIEW-20260711-01"
+    },
+    "TASK-23-010": {
+      "acceptance_blocking": true,
+      "acceptance_criteria_refs": [
+        "AC-23-010"
+      ],
+      "artifact_refs": [
+        "versions/V2.3/evidence/release-gate.log"
+      ],
+      "attempt_id": "ATT-V23-RELEASE-CLOSURE",
+      "check_state": "passed",
+      "event_digest": "785fde5b108c00d68b284bdc70ac7d964f08b552eaf3943b328eb1ebe1dd7ac3",
+      "evidence_refs": [
+        "EVD-V23-RELEASE-GATE"
+      ],
+      "harness_refs": [
+        "versions/V2.3/harness/harness.json"
+      ],
+      "last_actor_run_id": "RUN-R236-FRESH-REVIEW-20260711-01",
+      "last_event_id": "EVT-V23-059",
+      "merge_owner_run_id": "RUN-ROOT-V23-LEDGER",
+      "owner_member_id": "Goal Lead-V2.3收尾",
+      "owner_run_id": "RUN-ROOT-V23-CLOSURE",
+      "parent_attempt_id": null,
+      "required_for_done": true,
+      "requirement_refs": [
+        "REQ-23-010"
+      ],
+      "revision": 5,
+      "schema_version": "goal-teams-v2.3",
+      "task_id": "TASK-23-010",
+      "task_state": "accepted",
+      "title": "RULES/SKILL/runtime/README/PRD 语义与 GA 边界同步",
+      "updated_at": "2026-07-11T01:52:33.963243Z",
+      "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
+      "validation_run_id": "RUN-V23-RELEASE-GATE",
+      "validator_member_id": "独立评审-V2.3冻结复核",
+      "validator_run_id": "RUN-R236-FRESH-REVIEW-20260711-01"
+    },
+    "TASK-23-011": {
+      "acceptance_blocking": true,
+      "acceptance_criteria_refs": [
+        "AC-23-011"
+      ],
+      "artifact_refs": [
+        "versions/V2.3/evidence/release-gate.log"
+      ],
+      "attempt_id": "ATT-V23-RELEASE-CLOSURE",
+      "check_state": "passed",
+      "event_digest": "e2fa32e196ec08e7ca03222ff555b82be38fd44f90c8a9498ab3e1c34587b2b6",
+      "evidence_refs": [
+        "EVD-V23-RELEASE-GATE"
+      ],
+      "harness_refs": [
+        "versions/V2.3/harness/harness.json"
+      ],
+      "last_actor_run_id": "RUN-R236-FRESH-REVIEW-20260711-01",
+      "last_event_id": "EVT-V23-061",
+      "merge_owner_run_id": "RUN-ROOT-V23-LEDGER",
+      "owner_member_id": "Goal Lead-V2.3收尾",
+      "owner_run_id": "RUN-ROOT-V23-CLOSURE",
+      "parent_attempt_id": null,
+      "required_for_done": true,
+      "requirement_refs": [
+        "REQ-23-011"
+      ],
+      "revision": 5,
+      "schema_version": "goal-teams-v2.3",
+      "task_id": "TASK-23-011",
+      "task_state": "accepted",
+      "title": "CI 聚合 Contract 到 Distribution 全部门禁",
+      "updated_at": "2026-07-11T01:52:35.963243Z",
+      "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
+      "validation_run_id": "RUN-V23-RELEASE-GATE",
+      "validator_member_id": "独立评审-V2.3冻结复核",
+      "validator_run_id": "RUN-R236-FRESH-REVIEW-20260711-01"
+    },
+    "TASK-23-012": {
+      "acceptance_blocking": true,
+      "acceptance_criteria_refs": [
+        "AC-23-012"
+      ],
+      "artifact_refs": [
+        "versions/V2.3/evidence/release-gate.log"
+      ],
+      "attempt_id": "ATT-V23-RELEASE-CLOSURE",
+      "check_state": "passed",
+      "event_digest": "63db2f612ba92b86f9e5d0c477a9a4700ca5606a7def8361c83cf7939f2abdc5",
+      "evidence_refs": [
+        "EVD-V23-RELEASE-GATE"
+      ],
+      "harness_refs": [
+        "versions/V2.3/harness/harness.json"
+      ],
+      "last_actor_run_id": "RUN-R236-FRESH-REVIEW-20260711-01",
+      "last_event_id": "EVT-V23-063",
+      "merge_owner_run_id": "RUN-ROOT-V23-LEDGER",
+      "owner_member_id": "Goal Lead-V2.3收尾",
+      "owner_run_id": "RUN-ROOT-V23-CLOSURE",
+      "parent_attempt_id": null,
+      "required_for_done": true,
+      "requirement_refs": [
+        "REQ-23-012"
+      ],
+      "revision": 5,
+      "schema_version": "goal-teams-v2.3",
+      "task_id": "TASK-23-012",
+      "task_state": "accepted",
+      "title": "本项目 Harness/Evidence/Traceability/Review/Audit 机器闭环",
+      "updated_at": "2026-07-11T01:52:37.963243Z",
+      "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
+      "validation_run_id": "RUN-V23-RELEASE-GATE",
+      "validator_member_id": "独立评审-V2.3冻结复核",
+      "validator_run_id": "RUN-R236-FRESH-REVIEW-20260711-01"
+    },
+    "TASK-23-013": {
+      "acceptance_blocking": true,
+      "acceptance_criteria_refs": [
+        "AC-23-013"
+      ],
+      "artifact_refs": [
+        "versions/V2.3/evidence/release-gate.log"
+      ],
+      "attempt_id": "ATT-V23-RELEASE-CLOSURE",
+      "check_state": "passed",
+      "event_digest": "6b1a6df0e605d41d9e8489f4da04b20ab89ad11147e5006591f84b0043050541",
+      "evidence_refs": [
+        "EVD-V23-RELEASE-GATE"
+      ],
+      "harness_refs": [
+        "versions/V2.3/harness/harness.json"
+      ],
+      "last_actor_run_id": "RUN-R236-FRESH-REVIEW-20260711-01",
+      "last_event_id": "EVT-V23-065",
+      "merge_owner_run_id": "RUN-ROOT-V23-LEDGER",
+      "owner_member_id": "Goal Lead-V2.3收尾",
+      "owner_run_id": "RUN-ROOT-V23-CLOSURE",
+      "parent_attempt_id": null,
+      "required_for_done": true,
+      "requirement_refs": [
+        "REQ-23-013"
+      ],
+      "revision": 5,
+      "schema_version": "goal-teams-v2.3",
+      "task_id": "TASK-23-013",
+      "task_state": "accepted",
+      "title": "独立脚本复核、fresh semantic review 与 RC 冻结验证",
+      "updated_at": "2026-07-11T01:52:39.963243Z",
+      "validation_check_id": "CHECK-V23-RELEASE-CLOSURE",
+      "validation_run_id": "RUN-V23-RELEASE-GATE",
+      "validator_member_id": "独立评审-V2.3冻结复核",
+      "validator_run_id": "RUN-R236-FRESH-REVIEW-20260711-01"
+    }
+  },
+  "valid_evidence_registry_digest": "c032b20f39908189f658da47dc477e88d935363707210a62af930806f3b484f7"
+}
