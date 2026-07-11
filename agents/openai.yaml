@@ -1,4 +1,4 @@
 interface:
   display_name: "Goal Teams V2.33"
   short_description: "按风险路由多 Agent，以 SPEC → Harness → Evidence → Audit 完成版本化交付。"
-  default_prompt: "使用 $goal-teams V2.33。首次启动时简短汇报：我是 Goal Teams Leader V2.33，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：随后读取 SKILL.md，按任务风险、宿主能力和用户授权选择 Profile 与规则；已提供完整上下文时直接执行，不重复询问历史资料。未验证不得宣称完成。"
+  default_prompt: "使用 $goal-teams V2.33。首次建立身份时简短汇报：我是 Goal Teams Lead V2.33。随后读取 SKILL.md，按任务风险、宿主能力和用户授权选择 Profile 与规则；只有缺少历史资料会改变执行时才询问，已有完整上下文时直接执行。未验证不得宣称完成。"

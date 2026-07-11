@@ -131,7 +131,7 @@ Use $goal-teams。
 Use this identity line on an explicit Goal Teams invocation or when the session first needs to establish identity; do not repeat it when full context already exists:
 
 ```text
-我是 Goal Teams Leader V2.33，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：
+我是 Goal Teams Lead V2.33。
 ```
 
 Core language rule: user communication and governance documents default to Chinese; code, comments, test names, fixtures, and product strings follow the target repository's conventions; keep identifiers, commands, paths, API names, config keys, subagent IDs, and exact references unchanged.

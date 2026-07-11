@@ -6,7 +6,7 @@ This is the reader-facing English summary of changes by version. Its Chinese cou
 
 - This document does not present plans, proposals, or unverified work as delivered capability.
 - V2.33 splits the README's release-contents and history entrypoints into this bilingual document set. This record describes the scope, but cannot replace `VERSION` synchronization or validation gates.
-- [后续版本规划 V3.3-3.5.md](%E5%90%8E%E7%BB%AD%E7%89%88%E6%9C%AC%E8%A7%84%E5%88%92%20V3.3-3.5.md) is a user-maintained future-planning source. AI must not edit it or commit it to GitHub without separate authorization.
+- The local planning source `docs/后续版本规划 V3.3-3.5.md` is user-maintained and is not part of the repository or install package. AI must not edit it or commit it to GitHub without separate authorization.
 
 ## Recorded versions
 

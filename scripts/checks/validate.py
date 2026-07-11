@@ -17,11 +17,13 @@ except ModuleNotFoundError:  # pragma: no cover
 
 ROOT = Path(__file__).resolve().parents[2]
 CURRENT_VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
-STARTUP_LINE = (
+STARTUP_LINE = f"我是 Goal Teams Lead {CURRENT_VERSION}。"
+COMPATIBILITY_MARKER = (
     f"我是 Goal Teams Leader {CURRENT_VERSION}，使用 Goal + Plan 模式帮你完成规划、执行和交付，"
     "并使用 Harness + SPEC 做为过程与结果产物的约束："
 )
 PLAN_HISTORY_LINE = "在开始规划前，如果有什么历史文档、历史经验或参考资料需要输入吗？"
+PLAN_HISTORY_POLICY = "只有缺少历史资料会改变执行时"
 CHINESE_CORE_LINE = "用户沟通和治理文档默认中文"
 
 REQUIRED_FILES = [
@@ -190,7 +192,7 @@ EXPECTED_ROLE_PREFIXES = {
 }
 
 KEY_RULES = [
-    f"Goal Teams Leader {CURRENT_VERSION}",
+    f"Goal Teams Lead {CURRENT_VERSION}",
     STARTUP_LINE,
     "RULES.md",
     "Response Contract",
@@ -201,6 +203,7 @@ KEY_RULES = [
     "未验证不宣称成功",
     "Not verified",
     PLAN_HISTORY_LINE,
+    PLAN_HISTORY_POLICY,
     CHINESE_CORE_LINE,
     "需求卡片",
     "核心目标",
@@ -858,7 +861,7 @@ def check_key_rules() -> None:
     for rule in KEY_RULES:
         if rule not in combined:
             fail(f"Key rule missing from docs: {rule}")
-    for path in [
+    startup_surfaces = [
         "SKILL.md",
         "references/goal-teams-runtime.md",
         "prompts/lead/core.md",
@@ -868,9 +871,15 @@ def check_key_rules() -> None:
         "goal-teams.md",
         "examples/mini-goal-run/README.md",
         "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/plan.md",
-    ]:
+    ]
+    for path in startup_surfaces:
         if STARTUP_LINE not in read(path):
             fail(f"Startup line missing from {path}")
+        if path not in {"SKILL.md", "prompts/lead/core.md"} and COMPATIBILITY_MARKER in read(path):
+            fail(f"Non-user-visible compatibility marker leaked into {path}")
+    for path in ("SKILL.md", "prompts/lead/core.md"):
+        if COMPATIBILITY_MARKER not in read(path):
+            fail(f"Compatibility marker missing from {path}")
     stale_examples = [
         "需求分析-规格卡",
         "产品-PRD",
@@ -912,6 +921,13 @@ def check_example() -> None:
     example_plan = read("examples/mini-goal-run/.codex/goal-teams/versions/V0.1/plan.md")
     if STARTUP_LINE not in example_plan:
         fail(f"Example plan must use the current {CURRENT_VERSION} startup line")
+    if PLAN_HISTORY_LINE in example_plan:
+        fail("Example plan must not ask for history when its supplied context is already complete")
+    if "缺少额外历史资料不会改变执行" not in example_plan:
+        fail("Example plan must record why the history-input question is not needed")
+    example_readme = read("examples/mini-goal-run/README.md")
+    if "只在缺少历史资料会改变执行时才询问" not in example_readme:
+        fail("Example README must describe the conditional history-input policy")
     requirement_card = read("examples/mini-goal-run/.codex/goal-teams/versions/V0.1/spec/requirement-card.md")
     for snippet in ("核心目标", "关键功能", "用户故事", "功能验收标准", "边界", "约束", "风险"):
         if snippet not in requirement_card:

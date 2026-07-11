@@ -7,7 +7,7 @@ This document is the English index of the visible Goal Teams package. Its Chines
 - This inventory lists only verifiable repository contents. It does not claim unimplemented capabilities.
 - V2.33 keeps the V2.3 machine-contract baseline and defines rule precedence, classified dependency degradation, `plan_preview` selection, single-value `check_state` language, and this bilingual release-document structure. This index cannot replace those rules or their validation.
 - The manually maintained `SKILL.md` and READMEs are the baseline. This inventory cannot override them or replace scripted validation.
-- [后续版本规划 V3.3-3.5.md](%E5%90%8E%E7%BB%AD%E7%89%88%E6%9C%AC%E8%A7%84%E5%88%92%20V3.3-3.5.md) is a user-maintained planning source. AI must not edit it and, without separate user authorization, must not include it in a GitHub commit. Planning text is not a release commitment.
+- The local planning source `docs/后续版本规划 V3.3-3.5.md` is user-maintained and is not part of the repository or install package. AI must not edit it and, without separate user authorization, must not include it in a GitHub commit. Planning text is not a release commitment.
 
 ## Package inventory
 

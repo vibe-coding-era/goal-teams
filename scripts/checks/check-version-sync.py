@@ -66,6 +66,17 @@ def check_v233_publication_sync(version: str) -> None:
         for marker in markers:
             if marker not in text:
                 fail(f"{path} missing V2.33 publication/history marker {marker!r}")
+        roadmap_path = "docs/后续版本规划 V3.3-3.5.md"
+        if roadmap_path not in text:
+            fail(f"{path} must identify the local-only planning source {roadmap_path}")
+        if any(
+            "后续版本规划" in line and re.search(r"\[[^\]]+\]\([^)]+\)", line)
+            for line in text.splitlines()
+        ):
+            fail(
+                f"{path} must not link to the untracked local planning source; "
+                "use a non-clickable code path"
+            )
 
     readme_links = {
         "README.md": (V233_PUBLICATION_FILES["release_zh"], V233_PUBLICATION_FILES["history_zh"]),
@@ -87,7 +98,8 @@ def main() -> None:
     if not re.fullmatch(r"V\d+\.\d+", version):
         fail(f"VERSION must look like Vx.y, got {version!r}")
 
-    startup = (
+    startup = f"我是 Goal Teams Lead {version}。"
+    compatibility_marker = (
         f"我是 Goal Teams Leader {version}，使用 Goal + Plan 模式帮你完成规划、执行和交付，"
         "并使用 Harness + SPEC 做为过程与结果产物的约束："
     )
@@ -104,6 +116,22 @@ def main() -> None:
             fail(f"{path} does not mention current version {version}")
         if startup not in text:
             fail(f"{path} missing current startup line")
+        if path not in {"SKILL.md", "prompts/lead/core.md"} and compatibility_marker in text:
+            fail(f"{path} exposes the non-user-visible compatibility marker as startup text")
+
+    for path in ("SKILL.md", "prompts/lead/core.md"):
+        if compatibility_marker not in read(path):
+            fail(f"{path} missing the explicitly non-user-visible compatibility marker")
+
+    history_policy_surfaces = {
+        "agents/openai.yaml": "只有缺少历史资料会改变执行时才询问",
+        "goal-teams.md": "只有缺少历史资料会改变执行时",
+        "prompts/lead/core.md": "只有缺少历史资料会改变执行时才询问",
+        "references/goal-teams-runtime.md": "只有历史资料缺失会改变方案时才询问",
+    }
+    for path, marker in history_policy_surfaces.items():
+        if marker not in read(path):
+            fail(f"{path} missing the conditional history-input policy")
 
     check_v233_publication_sync(version)
 
