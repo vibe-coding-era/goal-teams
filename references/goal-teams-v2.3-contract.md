@@ -9,6 +9,13 @@ okf_version: "0.1"
 
 # Goal Teams V2.3 Contract
 
+## V2.34 Extensions (V2.3 Schema Compatible)
+
+- V2.34 增加四文件可恢复控制平面与扩展 gate，不改变 V2.3 `task_state` / `check_state` / `run_outcome` / `loop_decision` / `audit_state` 枚举，也不让 `feature_list.json` 成为 acceptance SSOT。
+- 实现顺序为 immutable contract 及独立 review、Architecture accepted、`development_environment_check=ready` 及 current independent Evidence、独立测试用例、implementation；任一 exact-hash/identity/ledger prefix 漂移即重验。
+- iteration 9 只允许将预授权 `.goalteams-candidates/<candidate_id>` 原子隔离到 `.goalteams-quarantine/<reset_id>/<candidate_id>`，不删除仓库/用户数据且不提供 purge；iteration 11 是唯一 delivery/achieved 写入门，缺证时不得 iteration 12。
+- 公开归档只包含 sanitizer 后的 completed/public 副本；完整 source hash、ledger/Evidence/review/audit 和 sanitizer receipt 保留在非公开 provenance，不得为清除调用痕迹而删除审计链。
+
 ## V2.33 Clarifications (V2.3 Schema Compatible)
 
 ### Rule precedence and response scope

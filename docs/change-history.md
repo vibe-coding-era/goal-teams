@@ -6,12 +6,14 @@
 
 - 本文档不把规划、建议或未验证事项写成已交付能力。
 - V2.33 将 README 中的发布内容与历史入口拆分为本组双语文档；本记录说明其范围，但不能替代 `VERSION` 同步和验证门禁。
+- V2.34 的完成公开文档在独立审计和 sanitizer 通过后按 delivery id 归档；过程包与私有 provenance 不进入公开归档。
 - 本地规划源 `docs/后续版本规划 V3.3-3.5.md` 仅由用户维护，不属于仓库或安装包；不得由 AI 修改或在未获单独授权时提交 GitHub。
 
 ## 已记录版本
 
 | 版本 | 已记录变化摘要 |
 | --- | --- |
+| V2.34 | 引入合同先行的 `Gather → Reason → Act → Verify → Repeat`；用 `feature_list.json` / `progress.md` / `contract.md` / `log.md` 和 journal/CAS 支持崩溃恢复；要求 Architecture accepted 后的 Environment Evidence；约束第 9 轮候选集 quarantine 与第 11 轮 fail-closed 交付；增加四维评分、GTLOG 分歧/提示词生命周期、moving bottleneck 和公开归档清洗。 |
 | V2.33 | 在 V2.3 机器契约基线上明确系统/用户、`AGENTS.md`、不变量、条件规则、`RULES.md`、Lead、Member 的优先级；定义引用文件的 fail-closed 分类和受限降级、显式 no-write `plan_preview` 判定、单值 `check_state` 表述，并将发布内容与历史入口改为独立双语文档。 |
 | V2.3 | 引入闭合状态枚举、单写者 append-only ledger、严格 Evidence/Traceability/Dual Review、Profile 路由与能力降级、typed migration、原子安装与确定性 release gates。技术 RC 与公开 GA 仍分开判断。 |
 | V2.1 | 增加 Lead LOOP、Loop Decision、Loop Gate、状态快照与 `GT-BENCH-004`，用于记录整合后的续跑或停止决定。 |

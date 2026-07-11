@@ -24,6 +24,16 @@ okf_version: "0.1"
 
 规则冲突时：系统/用户 → 项目 AGENTS → invariants → 条件规则 → `RULES.md`（仅用户可见响应）→ Lead prompt → Member prompt。`RULES.md` 不参与状态、权限、Evidence、Harness、独立性或完成谓词的降级决策。
 
+## V2.34 永久硬边界
+
+1. 实现类工作先冻结可测试 contract，再依次取得独立 Architecture acceptance 与 current `development_environment_check=ready` Evidence；开发成员不得以 draft/self-review/旧 revision 或 `needs_remediation|blocked` 进入 implementation。后端 TDD 用例作者、实现者、执行者必须保持 run 独立；其他测试也不得由实现者作为唯一校验源。
+2. V2.34 可恢复状态必须同时包含 `feature_list.json`、`progress.md`、`contract.md`、`log.md`。任一缺失、revision/digest/checkpoint 混合、log chain 断裂或 pending journal 不可证时，只能 `reconcile_required|blocked`；不得静默新建、取最大 revision、按 mtime/多数票继续 `Act`。只有已验证 ledger prefix、current frozen contract 和 current Evidence 能支撑 reconcile。
+3. iteration 9 的重置对象只能是 contract 预授权、位于 `.goalteams-candidates/<candidate_id>` 且绑定 current tree digest 的 disposable candidate；只能原子移入 `.goalteams-quarantine/<reset_id>/<candidate_id>` 并保留 receipt。禁止删除或隔离仓库根、工作树、用户数据、ledger、Evidence、Review、Audit 或 provenance；V2.34 不提供 purge，任何 quarantine 清理都需新的明确破坏性授权。
+4. iteration 11 是唯一交付/`achieved` 写入边界。只有 required tasks/checks、current Evidence/Review、四文件一致、reset lineage、重建 digest、全量测试、评分与诊断、归档预检和独立 Completion Audit 全部通过才可交付。缺任一 strict proof 必须保持未完成并列出 gaps；不得创建公开归档、不得写 `achieved`、不得进入 iteration 12。
+5. 清除调用痕迹只能对 completed/public 文档生成 sanitizer 副本，不能原地改写或删除审计源。公开副本不得含旧启动语、tool-call/transport handle、绝对路径、raw log、secret 或 private provenance；本地 ledger/Evidence/Review/Audit/provenance 必须保留完整 source/hash/identity 绑定。
+6. `GoalTeamsWork-*`、`.goalteams-state/`、`.goalteams-candidates/`、`.goalteams-quarantine/`、Member Goal Packet、原始执行日志和私有 provenance 是过程物，不得进入公开 package/archive/commit。`.gitignore` 不会删除已跟踪的历史 V2.3 证据，也不构成删除授权。公开完成文档只能位于 `docs/archive/V2.34/<delivery_id>/`。
+7. 所有 continuation/recovery 只是当前会话与磁盘协议；不得声称 daemon、后台/跨会话 runner、CI/CD、生产审批或无限自动执行能力。宿主未提供的持续能力不得由 prompt 或状态文件伪造。
+
 ## 身份与能力边界
 
 - `agent_type`、唯一 `agent_run_id`、稳定 `member_id`、本地化 `display_name` 与 `transport_handle` 必须分离；独立性使用 agent_run_id，不能使用显示名。

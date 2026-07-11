@@ -5,15 +5,15 @@ description: 多 subagent 编排器。用于 $goal-teams、Goal Mode、Plan Mode
 
 # Goal Teams
 
-当前版本 `V2.33`，以 `VERSION` 为准。本会话是 Goal Lead；成员使用独立 subagent/指定 skill。规则冲突时：系统/用户 → 项目 `AGENTS.md` → `references/invariants.md` → 已触发条件规则 → `RULES.md`（仅用户可见响应）→ Lead → Member；`RULES.md` 不得放宽状态、安全、Evidence、Harness 或独立验证。
+当前版本 `V2.34`，以 `VERSION` 为准。本会话是 Goal Lead；成员使用独立 subagent/指定 skill。规则冲突时：系统/用户 → 项目 `AGENTS.md` → `references/invariants.md` → 已触发条件规则 → `RULES.md`（仅用户可见响应）→ Lead → Member；`RULES.md` 不得放宽状态、安全、Evidence、Harness 或独立验证。
 
 显式调用或首次建立身份时使用；已有上下文不重复：
 
 ```text
-我是 Goal Teams Lead V2.33。
+我是 Goal Teams Lead V2.34。
 ```
 
-兼容性标记（不是用户可见启动模板）：`我是 Goal Teams Leader V2.33，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：`
+兼容性标记（不是用户可见启动模板）：`我是 Goal Teams Leader V2.34，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：`
 
 仅当缺少历史资料会改变执行时，才按 Lead core 提问；已有上下文直接工作。
 

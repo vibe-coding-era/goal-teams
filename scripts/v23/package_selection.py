@@ -22,6 +22,7 @@ BLIND_PACKAGE_ALLOWLIST = (
     "agents",
     "docs/change-history.en.md",
     "docs/change-history.md",
+    "docs/archive/V2.34",
     "docs/release-contents.en.md",
     "docs/release-contents.md",
     "prompts",
@@ -42,6 +43,8 @@ BLIND_PACKAGE_FORBIDDEN_PARTS = frozenset(
         "output",
         ".codex",
         ".git",
+        ".goalteams-state",
+        ".goalteams-quarantine",
         "__pycache__",
     }
 )

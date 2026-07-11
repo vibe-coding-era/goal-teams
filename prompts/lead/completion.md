@@ -22,3 +22,8 @@
 - 生成 Markdown 产物符合 Google OKF，至少包含可解析 frontmatter 和非空 `type`。
 - 阻塞和剩余风险已记录。
 - 如使用 runtime 文件，`team-state.json` 反映最终状态。
+- V2.34 实现任务已按 contract frozen/reviewed → Architecture accepted → `development_environment_check=ready` → independent tests → implementation 的顺序闭合。
+- V2.34 `feature_list.json`、`progress.md`、`contract.md`、`log.md` 的 bundle revision/digest/log commit/checkpoint 一致，无未处理的 journal、混合 revision 或 stale gate。
+- V2.34 第 9 轮 reset 只隔离了预授权 disposable candidate，第 11 轮是唯一 achieved/delivery 写入点；任一 gate 缺失时保持未完成且不进入 iteration 12。
+- 四维评分各由四个 0.25 rubric item 和独立 Evidence 重算，GTLOG divergence/prompt regression+holdout 和 moving bottleneck 均 current；任何分数不替代测试或审计。
+- 只有经审计和 sanitizer 通过的 completed/public 文档进入 `docs/archive/V2.34/<delivery_id>/`；invocation traces 不出现在公开面，完整 ledger/Evidence/review/audit/provenance 保留在非公开记录。

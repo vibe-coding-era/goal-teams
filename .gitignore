@@ -1,3 +1,8 @@
 .DS_Store
 __pycache__/
 *.pyc
+# Ignore new process bundles; already tracked V2.3 evidence is preserved and is not deleted.
+/GoalTeamsWork-*/
+/.goalteams-candidates/
+/.goalteams-state/
+/.goalteams-quarantine/

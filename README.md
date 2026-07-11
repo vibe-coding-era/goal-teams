@@ -4,7 +4,7 @@
 
 作者：肉山@TGO 杭州
 
-当前版本：`V2.33`
+当前版本：`V2.34`
 
 Goal Teams 是一个面向 Codex 的团队协作 Skill。它会以一个 Goal Lead 的身份，把一个目标拆成可验证的计划，再协调多个独立 subagent（不同上下文执行）或用户指定的外部 skill 完成需求、设计、实现、测试、证据记录和收尾审计。过程中会应用到：
 - 应用Goal + Plan + Loop 模式
@@ -135,7 +135,7 @@ Use $goal-teams。
 显式调用 Goal Teams 或当前会话首次需要建立身份时汇报；已有完整上下文时不重复：
 
 ```text
-我是 Goal Teams Lead V2.33。
+我是 Goal Teams Lead V2.34。
 ```
 
 中文核心模型要点提示词：用户沟通和治理文档默认中文；代码、注释、测试名、fixture 和产品字符串遵循目标仓库约定；代码标识、命令、路径、API 名称、配置键、subagent ID 和精确引用保留原文。
@@ -258,7 +258,7 @@ GoalTeamsWork-<project_version>/
 
 ## 版本说明
 
-当前版本以 `VERSION` 为准。`V2.33` 在 V2.3 的机器契约基线上明确规则优先级、引用文件的 fail-closed 分级降级、`plan_preview` 的显式 no-write 判定、单值 `check_state` 表述，以及发布内容和历史记录的独立双语文档入口。`V2.3` 的重点仍是正交状态机、单写者事件账本、严格 Evidence/Traceability/Dual Review、Profile 路由与能力降级、安全迁移、原子分发、真实 canonical/behavior 负向门禁和上下文预算；历史 V2.2 输出通过 typed migration adapter 读取，`tasklist.md` 不再作为可写 SSOT。
+当前版本以 `VERSION` 为准。`V2.34` 在 V2.3 机器契约基线上增加合同先行、Architecture 与 Environment Evidence 双门、`Gather → Reason → Act → Verify → Repeat` 可恢复 LOOP、四文件磁盘状态、受限第 9 轮候选集重置、第 11 轮 fail-closed 交付、四维评分与分歧/瓶颈记录。详细契约按任务类型从 `references/` 加载；完成后只将经审计且清除调用痕迹的公开文档归档到 `docs/archive/V2.34/<delivery_id>/`，过程账本与 provenance 仍保留在非公开工作区。
 
 发布包的可见组成见[发布内容](docs/release-contents.md)；英文读者见[Release Contents](docs/release-contents.en.md)。该清单不会替代运行规则、`VERSION` 或安装校验。
 

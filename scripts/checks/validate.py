@@ -150,7 +150,7 @@ REQUIRED_FILES = [
 ]
 
 
-V233_PUBLICATION_FILES = (
+SPLIT_PUBLICATION_FILES = (
     "docs/release-contents.md",
     "docs/release-contents.en.md",
     "docs/change-history.md",
@@ -572,10 +572,15 @@ def read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
+def version_at_least(version: str, floor: tuple[int, int]) -> bool:
+    match = re.fullmatch(r"V(\d+)\.(\d+)", version)
+    return bool(match and (int(match.group(1)), int(match.group(2))) >= floor)
+
+
 def check_required_files() -> None:
     required_files = list(REQUIRED_FILES)
-    if CURRENT_VERSION == "V2.33":
-        required_files.extend(V233_PUBLICATION_FILES)
+    if version_at_least(CURRENT_VERSION, (2, 33)):
+        required_files.extend(SPLIT_PUBLICATION_FILES)
     missing = [path for path in required_files if not (ROOT / path).is_file()]
     if missing:
         fail("Missing required files: " + ", ".join(missing))
@@ -732,20 +737,20 @@ def check_subagents() -> None:
 def check_readmes() -> None:
     zh = read("README.md")
     en = read("README.en.md")
-    if CURRENT_VERSION == "V2.33":
-        v233_readme_links = {
+    if version_at_least(CURRENT_VERSION, (2, 33)):
+        split_readme_links = {
             "README.md": ("docs/release-contents.md", "docs/change-history.md"),
             "README.en.md": ("docs/release-contents.en.md", "docs/change-history.en.md"),
         }
-        for path, links in v233_readme_links.items():
+        for path, links in split_readme_links.items():
             text = read(path)
             for link in links:
                 if link not in text:
-                    fail(f"{path} must link to split V2.33 publication/history document {link}")
+                    fail(f"{path} must link to split publication/history document {link}")
         if re.search(r"^## 发布内容\s*$", zh, flags=re.M):
-            fail("README.md must not retain the V2.33 publication-content section")
+            fail("README.md must not retain the split publication-content section")
         if re.search(r"^## Release Contents\s*$", en, flags=re.M):
-            fail("README.en.md must not retain the V2.33 publication-content section")
+            fail("README.en.md must not retain the split publication-content section")
         for publication_path in ("docs/release-contents.md", "docs/release-contents.en.md"):
             publication = read(publication_path)
             for item in README_RELEASE_ITEMS:
@@ -760,6 +765,30 @@ def check_readmes() -> None:
     for snippet in ("./scripts/check.sh", "examples/mini-goal-run", "goal-teams.md"):
         if snippet not in zh or snippet not in en:
             fail(f"READMEs must mention {snippet}")
+
+
+def check_v234_protocol_markers() -> None:
+    if not version_at_least(CURRENT_VERSION, (2, 34)):
+        return
+    required = {
+        "references/rules-loop.md": (
+            "Gather → Reason → Act → Verify → Repeat",
+            ".goalteams-candidates/<candidate_id>",
+            "required_assertion_missing | gate_conflict | action_scope_out_of_bounds | outcome_not_allowed | constraint_judgment_incompatible",
+        ),
+        "references/rules-testing.md": ("development_environment_check", "ready | needs_remediation | blocked"),
+        "prompts/packets/handoff-artifacts.md": ("iteration_state_bundle", "public_completion_doc"),
+        "references/goal-teams-runtime.md": ("v234-deliver", "docs/archive/V2.34/<delivery_id>/"),
+        ".gitignore": ("/GoalTeamsWork-*/", "/.goalteams-state/", "/.goalteams-quarantine/"),
+        "scripts/install/package-manifest.txt": ("prefix docs/archive/",),
+    }
+    for path, markers in required.items():
+        text = read(path)
+        for marker in markers:
+            if marker not in text:
+                fail(f"{path} missing V2.34 protocol marker: {marker}")
+    if "GoalTeamsWork" in read("scripts/install/package-manifest.txt"):
+        fail("Package manifest must exclude GoalTeamsWork process bundles")
 
 
 def check_file_rule_sets() -> None:
@@ -855,7 +884,7 @@ def check_key_rules() -> None:
             "README.en.md",
             "CHANGELOG.md",
     ]
-    if CURRENT_VERSION == "V2.33":
+    if version_at_least(CURRENT_VERSION, (2, 33)):
         source_paths.extend(("docs/release-contents.md", "docs/release-contents.en.md"))
     combined = "\n".join(read(path) for path in source_paths)
     for rule in KEY_RULES:
@@ -1053,6 +1082,7 @@ def main() -> None:
     check_skill_frontmatter()
     check_subagents()
     check_readmes()
+    check_v234_protocol_markers()
     check_key_rules()
     check_chinese_surface()
     check_example()

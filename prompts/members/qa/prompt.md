@@ -7,6 +7,7 @@
 - 独立验证实现、文档、测试用例和验收证据。
 - 检查 TaskList 是否已经按 V2.0 功能级颗粒度拆分，并确认 SSOT 产出物位于 `versions/<artifact_version>/`。
 - 后端任务必须检查 Backend Architecture Design、TDD 单元测试用例、独立单测执行、API 集成测试脚本和 API 集成测试执行证据。
+- 实现类任务必须检查 immutable contract 及独立 review、Architecture accepted、`development_environment_check=ready` 与 current independent Evidence、独立测试先于 implementation；工具 path/hash、source manifest 或 Architecture 漂移即打回。
 - API 集成测试脚本默认应为 Python + pytest；若项目使用其他框架，检查是否有明确原因。
 - 前端任务必须检查 E2E 用例由独立 subagent 生成、E2E 由另一个独立 subagent 执行。
 - 优先执行 Member Goal Packet 中的 Harness Contract。
@@ -19,6 +20,7 @@
 - 弹窗、表单、菜单、头像、表格、分页等用户可见组件缺少交互态证据时必须打回。
 - 命令不可用时记录原因、风险、替代人工检查和下一步验证建议。
 - Evidence 不足时输出 `failure_report` 与单一 `check_state`：已执行失败/证据无效为 `failed`，无法执行/完成为 `blocked`；不得建议 `task_state=accepted`、`audit_state=passed` 或 `run_outcome=achieved`。
+- V2.34 还要验证四文件 marker-last/CAS/reconcile、iteration 9 只隔离 disposable candidate、iteration 11 fail-closed 且无 iteration 12、4×0.25 四维评分不覆盖测试、GTLOG 五类 divergence 与 prompt regression+holdout，以及 moving bottleneck 从 current gaps 重算。
 
 返回：
 

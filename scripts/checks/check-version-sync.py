@@ -23,7 +23,7 @@ VERSION_FILES = [
 ]
 
 
-V233_PUBLICATION_FILES = {
+SPLIT_PUBLICATION_FILES = {
     "release_zh": "docs/release-contents.md",
     "release_en": "docs/release-contents.en.md",
     "history_zh": "docs/change-history.md",
@@ -40,19 +40,24 @@ def read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-def check_v233_publication_sync(version: str) -> None:
-    """Require V2.33's bilingual publication/history split only for V2.33.
+def version_at_least(version: str, floor: tuple[int, int]) -> bool:
+    match = re.fullmatch(r"V(\d+)\.(\d+)", version)
+    return bool(match and (int(match.group(1)), int(match.group(2))) >= floor)
+
+
+def check_split_publication_sync(version: str) -> None:
+    """Require the bilingual publication/history split for V2.33 and later.
 
     Keeping this gate version-conditional lets older installed packages remain
-    verifiable while making a V2.33 release fail closed if it restores the
+    verifiable while making current releases fail closed if they restore the
     publication list or changelog to either README.
     """
-    if version != "V2.33":
+    if not version_at_least(version, (2, 33)):
         return
 
-    missing = [path for path in V233_PUBLICATION_FILES.values() if not (ROOT / path).is_file()]
+    missing = [path for path in SPLIT_PUBLICATION_FILES.values() if not (ROOT / path).is_file()]
     if missing:
-        fail("V2.33 publication/history files are missing: " + ", ".join(missing))
+        fail(f"{version} publication/history files are missing: " + ", ".join(missing))
 
     required_markers = {
         "release_zh": ("发布内容", version),
@@ -61,11 +66,11 @@ def check_v233_publication_sync(version: str) -> None:
         "history_en": ("Change History", version),
     }
     for key, markers in required_markers.items():
-        path = V233_PUBLICATION_FILES[key]
+        path = SPLIT_PUBLICATION_FILES[key]
         text = read(path)
         for marker in markers:
             if marker not in text:
-                fail(f"{path} missing V2.33 publication/history marker {marker!r}")
+                fail(f"{path} missing {version} publication/history marker {marker!r}")
         roadmap_path = "docs/后续版本规划 V3.3-3.5.md"
         if roadmap_path not in text:
             fail(f"{path} must identify the local-only planning source {roadmap_path}")
@@ -79,18 +84,49 @@ def check_v233_publication_sync(version: str) -> None:
             )
 
     readme_links = {
-        "README.md": (V233_PUBLICATION_FILES["release_zh"], V233_PUBLICATION_FILES["history_zh"]),
-        "README.en.md": (V233_PUBLICATION_FILES["release_en"], V233_PUBLICATION_FILES["history_en"]),
+        "README.md": (SPLIT_PUBLICATION_FILES["release_zh"], SPLIT_PUBLICATION_FILES["history_zh"]),
+        "README.en.md": (SPLIT_PUBLICATION_FILES["release_en"], SPLIT_PUBLICATION_FILES["history_en"]),
     }
     for path, links in readme_links.items():
         text = read(path)
         for link in links:
             if link not in text:
-                fail(f"{path} must link to V2.33 split publication/history document {link}")
+                fail(f"{path} must link to {version} split publication/history document {link}")
     if re.search(r"^## 发布内容\s*$", read("README.md"), flags=re.M):
-        fail("README.md must not contain the V2.33 publication-content section")
+        fail("README.md must not contain the split publication-content section")
     if re.search(r"^## (?:Release Contents|发布内容)\s*$", read("README.en.md"), flags=re.M):
-        fail("README.en.md must not contain the V2.33 publication-content section")
+        fail("README.en.md must not contain the split publication-content section")
+
+
+def check_v234_protocol_sync(version: str) -> None:
+    if not version_at_least(version, (2, 34)):
+        return
+    required_markers = {
+        "references/rules-loop.md": (
+            "Gather → Reason → Act → Verify → Repeat",
+            "feature_list.json",
+            ".goalteams-candidates/<candidate_id>",
+            "iteration 11",
+            "constraint_judgment_incompatible",
+            "(-blocking_ac_count, -downstream_required_feature_count, opened_bundle_revision, gap_id)",
+        ),
+        "references/rules-testing.md": ("development_environment_check", "ready | needs_remediation | blocked"),
+        "prompts/packets/handoff-artifacts.md": (
+            "development_environment_check",
+            "iteration_state_bundle",
+            "public_completion_doc",
+        ),
+        "references/goal-teams-runtime.md": ("v234-deliver", "docs/archive/V2.34/<delivery_id>/"),
+        ".gitignore": ("/GoalTeamsWork-*/", "/.goalteams-state/", "/.goalteams-quarantine/"),
+        "scripts/install/package-manifest.txt": ("prefix docs/archive/",),
+    }
+    for path, markers in required_markers.items():
+        text = read(path)
+        for marker in markers:
+            if marker not in text:
+                fail(f"{path} missing V2.34 protocol marker {marker!r}")
+    if "GoalTeamsWork" in read("scripts/install/package-manifest.txt"):
+        fail("package manifest must not include GoalTeamsWork process bundles")
 
 
 def main() -> None:
@@ -133,7 +169,8 @@ def main() -> None:
         if marker not in read(path):
             fail(f"{path} missing the conditional history-input policy")
 
-    check_v233_publication_sync(version)
+    check_split_publication_sync(version)
+    check_v234_protocol_sync(version)
 
     openai = read("agents/openai.yaml")
     if f'Goal Teams {version}' not in openai:

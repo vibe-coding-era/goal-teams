@@ -30,22 +30,37 @@ okf_version: "0.1"
 | 4 | HTML 原型 | `goal_frontend` |
 | 5 | 前端架构设计 | `goal_frontend` |
 | 6 | 后端架构设计 | `goal_backend` |
-| 7 | 前端开发 | `goal_frontend` |
-| 8 | 后端 TDD 单元测试用例 | `goal_unit_test_designer` |
-| 9 | 后端开发 | `goal_backend` |
-| 10 | 后端单元测试执行 | `goal_unit_test_runner` |
-| 11 | API 集成测试脚本生成 | `goal_api_integration_test_designer` |
-| 12 | API 集成测试计划 | `goal_api_integration_test_designer` |
-| 13 | API 集成测试执行 | `goal_api_integration_test_runner` |
-| 14 | E2E 测试用例 | `goal_e2e_test_designer` |
-| 15 | E2E 测试执行 | `goal_e2e_test_runner` |
-| 16 | BugFix | 对应实现 Owner |
-| 17 | 测试报告 | `goal_qa` 或 `goal_docs` |
+| 7 | Development Environment Check | 当前实现 Owner |
+| 8 | 前端开发 | `goal_frontend` |
+| 9 | 后端 TDD 单元测试用例 | `goal_unit_test_designer` |
+| 10 | 后端开发 | `goal_backend` |
+| 11 | 后端单元测试执行 | `goal_unit_test_runner` |
+| 12 | API 集成测试脚本生成 | `goal_api_integration_test_designer` |
+| 13 | API 集成测试计划 | `goal_api_integration_test_designer` |
+| 14 | API 集成测试执行 | `goal_api_integration_test_runner` |
+| 15 | E2E 测试用例 | `goal_e2e_test_designer` |
+| 16 | E2E 测试执行 | `goal_e2e_test_runner` |
+| 17 | BugFix | 对应实现 Owner |
+| 18 | 测试报告 | `goal_qa` 或 `goal_docs` |
+
+## V2.34 架构后环境门
+
+任一代码实现必须遵守 `Architecture Design accepted → development_environment_check ready → independent tests written → implementation`。环境检查不能和架构评审合并或由一句“环境正常”替代；实现 Owner 负责检查和安全改善，不同 `validator_run_id` 负责验证。
+
+`development_environment_check` 至少绑定：
+
+- accepted Architecture Design 的 exact path/hash 、contract revision/hash/assertion-set hash、workspace commit 与待改源文件 dirty-state manifest；
+- 操作系统/架构、解析后的解释器和工具绝对路径、版本、可执行 hash，以及锁文件/现有依赖情况；
+- 目标测试发现命令、必需 import/命令、文件系统权限、原子 replace/fsync 可行性、可用磁盘、实际工作目录与源文件安全边界；
+- 所有实际执行命令的 argv/cwd/exit code/log，以及安全、仓库内、可逆的 remediation 的 before/after Evidence；
+- 结论只能 `ready | needs_remediation | blocked`。`needs_remediation` 记录可逆修复和待复验项，不开放实现门；只有 current `local_verified` Evidence 且独立 validator 接受后才能 `ready`；架构、工作树、工具 path/hash 或关键依赖改变即 stale，必须重跑。
+
+允许的环境改善仅限已授权、仓库内、可逆且不改变产品语义的动作，例如创建临时测试目录或校验本地工具。系统安装、外部下载、凭证使用、放宽权限、删除数据或跳过测试仍需新授权；不可为了让环境门通过而修改测试、合同或 Evidence。
 
 ## 后端与 API
 
 - 后端、API、TDD 或完整测试编排使用 schema 机器值 `profile=full`；纯 CLI 且不含 UI 时仍为 `full`，但不得加载 UI 条件规则。
-- 后端开发前必须先生成或更新 Backend Architecture Design。
+- 后端开发前必须先生成或更新 Backend Architecture Design，经独立评审 accepted 后再完成 Development Environment Check；环境未 ready 时不得写实现。
 - 后端遵循 TDD：`goal_unit_test_designer` 先写单元测试用例，`goal_backend` 再实现，`goal_unit_test_runner` 独立执行并记录红/绿证据。
 - 单元测试作者、后端实现者和单元测试执行者不能是同一唯一 subagent。
 - 架构设计完成后，可以并行派发 `goal_api_integration_test_designer` 生成 API 集成测试脚本；默认脚本语言为 Python，默认测试框架为 `pytest`，除非项目已有更明确技术栈。
@@ -53,7 +68,7 @@ okf_version: "0.1"
 
 ## 前端与 E2E
 
-- 前端开发前必须先生成或更新 Frontend Architecture Design；不适用时写 `not_applicable_reason`。
+- 前端开发前必须先生成或更新 Frontend Architecture Design，经独立评审 accepted 后再完成 Development Environment Check；不适用时写 `not_applicable_reason`。
 - 前端开发完成后，由 `goal_e2e_test_designer` 生成 E2E 测试用例，再由 `goal_e2e_test_runner` 执行。
 - E2E 用例作者不能作为唯一执行者。
 - UI 任务的 E2E 和像素对比细节读取 `references/rules-ui.md`。

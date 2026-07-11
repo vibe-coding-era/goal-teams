@@ -2,11 +2,15 @@
 # The installer copies only Git-tracked files that match one of these entries.
 file AGENTS.md
 file CHANGELOG.md
+file .gitignore
 file GoalTeams-PRD-V2.3.md
 file docs/change-history.en.md
 file docs/change-history.md
 file docs/release-contents.en.md
 file docs/release-contents.md
+file docs/v2.34-completion.en.md
+file docs/v2.34-completion.md
+prefix docs/archive/
 file README.en.md
 file README.md
 file RULES.md

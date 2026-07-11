@@ -47,6 +47,13 @@ okf_version: "0.1"
 
 `check_state` 继续使用 V2.3 schema 的单值枚举。本文档和提示词中的“failed 或 blocked”仅表示选择其一：检查实际运行但未通过或证据无效为 `failed`；检查无法执行/完成（如缺授权、能力或核心依赖）为 `blocked`。禁止写入 `failed|blocked` 作为机器状态。
 
+## V2.34 扩展兼容
+
+- `feature_list.json` / `progress.md` / `contract.md` / `log.md` 是 V2.34 可恢复控制平面，不取代 V2.3 ledger、TaskList reducer、Harness、Evidence 或 Completion Audit。V2.3 核心枚举不变。
+- 四文件不完整、marker/digest/checkpoint 不一致或有无法证明的 pending journal 时 fail closed；旧输出不得静默补齐或猜测 revision。
+- 历史 change/compat 文档可记录 V2.33，但所有 current/startup surface 以 `VERSION` 的 V2.34 为准；旧启动身份模板不得进入当前公开归档。
+- 只有 sanitizer 后的 completed/public 文档可进入 `docs/archive/V2.34/<delivery_id>/`。`GoalTeamsWork-*`、`.goalteams-state/`、`.goalteams-candidates/`、`.goalteams-quarantine/` 和私有 provenance 不属于公开安装输入；已跟踪的历史 V2.3 数据不因 ignore 而删除。
+
 ## 成员包布局
 
 成员包标准文件为：
@@ -85,6 +92,7 @@ prompts/members/<role>/scripts.md
 - `SKILL.md` frontmatter 只保留 `name` 和 `description`，不放版本字段。
 - 历史版本 `V2.02` 与 `V2.1` 是 `V2.3` 前的补丁线；后续版本优先使用 `V2.3`、`V2.4` 这类递增格式，避免继续新增 `V2.0x` 版本叙事。
 - 发布或提交前运行 `./scripts/check.sh`。
+- V2.33 及后续版本必须保留 README 与双语 release/history 的分离结构；当前版本的文档、链接和标记缺失时 fail closed。
 
 ## transport handle
 

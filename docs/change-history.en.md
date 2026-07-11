@@ -6,12 +6,14 @@ This is the reader-facing English summary of changes by version. Its Chinese cou
 
 - This document does not present plans, proposals, or unverified work as delivered capability.
 - V2.33 splits the README's release-contents and history entrypoints into this bilingual document set. This record describes the scope, but cannot replace `VERSION` synchronization or validation gates.
+- V2.34 archives completed public documents by delivery id only after independent audit and sanitization; process bundles and private provenance remain outside the public archive.
 - The local planning source `docs/后续版本规划 V3.3-3.5.md` is user-maintained and is not part of the repository or install package. AI must not edit it or commit it to GitHub without separate authorization.
 
 ## Recorded versions
 
 | Version | Recorded change summary |
 | --- | --- |
+| V2.34 | Added the contract-first `Gather → Reason → Act → Verify → Repeat` LOOP; crash recovery through `feature_list.json`, `progress.md`, `contract.md`, `log.md`, journal, and CAS; an Environment Evidence gate after accepted Architecture; constrained iteration-9 candidate quarantine and a fail-closed iteration-11 delivery gate; four-dimensional scoring, GTLOG divergence/prompt lifecycle, moving-bottleneck selection, and sanitized public archives. |
 | V2.33 | On the V2.3 machine-contract baseline, defined precedence across system/user instructions, `AGENTS.md`, invariants, conditional rules, `RULES.md`, Lead, and Member; defined fail-closed dependency classification and limited degradation, explicit no-write `plan_preview` selection, single-value `check_state` language, and independent bilingual release/history documents. |
 | V2.3 | Added closed state enums, a single-writer append-only ledger, strict Evidence/Traceability/Dual Review, Profile routing and capability degradation, typed migration, atomic installation, and deterministic release gates. Technical RC and public GA remain separate judgments. |
 | V2.1 | Added Lead LOOP, Loop Decision, Loop Gate, state snapshots, and `GT-BENCH-004` to record the post-integration decision to continue or stop. |

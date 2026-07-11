@@ -135,6 +135,9 @@ For Goal Teams projects, establish `ledger/events.jsonl` first and let the V2.3 
 Backend work follows architecture-first TDD: write/update Backend Architecture Design, have an independent subagent write unit tests, implement code, then have another independent subagent run unit tests. API integration tests default to Python + pytest and run after unit tests pass.
 <!-- 中文注释：后端工作遵循架构先行和 TDD：先写/更新后端架构设计，由独立 subagent 写单元测试，再实现代码，再由另一个独立 subagent 执行单元测试。API 集成测试默认 Python + pytest，并在单测通过后执行。 -->
 
+For implementation work, freeze a testable contract first. After Architecture Design is independently accepted, inspect the actual development environment, apply only authorized reversible in-repository remediation, and obtain independent current Evidence with conclusion `ready` before writing implementation code. `needs_remediation` or `blocked` does not open the implementation gate.
+<!-- 中文注释：实现类工作先冻结可测试合同；架构设计独立 accepted 后，检查实际开发环境，只做已授权、仓库内、可逆改善，并在写实现代码前取得独立且 current 的 `ready` Evidence；`needs_remediation` 或 `blocked` 不开放实现门。 -->
+
 Frontend work requires independent E2E generation and execution after implementation: one subagent writes E2E cases, another runs them and records screenshots, traces, console/network evidence, and failures.
 <!-- 中文注释：前端开发完成后，必须由独立 subagent 生成 E2E 用例，再由另一个 subagent 执行并记录截图、trace、console/network 证据和失败信息。 -->
 

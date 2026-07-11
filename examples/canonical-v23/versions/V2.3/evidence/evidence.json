@@ -1,5 +1,5 @@
 {
-  "artifact_mtime_ns": 1783726763678378481,
+  "artifact_mtime_ns": 1783760876236816351,
   "artifact_ref": "versions/V2.3/evidence/artifact.txt",
   "artifact_sha256": "b397bfdefd2f7c201a2f15ca9247438d2359384734c039db880b75315178f789",
   "artifact_size": 27,
@@ -19,7 +19,7 @@
     "execution_record_sha256": "2884542f6e845b2cd1b348d47f030c1956e59c7002128645243404f93ff9fd07",
     "execution_record_size": 615,
     "exit_code": 0,
-    "log_mtime_ns": 1783726763714038015,
+    "log_mtime_ns": 1783760876292488181,
     "log_path": "versions/V2.3/evidence/run.log",
     "log_sha256": "c516dd8157f5dd44cc0adee48df2482f11acdc0f392897e8d5528ba8f09f7836",
     "log_size": 2537,
@@ -31,7 +31,7 @@
     "ledger_prefix_sha256": "a940c908e26a14f4409d2ecfceec018366154d57c0aecbb0db110ebbf66f671a",
     "ledger_revision": 3,
     "platform": "darwin",
-    "python_version": "3.14.3",
+    "python_version": "3.13.3",
     "workspace_revision": "HEAD"
   },
   "evidence_id": "EVD-CAN-001",
@@ -44,14 +44,14 @@
       "import hashlib,json,pathlib,sys\nif len(sys.argv) != 4:\n    raise SystemExit(64)\nroot = pathlib.Path.cwd().resolve()\nraw = pathlib.Path(sys.argv[1])\ncandidate_input = raw if raw.is_absolute() else root / raw\nif candidate_input.is_symlink():\n    raise SystemExit(65)\ncandidate = candidate_input.resolve()\ntry:\n    candidate.relative_to(root)\nexcept (OSError,RuntimeError,ValueError):\n    raise SystemExit(66)\nif not candidate.is_file():\n    raise SystemExit(67)\ndigest = hashlib.sha256()\nwith candidate.open(\"rb\") as stream:\n    for chunk in iter(lambda: stream.read(1048576), b\"\"):\n        digest.update(chunk)\nactual = digest.hexdigest()\nif actual != sys.argv[2]:\n    raise SystemExit(68)\npayload = {\"artifact_ref\": sys.argv[1], \"artifact_sha256\": actual, \"binding_digest\": sys.argv[3], \"verifier\": \"goal-teams-v2.3-safe-artifact-verifier-v1\"}\nsys.stdout.write(json.dumps(payload, ensure_ascii=True, sort_keys=True, separators=(\",\", \":\")) + \"\\n\")\n",
       "versions/V2.3/evidence/artifact.txt",
       "b397bfdefd2f7c201a2f15ca9247438d2359384734c039db880b75315178f789",
-      "80110871fddf41192bbd1c22c95d18e9b561439b8fa13822417f35afd9692c66"
+      "893e140a05b2e3c4c9def72dce7983e4e5fd7978b8dc8b5716f805768107cfba"
     ],
     "cwd": ".",
     "ended_at": "2026-07-10T00:00:04Z",
     "exit_code": 0,
-    "log_mtime_ns": 1783726763739800082,
+    "log_mtime_ns": 1783760876316671930,
     "log_path": "versions/V2.3/evidence/integrity-EVD-CAN-001.log",
-    "log_sha256": "933d262b3f50058edd096c792a12ac998ed1baa7a67c99435ca451cbf66a27ce",
+    "log_sha256": "8dcbad18262ebf494a962ae392b1a6a784b5cc092b19067d0455d3fd62d82b74",
     "log_size": 279,
     "started_at": "2026-07-10T00:00:04Z"
   },

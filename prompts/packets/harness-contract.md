@@ -44,6 +44,42 @@ Harness Contract（验证契约）:
 - 只引用已有或计划中明确要创建的检查；不要宣称会运行未验证、未授权或不存在的命令。
 - 任务没有 Harness 契约、有效 Evidence 或不适用说明时，不能标记为 `accepted`。
 
+## V2.34 Harness 扩展
+
+实现类 Harness 还必须定义：
+
+```text
+- contract_gate:
+  - contract_revision / contract_sha256 / assertion_set_sha256
+  - independent_review_ref / reviewer_run_id
+- architecture_gate:
+  - architecture_ref / architecture_sha256 / accepted_event_ref
+- environment_gate:
+  - development_environment_check_ref / report_sha256
+  - workspace_commit / source_manifest_digest / tool_path_version_hashes
+  - conclusion: ready | needs_remediation | blocked
+  - validator_run_id / evidence_refs
+- state_bundle_checks:
+  - feature_list.json / progress.md / contract.md / log.md
+  - expected_bundle_revision / expected_bundle_digest / ledger_checkpoint
+  - marker_last / journal_reconcile / crash_points
+- iteration_checks:
+  - iteration_9_disposable_candidate_quarantine
+  - iteration_11_fail_closed_delivery
+- quality_checks:
+  - design / originality / craft / functionality: exactly 4 x 0.25
+  - independent_reviewer / candidate_digest / evidence_refs
+- diagnostic_checks:
+  - GTLOG intent_judgment_divergence
+  - prompt_patch_regression_and_holdout
+  - moving_bottleneck_current_graph
+- publication_checks:
+  - public_completion_doc / sanitizer / archive_manifest / publish_guard
+  - private_provenance_preserved
+```
+
+`environment_gate.conclusion` 只有 `ready` 开放实现；`needs_remediation|blocked` 必须持续为缺口。评分检查不得影响原有 test/check/review/audit 完成谓词。公开文档检查不得以删除 ledger/Evidence/review/audit/provenance 为“清洗”方式。
+
 ## V2.3 Machine Closure Packet
 
 非 no-write `plan_preview` 的执行按以下顺序落盘：

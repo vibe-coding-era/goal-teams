@@ -94,6 +94,9 @@ Task Handoff Record（ledger checkpoint 与 TaskList 投影的同一任务）:
 | `backend_architecture_design` | Backend Architecture Design、后端架构设计 | `goal_backend` | `goal_reviewer` | 后端开发前必须写入 | `spec/backend-architecture-design.md`、架构评审、API/数据/权限边界 |
 | `frontend_architecture_design` | Frontend Architecture Design、前端架构设计 | `goal_frontend` | `goal_reviewer` 或 `goal_qa` | 前端开发前必须写入或写原因 | `spec/frontend-architecture-design.md`、组件库/状态/路由/数据边界 |
 | `architecture_design` | Architecture Design、跨端架构设计 | `goal_backend`、`goal_frontend` 或 `goal_product` | `goal_reviewer` | 涉及架构决策时写入 | `spec/architecture-design.md`、架构评审 |
+| `development_environment_check` | Architecture accepted 后的开发环境检查与安全 remediation | 当前 `goal_backend` / `goal_frontend` 实现 Owner | `goal_qa` 或 `goal_reviewer`（必须是不同 run） | 任一实现前必须写入 | `spec/development-environment-check.md`、Architecture/workspace/tool exact hash、argv/cwd/log、remediation before/after、current `local_verified` Evidence；只有 `ready` 开实现门 |
+| `iteration_state_bundle` | V2.34 四文件 LOOP 状态与 transaction/reconcile receipt | Goal Lead / 唯一 state writer | `goal_qa` 或 `goal_completion_auditor`（不同 run） | 启用 V2.34 可恢复 LOOP 时每个 committed revision 必须登记 | `feature_list.json`、`progress.md`、`contract.md`、`log.md`、journal/receipt hash、marker-last/CAS/reconcile Evidence |
+| `public_completion_doc` | 审计完成且清除调用痕迹的公开交付文档 | `goal_docs` 或 Goal Lead | `goal_reviewer` 与最终 `goal_completion_auditor` | 进入 `docs/archive/V2.34/<delivery_id>/` 前必须写入 | accepted source hash、sanitizer report、public manifest/tree digest、private provenance receipt；不包含 invocation/tool-call/transport/raw log |
 | `html_prototype` | HTML Prototype | `goal_frontend` | `goal_qa` 或 `goal_reviewer` | 是，界面不适用时写原因 | `spec/HTML-prototype.html`、截图、控制台检查 |
 | `frontend_implementation` | 前端开发、页面实现、交互实现 | `goal_frontend` | `goal_qa` 或 `goal_reviewer` | 前端任务必须写入 | diff 摘要、截图、控制台、组件断言 |
 | `backend_unit_test_cases` | 后端 TDD 单元测试用例 | `goal_unit_test_designer` | `goal_reviewer` 或 `goal_qa` | 后端开发前必须写入 | 测试文件、预期失败/覆盖说明、断言审查 |
@@ -138,14 +141,15 @@ Full/Regulated Profile 的每个功能切片在版本子目录 `TaskList.md` 中
 | 4 | 某功能的 HTML 原型 | `html_prototype` | `goal_frontend` | `page_spec_card` |
 | 5 | 某功能的前端架构设计 | `frontend_architecture_design` | `goal_frontend` | `prd` |
 | 6 | 某功能的后端架构设计 | `backend_architecture_design` | `goal_backend` | `prd` |
-| 7 | 某功能的前端开发 | `frontend_implementation` | `goal_frontend` | `frontend_architecture_design`、`html_prototype` |
-| 8 | 某功能的后端 TDD | `backend_unit_test_cases` | `goal_unit_test_designer` | `backend_architecture_design` |
-| 9 | 某功能的后端开发 | `backend_implementation` | `goal_backend` | `backend_unit_test_cases` |
-| 10 | 某功能的后端执行 TDD | `backend_unit_test_execution` | `goal_unit_test_runner` | `backend_implementation` |
-| 11 | 某功能的 API 集成测试脚本生成 | `api_integration_test_script` | `goal_api_integration_test_designer` | `backend_architecture_design` |
-| 12 | 某功能的 API 集成测试 | `api_integration_test_plan` | `goal_api_integration_test_designer` | `api_integration_test_script` |
-| 13 | 某功能的 API 集成测试执行 | `api_integration_test_execution` | `goal_api_integration_test_runner` | `backend_unit_test_execution`、`api_integration_test_plan` |
-| 14 | 某功能的生成 E2E 测试用例 | `e2e_test_cases` | `goal_e2e_test_designer` | `frontend_implementation` |
-| 15 | 某功能的执行 E2E 测试用例 | `e2e_test_execution` | `goal_e2e_test_runner` | `e2e_test_cases` |
-| 16 | 某功能的 BugFix | `bugfix` | 对应实现 Owner | 任一失败测试或评审 |
-| 17 | 某功能的测试报告生成 | `test_report` | `goal_qa` 或 `goal_docs` | 全部验证项 |
+| 7 | 某功能的开发环境检查 | `development_environment_check` | 当前实现 Owner | applicable Architecture Design accepted |
+| 8 | 某功能的前端开发 | `frontend_implementation` | `goal_frontend` | `frontend_architecture_design`、`development_environment_check=ready`、`html_prototype` |
+| 9 | 某功能的后端 TDD | `backend_unit_test_cases` | `goal_unit_test_designer` | `backend_architecture_design`、`development_environment_check=ready` |
+| 10 | 某功能的后端开发 | `backend_implementation` | `goal_backend` | `backend_unit_test_cases`、`development_environment_check=ready` |
+| 11 | 某功能的后端执行 TDD | `backend_unit_test_execution` | `goal_unit_test_runner` | `backend_implementation` |
+| 12 | 某功能的 API 集成测试脚本生成 | `api_integration_test_script` | `goal_api_integration_test_designer` | `backend_architecture_design`、`development_environment_check=ready` |
+| 13 | 某功能的 API 集成测试 | `api_integration_test_plan` | `goal_api_integration_test_designer` | `api_integration_test_script` |
+| 14 | 某功能的 API 集成测试执行 | `api_integration_test_execution` | `goal_api_integration_test_runner` | `backend_unit_test_execution`、`api_integration_test_plan` |
+| 15 | 某功能的生成 E2E 测试用例 | `e2e_test_cases` | `goal_e2e_test_designer` | `frontend_implementation` |
+| 16 | 某功能的执行 E2E 测试用例 | `e2e_test_execution` | `goal_e2e_test_runner` | `e2e_test_cases` |
+| 17 | 某功能的 BugFix | `bugfix` | 对应实现 Owner | 任一失败测试或评审 |
+| 18 | 某功能的测试报告生成 | `test_report` | `goal_qa` 或 `goal_docs` | 全部验证项 |

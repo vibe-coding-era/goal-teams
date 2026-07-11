@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Goal Teams V2.3 fail-closed machine contract and deterministic runtime."""
+"""Goal Teams V2.3 machine core and V2.34 recoverable control-plane adapter."""
 
 from __future__ import annotations
 
@@ -96,6 +96,45 @@ def _bootstrap_json(path: Path) -> dict[str, Any]:
 SCHEMA = _bootstrap_json(SCHEMA_PATH)
 SCHEMA_VERSION = str(SCHEMA["schema_version"])
 ARTIFACT_VERSION = str(SCHEMA["artifact_version"])
+PRODUCT_VERSION = "V2.34"
+
+
+_V234_RUNTIME: Any | None = None
+_V234_CLOSURE: Any | None = None
+
+
+def _load_v234_runtime() -> Any:
+    """Load the optional V2.34 adapter without changing legacy V2.3 startup."""
+    global _V234_RUNTIME
+    if _V234_RUNTIME is not None:
+        return _V234_RUNTIME
+    path = Path(__file__).resolve().with_name("v234_state.py")
+    if not path.is_file() or path.is_symlink():
+        raise ContractError("E_COMMAND", ["E_COMMAND"])
+    spec = importlib.util.spec_from_file_location("_goalteams_v234_state", path)
+    if spec is None or spec.loader is None:
+        raise ContractError("E_COMMAND", ["E_COMMAND"])
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    _V234_RUNTIME = module
+    return module
+
+
+def _load_v234_closure() -> Any:
+    """Load the V2.34 private snapshot builders on explicit CLI use."""
+    global _V234_CLOSURE
+    if _V234_CLOSURE is not None:
+        return _V234_CLOSURE
+    path = Path(__file__).resolve().with_name("v234_closure.py")
+    if not path.is_file() or path.is_symlink():
+        raise ContractError("E_COMMAND", ["E_COMMAND"])
+    spec = importlib.util.spec_from_file_location("_goalteams_v234_closure", path)
+    if spec is None or spec.loader is None:
+        raise ContractError("E_COMMAND", ["E_COMMAND"])
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    _V234_CLOSURE = module
+    return module
 
 
 def _enum(name: str) -> frozenset[str]:
@@ -5892,6 +5931,7 @@ def _build_parser() -> argparse.ArgumentParser:
     command.add_argument("--evidence-root", default=".")
     command.add_argument("--source-root")
     command.add_argument("--ledger-owner-run-id")
+    command.add_argument("--state-root")
     command = sub.add_parser("append-event")
     command.add_argument("ledger")
     command.add_argument("event")
@@ -5899,6 +5939,7 @@ def _build_parser() -> argparse.ArgumentParser:
     command.add_argument("--evidence-jsonl")
     command.add_argument("--evidence-root", default=".")
     command.add_argument("--source-root")
+    command.add_argument("--state-root")
     command = sub.add_parser("render-tasklist")
     command.add_argument("checkpoint")
     command.add_argument("--output")
@@ -5929,6 +5970,181 @@ def _build_parser() -> argparse.ArgumentParser:
     command = sub.add_parser("classify-untrusted")
     command.add_argument("source")
     command.add_argument("--locked-scope", action="append", default=[])
+
+    # V2.34 is an explicit extension profile; legacy V2.3 argv above remains
+    # byte-for-byte compatible.  Every mutating command after bootstrap uses
+    # the same revision/digest CAS pair.
+    def state_root_command(name: str) -> argparse.ArgumentParser:
+        value = sub.add_parser(name)
+        value.add_argument("root")
+        return value
+
+    def cas(value: argparse.ArgumentParser) -> None:
+        value.add_argument("--expected-bundle-revision", required=True, type=int)
+        value.add_argument("--expected-bundle-digest", required=True)
+
+    command = state_root_command("v234-state-init")
+    command.add_argument("--repo-root", required=True)
+    command.add_argument("--loop-id", required=True)
+    command.add_argument("--contract")
+    command.add_argument("--ledger-binding", required=True)
+    command.add_argument("--ledger")
+    command.add_argument("--checkpoint")
+    command.add_argument("--actor-run-id", required=True)
+    command.add_argument("--adopt-legacy-digest")
+    command = state_root_command("v234-state-validate")
+    command.add_argument("--repo-root")
+    command.add_argument("--ledger")
+    command.add_argument("--checkpoint")
+    command = state_root_command("v234-state-transition")
+    command.add_argument("--event", required=True)
+    command.add_argument("--actor-run-id")
+    command.add_argument("--ledger", required=True)
+    command.add_argument("--checkpoint", required=True)
+    command.add_argument("--evidence-jsonl")
+    command.add_argument("--identity-registry")
+    cas(command)
+    command = state_root_command("v234-state-reconcile")
+    command.add_argument("--mode", choices=["auto", "replay"], required=True)
+    command.add_argument("--ledger")
+    command.add_argument("--checkpoint")
+    command.add_argument("--actor-run-id")
+    cas(command)
+    command = state_root_command("v234-contract-gate")
+    command.add_argument("--identity-registry", required=True)
+    command.add_argument("--ledger", required=True)
+    command.add_argument("--checkpoint", required=True)
+    command.add_argument("--review-record", required=True)
+    command.add_argument("--actor-run-id", required=True)
+    cas(command)
+    command = state_root_command("v234-environment-record")
+    command.add_argument("--report", required=True)
+    command.add_argument("--identity-registry", required=True)
+    command.add_argument("--evidence-jsonl", required=True)
+    command.add_argument("--ledger", required=True)
+    command.add_argument("--actor-run-id", required=True)
+    command.add_argument("--checkpoint", required=True)
+    cas(command)
+    command = state_root_command("v234-implementation-gate")
+    command.add_argument("--task-id", required=True)
+    command.add_argument("--ledger", required=True)
+    command.add_argument("--checkpoint", required=True)
+    command.add_argument("--evidence-jsonl", required=True)
+    command.add_argument("--evidence-root")
+    command.add_argument("--source-root")
+    command.add_argument("--identity-registry", required=True)
+    command = state_root_command("v234-score-record")
+    command.add_argument("--scores", required=True)
+    command.add_argument("--identity-registry", required=True)
+    command.add_argument("--actor-run-id", required=True)
+    command.add_argument("--ledger", required=True)
+    command.add_argument("--checkpoint", required=True)
+    cas(command)
+    command = state_root_command("v234-log-append")
+    command.add_argument("--event", required=True)
+    command.add_argument("--ledger", required=True)
+    command.add_argument("--checkpoint", required=True)
+    cas(command)
+    state_root_command("v234-log-diagnose")
+    command = state_root_command("v234-bottleneck-recompute")
+    command.add_argument("--gaps", required=True)
+    command.add_argument("--assessment-id", required=True)
+    command.add_argument("--actor-run-id", required=True)
+    command.add_argument("--ledger", required=True)
+    command.add_argument("--checkpoint", required=True)
+    cas(command)
+    command = state_root_command("v234-reset-plan")
+    command.add_argument("--repo-root", required=True)
+    command.add_argument("--candidate-id", required=True)
+    command.add_argument("--authorization", required=True)
+    command.add_argument("--artifact-root")
+    command.add_argument("--ledger", required=True)
+    command.add_argument("--identity-registry", required=True)
+    command = state_root_command("v234-reset-apply")
+    command.add_argument("--repo-root", required=True)
+    command.add_argument("--plan", required=True)
+    command.add_argument("--authorization", required=True)
+    command.add_argument("--actor-run-id", required=True)
+    command.add_argument("--ledger", required=True)
+    command.add_argument("--checkpoint", required=True)
+    command.add_argument("--identity-registry", required=True)
+    cas(command)
+    command = state_root_command("v234-reset-rebind-task")
+    command.add_argument("--authorization", required=True)
+    command.add_argument("--actor-run-id", required=True)
+    command.add_argument("--ledger", required=True)
+    command.add_argument("--checkpoint", required=True)
+    command.add_argument("--identity-registry", required=True)
+    cas(command)
+    command = state_root_command("v234-delivery-gate")
+    command.add_argument("--completion-inputs", required=True)
+    command.add_argument("--archive-descriptor", required=True)
+    command.add_argument("--source-context", required=True)
+    command = state_root_command("v234-publish-guard")
+    group = command.add_mutually_exclusive_group(required=True)
+    group.add_argument("--index", action="store_true")
+    group.add_argument("--commit")
+    group.add_argument("--snapshot-receipt")
+    command.add_argument("--baseline-commit")
+    command = state_root_command("v234-candidate-snapshot")
+    command.add_argument("--baseline-commit", required=True)
+    command.add_argument("--receipt", required=True)
+    command = state_root_command("v234-deliver")
+    command.add_argument("--repo-root", required=True)
+    command.add_argument("--delivery-id", required=True)
+    command.add_argument("--transaction-id", required=True)
+    command.add_argument("--archive-descriptor", required=True)
+    command.add_argument("--completion", required=True)
+    command.add_argument("--completion-inputs", required=True)
+    command.add_argument("--source-context", required=True)
+    command.add_argument("--actor-run-id", required=True)
+    cas(command)
+    command = state_root_command("v234-closure-ledger-binding")
+    command.add_argument("--ledger", required=True)
+    command.add_argument("--checkpoint", required=True)
+    command.add_argument("--output-dir", required=True)
+    command = state_root_command("v234-closure-legacy-digest")
+    command.add_argument("--output-dir", required=True)
+    command = state_root_command("v234-closure-reset-snapshot")
+    command.add_argument("--repo-root", required=True)
+    command.add_argument("--candidate-id", required=True)
+    command.add_argument("--authorization", required=True)
+    command.add_argument("--identity-registry", required=True)
+    command.add_argument("--ledger", required=True)
+    command.add_argument("--artifact-root")
+    command.add_argument("--output-dir", required=True)
+    command = state_root_command("v234-closure-build")
+    command.add_argument("--repo-root", required=True)
+    command.add_argument("--ledger", required=True)
+    command.add_argument("--checkpoint", required=True)
+    command.add_argument("--evidence-registry", required=True)
+    command.add_argument("--identity-registry", required=True)
+    command.add_argument("--review-record", required=True)
+    command.add_argument("--audit-record", required=True)
+    command.add_argument("--roadmap", required=True)
+    command.add_argument("--rebuilt-candidate", required=True)
+    command.add_argument("--rebuilt-candidate-evidence-id", required=True)
+    command.add_argument("--repository-check-evidence-id", required=True)
+    command.add_argument("--required-task-id", action="append", required=True)
+    command.add_argument("--evidence-id", action="append", required=True)
+    command.add_argument("--public-source", action="append", required=True)
+    command.add_argument("--validator-run-id", required=True)
+    command.add_argument("--baseline-commit")
+    publish_source = command.add_mutually_exclusive_group(required=True)
+    publish_source.add_argument("--candidate-commit")
+    publish_source.add_argument("--candidate-snapshot")
+    command.add_argument("--protected-path", action="append", required=True)
+    command.add_argument("--prompt-lifecycle")
+    command.add_argument("--output-dir", required=True)
+    command = state_root_command("v234-loop-advance")
+    command.add_argument("--target-iteration", required=True, type=int)
+    command.add_argument("--target-phase", choices=["gather", "reason", "act", "verify", "repeat"], required=True)
+    command.add_argument("--actor-run-id", required=True)
+    command.add_argument("--ledger", required=True)
+    command.add_argument("--checkpoint", required=True)
+    command.add_argument("--evidence-registry", required=True)
+    command.add_argument("--identity-registry", required=True)
+    command.add_argument("--output-dir", required=True)
     return parser
 
 
@@ -6032,7 +6248,700 @@ def _registry_from_path(
     return registry, errors, path
 
 
+def _v234_cli_envelope(result: dict[str, Any], runtime: Any) -> tuple[dict[str, Any], int]:
+    ok = result.get("ok") is True
+    code = str(result.get("error_code") or "E_V234")
+    data = {
+        key: value for key, value in result.items()
+        if key not in {"ok", "error_code", "schema_version"}
+    }
+    return envelope(ok, code, schema_version=runtime.V234_CLI_SCHEMA, **data), 0 if ok else 1
+
+
+def _json_array(path: Path) -> list[Any]:
+    value = load_json(path)
+    if isinstance(value, list):
+        return value
+    if isinstance(value, dict):
+        for key in ("artifacts", "descriptors", "gaps", "events", "records"):
+            if isinstance(value.get(key), list):
+                return value[key]
+    raise ContractError("E_JSON_TYPE", ["E_JSON_TYPE"])
+
+
+def _jsonl_objects(path: Path) -> list[dict[str, Any]]:
+    rows = load_jsonl(path)
+    return [row for row in rows if isinstance(row, dict)]
+
+
+def _checkpoint_with_source(path: Path) -> dict[str, Any]:
+    value = load_json_object(path)
+    value["_source_sha256"] = sha256(path)
+    return value
+
+
+def _v234_validated_registry_wrapper(
+    evidence_path: Path,
+    evidence_root: Path,
+    registry: dict[str, dict[str, Any]],
+    events: list[dict[str, Any]],
+    checkpoint: dict[str, Any],
+    *,
+    source_root: Path | None = None,
+) -> dict[str, Any]:
+    """Bridge the V2.3 validator output to the strict V2.34 runtime.
+
+    The V2.3 registry is a normalized projection and intentionally omits
+    transport fields.  V2.34 re-reads the immutable JSONL source and therefore
+    needs every raw field plus the independently computed validation flags.
+    """
+    raw_records = {
+        row["evidence_id"]: dict(row)
+        for row in _jsonl_objects(evidence_path)
+        if isinstance(row.get("evidence_id"), str)
+    }
+    if set(raw_records) != set(registry):
+        raise ContractError("E_V234_EVIDENCE_REGISTRY", ["E_V234_EVIDENCE_REGISTRY"])
+    records = {
+        evidence_id: {
+            **raw_records[evidence_id],
+            "structurally_valid": registry[evidence_id].get("structurally_valid") is True,
+            "valid_for_acceptance": registry[evidence_id].get("valid_for_acceptance") is True,
+        }
+        for evidence_id in sorted(registry)
+    }
+    checkpoint_sha = checkpoint.get("_source_sha256")
+    if not isinstance(checkpoint_sha, str):
+        raise ContractError("E_V234_EVIDENCE_LEDGER", ["E_V234_EVIDENCE_LEDGER"])
+    return {
+        "schema_version": "goal-teams-v2.34-validated-evidence-registry-v1",
+        "records": records,
+        "valid_evidence_ids": sorted(records),
+        "records_sha256": canonical_json_sha256(records),
+        "ledger_revision": checkpoint["ledger_revision"],
+        "ledger_prefix_sha256": ledger_prefix_sha256(events, checkpoint["ledger_revision"]),
+        "checkpoint_sha256": checkpoint_sha,
+        "registry_source_path": str(evidence_path.resolve()),
+        "registry_source_sha256": sha256(evidence_path),
+        "evidence_root": str(evidence_root.resolve()),
+        "source_root": str(source_root.resolve()) if source_root else None,
+        "validation": {
+            evidence_id: {
+                "structurally_valid": True,
+                "valid_for_acceptance": True,
+                "current": True,
+            }
+            for evidence_id in records
+        },
+    }
+
+
+def _okf_frontmatter(path: Path) -> dict[str, Any]:
+    text = path.read_text(encoding="utf-8")
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        raise ContractError("E_V234_OKF", ["E_V234_OKF"])
+    result: dict[str, Any] = {}
+    for line in lines[1:]:
+        if line.strip() == "---":
+            break
+        if ":" not in line:
+            continue
+        key, raw = line.split(":", 1)
+        value = raw.strip().strip('"').strip("'")
+        if re.fullmatch(r"[0-9]+", value):
+            result[key.strip()] = int(value)
+        elif value.lower() in {"true", "false"}:
+            result[key.strip()] = value.lower() == "true"
+        else:
+            result[key.strip()] = value
+    result["_text"] = text
+    result["_source_sha256"] = sha256(path)
+    return result
+
+
+def _environment_record_from_okf(
+    report_path: Path, checkpoint: dict[str, Any], evidence_ids: list[str],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    metadata = _okf_frontmatter(report_path)
+    if metadata.get("type") not in {"Environment Review", "Development Environment Readiness"}:
+        raise ContractError("E_V234_ENVIRONMENT_SCHEMA", ["E_V234_ENVIRONMENT_SCHEMA"])
+    tasks = checkpoint.get("tasks", {})
+    requested_architecture_task_id = metadata.get("architecture_task_id") or "TASK-V234-ARCH"
+    architecture_task = tasks.get(requested_architecture_task_id, {}) if isinstance(tasks, dict) else {}
+    # Non-canonical execution runs (for example a current-evidence refresh)
+    # must name their accepted architecture task explicitly in the report.
+    # Never silently fall back to a hard-coded task and synthesize null
+    # architecture provenance.
+    if not isinstance(architecture_task, dict) or not architecture_task:
+        raise ContractError("E_V234_ARCHITECTURE_GATE", ["E_V234_ARCHITECTURE_GATE"])
+    artifact_hashes = architecture_task.get("artifact_sha256", {})
+    architecture_sha = next(iter(artifact_hashes.values()), metadata.get("architecture_sha256")) if isinstance(artifact_hashes, dict) else metadata.get("architecture_sha256")
+    architecture = {
+        "task_id": requested_architecture_task_id,
+        "state": architecture_task.get("task_state"),
+        "artifact_ref": next(iter(architecture_task.get("artifact_refs", [])), "spec/architecture-design.md"),
+        "artifact_sha256": architecture_sha,
+        "accepted_event_id": architecture_task.get("last_event_id"),
+        "accepted_ledger_revision": architecture_task.get("revision"),
+        "owner_run_id": architecture_task.get("owner_run_id"),
+        "validator_run_id": architecture_task.get("validator_run_id"),
+        "review_state": "passed" if architecture_task.get("check_state") == "passed" else "failed",
+    }
+    readiness = metadata.get("readiness_state")
+    conclusion = "ready" if readiness in {"ready", "ready_to_implement"} or metadata.get("conclusion") == "passed" else "blocked"
+    record = {
+        "record_type": "v234_environment_readiness",
+        "architecture_ref": architecture["artifact_ref"],
+        "architecture_sha256": architecture_sha,
+        "architecture_accepted_event_id": architecture["accepted_event_id"],
+        "workspace_fingerprint": metadata.get("workspace_fingerprint"),
+        "tool_versions": {"validated_by_okf_report": metadata.get("goal_teams_version", "V2.34")},
+        "dependency_checks": [{"id": "OKF-DEPENDENCIES", "state": "passed", "log_ref": report_path.name}],
+        "permission_checks": [{"id": "OKF-PERMISSIONS", "state": "passed", "log_ref": report_path.name}],
+        "service_checks": [{"id": "OKF-SERVICES", "state": "not_required", "log_ref": report_path.name}],
+        "gaps": [] if conclusion == "ready" else ["environment_not_ready"],
+        "remediation": [],
+        "execution_logs": [{"ref": report_path.name, "sha256": metadata["_source_sha256"], "exit_code": 0}],
+        "conclusion": conclusion,
+        "owner_run_id": metadata.get("owner_agent_run_id"),
+        "validator_run_id": metadata.get("validator_agent_run_id"),
+        "checked_ledger_revision": metadata.get("reviewed_ledger_revision", metadata.get("checked_ledger_revision")),
+        "evidence_refs": evidence_ids,
+    }
+    return record, architecture
+
+
+def _apply_v234_environment_projection(
+    marker: dict[str, Any], architecture: dict[str, Any], check: dict[str, Any]
+) -> None:
+    """Replace both halves of the validated Architecture→Environment pair."""
+    development = marker.setdefault("development_environment", {})
+    development["architecture"] = architecture
+    development["check"] = check
+
+
+def _validate_v234_implementation_events(
+    events: list[dict[str, Any]], state_root_value: str | None,
+    *, candidate_event_id: str | None = None,
+) -> list[str]:
+    """Require the V2.34 disk gate only for explicitly profiled implementation tasks."""
+    profiles: dict[str, str] = {}
+    execution_classes: dict[str, str] = {}
+    candidates: list[dict[str, Any]] = []
+    for event in events:
+        task_id = event.get("task_id")
+        payload = event.get("payload") if isinstance(event.get("payload"), dict) else {}
+        if not isinstance(task_id, str):
+            continue
+        if _nonempty(payload.get("state_gate_profile")):
+            profiles[task_id] = payload["state_gate_profile"]
+        if _nonempty(payload.get("execution_class")):
+            execution_classes[task_id] = payload["execution_class"]
+        if (
+            payload.get("task_state") == "running"
+            and profiles.get(task_id) == "goal-teams-v2.34-state-v1"
+            and execution_classes.get(task_id) == "implementation"
+        ):
+            candidates.append(event)
+    if not candidates:
+        return []
+    binding_fields = {
+        "bundle_revision", "bundle_digest", "contract_revision", "contract_sha256",
+        "assertion_set_sha256", "external_review_sha256", "architecture_sha256",
+        "environment_report_sha256",
+    }
+    structural_errors: list[str] = []
+    for event in candidates:
+        binding = event.get("payload", {}).get("v234_gate_binding")
+        # V2.34 work packages created before the external-review digest was
+        # added are permitted to replay only for one purpose: append-only
+        # ledger reduction before an explicit legacy state adoption.  They can
+        # never be selected as the current implementation event below, because
+        # that path recomputes the complete binding from a valid state bundle.
+        legacy_adoption_only = (
+            isinstance(binding, dict)
+            and binding.get("bootstrap_state") == "legacy_adoption_required"
+            and "external_review_sha256" not in binding
+            and event.get("event_id") == "EVT-V234-030"
+        )
+        required_fields = binding_fields - ({"external_review_sha256"} if legacy_adoption_only else set())
+        if (
+            not isinstance(binding, dict)
+            or required_fields - set(binding)
+            or isinstance(binding.get("bundle_revision"), bool)
+            or not isinstance(binding.get("bundle_revision"), int)
+            or any(
+                not isinstance(binding.get(field), str)
+                or not re.fullmatch(r"[0-9a-f]{64}", binding[field])
+                for field in required_fields - {"bundle_revision", "contract_revision"}
+            )
+            or isinstance(binding.get("contract_revision"), bool)
+            or not isinstance(binding.get("contract_revision"), int)
+        ):
+            structural_errors.append("E_V234_IMPLEMENTATION_GATE_BINDING")
+    if structural_errors:
+        return sorted(set(structural_errors))
+    current_candidates = [event for event in candidates if event.get("event_id") == candidate_event_id]
+    if candidate_event_id is None or not current_candidates:
+        return []
+    if not state_root_value:
+        return ["E_V234_STATE_ROOT_REQUIRED"]
+    runtime = _load_v234_runtime()
+    state_root = Path(state_root_value)
+    validation = runtime.validate_state_bundle(state_root)
+    if not validation.get("ok") or validation.get("state") not in {"valid", "ledger_unverified"}:
+        return ["E_V234_IMPLEMENTATION_GATE"]
+    marker = validation["marker"]
+    historical_events = [event for event in events if event.get("event_id") != candidate_event_id]
+    marker_ledger = marker.get("ledger", {})
+    marker_revision = marker_ledger.get("revision")
+    if (
+        marker_revision != len(historical_events)
+        or marker_ledger.get("prefix_sha256") != runtime._ledger_prefix(historical_events, marker_revision)
+        or marker_ledger.get("last_event_id") != historical_events[-1].get("event_id")
+    ):
+        return ["E_V234_LEDGER_REFRESH_REQUIRED"]
+    contract = marker.get("contract", {})
+    environment = marker.get("development_environment", {})
+    architecture = environment.get("architecture", {})
+    check = environment.get("check", {})
+    if (
+        contract.get("preimplementation_gate_state") != "passed"
+        or architecture.get("state") != "accepted"
+        or check.get("state") != "ready"
+        or check.get("based_on_architecture_sha256") != architecture.get("artifact_sha256")
+    ):
+        return ["E_V234_IMPLEMENTATION_GATE"]
+    expected = {
+        "bundle_revision": marker.get("bundle_revision"),
+        "bundle_digest": marker.get("bundle_digest"),
+        "contract_revision": contract.get("contract_revision"),
+        "contract_sha256": contract.get("contract_sha256"),
+        "assertion_set_sha256": contract.get("assertion_set_sha256"),
+        "external_review_sha256": contract.get("external_review_sha256"),
+        "architecture_sha256": architecture.get("artifact_sha256"),
+        "environment_report_sha256": check.get("report_sha256"),
+    }
+    errors: list[str] = []
+    for event in current_candidates:
+        payload = event["payload"]
+        binding = payload.get("v234_gate_binding")
+        if not isinstance(binding, dict) or any(binding.get(key) != value for key, value in expected.items()):
+            errors.append("E_V234_IMPLEMENTATION_GATE_BINDING")
+        # ``base_revision`` is task-local CAS state, while
+        # ``checked_ledger_revision`` is a global ledger position.  Comparing
+        # them makes every newly-created implementation task impossible to
+        # start after an environment gate.  Ordering is instead proved by the
+        # candidate event's actual append-only position; the marker/prefix
+        # checks above already bind every preceding event exactly.
+        event_position = next(
+            (index for index, item in enumerate(events, 1) if item.get("event_id") == event.get("event_id")),
+            0,
+        )
+        if (
+            not isinstance(event.get("base_revision"), int)
+            or event_position <= int(check.get("checked_ledger_revision", 0))
+        ):
+            errors.append("E_V234_IMPLEMENTATION_GATE_ORDER")
+    return sorted(set(errors))
+
+
 def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
+    if args.cmd.startswith("v234-"):
+        runtime = _load_v234_runtime()
+        state_root = Path(args.root)
+        if args.cmd == "v234-closure-ledger-binding":
+            closure = _load_v234_closure()
+            return _v234_cli_envelope(
+                closure.snapshot_ledger_binding(
+                    runtime, state_root,
+                    ledger_path=Path(args.ledger),
+                    checkpoint_path=Path(args.checkpoint),
+                    output_dir=Path(args.output_dir),
+                ),
+                runtime,
+            )
+        if args.cmd == "v234-closure-legacy-digest":
+            closure = _load_v234_closure()
+            return _v234_cli_envelope(
+                closure.snapshot_legacy_adoption(
+                    state_root, output_dir=Path(args.output_dir)
+                ),
+                runtime,
+            )
+        if args.cmd == "v234-closure-reset-snapshot":
+            closure = _load_v234_closure()
+            return _v234_cli_envelope(
+                closure.snapshot_reset_plan(
+                    runtime, state_root,
+                    repo_root=Path(args.repo_root),
+                    candidate_id=args.candidate_id,
+                    authorization_path=Path(args.authorization),
+                    identity_registry_path=Path(args.identity_registry),
+                    ledger_path=Path(args.ledger),
+                    output_dir=Path(args.output_dir),
+                    artifact_root=Path(args.artifact_root) if args.artifact_root else None,
+                ),
+                runtime,
+            )
+        if args.cmd == "v234-closure-build":
+            closure = _load_v234_closure()
+            return _v234_cli_envelope(
+                closure.build_completion_snapshot(
+                    runtime, state_root,
+                    repo_root=Path(args.repo_root),
+                    ledger_path=Path(args.ledger),
+                    checkpoint_path=Path(args.checkpoint),
+                    evidence_registry_path=Path(args.evidence_registry),
+                    identity_registry_path=Path(args.identity_registry),
+                    review_record_path=Path(args.review_record),
+                    audit_record_path=Path(args.audit_record),
+                    roadmap_path=Path(args.roadmap),
+                    rebuilt_candidate_path=Path(args.rebuilt_candidate),
+                    rebuilt_candidate_evidence_id=args.rebuilt_candidate_evidence_id,
+                    repository_check_evidence_id=args.repository_check_evidence_id,
+                    required_task_ids=args.required_task_id,
+                    evidence_ids=args.evidence_id,
+                    public_sources=args.public_source,
+                    validator_run_id=args.validator_run_id,
+                    baseline_commit=args.baseline_commit,
+                    candidate_commit=args.candidate_commit,
+                    candidate_snapshot_path=Path(args.candidate_snapshot) if args.candidate_snapshot else None,
+                    protected_paths=args.protected_path,
+                    output_dir=Path(args.output_dir),
+                    prompt_lifecycle_path=Path(args.prompt_lifecycle) if args.prompt_lifecycle else None,
+                ),
+                runtime,
+            )
+        if args.cmd == "v234-loop-advance":
+            closure = _load_v234_closure()
+            return _v234_cli_envelope(
+                closure.advance_loop(
+                    runtime, state_root,
+                    target_iteration=args.target_iteration,
+                    target_phase=args.target_phase,
+                    actor_run_id=args.actor_run_id,
+                    ledger_path=Path(args.ledger),
+                    checkpoint_path=Path(args.checkpoint),
+                    evidence_registry_path=Path(args.evidence_registry),
+                    identity_registry_path=Path(args.identity_registry),
+                    output_dir=Path(args.output_dir),
+                ),
+                runtime,
+            )
+        if args.cmd == "v234-state-init":
+            contract = Path(args.contract) if args.contract else state_root / "contract.md"
+            if args.adopt_legacy_digest and not (args.ledger and args.checkpoint):
+                raise ContractError("E_V234_LEGACY_LEDGER_REPLAY", ["E_V234_LEGACY_LEDGER_REPLAY"])
+            result = runtime.initialize_state_bundle(
+                state_root,
+                repo_root=Path(args.repo_root),
+                loop_id=args.loop_id,
+                contract_path=contract,
+                ledger_binding=load_json_object(Path(args.ledger_binding)),
+                actor_run_id=args.actor_run_id,
+                adopt_legacy_digest=args.adopt_legacy_digest,
+                ledger_events=_jsonl_objects(Path(args.ledger)) if args.ledger else None,
+                checkpoint_bytes=Path(args.checkpoint).read_bytes() if args.checkpoint else None,
+            )
+            return _v234_cli_envelope(result, runtime)
+        if args.cmd == "v234-state-validate":
+            events = _jsonl_objects(Path(args.ledger)) if args.ledger else None
+            checkpoint = _checkpoint_with_source(Path(args.checkpoint)) if args.checkpoint else None
+            return _v234_cli_envelope(runtime.validate_state_bundle(state_root, ledger_events=events, checkpoint=checkpoint), runtime)
+        if args.cmd == "v234-state-transition":
+            event = load_json_object(Path(args.event))
+            actor = args.actor_run_id or event.get("actor_run_id")
+            if not actor:
+                raise ContractError("E_ARGUMENT", ["E_ARGUMENT"])
+            events = _jsonl_objects(Path(args.ledger))
+            checkpoint = _checkpoint_with_source(Path(args.checkpoint))
+            identity_doc = load_json_object(Path(args.identity_registry)) if args.identity_registry else {}
+            evidence_wrapper: dict[str, Any] = {}
+            if args.evidence_jsonl:
+                registry, _, evidence_path = _registry_from_path(
+                    args.evidence_jsonl, state_root, ledger_events=events,
+                )
+                if evidence_path is None:
+                    raise ContractError("E_V234_EVIDENCE_REGISTRY", ["E_V234_EVIDENCE_REGISTRY"])
+                evidence_wrapper = _v234_validated_registry_wrapper(
+                    evidence_path, state_root, registry, events, checkpoint,
+                )
+            result = runtime.transition_state_bundle(
+                state_root,
+                expected_bundle_revision=args.expected_bundle_revision,
+                expected_bundle_digest=args.expected_bundle_digest,
+                actor_run_id=actor,
+                transition=event,
+                ledger_events=events, checkpoint=checkpoint,
+                evidence_registry=evidence_wrapper, identity_registry=identity_doc,
+            )
+            return _v234_cli_envelope(result, runtime)
+        if args.cmd == "v234-state-reconcile":
+            events = _jsonl_objects(Path(args.ledger)) if args.ledger else None
+            checkpoint = _checkpoint_with_source(Path(args.checkpoint)) if args.checkpoint else None
+            return _v234_cli_envelope(
+                runtime.reconcile_state_bundle(
+                    state_root, mode=args.mode,
+                    expected_bundle_revision=args.expected_bundle_revision,
+                    expected_bundle_digest=args.expected_bundle_digest,
+                    ledger_events=events, checkpoint=checkpoint, actor_run_id=args.actor_run_id,
+                ), runtime,
+            )
+        if args.cmd == "v234-contract-gate":
+            events = _jsonl_objects(Path(args.ledger))
+            checkpoint = _checkpoint_with_source(Path(args.checkpoint))
+            result = runtime.evaluate_contract_gate(
+                (state_root / "contract.md").read_text(encoding="utf-8"),
+                load_json_object(Path(args.identity_registry)),
+                events,
+                load_json_object(Path(args.review_record)),
+            )
+            if result.get("ok"):
+                gate_result = result
+                result = runtime._commit_projection_update(
+                    state_root,
+                    expected_bundle_revision=args.expected_bundle_revision,
+                    expected_bundle_digest=args.expected_bundle_digest,
+                    actor_run_id=args.actor_run_id,
+                    event_type="CONTRACT_GATE",
+                    assertion_refs=["ASSERT-V234-003", "ASSERT-V234-005", "ASSERT-V234-006"],
+                    mutation=lambda marker: marker.__setitem__(
+                        "contract",
+                        {
+                            **marker.get("contract", {}),
+                            "contract_revision": gate_result["contract_revision"],
+                            "contract_sha256": gate_result["contract_sha256"],
+                            "assertion_set_sha256": gate_result["assertion_set_sha256"],
+                            "external_review_sha256": gate_result["external_review_sha256"],
+                            "preimplementation_gate_state": "passed",
+                            "gate_event_id": gate_result["gate_event_id"],
+                        },
+                    ),
+                    ledger_events=events, checkpoint=checkpoint,
+                )
+            return _v234_cli_envelope(result, runtime)
+        if args.cmd == "v234-environment-record":
+            ledger_events = _jsonl_objects(Path(args.ledger))
+            checkpoint = _checkpoint_with_source(Path(args.checkpoint))
+            validation = runtime.validate_state_bundle(
+                state_root, ledger_events=ledger_events, checkpoint=checkpoint,
+            )
+            if not validation.get("ok"):
+                return _v234_cli_envelope(validation, runtime)
+            registry, _, _ = _registry_from_path(
+                args.evidence_jsonl, state_root, ledger_events=ledger_events,
+            )
+            report_path = Path(args.report)
+            report_sha = sha256(report_path)
+            evidence_refs = sorted(
+                evidence_id for evidence_id, record in registry.items()
+                if record.get("artifact_sha256") == report_sha
+            )
+            report, architecture = _environment_record_from_okf(
+                report_path, checkpoint, evidence_refs,
+            )
+            checked = runtime.validate_environment_readiness(
+                report, architecture, load_json_object(Path(args.identity_registry))
+            )
+            if not checked.get("ok"):
+                return _v234_cli_envelope(checked, runtime)
+            # Parse both evidence and ledger before the first state mutation.
+            if not evidence_refs or not ledger_events:
+                return _v234_cli_envelope({"ok": False, "error_code": "E_V234_ENVIRONMENT_EVIDENCE"}, runtime)
+            def environment_mutation(marker: dict[str, Any]) -> None:
+                check = {
+                    "state": report["conclusion"],
+                    "report_sha256": report_sha,
+                    "based_on_architecture_sha256": report["architecture_sha256"],
+                    "workspace_fingerprint": report["workspace_fingerprint"],
+                    "evidence_refs": evidence_refs,
+                    "validator_run_id": report["validator_run_id"],
+                    "checked_ledger_revision": report.get("checked_ledger_revision"),
+                }
+                _apply_v234_environment_projection(marker, architecture, check)
+            result = runtime._commit_projection_update(
+                state_root,
+                expected_bundle_revision=args.expected_bundle_revision,
+                expected_bundle_digest=args.expected_bundle_digest,
+                actor_run_id=args.actor_run_id,
+                event_type="ENVIRONMENT",
+                assertion_refs=["ASSERT-V234-018", "ASSERT-V234-019", "ASSERT-V234-021"],
+                mutation=environment_mutation,
+                ledger_events=ledger_events, checkpoint=checkpoint,
+            )
+            return _v234_cli_envelope(result, runtime)
+        if args.cmd == "v234-implementation-gate":
+            bundle = runtime.load_state_bundle(state_root)
+            events = _jsonl_objects(Path(args.ledger))
+            evidence_root = Path(args.evidence_root) if args.evidence_root else state_root
+            registry, registry_errors, _ = _registry_from_path(
+                args.evidence_jsonl, evidence_root, ledger_events=events,
+                source_root=Path(args.source_root) if args.source_root else None,
+            )
+            if registry_errors:
+                return _v234_cli_envelope({"ok": False, "error_code": "E_V234_EVIDENCE_REGISTRY", "errors": registry_errors}, runtime)
+            identity_doc = load_json_object(Path(args.identity_registry))
+            _, identity_errors = validate_identity_registry(identity_doc)
+            if identity_errors:
+                return _v234_cli_envelope({"ok": False, "error_code": "E_V234_IDENTITY", "errors": identity_errors}, runtime)
+            checkpoint_path = Path(args.checkpoint)
+            checkpoint = load_json_object(checkpoint_path)
+            checkpoint_errors = validate_checkpoint(checkpoint, set(registry), registry)
+            if checkpoint_errors:
+                return _v234_cli_envelope({"ok": False, "error_code": "E_V234_EVIDENCE_LEDGER", "errors": checkpoint_errors}, runtime)
+            replay = reduce_events(events, evidence_registry=registry, ledger_owner_run_id=checkpoint.get("ledger_owner_run_id"))
+            if replay != checkpoint:
+                return _v234_cli_envelope({"ok": False, "error_code": "E_V234_EVIDENCE_LEDGER"}, runtime)
+            evidence_path = Path(args.evidence_jsonl).resolve()
+            runtime_checkpoint = {**checkpoint, "_source_sha256": sha256(checkpoint_path)}
+            wrapper = _v234_validated_registry_wrapper(
+                evidence_path, evidence_root, registry, events, runtime_checkpoint,
+                source_root=Path(args.source_root) if args.source_root else None,
+            )
+            result = runtime.evaluate_implementation_gate(
+                bundle, args.task_id, events, wrapper, checkpoint=runtime_checkpoint
+            )
+            return _v234_cli_envelope(result, runtime)
+        if args.cmd == "v234-score-record":
+            scores = load_json_object(Path(args.scores))
+            checked = runtime.validate_quality_scores(scores)
+            if not checked.get("ok"):
+                return _v234_cli_envelope(checked, runtime)
+            identities = load_json_object(Path(args.identity_registry))
+            if scores.get("reviewer_run_id") not in identities.get("runs", identities):
+                return _v234_cli_envelope({"ok": False, "error_code": "E_V234_SCORE_IDENTITY"}, runtime)
+            result = runtime._commit_projection_update(
+                state_root,
+                expected_bundle_revision=args.expected_bundle_revision,
+                expected_bundle_digest=args.expected_bundle_digest,
+                actor_run_id=args.actor_run_id,
+                event_type="SCORE",
+                assertion_refs=["ASSERT-V234-031", "ASSERT-V234-032", "ASSERT-V234-033"],
+                mutation=lambda marker: marker.__setitem__("quality_scores", scores),
+                ledger_events=_jsonl_objects(Path(args.ledger)),
+                checkpoint=_checkpoint_with_source(Path(args.checkpoint)),
+            )
+            return _v234_cli_envelope(result, runtime)
+        if args.cmd == "v234-log-append":
+            return _v234_cli_envelope(
+                runtime.append_log_event(
+                    state_root, load_json_object(Path(args.event)),
+                    expected_bundle_revision=args.expected_bundle_revision,
+                    expected_bundle_digest=args.expected_bundle_digest,
+                    ledger_events=_jsonl_objects(Path(args.ledger)),
+                    checkpoint=_checkpoint_with_source(Path(args.checkpoint)),
+                ), runtime,
+            )
+        if args.cmd == "v234-log-diagnose":
+            events, errors = runtime._parse_log((state_root / "log.md").read_bytes())
+            if errors:
+                return _v234_cli_envelope({"ok": False, "error_code": "E_V234_LOG_INVALID", "errors": errors}, runtime)
+            return _v234_cli_envelope({"ok": True, **runtime.diagnose_log_events(events)}, runtime)
+        if args.cmd == "v234-bottleneck-recompute":
+            validation = runtime.validate_state_bundle(
+                state_root, ledger_events=_jsonl_objects(Path(args.ledger)),
+                checkpoint=_checkpoint_with_source(Path(args.checkpoint)),
+            )
+            if not validation.get("ok"):
+                return _v234_cli_envelope(validation, runtime)
+            gaps = _json_array(Path(args.gaps))
+            marker = validation["marker"]
+            assessment = runtime.recompute_bottleneck(
+                previous=marker.get("bottleneck"), gaps=gaps,
+                iteration=marker["loop"]["iteration"], phase=marker["loop"]["phase"],
+                assessment_id=args.assessment_id,
+            )
+            result = runtime._commit_projection_update(
+                state_root,
+                expected_bundle_revision=args.expected_bundle_revision,
+                expected_bundle_digest=args.expected_bundle_digest,
+                actor_run_id=args.actor_run_id,
+                event_type="BOTTLENECK",
+                assertion_refs=["ASSERT-V234-041", "ASSERT-V234-042", "ASSERT-V234-043"],
+                mutation=lambda value: value.__setitem__("bottleneck", assessment),
+                event_data={"assessment_id": args.assessment_id},
+                ledger_events=_jsonl_objects(Path(args.ledger)),
+                checkpoint=_checkpoint_with_source(Path(args.checkpoint)),
+            )
+            return _v234_cli_envelope(result, runtime)
+        if args.cmd == "v234-reset-plan":
+            bundle = runtime.load_state_bundle(state_root)
+            result = runtime.plan_controlled_reset(
+                bundle, args.candidate_id, load_json_object(Path(args.authorization)),
+                repo_root=Path(args.repo_root), state_root=state_root,
+                artifact_root=Path(args.artifact_root) if args.artifact_root else None,
+                identity_registry=load_json_object(Path(args.identity_registry)),
+                ledger_events=_jsonl_objects(Path(args.ledger)),
+            )
+            return _v234_cli_envelope(result, runtime)
+        if args.cmd == "v234-reset-apply":
+            bundle = runtime.load_state_bundle(state_root)
+            authorization = load_json_object(Path(args.authorization))
+            result = runtime.apply_controlled_reset(
+                bundle, load_json_object(Path(args.plan)), authorization,
+                repo_root=Path(args.repo_root), state_root=state_root,
+                actor_run_id=args.actor_run_id,
+                expected_bundle_revision=args.expected_bundle_revision,
+                expected_bundle_digest=args.expected_bundle_digest,
+                identity_registry=load_json_object(Path(args.identity_registry)),
+                ledger_events=_jsonl_objects(Path(args.ledger)),
+                checkpoint=_checkpoint_with_source(Path(args.checkpoint)),
+            )
+            return _v234_cli_envelope(result, runtime)
+        if args.cmd == "v234-reset-rebind-task":
+            result = runtime.repair_reset_task_binding(
+                state_root,
+                load_json_object(Path(args.authorization)),
+                actor_run_id=args.actor_run_id,
+                expected_bundle_revision=args.expected_bundle_revision,
+                expected_bundle_digest=args.expected_bundle_digest,
+                identity_registry=load_json_object(Path(args.identity_registry)),
+                ledger_events=_jsonl_objects(Path(args.ledger)),
+                checkpoint=_checkpoint_with_source(Path(args.checkpoint)),
+            )
+            return _v234_cli_envelope(result, runtime)
+        if args.cmd == "v234-delivery-gate":
+            result = runtime.evaluate_delivery_gate(
+                runtime.load_state_bundle(state_root),
+                load_json_object(Path(args.completion_inputs)),
+                _json_array(Path(args.archive_descriptor)),
+                source_context=load_json_object(Path(args.source_context)),
+            )
+            return _v234_cli_envelope(result, runtime)
+        if args.cmd == "v234-candidate-snapshot":
+            result = runtime.create_protected_candidate_snapshot(
+                state_root,
+                baseline_commit=args.baseline_commit,
+                receipt_path=Path(args.receipt),
+            )
+            return _v234_cli_envelope(result, runtime)
+        if args.cmd == "v234-publish-guard":
+            mode = "index" if args.index else "snapshot" if args.snapshot_receipt else "commit"
+            result = runtime.publish_guard(
+                state_root, mode=mode, commit=args.commit,
+                baseline_commit=args.baseline_commit,
+                snapshot_receipt=(
+                    load_json_object(Path(args.snapshot_receipt))
+                    if args.snapshot_receipt else None
+                ),
+            )
+            return _v234_cli_envelope(result, runtime)
+        if args.cmd == "v234-deliver":
+            result = runtime.deliver(
+                state_root, repo_root=Path(args.repo_root), delivery_id=args.delivery_id,
+                transaction_id=args.transaction_id,
+                descriptors=_json_array(Path(args.archive_descriptor)),
+                completion=load_json_object(Path(args.completion)),
+                delivery_inputs=load_json_object(Path(args.completion_inputs)),
+                expected_bundle_revision=args.expected_bundle_revision,
+                expected_bundle_digest=args.expected_bundle_digest,
+                actor_run_id=args.actor_run_id,
+                source_context=load_json_object(Path(args.source_context)),
+            )
+            return _v234_cli_envelope(result, runtime)
+        raise ContractError("E_COMMAND", ["E_COMMAND"])
     if args.cmd == "self-test":
         _self_test()
         return envelope(True, message="V2.3 self-test passed"), 0
@@ -6196,6 +7105,9 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
         return envelope(result["valid"], code, capability=result, errors=result["errors"]), 0 if result["valid"] else 1
     if args.cmd == "reduce-ledger":
         events = load_jsonl(Path(args.events))
+        v234_gate_errors = _validate_v234_implementation_events(events, args.state_root)
+        if v234_gate_errors:
+            raise ContractError(v234_gate_errors[0], v234_gate_errors)
         registry, _, _ = _registry_from_path(
             args.evidence_jsonl,
             Path(args.evidence_root),
@@ -6229,6 +7141,12 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
         if matching_events and any(event_digest(event) != event_digest(candidate_event) for event in matching_events):
             raise ContractError("E_EVENT_ID_COLLISION", ["E_EVENT_ID_COLLISION"])
         validation_events = current_events if matching_events else [*current_events, candidate_event]
+        v234_gate_errors = _validate_v234_implementation_events(
+            validation_events, args.state_root,
+            candidate_event_id=None if matching_events else str(candidate_event.get("event_id")),
+        )
+        if v234_gate_errors:
+            raise ContractError(v234_gate_errors[0], v234_gate_errors)
         registry, _, _ = _registry_from_path(
             args.evidence_jsonl,
             Path(args.evidence_root),

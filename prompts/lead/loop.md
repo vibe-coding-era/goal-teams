@@ -2,6 +2,18 @@
 
 Lead LOOP 是 Goal Lead 的执行期闭环协议。它不代表新的 runtime、后台自动执行器、CI/CD、生产审批或无限运行能力；它只定义每轮整合后的状态、证据、决策和停止边界。
 
+## V2.34 内环
+
+实现类/长任务的每轮内环固定为 `Gather → Reason → Act → Verify → Repeat`，不可跳过 `Reason` 直接写实现。进入 `Act` 前，Lead 必须确认：
+
+- immutable `contract.md` 的 current revision/assertion-set 已经独立 review；
+- Architecture Design 已由独立 Validator `accepted`；
+- `development_environment_check` 是 current `ready`，它绑定 Architecture/workspace/tool path+hash 并有 independent Evidence；
+- 独立测试设计已将合同断言写成可执行用例；
+- iteration/attempt/phase/intent/expected constraints/action scope 已通过四文件 transaction 持久化。
+
+四文件、marker-last/CAS/journal/reconcile、第 9 轮 candidate quarantine、第 11 轮 fail-closed delivery、四维 4×0.25 评分、GTLOG/prompt lifecycle 与 moving bottleneck 的确定性规则以 `references/rules-loop.md` 为准。Lead 不得以“一次完成”授权解释为删除 repo/用户数据、quarantine purge、忽略独立 Evidence，或在第 11 轮失败后进入 iteration 12。
+
 ## 适用时机
 
 - 长任务、自动续跑、生产流、Benchmark、浏览器 E2E、像素对比或跨成员依赖任务必须使用 Lead LOOP。
@@ -75,7 +87,7 @@ Budget Gate 或 Loop Gate 超限时，优先保留安全、正确性、证据完
 
 ## 状态快照
 
-长任务或自动续跑必须在 `progress.md` 记录状态快照；需要机器可读恢复时，可额外写 `loop-state.json`。
+长任务或自动续跑必须在 `progress.md` 记录状态快照。V2.34 可恢复运行必须使用 `feature_list.json` / `progress.md` / `contract.md` / `log.md` 四文件 bundle；`loop-state.json` 只是旧版可选输入，不能作为 V2.34 第五个事实源。
 
 ```json
 {

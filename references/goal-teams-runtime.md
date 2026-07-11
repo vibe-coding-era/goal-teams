@@ -2,9 +2,68 @@
 
 本文件定义通用 Goal Teams runtime。它不假设业务领域，也不假设项目已经存在 tasklist。
 
-当前 Skill 版本：`V2.33`。版本号必须和仓库根目录 `VERSION`、`SKILL.md` 正文、README 和启动语保持一致。
+当前 Skill 版本：`V2.34`。版本号必须和仓库根目录 `VERSION`、`SKILL.md` 正文、README 和启动语保持一致。
 
 V2.0 结构约定：`SKILL.md` 只保留核心问题、硬边界、工作流摘要和渐进式加载路由；详细 Lead 提示词放在 `prompts/lead/`，成员角色按包放在 `prompts/members/<role>/`，packet 模板放在 `prompts/packets/`；确定性脚本按职责放在 `scripts/checks/`、`scripts/harness/`、`scripts/review/`、`scripts/benchmark/` 和 `scripts/install/`，根 `scripts/*.py` 与 `scripts/*.sh` 保留兼容入口。Plan 模式新增 `需求卡片`，由 Lead 在完整 SPEC 前写入；需求卡片必须包含用户故事和功能验收标准。所有生成 Markdown 文档默认采用 Google OKF，未指定生成目录时输出根目录为 `GoalTeamsWork-<project_version>/`，根部维护 `memory.md`；所有 SSOT 产出物写入 `versions/<artifact_version>/`。V2.0 建立 TaskList 先行和独立测试流；V2.3 将 append-only ledger 升级为唯一执行事实源，TaskList 只能由 reducer 生成，成员通过带 revision 的 event/patch 交接。V2.02 起 `RULES.md` 是 Goal Lead 和所有成员的响应规范。V2.3 的 `prompts/lead/loop.md` 将 `loop_decision` 与 `run_outcome` 正交化；它是调度协议，不是新的 runtime、后台执行器、CI/CD 或生产审批系统。
+
+## V2.34 运行扩展
+
+V2.34 保持 V2.3 Task/Check/Run/Evidence/ledger 为 acceptance 事实源，只增加会话内、磁盘可恢复的控制平面。控制平面不改写 V2.3 核心枚举，不代替 reducer，也不声明 daemon、后台 runner、生产审批或宿主恢复能力。
+
+### 四文件 bundle 与 API 语义
+
+完整 bundle 必须在同一版本目录包含 `feature_list.json`、`progress.md`、`contract.md`、`log.md`；详细 schema、阶段、第 9/11 轮、评分、GTLOG 和 bottleneck 规则见 `references/rules-loop.md`。所有写 API 除 bootstrap 外必须提供 expected bundle revision 与 digest，保留未识别扩展字段，先持久化 intent/phase 再触发副作用。建议 API：
+
+```python
+load_state_bundle(root) -> StateBundle
+validate_state_bundle(root, *, ledger_events=None) -> ValidationResult
+commit_state_transaction(root, mutation, *, expected_bundle_revision, expected_digest, actor_run_id) -> StateBundle
+reconcile_state_bundle(root, *, mode, expected_bundle_revision, expected_digest) -> StateBundle
+evaluate_contract_gate(bundle, identity_registry, ledger_events, review_record) -> GateResult
+evaluate_environment_gate(bundle, environment_report, evidence_registry, ledger_events) -> GateResult
+evaluate_implementation_gate(bundle, task_id, ledger_events, evidence_registry) -> GateResult
+create_protected_candidate_snapshot(repo_root, *, baseline_commit, receipt_path) -> SnapshotReceipt
+validate_protected_candidate_snapshot(repo_root, receipt) -> ValidationResult
+evaluate_delivery_gate(bundle, completion_proof, archive_descriptor, *, source_context) -> GateResult
+```
+
+合同、架构、环境或源树 digest 变更时，依赖 gate/score/Evidence 立即 stale，不得仅更新 marker 继续。恢复仅可对 journal 证明为同一 transaction 且每个 target 等于 old/new hash 的状态幂等 roll-forward；否则进入 `reconcile_required|blocked`。
+
+### CLI 入口
+
+V2.34 命令仍由 `python3 scripts/v23/goalteams_v23.py` 暴露，stdout 使用现有 JSON envelope，人类说明写 stderr。
+
+| 子命令 | 语义 |
+| --- | --- |
+| `v234-state-init` | 新 bundle bootstrap；已有 legacy 文件只能通过 exact digest 显式 adopt，不自动覆盖 |
+| `v234-state-validate` | 只读验证 marker/progress/contract/log/checkpoint 和 pending journal，返回结构化状态/错误 |
+| `v234-state-transition` | 执行一个合法 phase transition；不得写 `achieved` 或 delivery 字段 |
+| `v234-state-reconcile` | 仅 roll-forward 可证 pending journal 或从 receipt+ledger replay，不按 mtime/多数票 |
+| `v234-contract-gate` | 验证 immutable contract、独立 review、assertion set 和 ledger preimplementation gate |
+| `v234-environment-record` | 在 Architecture accepted 后登记环境报告/current Evidence，环境漂移即 stale |
+| `v234-implementation-gate` | 只读校验 contract/architecture/environment/test-design 顺序，返回可绑定 receipt |
+| `v234-score-record` | 一次写入四维固定 rubric 与独立 Evidence |
+| `v234-log-append` / `v234-log-diagnose` | 追加 GTLOG，或返回每条因果链首个确定性 divergence |
+| `v234-bottleneck-recompute` | 从 current required blocking gaps 按四级 tuple 重算 bottleneck |
+| `v234-reset-plan` / `v234-reset-apply` / `v234-reset-rebind-task` | 第 9 轮预检 `.goalteams-candidates/<candidate_id>`，并隔离到 `.goalteams-quarantine/<reset_id>/<candidate_id>`；无 purge；早期 V2.34 receipt 的任务投影只能从 immutable authorization ledger event 经 CAS、identity 与 checkpoint 校验后修复 |
+| `v234-closure-ledger-binding` / `v234-closure-legacy-digest` | 从普通、单链接源文件重建 state-init 所需 ledger binding 或四文件 exact legacy digest，并原子写入私有 snapshot；不执行 adopt |
+| `v234-closure-reset-snapshot` | 验证 ledger 内的独立 reset authorization，持久化 authorization + no-mutation plan；不执行 quarantine |
+| `v234-loop-advance` | 使用每步最新 CAS 沿正常边推进到指定 iteration/phase，并持久化逐事务 receipt；iteration 9 reset gate 与 iteration 11 delivery 边界仍由 runtime 强制执行 |
+| `v234-closure-build` | 从真实 ledger/checkpoint/Evidence/review/audit、受保护 candidate snapshot（或兼容 commit delta）与公开源文件生成 archive descriptor、completion proof、source context 和 completion；全部门禁通过后才原子落私有 snapshot |
+| `v234-delivery-gate` | 第 11 轮只读列出全部未闭合 gate，不写 archive/achieved |
+| `v234-candidate-snapshot` | 用临时 `GIT_INDEX_FILE`、临时 object directory 和主 object alternate 重建当前 V2.34 产品 tree receipt；不改变主 index、HEAD、branch 或 refs |
+| `v234-publish-guard` | staged index/非空 commit delta 拒绝过程包、调用轨迹、secret 与不可信文件；`--snapshot-receipt` 重建并校验受保护产品范围、当前 bytes 与仓库无污染指纹 |
+| `v234-deliver` | 唯一 `achieved` 写入口；原子建立 `docs/archive/V2.34/<delivery_id>/` 并最后提交 marker |
+
+所有 `v234-closure-*` 输出目录必须位于版本目录的 `.goalteams-state/` 下且在调用前不存在；工具拒绝覆盖、符号链接、多硬链接、逃逸路径与不一致 replay。`v234-closure-build` 生成的 `completion-proof.json` 必须作为普通文件被 `source-context.json` 精确引用；proof 的 required task 集必须等于 checkpoint 中全部 `required_for_done|acceptance_blocking` 任务，Audit 还必须精确绑定同一 required/evidence 集、ledger revision、task-state digest、bundle revision/digest 和 Review 文件 hash。缺任一绑定均 fail closed。
+
+dirty worktree 的 candidate proof 默认使用 `v234-candidate-snapshot <repo> --baseline-commit <commit> --receipt <private-path>`。该命令只选择冻结的 V2.34 产品面，要求 delta 非空并至少包含 `VERSION`、V2.34 runtime/CLI 和 V2.34 测试；候选 tree/blob 写入临时 object directory，主 object database 仅作只读 alternate。receipt 记录 baseline/tree OID、完整 changed-path/blob manifest 及调用前后的 index/HEAD/branch/refs 指纹；验证时从当前 bytes 重新构树，源码漂移、receipt 篡改、主 index/refs 改变或 `HEAD → HEAD` 空差异都会失败。兼容 commit mode 仍可用，但 baseline→candidate 必须有真实非空 delta。快照是 delivery 输入，不是 acceptance，也不会写 `achieved`。
+
+### 公开归档与私有 provenance
+
+archive descriptor 只能引用 `publication_state=completed`、`visibility=public`、普通文件且已独立 accepted 的产物。sanitizer 必须生成副本而不原地改写源，拒绝凭证、绝对 home path、Member Goal Packet、raw log、`spawn_agent`/tool-call 轨迹、transport handle、旧启动身份模板，以及 `GoalTeamsWork-*` 内的 ledger/evidence/review/audit/harness/identity/provenance。公开 manifest 只记录产物 ID、公开相对路径、source/public hash、分类、validator、contract revision、size/media type 和时间；完整 source ref/hash、ledger prefix、sanitizer 版本与 transaction ID 保留在非公开 receipt。
+
+`v234-deliver` 先在同父目录临时路径生成公开副本/manifest，再原子 rename 为 delivery id，fsync archive parent，最后以 `log.md → progress.md → feature_list.json` 顺序提交状态。目标已存在时只有 tree/manifest digest 完全一致可幂等重放；崩溃后没有完整 journal 的孤立公开目录不产生 `achieved`。
 
 ## 运行形态
 
@@ -12,7 +71,7 @@ Goal Teams = Goal Lead + 独立 subagent 成员。
 
 ```text
 Goal Lead
-  - 显式调用或会话首次建立身份时简短汇报：我是 Goal Teams Lead V2.33。
+  - 显式调用或会话首次建立身份时简短汇报：我是 Goal Teams Lead V2.34。
   - 遵守 RULES.md：执行优先，只报告已验证事实，未验证不宣称完成，不输出无关解释或建议
   - 只有缺失历史资料会改变执行时才询问；完整上下文下直接工作
   - 默认中文沟通
@@ -1332,7 +1391,7 @@ codex exec \
   - <<'PROMPT' | tee -a ".codex/goal-teams/events.jsonl"
 Use $goal-teams.
 
-先汇报：我是 Goal Teams Lead V2.33。
+先汇报：我是 Goal Teams Lead V2.34。
 用户沟通与治理记录全程中文，Goal Lead 消息要简洁、人类友好；代码、注释、产品字符串、测试名和 fixture 遵循目标仓库约定。
 分离 agent_type、agent_run_id、member_id、display_name 和 transport_handle；display_name 使用 <中文角色>-<具体任务名>，独立性以 agent_run_id 判断。真实 subagent/skill 配置名写入 agent_type（兼容字段 skill_or_subagent）；宿主英文昵称只记录为 transport_handle。
 启动 worker subagents 或编辑实现文件前，展示四列 Teams 规划表；除非有直接执行词，否则等待确认。

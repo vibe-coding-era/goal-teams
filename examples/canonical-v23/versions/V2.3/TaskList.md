@@ -6,7 +6,7 @@ tags: [goal-teams, tasklist, v2.3]
 okf_version: "0.1"
 schema_version: "goal-teams-v2.3"
 ledger_revision: 21
-schema_source_hash: "15a17896593626e56410e668c82d4f016e0c35e3f8ac8e94c5bfbb9030e97f6b"
+schema_source_hash: "531ecaa680055e7e7bf887605fba7246d992fe30598f9101e647935b5e31d60e"
 generated: true
 ---
 

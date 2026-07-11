@@ -3,7 +3,7 @@
   "environment": {
     "commit": "HEAD",
     "platform": "darwin",
-    "python_version": "3.14.3"
+    "python_version": "3.13.3"
   },
   "evaluation_class": "deterministic_contract",
   "evidence": [

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate V2.3 routing plus V2.33 preview/reference policy gates."""
+"""Validate V2.3 routing plus current preview/reference policy gates."""
 
 from __future__ import annotations
 import json, subprocess, sys, tempfile
@@ -159,7 +159,7 @@ def main() -> None:
             if policy.get(key) != expected:
                 fail(f"{fixture.name}: {key} {policy.get(key)!r} != {expected!r}")
     print(
-        "Routing and V2.33 policy fixture validation passed for "
+        "Routing and current policy fixture validation passed for "
         f"{len(FIXTURES)} routes and {len(POLICY_FIXTURES)} policy scenarios."
     )
 

@@ -9,8 +9,9 @@
 7. 区分动态前端页面 Harness 与静态 HTML Prototype Harness：动态覆盖真实路由、状态变化、DOM 几何断言和交互态截图；静态覆盖结构、mock 数据、响应式截图、组件几何断言、OKF 元数据和不适用说明。
 8. 先定义 E2E Harness、整页 pixel diff、局部 crop/几何断言、locked/unlocked 截图、组件库元数据检查和阈值。
 9. 若 Frontend Architecture Design 缺失，先补齐或记录 `not_applicable_reason`。
-10. 实现或调整 UI。
-11. 前端开发完成后请求 `goal_e2e_test_designer` 生成 E2E 用例，再请求 `goal_e2e_test_runner` 执行。
-12. 生成截图、控制台检查、整页和局部像素差异指标、组件断言报告、组件库元数据断言报告。
-13. 请求 QA 或 reviewer 做 LLM 体验复核和 UI 视觉防漏复核。
-14. 真实 UI/复刻范围缺参考图、运行环境、页面规格卡、组件库信息或 unlocked real DOM 证据时提交 blocked event；只有范围已明确改为非 UI/`sample_only`，才提交非 required、非阻断的结构化 N/A。
+10. Architecture accepted 后检查实际开发/浏览器环境，写 `development_environment_check`；只做已授权、仓库内、可逆 remediation，并由不同 validator run 验证。结论不是 current `ready` 时停止。
+11. 实现或调整 UI。
+12. 前端开发完成后请求 `goal_e2e_test_designer` 生成 E2E 用例，再请求 `goal_e2e_test_runner` 执行。
+13. 生成截图、控制台检查、整页和局部像素差异指标、组件断言报告、组件库元数据断言报告。
+14. 请求 QA 或 reviewer 做 LLM 体验复核和 UI 视觉防漏复核。
+15. 真实 UI/复刻范围缺参考图、运行环境、页面规格卡、组件库信息或 unlocked real DOM 证据时提交 blocked event；只有范围已明确改为非 UI/`sample_only`，才提交非 required、非阻断的结构化 N/A。

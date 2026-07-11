@@ -63,6 +63,13 @@
     "blind_summary": "<persistent-external-output>/summary.json",
     "license_decision": "versions/<artifact_version>/release/license-decision.json"
   },
+  "extension_enums": {
+    "v234_phase": ["gather", "reason", "act", "verify", "repeat"],
+    "v234_environment_conclusion": ["ready", "needs_remediation", "blocked"],
+    "v234_score_status": ["passed", "failed", "unverified"],
+    "v234_prompt_patch_state": ["proposed", "applied", "verified", "reverted"],
+    "v234_bottleneck_category": ["contract", "planning", "architecture", "environment", "implementation", "verification", "review", "authorization", "delivery"]
+  },
   "definitions": {
     "task_state": {"type": "string", "enum": ["planned", "running", "review", "accepted", "blocked", "deferred", "cancelled"]},
     "run_outcome": {"type": "string", "enum": ["achieved", "partial", "blocked", "aborted"]},
@@ -470,6 +477,97 @@
         "internal_sharing_approved": {"type": "boolean"}
       },
       "additionalProperties": true
+    },
+    "v234_state_bundle": {
+      "type": "object",
+      "required": ["schema_version", "project_version", "artifact_version", "loop_run_id", "bundle_revision", "bundle_digest", "loop", "ledger", "contract_sha256", "progress_sha256", "log_sha256"],
+      "properties": {
+        "schema_version": {"const": "goal-teams-v2.34-state-v1"},
+        "project_version": {"const": "V2.34"},
+        "artifact_version": {"const": "V2.34"},
+        "loop_run_id": {"type": "string", "minLength": 1},
+        "bundle_revision": {"type": "integer", "minimum": 1},
+        "bundle_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "loop": {
+          "type": "object",
+          "required": ["iteration", "attempt", "phase", "loop_decision", "run_outcome"],
+          "properties": {
+            "iteration": {"type": "integer", "minimum": 1, "maximum": 11},
+            "attempt": {"type": "integer", "minimum": 1},
+            "phase": {"enum": ["gather", "reason", "act", "verify", "repeat"]},
+            "loop_decision": {"$ref": "#/definitions/loop_decision"},
+            "run_outcome": {"$ref": "#/definitions/run_outcome"}
+          },
+          "additionalProperties": true
+        },
+        "ledger": {"type": "object"},
+        "contract_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "progress_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "log_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      },
+      "additionalProperties": true
+    },
+    "v234_log_event": {
+      "type": "object",
+      "required": ["event_id", "parent_event_id", "event_digest", "bundle_revision", "iteration", "phase", "intent_id", "action_scope", "prompt_ref", "assertion_refs"],
+      "properties": {
+        "event_id": {"type": "string", "minLength": 1},
+        "parent_event_id": {"type": ["string", "null"]},
+        "event_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "bundle_revision": {"type": "integer", "minimum": 1},
+        "iteration": {"type": "integer", "minimum": 1, "maximum": 11},
+        "phase": {"enum": ["gather", "reason", "act", "verify", "repeat"]},
+        "intent_id": {"type": "string", "minLength": 1},
+        "action_scope": {"type": "array", "items": {"type": "string"}},
+        "prompt_ref": {"type": "string", "minLength": 1},
+        "assertion_refs": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": true
+    },
+    "v234_quality_scores": {
+      "type": "object",
+      "required": ["rubric_version", "artifact_id", "artifact_sha256", "dimensions", "reviewer_member_id", "reviewer_run_id", "assessed_at"],
+      "properties": {
+        "rubric_version": {"const": "v234-rubric-revision-1"},
+        "artifact_id": {"type": "string", "minLength": 1},
+        "artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "dimensions": {
+          "type": "object",
+          "required": ["design", "originality", "craft", "functionality"],
+          "additionalProperties": false
+        },
+        "reviewer_member_id": {"type": "string", "minLength": 1},
+        "reviewer_run_id": {"type": "string", "minLength": 1},
+        "assessed_at": {"type": "string", "format": "date-time"}
+      },
+      "additionalProperties": true
+    },
+    "v234_reset_receipt": {
+      "type": "object",
+      "required": ["reset_event_id", "source_realpath", "quarantine_realpath", "before_tree_sha256", "contract_revision", "actor_run_id", "recovery_command"],
+      "properties": {
+        "reset_event_id": {"type": "string", "minLength": 1},
+        "source_realpath": {"type": "string", "minLength": 1},
+        "quarantine_realpath": {"type": "string", "minLength": 1},
+        "before_tree_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "contract_revision": {"type": "integer", "minimum": 1},
+        "actor_run_id": {"type": "string", "minLength": 1},
+        "recovery_command": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    },
+    "v234_public_archive_manifest": {
+      "type": "object",
+      "required": ["schema_version", "delivery_id", "artifact_version", "contract_revision", "completion_audit_sha256", "artifacts"],
+      "properties": {
+        "schema_version": {"const": "goal-teams-v2.34-public-archive-v1"},
+        "delivery_id": {"type": "string", "minLength": 1},
+        "artifact_version": {"const": "V2.34"},
+        "contract_revision": {"type": "integer", "minimum": 1},
+        "completion_audit_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "artifacts": {"type": "array", "minItems": 1, "items": {"type": "object"}}
+      },
+      "additionalProperties": false
     }
   }
 }

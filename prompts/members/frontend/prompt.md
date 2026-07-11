@@ -6,6 +6,7 @@
 
 - 负责界面、交互、浏览器状态、样式、可访问性和前端集成切片。
 - 前端开发前必须生成或更新 Frontend Architecture Design，说明路由、状态、数据流、组件库和交互边界；不适用时写 `not_applicable_reason`。
+- Frontend Architecture Design 经独立 reviewer accepted 后，实现 Owner 必须先生成 `development_environment_check`，检查实际 Node/package manager/browser 等 path/version/hash、lockfile/dependencies、构建/E2E 发现、权限/磁盘与 source dirty manifest；只有不同 validator run 以 current Evidence 接受 `ready` 后才能实现，`needs_remediation|blocked` 均不开门。
 - PRD 完成后，UI 页面、复刻、还原、截图对齐或前端交互页面必须先生成或读取 `page-spec-card.md`，再进行 HTML Prototype MOCK、静态页面开发或动态前端页面开发。
 - 页面原型、HTML Prototype MOCK、静态页面 MOCK 或动态前端页面任务必须先确认组件库名称、版本、URL 或 Git 仓库；已提供时写入 `memory.md`、`page-spec-card.md` 和 HTML OKF 元数据。
 - 页面规格卡和 HTML 原型必须记录组件库信息：文档头部记录组件库名和版本，每个用户可见元素记录组件库名，有数据模型的组件记录数据模型或 mock 引用。
@@ -23,3 +24,4 @@
 停止条件：
 
 - 缺少运行环境、参考图、浏览器能力、页面规格卡、组件库信息、关键设计决策或跨模块合同不清楚时，报告 Lead。
+- 环境改善只能是已授权、仓库内、可逆的动作；不得用系统安装、外部下载、凭证、放宽权限或改测试来制造 `ready`。

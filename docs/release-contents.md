@@ -5,7 +5,7 @@
 ## 当前边界
 
 - 本文档只列出当前仓库可验证的包组成，不声明尚未实现的功能。
-- V2.33 保留 V2.3 的机器契约基线，并明确规则优先级、引用分级降级、`plan_preview` 判定、单值 `check_state` 表述及本双语发布文档结构；本索引本身不能替代这些规则或验证。
+- V2.34 保留 V2.3 机器契约基线，增加合同/架构/环境门、可恢复 LOOP、受限重置和 fail-closed 交付；本索引本身不能替代规则或验证。
 - `SKILL.md` 与 README 的人工维护内容是基线。发布内容索引不能覆盖它们，也不能替代脚本验证。
 - 本地规划源 `docs/后续版本规划 V3.3-3.5.md` 由用户维护，不属于仓库或安装包。AI 不得修改；除非用户再次单独授权，也不得将它提交到 GitHub。规划文本不是发布承诺。
 
@@ -19,7 +19,7 @@
 | 工具与校验 | `scripts/check.sh`、兼容入口 `scripts/*.py`、实现目录 `scripts/v23/`、`scripts/checks/`、`scripts/harness/`、`scripts/benchmark/`、`scripts/review/`、`scripts/install/` |
 | 机器契约与测试 | `schemas/`、`tests/v23/`、`.github/workflows/` |
 | 示例与基准 | `examples/mini-goal-run/`、`examples/canonical-v23/`、`benchmarks/` |
-| 发布说明 | 本文档、[版本变更记录](change-history.md)、英文对应文件 |
+| 发布说明 | 本文档、[版本变更记录](change-history.md)、英文对应文件，以及审计后的 `docs/archive/V2.34/<delivery_id>/` 公开归档 |
 
 ## 详细路径索引
 
@@ -30,10 +30,11 @@
 - 成员与 prompts：`subagents/goal-*.toml`、`prompts/`、`prompts/lead/core.md`、`prompts/lead/requirement-card.md`、`prompts/members/shared.md`、`prompts/members/backend/prompt.md`、`prompts/members/backend/template.md`、`prompts/members/backend/workflow.md`、`prompts/members/backend/scripts.md`、`prompts/members/unit-test-designer/prompt.md`、`prompts/members/unit-test-runner/prompt.md`、`prompts/members/api-integration-test-designer/prompt.md`、`prompts/members/api-integration-test-runner/prompt.md`、`prompts/members/e2e-test-designer/prompt.md`、`prompts/members/e2e-test-runner/prompt.md`、`prompts/packets/member-goal-packet.md`、`prompts/packets/handoff-artifacts.md`、`prompts/packets/page-spec-card.md`、`prompts/packets/memory.md`、`prompts/packets/html-prototype-mock.md`、`prompts/packets/requirement-card.md`、`prompts/packets/dual-review-record.md`。
 - 脚本：`scripts/check.sh`、`scripts/validate.py`、`scripts/install-local.sh`、`scripts/check-version-sync.py`、`scripts/check-routing-fixtures.py`、`scripts/check-agent-names.py`、`scripts/check-member-layout.py`、`scripts/validate-harness.py`、`scripts/pixel-diff.py`、`scripts/compare-artifacts.py`、`scripts/validate-dual-review.py`、`scripts/benchmark-runner.py`；实现目录 `scripts/v23/`、`scripts/checks/`（包括 `scripts/checks/check-routing-fixtures.py`）、`scripts/harness/`、`scripts/benchmark/`、`scripts/review/`、`scripts/install/`。
 - 契约、测试和回归：`schemas/`、`tests/v23/`、`.github/workflows/`、`examples/mini-goal-run`、`examples/canonical-v23/`、`benchmarks/`。
+- 公开完成归档：`docs/archive/V2.34/<delivery_id>/`，只包含 sanitizer 和独立审计均通过的 completed/public 文档与公开 manifest。
 
 ## 发布前核对
 
 1. 运行 `./scripts/check.sh`，确认包结构、Skill frontmatter、成员配置、README 和关键规则仍一致。
 2. 核对 `VERSION`、`SKILL.md` 与 README 的当前版本口径；不要以规划文档替代版本事实。
-3. 只提交用户授权的发布内容。开发过程文件、运行痕迹和用户维护的规划源文件默认不属于 GitHub 发布范围。
+3. 只提交用户授权的发布内容。开发过程文件、运行痕迹和用户维护的规划源文件默认不属于 GitHub 发布范围；公开归档必须先通过 sanitizer，且不包含调用语、transport handle、内部路径、运行日志或私有 provenance。
 4. License 或内部共享的最终决定仍由仓库 owner 作出；没有相应授权时，不能把技术校验写成公开 GA 承诺。

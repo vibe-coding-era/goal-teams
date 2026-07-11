@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### V2.34
+
+- Added a contract-first `Gather -> Reason -> Act -> Verify -> Repeat` LOOP with durable four-file state (`feature_list.json`, `progress.md`, `contract.md`, `log.md`), revision/CAS checks, a journal, marker-last commits, reconciliation, and session-scoped crash recovery.
+- Added the ordered implementation gates `contract frozen -> architecture accepted -> development environment ready -> independent tests written -> implementation`, with exact-hash Evidence and independent validation; no background daemon is implied.
+- Added a constrained iteration-9 reset that can quarantine only a preauthorized disposable candidate, never repository or user data, and a fail-closed iteration-11 delivery gate with no iteration 12.
+- Added four independently evidenced quality dimensions (`design`, `originality`, `craft`, `functionality`) scored by four binary 0.25 rubric items; scores supplement rather than replace tests or Evidence.
+- Added canonical `GTLOG` intent/judgment frames, five divergence classes, prompt-fix lifecycle states (`proposed`, `applied`, `verified`, `reverted`) with regression plus holdout proof, and deterministic moving-bottleneck selection.
+- Added audited public-document archiving under `docs/archive/V2.34/<delivery_id>/`, with invocation-trace sanitization separated from private ledger/evidence/review/audit provenance.
+
 ### V2.3
 
 - Breaking contract: replaced legacy handoff/loop completion labels with orthogonal `task_state`, `check_state`, `run_outcome`, `loop_decision`, and `audit_state`; unknown core enums fail closed.

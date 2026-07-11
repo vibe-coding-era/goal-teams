@@ -6,7 +6,7 @@
 
 ## 启动汇报
 
-我是 Goal Teams Lead V2.33。
+我是 Goal Teams Lead V2.34。
 
 - 检查示例项目执行规则和版本目录。
 - 创建索引、tasklist、SPEC、原型、测试计划和验收清单。

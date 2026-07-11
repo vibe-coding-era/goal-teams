@@ -1,5 +1,5 @@
 {
-  "artifact_mtime_ns": 1783726763678434022,
+  "artifact_mtime_ns": 1783760876236968352,
   "artifact_ref": "versions/V2.3/evidence/recovery.txt",
   "artifact_sha256": "9cf03722179d9a4ded13c6477953dc4508bc54bafdf02f98089df4d25ba833b3",
   "artifact_size": 28,
@@ -19,7 +19,7 @@
     "execution_record_sha256": "139a5fbbeb9c9fa45caa3a7e39aedb05d82ba5a1fb9c539a74cb216c7569a785",
     "execution_record_size": 638,
     "exit_code": 0,
-    "log_mtime_ns": 1783726763772693947,
+    "log_mtime_ns": 1783760876349420766,
     "log_path": "versions/V2.3/evidence/recovery.log",
     "log_sha256": "c516dd8157f5dd44cc0adee48df2482f11acdc0f392897e8d5528ba8f09f7836",
     "log_size": 2537,
@@ -31,7 +31,7 @@
     "ledger_prefix_sha256": "e04fdca301196eb7382740eae63ccca4b13cf577bedbcfe53991f327a4c2b42f",
     "ledger_revision": 19,
     "platform": "darwin",
-    "python_version": "3.14.3",
+    "python_version": "3.13.3",
     "workspace_revision": "HEAD"
   },
   "evidence_id": "EVD-CAN-002",
@@ -44,14 +44,14 @@
       "import hashlib,json,pathlib,sys\nif len(sys.argv) != 4:\n    raise SystemExit(64)\nroot = pathlib.Path.cwd().resolve()\nraw = pathlib.Path(sys.argv[1])\ncandidate_input = raw if raw.is_absolute() else root / raw\nif candidate_input.is_symlink():\n    raise SystemExit(65)\ncandidate = candidate_input.resolve()\ntry:\n    candidate.relative_to(root)\nexcept (OSError,RuntimeError,ValueError):\n    raise SystemExit(66)\nif not candidate.is_file():\n    raise SystemExit(67)\ndigest = hashlib.sha256()\nwith candidate.open(\"rb\") as stream:\n    for chunk in iter(lambda: stream.read(1048576), b\"\"):\n        digest.update(chunk)\nactual = digest.hexdigest()\nif actual != sys.argv[2]:\n    raise SystemExit(68)\npayload = {\"artifact_ref\": sys.argv[1], \"artifact_sha256\": actual, \"binding_digest\": sys.argv[3], \"verifier\": \"goal-teams-v2.3-safe-artifact-verifier-v1\"}\nsys.stdout.write(json.dumps(payload, ensure_ascii=True, sort_keys=True, separators=(\",\", \":\")) + \"\\n\")\n",
       "versions/V2.3/evidence/recovery.txt",
       "9cf03722179d9a4ded13c6477953dc4508bc54bafdf02f98089df4d25ba833b3",
-      "193d803b8367e3db2483e6f7aaffebb5df932a701f2181ff8a9618b4abb5549d"
+      "3f73d88c4e1b77ce4a2007343ad17bd3e38e6836b4190b618e07e1a2cbcd51d0"
     ],
     "cwd": ".",
     "ended_at": "2026-07-10T00:00:20Z",
     "exit_code": 0,
-    "log_mtime_ns": 1783726763795339969,
+    "log_mtime_ns": 1783760876372788262,
     "log_path": "versions/V2.3/evidence/integrity-EVD-CAN-002.log",
-    "log_sha256": "7a33c4fbdd7eaaa504449bc6c9aa05d8ca7e152e51c6c33c16c218b01312a5e8",
+    "log_sha256": "033648cac5f8c73bf565f9363642d07249e30b3c52983d4376db832535420e66",
     "log_size": 279,
     "started_at": "2026-07-10T00:00:20Z"
   },

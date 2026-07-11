@@ -14,6 +14,15 @@ V2.1 起，Lead 每轮 `Integrate` 后先按 `prompts/lead/loop.md` 做轻量 in
 8. 每次续跑前后更新 `progress.md` 或 `loop-state.json`，记录 loop round、缺口、Owner、validator、证据和停止条件。
 9. 重复审计和续跑，直到 auditor 报告完成，或只剩有记录的阻塞/延期工作。
 
+V2.34 的最终 Auditor 还必须检查：
+
+- Contract/Architecture/Environment/Implementation 顺序及 current exact-hash Evidence，四文件 marker/progress/contract/log/checkpoint 一致，pending journal 已安全 reconcile。
+- iteration 9 reset receipt 只针对预授权 `.goalteams-candidates/<candidate_id>`，目标已移入 `.goalteams-quarantine/<reset_id>/<candidate_id>`，repo/用户数据/账本/Evidence/provenance 均未删除。
+- iteration 11 有 current Verify/bottleneck assessment，且全部 delivery gate 闭合；失败只能返回 gaps，不得写 achieved/archive 或 iteration 12。
+- `design/originality/craft/functionality` 各四个 0.25 rubric item 均可从 candidate hash/current Evidence/独立 reviewer 重算；评分没有覆盖测试、Harness、Review 或 Audit 失败。
+- 每条 required divergence 都有首个 GTLOG frame 与 prompt lifecycle；`verified` 必须同时绑定 regression + holdout，原 divergence/provenance 仍保留。
+- 公开 archive descriptor 只包含 completed/public 普通文件；sanitizer 拒绝 invocation/tool-call/transport handle、绝对路径、secret、raw logs 和过程包，而私有 receipt 保留完整 provenance。
+
 证据不足不能完成：缺少 E2E、缺少像素级对比、只有实现者自测、缺少独立校验、交接物缺少 tasklist 状态或证据、生产流缺少审批/回滚/监控证据时，QA、Reviewer 或 Completion Auditor 必须打回。
 
 最终审计结论必须映射到 Lead LOOP：

@@ -4,7 +4,7 @@
 
 Author: 肉山@TGO Hangzhou
 
-Current version: `V2.33`
+Current version: `V2.34`
 
 Goal Teams is a Codex Skill for coordinated agent work. It turns one goal into a verifiable plan, then lets a Goal Lead coordinate independent subagents running in separate contexts, or user-selected external skills, across requirements, design, implementation, tests, evidence, and completion audit.
 
@@ -131,7 +131,7 @@ Use $goal-teams。
 Use this identity line on an explicit Goal Teams invocation or when the session first needs to establish identity; do not repeat it when full context already exists:
 
 ```text
-我是 Goal Teams Lead V2.33。
+我是 Goal Teams Lead V2.34。
 ```
 
 Core language rule: user communication and governance documents default to Chinese; code, comments, test names, fixtures, and product strings follow the target repository's conventions; keep identifiers, commands, paths, API names, config keys, subagent IDs, and exact references unchanged.
@@ -254,7 +254,7 @@ GoalTeamsWork-<project_version>/
 
 ## Version Note
 
-The current version is read from `VERSION`. On the V2.3 machine-contract baseline, `V2.33` defines rule precedence, fail-closed dependency classification and degradation, explicit no-write `plan_preview` selection, single-value `check_state` language, and separate bilingual release-contents and history entrypoints. `V2.3` continues to provide orthogonal state machines, a single-writer event ledger, strict Evidence/Traceability/Dual Review, Profile routing and capability degradation, safe migration, atomic distribution, real canonical/behavior negative gates, and a bounded base context. Historical V2.2 output is read through the typed migration adapter; `tasklist.md` is no longer a writable SSOT.
+The current version is read from `VERSION`. On the V2.3 machine-contract baseline, `V2.34` adds contract-first execution, Architecture and Environment Evidence gates, a recoverable `Gather → Reason → Act → Verify → Repeat` LOOP, four-file disk state, a constrained iteration-9 candidate reset, a fail-closed iteration-11 delivery gate, four-dimensional scoring, and divergence/bottleneck records. Detailed contracts are loaded from `references/` by task type. After completion, only audited public documents with invocation traces removed are archived under `docs/archive/V2.34/<delivery_id>/`; process ledgers and provenance remain in the non-public workspace.
 
 See [Release Contents](docs/release-contents.en.md) for the visible package inventory, or [发布内容](docs/release-contents.md) for Chinese. The inventory does not replace runtime rules, `VERSION`, or installation validation.
 
