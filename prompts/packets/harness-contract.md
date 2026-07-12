@@ -63,7 +63,7 @@ Harness Contract（验证契约）:
 
 ## Self-release Harness 扩展
 
-以下字段只在 `policy_profile=goal-teams-self-release-v2.36` 时 required；普通项目不得为了满足模板而创建固定轮次、评分或公开归档检查。
+以下字段只在 `policy_profile=goal-teams-self-release-v2.37` 时 required；普通项目不得为了满足模板而创建固定轮次、评分或公开归档检查。
 
 实现类 Harness 还必须定义：
 

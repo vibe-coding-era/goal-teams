@@ -49,7 +49,7 @@ okf_version: "0.1"
 
 ## V2.34 扩展兼容
 
-- `feature_list.json` / `progress.md` / `contract.md` / `log.md` 是历史 V2.34 自发布控制平面，不取代 V2.3 ledger、TaskList reducer、Harness、Evidence 或 Completion Audit。V2.36 起它只由 `goal-teams-self-release-v2.36` 加载，不是通用 core 默认文件集。
+- `feature_list.json` / `progress.md` / `contract.md` / `log.md` 是 legacy 自发布控制平面，不取代 V2.3 ledger、TaskList reducer、Harness、Evidence 或 Completion Audit。当前只由 `goal-teams-self-release-v2.37` 加载，不是通用 core 默认文件集。
 - 四文件不完整、marker/digest/checkpoint 不一致或有无法证明的 pending journal 时 fail closed；旧输出不得静默补齐或猜测 revision。
 - 历史 V2.34 state/profile id 只用于 byte-compatible replay，不能作为 V2.36 当前门禁选择器；新任务必须由版本与任务类型重新派生 Profile。
 - 历史 `docs/archive/V2.34/<delivery_id>/` 保持只读兼容。V2.36 自发布的新公开归档使用 `docs/archive/V2.36/<delivery_id>/`；普通项目不继承该归档路径。
@@ -66,7 +66,7 @@ okf_version: "0.1"
 ## V2.36 Core 与 Profile 兼容
 
 - 通用策略固定为 `references/goal-teams-core-v2.5.md` / `policy_profile=goal-teams-core-v2.5`。V2.36 产品版本不把通用策略号伪升级为 V2.36。
-- `references/profiles/goal-teams-self-release-v2.36.md` / `policy_profile=goal-teams-self-release-v2.36` 只在可信 adapter 验证目标为 Goal Teams 仓库、产品版本 `V2.36` 且任务类型 `goal_teams_self_release` 时加载。
+- `references/profiles/goal-teams-self-release-v2.37.md` / `policy_profile=goal-teams-self-release-v2.37` 只在可信 adapter 验证目标为 Goal Teams 仓库、产品版本 `V2.37` 且任务类型 `goal_teams_self_release` 时加载。
 - V2.36 structured route 使用 `goal-teams-project-route-v2.36`，新增 `product_version`、`target_kind`、`ui_mode`；旧 `goal-teams-project-route-v2.35` 保持原输出和错误码，用于历史 replay，不静默采用新 Lite/Standard 语义。
 - V2.36 的 Goal Teams 仓库身份固定锚定已接受的 V2.35 commit `c91e33737cc13c68bb5cb34c572fa05e7849f1e4`，不读取候选 worktree 的可变 `VERSION`/`SKILL.md` 决定身份。后续产品版本必须显式轮换该受信基线、对应测试与发布说明，不能沿用旧锚点猜测新版本身份。
 - `policy_profile` 和 `task_type` 是派生输出。`state_gate_profile` 省略时自动派生并应用；显式提供时必须与派生值完全一致，否则 fail closed。合法输出始终包含派生值，不能通过字段存在或缺失绕过门禁。

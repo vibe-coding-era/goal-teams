@@ -28,7 +28,7 @@ ROLES = [
     "refactor",
     "sqa",
 ]
-REQUIRED_MEMBER_FILES = ["prompt.md", "template.md", "workflow.md", "scripts.md"]
+REQUIRED_MEMBER_FILES = ["INDEX.md", "prompt.md", "template.md", "workflow.md", "scripts.md"]
 SPECIALIST_ROLES = {"security", "performance", "refactor", "sqa"}
 SPECIALIST_COMMON_MARKERS = (
     "L0 不可变原则",
@@ -96,6 +96,8 @@ def main() -> None:
             text = path.read_text(encoding="utf-8")
             if len(text.strip()) < 40:
                 fail(f"Member package file is too small: {path}")
+            if filename == "INDEX.md" and any(f"`{name}`" not in text for name in ("prompt.md", "template.md", "workflow.md", "scripts.md")):
+                fail(f"Member index must route all progressive files: {path}")
             if filename == "scripts.md" and "scripts/" not in text:
                 fail(f"Member scripts file must reference deterministic scripts: {path}")
         if role in SPECIALIST_ROLES:

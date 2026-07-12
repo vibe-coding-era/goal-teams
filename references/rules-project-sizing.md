@@ -51,7 +51,7 @@ okf_version: "0.1"
 
 1. 系统/用户授权与 `references/invariants.md` 的 L0 安全边界。
 2. `security_sensitive|external_write|auth|payment|migration|destructive` 为 true，或 `risk=high|critical`：强制 `profile=regulated`、`required_review_class=safety`、`security=required`。
-3. Goal Teams 仓库 V2.36 自发布：强制 `policy_profile=goal-teams-self-release-v2.36` 与 `profile=full|regulated`，并加载专项 Profile。
+3. Goal Teams 仓库 V2.36 自发布：强制 `policy_profile=goal-teams-self-release-v2.37` 与 `profile=full|regulated`，并加载专项 Profile。
 4. reference-driven/复刻 UI：强制 `profile=full|regulated`、独立 E2E 与 pixel comparison；原创 UI 只按规模/风险分级，不自动 full。
 5. `large|release`：至少 full；`medium|risk=medium|backend|api`：至少 standard；其余符合 low-risk 条件的 small 局部任务为 lite。
 6. `work_type=bugfix` 只增加与行为影响匹配的 regression/TDD/integration，不再跨规模强制完整 Architecture/Environment。

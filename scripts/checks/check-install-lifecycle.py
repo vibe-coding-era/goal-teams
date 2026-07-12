@@ -178,7 +178,7 @@ def main() -> None:
         original_agent_digest = digest_file(old_agent)
         original_fallback_digest = digest_file(fallback_agent)
 
-        changelog = source / "CHANGELOG.md"
+        changelog = source / "release" / "current" / "README.md"
         original_changelog = changelog.read_text(encoding="utf-8")
         changelog.write_text(original_changelog + "\ndirty lifecycle fixture\n", encoding="utf-8")
         dirty_report = reports / "dirty.json"
@@ -228,8 +228,9 @@ def main() -> None:
             "schemas/v2.36/acceptance-input-snapshot.schema.json",
             "schemas/v2.36/policy-profile-selector.schema.json",
             "schemas/v2.36/attested-identity-registry.schema.json",
-            "docs/v2.36-release-summary.md",
-            "docs/v2.36-release-summary.en.md",
+            "references/profiles/goal-teams-self-release-v2.37.md",
+            "release/current/README.md",
+            "release/current/manifest.json",
         )
         missing_v236 = [path for path in v236_skill_paths if not (old_skill / path).is_file()]
         if missing_v236:
@@ -240,8 +241,6 @@ def main() -> None:
             "schemas/v2.35/version-binding.schema.json",
             "scripts/checks/validate-test-case-contract.py",
             "scripts/validate-test-case-contract.py",
-            "docs/v2.35-release-summary.md",
-            "docs/v2.35-release-summary.en.md",
         )
         missing_v235 = [path for path in v235_skill_paths if not (old_skill / path).is_file()]
         if missing_v235:
@@ -255,7 +254,7 @@ def main() -> None:
             raise AssertionError("default install modified fallback agent without opt-in")
 
         changelog.write_text(original_changelog + "\ninstaller update fixture v2\n", encoding="utf-8")
-        run(["git", "add", "CHANGELOG.md"], cwd=source)
+        run(["git", "add", "release/current/README.md"], cwd=source)
         run(["git", "commit", "-qm", "installer lifecycle fixture v2"], cwd=source)
         update_report = reports / "update.json"
         install_run(source, home, update_report, "--update-team-fallback")
@@ -270,7 +269,7 @@ def main() -> None:
             raise AssertionError("opt-in update did not modify fallback agent")
 
         changelog.write_text(changelog.read_text(encoding="utf-8") + "\nfault fixture v3\n", encoding="utf-8")
-        run(["git", "add", "CHANGELOG.md"], cwd=source)
+        run(["git", "add", "release/current/README.md"], cwd=source)
         run(["git", "commit", "-qm", "installer lifecycle fixture v3"], cwd=source)
         fault_report = reports / "fault.json"
         install_run(source, home, fault_report, expected=1, fail_at="after_agent_switch")

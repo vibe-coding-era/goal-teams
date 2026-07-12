@@ -14,7 +14,7 @@ V2.1 起，Lead 每轮 `Integrate` 后先按 `prompts/lead/loop.md` 做轻量 in
 8. 每次续跑前后更新 `progress.md` 或 `loop-state.json`，记录 loop round、缺口、Owner、validator、证据和停止条件。
 9. 重复审计和续跑，直到 auditor 报告完成，或只剩有记录的阻塞/延期工作。
 
-只有 `policy_profile=goal-teams-self-release-v2.36`，最终 Auditor 才额外检查：
+只有 `policy_profile=goal-teams-self-release-v2.37`，最终 Auditor 才额外检查：
 
 - Contract/Architecture/Environment/Implementation 顺序及 current exact-hash Evidence，四文件 marker/progress/contract/log/checkpoint 一致，pending journal 已安全 reconcile。
 - iteration 9 reset receipt 只针对预授权 `.goalteams-candidates/<candidate_id>`，目标已移入 `.goalteams-quarantine/<reset_id>/<candidate_id>`，repo/用户数据/账本/Evidence/provenance 均未删除。

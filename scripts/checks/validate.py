@@ -20,7 +20,7 @@ CURRENT_VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 GENERAL_CORE_POLICY_VERSION = "V2.5"
 LEGACY_DATA_SCHEMA_VERSION = "V2.3"
 CORE_POLICY_PROFILE = "goal-teams-core-v2.5"
-SELF_RELEASE_POLICY_PROFILE = "goal-teams-self-release-v2.36"
+SELF_RELEASE_POLICY_PROFILE = "goal-teams-self-release-v2.37"
 STARTUP_LINE = f"我是 Goal Teams Lead {CURRENT_VERSION}。"
 COMPATIBILITY_MARKER = (
     f"我是 Goal Teams Leader {CURRENT_VERSION}，使用 Goal + Plan 模式帮你完成规划、执行和交付，"
@@ -38,7 +38,6 @@ REQUIRED_FILES = [
     "README.md",
     "README.en.md",
     "goal-teams.md",
-    "CHANGELOG.md",
     "agents/openai.yaml",
     "references/goal-teams-runtime.md",
     "references/default-AGENTS.md",
@@ -48,7 +47,7 @@ REQUIRED_FILES = [
     "references/rules-testing.md",
     "references/rules-loop.md",
     "references/goal-teams-core-v2.5.md",
-    "references/profiles/goal-teams-self-release-v2.36.md",
+    "references/profiles/goal-teams-self-release-v2.37.md",
     "references/rules-project-sizing.md",
     "references/rules-specialists.md",
     "references/test-case-assertion-protocol.md",
@@ -165,8 +164,6 @@ REQUIRED_FILES = [
     "benchmarks/tasks/GT-BENCH-004/harness.md",
     "benchmarks/tasks/GT-BENCH-004/scoring.md",
     "benchmarks/tasks/GT-BENCH-004/expected-artifacts.md",
-    "docs/v2.36-release-summary.md",
-    "docs/v2.36-release-summary.en.md",
     "schemas/v2.36/project-route.schema.json",
     "schemas/v2.36/policy-profile-selector.schema.json",
     "schemas/v2.36/execution-contract.schema.json",
@@ -182,10 +179,6 @@ REQUIRED_FILES = [
 
 
 SPLIT_PUBLICATION_FILES = (
-    "docs/release-contents.md",
-    "docs/release-contents.en.md",
-    "docs/change-history.md",
-    "docs/change-history.en.md",
 )
 
 EXPECTED_SUBAGENTS = {
@@ -431,7 +424,7 @@ FILE_RULES = {
         "references/rules-testing.md",
         "references/rules-loop.md",
         "references/goal-teams-core-v2.5.md",
-        "references/profiles/goal-teams-self-release-v2.36.md",
+        "references/profiles/goal-teams-self-release-v2.37.md",
         "references/rules-project-sizing.md",
         "references/rules-specialists.md",
         "规则冲突时",
@@ -489,7 +482,7 @@ FILE_RULES = {
         "`standard`",
         "显式提供时必须与派生值完全一致",
     ),
-    "references/profiles/goal-teams-self-release-v2.36.md": (
+    "references/profiles/goal-teams-self-release-v2.37.md": (
         SELF_RELEASE_POLICY_PROFILE,
         "52",
         "iteration 9",
@@ -565,7 +558,7 @@ README_RELEASE_ITEMS = [
     "references/rules-testing.md",
     "references/rules-loop.md",
     "references/goal-teams-core-v2.5.md",
-    "references/profiles/goal-teams-self-release-v2.36.md",
+    "references/profiles/goal-teams-self-release-v2.37.md",
     "references/goal-teams-automation-protocol.md",
     "references/goal-teams-production-pipeline.md",
     "references/goal-teams-scripted-tooling.md",
@@ -617,7 +610,6 @@ README_RELEASE_ITEMS = [
     "prompts/packets/dual-review-record.md",
     "examples/mini-goal-run",
     "benchmarks/",
-    "CHANGELOG.md",
     "README.md",
     "README.en.md",
 ]
@@ -704,7 +696,7 @@ def check_skill_frontmatter() -> None:
         "references/rules-testing.md",
         "references/rules-loop.md",
         "references/goal-teams-core-v2.5.md",
-        "references/profiles/goal-teams-self-release-v2.36.md",
+        "references/profiles/goal-teams-self-release-v2.37.md",
         "prompts/lead/core.md",
         "prompts/lead/planning.md",
         "prompts/lead/requirement-card.md",
@@ -803,31 +795,11 @@ def check_subagents() -> None:
 def check_readmes() -> None:
     zh = read("README.md")
     en = read("README.en.md")
-    if version_at_least(CURRENT_VERSION, (2, 33)):
-        split_readme_links = {
-            "README.md": ("docs/release-contents.md", "docs/change-history.md"),
-            "README.en.md": ("docs/release-contents.en.md", "docs/change-history.en.md"),
-        }
-        for path, links in split_readme_links.items():
-            text = read(path)
-            for link in links:
-                if link not in text:
-                    fail(f"{path} must link to split publication/history document {link}")
-        if re.search(r"^## 发布内容\s*$", zh, flags=re.M):
-            fail("README.md must not retain the split publication-content section")
-        if re.search(r"^## Release Contents\s*$", en, flags=re.M):
-            fail("README.en.md must not retain the split publication-content section")
-        for publication_path in ("docs/release-contents.md", "docs/release-contents.en.md"):
-            publication = read(publication_path)
-            for item in README_RELEASE_ITEMS:
-                if item not in publication:
-                    fail(f"{publication_path} release contents missing {item}")
-    else:
-        for item in README_RELEASE_ITEMS:
-            if item not in zh:
-                fail(f"README.md release/usage docs missing {item}")
-            if item not in en:
-                fail(f"README.en.md release/usage docs missing {item}")
+    for text, path in ((zh, "README.md"), (en, "README.en.md")):
+        if "release/current/README.md" not in text:
+            fail(f"{path} must link to current release contents")
+        if "docs/release-contents" in text or "docs/change-history" in text:
+            fail(f"{path} links to local-only historical docs")
     for snippet in ("./scripts/check.sh", "examples/mini-goal-run", "goal-teams.md"):
         if snippet not in zh or snippet not in en:
             fail(f"READMEs must mention {snippet}")
@@ -836,17 +808,13 @@ def check_readmes() -> None:
 def check_v234_compatibility_assets() -> None:
     if not version_at_least(CURRENT_VERSION, (2, 34)):
         return
-    compatibility_files = (
-        "scripts/v23/v234_state.py",
-        "docs/v2.34-completion.md",
-        "docs/v2.34-completion.en.md",
-    )
+    compatibility_files = ("scripts/v23/v234_state.py",)
     missing = [path for path in compatibility_files if not (ROOT / path).is_file()]
     if missing:
         fail("Missing V2.34 compatibility assets: " + ", ".join(missing))
     required = {
         ".gitignore": ("/GoalTeamsWork-*/", "/.goalteams-state/", "/.goalteams-quarantine/"),
-        "scripts/install/package-manifest.txt": ("prefix docs/archive/",),
+        "scripts/install/package-manifest.txt": ("prefix scripts/",),
     }
     for path, markers in required.items():
         text = read(path)
@@ -870,24 +838,14 @@ def check_v236_version_model() -> None:
         ),
         "README.md": (CURRENT_VERSION, GENERAL_CORE_POLICY_VERSION, LEGACY_DATA_SCHEMA_VERSION),
         "README.en.md": (CURRENT_VERSION, GENERAL_CORE_POLICY_VERSION, LEGACY_DATA_SCHEMA_VERSION),
-        "docs/v2.36-release-summary.md": (
-            CURRENT_VERSION,
-            GENERAL_CORE_POLICY_VERSION,
-            LEGACY_DATA_SCHEMA_VERSION,
-            "Completion Audit",
-        ),
-        "docs/v2.36-release-summary.en.md": (
-            CURRENT_VERSION,
-            GENERAL_CORE_POLICY_VERSION,
-            LEGACY_DATA_SCHEMA_VERSION,
-            "Completion Audit",
-        ),
+        "release/current/README.md": (CURRENT_VERSION,),
+        "release/current/manifest.json": (CURRENT_VERSION, GENERAL_CORE_POLICY_VERSION, LEGACY_DATA_SCHEMA_VERSION),
     }
     for path, markers in surfaces.items():
         text = read(path)
         for marker in markers:
             if marker not in text:
-                fail(f"{path} missing V2.36 version-model marker: {marker}")
+                fail(f"{path} missing current version-model marker: {marker}")
 
     rules_loop = read("references/rules-loop.md")
     for marker in (".goalteams-candidates/<candidate_id>", "iteration 11"):
@@ -895,7 +853,7 @@ def check_v236_version_model() -> None:
             fail(f"references/rules-loop.md retains self-release-only marker: {marker}")
 
     manifest = read("scripts/install/package-manifest.txt")
-    for path in ("docs/v2.36-release-summary.md", "docs/v2.36-release-summary.en.md"):
+    for path in ("release/current/README.md", "release/current/manifest.json"):
         if f"file {path}" not in manifest:
             fail(f"Package manifest missing {path}")
 
@@ -916,6 +874,9 @@ def check_key_rules() -> None:
             "goal-teams.md",
             "SKILL.md",
             "references/goal-teams-runtime.md",
+            "references/runtime/01-v2-36-core-trust.md",
+            "references/runtime/02-harness-benchmark-loop.md",
+            "references/runtime/03-goal-loop.md",
             "agents/openai.yaml",
             "references/default-AGENTS.md",
             "references/invariants.md",
@@ -924,7 +885,7 @@ def check_key_rules() -> None:
             "references/rules-testing.md",
             "references/rules-loop.md",
             "references/goal-teams-core-v2.5.md",
-            "references/profiles/goal-teams-self-release-v2.36.md",
+            "references/profiles/goal-teams-self-release-v2.37.md",
             "references/goal-teams-scripted-tooling.md",
     "references/goal-teams-v2.3-contract.md",
             "references/google-okf-bilingual-spec.md",
@@ -993,11 +954,8 @@ def check_key_rules() -> None:
             "prompts/packets/dual-review-record.md",
             "README.md",
             "README.en.md",
-            "CHANGELOG.md",
     ]
-    if version_at_least(CURRENT_VERSION, (2, 33)):
-        source_paths.extend(("docs/release-contents.md", "docs/release-contents.en.md"))
-    combined = "\n".join(read(path) for path in source_paths)
+    combined = "\n".join(source_paths) + "\n" + "\n".join(read(path) for path in source_paths)
     for rule in KEY_RULES:
         if rule not in combined:
             fail(f"Key rule missing from docs: {rule}")

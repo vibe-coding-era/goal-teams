@@ -5,17 +5,17 @@ description: 多 subagent 编排器。用于 $goal-teams、Goal Mode、Plan Mode
 
 # Goal Teams
 
-产品 `V2.36`；通用核心策略 `V2.5`；legacy schema `V2.3`。本会话是 Goal Lead；成员使用独立 subagent/指定 skill。规则冲突时：系统/用户 → 项目 `AGENTS.md` → `references/invariants.md` → 条件规则 → `RULES.md` → Lead → Member；响应规则不得放宽状态、安全、Evidence、Harness 或独立验证。
+产品 `V2.37`；核心策略 `V2.5`；legacy schema `V2.3`。本会话是 Goal Lead；成员使用独立 subagent/skill。规则冲突时：系统/用户 → `AGENTS.md` → invariants → 条件规则 → `RULES.md` → Lead → Member；不得放宽安全、状态或验证。
 
 显式调用或首次建立身份时使用；已有上下文不重复：
 
 ```text
-我是 Goal Teams Lead V2.36。
+我是 Goal Teams Lead V2.37。
 ```
 
-兼容性标记（不是用户可见启动模板）：`我是 Goal Teams Leader V2.36，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：`
+兼容性标记（不是用户可见启动模板）：`我是 Goal Teams Leader V2.37，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：`
 
-仅当缺少历史资料会改变执行时，才按 Lead core 提问；已有上下文直接工作。
+仅当缺历史资料会改变执行时提问；否则直接工作。
 
 ## 不变量
 
@@ -38,17 +38,19 @@ description: 多 subagent 编排器。用于 $goal-teams、Goal Mode、Plan Mode
 
 ## 渐进式加载
 
-只读最小必要文件；稳定规则在前，动态目标包在后。
+按需读；稳定规则在前，动态目标包在后。
 
 | 场景 | 读取文件 |
 | --- | --- |
 | 启动响应契约 | `RULES.md`；启动时不加载其他大文件 |
-| 策略 | 普通任务读 `references/goal-teams-core-v2.5.md`；自发布读 `references/profiles/goal-teams-self-release-v2.36.md`；按需读 `references/rules-project-sizing.md`、`references/rules-specialists.md` |
+| 策略路由 | 先用 `references/rules-project-sizing.md` 判定 route facts；普通任务加载 `references/goal-teams-core-v2.5.md`，仅本仓库自发布加载 `references/profiles/goal-teams-self-release-v2.37.md`；命中专项才加载 `references/rules-specialists.md` |
 | 进入 Goal + Plan 执行 | `references/invariants.md`、`prompts/lead/core.md`、`prompts/lead/planning.md` |
 | 持久化输出 | `prompts/packets/memory.md`、`references/google-okf-bilingual-spec.md` |
 | 迁移、安装或兼容 | `references/compat.md`、`references/goal-teams-v2.3-contract.md` |
 | Plan 模式需求卡片 | `prompts/lead/requirement-card.md`、`prompts/packets/requirement-card.md`、`references/google-okf-bilingual-spec.md` |
+| 需求分析与 PRD | 先读 `prompts/members/requirements-analyst/INDEX.md` 或 `prompts/members/product/INDEX.md`，再按索引加载对应 `prompt.md`；Architecture 由 route 指定的 frontend/backend 成员索引进入 |
 | 展示计划和派发成员 | `prompts/lead/dispatch.md`、`references/subagent-dispatch-protocol.md`、`prompts/packets/team-plan-table.md`、`prompts/packets/member-goal-packet.md` |
+| 任意团队成员 | 先读 `prompts/members/<role>/INDEX.md`；只按索引与 Goal Packet 的 `context_refs` 加载 `prompt.md`、`template.md`、`workflow.md`、`scripts.md` |
 | 定义交接物和 SSOT | `prompts/packets/handoff-artifacts.md`、`prompts/packets/member-goal-packet.md` |
 | UI 页面、复刻、截图或前端交互 | `references/rules-ui.md`、`prompts/members/shared.md`、`prompts/members/frontend/prompt.md`、`references/ui-e2e-pixel-protocol.md`、`references/ui-visual-contract-protocol.md`、`prompts/packets/page-spec-card.md`、`prompts/packets/html-prototype-mock.md` |
 | 后端、API、TDD 或测试编排 | `references/rules-testing.md`、`prompts/members/shared.md`、`prompts/members/backend/prompt.md`、`prompts/members/backend/template.md`、`prompts/members/unit-test-designer/prompt.md`、`prompts/members/unit-test-runner/prompt.md`、`prompts/members/api-integration-test-designer/prompt.md`、`prompts/members/api-integration-test-runner/prompt.md` |

@@ -4,7 +4,7 @@
 
 Author: 肉山@TGO Hangzhou
 
-Current version: `V2.36`
+Current version: `V2.37`
 
 Goal Teams is a Codex Skill for coordinated agent work. It turns one goal into a verifiable plan, then lets a Goal Lead coordinate subagents or user-selected external skills across requirements, design, implementation, tests, evidence, and completion audit. A separate subagent counts as an independent acceptance identity only when its isolated context is bound to a host attestation.
 
@@ -12,11 +12,11 @@ The version model has three layers so that release identity, policy, and data fo
 
 | Layer | Current value | Purpose |
 | --- | --- | --- |
-| Product version | `V2.36` | Version of the Skill package, startup line, and release documentation. |
+| Product version | `V2.37` | Version of the Skill package, startup line, and release documentation. |
 | General core policy | `V2.5` / `goal-teams-core-v2.5` | Task routing, execution class, and gates for ordinary projects. |
 | Legacy data schema | `V2.3` | Compatibility for existing ledger, Evidence, Harness, and release-gate data; it is not the current product version. |
 
-Only a release of the Goal Teams repository itself uses `goal-teams-self-release-v2.36`. Its 52 release assertions, iterations 9/11, four-dimension scoring, and public archive do not apply as global invariants to ordinary projects. `profile=lite|standard|full|regulated` remains the execution class and is distinct from `policy_profile`.
+Only a release of the Goal Teams repository itself uses `goal-teams-self-release-v2.37`. Its 52 release assertions, iterations 9/11, four-dimension scoring, and public archive do not apply as global invariants to ordinary projects. `profile=lite|standard|full|regulated` remains the execution class and is distinct from `policy_profile`.
 
 Use it when:
 
@@ -141,7 +141,7 @@ Use $goal-teams。
 Use this identity line on an explicit Goal Teams invocation or when the session first needs to establish identity; do not repeat it when full context already exists:
 
 ```text
-我是 Goal Teams Lead V2.36。
+我是 Goal Teams Lead V2.37。
 ```
 
 Core language rule: user communication and governance documents default to Chinese; code, comments, test names, fixtures, and product strings follow the target repository's conventions; keep identifiers, commands, paths, API names, config keys, subagent IDs, and exact references unchanged.
@@ -160,7 +160,7 @@ Core language rule: user communication and governance documents default to Chine
 | `references/rules-testing.md` | Backend architecture-first, TDD, API integration pytest, frontend E2E, and independent testing rules. |
 | `references/rules-loop.md` | Lead LOOP, Loop Decision, Loop Gate, Budget Gate, and auto-continuation boundaries. |
 | `references/goal-teams-core-v2.5.md` | General policy, Lite/Standard/Full/Regulated routing, and automatic gate derivation for ordinary projects. |
-| `references/profiles/goal-teams-self-release-v2.36.md` | Dedicated Profile used only to release the Goal Teams repository itself. |
+| `references/profiles/goal-teams-self-release-v2.37.md` | Dedicated Profile used only to release the Goal Teams repository itself. |
 | `prompts/packets/handoff-artifacts.md` | Handoff SSOT for artifact types, Owner, validator, status fields, and TaskList ledger format. |
 
 ## Workflow
@@ -270,11 +270,9 @@ GoalTeamsWork-<project_version>/
 
 ## Version Note
 
-The product version is read from `VERSION`. `V2.36` keeps `V2.5` as the general core policy for ordinary projects and moves repository self-release rules into a dedicated Profile. Gates are derived from the product/core versions, task route facts, and execution class, so omitting `state_gate_profile` cannot bypass them. Lite and Standard remain genuinely lightweight according to risk and work size. V2.36 also unifies secret redaction, uses a protected Git tree snapshot to auto-cover the complete Git change set (tracked modifications/deletions plus non-ignored untracked files), and requires host attestation for an Agent isolation claim. Final acceptance additionally requires a host-signed route receipt, repository-external persistent challenge state, a full Audit/Review/Harness binding, and a non-circular core binding on current Evidence. The candidate runtime exposes no Python or CLI trust-context path to success and must return `E_V236_HOST_ADAPTER_REQUIRED`; only a repository-external host may freeze the complete acceptance input tree, including TaskList and referenced logs/reports/artifacts, then validate and consume challenges in its trusted process. Existing machine data remains compatible with the legacy `V2.3` schema.
+The product version is read from `VERSION`. `V2.37` keeps `V2.5` as the general core policy for ordinary projects and moves repository self-release rules into a dedicated Profile. Gates are derived from the product/core versions, task route facts, and execution class, so omitting `state_gate_profile` cannot bypass them. Lite and Standard remain genuinely lightweight according to risk and work size. V2.37 also unifies secret redaction, uses a protected Git tree snapshot to auto-cover the complete Git change set (tracked modifications/deletions plus non-ignored untracked files), and requires host attestation for an Agent isolation claim. Final acceptance additionally requires a host-signed route receipt, repository-external persistent challenge state, a full Audit/Review/Harness binding, and a non-circular core binding on current Evidence. The candidate runtime exposes no Python or CLI trust-context path to success and must return `E_V236_HOST_ADAPTER_REQUIRED`; only a repository-external host may freeze the complete acceptance input tree, including TaskList and referenced logs/reports/artifacts, then validate and consume challenges in its trusted process. Existing machine data remains compatible with the legacy `V2.3` schema.
 
-See [Release Contents](docs/release-contents.en.md) for the visible package inventory, or [发布内容](docs/release-contents.md) for Chinese. The inventory does not replace runtime rules, `VERSION`, or installation validation.
-
-See [Change History](docs/change-history.en.md) for the chronological version summary, or [版本变更记录](docs/change-history.md) for Chinese. `CHANGELOG.md` retains the compatibility record of individual technical changes.
+See [`release/current/`](release/current/README.md) for the current release note and minimal public manifest. Historical process documents, the complete local knowledge base, integration catalog, and release evidence stay in ignored `docs/` and are excluded from GitHub and the install package.
 
 ## License
 
@@ -282,4 +280,4 @@ This repository does not currently declare an open-source license. The owner sho
 
 ## Legacy V2.3 Data Schema and Release Compatibility
 
-The legacy V2.3 schema defines closed state enums, a single-writer ledger, Evidence/Traceability, typed migration, and release-gate data. V2.36 continues to read that data; this does not make V2.3 the product version. See `references/goal-teams-v2.3-contract.md` and run `./scripts/check.sh` before release. Technical RC and authorized GA distribution are evaluated separately; even with an owner License/internal-sharing decision, the GA gate must remain fail-closed until a trusted external host/signature attestation exists.
+The legacy V2.3 schema defines closed state enums, a single-writer ledger, Evidence/Traceability, typed migration, and release-gate data. V2.37 continues to read that data; this does not make V2.3 the product version. See `references/goal-teams-v2.3-contract.md` and run `./scripts/check.sh` before release. Technical RC and authorized GA distribution are evaluated separately; even with an owner License/internal-sharing decision, the GA gate must remain fail-closed until a trusted external host/signature attestation exists.

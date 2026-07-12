@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### V2.37
+
+- Added progressive member indexes and deterministic index/document-budget gates.
+- Split the large runtime reference into routed parts and kept startup context within 12 KiB.
+- Moved historical/process knowledge, the complete PRD/architecture, integration catalog, and private release evidence to local-only `docs/`.
+- Reduced the install package to current runtime material while retaining legacy schemas and runtime identifiers only for compatibility.
+- Added static adapter assessments for Claude Code, Trae, Qoder, WorkBuddy, QoderWork, and Cursor without claiming runtime verification.
+
 ### V2.36
 
 - Separated the product version (`V2.36`), general core policy (`V2.5` / `goal-teams-core-v2.5`), and legacy machine-data schema (`V2.3`) so startup identity, execution policy, and persisted data are no longer conflated.

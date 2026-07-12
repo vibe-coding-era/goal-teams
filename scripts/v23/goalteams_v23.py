@@ -111,7 +111,7 @@ def _bootstrap_json(path: Path) -> dict[str, Any]:
 SCHEMA = _bootstrap_json(SCHEMA_PATH)
 SCHEMA_VERSION = str(SCHEMA["schema_version"])
 ARTIFACT_VERSION = str(SCHEMA["artifact_version"])
-PRODUCT_VERSION = "V2.36"
+PRODUCT_VERSION = "V2.37"
 # Repository-self-release identity is anchored to the accepted V2.35 base,
 # never to mutable VERSION/SKILL bytes in the candidate worktree.
 V236_GOAL_TEAMS_TRUSTED_RELEASE_BASE = "c91e33737cc13c68bb5cb34c572fa05e7849f1e4"

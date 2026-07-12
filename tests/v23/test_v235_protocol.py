@@ -1271,19 +1271,11 @@ class V235GateAndCompletionTests(unittest.TestCase):
 
     def test_public_release_summary_is_pre_audit_and_private_audit_is_not_packaged(self) -> None:
         """ASSERT-V235-005/020/034/036."""
-        for suffix in ("", ".en"):
-            path = ROOT / "docs" / f"v2.35-release-summary{suffix}.md"
-            self.assertTrue(path.is_file(), path)
-            text = path.read_text(encoding="utf-8")
-            self.assertIn("V2.35", text)
-            self.assertRegex(text, r"Completion Audit")
-            self.assertRegex(text.casefold(), r"not run|pending|尚未|待运行")
-            self.assertNotRegex(text.casefold(), r"completion audit.{0,12}(passed|通过)")
         manifest = (ROOT / "scripts" / "install" / "package-manifest.txt").read_text(
             encoding="utf-8"
         )
-        self.assertIn("docs/v2.35-release-summary.md", manifest)
-        self.assertIn("docs/v2.35-release-summary.en.md", manifest)
+        self.assertNotIn("docs/", manifest)
+        self.assertIn("release/current/README.md", manifest)
         self.assertNotIn("GoalTeamsWork-V2.35", manifest)
 
 
@@ -1339,32 +1331,26 @@ class V235DistributionTests(unittest.TestCase):
 
     def test_version_and_bilingual_release_surfaces_are_v235(self) -> None:
         """ASSERT-V235-034/035: keep V2.35 assets after the product advances."""
-        self.assertEqual((ROOT / "VERSION").read_text(encoding="utf-8").strip(), "V2.36")
+        self.assertEqual((ROOT / "VERSION").read_text(encoding="utf-8").strip(), "V2.37")
         current_markers = {
-            "SKILL.md": "Goal Teams Lead V2.36",
-            "goal-teams.md": "V2.36",
-            "agents/openai.yaml": "Goal Teams V2.36",
-            "README.md": "V2.36",
-            "README.en.md": "V2.36",
-            "CHANGELOG.md": "V2.36",
-            "docs/release-contents.md": "V2.36",
-            "docs/release-contents.en.md": "V2.36",
-            "docs/change-history.md": "V2.36",
-            "docs/change-history.en.md": "V2.36",
+            "SKILL.md": "Goal Teams Lead V2.37",
+            "goal-teams.md": "V2.37",
+            "agents/openai.yaml": "Goal Teams V2.37",
+            "README.md": "V2.37",
+            "README.en.md": "V2.37",
+            "release/current/README.md": "V2.37",
         }
         for relative, marker in current_markers.items():
             with self.subTest(relative=relative):
                 self.assertIn(marker, (ROOT / relative).read_text(encoding="utf-8"))
         for relative in (
-            "docs/v2.35-release-summary.md",
-            "docs/v2.35-release-summary.en.md",
             "schemas/v2.35/project-route.schema.json",
             "schemas/v2.35/test-case.schema.json",
             "schemas/v2.35/version-binding.schema.json",
         ):
             with self.subTest(compatibility_asset=relative):
                 self.assertTrue((ROOT / relative).is_file(), relative)
-        self.assertEqual(gt.PRODUCT_VERSION, "V2.36")
+        self.assertEqual(gt.PRODUCT_VERSION, "V2.37")
 
 
 ASSERTION_TEST_MAP: dict[str, tuple[str, ...]] = {

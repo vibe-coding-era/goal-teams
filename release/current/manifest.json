@@ -1,0 +1,9 @@
+{
+  "schema_version": "goal-teams-release-manifest-v2.37",
+  "product_version": "V2.37",
+  "core_policy_version": "V2.5",
+  "legacy_data_schema_version": "V2.3",
+  "docs_policy": "local-only",
+  "release_scope": "runtime-package",
+  "status": "candidate"
+}

@@ -1,20 +1,7 @@
-# Goal Teams install package allowlist: product V2.36, core policy V2.5, legacy data schema V2.3.
+# Goal Teams install package allowlist: product V2.37, core policy V2.5, legacy data schema V2.3.
 # The installer copies only Git-tracked files that match one of these entries.
 file AGENTS.md
-file CHANGELOG.md
 file .gitignore
-file GoalTeams-PRD-V2.3.md
-file docs/change-history.en.md
-file docs/change-history.md
-file docs/release-contents.en.md
-file docs/release-contents.md
-file docs/v2.36-release-summary.en.md
-file docs/v2.36-release-summary.md
-file docs/v2.35-release-summary.en.md
-file docs/v2.35-release-summary.md
-file docs/v2.34-completion.en.md
-file docs/v2.34-completion.md
-prefix docs/archive/
 file README.en.md
 file README.md
 file RULES.md
@@ -25,6 +12,8 @@ prefix agents/
 prefix benchmarks/
 prefix examples/
 prefix prompts/
+file release/current/README.md
+file release/current/manifest.json
 prefix references/
 prefix schemas/
 file scripts/checks/check-ci-pins.py

@@ -6,7 +6,7 @@
 
 - `goal-teams.md` 记录长期用户指定要求，是规则变更的上游依据。
 - `RULES.md` 承载 V2.02 Response Contract（响应规范），Goal Lead 和所有成员必须遵守。
-- `VERSION` 只记录当前产品版本 `V2.36`，需要和 `SKILL.md` 正文、README、runtime 启动语保持一致；通用核心策略版本为 `V2.5`，legacy 机器数据 schema 版本为 `V2.3`，三者不得混用；`SKILL.md` frontmatter 只保留 `name` 和 `description`。
+- `VERSION` 只记录当前产品版本 `V2.37`，需要和 `SKILL.md` 正文、README、runtime 启动语保持一致；通用核心策略版本为 `V2.5`，legacy 机器数据 schema 版本为 `V2.3`，三者不得混用；`SKILL.md` frontmatter 只保留 `name` 和 `description`。
 - `SKILL.md` 是 Codex 发现和执行 skill 的主入口。
 - `references/invariants.md` 承载所有任务永远生效的不变量、硬边界和失败降级协议。
 - `references/compat.md` 集中声明 `TaskList.md`/`tasklist.md`、脚本兼容入口、成员包布局和版本同步口径。
@@ -14,7 +14,7 @@
 - `references/rules-testing.md` 承载后端架构先行、TDD、API 集成 pytest、前端 E2E 和独立测试派发条件规则。
 - `references/rules-loop.md` 承载 Lead LOOP、Loop Decision、Loop Gate、Budget Gate、Conflict Policy 和自动续跑边界。
 - `references/goal-teams-core-v2.5.md` 承载普通项目通用核心策略、`goal-teams-core-v2.5` policy profile 和自动 gate 派生契约。
-- `references/profiles/goal-teams-self-release-v2.36.md` 仅承载 Goal Teams 仓库自身发布的 52 条断言、第 9/11 轮、四维评分和公开归档规则；不得把它们放回全局不变量。
+- `references/profiles/goal-teams-self-release-v2.37.md` 仅承载 Goal Teams 仓库自身发布的 52 条断言、第 9/11 轮、四维评分和公开归档规则；不得把它们放回全局不变量。
 - `references/rules-project-sizing.md` 承载项目规模、工作类型与安全/UI 覆盖的条件路由规则；V2.36 起 Lite/Standard 必须按实际风险和工作量保留轻量路径。
 - `references/rules-specialists.md` 承载 V2.35 安全、性能、重构和 SQA 四个只读提案专家及 Lead-only dispatch 边界。
 - `references/test-case-assertion-protocol.md` 承载 V2.35 测试输入、处理、期望输出与可执行断言契约。
@@ -67,7 +67,7 @@
 - `references/rules-testing.md`
 - `references/rules-loop.md`
 - `references/goal-teams-core-v2.5.md`
-- `references/profiles/goal-teams-self-release-v2.36.md`
+- `references/profiles/goal-teams-self-release-v2.37.md`
 - `references/rules-project-sizing.md`
 - `references/rules-specialists.md`
 - `references/test-case-assertion-protocol.md`
