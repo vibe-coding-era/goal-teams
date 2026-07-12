@@ -60,7 +60,7 @@ def evaluate(root: Path, limit: int) -> dict[str, object]:
         "passed": base_total <= limit,
     }
     routing_result = {
-        "definition": "V2.35 conditionally routed policy files",
+        "definition": "V2.36 conditionally routed core/profile policy files",
         "files": routing,
         "bytes": sum(routing.values()),
         "limits": V235_ROUTING_LIMITS,
@@ -91,7 +91,7 @@ def evaluate(root: Path, limit: int) -> dict[str, object]:
         and all(bool(item["passed"]) for item in specialists.values())
     )
     return {
-        "schema_version": "goal-teams-context-budget-v2.35",
+        "schema_version": "goal-teams-context-budget-v2.36",
         "startup": startup,
         "base": startup,
         "routed": {

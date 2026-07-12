@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.36/agent-host-attestation.schema.json",
+  "title": "Goal Teams V2.36 Agent Host Attestation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "algorithm",
+    "issuer",
+    "run_id",
+    "transport_handle",
+    "nonce",
+    "issued_at",
+    "expires_at",
+    "identity_core_sha256",
+    "signature"
+  ],
+  "properties": {
+    "schema_version": {"const": "goal-teams-v2.36-agent-host-attestation-v1"},
+    "algorithm": {"const": "HMAC-SHA256"},
+    "issuer": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "transport_handle": {"type": "string", "minLength": 1},
+    "nonce": {"type": "string", "minLength": 1, "maxLength": 128},
+    "issued_at": {"type": "string", "format": "date-time"},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "identity_core_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "signature": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

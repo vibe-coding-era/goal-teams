@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "goal-teams-execution-contract-v2.36",
+  "title": "Goal Teams V2.36 Derived Execution Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "$defs": {
+    "gate_state": {
+      "enum": ["required", "conditional", "not_required"]
+    },
+    "gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "architecture", "completion_audit", "contract", "e2e", "environment",
+        "evidence", "full_regression", "independent_review", "independent_tests",
+        "integration", "pixel_comparison", "release_evidence",
+        "targeted_regression", "targeted_validation", "tdd"
+      ],
+      "properties": {
+        "architecture": {"$ref": "#/$defs/gate_state"},
+        "completion_audit": {"$ref": "#/$defs/gate_state"},
+        "contract": {"$ref": "#/$defs/gate_state"},
+        "e2e": {"$ref": "#/$defs/gate_state"},
+        "environment": {"$ref": "#/$defs/gate_state"},
+        "evidence": {"$ref": "#/$defs/gate_state"},
+        "full_regression": {"$ref": "#/$defs/gate_state"},
+        "independent_review": {"$ref": "#/$defs/gate_state"},
+        "independent_tests": {"$ref": "#/$defs/gate_state"},
+        "integration": {"$ref": "#/$defs/gate_state"},
+        "pixel_comparison": {"$ref": "#/$defs/gate_state"},
+        "release_evidence": {"$ref": "#/$defs/gate_state"},
+        "targeted_regression": {"$ref": "#/$defs/gate_state"},
+        "targeted_validation": {"$ref": "#/$defs/gate_state"},
+        "tdd": {"$ref": "#/$defs/gate_state"}
+      }
+    },
+    "gate_scopes": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "architecture": {"type": "string", "minLength": 1},
+        "completion_audit": {"type": "string", "minLength": 1},
+        "contract": {"type": "string", "minLength": 1},
+        "e2e": {"type": "string", "minLength": 1},
+        "environment": {"type": "string", "minLength": 1},
+        "evidence": {"type": "string", "minLength": 1},
+        "full_regression": {"type": "string", "minLength": 1},
+        "independent_review": {"type": "string", "minLength": 1},
+        "independent_tests": {"type": "string", "minLength": 1},
+        "integration": {"type": "string", "minLength": 1},
+        "pixel_comparison": {"type": "string", "minLength": 1},
+        "release_evidence": {"type": "string", "minLength": 1},
+        "targeted_regression": {"type": "string", "minLength": 1},
+        "targeted_validation": {"type": "string", "minLength": 1},
+        "tdd": {"type": "string", "minLength": 1}
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "product_version",
+    "target_kind",
+    "project_size",
+    "work_type",
+    "ui_mode",
+    "task_type",
+    "release",
+    "policy_profile",
+    "state_gate_profile",
+    "execution_profile",
+    "required_review_class",
+    "gates",
+    "gate_scopes",
+    "specialists",
+    "rule_set",
+    "reason_codes"
+  ],
+  "allOf": [
+    {"if": {"properties": {"gates": {"properties": {"architecture": {"const": "conditional"}}}}}, "then": {"properties": {"gate_scopes": {"required": ["architecture"]}}}},
+    {"if": {"properties": {"gates": {"properties": {"environment": {"const": "conditional"}}}}}, "then": {"properties": {"gate_scopes": {"required": ["environment"]}}}},
+    {"if": {"properties": {"gates": {"properties": {"independent_tests": {"const": "conditional"}}}}}, "then": {"properties": {"gate_scopes": {"required": ["independent_tests"]}}}},
+    {"if": {"properties": {"gates": {"properties": {"targeted_regression": {"const": "conditional"}}}}}, "then": {"properties": {"gate_scopes": {"required": ["targeted_regression"]}}}},
+    {"if": {"properties": {"gates": {"properties": {"tdd": {"const": "conditional"}}}}}, "then": {"properties": {"gate_scopes": {"required": ["tdd"]}}}},
+    {"if": {"properties": {"gates": {"properties": {"integration": {"const": "conditional"}}}}}, "then": {"properties": {"gate_scopes": {"required": ["integration"]}}}},
+    {"if": {"properties": {"gates": {"properties": {"full_regression": {"const": "conditional"}}}}}, "then": {"properties": {"gate_scopes": {"required": ["full_regression"]}}}}
+  ],
+  "properties": {
+    "schema_version": {"const": "goal-teams-execution-contract-v2.36"},
+    "product_version": {"const": "V2.36"},
+    "target_kind": {"enum": ["generic_project", "goal_teams_repository"]},
+    "project_size": {"enum": ["large", "medium", "small"]},
+    "work_type": {"enum": ["feature", "bugfix"]},
+    "ui_mode": {"enum": ["none", "original", "replica"]},
+    "task_type": {"type": "string", "minLength": 1},
+    "release": {"type": "boolean"},
+    "policy_profile": {"enum": ["goal-teams-core-v2.5", "goal-teams-self-release-v2.36"]},
+    "state_gate_profile": {"enum": ["goal-teams-core-v2.5", "goal-teams-self-release-v2.36"]},
+    "execution_profile": {"enum": ["lite", "standard", "full", "regulated"]},
+    "required_review_class": {"enum": ["semantic", "comparison", "safety"]},
+    "gates": {"$ref": "#/$defs/gates"},
+    "gate_scopes": {"$ref": "#/$defs/gate_scopes"},
+    "specialists": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["security", "performance", "refactor", "sqa"],
+      "properties": {
+        "security": {"enum": ["required", "not_loaded"]},
+        "performance": {"enum": ["required", "not_loaded"]},
+        "refactor": {"enum": ["required", "not_loaded"]},
+        "sqa": {"enum": ["required", "not_loaded"]}
+      }
+    },
+    "rule_set": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "reason_codes": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+  }
+}

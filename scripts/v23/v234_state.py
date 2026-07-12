@@ -32,6 +32,13 @@ try:
 except ModuleNotFoundError:  # Direct execution from scripts/v23.
     import version_binding as _version_binding  # type: ignore[no-redef]
 
+try:
+    from scripts.v23.v236_security import contains_secret as _contains_secret
+    from scripts.v23.v236_security import redact_text as _redact_text
+except ModuleNotFoundError:  # Direct execution from scripts/v23.
+    from v236_security import contains_secret as _contains_secret  # type: ignore[no-redef]
+    from v236_security import redact_text as _redact_text  # type: ignore[no-redef]
+
 
 V234_STATE_SCHEMA = "goal-teams-v2.34-state-v1"
 V234_CLI_SCHEMA = "goal-teams-v2.34-cli-v1"
@@ -84,9 +91,6 @@ _HEX64 = re.compile(r"^[0-9a-f]{64}$")
 _CANDIDATE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 _DERIVED_CONTRACT_KEYS = frozenset(
     {"reviewer_decision", "gate_state", "task_state", "check_state", "contract_sha256", "assertion_set_sha256", "accepted"}
-)
-_SECRET_PATTERN = re.compile(
-    r"(?i)(?:api[_-]?key|secret|password|authorization|token)\s*[:=]\s*[^\s]{8,}|sk-[A-Za-z0-9_-]{12,}"
 )
 _INVOCATION_NOISE = re.compile(
     r"(?:spawn_agent|tool_call|transport_handle|/root/[A-Za-z0-9_.\-/]+|RUN-INTERNAL-[A-Za-z0-9_-]+)"
@@ -3152,7 +3156,7 @@ def validate_archive_eligibility(
                 file_safe = bool(
                     _regular_single_link(source_path)
                     and source_path.resolve().is_relative_to(repository)
-                    and not _SECRET_PATTERN.search(content)
+                    and not _contains_secret(content)
                     and not _ABSOLUTE_HOME_PATH.search(content)
                 )
             except (OSError, UnicodeDecodeError):
@@ -3187,15 +3191,31 @@ def validate_archive_eligibility(
 
 
 def sanitize_public_text(text: str) -> str:
-    """Remove internal invocation transcript lines while preserving version history."""
+    """Create a public-safe copy using the shared credential redactor."""
     retained = [
         line for line in text.splitlines()
         if not _INVOCATION_NOISE.search(line) and not _ABSOLUTE_HOME_PATH.search(line)
     ]
-    result = "\n".join(retained)
+    result = _redact_text("\n".join(retained))
     if text.endswith("\n"):
         result += "\n"
     return result
+
+
+def _decode_public_text(content: bytes) -> str | None:
+    """Decode one public candidate or reject binary/ambiguous byte streams."""
+    try:
+        decoded = content.decode("utf-8", errors="strict")
+    except UnicodeDecodeError:
+        return None
+    # Sanitization is a text transform.  Passing through C0/C1 controls would
+    # turn it into an uninspected binary copy, so reject them fail closed.
+    if any(
+        (code < 32 and code not in {9, 10, 13}) or 127 <= code <= 159
+        for code in map(ord, decoded)
+    ):
+        return None
+    return decoded
 
 
 def sanitize_public_copy(source: Path | str, destination: Path | str) -> dict[str, Any]:
@@ -3205,10 +3225,15 @@ def sanitize_public_copy(source: Path | str, destination: Path | str) -> dict[st
         if not source_path.is_file() or source_path.is_symlink() or source_path.stat().st_nlink != 1:
             return _error("E_V234_ARCHIVE_SOURCE")
         original = source_path.read_bytes()
-        try:
-            sanitized = sanitize_public_text(original.decode("utf-8")).encode("utf-8")
-        except UnicodeDecodeError:
-            sanitized = original
+        decoded = _decode_public_text(original)
+        if decoded is None:
+            return _error("E_V236_PUBLIC_COPY_NON_TEXT")
+        sanitized_text = sanitize_public_text(decoded)
+        # A public copy is only writable after the shared detector confirms
+        # that the transformed text contains no remaining credential syntax.
+        if _contains_secret(sanitized_text):
+            return _error("E_V236_PUBLIC_COPY_REDACTION_FAILED")
+        sanitized = sanitized_text.encode("utf-8")
         destination_path.parent.mkdir(parents=True, exist_ok=True)
         descriptor, raw = tempfile.mkstemp(prefix=f".{destination_path.name}.", suffix=".tmp", dir=destination_path.parent)
         temp_path = Path(raw)
@@ -3305,8 +3330,12 @@ def _prepare_archive(
             ):
                 raise ValueError("unsafe source")
             raw = source.read_bytes()
-            decoded_source = raw.decode("utf-8", errors="ignore")
-            if _SECRET_PATTERN.search(decoded_source) or _ABSOLUTE_HOME_PATH.search(decoded_source):
+            decoded_source = _decode_public_text(raw)
+            if (
+                decoded_source is None
+                or _contains_secret(decoded_source)
+                or _ABSOLUTE_HOME_PATH.search(decoded_source)
+            ):
                 raise ValueError("secret source")
             destination = temp_root.joinpath(*PurePosixPath(archive_ref).parts)
             result = sanitize_public_copy(source, destination)
@@ -4134,8 +4163,10 @@ def _publish_path_denied(relative: str, content: bytes) -> bool:
         return True
     if parts[-1].lower() in {"progress.md", "log.md", "contract.md", ".env"}:
         return True
-    decoded = content.decode("utf-8", errors="ignore")
-    return bool(_SECRET_PATTERN.search(decoded) or _INVOCATION_NOISE.search(decoded))
+    decoded = _decode_public_text(content)
+    if decoded is None:
+        return True
+    return bool(_contains_secret(decoded) or _INVOCATION_NOISE.search(decoded))
 
 
 def publish_guard(
@@ -4271,7 +4302,10 @@ def validate_version_sync(repo_root: Path | str, *, expected_version: str) -> di
     ]
     stale: list[str] = []
     patterns = {
-        "SKILL.md": (rf"当前版本\s*`{re.escape(expected_version)}`", rf"Goal Teams Lead {re.escape(expected_version)}"),
+        "SKILL.md": (
+            rf"(?:当前版本|产品)\s*`{re.escape(expected_version)}`",
+            rf"Goal Teams Lead {re.escape(expected_version)}",
+        ),
         "README.md": (rf"当前版本：`{re.escape(expected_version)}`",),
         "README.en.md": (rf"Current version: `{re.escape(expected_version)}`",),
         "scripts/v23/goalteams_v23.py": (rf"PRODUCT_VERSION\s*=\s*[\"']{re.escape(expected_version)}[\"']",),

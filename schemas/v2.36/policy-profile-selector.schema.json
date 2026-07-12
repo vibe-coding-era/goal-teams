@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.36/policy-profile-selector.schema.json",
+  "title": "Goal Teams V2.36 Policy Profile Selector Facts",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "product_version", "target_kind", "task_type", "release"],
+  "properties": {
+    "schema_version": {"const": "goal-teams-policy-profile-selector-v2.36"},
+    "product_version": {"const": "V2.36"},
+    "target_kind": {"enum": ["generic_project", "goal_teams_repository"]},
+    "release": {"type": "boolean"},
+    "task_type": {
+      "enum": [
+        "documentation",
+        "verification",
+        "cli",
+        "ui_original",
+        "ui_replica",
+        "backend",
+        "api",
+        "mixed",
+        "goal_teams_self_release"
+      ]
+    },
+    "state_gate_profile": {
+      "enum": ["goal-teams-core-v2.5", "goal-teams-self-release-v2.36"]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"task_type": {"const": "goal_teams_self_release"}},
+        "required": ["task_type"]
+      },
+      "then": {"properties": {"target_kind": {"const": "goal_teams_repository"}}}
+    },
+    {
+      "if": {
+        "properties": {
+          "target_kind": {"const": "goal_teams_repository"},
+          "release": {"const": true}
+        },
+        "required": ["target_kind", "release"]
+      },
+      "then": {"properties": {"task_type": {"const": "goal_teams_self_release"}}}
+    },
+    {
+      "if": {
+        "properties": {
+          "target_kind": {"const": "goal_teams_repository"},
+          "release": {"const": false}
+        },
+        "required": ["target_kind", "release"]
+      },
+      "then": {
+        "properties": {"task_type": {"not": {"const": "goal_teams_self_release"}}}
+      }
+    }
+  ]
+}

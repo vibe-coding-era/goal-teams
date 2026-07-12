@@ -132,8 +132,8 @@ For long-running, multi-agent, UI E2E, pixel comparison, benchmark, or productio
 For Goal Teams projects, establish `ledger/events.jsonl` first and let the V2.3 reducer generate `TaskList.md`; members never edit that projection directly. SSOT outputs belong under `GoalTeamsWork-<project_version>/versions/<artifact_version>/` unless the user specifies another output directory. A chat-only `plan_preview` is the no-write exception and must not create either file.
 <!-- 中文注释：Goal Teams 项目先建立 ledger，再由 reducer 生成 TaskList；成员不得直接编辑投影。聊天内 plan_preview 是不写文件的例外。 -->
 
-For V2.35 execution, classify `project_size=large|medium|small` and `work_type=feature|bugfix` as separate structured facts. Architecture, Environment, independent tests, and Evidence remain required for every size. UI always requires independent E2E; BugFix always requires TDD plus integration testing. Security-sensitive, external-write, authentication, payment, migration, destructive, high-risk, or critical-risk work uses the regulated safety route.
-<!-- 中文注释：V2.35 将项目规模和工作类型分开路由；规模不得降级架构、环境、独立测试、证据、UI E2E、BugFix TDD/集成或安全门。 -->
+For V2.36 execution, derive the policy and gate profile from product version, trusted target, task type, project size, work type, and risk. Lite and Standard omit inapplicable Architecture/full Environment/full-test tasks; Full and Regulated retain the complete gate chain. Omitting `state_gate_profile` never skips a gate, and an explicit value must match the derived result.
+<!-- 中文注释：V2.36 从版本、可信目标、任务类型、规模与风险派生 Profile/gates；Lite/Standard 删除不适用的重门，Full/Regulated 保留完整门链，省略或伪造 state gate 都不能降级。 -->
 
 The V2.35 `goal_security`, `goal_performance`, `goal_refactor`, and `goal_sqa` roles are read-only proposal specialists. They may return assessment, proposal, task patch, and dispatch request artifacts to Goal Lead, but cannot implement, dispatch, spawn nested teams, mutate central state, or self-verify. Goal Lead assigns independent implementation and validation runs.
 <!-- 中文注释：V2.35 四专家只读且只提案，不得实现、派发、创建嵌套团队、写中央状态或自证；独立实现和验证由 Goal Lead 派发。 -->
@@ -141,14 +141,17 @@ The V2.35 `goal_security`, `goal_performance`, `goal_refactor`, and `goal_sqa` r
 Applicable V2.35 test cases must provide non-empty structured `input`, `processing`, `expected_output`, and executable `assertions`. Exit code or HTTP status alone does not prove business correctness; TDD and integration cases must bind inputs through processing to asserted business outputs.
 <!-- 中文注释：V2.35 适用测试用例必须有非空输入、处理、期望输出和可执行断言；退出码或 HTTP status 不能单独证明业务正确。 -->
 
-Backend work follows architecture-first TDD: write/update Backend Architecture Design, have an independent subagent write unit tests, implement code, then have another independent subagent run unit tests. API integration tests default to Python + pytest and run after unit tests pass.
-<!-- 中文注释：后端工作遵循架构先行和 TDD：先写/更新后端架构设计，由独立 subagent 写单元测试，再实现代码，再由另一个独立 subagent 执行单元测试。API 集成测试默认 Python + pytest，并在单测通过后执行。 -->
+Backend work follows the derived gates: Full/Regulated uses Architecture-first independent TDD and API integration; Standard triggers those gates for contract/API/data/behavior impact; Lite uses targeted regression. API integration defaults to Python + pytest when required.
+<!-- 中文注释：后端按派生门工作；Full/Regulated 使用架构先行与独立 TDD/API 链，Standard 按影响触发，Lite 使用 targeted regression。 -->
 
 For implementation work, freeze a testable contract first. After Architecture Design is independently accepted, inspect the actual development environment, apply only authorized reversible in-repository remediation, and obtain independent current Evidence with conclusion `ready` before writing implementation code. `needs_remediation` or `blocked` does not open the implementation gate.
 <!-- 中文注释：实现类工作先冻结可测试合同；架构设计独立 accepted 后，检查实际开发环境，只做已授权、仓库内、可逆改善，并在写实现代码前取得独立且 current 的 `ready` Evidence；`needs_remediation` 或 `blocked` 不开放实现门。 -->
 
-Frontend work requires independent E2E generation and execution after implementation: one subagent writes E2E cases, another runs them and records screenshots, traces, console/network evidence, and failures.
-<!-- 中文注释：前端开发完成后，必须由独立 subagent 生成 E2E 用例，再由另一个 subagent 执行并记录截图、trace、console/network 证据和失败信息。 -->
+Frontend work uses browser/E2E coverage proportional to the derived tier. Full/Regulated separates E2E designer and runner; Lite/Standard covers affected paths with independent review. Only replica/reference-driven UI requires a pixel baseline.
+<!-- 中文注释：前端 browser/E2E 按等级覆盖；Full/Regulated 分离 designer/runner，Lite/Standard 覆盖受影响路径并独立复核，只有 replica 强制像素基线。 -->
+
+V2.36 source Evidence uses a protected Git snapshot that auto-covers the complete change set, and independent Agent identity requires host attestation; caller-selected file lists or self-reported run IDs are insufficient.
+<!-- 中文注释：V2.36 源码证据使用自动覆盖完整变更集的受保护 Git snapshot，独立 Agent 身份需要宿主 attestation；人工文件清单或自报 run ID 不足。 -->
 
 Insufficient evidence cannot be marked complete. Missing E2E evidence, missing pixel diff evidence, self-validation-only work, missing independent review, or missing production approval/rollback/monitoring evidence must remain blocked or failed until resolved.
 <!-- 中文注释：证据不足不能标记完成。缺少 E2E、缺少像素对比、只有自测、缺少独立评审、缺少生产审批/回滚/监控证据时，必须保持阻塞或失败状态，直到补齐。 -->

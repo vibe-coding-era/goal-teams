@@ -49,10 +49,10 @@ okf_version: "0.1"
 
 ## V2.34 扩展兼容
 
-- `feature_list.json` / `progress.md` / `contract.md` / `log.md` 是 V2.34 可恢复控制平面，不取代 V2.3 ledger、TaskList reducer、Harness、Evidence 或 Completion Audit。V2.3 核心枚举不变。
+- `feature_list.json` / `progress.md` / `contract.md` / `log.md` 是历史 V2.34 自发布控制平面，不取代 V2.3 ledger、TaskList reducer、Harness、Evidence 或 Completion Audit。V2.36 起它只由 `goal-teams-self-release-v2.36` 加载，不是通用 core 默认文件集。
 - 四文件不完整、marker/digest/checkpoint 不一致或有无法证明的 pending journal 时 fail closed；旧输出不得静默补齐或猜测 revision。
-- 历史 change/compat 文档可记录 V2.33，但所有 current/startup surface 以 `VERSION` 的 V2.34 为准；旧启动身份模板不得进入当前公开归档。
-- 只有 sanitizer 后的 completed/public 文档可进入 `docs/archive/V2.34/<delivery_id>/`。`GoalTeamsWork-*`、`.goalteams-state/`、`.goalteams-candidates/`、`.goalteams-quarantine/` 和私有 provenance 不属于公开安装输入；已跟踪的历史 V2.3 数据不因 ignore 而删除。
+- 历史 V2.34 state/profile id 只用于 byte-compatible replay，不能作为 V2.36 当前门禁选择器；新任务必须由版本与任务类型重新派生 Profile。
+- 历史 `docs/archive/V2.34/<delivery_id>/` 保持只读兼容。V2.36 自发布的新公开归档使用 `docs/archive/V2.36/<delivery_id>/`；普通项目不继承该归档路径。
 
 ## V2.35 增量兼容
 
@@ -62,6 +62,17 @@ okf_version: "0.1"
 - `scripts/validate-test-case-contract.py` 是 `scripts/checks/validate-test-case-contract.py` 的兼容入口；只对明确适用 V2.35 的 test-case fail closed，历史 V2.3 fixture 不静默伪升级。
 - 无 version binding 的 V2.34 state/archive bytes 与错误码保持；显式 V2.35 descriptor 必须绑定 current contract/review，`project_version=release_version=V2.35`、artifact 可为 run 版本。错误 binding 必须 blocked，不得回退到 V2.34 目录。
 - V2.35 release summary 是 pre-audit 公开候选说明；最终 Completion Audit 仅保存在私有过程 bundle，Audit 后不得为改 summary 制造新 commit/push。
+
+## V2.36 Core 与 Profile 兼容
+
+- 通用策略固定为 `references/goal-teams-core-v2.5.md` / `policy_profile=goal-teams-core-v2.5`。V2.36 产品版本不把通用策略号伪升级为 V2.36。
+- `references/profiles/goal-teams-self-release-v2.36.md` / `policy_profile=goal-teams-self-release-v2.36` 只在可信 adapter 验证目标为 Goal Teams 仓库、产品版本 `V2.36` 且任务类型 `goal_teams_self_release` 时加载。
+- V2.36 structured route 使用 `goal-teams-project-route-v2.36`，新增 `product_version`、`target_kind`、`ui_mode`；旧 `goal-teams-project-route-v2.35` 保持原输出和错误码，用于历史 replay，不静默采用新 Lite/Standard 语义。
+- V2.36 的 Goal Teams 仓库身份固定锚定已接受的 V2.35 commit `c91e33737cc13c68bb5cb34c572fa05e7849f1e4`，不读取候选 worktree 的可变 `VERSION`/`SKILL.md` 决定身份。后续产品版本必须显式轮换该受信基线、对应测试与发布说明，不能沿用旧锚点猜测新版本身份。
+- `policy_profile` 和 `task_type` 是派生输出。`state_gate_profile` 省略时自动派生并应用；显式提供时必须与派生值完全一致，否则 fail closed。合法输出始终包含派生值，不能通过字段存在或缺失绕过门禁。
+- V2.36 的 `lite|standard|full|regulated` 是执行等级，不是 policy Profile。Lite/Standard 按规模、风险、发布和技术面减少不适用门；Full/Regulated 保持 Architecture、Environment、独立测试、Harness/Evidence 与完成审计强门。
+- 新 V2.36 acceptance 使用 `v236_acceptance.py`、host route receipt、protected snapshot、attested identity registry、仓库外 persistent challenge state 与 `goal-teams-v2.36-acceptance-binding-v1`。无 state 的 identity/route 验证和 V2.3 `source_paths` 仍可用于历史诊断/replay，但不能生成新的 V2.36 `accepted|achieved`；检测到 V2.36 目标或产物时省略新输入必须 fail closed。
+- `ui_mode=original` 只加载 `references/rules-ui.md` 与原创 UI 的 browser/DOM/几何证据规则，不加载 pixel reference；`ui_mode=replica` 才加载 `references/ui-e2e-pixel-protocol.md` 并至少 full。
 
 ## 成员包布局
 

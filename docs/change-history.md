@@ -1,6 +1,6 @@
 # 版本变更记录
 
-本文档按版本提供面向读者的中文变更摘要；英文对应文件为 [change-history.en.md](change-history.en.md)。逐项技术记录仍见仓库根目录 [CHANGELOG.md](../CHANGELOG.md)。当前版本事实以 `VERSION` 为准。
+本文档按版本提供面向读者的中文变更摘要；英文对应文件为 [change-history.en.md](change-history.en.md)。逐项技术记录仍见仓库根目录 [CHANGELOG.md](../CHANGELOG.md)。当前产品版本以 `VERSION` 为准，通用核心策略与 legacy 数据 schema 单独标记。
 
 ## 记录边界
 
@@ -8,12 +8,14 @@
 - V2.33 将 README 中的发布内容与历史入口拆分为本组双语文档；本记录说明其范围，但不能替代 `VERSION` 同步和验证门禁。
 - V2.34 的完成公开文档在独立审计和 sanitizer 通过后按 delivery id 归档；过程包与私有 provenance 不进入公开归档。
 - V2.35 公开发布摘要在图外 Completion Audit 前生成并明确标注审计尚未运行；最终审计仍只存放在非公开过程包中。
+- V2.36 明确产品 `V2.36`、通用核心策略 `V2.5` 和 legacy 数据 schema `V2.3` 三层版本，并把仓库自发布流程隔离为独立 Profile。
 - 本地规划源 `docs/后续版本规划 V3.3-3.5.md` 仅由用户维护，不属于仓库或安装包；不得由 AI 修改或在未获单独授权时提交 GitHub。
 
 ## 已记录版本
 
 | 版本 | 已记录变化摘要 |
 | --- | --- |
+| V2.36 | 保留 `V2.5` 作为普通项目通用核心策略；把 52 条断言、第 9/11 轮、四维评分与公开归档移入 `goal-teams-self-release-v2.36`；自动派生 gate，恢复基于风险/规模的 Lite/Standard；统一 secret redaction；增加受保护 Git tree snapshot、宿主签名 route/identity attestation、持久 challenge state 与统一 acceptance binding。legacy 机器数据继续使用 V2.3 schema。 |
 | V2.35 | 增加安全、性能、重构与 SQA 四个只读提案专家，专家不直接实现或派发；增加 `large|medium|small` × `feature|bugfix` 正交路由及安全/UI 覆盖；强制测试用例具有输入、处理、期望输出与可执行断言；用显式 hash-bound 版本 descriptor 隔离 V2.34 默认行为与 V2.35 状态/归档。 |
 | V2.34 | 引入合同先行的 `Gather → Reason → Act → Verify → Repeat`；用 `feature_list.json` / `progress.md` / `contract.md` / `log.md` 和 journal/CAS 支持崩溃恢复；要求 Architecture accepted 后的 Environment Evidence；约束第 9 轮候选集 quarantine 与第 11 轮 fail-closed 交付；增加四维评分、GTLOG 分歧/提示词生命周期、moving bottleneck 和公开归档清洗。 |
 | V2.33 | 在 V2.3 机器契约基线上明确系统/用户、`AGENTS.md`、不变量、条件规则、`RULES.md`、Lead、Member 的优先级；定义引用文件的 fail-closed 分类和受限降级、显式 no-write `plan_preview` 判定、单值 `check_state` 表述，并将发布内容与历史入口改为独立双语文档。 |

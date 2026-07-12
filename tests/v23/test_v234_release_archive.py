@@ -642,7 +642,8 @@ class V234ReleaseTests(unittest.TestCase):
     def test_v234_version_surface_sync(self) -> None:
         """ASSERT-V234-051"""
         v234 = require_v234(self)
-        result = v234.validate_version_sync(ROOT, expected_version="V2.35")
+        current_version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+        result = v234.validate_version_sync(ROOT, expected_version=current_version)
         self.assertTrue(result["ok"], result)
         expected_surfaces = {
             "VERSION", "SKILL.md", "README.md", "README.en.md",

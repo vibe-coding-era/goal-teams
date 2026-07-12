@@ -8,6 +8,7 @@ import importlib.util
 import json
 import subprocess
 import sys
+import unittest
 from pathlib import Path
 from typing import Any
 
@@ -26,6 +27,18 @@ def load_runtime():
 
 
 gt = load_runtime()
+
+
+ROOT_HAS_TRUSTED_V236_BASE = gt._verified_v236_goal_teams_target(ROOT)
+
+
+def requires_trusted_goal_teams_checkout(test):
+    """Skip only assertions whose premise is this exact trusted source checkout."""
+
+    return unittest.skipUnless(
+        ROOT_HAS_TRUSTED_V236_BASE,
+        "requires a source checkout containing the trusted Goal Teams V2.35 base",
+    )(test)
 
 
 def sha256_bytes(data: bytes) -> str:

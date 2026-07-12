@@ -9,7 +9,9 @@ okf_version: "0.1"
 
 # Goal Teams V2.3 Contract
 
-## V2.34 Extensions (V2.3 Schema Compatible)
+## V2.34 Self-release Extensions (V2.3 Schema Compatible)
+
+以下历史扩展在 V2.36 只由 `goal-teams-self-release-v2.36` Profile 加载；它们不是 `goal-teams-core-v2.5` 的通用完成条件。
 
 - V2.34 增加四文件可恢复控制平面与扩展 gate，不改变 V2.3 `task_state` / `check_state` / `run_outcome` / `loop_decision` / `audit_state` 枚举，也不让 `feature_list.json` 成为 acceptance SSOT。
 - 实现顺序为 immutable contract 及独立 review、Architecture accepted、`development_environment_check=ready` 及 current independent Evidence、独立测试用例、implementation；任一 exact-hash/identity/ledger prefix 漂移即重验。
@@ -38,6 +40,7 @@ okf_version: "0.1"
 - 启动时记录宿主是否支持 `custom_goal_subagents`、上下文隔离、并发、遥测和恢复。
 - 未暴露 `goal_*` 时，只有 capability manifest 证明通用 subagent 能力等价、身份独立且权限不扩大才可自动 fallback；否则串行降级、blocked 或请求用户，并记录原因。
 - `display_name` 可中文本地化；`transport_handle` 只承担宿主路由，不作为独立性证据。
+- V2.36 新独立身份还须通过宿主 attestation 验证 run/transport/nonce/time；V2.3 registry 的自报字段仅保留兼容读取能力。
 
 ## 状态闭包
 
@@ -61,17 +64,18 @@ okf_version: "0.1"
 - Evidence 的 `artifact_sha256` 与 current artifact 不一致时，标准机器错误码固定为 `E_HASH_MISMATCH`；不得输出 `E_ARTIFACT_HASH_MISMATCH` 等近义码。
 - 只有 current `local_verified` 的成功 `command_execution` 可进入 acceptance registry；failure/manual/external/unverified 只记录事实。
 - token、Authorization header、secret、敏感 URL query 必须脱敏后进入 Evidence、memory 或报告。
+- V2.36 新源码 Evidence 使用 `schemas/v2.36/protected-git-tree-snapshot.schema.json` 的自动完整变更集 receipt；本节 `source_paths` 继续用于 legacy 数据重放，不能替代当前 snapshot。
 - Completion Audit 是任务图之外的只读外部门禁，在候选收尾时运行；failed/blocked 可驱动 LOOP 或结构化停止，只有 passed/achieved 要求 required task 全 accepted。required/blocking Task 或 Audit Evidence 指向本次实际 audit 文件时必须以 `E_AUDIT_SELF_REFERENCE` 失败。
 - Review 最低等级来自 `harness_contract.task_type`、`required_review_class` 与风险；outer 字段不能覆盖，semantic/structural 不可互代，replica 至少 comparison，security/external-write/regulated 至少 safety。
 - comparison 义务在升级 safety 后仍保留；generic comparison 只接受当前 hash 锁定的 trusted `compare-artifacts` exact-hash 模式、不同 path/inode 的 actual/baseline、registry-bound 预批准者和 exact passed log。pixel 阈值走专用 validator。
 
 ## Profile 与 Router
 
-机器字段只使用 schema 小写枚举 `lite|standard|full|regulated`；下列首字母大写名称仅为正文展示，不是可另造的机器值。
+机器字段只使用 schema 小写枚举 `lite|standard|full|regulated`；V2.3 只保留枚举兼容，当前派生语义以 `references/rules-project-sizing.md` 为准。
 
-- Lite：低风险、非 UI、非后端、非外部写入的小任务；不生成空仪式任务。
-- Standard：中等风险常规任务；保留关键 artifact 独立检查。
-- Full：后端、测试、UI、复刻、长任务等需要完整 Harness/Evidence 的任务。
+- Lite：small/low-risk 的局部文档、配置、CLI 或原创 UI 小改；使用 targeted validation，不生成空仪式任务。
+- Standard：medium，或 small 但涉及 backend/API、medium risk、跨文件行为；保留环境预检、适用独立测试/Review，Architecture 按边界变化触发。
+- Full：large、release、replica/reference-driven UI 或多系统任务；使用完整 Architecture/Environment/独立测试/Harness/Evidence 门。
 - Regulated：高风险、外部写入、安全/审批/凭证/破坏性任务；必须升级授权和独立复核。
 
 ## Migration

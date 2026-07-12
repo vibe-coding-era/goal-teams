@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-"""Goal Teams V2.3 core with V2.34 recovery and V2.35 policy adapters."""
+"""Goal Teams V2.3 data core with V2.36 policy and legacy adapters."""
 
 from __future__ import annotations
 
 import argparse
 import hashlib
-import hmac
 import importlib.util
 import json
 import os
@@ -18,7 +17,7 @@ import tempfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any, Iterable
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from urllib.parse import urlsplit
 
 try:
     from .package_selection import (
@@ -41,6 +40,22 @@ except ImportError:
     blind_path_allowed = _package_selection.blind_path_allowed
     build_blind_package_selection = _package_selection.build_blind_package_selection
     tree_manifest = _package_selection.tree_manifest
+
+try:
+    from .v236_security import HOME_PATH_RE, contains_secret, redact_text
+except ImportError:
+    _security_path = Path(__file__).resolve().with_name("v236_security.py")
+    _security_spec = importlib.util.spec_from_file_location(
+        "_goalteams_v236_security",
+        _security_path,
+    )
+    if _security_spec is None or _security_spec.loader is None:
+        raise ImportError("cannot load Goal Teams shared security contract")
+    _security = importlib.util.module_from_spec(_security_spec)
+    _security_spec.loader.exec_module(_security)
+    HOME_PATH_RE = _security.HOME_PATH_RE
+    contains_secret = _security.contains_secret
+    redact_text = _security.redact_text
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -96,12 +111,17 @@ def _bootstrap_json(path: Path) -> dict[str, Any]:
 SCHEMA = _bootstrap_json(SCHEMA_PATH)
 SCHEMA_VERSION = str(SCHEMA["schema_version"])
 ARTIFACT_VERSION = str(SCHEMA["artifact_version"])
-PRODUCT_VERSION = "V2.35"
+PRODUCT_VERSION = "V2.36"
+# Repository-self-release identity is anchored to the accepted V2.35 base,
+# never to mutable VERSION/SKILL bytes in the candidate worktree.
+V236_GOAL_TEAMS_TRUSTED_RELEASE_BASE = "c91e33737cc13c68bb5cb34c572fa05e7849f1e4"
 
 
 _V234_RUNTIME: Any | None = None
 _V234_CLOSURE: Any | None = None
 _V235_POLICY: Any | None = None
+_V236_TRUST: Any | None = None
+_V236_ACCEPTANCE: Any | None = None
 _EMIT_COMPACT = False
 
 
@@ -140,7 +160,7 @@ def _load_v234_closure() -> Any:
 
 
 def _load_v235_policy() -> Any:
-    """Load the V2.35 pure policy only when a V2.35 surface is invoked."""
+    """Load the V2.35 compatibility/V2.36 policy module on demand."""
     global _V235_POLICY
     if _V235_POLICY is not None:
         return _V235_POLICY
@@ -154,6 +174,44 @@ def _load_v235_policy() -> Any:
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     _V235_POLICY = module
+    return module
+
+
+def _load_v236_trust() -> Any:
+    """Load protected snapshot and host-attestation primitives on demand."""
+
+    global _V236_TRUST
+    if _V236_TRUST is not None:
+        return _V236_TRUST
+    path = Path(__file__).resolve().with_name("v236_trust.py")
+    if not path.is_file() or path.is_symlink():
+        raise ContractError("E_V236_TRUST_RUNTIME", ["E_V236_TRUST_RUNTIME"])
+    spec = importlib.util.spec_from_file_location("_goalteams_v236_trust", path)
+    if spec is None or spec.loader is None:
+        raise ContractError("E_V236_TRUST_RUNTIME", ["E_V236_TRUST_RUNTIME"])
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    _V236_TRUST = module
+    return module
+
+
+def _load_v236_acceptance() -> Any:
+    """Load V2.36 acceptance binding helpers on demand."""
+
+    global _V236_ACCEPTANCE
+    if _V236_ACCEPTANCE is not None:
+        return _V236_ACCEPTANCE
+    path = Path(__file__).resolve().with_name("v236_acceptance.py")
+    if not path.is_file() or path.is_symlink():
+        raise ContractError("E_V236_ACCEPTANCE_RUNTIME", ["E_V236_ACCEPTANCE_RUNTIME"])
+    spec = importlib.util.spec_from_file_location("_goalteams_v236_acceptance", path)
+    if spec is None or spec.loader is None:
+        raise ContractError("E_V236_ACCEPTANCE_RUNTIME", ["E_V236_ACCEPTANCE_RUNTIME"])
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    _V236_ACCEPTANCE = module
     return module
 
 
@@ -185,30 +243,6 @@ RESERVED_TASK_PATCH_FIELDS = frozenset(SCHEMA.get("reserved_task_patch_fields", 
 CANONICAL_PATHS = dict(SCHEMA.get("paths", {}))
 
 HASH_RE = re.compile(r"^[0-9a-f]{64}$")
-SENSITIVE_QUERY_KEYS = frozenset(
-    {"access_token", "api_key", "apikey", "auth", "authorization", "code", "key", "password", "secret", "signature", "sig", "token"}
-)
-PRIVATE_KEY_RE = re.compile(
-    r"-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----.*?-----END [A-Z0-9 ]*PRIVATE KEY-----",
-    re.IGNORECASE | re.DOTALL,
-)
-AUTH_HEADER_RE = re.compile(
-    r"(?im)^(?P<header>authorization|proxy-authorization|cookie|set-cookie|x-api-key)\s*:\s*(?:(?P<scheme>[A-Za-z][A-Za-z0-9_-]*)\s+)?(?P<value>[^\r\n]+)$"
-)
-KEY_VALUE_RE = re.compile(
-    r"(?i)(?P<key>access[_-]?token|api[_-]?key|auth(?:orization)?|client[_-]?secret|password|private[_-]?key|refresh[_-]?token|secret|token)\s*=\s*(?P<value>\"[^\"]*\"|'[^']*'|[^\s&;,]+)"
-)
-JSON_SECRET_RE = re.compile(
-    r'(?i)(?P<prefix>"(?:access[_-]?token|api[_-]?key|auth(?:orization)?|client[_-]?secret|password|private[_-]?key|refresh[_-]?token|secret|token)"\s*:\s*)"(?P<value>(?:[^"\\]|\\.)*)"'
-)
-COMMON_TOKEN_RE = re.compile(
-    r"(?<![A-Za-z0-9])(?:sk-[A-Za-z0-9_-]{16,}|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|xox[baprs]-[A-Za-z0-9-]{12,}|eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,})(?![A-Za-z0-9])"
-)
-URL_RE = re.compile(r"https?://[^\s<>\"']+")
-HOME_PATH_RE = re.compile(
-    r"(?<![A-Za-z0-9_.-])(?:/Users/[^/\s]+|/home/[^/\s]+|[A-Za-z]:\\Users\\[^\\\s]+)(?=/|\\|\b)",
-    re.IGNORECASE,
-)
 
 BLIND_SCHEMA_VERSION = "goal-teams-blind-eval-v2.3"
 BLIND_CANONICAL_MANIFEST_RELATIVE = "tests/v23/fixtures/behavior/blind-agent-codex.json"
@@ -3610,7 +3644,7 @@ def _looks_like_v235_route(features: Any) -> bool:
 
 
 def route(features: Any) -> dict[str, Any]:
-    """Route V2.35 structured requests without changing legacy V2.3 inputs."""
+    """Route V2.35/V2.36 structured requests without changing legacy inputs."""
     if _looks_like_v235_route(features):
         return _load_v235_policy().normalize_project_route(features)
     return _legacy_route(features)
@@ -3815,82 +3849,6 @@ def capability(manifest: Any) -> dict[str, Any]:
         "requested_permissions": requested,
         "fallback_permissions": fallback,
     }
-
-
-def _redaction_marker(secret: str, hmac_key: str | bytes | None) -> str:
-    if hmac_key is None:
-        return "[REDACTED]"
-    key = hmac_key.encode("utf-8") if isinstance(hmac_key, str) else hmac_key
-    correlation = hmac.new(key, secret.encode("utf-8"), hashlib.sha256).hexdigest()[:16]
-    return f"[REDACTED:{correlation}]"
-
-
-def _redact_header(match: re.Match[str], hmac_key: str | bytes | None) -> str:
-    header = match.group("header")
-    scheme = match.group("scheme")
-    value = match.group("value")
-    if header.lower() in {"cookie", "set-cookie"}:
-        redacted_parts: list[str] = []
-        for part in value.split(";"):
-            if "=" in part:
-                key, secret = part.split("=", 1)
-                redacted_parts.append(f"{key.strip()}={_redaction_marker(secret.strip(), hmac_key)}")
-            else:
-                redacted_parts.append(_redaction_marker(part.strip(), hmac_key))
-        return f"{header}: " + "; ".join(redacted_parts)
-    prefix = f"{header}: " + (f"{scheme} " if scheme else "")
-    return prefix + _redaction_marker(value.strip(), hmac_key)
-
-
-def _redact_key_value(match: re.Match[str], hmac_key: str | bytes | None) -> str:
-    raw = match.group("value")
-    quote = raw[0] if len(raw) >= 2 and raw[0] in {"\"", "'"} and raw[-1] == raw[0] else ""
-    secret = raw[1:-1] if quote else raw
-    marker = _redaction_marker(secret, hmac_key)
-    return f"{match.group('key')}={quote}{marker}{quote}"
-
-
-def _redact_json_secret(match: re.Match[str], hmac_key: str | bytes | None) -> str:
-    try:
-        secret = json.loads('"' + match.group("value") + '"')
-    except json.JSONDecodeError:
-        secret = match.group("value")
-    return match.group("prefix") + json.dumps(_redaction_marker(str(secret), hmac_key))
-
-
-def _redact_url(match: re.Match[str], hmac_key: str | bytes | None) -> str:
-    raw = match.group(0)
-    trailing = ""
-    while raw and raw[-1] in ".,);]}":
-        trailing = raw[-1] + trailing
-        raw = raw[:-1]
-    try:
-        parts = urlsplit(raw)
-    except ValueError:
-        return _redaction_marker(raw, hmac_key) + trailing
-    pairs = []
-    changed = False
-    for key, value in parse_qsl(parts.query, keep_blank_values=True):
-        if key.lower() in SENSITIVE_QUERY_KEYS:
-            pairs.append((key, _redaction_marker(value, hmac_key)))
-            changed = True
-        else:
-            pairs.append((key, value))
-    if not changed:
-        return raw + trailing
-    return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(pairs, safe="[]:"), parts.fragment)) + trailing
-
-
-def redact_text(text: str, hmac_key: str | bytes | None = None) -> str:
-    key = hmac_key if hmac_key is not None else os.environ.get("GOAL_TEAMS_REDACTION_HMAC_KEY")
-    text = PRIVATE_KEY_RE.sub(lambda match: _redaction_marker(match.group(0), key), text)
-    text = AUTH_HEADER_RE.sub(lambda match: _redact_header(match, key), text)
-    text = JSON_SECRET_RE.sub(lambda match: _redact_json_secret(match, key), text)
-    text = KEY_VALUE_RE.sub(lambda match: _redact_key_value(match, key), text)
-    text = COMMON_TOKEN_RE.sub(lambda match: _redaction_marker(match.group(0), key), text)
-    text = URL_RE.sub(lambda match: _redact_url(match, key), text)
-    text = HOME_PATH_RE.sub("~", text)
-    return text
 
 
 def classify_untrusted_content(source: str, locked_scope: list[str] | None = None) -> dict[str, Any]:
@@ -5963,6 +5921,19 @@ def _build_parser() -> argparse.ArgumentParser:
     command.add_argument("features")
     command = sub.add_parser("validate-test-case")
     command.add_argument("path")
+    command = sub.add_parser("v236-snapshot-create")
+    command.add_argument("repo_root")
+    command.add_argument("--baseline", default="HEAD")
+    command.add_argument("--receipt")
+    command = sub.add_parser("v236-snapshot-validate")
+    command.add_argument("repo_root")
+    command.add_argument("receipt")
+    command = sub.add_parser("v236-validate-attested-identities")
+    command.add_argument("path")
+    command.add_argument("--expected-issuer", required=True)
+    command.add_argument(
+        "--trust-key-env", default="GOAL_TEAMS_HOST_ATTESTATION_KEY"
+    )
     command = sub.add_parser("plan-preview-policy")
     command.add_argument("request")
     command = sub.add_parser("reference-policy")
@@ -6005,6 +5976,9 @@ def _build_parser() -> argparse.ArgumentParser:
     command.add_argument("--harness")
     command.add_argument("--ledger")
     command.add_argument("--tasklist")
+    command.add_argument("--v236-route-request")
+    command.add_argument("--v236-route-receipt")
+    command.add_argument("--v236-protected-snapshot")
     command = sub.add_parser("migrate")
     command.add_argument("src")
     command.add_argument("dst")
@@ -6498,29 +6472,352 @@ def _apply_v234_environment_projection(
     development["check"] = check
 
 
+def _canonical_v236_source_root(root_value: str | Path | None) -> Path | None:
+    """Return *root_value* only when it is an observed Git top-level.
+
+    V2.36 policy selection is security relevant.  A caller supplied directory
+    is therefore not a source observation until Git itself confirms that the
+    directory is the repository top-level.
+    """
+
+    if not root_value:
+        return None
+    root = Path(root_value).expanduser().absolute()
+    try:
+        if not root.is_dir() or root.is_symlink():
+            return None
+        top = git_toplevel(root)
+        if top is None or top != root.resolve():
+            return None
+        return top
+    except (OSError, RuntimeError):
+        return None
+
+
+_V236_MACOS_SYSTEM_ALIASES = {
+    Path("/etc"): Path("/private/etc"),
+    Path("/tmp"): Path("/private/tmp"),
+    Path("/var"): Path("/private/var"),
+}
+
+
+def _v236_is_allowed_system_symlink(path: Path) -> bool:
+    """Allow only the three exact macOS system aliases used by the OS."""
+
+    expected = _V236_MACOS_SYSTEM_ALIASES.get(path)
+    if sys.platform != "darwin" or expected is None or not path.is_symlink():
+        return False
+    try:
+        return path.resolve(strict=True) == expected.resolve(strict=True)
+    except (OSError, RuntimeError):
+        return False
+
+
+def _contained_v236_filesystem_source_root(
+    root_value: str | Path | None,
+    anchor_value: str | Path | None,
+) -> Path | None:
+    """Validate a non-Git source root by lexical and resolved containment."""
+
+    if not root_value or not anchor_value:
+        return None
+    try:
+        lexical_root = Path(os.path.abspath(str(Path(root_value).expanduser())))
+        lexical_anchor = Path(os.path.abspath(str(Path(anchor_value).expanduser())))
+        if not lexical_root.is_dir() or (
+            lexical_root.is_symlink()
+            and not _v236_is_allowed_system_symlink(lexical_root)
+        ):
+            return None
+        for component in reversed((lexical_root, *lexical_root.parents)):
+            if component.is_symlink() and not _v236_is_allowed_system_symlink(
+                component
+            ):
+                return None
+        resolved_root = lexical_root.resolve()
+        resolved_anchor = lexical_anchor.resolve(strict=False)
+        relative = lexical_anchor.relative_to(lexical_root)
+        cursor = lexical_root
+        for part in relative.parts:
+            cursor /= part
+            if cursor.is_symlink():
+                return None
+        resolved_anchor.relative_to(resolved_root)
+        return resolved_root
+    except (OSError, RuntimeError, ValueError):
+        return None
+
+
+def _v236_path_has_unsafe_symlink(path_value: str | Path) -> bool:
+    """Reject user-controlled path aliases while allowing macOS system aliases."""
+
+    try:
+        lexical = Path(os.path.abspath(str(Path(path_value).expanduser())))
+        return any(
+            component.is_symlink()
+            and not _v236_is_allowed_system_symlink(component)
+            for component in reversed((lexical, *lexical.parents))
+        )
+    except (OSError, RuntimeError, ValueError):
+        return True
+
+
+def _observed_v236_source_root(
+    anchor_value: str | Path | None,
+) -> tuple[Path | None, str | None]:
+    """Discover the authoritative enclosing Git root for a ledger path.
+
+    Every ancestor is inspected so a nested repository cannot hide an outer,
+    trusted Goal Teams checkout.  An outer trusted checkout wins; otherwise
+    multiple enclosing repositories are ambiguous and rejected.
+    """
+
+    if not anchor_value:
+        return None, None
+    try:
+        if _v236_path_has_unsafe_symlink(anchor_value):
+            return None, "E_V236_SOURCE_ROOT_UNVERIFIED"
+        anchor = Path(anchor_value).expanduser().absolute().resolve(strict=False)
+        probe = anchor if anchor.is_dir() else anchor.parent
+        while not probe.exists() and probe != probe.parent:
+            probe = probe.parent
+        if not probe.exists():
+            return None, None
+        roots: list[Path] = []
+        for directory in (probe, *probe.parents):
+            candidate = git_toplevel(directory)
+            if candidate is not None and candidate not in roots:
+                roots.append(candidate)
+        trusted = [root for root in roots if _verified_v236_goal_teams_target(root)]
+        if len(trusted) == 1:
+            return trusted[0], None
+        if len(trusted) > 1 or len(roots) > 1:
+            return None, "E_V236_SOURCE_ROOT_AMBIGUOUS"
+        return (roots[0], None) if roots else (None, None)
+    except (OSError, RuntimeError):
+        return None, None
+
+
+def _derive_v236_source_root(
+    anchor_value: str | Path | None,
+    explicit_root_value: str | Path | None,
+) -> tuple[Path | None, str | None]:
+    """Reconcile caller assertion with the repository containing the ledger.
+
+    The path observation wins.  In Git workspaces ``--source-root`` is only a
+    matching top-level assertion.  In non-Git Core workspaces it is accepted
+    only when the ledger is lexically and physically contained by that root;
+    it cannot redirect profile selection to an unrelated checkout.
+    """
+
+    observed, observation_error = _observed_v236_source_root(anchor_value)
+    if observation_error is not None:
+        return None, observation_error
+    explicit_git = _canonical_v236_source_root(explicit_root_value)
+    explicit_filesystem = _contained_v236_filesystem_source_root(
+        explicit_root_value, anchor_value
+    )
+    if observed is not None and explicit_root_value is not None:
+        if explicit_git is not None and observed != explicit_git:
+            return None, "E_V236_SOURCE_ROOT_CONFLICT"
+        if explicit_git is None:
+            return None, "E_V236_SOURCE_ROOT_UNVERIFIED"
+    if observed is None and explicit_root_value is not None and explicit_filesystem is None:
+        return None, "E_V236_SOURCE_ROOT_UNVERIFIED"
+    return observed or explicit_filesystem, None
+
+
+def _verified_v236_goal_teams_target(root_value: str | Path | None) -> bool:
+    """Derive self-release identity from an immutable accepted Git ancestor."""
+
+    root = _canonical_v236_source_root(root_value)
+    if root is None:
+        return False
+    try:
+        ancestor = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(root),
+                "merge-base",
+                "--is-ancestor",
+                V236_GOAL_TEAMS_TRUSTED_RELEASE_BASE,
+                "HEAD",
+            ],
+            capture_output=True,
+            check=False,
+            timeout=5,
+        )
+        if ancestor.returncode != 0:
+            return False
+        skill = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(root),
+                "show",
+                f"{V236_GOAL_TEAMS_TRUSTED_RELEASE_BASE}:SKILL.md",
+            ],
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=5,
+        )
+        return bool(
+            skill.returncode == 0
+            and re.search(r"(?m)^name:\s*goal-teams\s*$", skill.stdout) is not None
+        )
+    except (OSError, UnicodeDecodeError, subprocess.SubprocessError):
+        return False
+
+
 def _validate_v234_implementation_events(
     events: list[dict[str, Any]], state_root_value: str | None,
     *, candidate_event_id: str | None = None,
+    source_root_value: str | None = None,
+    source_anchor_value: str | None = None,
 ) -> list[str]:
-    """Require the V2.34 disk gate only for explicitly profiled implementation tasks."""
+    """Derive the current gate profile before applying the legacy disk gate.
+
+    V2.34 ledgers explicitly selected the state schema.  V2.36 treats
+    ``state_gate_profile`` as an optional assertion instead: version, target,
+    and task facts select the policy profile even when that field is omitted.
+    Old ledgers that explicitly name the V2.34 state schema remain replayable.
+    """
     profiles: dict[str, str] = {}
     execution_classes: dict[str, str] = {}
+    v236_facts: dict[str, dict[str, Any]] = {}
     candidates: list[dict[str, Any]] = []
+    fact_errors: list[str] = []
+    fact_fields = ("product_version", "target_kind", "task_type", "release")
+
+    def record_fact(task_id: str, key: str, value: Any) -> None:
+        task_facts = v236_facts.setdefault(task_id, {})
+        if key in task_facts and (
+            type(task_facts[key]) is not type(value) or task_facts[key] != value
+        ):
+            fact_errors.append("E_V236_PROFILE_FACT_CONFLICT")
+            return
+        task_facts[key] = value
+
+    git_source_root = _canonical_v236_source_root(source_root_value)
+    filesystem_source_root = _contained_v236_filesystem_source_root(
+        source_root_value, source_anchor_value
+    )
+    canonical_source_root = git_source_root or filesystem_source_root
+    source_is_goal_teams = _verified_v236_goal_teams_target(git_source_root)
+
     for event in events:
         task_id = event.get("task_id")
         payload = event.get("payload") if isinstance(event.get("payload"), dict) else {}
         if not isinstance(task_id, str):
             continue
+        derivation = payload.get("gate_derivation")
+        if derivation is not None and not isinstance(derivation, dict):
+            fact_errors.append("E_V236_PROFILE_TYPE")
+            derivation = {}
+        derivation = derivation if isinstance(derivation, dict) else {}
+        for field in fact_fields:
+            direct_present = field in payload
+            nested_present = field in derivation
+            if not direct_present and not nested_present:
+                continue
+            direct = payload.get(field)
+            nested = derivation.get(field)
+            if direct_present and nested_present and (
+                type(direct) is not type(nested) or direct != nested
+            ):
+                fact_errors.append("E_V236_PROFILE_FACT_CONFLICT")
+                continue
+            value = direct if direct_present else nested
+            if (field == "release" and type(value) is not bool) or (
+                field != "release" and not _nonempty(value)
+            ):
+                fact_errors.append("E_V236_PROFILE_TYPE")
+                continue
+            record_fact(task_id, field, value)
         if _nonempty(payload.get("state_gate_profile")):
-            profiles[task_id] = payload["state_gate_profile"]
+            asserted = str(payload["state_gate_profile"])
+            previous_profile = profiles.get(task_id)
+            if previous_profile is not None and previous_profile != asserted:
+                fact_errors.append("E_V236_PROFILE_FACT_CONFLICT")
+            profiles[task_id] = asserted
         if _nonempty(payload.get("execution_class")):
-            execution_classes[task_id] = payload["execution_class"]
+            execution_class = str(payload["execution_class"])
+            previous_class = execution_classes.get(task_id)
+            if previous_class is not None and previous_class != execution_class:
+                fact_errors.append("E_V236_PROFILE_FACT_CONFLICT")
+            execution_classes[task_id] = execution_class
         if (
             payload.get("task_state") == "running"
-            and profiles.get(task_id) == "goal-teams-v2.34-state-v1"
             and execution_classes.get(task_id) == "implementation"
         ):
-            candidates.append(event)
+            asserted_profile = profiles.get(task_id)
+            facts = v236_facts.get(task_id, {})
+            legacy_profile = asserted_profile == "goal-teams-v2.34-state-v1"
+            if legacy_profile and not facts:
+                candidates.append(event)
+                continue
+            if fact_errors:
+                # Do not add route/source diagnostics derived from facts that
+                # are already contradictory or ill-typed.
+                continue
+            missing = sorted(set(fact_fields) - set(facts))
+            if missing:
+                fact_errors.append("E_V236_PROFILE_REQUIRED")
+                continue
+            if canonical_source_root is None:
+                fact_errors.append(
+                    "E_V236_SOURCE_ROOT_UNVERIFIED"
+                    if source_root_value is not None
+                    else "E_V236_SOURCE_ROOT_REQUIRED"
+                )
+                continue
+            # Repository identity is observed from the trusted Git anchor, not
+            # selected by ledger payload.  Goal Teams can still perform normal
+            # non-release maintenance under Core V2.5; only a release route is
+            # forced into the self-release Profile by the route/host receipt.
+            if source_is_goal_teams and facts.get("target_kind") != "goal_teams_repository":
+                fact_errors.append("E_V236_PROFILE_TARGET_MISMATCH")
+                continue
+            if not source_is_goal_teams and (
+                facts.get("target_kind") == "goal_teams_repository"
+                or facts.get("task_type") == "goal_teams_self_release"
+            ):
+                fact_errors.append("E_V236_PROFILE_TARGET_UNVERIFIED")
+                continue
+            if source_is_goal_teams and (
+                (facts.get("release") is True)
+                != (facts.get("task_type") == "goal_teams_self_release")
+            ):
+                fact_errors.append("E_V236_RELEASE_TASK_TYPE_MISMATCH")
+                continue
+            selector = {
+                "schema_version": "goal-teams-policy-profile-selector-v2.36",
+                **{key: facts[key] for key in ("product_version", "target_kind", "task_type")},
+                "release": facts["release"],
+                **(
+                    {"state_gate_profile": asserted_profile}
+                    if asserted_profile is not None
+                    else {}
+                ),
+            }
+            derived = _load_v235_policy().derive_policy_profile(selector)
+            if derived.get("ok") is not True:
+                fact_errors.append(
+                    str(derived.get("error_code") or "E_V236_PROFILE_DERIVATION")
+                )
+                continue
+            if (
+                derived.get("policy_profile")
+                == "goal-teams-self-release-v2.36"
+            ):
+                if not source_is_goal_teams:
+                    fact_errors.append("E_V236_PROFILE_TARGET_UNVERIFIED")
+                    continue
+                candidates.append(event)
+    if fact_errors:
+        return sorted(set(fact_errors))
     if not candidates:
         return []
     binding_fields = {
@@ -6622,6 +6919,111 @@ def _validate_v234_implementation_events(
         ):
             errors.append("E_V234_IMPLEMENTATION_GATE_ORDER")
     return sorted(set(errors))
+
+
+def _prepare_v236_completion_acceptance(
+    args: argparse.Namespace,
+    *,
+    checkpoint: dict[str, Any],
+    events: list[dict[str, Any]],
+    evidence_records: list[dict[str, Any]],
+    valid_evidence_ids: set[str],
+    trace_doc: dict[str, Any],
+    review_doc: dict[str, Any],
+    identity_doc: dict[str, Any],
+    harness_doc: dict[str, Any],
+    audit_doc: dict[str, Any],
+    evidence_root: Path,
+    ledger_path: Path,
+    checkpoint_path: Path,
+    traceability_path: Path,
+    source_root: Path | None = None,
+    host_context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Identify V2.36 completion and hand authority to the external host.
+
+    The candidate checkout is never a trust root.  In particular, an ordinary
+    Python caller must not be able to turn a caller-selected key, issuer, state
+    path, or provider string into an authoritative Completion result.  The
+    repository runtime therefore stops at this boundary; a repository-external
+    host must freeze and validate the complete acceptance bundle, attest agent
+    identities, and consume its private challenges in its own process.
+
+    ``host_context`` remains in the private signature only to fail closed for
+    callers compiled against the short-lived V2.36 preview API.  It is ignored
+    and cannot enable acceptance.
+    """
+
+    def declares_v236(value: Any) -> bool:
+        if isinstance(value, dict):
+            if value.get("product_version") == "V2.36":
+                return True
+            if value.get("policy_profile") in {
+                "goal-teams-core-v2.5",
+                "goal-teams-self-release-v2.36",
+            }:
+                return True
+            schema = value.get("schema_version")
+            if isinstance(schema, str) and "v2.36" in schema.lower():
+                return True
+            return any(declares_v236(item) for item in value.values())
+        if isinstance(value, list):
+            return any(declares_v236(item) for item in value)
+        return False
+
+    option_names = (
+        "v236_route_request",
+        "v236_route_receipt",
+        "v236_protected_snapshot",
+    )
+    arguments_present = any(getattr(args, name, None) is not None for name in option_names)
+    effective_source_root = (
+        source_root
+        if source_root is not None
+        else (
+            Path(args.source_root) if getattr(args, "source_root", None) else None
+        )
+    )
+    source_is_goal_teams = _verified_v236_goal_teams_target(effective_source_root)
+    required = bool(
+        source_is_goal_teams
+        or arguments_present
+        or any(
+            declares_v236(value)
+            for value in (
+                checkpoint,
+                events,
+                evidence_records,
+                trace_doc,
+                review_doc,
+                identity_doc,
+                harness_doc,
+                audit_doc,
+            )
+        )
+    )
+    if not required:
+        return {"required": False, "identity_registry": None, "errors": []}
+
+    return {
+        "required": True,
+        "identity_registry": None,
+        "acceptance_eligible": False,
+        "errors": ["E_V236_HOST_ADAPTER_REQUIRED"],
+    }
+
+
+def _consume_v236_completion_acceptance(context: dict[str, Any]) -> list[str]:
+    """Never consume host challenges from the candidate checkout.
+
+    Retained as a fail-closed compatibility shim for callers of the preview
+    helper.  The repository-external host owns the immutable input snapshot,
+    final validation transaction, and nonce state.
+    """
+
+    if context.get("required") is not True:
+        return []
+    return ["E_V236_HOST_ADAPTER_REQUIRED"]
 
 
 def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
@@ -7275,6 +7677,56 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
             }
             return envelope(False, code, **data), 1
         return envelope(True, validation=result), 0
+    if args.cmd == "v236-snapshot-create":
+        trust = _load_v236_trust()
+        result = trust.create_protected_git_tree_snapshot(
+            Path(args.repo_root),
+            baseline=args.baseline,
+            receipt_path=Path(args.receipt) if args.receipt else None,
+        )
+        ok = result.get("ok") is True
+        return envelope(
+            ok,
+            str(result.get("error_code") or "E_V236_SNAPSHOT"),
+            snapshot=result,
+        ), 0 if ok else 1
+    if args.cmd == "v236-snapshot-validate":
+        trust = _load_v236_trust()
+        result = trust.validate_protected_git_tree_snapshot(
+            Path(args.repo_root), load_json_object(Path(args.receipt))
+        )
+        ok = result.get("ok") is True
+        return envelope(
+            ok,
+            str(result.get("error_code") or "E_V236_SNAPSHOT"),
+            validation=result,
+        ), 0 if ok else 1
+    if args.cmd == "v236-validate-attested-identities":
+        trust = _load_v236_trust()
+        key_text = os.environ.get(args.trust_key_env)
+        if not key_text:
+            return envelope(
+                False,
+                "E_V236_TRUST_KEY",
+                errors=["E_V236_TRUST_KEY"],
+                mutation_count=0,
+            ), 1
+        result = trust.validate_attested_identity_registry(
+            load_json_object(Path(args.path)),
+            trust_key=key_text.encode("utf-8"),
+            expected_issuer=args.expected_issuer,
+        )
+        ok = result.get("ok") is True
+        public_result = {
+            key: value for key, value in result.items() if key != "registry"
+        }
+        if ok:
+            public_result["run_ids"] = sorted(result.get("registry", {}))
+        return envelope(
+            ok,
+            str(result.get("error_code") or "E_V236_ATTESTED_REGISTRY"),
+            validation=public_result,
+        ), 0 if ok else 1
     if args.cmd == "plan-preview-policy":
         return envelope(True, policy=plan_preview_policy(load_json(Path(args.request)))), 0
     if args.cmd == "reference-policy":
@@ -7285,14 +7737,32 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
         return envelope(result["valid"], code, capability=result, errors=result["errors"]), 0 if result["valid"] else 1
     if args.cmd == "reduce-ledger":
         events = load_jsonl(Path(args.events))
-        v234_gate_errors = _validate_v234_implementation_events(events, args.state_root)
+        effective_source_root, source_root_error = _derive_v236_source_root(
+            args.events, args.source_root
+        )
+        if source_root_error is not None:
+            raise ContractError(source_root_error, [source_root_error])
+        v234_gate_errors = _validate_v234_implementation_events(
+            events,
+            args.state_root,
+            source_root_value=(
+                args.source_root
+                if args.source_root is not None
+                else (
+                    str(effective_source_root)
+                    if effective_source_root is not None
+                    else None
+                )
+            ),
+            source_anchor_value=args.events,
+        )
         if v234_gate_errors:
             raise ContractError(v234_gate_errors[0], v234_gate_errors)
         registry, _, _ = _registry_from_path(
             args.evidence_jsonl,
             Path(args.evidence_root),
             ledger_events=events,
-            source_root=Path(args.source_root) if args.source_root else None,
+            source_root=effective_source_root,
         ) if args.evidence_jsonl else ({}, [], None)
         state = reduce_events(
             events,
@@ -7308,6 +7778,11 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
         return envelope(ok, conflict_code, state=state, errors=state["conflicts"]), 0 if ok else 1
     if args.cmd == "append-event":
         ledger_path = Path(args.ledger)
+        effective_source_root, source_root_error = _derive_v236_source_root(
+            ledger_path, args.source_root
+        )
+        if source_root_error is not None:
+            raise ContractError(source_root_error, [source_root_error])
         candidate_event = load_json_object(Path(args.event))
         candidate_errors = validate_event(candidate_event)
         if candidate_errors:
@@ -7324,6 +7799,16 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
         v234_gate_errors = _validate_v234_implementation_events(
             validation_events, args.state_root,
             candidate_event_id=None if matching_events else str(candidate_event.get("event_id")),
+            source_root_value=(
+                args.source_root
+                if args.source_root is not None
+                else (
+                    str(effective_source_root)
+                    if effective_source_root is not None
+                    else None
+                )
+            ),
+            source_anchor_value=str(ledger_path),
         )
         if v234_gate_errors:
             raise ContractError(v234_gate_errors[0], v234_gate_errors)
@@ -7331,7 +7816,7 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
             args.evidence_jsonl,
             Path(args.evidence_root),
             ledger_events=validation_events,
-            source_root=Path(args.source_root) if args.source_root else None,
+            source_root=effective_source_root,
         ) if args.evidence_jsonl else ({}, [], None)
         state = append_event(
             ledger_path,
@@ -7356,7 +7841,7 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
             atomic_write(Path(args.output), text.encode("utf-8"))
         return envelope(True, tasklist=text), 0
     if args.cmd == "completion-audit":
-        checkpoint = load_json_object(Path(args.checkpoint))
+        checkpoint_path = Path(args.checkpoint).resolve()
         if not all(
             (
                 args.evidence_jsonl,
@@ -7370,7 +7855,8 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
         ):
             raise ContractError("E_AUDIT_INPUT_REQUIRED", ["E_AUDIT_INPUT_REQUIRED"])
         evidence_root = Path(args.evidence_root).resolve()
-        ledger_path = Path(args.ledger).resolve()
+        supplied_ledger_path = Path(args.ledger)
+        ledger_path = supplied_ledger_path.resolve()
         tasklist_path = Path(args.tasklist).resolve()
         if (
             not contained(evidence_root, ledger_path)
@@ -7381,39 +7867,93 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
             or tasklist_path.is_symlink()
         ):
             raise ContractError("E_AUDIT_LEDGER_INPUT", ["E_AUDIT_LEDGER_INPUT"])
+        effective_source_root, source_root_error = _derive_v236_source_root(
+            supplied_ledger_path, args.source_root
+        )
+        if source_root_error is not None:
+            raise ContractError(source_root_error, [source_root_error])
+        traceability_path = Path(args.traceability).resolve()
+        preflight_v236_context = _prepare_v236_completion_acceptance(
+            args,
+            checkpoint={},
+            events=[],
+            evidence_records=[],
+            valid_evidence_ids=set(),
+            trace_doc={},
+            review_doc={},
+            identity_doc={},
+            harness_doc={},
+            audit_doc={},
+            evidence_root=evidence_root,
+            ledger_path=ledger_path,
+            checkpoint_path=checkpoint_path,
+            traceability_path=traceability_path,
+            source_root=effective_source_root,
+        )
+        if preflight_v236_context.get("required") is True:
+            errors = sorted(set(preflight_v236_context.get("errors", [])))
+            return envelope(False, "E_COMPLETION_AUDIT", errors=errors), 1
+        checkpoint = load_json_object(checkpoint_path)
         events = load_jsonl(ledger_path)
+        evidence_records = load_jsonl(Path(args.evidence_jsonl))
+        trace_doc = load_json_object(traceability_path)
+        review_path = Path(args.review).resolve()
+        review_doc = load_json_object(review_path)
+        identity_doc = load_json_object(Path(args.identity_registry))
+        harness_doc = load_json_object(Path(args.harness))
+        audit_path = Path(args.audit).resolve()
+        audit_doc = load_json_object(audit_path)
+        v236_context = _prepare_v236_completion_acceptance(
+            args,
+            checkpoint=checkpoint,
+            events=events,
+            evidence_records=evidence_records,
+            valid_evidence_ids=set(),
+            trace_doc=trace_doc,
+            review_doc=review_doc,
+            identity_doc=identity_doc,
+            harness_doc=harness_doc,
+            audit_doc=audit_doc,
+            evidence_root=evidence_root,
+            ledger_path=ledger_path,
+            checkpoint_path=checkpoint_path,
+            traceability_path=traceability_path,
+            source_root=effective_source_root,
+        )
+        if v236_context.get("required") is True:
+            errors = sorted(set(v236_context.get("errors", [])))
+            return envelope(False, "E_COMPLETION_AUDIT", errors=errors), 1
         registry, _, _ = _registry_from_path(
             args.evidence_jsonl,
             evidence_root,
             ledger_events=events,
-            source_root=Path(args.source_root) if args.source_root else None,
+            source_root=effective_source_root,
         )
         valid_ids = _valid_evidence_id_set(None, registry)
         evidence_replay_errors: list[str] = []
-        for record in load_jsonl(Path(args.evidence_jsonl)):
+        for record in evidence_records:
             if record.get("evidence_id") in valid_ids:
                 evidence_replay_errors.extend(validate_evidence_command_replay(record, evidence_root))
-        trace_doc = load_json_object(Path(args.traceability))
         trace_result = validate_traceability(
             trace_doc,
             evidence_root,
             valid_ids,
             registry,
             ledger_events=events,
-            source_root=Path(args.source_root) if args.source_root else None,
+            source_root=effective_source_root,
         )
-        review_path = Path(args.review).resolve()
-        review_doc = load_json_object(review_path)
         review_errors = validate_dual_review(review_doc, evidence_root)
-        identity_doc = load_json_object(Path(args.identity_registry))
         identity_registry, identity_errors = validate_identity_registry(identity_doc)
-        harness_doc = load_json_object(Path(args.harness))
         review_errors.extend(validate_review_class_policy(review_doc, harness_doc, evidence_root))
         review_errors = sorted(set(review_errors))
         harness = harness_doc.get("harness_contract", harness_doc)
         checks = harness.get("checks") if isinstance(harness, dict) else None
         runs = harness.get("runs", harness_doc.get("runs")) if isinstance(harness, dict) else None
-        binding_errors: list[str] = [*identity_errors, *evidence_replay_errors]
+        binding_errors: list[str] = [
+            *identity_errors,
+            *evidence_replay_errors,
+            *v236_context.get("errors", []),
+        ]
         if not isinstance(checks, list) or not checks or not isinstance(runs, list) or not runs:
             binding_errors.append("E_AUDIT_HARNESS_BINDING")
             checks = checks if isinstance(checks, list) else []
@@ -7496,8 +8036,6 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
         for label, run_id in review_identities:
             if not validate_identity_binding(identity_registry, run_id):
                 binding_errors.append(f"E_IDENTITY_BINDING:review:{label}")
-        audit_doc = load_json(Path(args.audit))
-        audit_path = Path(args.audit).resolve()
         for label in ("auditor_run_id", "author_run_id"):
             if not validate_identity_binding(identity_registry, audit_doc.get(label)):
                 binding_errors.append(f"E_IDENTITY_BINDING:audit:{label}")
@@ -7520,6 +8058,8 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
             expected_audit_ref=expected_audit_ref,
         )
         errors = sorted(set(errors + binding_errors + review_errors))
+        if not errors:
+            errors = sorted(set(_consume_v236_completion_acceptance(v236_context)))
         return envelope(not errors, "E_COMPLETION_AUDIT", errors=errors), 0 if not errors else 1
     if args.cmd == "migrate":
         result = migrate(Path(args.src), Path(args.dst), args.dry_run, args.phase)

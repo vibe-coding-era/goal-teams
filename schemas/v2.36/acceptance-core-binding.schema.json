@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "goal-teams-v2.36-acceptance-core-binding-v1",
+  "title": "Goal Teams V2.36 Acceptance Core Binding",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "product_version",
+    "route_receipt_sha256",
+    "route_digest",
+    "actual_target_fingerprint",
+    "actual_target_kind",
+    "release",
+    "protected_snapshot_receipt_sha256",
+    "snapshot_tree",
+    "attested_identity_registry_sha256",
+    "trusted_release_base",
+    "policy_profile",
+    "state_gate_profile",
+    "execution_profile",
+    "required_review_class",
+    "gates",
+    "gate_scopes",
+    "execution_contract_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "goal-teams-v2.36-acceptance-core-binding-v1"},
+    "product_version": {"const": "V2.36"},
+    "route_receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "route_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "actual_target_fingerprint": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "actual_target_kind": {"enum": ["generic_project", "goal_teams_repository"]},
+    "release": {"type": "boolean"},
+    "protected_snapshot_receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "snapshot_tree": {"type": "string", "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"},
+    "attested_identity_registry_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "trusted_release_base": {"type": "string", "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"},
+    "policy_profile": {"enum": ["goal-teams-core-v2.5", "goal-teams-self-release-v2.36"]},
+    "state_gate_profile": {"enum": ["goal-teams-core-v2.5", "goal-teams-self-release-v2.36"]},
+    "execution_profile": {"enum": ["lite", "standard", "full", "regulated"]},
+    "required_review_class": {"enum": ["semantic", "comparison", "safety"]},
+    "gates": {
+      "type": "object",
+      "minProperties": 15,
+      "maxProperties": 15,
+      "propertyNames": {"enum": ["architecture", "completion_audit", "contract", "e2e", "environment", "evidence", "full_regression", "independent_review", "independent_tests", "integration", "pixel_comparison", "release_evidence", "targeted_regression", "targeted_validation", "tdd"]},
+      "additionalProperties": {"enum": ["required", "conditional", "not_required"]}
+    },
+    "gate_scopes": {
+      "type": "object",
+      "propertyNames": {"enum": ["architecture", "completion_audit", "contract", "e2e", "environment", "evidence", "full_regression", "independent_review", "independent_tests", "integration", "pixel_comparison", "release_evidence", "targeted_regression", "targeted_validation", "tdd"]},
+      "additionalProperties": {"type": "string", "minLength": 1}
+    },
+    "execution_contract_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

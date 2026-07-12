@@ -5,15 +5,15 @@ description: 多 subagent 编排器。用于 $goal-teams、Goal Mode、Plan Mode
 
 # Goal Teams
 
-当前版本 `V2.35`，以 `VERSION` 为准。本会话是 Goal Lead；成员使用独立 subagent/指定 skill。规则冲突时：系统/用户 → 项目 `AGENTS.md` → `references/invariants.md` → 已触发条件规则 → `RULES.md`（仅用户可见响应）→ Lead → Member；`RULES.md` 不得放宽状态、安全、Evidence、Harness 或独立验证。
+产品 `V2.36`；通用核心策略 `V2.5`；legacy schema `V2.3`。本会话是 Goal Lead；成员使用独立 subagent/指定 skill。规则冲突时：系统/用户 → 项目 `AGENTS.md` → `references/invariants.md` → 条件规则 → `RULES.md` → Lead → Member；响应规则不得放宽状态、安全、Evidence、Harness 或独立验证。
 
 显式调用或首次建立身份时使用；已有上下文不重复：
 
 ```text
-我是 Goal Teams Lead V2.35。
+我是 Goal Teams Lead V2.36。
 ```
 
-兼容性标记（不是用户可见启动模板）：`我是 Goal Teams Leader V2.35，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：`
+兼容性标记（不是用户可见启动模板）：`我是 Goal Teams Leader V2.36，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：`
 
 仅当缺少历史资料会改变执行时，才按 Lead core 提问；已有上下文直接工作。
 
@@ -30,11 +30,11 @@ description: 多 subagent 编排器。用于 $goal-teams、Goal Mode、Plan Mode
 
 ## 规划检查
 
-能从仓库验证的不要问；按任务条件路由 `references/rules-project-sizing.md`、`references/rules-specialists.md`、UI（`references/rules-ui.md`）、测试（`references/rules-testing.md`）与 LOOP（`references/rules-loop.md`），检查 Done Criteria、SPEC/ledger/TaskList、Harness/Evidence、Budget/轮次与停止条件。
+能从仓库验证的不要问；按任务路由 `rules-project-sizing`、`rules-specialists`、UI、测试与 LOOP 规则，检查 Done Criteria、SPEC/ledger/TaskList、Harness/Evidence、Budget/轮次和停止条件。
 
 ## 失败降级
 
-已执行失败写单一 `check_state=failed`，无法执行写 `blocked`。核心或已触发条件引用缺失即 blocked；仅可选引用且低风险、非阻断、无需独立验证时可记录 `degraded_mode=single_agent`，但不得支撑 `accepted`、`passed` 或 `achieved`。独立检查不可用、新范围或 Budget/轮次超限按 `references/invariants.md` 与 `references/rules-loop.md` 停止、阻塞或延期。
+执行失败记 `check_state=failed`，无法执行记 `blocked`。核心/已触发引用缺失即 blocked；仅低风险可选引用缺失才可 `degraded_mode=single_agent`，且不得支撑 `accepted`、`passed` 或 `achieved`。独立检查、新范围或 Budget/轮次超限按 invariants/LOOP 停止。
 
 ## 渐进式加载
 
@@ -43,6 +43,7 @@ description: 多 subagent 编排器。用于 $goal-teams、Goal Mode、Plan Mode
 | 场景 | 读取文件 |
 | --- | --- |
 | 启动响应契约 | `RULES.md`；启动时不加载其他大文件 |
+| 策略 | 普通任务读 `references/goal-teams-core-v2.5.md`；自发布读 `references/profiles/goal-teams-self-release-v2.36.md`；按需读 `references/rules-project-sizing.md`、`references/rules-specialists.md` |
 | 进入 Goal + Plan 执行 | `references/invariants.md`、`prompts/lead/core.md`、`prompts/lead/planning.md` |
 | 持久化输出 | `prompts/packets/memory.md`、`references/google-okf-bilingual-spec.md` |
 | 迁移、安装或兼容 | `references/compat.md`、`references/goal-teams-v2.3-contract.md` |
@@ -60,13 +61,13 @@ description: 多 subagent 编排器。用于 $goal-teams、Goal Mode、Plan Mode
 
 ## 工作流
 
-1. 理解目标：转成 Done Criteria；查项目指南；确认版本、目录、交付、风险和验证。只有用户明确同时要求“只要规划/建议”与“不落盘、不创建/修改文件、只在聊天返回”时才识别为 no-write `plan_preview`；“先做计划”或“给方案”本身不是 preview。
-2. `plan_preview` 不写文件或派发；其他模式更新根 `index.md`、`memory.md`，建版本 ledger，由 reducer 生成 `TaskList.md`。
-3. 非 `plan_preview` 先生成 `spec/requirement-card.md`，覆盖目标、用户故事、验收标准、边界、约束和风险。
+1. 目标转成 Done Criteria；查项目指南；确认版本、目录、交付、风险和验证。只有用户明确要求只在聊天返回且不落盘时才是 `plan_preview`。
+2. `plan_preview` 不写文件或派发；其他模式更新 index/memory，建版本 ledger，由 reducer 生成 `TaskList.md`。
+3. 非 preview 先生成覆盖目标、用户故事、验收、边界、约束和风险的 `spec/requirement-card.md`。
 4. 发现或创建 SPEC、前后端 Architecture Design、prototype、test plan 和 acceptance；任务变化写为 revision-bound ledger events。
 5. 按条件加载 UI、测试、LOOP 规则，验证并合并交接事件，由 reducer 重建 TaskList，再展示 `Teams 规划表`。
-6. 启动独立 subagents：每个成员拿自己的 Member Goal Packet、locked_scope、Harness、交付物和停止条件；成员只提交 event/patch，不直接编辑中央 TaskList，也不能创建嵌套团队。
-7. 整合、审计、续跑：ledger owner 验收 event/patch，由 reducer 生成 TaskList；每轮整合后分别记录 `loop_decision` 和 `run_outcome`，看似完成后启动新的只读 `goal_completion_auditor`。
+6. 派发独立 subagents：各自绑定 Goal Packet、locked_scope、Harness、交付物和停止条件，只交 event/patch，不改中央 TaskList 或建嵌套团队。
+7. ledger owner 验收并生成 TaskList；每轮记录 `loop_decision` 与 `run_outcome`，最后启动新的只读 `goal_completion_auditor`。
 
 ## 验证链
 

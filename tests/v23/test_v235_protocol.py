@@ -1338,24 +1338,33 @@ class V235DistributionTests(unittest.TestCase):
             self.assertNotIn(f"prompts/members/{role}/prompt.md", skill)
 
     def test_version_and_bilingual_release_surfaces_are_v235(self) -> None:
-        """ASSERT-V235-034/035."""
-        self.assertEqual((ROOT / "VERSION").read_text(encoding="utf-8").strip(), "V2.35")
-        exact_markers = {
-            "SKILL.md": "Goal Teams Lead V2.35",
-            "goal-teams.md": "V2.35",
-            "agents/openai.yaml": "Goal Teams V2.35",
-            "README.md": "当前版本：`V2.35`",
-            "README.en.md": "Current version: `V2.35`",
-            "CHANGELOG.md": "V2.35",
-            "docs/release-contents.md": "V2.35",
-            "docs/release-contents.en.md": "V2.35",
-            "docs/change-history.md": "V2.35",
-            "docs/change-history.en.md": "V2.35",
+        """ASSERT-V235-034/035: keep V2.35 assets after the product advances."""
+        self.assertEqual((ROOT / "VERSION").read_text(encoding="utf-8").strip(), "V2.36")
+        current_markers = {
+            "SKILL.md": "Goal Teams Lead V2.36",
+            "goal-teams.md": "V2.36",
+            "agents/openai.yaml": "Goal Teams V2.36",
+            "README.md": "V2.36",
+            "README.en.md": "V2.36",
+            "CHANGELOG.md": "V2.36",
+            "docs/release-contents.md": "V2.36",
+            "docs/release-contents.en.md": "V2.36",
+            "docs/change-history.md": "V2.36",
+            "docs/change-history.en.md": "V2.36",
         }
-        for relative, marker in exact_markers.items():
+        for relative, marker in current_markers.items():
             with self.subTest(relative=relative):
                 self.assertIn(marker, (ROOT / relative).read_text(encoding="utf-8"))
-        self.assertEqual(gt.PRODUCT_VERSION, "V2.35")
+        for relative in (
+            "docs/v2.35-release-summary.md",
+            "docs/v2.35-release-summary.en.md",
+            "schemas/v2.35/project-route.schema.json",
+            "schemas/v2.35/test-case.schema.json",
+            "schemas/v2.35/version-binding.schema.json",
+        ):
+            with self.subTest(compatibility_asset=relative):
+                self.assertTrue((ROOT / relative).is_file(), relative)
+        self.assertEqual(gt.PRODUCT_VERSION, "V2.36")
 
 
 ASSERTION_TEST_MAP: dict[str, tuple[str, ...]] = {

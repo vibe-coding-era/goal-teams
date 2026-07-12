@@ -11,7 +11,14 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from tests.v23.common import ROOT, gt, parse_envelope, run_cli, sha256_path
+from tests.v23.common import (
+    ROOT,
+    gt,
+    parse_envelope,
+    requires_trusted_goal_teams_checkout,
+    run_cli,
+    sha256_path,
+)
 
 
 CANONICAL = ROOT / "examples/canonical-v23"
@@ -324,7 +331,8 @@ class CompletionAuditCliTests(unittest.TestCase):
         self.assertEqual(rc, 0, envelope)
         self.assertTrue(envelope["ok"])
 
-    def test_portable_canonical_evidence_is_rejected_by_general_completion_cli(self) -> None:
+    @requires_trusted_goal_teams_checkout
+    def test_repo_canonical_completion_stops_at_v236_host_boundary(self) -> None:
         proc = run_cli(
             "completion-audit",
             str(VERSION / "audit/completion-audit.json"),
@@ -348,12 +356,8 @@ class CompletionAuditCliTests(unittest.TestCase):
         )
         envelope = parse_envelope(proc)
         self.assertNotEqual(proc.returncode, 0)
-        self.assertTrue(
-            any(
-                str(error).startswith("E_PORTABLE_FIXTURE_SCOPE")
-                for error in envelope.get("errors", [])
-            ),
-            envelope,
+        self.assertIn(
+            "E_V236_HOST_ADAPTER_REQUIRED", envelope.get("errors", []), envelope
         )
 
     def test_self_auditor_is_rejected_even_when_audit_claims_passed(self) -> None:

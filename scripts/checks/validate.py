@@ -17,6 +17,10 @@ except ModuleNotFoundError:  # pragma: no cover
 
 ROOT = Path(__file__).resolve().parents[2]
 CURRENT_VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+GENERAL_CORE_POLICY_VERSION = "V2.5"
+LEGACY_DATA_SCHEMA_VERSION = "V2.3"
+CORE_POLICY_PROFILE = "goal-teams-core-v2.5"
+SELF_RELEASE_POLICY_PROFILE = "goal-teams-self-release-v2.36"
 STARTUP_LINE = f"我是 Goal Teams Lead {CURRENT_VERSION}。"
 COMPATIBILITY_MARKER = (
     f"我是 Goal Teams Leader {CURRENT_VERSION}，使用 Goal + Plan 模式帮你完成规划、执行和交付，"
@@ -43,6 +47,8 @@ REQUIRED_FILES = [
     "references/rules-ui.md",
     "references/rules-testing.md",
     "references/rules-loop.md",
+    "references/goal-teams-core-v2.5.md",
+    "references/profiles/goal-teams-self-release-v2.36.md",
     "references/rules-project-sizing.md",
     "references/rules-specialists.md",
     "references/test-case-assertion-protocol.md",
@@ -107,6 +113,9 @@ REQUIRED_FILES = [
     "scripts/checks/check-agent-names.py",
     "scripts/checks/check-member-layout.py",
     "scripts/checks/validate-test-case-contract.py",
+    "scripts/v23/v236_security.py",
+    "scripts/v23/v236_trust.py",
+    "scripts/v23/v236_acceptance.py",
     "scripts/harness/validate-harness.py",
     "scripts/harness/pixel-diff.py",
     "scripts/benchmark/benchmark-runner.py",
@@ -156,6 +165,19 @@ REQUIRED_FILES = [
     "benchmarks/tasks/GT-BENCH-004/harness.md",
     "benchmarks/tasks/GT-BENCH-004/scoring.md",
     "benchmarks/tasks/GT-BENCH-004/expected-artifacts.md",
+    "docs/v2.36-release-summary.md",
+    "docs/v2.36-release-summary.en.md",
+    "schemas/v2.36/project-route.schema.json",
+    "schemas/v2.36/policy-profile-selector.schema.json",
+    "schemas/v2.36/execution-contract.schema.json",
+    "schemas/v2.36/protected-git-tree-snapshot.schema.json",
+    "schemas/v2.36/agent-host-attestation.schema.json",
+    "schemas/v2.36/attested-identity-registry.schema.json",
+    "schemas/v2.36/host-route-receipt.schema.json",
+    "schemas/v2.36/persistent-challenge-state.schema.json",
+    "schemas/v2.36/acceptance-binding.schema.json",
+    "schemas/v2.36/acceptance-core-binding.schema.json",
+    "schemas/v2.36/acceptance-input-snapshot.schema.json",
 ]
 
 
@@ -401,11 +423,15 @@ KEY_RULES = [
 FILE_RULES = {
     "SKILL.md": (
         STARTUP_LINE,
+        GENERAL_CORE_POLICY_VERSION,
+        LEGACY_DATA_SCHEMA_VERSION,
         "references/invariants.md",
         "references/compat.md",
         "references/rules-ui.md",
         "references/rules-testing.md",
         "references/rules-loop.md",
+        "references/goal-teams-core-v2.5.md",
+        "references/profiles/goal-teams-self-release-v2.36.md",
         "references/rules-project-sizing.md",
         "references/rules-specialists.md",
         "规则冲突时",
@@ -455,6 +481,19 @@ FILE_RULES = {
         "run_outcome: achieved | partial | blocked | aborted",
         "Budget Gate",
         "goal_completion_auditor",
+    ),
+    "references/goal-teams-core-v2.5.md": (
+        CORE_POLICY_PROFILE,
+        "gate_profile",
+        "`lite`",
+        "`standard`",
+        "显式提供时必须与派生值完全一致",
+    ),
+    "references/profiles/goal-teams-self-release-v2.36.md": (
+        SELF_RELEASE_POLICY_PROFILE,
+        "52",
+        "iteration 9",
+        "iteration 11",
     ),
     "references/goal-teams-scripted-tooling.md": (
         "scripts/check-routing-fixtures.py",
@@ -525,6 +564,8 @@ README_RELEASE_ITEMS = [
     "references/rules-ui.md",
     "references/rules-testing.md",
     "references/rules-loop.md",
+    "references/goal-teams-core-v2.5.md",
+    "references/profiles/goal-teams-self-release-v2.36.md",
     "references/goal-teams-automation-protocol.md",
     "references/goal-teams-production-pipeline.md",
     "references/goal-teams-scripted-tooling.md",
@@ -642,11 +683,15 @@ def check_skill_frontmatter() -> None:
         fail(f"SKILL.md frontmatter should stay compact, got {len(body)} characters")
     markdown_body = skill[match.end():]
     skill_versions = set(re.findall(r"\bV\d+(?:\.\d+)+\b", skill))
-    unexpected_versions = sorted(found for found in skill_versions if found != version)
+    allowed_versions = {version, GENERAL_CORE_POLICY_VERSION, LEGACY_DATA_SCHEMA_VERSION}
+    missing_versions = sorted(allowed_versions - skill_versions)
+    if missing_versions:
+        fail("SKILL.md missing required product/core/legacy versions: " + ", ".join(missing_versions))
+    unexpected_versions = sorted(skill_versions - allowed_versions)
     if unexpected_versions:
         fail(
-            "SKILL.md version strings must match VERSION "
-            f"{version!r}; unexpected: {', '.join(unexpected_versions)}"
+            "SKILL.md version strings must be product/core/legacy identities "
+            f"{sorted(allowed_versions)!r}; unexpected: {', '.join(unexpected_versions)}"
         )
     line_count = len(markdown_body.splitlines())
     if line_count > 190:
@@ -658,6 +703,8 @@ def check_skill_frontmatter() -> None:
         "references/rules-ui.md",
         "references/rules-testing.md",
         "references/rules-loop.md",
+        "references/goal-teams-core-v2.5.md",
+        "references/profiles/goal-teams-self-release-v2.36.md",
         "prompts/lead/core.md",
         "prompts/lead/planning.md",
         "prompts/lead/requirement-card.md",
@@ -786,18 +833,18 @@ def check_readmes() -> None:
             fail(f"READMEs must mention {snippet}")
 
 
-def check_v234_protocol_markers() -> None:
+def check_v234_compatibility_assets() -> None:
     if not version_at_least(CURRENT_VERSION, (2, 34)):
         return
+    compatibility_files = (
+        "scripts/v23/v234_state.py",
+        "docs/v2.34-completion.md",
+        "docs/v2.34-completion.en.md",
+    )
+    missing = [path for path in compatibility_files if not (ROOT / path).is_file()]
+    if missing:
+        fail("Missing V2.34 compatibility assets: " + ", ".join(missing))
     required = {
-        "references/rules-loop.md": (
-            "Gather → Reason → Act → Verify → Repeat",
-            ".goalteams-candidates/<candidate_id>",
-            "required_assertion_missing | gate_conflict | action_scope_out_of_bounds | outcome_not_allowed | constraint_judgment_incompatible",
-        ),
-        "references/rules-testing.md": ("development_environment_check", "ready | needs_remediation | blocked"),
-        "prompts/packets/handoff-artifacts.md": ("iteration_state_bundle", "public_completion_doc"),
-        "references/goal-teams-runtime.md": ("v234-deliver", "docs/archive/V2.34/<delivery_id>/"),
         ".gitignore": ("/GoalTeamsWork-*/", "/.goalteams-state/", "/.goalteams-quarantine/"),
         "scripts/install/package-manifest.txt": ("prefix docs/archive/",),
     }
@@ -805,9 +852,52 @@ def check_v234_protocol_markers() -> None:
         text = read(path)
         for marker in markers:
             if marker not in text:
-                fail(f"{path} missing V2.34 protocol marker: {marker}")
+                fail(f"{path} missing V2.34 compatibility marker: {marker}")
     if "GoalTeamsWork" in read("scripts/install/package-manifest.txt"):
         fail("Package manifest must exclude GoalTeamsWork process bundles")
+
+
+def check_v236_version_model() -> None:
+    if not version_at_least(CURRENT_VERSION, (2, 36)):
+        return
+    surfaces = {
+        "SKILL.md": (
+            CURRENT_VERSION,
+            GENERAL_CORE_POLICY_VERSION,
+            LEGACY_DATA_SCHEMA_VERSION,
+            CORE_POLICY_PROFILE,
+            SELF_RELEASE_POLICY_PROFILE,
+        ),
+        "README.md": (CURRENT_VERSION, GENERAL_CORE_POLICY_VERSION, LEGACY_DATA_SCHEMA_VERSION),
+        "README.en.md": (CURRENT_VERSION, GENERAL_CORE_POLICY_VERSION, LEGACY_DATA_SCHEMA_VERSION),
+        "docs/v2.36-release-summary.md": (
+            CURRENT_VERSION,
+            GENERAL_CORE_POLICY_VERSION,
+            LEGACY_DATA_SCHEMA_VERSION,
+            "Completion Audit",
+        ),
+        "docs/v2.36-release-summary.en.md": (
+            CURRENT_VERSION,
+            GENERAL_CORE_POLICY_VERSION,
+            LEGACY_DATA_SCHEMA_VERSION,
+            "Completion Audit",
+        ),
+    }
+    for path, markers in surfaces.items():
+        text = read(path)
+        for marker in markers:
+            if marker not in text:
+                fail(f"{path} missing V2.36 version-model marker: {marker}")
+
+    rules_loop = read("references/rules-loop.md")
+    for marker in (".goalteams-candidates/<candidate_id>", "iteration 11"):
+        if marker in rules_loop:
+            fail(f"references/rules-loop.md retains self-release-only marker: {marker}")
+
+    manifest = read("scripts/install/package-manifest.txt")
+    for path in ("docs/v2.36-release-summary.md", "docs/v2.36-release-summary.en.md"):
+        if f"file {path}" not in manifest:
+            fail(f"Package manifest missing {path}")
 
 
 def check_file_rule_sets() -> None:
@@ -833,6 +923,8 @@ def check_key_rules() -> None:
             "references/rules-ui.md",
             "references/rules-testing.md",
             "references/rules-loop.md",
+            "references/goal-teams-core-v2.5.md",
+            "references/profiles/goal-teams-self-release-v2.36.md",
             "references/goal-teams-scripted-tooling.md",
     "references/goal-teams-v2.3-contract.md",
             "references/google-okf-bilingual-spec.md",
@@ -1101,7 +1193,8 @@ def main() -> None:
     check_skill_frontmatter()
     check_subagents()
     check_readmes()
-    check_v234_protocol_markers()
+    check_v234_compatibility_assets()
+    check_v236_version_model()
     check_key_rules()
     check_chinese_surface()
     check_example()

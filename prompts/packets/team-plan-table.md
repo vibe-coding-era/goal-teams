@@ -28,7 +28,7 @@ V2.35 路由与专项表：
 | --- | --- | --- | --- | --- | --- |
 | large / medium / small | feature / bugfix | security flags、high/critical、`ui=true` | Architecture、Environment、TDD/integration/E2E/Evidence/release | security / performance / refactor / sqa：required/requested/not_required | 专家仅 proposal；Lead 另派 owner；记录独立 validator run |
 
-large + Release 默认四专项；medium/small 默认不加载四专家但不减少 Architecture、Environment、独立测试或 Evidence；bugfix 必须 TDD + integration，`ui=true` 必须 E2E。
+V2.36 self-release 默认 Full/Regulated 并加载适用专项；普通 medium/small 按风险和技术面进入 Standard/Lite，可减少不适用的 Architecture、完整 Environment 与独立测试，但 current Evidence、目标验证和安全边界不减。Bugfix 使用影响匹配的 regression/TDD/integration；原创 UI 覆盖受影响 E2E，replica 另强制 pixel comparison。
 
 SPEC 准备度：
 

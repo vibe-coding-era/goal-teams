@@ -155,6 +155,7 @@ def main() -> None:
     if os.environ.get("GOAL_TEAMS_INSTALL_VALIDATION") == "1":
         print("Installer lifecycle skipped during nested staging validation.")
         return
+    current_version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
     with tempfile.TemporaryDirectory(prefix="goal-teams-install-lifecycle-") as temporary:
         temporary_root = Path(temporary)
         source = temporary_root / "source"
@@ -208,8 +209,31 @@ def main() -> None:
             raise AssertionError("initial install did not switch both skill and agent targets")
         if not (old_skill / "scripts" / "checks" / "check-ci-pins.py").is_file():
             raise AssertionError("Round2 CI pin checker was omitted from the install package manifest")
-        if (old_skill / "VERSION").read_text(encoding="utf-8").strip() != "V2.35":
-            raise AssertionError("V2.35 VERSION was not installed")
+        if (old_skill / "VERSION").read_text(encoding="utf-8").strip() != current_version:
+            raise AssertionError(f"{current_version} VERSION was not installed")
+        v236_skill_paths = (
+            "references/goal-teams-core-v2.5.md",
+            "references/profiles/goal-teams-self-release-v2.36.md",
+            "scripts/v23/v236_security.py",
+            "scripts/v23/v236_trust.py",
+            "scripts/v23/v236_acceptance.py",
+            "schemas/v2.36/project-route.schema.json",
+            "schemas/v2.36/execution-contract.schema.json",
+            "schemas/v2.36/protected-git-tree-snapshot.schema.json",
+            "schemas/v2.36/agent-host-attestation.schema.json",
+            "schemas/v2.36/host-route-receipt.schema.json",
+            "schemas/v2.36/persistent-challenge-state.schema.json",
+            "schemas/v2.36/acceptance-binding.schema.json",
+            "schemas/v2.36/acceptance-core-binding.schema.json",
+            "schemas/v2.36/acceptance-input-snapshot.schema.json",
+            "schemas/v2.36/policy-profile-selector.schema.json",
+            "schemas/v2.36/attested-identity-registry.schema.json",
+            "docs/v2.36-release-summary.md",
+            "docs/v2.36-release-summary.en.md",
+        )
+        missing_v236 = [path for path in v236_skill_paths if not (old_skill / path).is_file()]
+        if missing_v236:
+            raise AssertionError(f"V2.36 install package omitted files: {missing_v236}")
         v235_skill_paths = (
             "schemas/v2.35/project-route.schema.json",
             "schemas/v2.35/test-case.schema.json",

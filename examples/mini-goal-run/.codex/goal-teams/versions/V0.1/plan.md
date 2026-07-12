@@ -6,7 +6,7 @@
 
 ## 启动汇报
 
-我是 Goal Teams Lead V2.35。
+我是 Goal Teams Lead V2.36。
 
 - 检查示例项目执行规则和版本目录。
 - 记录正交路由：`project_size=small`、`work_type=feature`、`ui=true`。

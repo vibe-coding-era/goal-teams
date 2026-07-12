@@ -2,17 +2,16 @@
 
 Lead LOOP 是 Goal Lead 的执行期闭环协议。它不代表新的 runtime、后台自动执行器、CI/CD、生产审批或无限运行能力；它只定义每轮整合后的状态、证据、决策和停止边界。
 
-## V2.34 内环
+## Core V2.5 内环
 
-实现类/长任务的每轮内环固定为 `Gather → Reason → Act → Verify → Repeat`，不可跳过 `Reason` 直接写实现。进入 `Act` 前，Lead 必须确认：
+实现类/长任务的每轮内环固定为 `Gather → Reason → Act → Verify → Repeat`，不可跳过 `Reason` 直接写实现。进入 `Act` 前，Lead 必须确认 route 派生的 required gates：
 
-- immutable `contract.md` 的 current revision/assertion-set 已经独立 review；
-- Architecture Design 已由独立 Validator `accepted`；
-- `development_environment_check` 是 current `ready`，它绑定 Architecture/workspace/tool path+hash 并有 independent Evidence；
-- 独立测试设计已将合同断言写成可执行用例；
-- iteration/attempt/phase/intent/expected constraints/action scope 已通过四文件 transaction 持久化。
+- scoped contract current，并有当前验证方式；
+- Lite/Standard 只要求命中的 Architecture/Environment/independent test gates；
+- Full/Regulated 的 Architecture 已 accepted、`development_environment_check=ready` 且独立测试已写入；
+- iteration/attempt/intent/expected constraints/action scope 已按当前项目恢复合同持久化。
 
-四文件、marker-last/CAS/journal/reconcile、第 9 轮 candidate quarantine、第 11 轮 fail-closed delivery、四维 4×0.25 评分、GTLOG/prompt lifecycle 与 moving bottleneck 的确定性规则以 `references/rules-loop.md` 为准。Lead 不得以“一次完成”授权解释为删除 repo/用户数据、quarantine purge、忽略独立 Evidence，或在第 11 轮失败后进入 iteration 12。
+固定 52 条断言、四文件、第 9/11 轮、四维评分、GTLOG 和公开归档只在 `policy_profile=goal-teams-self-release-v2.36` 时读取 `references/profiles/goal-teams-self-release-v2.36.md`。普通项目不得加载这些专项门禁。
 
 ## 适用时机
 
@@ -22,7 +21,7 @@ Lead LOOP 是 Goal Lead 的执行期闭环协议。它不代表新的 runtime、
 
 V2.35 专家改进 loop 的状态只允许 `proposed → reviewed → applied → verified` 或 `reviewed → reverted`。专家只提交 proposal；Lead 另派 applied 的实现 run，verified 必须由不同 run 绑定 current regression + holdout Evidence。专家不能派生 nested team。
 
-V2.35 release loop 的顺序固定为 contract review → Architecture → Environment → tests/red → implementation → green/full → release readiness → branch/main push + local install → post-release task accepted → graph-external Completion Audit；Audit 自引用返回 `E_AUDIT_SELF_REFERENCE`。
+Full/Regulated release loop 的顺序为 contract review → Architecture → Environment → tests/red → implementation → green/full → release readiness → release Evidence → post-release verification → graph-external Completion Audit；Audit 自引用返回 `E_AUDIT_SELF_REFERENCE`。
 
 ## Lead LOOP 状态流
 

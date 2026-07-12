@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "goal-teams-v2.36-acceptance-input-snapshot-v1",
+  "title": "Goal Teams V2.36 Acceptance Input Snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "required_inputs",
+    "files",
+    "file_count",
+    "total_size",
+    "snapshot_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "goal-teams-v2.36-acceptance-input-snapshot-v1"},
+    "required_inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence", "review", "harness", "audit", "ledger", "checkpoint", "traceability", "tasklist"],
+      "properties": {
+        "evidence": {"type": "string", "minLength": 1},
+        "review": {"type": "string", "minLength": 1},
+        "harness": {"type": "string", "minLength": 1},
+        "audit": {"type": "string", "minLength": 1},
+        "ledger": {"type": "string", "minLength": 1},
+        "checkpoint": {"type": "string", "minLength": 1},
+        "traceability": {"type": "string", "minLength": 1},
+        "tasklist": {"type": "string", "minLength": 1}
+      }
+    },
+    "files": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "mode", "hash_mode", "size", "sha256"],
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "mode": {"type": "string", "pattern": "^[0-7]{4}$"},
+          "hash_mode": {
+            "enum": [
+              "raw_sha256",
+              "canonical_json_without_acceptance_bindings"
+            ]
+          },
+          "size": {"type": "integer", "minimum": 0},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "file_count": {"type": "integer", "minimum": 8},
+    "total_size": {"type": "integer", "minimum": 0},
+    "snapshot_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

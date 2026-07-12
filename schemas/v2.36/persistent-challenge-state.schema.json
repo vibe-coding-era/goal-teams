@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.36/persistent-challenge-state.schema.json",
+  "title": "Goal Teams V2.36 Persistent Challenge State",
+  "description": "Host-owned replay state. The trust key is external and is never serialized here.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "generation", "consumed_challenges", "state_mac"],
+  "properties": {
+    "schema_version": {"const": "goal-teams-v2.36-persistent-challenge-state-v1"},
+    "generation": {"type": "integer", "minimum": 0},
+    "consumed_challenges": {
+      "type": "array",
+      "maxItems": 100000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "challenge_sha256",
+          "kind",
+          "issuer",
+          "proof_sha256",
+          "consumed_at",
+          "expires_at"
+        ],
+        "properties": {
+          "challenge_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "kind": {"enum": ["host_attestation", "route_receipt"]},
+          "issuer": {"type": "string", "minLength": 1},
+          "proof_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "consumed_at": {"type": "string", "format": "date-time"},
+          "expires_at": {"type": "string", "format": "date-time"}
+        }
+      }
+    },
+    "state_mac": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

@@ -148,7 +148,7 @@ release_gate:
 
 `gate_status: approved` 只表示协议层允许进入下一步；真实发布仍取决于外部系统权限和人工授权。
 
-V2.35 的 large + Release 在进入本门前默认要求 security、performance、refactor、sqa 四专项 proposal/review 与完整 Evidence gates；专家只读且不能自行派发。medium/small 默认不加载四专家，但 risk/security override 可强制专项，且 Architecture、Environment、独立测试和 Evidence 不得因规模减少。
+V2.36 的 Goal Teams self-release 固定为 Full/Regulated，在进入本门前要求适用 security、performance、refactor、sqa proposal/review 与完整 Evidence gates；专家只读且不能自行派发。普通 medium/small 按 Core V2.5 路由保留 Standard/Lite，Architecture、完整 Environment 与独立测试可按影响减少，但 current Evidence、安全覆盖和适用验证不得减少。
 
 ## Safety Gate
 

@@ -4,12 +4,17 @@
 
 ## 基本原则
 
-- 当前 skill 版本号为 `V2.35`，版本号保存在仓库根目录 `VERSION`，并同步写入 `SKILL.md` 正文；`SKILL.md` frontmatter 只保留 `name` 和 `description`。
+- 当前产品版本为 `V2.36`，保存在仓库根目录 `VERSION`，并同步写入 `SKILL.md` 正文和启动语；通用 Goal Teams 核心策略版本为 `V2.5`，legacy 机器数据 schema 版本为 `V2.3`，三者必须分开表达；`SKILL.md` frontmatter 只保留 `name` 和 `description`。
 - 历史 `V2.02` 与 `V2.1` 是 `V2.3` 前的补丁线；后续版本优先使用 `V2.3`、`V2.4` 这类递增格式，避免继续新增 `V2.0x` 版本叙事。
-- 显式调用 Goal Teams 或当前会话首次需要建立身份时，Goal Lead 简短汇报：`我是 Goal Teams Lead V2.35。`；已有完整上下文时直接执行，不重复仪式。
-- `V1.5` 引入 Harness 契约与三层 Loop 规则，`V1.6` 补充最小 Harness 示例，`V1.7` 引入 Benchmark 外层评估模板，`V1.8` 引入机器可读研发协议，`V1.9` 引入生产流与 Release Gate 协议，`V1.91` 强化中文右边栏成员显示名、界面 E2E 和复刻像素级对比，`V1.92` 引入脚本化工具链、派发协议、冲突策略、预算门和证据不足打回规则，`V1.93` 引入 `SKILL.md` 轻量入口、`prompts/` 角色提示词目录和脚本分目录，`V1.94` 引入成员包子目录和 LLM + 脚本双重复核，`V1.95` 引入 Plan 模式 `需求卡片`，`V1.96` 引入用户故事和功能验收标准，`V1.97` 引入 Google OKF、默认输出目录、memory.md、页面规格卡/HTML 原型组件库记录，`V2.0` 引入版本子目录 SSOT、TaskList 先行、后端架构先行、TDD 单测生成/执行、API 集成 pytest 和前端 E2E 生成/执行，`V2.02` 引入 `RULES.md` 响应规范，`V2.1` 引入 Lead LOOP、Loop Decision、Loop Gate、状态快照和 `GT-BENCH-004`，`V2.3` 引入机器契约与 release gates，`V2.33` 明确规则优先级、显式 preview、引用降级和双语发布结构，`V2.34` 引入合同与环境门、可恢复状态 LOOP、限定重置和第 11 轮交付门，`V2.35` 引入四专家提案、项目规模/工作类型路由、可执行断言契约和显式版本绑定；当前运行规则按 `V2.35` 执行。
+- 显式调用 Goal Teams 或当前会话首次需要建立身份时，Goal Lead 简短汇报：`我是 Goal Teams Lead V2.36。`；已有完整上下文时直接执行，不重复仪式。
+- `V1.5` 引入 Harness 契约与三层 Loop 规则，`V1.6` 补充最小 Harness 示例，`V1.7` 引入 Benchmark 外层评估模板，`V1.8` 引入机器可读研发协议，`V1.9` 引入生产流与 Release Gate 协议，`V1.91` 强化中文右边栏成员显示名、界面 E2E 和复刻像素级对比，`V1.92` 引入脚本化工具链、派发协议、冲突策略、预算门和证据不足打回规则，`V1.93` 引入 `SKILL.md` 轻量入口、`prompts/` 角色提示词目录和脚本分目录，`V1.94` 引入成员包子目录和 LLM + 脚本双重复核，`V1.95` 引入 Plan 模式 `需求卡片`，`V1.96` 引入用户故事和功能验收标准，`V1.97` 引入 Google OKF、默认输出目录、memory.md、页面规格卡/HTML 原型组件库记录，`V2.0` 引入版本子目录 SSOT、TaskList 先行、后端架构先行、TDD 单测生成/执行、API 集成 pytest 和前端 E2E 生成/执行，`V2.02` 引入 `RULES.md` 响应规范，`V2.1` 引入 Lead LOOP、Loop Decision、Loop Gate、状态快照和 `GT-BENCH-004`，`V2.3` 引入 legacy 机器契约与 release gates，`V2.33` 明确规则优先级、显式 preview、引用降级和双语发布结构，`V2.34` 引入合同与环境门、可恢复状态 LOOP、限定重置和第 11 轮交付门，`V2.35` 引入四专家提案、项目规模/工作类型路由、可执行断言契约和显式版本绑定，`V2.36` 将通用核心收敛为 `V2.5`、拆出仓库自发布 Profile，并增加自动门禁派生、统一 secret redaction、受保护 Git tree snapshot 与宿主 attestation；当前产品版本按 `V2.36` 执行。
 - `SKILL.md` 只保留触发导向 description、固定启动语、不变量、规划检查、失败降级摘要、工作流摘要和渐进式加载路由；完整硬边界和条件规则分别放入 `references/invariants.md`、`references/rules-ui.md`、`references/rules-testing.md`、`references/rules-loop.md`、`references/rules-project-sizing.md`、`references/rules-specialists.md`、`references/test-case-assertion-protocol.md` 和 `references/compat.md`。
-- V2.35 的 `project_size=large|medium|small` 与 `work_type=feature|bugfix` 必须作为两个结构化事实路由；任何规模都不得省略 Architecture、Environment、独立测试和 Evidence，UI 必须独立 E2E，BugFix 必须 TDD + integration，安全/高风险覆盖不得被规模降级。
+- 普通任务使用 `policy_profile=goal-teams-core-v2.5`；只有 Goal Teams 仓库自身发布使用 `policy_profile=goal-teams-self-release-v2.36`。52 条发布断言、第 9/11 轮、四维评分与公开归档只属于 self-release Profile，不属于全局不变量。
+- `gate_profile` 必须由 `policy_profile + product_version + task_type + route facts` 自动派生；调用方不得通过提交或省略 `state_gate_profile` 自选、跳过或降低门禁。
+- Lite/Standard 必须根据风险、规模、任务类型和覆盖事实保留真实轻量路径，只生成适用任务与 Evidence；Full/Regulated 用于跨模块、高风险、发布、安全、支付/认证或其他明确升级条件。
+- 原创 UI 使用 browser、DOM、geometry 和 visual Evidence；只有复刻或 reference-driven UI 强制 pixel baseline。
+- 统一 secret redaction 由共享实现提供，并覆盖 Authorization/Cookie、YAML/TOML key-value、数据库 URI、`.netrc`、云凭证与协作工具 token；非 UTF-8/控制字节公开副本 fail closed。
+- Evidence 的源码绑定使用受保护 Git tree snapshot 自动覆盖完整 Git 变更集（tracked 修改/删除与 non-ignored untracked），不接受调用方文件清单；独立 Agent 身份必须绑定宿主签发的 attestation 与仓库外持久 challenge state。最终 acceptance 同时消费 host-signed route receipt；Audit/Review/Harness 使用完整 binding，current Evidence 使用非循环 core binding。候选仓库 runtime 不接收任何可启用成功的 trust context，始终返回 `E_V236_HOST_ADAPTER_REQUIRED`；只有仓库外宿主冻结完整输入树后才能验证并消费 challenge，调用方自填不同 `agent_run_id`、自选 key/state 或无 state 诊断均无效。
 - V2.35 的 `goal_security`、`goal_performance`、`goal_refactor`、`goal_sqa` 是只读 proposal-only 专家：只向 Goal Lead 输出 assessment、proposal、task patch 和 dispatch request；不得直接实现、测试、派发、创建嵌套团队、写中央状态或自证 verified。只有 Goal Lead 能派发独立实现与验证。
 - V2.35 适用的 unit、TDD、integration、E2E、CLI、API 和 fixture 用例必须同时提供非空 `input`、`processing`、`expected_output`、`assertions`；退出码或 HTTP status 不得单独证明业务正确。
 - `RULES.md` 承载 Goal Lead 和所有成员的 Response Contract，要求执行优先、只报告已验证事实、未验证不宣称完成、区分观察和结论、避免无关解释和建议。

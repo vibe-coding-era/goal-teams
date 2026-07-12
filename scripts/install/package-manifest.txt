@@ -1,4 +1,4 @@
-# Goal Teams V2.3 install package allowlist.
+# Goal Teams install package allowlist: product V2.36, core policy V2.5, legacy data schema V2.3.
 # The installer copies only Git-tracked files that match one of these entries.
 file AGENTS.md
 file CHANGELOG.md
@@ -8,6 +8,8 @@ file docs/change-history.en.md
 file docs/change-history.md
 file docs/release-contents.en.md
 file docs/release-contents.md
+file docs/v2.36-release-summary.en.md
+file docs/v2.36-release-summary.md
 file docs/v2.35-release-summary.en.md
 file docs/v2.35-release-summary.md
 file docs/v2.34-completion.en.md

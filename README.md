@@ -4,14 +4,24 @@
 
 作者：肉山@TGO 杭州
 
-当前版本：`V2.35`
+当前版本：`V2.36`
 
 Goal Teams 是一个面向 Codex 的团队协作 Skill。它会以一个 Goal Lead 的身份，把一个目标拆成可验证的计划，再协调多个独立 subagent（不同上下文执行）或用户指定的外部 skill 完成需求、设计、实现、测试、证据记录和收尾审计。过程中会应用到：
 - 应用Goal + Plan + Loop 模式
 - 构建和严格遵循 SPEC + Harness + SSOT 三大原则
-- 不同角色使用不同的 subagent（不同上下文执行）保持上下文独立性不被污染
+- 不同角色使用不同的 subagent；只有绑定宿主 attestation 的隔离上下文才能作为独立验收身份
 - 建立过程 Benchmark 基准
 - 与 OpenSpec 和 Superpowers 共存；完整 adapter 进入 V2.4
+
+版本号分三层，避免把发布版本、策略版本和数据格式混为一谈：
+
+| 层 | 当前值 | 作用 |
+| --- | --- | --- |
+| 产品版本 | `V2.36` | Skill 包、启动语和发布文档的版本。 |
+| 通用核心策略 | `V2.5` / `goal-teams-core-v2.5` | 普通项目的任务路由、执行等级和门禁。 |
+| legacy 数据 schema | `V2.3` | 兼容既有 ledger、Evidence、Harness 和 release-gate 数据；不代表当前产品版本。 |
+
+只有 Goal Teams 仓库自身发布使用 `goal-teams-self-release-v2.36`。52 条发布断言、第 9/11 轮、四维评分和公开归档都留在这个独立 Profile，不属于普通项目的全局不变量。`profile=lite|standard|full|regulated` 仍只表示执行等级，不等同于 `policy_profile`。
 
 适合使用它的场景：
 
@@ -135,7 +145,7 @@ Use $goal-teams。
 显式调用 Goal Teams 或当前会话首次需要建立身份时汇报；已有完整上下文时不重复：
 
 ```text
-我是 Goal Teams Lead V2.35。
+我是 Goal Teams Lead V2.36。
 ```
 
 中文核心模型要点提示词：用户沟通和治理文档默认中文；代码、注释、测试名、fixture 和产品字符串遵循目标仓库约定；代码标识、命令、路径、API 名称、配置键、subagent ID 和精确引用保留原文。
@@ -153,6 +163,8 @@ Use $goal-teams。
 | `references/rules-ui.md` | UI、页面规格卡、HTML Prototype MOCK、E2E 和像素对比规则。 |
 | `references/rules-testing.md` | 后端架构先行、TDD、API 集成 pytest、前端 E2E 和独立测试规则。 |
 | `references/rules-loop.md` | Lead LOOP、Loop Decision、Loop Gate、Budget Gate 和自动续跑边界。 |
+| `references/goal-teams-core-v2.5.md` | 普通项目的通用核心策略、Lite/Standard/Full/Regulated 路由和自动 gate 派生。 |
+| `references/profiles/goal-teams-self-release-v2.36.md` | 仅供 Goal Teams 仓库自身发布使用的专项 Profile。 |
 | `prompts/packets/handoff-artifacts.md` | 交接物 SSOT，定义 artifact 类型、Owner、validator、状态字段和 TaskList 账本格式。 |
 
 ## 工作流
@@ -262,7 +274,7 @@ GoalTeamsWork-<project_version>/
 
 ## 版本说明
 
-当前版本以 `VERSION` 为准。`V2.35` 在 V2.34 控制面上增加四个只读提案专家、项目规模/工作类型正交路由、安全/UI 覆盖、可执行测试断言契约与显式 hash-bound 版本绑定。无 descriptor 时继续保持 V2.34 默认行为；公开归档路径只能由已校验 `release_version` 推导。详细契约按任务类型从 `references/` 加载，过程账本与 provenance 仍保留在非公开工作区。
+当前产品版本以 `VERSION` 为准。`V2.36` 保留 `V2.5` 作为普通项目的通用核心策略，把仓库自发布规则拆到独立 Profile；门禁由产品/核心版本、任务类型、执行等级和 route facts 自动派生，省略 `state_gate_profile` 不能跳过门禁。Lite/Standard 按实际风险和工作量保留轻量路径。V2.36 同时统一 secret redaction，使用受保护 Git tree snapshot 自动覆盖完整 Git 变更集（tracked 修改/删除与 non-ignored untracked），并用宿主 attestation 证明 Agent 隔离身份。最终 acceptance 还要求宿主签名 route receipt、仓库外持久 challenge state，以及 Audit/Review/Harness 的完整 binding 和 current Evidence 的非循环 core binding。候选仓库 runtime 不存在可由 Python/CLI 注入的成功入口，必须返回 `E_V236_HOST_ADAPTER_REQUIRED`；仓库外宿主冻结包含 TaskList、引用日志/报告/artifact 在内的完整验收输入树后，才可在受信进程中验证并消费 challenge。现有机器数据继续兼容 legacy `V2.3` schema。
 
 发布包的可见组成见[发布内容](docs/release-contents.md)；英文读者见[Release Contents](docs/release-contents.en.md)。该清单不会替代运行规则、`VERSION` 或安装校验。
 
@@ -272,6 +284,6 @@ GoalTeamsWork-<project_version>/
 
 当前仓库还没有声明开源 License。owner 应先明确选择 License 或内部共享协议；该本地决定仅是 proposal，GA 授权还必须有仓库外可信 host/signature attestation，当前技术交付最多到 RC。
 
-## V2.3 契约与发布边界
+## Legacy V2.3 数据 schema 与发布兼容
 
-V2.3 增加确定性机器契约：闭合状态枚举、单写者 ledger、严格 Evidence/Traceability、能力降级、Profile 路由、typed migration 与 release gates。详见 `references/goal-teams-v2.3-contract.md`，发布前运行 `./scripts/check.sh`。技术 RC 与正式 GA 分开判断；只有 owner 的 License/内部共享决定而没有仓库外可信 host/signature attestation 时，GA 门禁仍必须 fail-closed。
+Legacy V2.3 schema 定义闭合状态枚举、单写者 ledger、Evidence/Traceability、typed migration 与 release-gate 数据格式；V2.36 继续读取这些数据，不表示产品版本回退到 V2.3。详见 `references/goal-teams-v2.3-contract.md`，发布前运行 `./scripts/check.sh`。技术 RC 与正式 GA 分开判断；只有 owner 的 License/内部共享决定而没有仓库外可信 host/signature attestation 时，GA 门禁仍必须 fail-closed。

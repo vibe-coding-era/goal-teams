@@ -1,6 +1,6 @@
 # UI E2E And Pixel Protocol V1.94
 
-本协议适用于所有页面、组件、HTML Prototype、浏览器工作流、视觉还原和复刻任务。
+本协议只在路由结果为 `ui_mode=replica`（复刻、临摹、还原、对照参考图/页面或其他 reference-driven UI）时作为 required 规则加载。原创 UI 的 browser/DOM/截图/几何检查由 `references/rules-ui.md` 定义，不加载本文件，也不因缺少 reference baseline blocked。
 
 ## UI E2E 必填项
 
@@ -110,7 +110,7 @@ component_library_checks:
 
 - 使用 Playwright 或 Browser/Chrome 工具采集截图和控制台错误。
 - 使用 `scripts/harness/pixel-diff.py` 计算 diff 指标；兼容入口 `scripts/pixel-diff.py` 仍可用。没有 Pillow 时可使用 PPM 输入。
-- 原创 UI 使用 `--ui-mode original`；reference-driven/复刻 UI 必须使用 `--ui-mode replica`，该模式自动要求 `--baseline-environment`、`--actual-environment` 与 `--baseline-approval`，缺一即非零失败。
+- reference-driven/复刻 UI 必须使用 `--ui-mode replica`，该模式自动要求 `--baseline-environment`、`--actual-environment` 与 `--baseline-approval`，缺一即非零失败。`--ui-mode original` 只保留脚本兼容性，不代表原创 UI 必须运行 pixel comparison。
 - environment JSON 必须覆盖 browser/version、viewport、DPR、fonts 和 OS；baseline approval JSON 必须包含独立 `reviewer_run_id`、`approved_at`、`reason` 与 `baseline_sha256`。
 - diff 图建议放入 `GoalTeamsWork-<project_version>/artifacts/` 或项目测试报告目录。
 - HTML Prototype MOCK 建议检查 `application/okf+yaml`、OKF 注释和关键元素 `data-component-library` 属性。
@@ -119,8 +119,8 @@ component_library_checks:
 
 只有以下情况可以创建 `required=false`、`acceptance_blocking=false` 的 `not_required` Check 并写 `not_applicable_reason`：
 
-- 任务不是界面级任务。
+- 任务不是 replica/reference-driven UI。
 - 静态文档示例没有运行应用，且已标记 `sample_only`。
 - 用户明确把原 UI/复刻目标改成非 UI 或 `sample_only` 文档范围；范围变更必须有独立 reviewer/用户决策记录。
 
-真实 UI/复刻范围缺参考、浏览器、截图或环境指纹时必须 `blocked`，不得用 waiver/not_required 获得 accepted。用户只批准“记录风险”并不等于完成；只有显式改变目标范围后才按新的非阻断 Check 计算。不适用原因必须写入 ledger event，并由 TaskList、test plan 或 acceptance 引用。
+Replica/reference-driven UI 缺参考、浏览器、截图或环境指纹时必须 `blocked`，不得用 waiver/not_required 获得 accepted。原创 UI 缺外部参考不 blocked，但仍必须满足 `rules-ui.md` 派生的 browser/DOM/可见状态证据。用户只批准“记录风险”并不等于完成；只有显式改变目标范围并重新路由后才按新 Check 计算。不适用原因必须写入 ledger event，并由 TaskList、test plan 或 acceptance 引用。

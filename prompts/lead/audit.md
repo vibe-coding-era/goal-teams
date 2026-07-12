@@ -14,23 +14,25 @@ V2.1 起，Lead 每轮 `Integrate` 后先按 `prompts/lead/loop.md` 做轻量 in
 8. 每次续跑前后更新 `progress.md` 或 `loop-state.json`，记录 loop round、缺口、Owner、validator、证据和停止条件。
 9. 重复审计和续跑，直到 auditor 报告完成，或只剩有记录的阻塞/延期工作。
 
-V2.34 的最终 Auditor 还必须检查：
+只有 `policy_profile=goal-teams-self-release-v2.36`，最终 Auditor 才额外检查：
 
 - Contract/Architecture/Environment/Implementation 顺序及 current exact-hash Evidence，四文件 marker/progress/contract/log/checkpoint 一致，pending journal 已安全 reconcile。
 - iteration 9 reset receipt 只针对预授权 `.goalteams-candidates/<candidate_id>`，目标已移入 `.goalteams-quarantine/<reset_id>/<candidate_id>`，repo/用户数据/账本/Evidence/provenance 均未删除。
 - iteration 11 有 current Verify/bottleneck assessment，且全部 delivery gate 闭合；失败只能返回 gaps，不得写 achieved/archive 或 iteration 12。
 - `design/originality/craft/functionality` 各四个 0.25 rubric item 均可从 candidate hash/current Evidence/独立 reviewer 重算；评分没有覆盖测试、Harness、Review 或 Audit 失败。
 - 每条 required divergence 都有首个 GTLOG frame 与 prompt lifecycle；`verified` 必须同时绑定 regression + holdout，原 divergence/provenance 仍保留。
-- 公开 archive descriptor 只包含 completed/public 普通文件；sanitizer 拒绝 invocation/tool-call/transport handle、绝对路径、secret、raw logs 和过程包，而私有 receipt 保留完整 provenance。
+- 52 条自发布断言 current；公开 archive descriptor 只包含 `docs/archive/V2.36/<delivery_id>/` 下的 completed/public 普通文件；sanitizer 拒绝 invocation/tool-call/transport handle、绝对路径、secret、raw logs 和过程包，而私有 receipt 保留完整 provenance。
 
-V2.35 的最终 Auditor 还必须检查：
+V2.36 Core 的最终 Auditor 还必须检查：
 
-- project size/work type 正交，risk/security/UI override 没有被 medium/small/bugfix 降级；large + Release 的四专家 proposal/review 完整。
+- project size/work type 正交，Lite/Standard/Full/Regulated 与 risk/security/release/UI mode precedence 一致；原创 UI 未被错误要求 pixel baseline，replica 没有绕过 Full/pixel gate。
 - 四专家只读、proposal-only、Lead-only dispatch，lifecycle 的 verified 绑定不同 run 的 regression + holdout；安全外部主动扫描无授权时没有命令/副作用。
 - 七类适用 test-case 均有 input/processing/expected_output/assertions 与非 exit/status 业务断言；TDD red/implementation/independent green 时序 current。
-- release readiness、remote branch/main、local install 与 post-release task 已 accepted；本 Audit 在 task graph 外，required task/artifact/Evidence 均不引用本次 Audit。
+- 代码 Evidence 的 protected snapshot 自动覆盖完整 Git 变更集且未改主仓库状态；宿主签名 route receipt 的实际 target fingerprint/kind 与 trusted release base 分别匹配 snapshot repository/baseline；独立 Agent identity 均有宿主 attestation，route + identity challenges 只在全部门禁通过后写入仓库外持久 state。
+- Audit、Review、Harness 具有相同完整 `goal-teams-v2.36-acceptance-binding-v1`；每条 current Evidence 具有匹配的非循环 core binding。候选 runtime 无论 CLI/Python 都只能返回 `E_V236_HOST_ADAPTER_REQUIRED`；仓库外宿主在不可变完整输入树上验证并消费 challenge，省略 route/snapshot/attested registry/replay state 不得降级 legacy completion。
+- 仅 release task 要求 readiness、remote branch/main、local install 与 post-release task accepted；本 Audit 在 task graph 外，required task/artifact/Evidence 均不引用本次 Audit。
 
-证据不足不能完成：缺少 E2E、缺少像素级对比、只有实现者自测、缺少独立校验、交接物缺少 tasklist 状态或证据、生产流缺少审批/回滚/监控证据时，QA、Reviewer 或 Completion Auditor 必须打回。
+证据不足不能完成：缺少当前等级 required 的 browser/E2E、replica 缺像素级对比、只有实现者自测、缺少独立校验、交接物缺少 tasklist 状态或证据、生产流缺少审批/回滚/监控证据时，QA、Reviewer 或 Completion Auditor 必须打回。
 
 最终审计结论必须映射到 Lead LOOP：
 

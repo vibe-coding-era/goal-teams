@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### V2.36
+
+- Separated the product version (`V2.36`), general core policy (`V2.5` / `goal-teams-core-v2.5`), and legacy machine-data schema (`V2.3`) so startup identity, execution policy, and persisted data are no longer conflated.
+- Moved the 52 assertions, iterations 9/11, four-dimension scoring, candidate reset, and public archive into the repository-only `goal-teams-self-release-v2.36` Profile; ordinary projects no longer inherit this self-release workflow as global invariants.
+- Derived gates from the bound product/core versions, task route facts, and execution class. A missing `state_gate_profile` cannot bypass gates, and a supplied value must match the derived gate.
+- Restored risk- and size-based Lite/Standard execution, with explicit escalation for cross-module, high-risk, release, security, payment/authentication, and reference-driven UI work.
+- Unified secret redaction across runtime and archive paths, including YAML/TOML key-value forms, database URIs, `.netrc`, Authorization/Cookie forms, cloud credentials, collaboration-tool tokens, and fail-closed non-text public copies.
+- Added protected Git tree snapshots that auto-cover every tracked modification/deletion and non-ignored untracked file without a caller path list, plus host-attested Agent identity for independent validation claims.
+- Added host-signed route receipts, persistent repository-external replay state, process-private trust-key FDs, and a V2.36 acceptance binding that locks Audit, Review, Harness, current Evidence, ledger, checkpoint, traceability, target fingerprint, and snapshot baseline to one completion decision.
+- Added bilingual V2.36 pre-audit release summaries and synchronized package/version checks for the three-layer version model and the two policy profiles.
+
 ### V2.35
 
 - Added four read-only, proposal-only specialist roles: `goal_security`, `goal_performance`, `goal_refactor`, and `goal_sqa`. Specialists cannot implement, dispatch, spawn nested teams, mutate central state, or self-verify; Goal Lead dispatches independent implementation and validation runs.

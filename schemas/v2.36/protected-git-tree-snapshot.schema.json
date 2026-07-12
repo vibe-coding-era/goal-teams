@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.36/protected-git-tree-snapshot.schema.json",
+  "title": "Goal Teams V2.36 Protected Git Tree Snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "repository_fingerprint",
+    "object_format",
+    "content_mode",
+    "baseline_ref",
+    "baseline_commit",
+    "baseline_tree",
+    "snapshot_tree",
+    "change_manifest",
+    "change_manifest_sha256",
+    "changed_paths",
+    "untracked_paths",
+    "tracked_path_count",
+    "snapshot_entry_count",
+    "repo_state_before",
+    "repo_state_after",
+    "created_at",
+    "receipt_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "goal-teams-v2.36-protected-git-tree-snapshot-v1"},
+    "repository_fingerprint": {"$ref": "#/$defs/sha256"},
+    "object_format": {"enum": ["sha1", "sha256"]},
+    "content_mode": {"const": "raw-worktree-bytes-no-filters"},
+    "baseline_ref": {"type": "string", "minLength": 1},
+    "baseline_commit": {"type": "string", "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$"},
+    "baseline_tree": {"type": "string", "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$"},
+    "snapshot_tree": {"type": "string", "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$"},
+    "change_manifest": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/change"}
+    },
+    "change_manifest_sha256": {"$ref": "#/$defs/sha256"},
+    "changed_paths": {"$ref": "#/$defs/paths"},
+    "untracked_paths": {"$ref": "#/$defs/pathsOrEmpty"},
+    "tracked_path_count": {"type": "integer", "minimum": 0},
+    "snapshot_entry_count": {"type": "integer", "minimum": 0},
+    "repo_state_before": {"$ref": "#/$defs/repositoryState"},
+    "repo_state_after": {"$ref": "#/$defs/repositoryState"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "receipt_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "path": {"type": "string", "minLength": 1},
+    "paths": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/path"}
+    },
+    "pathsOrEmpty": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/path"}
+    },
+    "treeEntry": {
+      "type": ["object", "null"],
+      "properties": {
+        "mode": {"enum": ["100644", "100755"]},
+        "object_id": {"type": "string", "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$"}
+      },
+      "required": ["mode", "object_id"],
+      "additionalProperties": false
+    },
+    "change": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "change_type", "before", "after"],
+      "properties": {
+        "path": {"$ref": "#/$defs/path"},
+        "change_type": {"enum": ["added", "modified", "deleted"]},
+        "before": {"$ref": "#/$defs/treeEntry"},
+        "after": {"$ref": "#/$defs/treeEntry"}
+      }
+    },
+    "repositoryState": {
+      "type": "object",
+      "required": ["head_oid", "head_ref", "refs_sha256", "refs_count", "index", "objects"],
+      "additionalProperties": false,
+      "properties": {
+        "head_oid": {"type": "string"},
+        "head_ref": {"type": ["string", "null"]},
+        "refs_sha256": {"$ref": "#/$defs/sha256"},
+        "refs_count": {"type": "integer", "minimum": 0},
+        "index": {"type": "object"},
+        "objects": {
+          "type": "object",
+          "required": ["file_count", "fingerprint"],
+          "additionalProperties": false,
+          "properties": {
+            "file_count": {"type": "integer", "minimum": 0},
+            "fingerprint": {"$ref": "#/$defs/sha256"}
+          }
+        }
+      }
+    }
+  }
+}

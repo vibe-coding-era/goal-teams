@@ -9,6 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 TOOL = ROOT / "scripts" / "v23" / "goalteams_v23.py"
 V235_FIXTURE = ROOT / "tests" / "v23" / "fixtures" / "v235" / "routing.json"
+V236_FIXTURE = ROOT / "tests" / "v23" / "fixtures" / "v236" / "routing.json"
 
 @dataclass(frozen=True)
 class RouteFixture:
@@ -204,6 +205,40 @@ def check_v235_matrix() -> tuple[int, int]:
             fail(f"{case['case_id']}: rejected route reported mutation")
     return len(valid_cases), len(invalid_cases)
 
+
+def check_v236_matrix() -> tuple[int, int]:
+    fixtures = json.loads(V236_FIXTURE.read_text(encoding="utf-8"))
+    valid_cases = fixtures.get("valid_cases", [])
+    invalid_cases = fixtures.get("invalid_cases", [])
+    if not isinstance(valid_cases, list) or not valid_cases:
+        fail("V2.36 routing fixture has no valid cases")
+    requests: dict[str, dict[str, object]] = {}
+    for case in valid_cases:
+        if "input" in case:
+            request = dict(case["input"])
+        else:
+            source = requests.get(case.get("input_from"))
+            if source is None:
+                fail(f"{case.get('case_id')}: unknown V2.36 input_from")
+            request = dict(source)
+            request.update(case.get("patch", {}))
+        requests[case["case_id"]] = request
+        payload = run_v235_route(request, expect_success=True)
+        assert_subset(case["expected"], payload.get("route"), label=case["case_id"])
+    base = dict(requests[valid_cases[0]["case_id"]])
+    for case in invalid_cases:
+        request = dict(base)
+        request.update(case.get("patch", {}))
+        payload = run_v235_route(request, expect_success=False)
+        if payload.get("error_code") != case["error_code"]:
+            fail(
+                f"{case['case_id']}: error {payload.get('error_code')!r} "
+                f"!= {case['error_code']!r}"
+            )
+        if payload.get("mutation_count") != 0:
+            fail(f"{case['case_id']}: rejected route reported mutation")
+    return len(valid_cases), len(invalid_cases)
+
 def main() -> None:
     for fixture in FIXTURES:
         route = run_route(fixture.features)
@@ -229,10 +264,12 @@ def main() -> None:
             if policy.get(key) != expected:
                 fail(f"{fixture.name}: {key} {policy.get(key)!r} != {expected!r}")
     v235_valid, v235_invalid = check_v235_matrix()
+    v236_valid, v236_invalid = check_v236_matrix()
     print(
         "Routing and current policy fixture validation passed for "
         f"{len(FIXTURES)} legacy routes, {len(POLICY_FIXTURES)} policy scenarios, "
-        f"and {v235_valid} V2.35 routes/{v235_invalid} negative cases."
+        f"{v235_valid} V2.35 routes/{v235_invalid} negative cases, and "
+        f"{v236_valid} V2.36 routes/{v236_invalid} negative cases."
     )
 
 if __name__ == "__main__":

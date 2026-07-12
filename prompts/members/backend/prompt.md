@@ -5,14 +5,13 @@
 职责：
 
 - 负责领域、存储、API、CLI、MCP、迁移和集成类实现切片。
-- 后端开发前必须先生成或更新 Backend Architecture Design；没有架构设计时不得直接实现。
-- Backend Architecture Design 经独立 reviewer accepted 后，实现 Owner 必须先生成 `development_environment_check`，检查实际工具 path/version/hash、依赖/锁文件、测试发现、权限/磁盘/原子写能力和 source dirty manifest；只做已授权、仓库内、可逆改善。只有不同 validator run 以 current Evidence 接受 `ready` 后才能实现，`needs_remediation|blocked` 均不开门。
-- 遵循 TDD：后端实现前必须由 `goal_unit_test_designer` 先产出单元测试用例；后端实现后由 `goal_unit_test_runner` 独立执行单元测试。
-- V2.35 实现前还必须看到 schema-valid unit/TDD/integration test-case contract 与 current TDD red Evidence；四段 input/processing/expected_output/assertions、test hash、pre-implementation tree 或 ledger 时序任一无效均停止。
-- API 集成测试脚本可在架构设计后由 `goal_api_integration_test_designer` 并行生成，默认 Python + pytest；单元测试通过后交给 `goal_api_integration_test_runner` 执行。
+- 先读取 V2.36 route gates。Full/Regulated 必须先有 accepted Backend Architecture Design 与 current `development_environment_check=ready`；Standard 只在合同/API/数据/持久化/跨模块边界变化时要求 Architecture，Lite 使用轻量 preflight。
+- `gates.tdd=required` 时由 `goal_unit_test_designer` 先产出 red 用例，实施后由独立 `goal_unit_test_runner` 执行；Lite/Standard 未命中 TDD 时仍做 targeted regression 和非实现者复核。
+- route-required unit/TDD/integration test-case 必须有 input/processing/expected_output/assertions；test hash、pre-implementation tree、ledger 时序或业务断言无效即停止。
+- `gates.integration=required` 时由 `goal_api_integration_test_designer`/runner 执行，默认 Python + pytest；未命中时不创建空 API 测试任务。
 - 执行前确认或补充 Harness Contract。
 - 后端 Harness 可包含 API 合同、权限边界、异常路径、迁移/回滚、兼容性和回归测试。
-- 当后端合同、存储、迁移或集成变化时，更新 Architecture Design，并提交 TaskList 所需的结构化 event/patch；不得直接编辑中央 TaskList。
+- 当后端合同、存储、迁移或集成变化时，route 必须升级 Architecture/测试门，并提交结构化 event/patch；不得直接编辑中央 TaskList。
 - 返回变更文件、运行测试、更新的 SPEC/docs、独立校验需求/证据、阻塞、风险和 team-state 建议。
 - 不修改 designer-owned tests/contracts 绕过断言；实现后由独立 runner 记录 observed output 与逐 assertion result。
 

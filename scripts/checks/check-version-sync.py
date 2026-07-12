@@ -9,6 +9,10 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
+GENERAL_CORE_POLICY_VERSION = "V2.5"
+LEGACY_DATA_SCHEMA_VERSION = "V2.3"
+CORE_POLICY_PROFILE = "goal-teams-core-v2.5"
+SELF_RELEASE_POLICY_PROFILE = "goal-teams-self-release-v2.36"
 
 VERSION_FILES = [
     "SKILL.md",
@@ -98,25 +102,18 @@ def check_split_publication_sync(version: str) -> None:
         fail("README.en.md must not contain the split publication-content section")
 
 
-def check_v234_protocol_sync(version: str) -> None:
+def check_v234_compatibility_assets(version: str) -> None:
     if not version_at_least(version, (2, 34)):
         return
+    required_files = (
+        "scripts/v23/v234_state.py",
+        "docs/v2.34-completion.md",
+        "docs/v2.34-completion.en.md",
+    )
+    missing = [path for path in required_files if not (ROOT / path).is_file()]
+    if missing:
+        fail(f"{version} V2.34 compatibility assets are missing: " + ", ".join(missing))
     required_markers = {
-        "references/rules-loop.md": (
-            "Gather → Reason → Act → Verify → Repeat",
-            "feature_list.json",
-            ".goalteams-candidates/<candidate_id>",
-            "iteration 11",
-            "constraint_judgment_incompatible",
-            "(-blocking_ac_count, -downstream_required_feature_count, opened_bundle_revision, gap_id)",
-        ),
-        "references/rules-testing.md": ("development_environment_check", "ready | needs_remediation | blocked"),
-        "prompts/packets/handoff-artifacts.md": (
-            "development_environment_check",
-            "iteration_state_bundle",
-            "public_completion_doc",
-        ),
-        "references/goal-teams-runtime.md": ("v234-deliver", "docs/archive/V2.34/<delivery_id>/"),
         ".gitignore": ("/GoalTeamsWork-*/", "/.goalteams-state/", "/.goalteams-quarantine/"),
         "scripts/install/package-manifest.txt": ("prefix docs/archive/",),
     }
@@ -124,7 +121,7 @@ def check_v234_protocol_sync(version: str) -> None:
         text = read(path)
         for marker in markers:
             if marker not in text:
-                fail(f"{path} missing V2.34 protocol marker {marker!r}")
+                fail(f"{path} missing V2.34 compatibility marker {marker!r}")
     if "GoalTeamsWork" in read("scripts/install/package-manifest.txt"):
         fail("package manifest must not include GoalTeamsWork process bundles")
 
@@ -175,6 +172,126 @@ def check_v235_protocol_sync(version: str) -> None:
             fail(f"package manifest missing {path}")
 
 
+def check_v236_protocol_sync(version: str) -> None:
+    if not version_at_least(version, (2, 36)):
+        return
+    required_files = (
+        "references/goal-teams-core-v2.5.md",
+        "references/profiles/goal-teams-self-release-v2.36.md",
+        "scripts/v23/v236_security.py",
+        "scripts/v23/v236_trust.py",
+        "scripts/v23/v236_acceptance.py",
+        "schemas/v2.36/project-route.schema.json",
+        "schemas/v2.36/policy-profile-selector.schema.json",
+        "schemas/v2.36/execution-contract.schema.json",
+        "schemas/v2.36/protected-git-tree-snapshot.schema.json",
+        "schemas/v2.36/agent-host-attestation.schema.json",
+        "schemas/v2.36/attested-identity-registry.schema.json",
+        "schemas/v2.36/host-route-receipt.schema.json",
+        "schemas/v2.36/persistent-challenge-state.schema.json",
+        "schemas/v2.36/acceptance-binding.schema.json",
+        "schemas/v2.36/acceptance-core-binding.schema.json",
+        "schemas/v2.36/acceptance-input-snapshot.schema.json",
+        "docs/v2.36-release-summary.md",
+        "docs/v2.36-release-summary.en.md",
+    )
+    missing = [path for path in required_files if not (ROOT / path).is_file()]
+    if missing:
+        fail(f"{version} protocol files are missing: " + ", ".join(missing))
+
+    version_markers = {
+        "SKILL.md": (
+            version,
+            GENERAL_CORE_POLICY_VERSION,
+            LEGACY_DATA_SCHEMA_VERSION,
+            CORE_POLICY_PROFILE,
+            SELF_RELEASE_POLICY_PROFILE,
+            "references/goal-teams-core-v2.5.md",
+            "references/profiles/goal-teams-self-release-v2.36.md",
+        ),
+        "README.md": (version, GENERAL_CORE_POLICY_VERSION, LEGACY_DATA_SCHEMA_VERSION),
+        "README.en.md": (version, GENERAL_CORE_POLICY_VERSION, LEGACY_DATA_SCHEMA_VERSION),
+        "references/goal-teams-core-v2.5.md": (
+            CORE_POLICY_PROFILE,
+            "gate_profile",
+            "`lite`",
+            "`standard`",
+            "显式提供时必须与派生值完全一致",
+            "goal-teams-v2.36-acceptance-binding-v1",
+            "acceptance-input snapshot",
+            "execution-contract digest",
+        ),
+        "references/profiles/goal-teams-self-release-v2.36.md": (
+            SELF_RELEASE_POLICY_PROFILE,
+            "52",
+            "iteration 9",
+            "iteration 11",
+            "c91e33737cc13c68bb5cb34c572fa05e7849f1e4",
+        ),
+        "prompts/packets/harness-contract.md": (
+            "v236_execution_contract",
+            "v236_gate_checks",
+            "completion_audit",
+        ),
+        "prompts/members/completion-auditor/template.md": (
+            "acceptance_input_snapshot_sha256",
+            "execution_contract_sha256",
+            "v236_gate_results",
+        ),
+    }
+    for path, markers in version_markers.items():
+        text = read(path)
+        for marker in markers:
+            if marker not in text:
+                fail(f"{path} missing V2.36 version/profile marker {marker!r}")
+
+    runtime_text = read("references/goal-teams-runtime.md")
+    if "我是 Goal Teams Lead V2.35" in runtime_text:
+        fail("references/goal-teams-runtime.md contains stale V2.35 startup identity")
+
+    tool_text = read("scripts/v23/goalteams_v23.py")
+    trusted_base = "c91e33737cc13c68bb5cb34c572fa05e7849f1e4"
+    if f'V236_GOAL_TEAMS_TRUSTED_RELEASE_BASE = "{trusted_base}"' not in tool_text:
+        fail("V2.36 runtime missing immutable accepted V2.35 release base")
+    if re.search(r"def _dispatch\([^)]*v236_host_context", tool_text, flags=re.S):
+        fail("candidate _dispatch must not expose a V2.36 host context success path")
+    if "E_V236_HOST_ADAPTER_REQUIRED" not in tool_text:
+        fail("candidate runtime must fail closed at the external host boundary")
+
+    trust_text = read("scripts/v23/v236_trust.py")
+    if "acceptance_eligible=True" in trust_text:
+        fail("candidate trust helpers must never grant V2.36 acceptance authority")
+    for marker in (
+        "def _host_adapter_required()",
+        "host_reference_only=True",
+        "E_V236_HOST_ADAPTER_REQUIRED",
+    ):
+        if marker not in trust_text:
+            fail(f"V2.36 trust boundary missing fail-closed marker {marker!r}")
+
+    rules_loop = read("references/rules-loop.md")
+    for self_release_marker in (".goalteams-candidates/<candidate_id>", "iteration 11"):
+        if self_release_marker in rules_loop:
+            fail(
+                "references/rules-loop.md must not retain self-release-only marker "
+                f"{self_release_marker!r}"
+            )
+
+    summaries = ("docs/v2.36-release-summary.md", "docs/v2.36-release-summary.en.md")
+    for path in summaries:
+        text = read(path)
+        for marker in (version, GENERAL_CORE_POLICY_VERSION, LEGACY_DATA_SCHEMA_VERSION, "Completion Audit"):
+            if marker not in text:
+                fail(f"{path} missing V2.36 pre-audit marker {marker!r}")
+        if re.search(r"Completion Audit.{0,20}(?:passed|通过)", text, flags=re.I | re.S):
+            fail(f"{path} must not claim the graph-external Completion Audit passed")
+
+    manifest = read("scripts/install/package-manifest.txt")
+    for path in summaries:
+        if f"file {path}" not in manifest:
+            fail(f"package manifest missing {path}")
+
+
 def main() -> None:
     version = read("VERSION").strip()
     if not re.fullmatch(r"V\d+\.\d+", version):
@@ -186,11 +303,15 @@ def main() -> None:
         "并使用 Harness + SPEC 做为过程与结果产物的约束："
     )
     skill_versions = set(re.findall(r"\bV\d+(?:\.\d+)+\b", read("SKILL.md")))
-    unexpected_skill_versions = sorted(found for found in skill_versions if found != version)
+    allowed_skill_versions = {version, GENERAL_CORE_POLICY_VERSION, LEGACY_DATA_SCHEMA_VERSION}
+    missing_skill_versions = sorted(allowed_skill_versions - skill_versions)
+    if missing_skill_versions:
+        fail("SKILL.md missing required version identities: " + ", ".join(missing_skill_versions))
+    unexpected_skill_versions = sorted(skill_versions - allowed_skill_versions)
     if unexpected_skill_versions:
         fail(
-            "SKILL.md version strings must match VERSION "
-            f"{version!r}; unexpected: {', '.join(unexpected_skill_versions)}"
+            "SKILL.md version strings must be product/core/legacy identities "
+            f"{sorted(allowed_skill_versions)!r}; unexpected: {', '.join(unexpected_skill_versions)}"
         )
     for path in VERSION_FILES:
         text = read(path)
@@ -216,8 +337,9 @@ def main() -> None:
             fail(f"{path} missing the conditional history-input policy")
 
     check_split_publication_sync(version)
-    check_v234_protocol_sync(version)
+    check_v234_compatibility_assets(version)
     check_v235_protocol_sync(version)
+    check_v236_protocol_sync(version)
 
     openai = read("agents/openai.yaml")
     if f'Goal Teams {version}' not in openai:

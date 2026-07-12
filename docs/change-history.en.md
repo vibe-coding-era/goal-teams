@@ -1,6 +1,6 @@
 # Change History
 
-This is the reader-facing English summary of changes by version. Its Chinese counterpart is [change-history.md](change-history.md). The repository-root [CHANGELOG.md](../CHANGELOG.md) remains the detailed technical record. `VERSION` is the authority for the current version.
+This is the reader-facing English summary of changes by version. Its Chinese counterpart is [change-history.md](change-history.md). The repository-root [CHANGELOG.md](../CHANGELOG.md) remains the detailed technical record. `VERSION` is the authority for the current product version; the general core policy and legacy data schema are labeled separately.
 
 ## Recording boundary
 
@@ -8,12 +8,14 @@ This is the reader-facing English summary of changes by version. Its Chinese cou
 - V2.33 splits the README's release-contents and history entrypoints into this bilingual document set. This record describes the scope, but cannot replace `VERSION` synchronization or validation gates.
 - V2.34 archives completed public documents by delivery id only after independent audit and sanitization; process bundles and private provenance remain outside the public archive.
 - V2.35 creates its public release summary before the graph-external Completion Audit and labels that audit as not yet run; the final audit stays only in the private process bundle.
+- V2.36 distinguishes product `V2.36`, general core policy `V2.5`, and legacy data schema `V2.3`, and isolates repository self-release as a dedicated Profile.
 - The local planning source `docs/后续版本规划 V3.3-3.5.md` is user-maintained and is not part of the repository or install package. AI must not edit it or commit it to GitHub without separate authorization.
 
 ## Recorded versions
 
 | Version | Recorded change summary |
 | --- | --- |
+| V2.36 | Retained `V2.5` as the general core policy for ordinary projects; moved the 52 assertions, iterations 9/11, four-dimension scoring, and public archive into `goal-teams-self-release-v2.36`; derived gates automatically; restored risk/size-based Lite and Standard; unified secret redaction; and added protected Git tree snapshots, host-signed route/identity attestations, persistent challenge state, and one acceptance binding. Legacy machine data continues to use the V2.3 schema. |
 | V2.35 | Added read-only proposal roles for security, performance, refactor, and SQA without direct implementation or dispatch; a `large|medium|small` by `feature|bugfix` routing matrix with safety/UI overrides; executable test contracts covering input, processing, expected output, and assertions; and explicit hash-bound version descriptors that isolate V2.34 default behavior from V2.35 state and archives. |
 | V2.34 | Added the contract-first `Gather → Reason → Act → Verify → Repeat` LOOP; crash recovery through `feature_list.json`, `progress.md`, `contract.md`, `log.md`, journal, and CAS; an Environment Evidence gate after accepted Architecture; constrained iteration-9 candidate quarantine and a fail-closed iteration-11 delivery gate; four-dimensional scoring, GTLOG divergence/prompt lifecycle, moving-bottleneck selection, and sanitized public archives. |
 | V2.33 | On the V2.3 machine-contract baseline, defined precedence across system/user instructions, `AGENTS.md`, invariants, conditional rules, `RULES.md`, Lead, and Member; defined fail-closed dependency classification and limited degradation, explicit no-write `plan_preview` selection, single-value `check_state` language, and independent bilingual release/history documents. |

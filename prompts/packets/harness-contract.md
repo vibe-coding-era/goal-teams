@@ -36,6 +36,7 @@ Harness Contract（验证契约）:
 - approval_gate:
 - pipeline_state:
 - benchmark_refs:
+- v236_acceptance_binding: <V2.36 完整 binding；legacy 省略>
 ```
 
 规则：
@@ -46,6 +47,9 @@ Harness Contract（验证契约）:
 - 前端 Harness 必须能区分前端实现、E2E 用例生成和 E2E 执行；用例作者和执行者不能是同一唯一 subagent。
 - 只引用已有或计划中明确要创建的检查；不要宣称会运行未验证、未授权或不存在的命令。
 - 任务没有 Harness 契约、有效 Evidence 或不适用说明时，不能标记为 `accepted`。
+- V2.36 Harness 与 Review/Audit 使用同一完整 `v236_acceptance_binding`。每条 current Evidence 的 `environment.v236_acceptance_core_binding` 必须完整绑定 product、route receipt/digest、actual target、release、protected snapshot、attested identity registry、trusted release base、policy/state profile，以及宿主重派生的 execution profile/review class/gates；Evidence registry、ledger、checkpoint、traceability、TaskList 与 acceptance-input snapshot hashes 只放在非循环的顶层完整 binding 中。
+- `harness_contract.v236_execution_contract` 必须精确包含 `execution_profile`、`required_review_class`、完整 `gates`、每个 conditional gate 的 `gate_scopes` 和 `execution_contract_sha256`；`v236_gate_checks` 必须为每个 gate 给出 Check 引用。required gate 的 Check 必须真实存在、`passed` 且绑定 current core-bound Evidence 与 accepted Task；conditional N/A 必须写 `impact_decision=not_applicable`、route-bound `impact_scope` 和理由。
+- `completion_audit` 是 graph-external gate：`v236_gate_checks.completion_audit=[]`，不得创建 Task/Check/Evidence 自引用；仅由当前 Audit 的 `audit_state=passed`、`external_gate=true` 与完整 acceptance binding hash 证明。
 
 ## V2.35 Assertion 与 Specialist Harness
 
@@ -57,7 +61,9 @@ Harness Contract（验证契约）:
 - refactor Harness 绑定 equivalence、regression、holdout 与 rollback；SQA Harness 绑定 version/index/classification/version directory、sanitized public copy 与 retained private provenance。
 - 专家 Harness 只允许 proposal-only；Lead 另派实现/测试。verified 需要不同 run 的 current regression + holdout。
 
-## V2.34 Harness 扩展
+## Self-release Harness 扩展
+
+以下字段只在 `policy_profile=goal-teams-self-release-v2.36` 时 required；普通项目不得为了满足模板而创建固定轮次、评分或公开归档检查。
 
 实现类 Harness 还必须定义：
 
@@ -109,6 +115,23 @@ Harness Contract（验证契约）:
 - risk: <可选；只允许把最低 review class 提升>
 ```
 
+V2.36 还必须在同一个内层 `harness_contract` 写入以下派生契约；外层同名字段无效：
+
+```text
+- v236_execution_contract:
+  - execution_profile: lite | standard | full | regulated
+  - required_review_class: semantic | comparison | safety
+  - gates: <完整 15 gate map>
+  - gate_scopes: <每个 conditional gate 的非空影响范围>
+  - execution_contract_sha256: <host route receipt 同一 digest>
+- v236_gate_checks:
+  - <gate>: [<真实 checks[].check_id>, ...]
+```
+
+每个 gate result 必须绑定同一组真实 `checks[].check_id`、`checks[].evidence_refs` 和已 accepted Task；`passed` 不接受空引用。`conditional -> not_required` 必须同时记录与 `gate_scopes[gate]` 完全一致的 `impact_scope`、`impact_decision=not_applicable` 和非空理由。Full/Regulated 必须逐项覆盖完整 gate map，缺字段不得降级或省略。
+
+唯一例外是 `completion_audit`：它是本次图外门禁，必须由仓库外 host 对当前 `audit_state=passed` 与同一 `v236_acceptance_binding` 给出 `external_gate=true`、`acceptance_binding_sha256`，并保持 `task_refs/check_refs/evidence_refs` 全空。把 Completion Audit 做成 required Task、Check 或 Evidence 属于自证并必须拒绝。
+
 外层同名字段不参与判定。`replica/ui-replica/comparison` 的最低等级为 `comparison`；`security/external-write/regulated` 或 high/critical 安全风险的最低等级为 `safety`。兼容关系不是简单数值排序：semantic 与 structural 不能彼此替代；二者可升级为 comparison/safety，comparison 只能升级为 safety，safety 不可降级。
 
 ```text
@@ -139,7 +162,7 @@ Run:
 - recovery_of_run_id                   # retry 时
 ```
 
-4. `evidence/evidence.jsonl`：每行是完整、带 kind 的 Evidence；acceptance Evidence 的 `command.argv/cwd` 必须与对应 Check 的 `expected_domain_execution` 精确一致。`command_execution` / `failure_record` 同时包含两层且使用不同日志：`command` 记录真实领域执行及 exact execution record，Completion 不重跑；`integrity_replay` 是唯一可重放的 runtime-locked verifier，精确绑定领域记录、artifact、source/prefix、check/run/attempt/producer。两层必须位于 Run 时间包络内，随后才是 Evidence created 与引用 event。普通 Evidence 另绑定 ancestor commit、source manifest 与非空 ledger prefix；symbolic HEAD 只属于 canonical portable fixture。失败、人工、外部或 unverified 证据永不进入 acceptance registry。所有 artifact/log/record 先做 secret scan/redaction。
+4. `evidence/evidence.jsonl`：每行是完整、带 kind 的 Evidence；acceptance Evidence 的 `command.argv/cwd` 必须与对应 Check 的 `expected_domain_execution` 精确一致。`command_execution` / `failure_record` 同时包含真实领域执行与独立 `integrity_replay`。V2.36 源码 Evidence 绑定自动覆盖完整 Git 变更集的 protected snapshot receipt、非空 ledger prefix 与宿主 attested producer identity；legacy ancestor/source manifest 只作兼容读取。symbolic HEAD 只属于 canonical portable fixture。失败、人工、外部或 unverified 证据永不进入 acceptance registry。所有 artifact/log/record 统一经 secret detection/redaction。
 5. `harness/traceability.json`：`requirements[]`、`acceptance_criteria[]`、`tasks[]`、`checks[]`、`runs[]`、`evidence[]` 全部使用完整对象；每个 required AC 必须有 Task → passed Check → passed Run → current valid Evidence，orphan/uncovered 阻断完成。
 6. `reviews/dual-review.json` 与 `reviews/semantic-review.md`：从 Harness 最低等级选择合法 `review_class`，严格字段见 `prompts/packets/dual-review-record.md`；脚本报告必须把真实 `domain_execution`、独立 `integrity_replay`、`binding_digest`、artifact、Evidence path/hash/size 和具体 reviewer run 闭合绑定。
 7. `audit/completion-audit.json`：候选收尾时作为只读外部门禁生成；使用 `prompts/members/completion-auditor/template.md` 从 checkpoint、strict Evidence registry、traceability 与 review 文件重算。failed/blocked 可驱动 LOOP/停止，只有 passed/achieved 要求 required task 全 accepted；不得接受调用方自报布尔值，也不得由 required/blocking task 或本次 audit Evidence 自证。

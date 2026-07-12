@@ -1,0 +1,83 @@
+{
+  "valid_cases": [
+    {
+      "case_id": "v236-lite-cli",
+      "input": {
+        "schema_version": "goal-teams-project-route-v2.36",
+        "product_version": "V2.36",
+        "target_kind": "generic_project",
+        "project_size": "small",
+        "work_type": "bugfix",
+        "release": false,
+        "ui": false,
+        "backend": false,
+        "api": false,
+        "cli": true,
+        "tests": true,
+        "risk": "low",
+        "security_sensitive": false,
+        "external_write": false,
+        "auth": false,
+        "payment": false,
+        "migration": false,
+        "destructive": false,
+        "ui_mode": "none",
+        "specialist_requests": []
+      },
+      "expected": {
+        "profile": "lite",
+        "policy_profile": "goal-teams-core-v2.5",
+        "state_gate_profile": "goal-teams-core-v2.5",
+        "task_type": "cli"
+      }
+    },
+    {
+      "case_id": "v236-standard-backend",
+      "input_from": "v236-lite-cli",
+      "patch": {"backend": true, "cli": false, "work_type": "feature"},
+      "expected": {"profile": "standard", "task_type": "backend"}
+    },
+    {
+      "case_id": "v236-full-replica",
+      "input_from": "v236-lite-cli",
+      "patch": {"ui": true, "ui_mode": "replica", "cli": false, "work_type": "feature"},
+      "expected": {"profile": "full", "task_type": "ui_replica"}
+    },
+    {
+      "case_id": "v236-self-release",
+      "input_from": "v236-lite-cli",
+      "patch": {
+        "target_kind": "goal_teams_repository",
+        "project_size": "large",
+        "release": true,
+        "backend": true,
+        "api": true,
+        "cli": false,
+        "work_type": "feature"
+      },
+      "expected": {
+        "profile": "full",
+        "policy_profile": "goal-teams-self-release-v2.36",
+        "state_gate_profile": "goal-teams-self-release-v2.36",
+        "task_type": "goal_teams_self_release"
+      }
+    }
+  ],
+  "invalid_cases": [
+    {
+      "case_id": "v236-explicit-gate-mismatch",
+      "patch": {"state_gate_profile": "goal-teams-self-release-v2.36"},
+      "error_code": "E_V236_STATE_GATE_PROFILE_MISMATCH"
+    },
+    {
+      "case_id": "v236-derived-output-injection",
+      "patch": {"policy_profile": "goal-teams-self-release-v2.36"},
+      "error_code": "E_V236_ROUTE_UNKNOWN_FIELD"
+    },
+    {
+      "case_id": "v236-ui-mode-conflict",
+      "patch": {"ui": false, "ui_mode": "replica"},
+      "error_code": "E_V236_UI_MODE_CONFLICT"
+    }
+  ]
+}

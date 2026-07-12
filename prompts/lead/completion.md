@@ -17,17 +17,14 @@
 - ledger 已记录具体 Owner/Validator 与最终状态，TaskList 已由 reducer 重建，必要文档已同步。
 - Profile 要求的 Requirement Specification Card、PRD、Architecture Design、HTML Prototype、test plan、acceptance、TaskList 已完成；不适用项有结构化原因。
 - 输出目录、版本子目录、`index.md` 和 `memory.md` 已更新。
-- 后端任务已有 Backend Architecture Design、独立 TDD 单测用例、独立单测执行证据、API 集成测试脚本和执行证据；API 集成测试默认 Python + pytest 或有替代说明。
-- 前端任务已有独立 E2E 用例生成和独立 E2E 执行证据。
+- 后端/前端只闭合 route 命中的门：Full/Regulated 使用完整 Architecture、独立 TDD/API/E2E 链；Standard/Lite 使用影响匹配的环境预检、独立复核和 targeted tests，不生成空仪式任务。
 - 生成 Markdown 产物符合 Google OKF，至少包含可解析 frontmatter 和非空 `type`。
 - 阻塞和剩余风险已记录。
 - 如使用 runtime 文件，`team-state.json` 反映最终状态。
-- V2.34 实现任务已按 contract frozen/reviewed → Architecture accepted → `development_environment_check=ready` → independent tests → implementation 的顺序闭合。
-- V2.34 `feature_list.json`、`progress.md`、`contract.md`、`log.md` 的 bundle revision/digest/log commit/checkpoint 一致，无未处理的 journal、混合 revision 或 stale gate。
-- V2.34 第 9 轮 reset 只隔离了预授权 disposable candidate，第 11 轮是唯一 achieved/delivery 写入点；任一 gate 缺失时保持未完成且不进入 iteration 12。
-- 四维评分各由四个 0.25 rubric item 和独立 Evidence 重算，GTLOG divergence/prompt regression+holdout 和 moving bottleneck 均 current；任何分数不替代测试或审计。
-- 只有经审计和 sanitizer 通过的 completed/public 文档进入 `docs/archive/V2.34/<delivery_id>/`；invocation traces 不出现在公开面，完整 ledger/Evidence/review/audit/provenance 保留在非公开记录。
-- V2.35 route 已记录 project_size/work_type、risk/UI precedence 和专项适用性；medium/small/bugfix 没有绕过 Architecture、Environment、独立测试、Evidence 或 UI E2E。
+- V2.36 route 已记录 `policy_profile`、派生 `state_gate_profile`、task type、project_size/work_type、risk/release/UI mode；Lite/Standard 只闭合适用门，Full/Regulated 的 Architecture、Environment、独立测试、Evidence 与 Completion Audit 全部闭合。
+- 原创 UI 有当前 browser/DOM/可见状态 Evidence 且不要求外部 pixel baseline；replica/reference-driven UI 有独立批准 baseline、环境指纹与像素对比。
+- 仅当 `policy_profile=goal-teams-self-release-v2.36`：52 条断言 current，四文件一致，第 9 轮 reset 只隔离预授权 disposable candidate，第 11 轮才 delivery/achieved，四维评分不覆盖测试，并且 sanitizer 后副本只进入 `docs/archive/V2.36/<delivery_id>/`、私有 provenance 完整保留。
+- V2.36 代码 Evidence 已绑定自动覆盖完整 Git 变更集的 protected snapshot；独立 Agent identity 的宿主 attestation 已验证，trust key 未进入任何产物。
 - V2.35 四专家均保持 read-only/proposal-only/Lead-only dispatch；适用 proposal 有独立 review，verified 有不同 run 的 current regression + holdout。
 - V2.35 七类适用 test-case 均有 input/processing/expected_output/assertions、非 exit/status 业务断言、observed output 与逐 assertion result；TDD red 先于 implementation，green runner 独立。
-- V2.35 release readiness、branch/main push、local install、post-release task 均已 accepted 后才运行图外 Completion Audit；公开 pre-audit summary 不宣称本次 Audit passed，最终 Audit 不进入 required task/package。
+- Self-release readiness、branch/main push、local install、post-release task 均已 accepted 后才运行图外 Completion Audit；公开 pre-audit summary 不宣称本次 Audit passed，最终 Audit 不进入 required task/package。
