@@ -4,8 +4,16 @@
     "goal": "规划登录页空状态提示 V0.1，并提供最小 Harness 复盘资料",
     "version": "V0.1",
     "version_dir": ".codex/goal-teams/versions/V0.1",
-    "status": "done",
-    "tasklist_path": ".codex/goal-teams/versions/V0.1/tasklist.md"
+    "status": "blocked",
+    "blocking_reason": "Architecture、Environment 和独立 UI E2E Evidence 未闭合",
+    "tasklist_path": ".codex/goal-teams/versions/V0.1/tasklist.md",
+    "completion_audit": {
+      "audit_id": "AUD-V0.1-001",
+      "legacy_label": "GT-008",
+      "graph_external": true,
+      "status": "not_started",
+      "dispatch_condition": "all required tasks accepted"
+    }
   },
   "members": [
     {
@@ -20,44 +28,103 @@
       "claimed_tasks": ["GT-001"]
     },
     {
-      "id": "文档-Harness 示例复盘",
-      "subagent_id": "文档-Harness 示例复盘",
-      "display_name": "文档-Harness 示例复盘",
+      "id": "产品-登录页空状态-PRD",
+      "subagent_id": "产品-登录页空状态-PRD",
+      "display_name": "产品-登录页空状态-PRD",
+      "role": "产品",
+      "skill_or_subagent": "goal_product",
+      "workflow_mode": "serial",
+      "depends_on": ["GT-001"],
+      "status": "done",
+      "claimed_tasks": ["GT-002"]
+    },
+    {
+      "id": "架构-登录页空状态",
+      "subagent_id": "架构-登录页空状态",
+      "display_name": "架构-登录页空状态",
+      "role": "架构",
+      "skill_or_subagent": "goal_backend",
+      "workflow_mode": "serial",
+      "depends_on": ["GT-002"],
+      "status": "blocked",
+      "claimed_tasks": ["GT-011"]
+    },
+    {
+      "id": "环境-登录页空状态",
+      "subagent_id": "环境-登录页空状态",
+      "display_name": "环境-登录页空状态",
+      "role": "环境",
+      "skill_or_subagent": "goal_backend",
+      "workflow_mode": "serial",
+      "depends_on": ["GT-011"],
+      "status": "blocked",
+      "claimed_tasks": ["GT-012"]
+    },
+    {
+      "id": "前端-登录页空状态-HTML",
+      "subagent_id": "前端-登录页空状态-HTML",
+      "display_name": "前端-登录页空状态-HTML",
+      "role": "前端",
+      "skill_or_subagent": "goal_frontend",
+      "workflow_mode": "serial",
+      "depends_on": ["GT-012"],
+      "status": "blocked",
+      "claimed_tasks": ["GT-003"]
+    },
+    {
+      "id": "E2E用例-登录页空状态",
+      "subagent_id": "E2E用例-登录页空状态",
+      "display_name": "E2E用例-登录页空状态",
+      "role": "E2E用例",
+      "skill_or_subagent": "goal_e2e_test_designer",
+      "workflow_mode": "serial",
+      "depends_on": ["GT-003"],
+      "status": "blocked",
+      "claimed_tasks": ["GT-009"]
+    },
+    {
+      "id": "E2E执行-登录页空状态",
+      "subagent_id": "E2E执行-登录页空状态",
+      "display_name": "E2E执行-登录页空状态",
+      "role": "E2E执行",
+      "skill_or_subagent": "goal_e2e_test_runner",
+      "workflow_mode": "serial",
+      "depends_on": ["GT-009"],
+      "status": "blocked",
+      "claimed_tasks": ["GT-010"]
+    },
+    {
+      "id": "QA-登录页空状态",
+      "subagent_id": "QA-登录页空状态",
+      "display_name": "QA-登录页空状态",
+      "role": "QA",
+      "skill_or_subagent": "goal_qa",
+      "workflow_mode": "serial",
+      "depends_on": ["GT-010"],
+      "status": "blocked",
+      "claimed_tasks": ["GT-004"]
+    },
+    {
+      "id": "文档-登录页空状态",
+      "subagent_id": "文档-登录页空状态",
+      "display_name": "文档-登录页空状态",
       "role": "文档",
       "skill_or_subagent": "goal_docs",
       "workflow_mode": "serial",
-      "depends_on": ["GT-005"],
-      "status": "done",
-      "claimed_tasks": ["GT-006"],
-      "evidence": [
-        ".codex/goal-teams/versions/V0.1/harness/setup.md",
-        ".codex/goal-teams/versions/V0.1/harness/run.md",
-        ".codex/goal-teams/versions/V0.1/harness/checks.md",
-        ".codex/goal-teams/versions/V0.1/harness/report.md"
-      ]
+      "depends_on": ["GT-004"],
+      "status": "blocked",
+      "claimed_tasks": ["GT-005", "GT-006"]
     },
     {
-      "id": "评审-登录页空状态文档校验",
-      "subagent_id": "评审-登录页空状态文档校验",
-      "display_name": "评审-登录页空状态文档校验",
+      "id": "评审-登录页空状态完整性",
+      "subagent_id": "评审-登录页空状态完整性",
+      "display_name": "评审-登录页空状态完整性",
       "role": "评审",
       "skill_or_subagent": "goal_reviewer",
       "workflow_mode": "serial",
-      "depends_on": ["GT-001", "GT-002", "GT-003", "GT-004", "GT-005", "GT-006"],
-      "status": "done",
+      "depends_on": ["GT-011", "GT-012", "GT-003", "GT-009", "GT-010", "GT-004", "GT-005", "GT-006"],
+      "status": "blocked",
       "claimed_tasks": ["GT-007"]
-    },
-    {
-      "id": "收尾-登录页空状态未完成工作检查",
-      "subagent_id": "收尾-登录页空状态未完成工作检查",
-      "display_name": "收尾-登录页空状态未完成工作检查",
-      "role": "收尾",
-      "skill_or_subagent": "goal_completion_auditor",
-      "workflow_mode": "serial",
-      "depends_on": ["GT-007"],
-      "status": "done",
-      "claimed_tasks": ["GT-008"],
-      "verdict": "complete"
     }
   ]
 }

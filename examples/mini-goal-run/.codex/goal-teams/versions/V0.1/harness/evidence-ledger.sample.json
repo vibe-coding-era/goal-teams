@@ -16,7 +16,7 @@
       "author": "需求分析-登录页空状态需求澄清",
       "validator": "评审-登录页空状态文档校验",
       "status": "passed",
-      "evidence_ref": "../progress.md#独立校验",
+      "evidence_ref": "../progress.md#当前独立校验",
       "notes": "目标、流程、边界齐备。"
     },
     {
@@ -25,7 +25,7 @@
       "author": "产品-登录页空状态 PRD",
       "validator": "评审-登录页空状态文档校验",
       "status": "passed",
-      "evidence_ref": "../progress.md#独立校验",
+      "evidence_ref": "../progress.md#当前独立校验",
       "notes": "PRD 可追溯到需求规格卡。"
     },
     {
@@ -34,7 +34,7 @@
       "author": "前端-登录页空状态 HTML 原型",
       "validator": "评审-登录页空状态文档校验",
       "status": "passed",
-      "evidence_ref": "../progress.md#独立校验",
+      "evidence_ref": "../progress.md#当前独立校验",
       "notes": "原型包含空状态和操作按钮。"
     },
     {
@@ -43,7 +43,7 @@
       "author": "测试-登录页空状态验收测试",
       "validator": "评审-登录页空状态测试有效性",
       "status": "passed",
-      "evidence_ref": "../progress.md#独立校验",
+      "evidence_ref": "../progress.md#当前独立校验",
       "notes": "测试计划覆盖文案、按钮和可访问性。"
     },
     {
@@ -54,12 +54,21 @@
       "status": "passed",
       "evidence_ref": "../spec/acceptance.md",
       "notes": "setup、run、checks、report 和静态样例均可追溯。"
+    },
+    {
+      "id": "EV-006",
+      "artifact": "missing:e2e-execution",
+      "author": "E2E执行-登录页空状态",
+      "validator": "评审-登录页空状态测试有效性",
+      "status": "blocked",
+      "evidence_ref": "../progress.md#当前状态",
+      "notes": "sample_only/no_runner 不是真实浏览器 E2E Evidence。"
     }
   ],
   "completion_audit": {
     "auditor": "收尾-登录页空状态未完成工作检查",
-    "verdict": "complete",
-    "evidence_ref": "../progress.md#收尾审计",
+    "verdict": "not_started",
+    "evidence_ref": "../progress.md#图外-completion-audit",
     "auto_continue": false
   }
 }

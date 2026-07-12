@@ -8,6 +8,8 @@
 - 执行命令：<commands>
 - 测试环境：<local/test/staging/mock>
 - 退出码：<code>
+- Consumed input / observed output：<refs/values>
+- Assertion results：<assertion_id/comparator/actual/expected/passed list>
 - 通过/失败摘要：<summary>
 - 失败响应：<path or none>
 - BugFix 任务：<created/not_applicable>

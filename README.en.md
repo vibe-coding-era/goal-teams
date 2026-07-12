@@ -4,7 +4,7 @@
 
 Author: 肉山@TGO Hangzhou
 
-Current version: `V2.34`
+Current version: `V2.35`
 
 Goal Teams is a Codex Skill for coordinated agent work. It turns one goal into a verifiable plan, then lets a Goal Lead coordinate independent subagents running in separate contexts, or user-selected external skills, across requirements, design, implementation, tests, evidence, and completion audit.
 
@@ -131,7 +131,7 @@ Use $goal-teams。
 Use this identity line on an explicit Goal Teams invocation or when the session first needs to establish identity; do not repeat it when full context already exists:
 
 ```text
-我是 Goal Teams Lead V2.34。
+我是 Goal Teams Lead V2.35。
 ```
 
 Core language rule: user communication and governance documents default to Chinese; code, comments, test names, fixtures, and product strings follow the target repository's conventions; keep identifiers, commands, paths, API names, config keys, subagent IDs, and exact references unchanged.
@@ -227,6 +227,10 @@ GoalTeamsWork-<project_version>/
 | `goal_qa` | Independent tests, integration tests, UI E2E, pixel-comparison acceptance, and test reports. |
 | `goal_docs` | Acceptance, README, reports, and release notes; TaskList changes are handed off as events/patches. |
 | `goal_reviewer` | Read-only review, architecture boundaries, security, coverage, compatibility, and risk. |
+| `goal_security` | Read-only security scope, dependency, port, and injection analysis/proposals; no direct scan, implementation, or dispatch. |
+| `goal_performance` | Read-only SQL/page/data-path baselines and benchmark proposals; no improvement claim without current Evidence. |
+| `goal_refactor` | Read-only engineering/code/document refactor, behavioral-equivalence, and rollback proposals. |
+| `goal_sqa` | Read-only process, document classification, version index, and public/private archive proposals. |
 | `goal_completion_auditor` | Completion audit, unfinished-work checks, and session-scoped continuation suggestions. |
 
 ## Design Sources
@@ -254,7 +258,7 @@ GoalTeamsWork-<project_version>/
 
 ## Version Note
 
-The current version is read from `VERSION`. On the V2.3 machine-contract baseline, `V2.34` adds contract-first execution, Architecture and Environment Evidence gates, a recoverable `Gather → Reason → Act → Verify → Repeat` LOOP, four-file disk state, a constrained iteration-9 candidate reset, a fail-closed iteration-11 delivery gate, four-dimensional scoring, and divergence/bottleneck records. Detailed contracts are loaded from `references/` by task type. After completion, only audited public documents with invocation traces removed are archived under `docs/archive/V2.34/<delivery_id>/`; process ledgers and provenance remain in the non-public workspace.
+The current version is read from `VERSION`. `V2.35` extends the V2.34 control plane with four read-only proposal specialists, orthogonal project-size/work-type routing, safety/UI overrides, executable test assertion contracts, and explicit hash-bound version descriptors. V2.34 remains the default when no descriptor is supplied; public archive paths come only from a validated `release_version`. Detailed contracts are loaded from `references/` by task type, while process ledgers and provenance remain in the non-public workspace.
 
 See [Release Contents](docs/release-contents.en.md) for the visible package inventory, or [发布内容](docs/release-contents.md) for Chinese. The inventory does not replace runtime rules, `VERSION`, or installation validation.
 

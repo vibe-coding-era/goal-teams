@@ -22,6 +22,14 @@ okf_version: "0.1"
 | 项目 | 风险 | Owner | 是否需审批 | 停止条件 |
 | --- | --- | --- | --- | --- |
 
+V2.35 路由与专项表：
+
+| project_size | work_type | risk/UI 覆盖 | Gate | 专项 | Lead-only 派发/Validator |
+| --- | --- | --- | --- | --- | --- |
+| large / medium / small | feature / bugfix | security flags、high/critical、`ui=true` | Architecture、Environment、TDD/integration/E2E/Evidence/release | security / performance / refactor / sqa：required/requested/not_required | 专家仅 proposal；Lead 另派 owner；记录独立 validator run |
+
+large + Release 默认四专项；medium/small 默认不加载四专家但不减少 Architecture、Environment、独立测试或 Evidence；bugfix 必须 TDD + integration，`ui=true` 必须 E2E。
+
 SPEC 准备度：
 
 | SPEC | 是否存在 | 动作 | Owner | 输出 |

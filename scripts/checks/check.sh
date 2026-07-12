@@ -32,6 +32,7 @@ fi
 "$PYTHON_BIN" scripts/checks/check-member-layout.py
 "$PYTHON_BIN" scripts/checks/check-context-budget.py
 "$PYTHON_BIN" scripts/checks/check-security-fixtures.py
+"$PYTHON_BIN" scripts/checks/validate-test-case-contract.py --self-test
 if [[ -f .github/workflows/check.yml ]]; then
   "$PYTHON_BIN" scripts/checks/check-ci-pins.py
 fi

@@ -27,3 +27,7 @@
 - V2.34 第 9 轮 reset 只隔离了预授权 disposable candidate，第 11 轮是唯一 achieved/delivery 写入点；任一 gate 缺失时保持未完成且不进入 iteration 12。
 - 四维评分各由四个 0.25 rubric item 和独立 Evidence 重算，GTLOG divergence/prompt regression+holdout 和 moving bottleneck 均 current；任何分数不替代测试或审计。
 - 只有经审计和 sanitizer 通过的 completed/public 文档进入 `docs/archive/V2.34/<delivery_id>/`；invocation traces 不出现在公开面，完整 ledger/Evidence/review/audit/provenance 保留在非公开记录。
+- V2.35 route 已记录 project_size/work_type、risk/UI precedence 和专项适用性；medium/small/bugfix 没有绕过 Architecture、Environment、独立测试、Evidence 或 UI E2E。
+- V2.35 四专家均保持 read-only/proposal-only/Lead-only dispatch；适用 proposal 有独立 review，verified 有不同 run 的 current regression + holdout。
+- V2.35 七类适用 test-case 均有 input/processing/expected_output/assertions、非 exit/status 业务断言、observed output 与逐 assertion result；TDD red 先于 implementation，green runner 独立。
+- V2.35 release readiness、branch/main push、local install、post-release task 均已 accepted 后才运行图外 Completion Audit；公开 pre-audit summary 不宣称本次 Audit passed，最终 Audit 不进入 required task/package。

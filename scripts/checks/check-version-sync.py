@@ -129,6 +129,52 @@ def check_v234_protocol_sync(version: str) -> None:
         fail("package manifest must not include GoalTeamsWork process bundles")
 
 
+def check_v235_protocol_sync(version: str) -> None:
+    if not version_at_least(version, (2, 35)):
+        return
+    required_files = (
+        "references/rules-project-sizing.md",
+        "references/rules-specialists.md",
+        "references/test-case-assertion-protocol.md",
+        "scripts/v23/v235_policy.py",
+        "scripts/v23/version_binding.py",
+        "scripts/checks/validate-test-case-contract.py",
+        "scripts/validate-test-case-contract.py",
+        "schemas/v2.35/project-route.schema.json",
+        "schemas/v2.35/test-case.schema.json",
+        "schemas/v2.35/version-binding.schema.json",
+        "docs/v2.35-release-summary.md",
+        "docs/v2.35-release-summary.en.md",
+    )
+    missing = [path for path in required_files if not (ROOT / path).is_file()]
+    if missing:
+        fail(f"{version} protocol files are missing: " + ", ".join(missing))
+    for role in ("security", "performance", "refactor", "sqa"):
+        for name in ("prompt.md", "template.md", "workflow.md", "scripts.md"):
+            relative = f"prompts/members/{role}/{name}"
+            if not (ROOT / relative).is_file():
+                fail(f"{version} specialist package file is missing: {relative}")
+        if not (ROOT / "subagents" / f"goal-{role}.toml").is_file():
+            fail(f"{version} specialist subagent is missing: goal-{role}.toml")
+    skill = read("SKILL.md")
+    for marker in (
+        "references/rules-project-sizing.md",
+        "references/rules-specialists.md",
+    ):
+        if marker not in skill:
+            fail(f"SKILL.md missing V2.35 conditional route {marker!r}")
+    for path in ("docs/v2.35-release-summary.md", "docs/v2.35-release-summary.en.md"):
+        text = read(path)
+        if "V2.35" not in text or "Completion Audit" not in text:
+            fail(f"{path} missing V2.35 pre-audit identity")
+        if re.search(r"Completion Audit.{0,20}(?:passed|通过)", text, flags=re.I | re.S):
+            fail(f"{path} must not claim the graph-external Completion Audit passed")
+    manifest = read("scripts/install/package-manifest.txt")
+    for path in ("docs/v2.35-release-summary.md", "docs/v2.35-release-summary.en.md"):
+        if f"file {path}" not in manifest:
+            fail(f"package manifest missing {path}")
+
+
 def main() -> None:
     version = read("VERSION").strip()
     if not re.fullmatch(r"V\d+\.\d+", version):
@@ -171,6 +217,7 @@ def main() -> None:
 
     check_split_publication_sync(version)
     check_v234_protocol_sync(version)
+    check_v235_protocol_sync(version)
 
     openai = read("agents/openai.yaml")
     if f'Goal Teams {version}' not in openai:

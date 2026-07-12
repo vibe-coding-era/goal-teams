@@ -8,6 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 TOOL = ROOT / "scripts" / "v23" / "goalteams_v23.py"
+V235_FIXTURE = ROOT / "tests" / "v23" / "fixtures" / "v235" / "routing.json"
 
 @dataclass(frozen=True)
 class RouteFixture:
@@ -134,6 +135,75 @@ def run_policy(command: str, request: dict[str, object]) -> dict[str, object]:
     payload = json.loads(proc.stdout)
     return payload
 
+
+def run_v235_route(request: dict[str, object], *, expect_success: bool) -> dict[str, object]:
+    with tempfile.NamedTemporaryFile("w", encoding="utf-8", suffix=".json", delete=False) as fh:
+        json.dump(request, fh)
+        tmp = fh.name
+    try:
+        proc = subprocess.run(
+            [sys.executable, str(TOOL), "route", tmp],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+    finally:
+        Path(tmp).unlink(missing_ok=True)
+    if (proc.returncode == 0) is not expect_success:
+        fail(f"V2.35 route status mismatch: rc={proc.returncode} stdout={proc.stdout!r}")
+    try:
+        payload = json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        fail(f"V2.35 route did not return one JSON envelope: {proc.stdout!r}")
+    return payload
+
+
+def assert_subset(expected: dict[str, object], actual: object, *, label: str) -> None:
+    if not isinstance(actual, dict):
+        fail(f"{label}: expected object, got {type(actual).__name__}")
+    for key, value in expected.items():
+        if key not in actual:
+            fail(f"{label}: missing {key}")
+        if isinstance(value, dict):
+            assert_subset(value, actual[key], label=f"{label}.{key}")
+        elif actual[key] != value:
+            fail(f"{label}: {key} {actual[key]!r} != {value!r}")
+
+
+def check_v235_matrix() -> tuple[int, int]:
+    fixtures = json.loads(V235_FIXTURE.read_text(encoding="utf-8"))
+    valid_cases = fixtures.get("valid_cases", [])
+    invalid_cases = fixtures.get("invalid_cases", [])
+    if not isinstance(valid_cases, list) or not valid_cases:
+        fail("V2.35 routing fixture has no valid cases")
+    for case in valid_cases:
+        payload = run_v235_route(case["input"], expect_success=True)
+        route = payload.get("route")
+        expected = dict(case["expected"])
+        reasons = expected.pop("reason_codes_contains", [])
+        assert_subset(expected, route, label=case["case_id"])
+        if not isinstance(route, dict):
+            fail(f"{case['case_id']}: route missing")
+        for reason in reasons:
+            if reason not in route.get("reason_codes", []):
+                fail(f"{case['case_id']}: missing reason code {reason}")
+    base = dict(valid_cases[2]["input"])
+    for case in invalid_cases:
+        request = dict(base)
+        request.update(case.get("patch", {}))
+        for key in case.get("remove", []):
+            request.pop(key, None)
+        payload = run_v235_route(request, expect_success=False)
+        if payload.get("error_code") != case["error_code"]:
+            fail(
+                f"{case['case_id']}: error {payload.get('error_code')!r} "
+                f"!= {case['error_code']!r}"
+            )
+        if payload.get("mutation_count") != 0:
+            fail(f"{case['case_id']}: rejected route reported mutation")
+    return len(valid_cases), len(invalid_cases)
+
 def main() -> None:
     for fixture in FIXTURES:
         route = run_route(fixture.features)
@@ -158,9 +228,11 @@ def main() -> None:
         for key, expected in fixture.expected.items():
             if policy.get(key) != expected:
                 fail(f"{fixture.name}: {key} {policy.get(key)!r} != {expected!r}")
+    v235_valid, v235_invalid = check_v235_matrix()
     print(
         "Routing and current policy fixture validation passed for "
-        f"{len(FIXTURES)} routes and {len(POLICY_FIXTURES)} policy scenarios."
+        f"{len(FIXTURES)} legacy routes, {len(POLICY_FIXTURES)} policy scenarios, "
+        f"and {v235_valid} V2.35 routes/{v235_invalid} negative cases."
     )
 
 if __name__ == "__main__":

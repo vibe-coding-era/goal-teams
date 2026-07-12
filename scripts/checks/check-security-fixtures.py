@@ -126,11 +126,69 @@ def check_prompt_injection() -> None:
         fail(f"prompt-injection policy mismatch: {actual}")
 
 
+def check_v235_security_and_path_gates() -> None:
+    """Run the focused executable V2.35 authorization and path-injection gates."""
+    command = [
+        sys.executable,
+        "-m",
+        "unittest",
+        "-q",
+        (
+            "tests.v23.test_v235_protocol.V235SpecialistPackageTests."
+            "test_security_scope_and_external_active_scan_fail_closed"
+        ),
+        (
+            "tests.v23.test_v235_versioned_runtime.V235VersionBindingTests."
+            "test_invalid_bindings_and_paths_are_zero_mutation"
+        ),
+        (
+            "tests.v23.test_v235_versioned_runtime.V235VersionBindingTests."
+            "test_symlink_contract_and_archive_parent_are_rejected"
+        ),
+    ]
+    result = subprocess.run(command, cwd=ROOT, text=True, capture_output=True, check=False)
+    if result.returncode != 0:
+        fail(
+            "V2.35 active-scan authorization or version/archive path gate failed: "
+            + result.stdout
+            + result.stderr
+        )
+
+
+def check_public_sources_do_not_embed_current_home() -> None:
+    home = str(Path.home())
+    roots = (
+        ROOT / "benchmarks",
+        ROOT / "docs",
+        ROOT / "examples",
+        ROOT / "prompts",
+        ROOT / "references",
+        ROOT / "subagents",
+    )
+    leaked: list[str] = []
+    for base in roots:
+        for path in sorted(base.rglob("*")):
+            if not path.is_file() or path.is_symlink():
+                continue
+            try:
+                text = path.read_text(encoding="utf-8")
+            except UnicodeDecodeError:
+                continue
+            if home in text:
+                leaked.append(path.relative_to(ROOT).as_posix())
+    if leaked:
+        fail(f"public package sources embed the current home path: {leaked}")
+
+
 def main() -> None:
     check_capabilities()
     check_redaction()
     check_prompt_injection()
-    print("Capability full/restricted and security data fixtures passed.")
+    check_v235_security_and_path_gates()
+    check_public_sources_do_not_embed_current_home()
+    print(
+        "Capability, security data, V2.35 active-scan authorization, and path gates passed."
+    )
 
 
 if __name__ == "__main__":

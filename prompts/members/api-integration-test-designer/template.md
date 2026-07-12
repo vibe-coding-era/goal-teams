@@ -7,6 +7,10 @@
 - 默认栈：Python + pytest
 - 实际栈：<language/framework>
 - 测试文件：<paths>
+- Test-case contract：<paths>; `test_kind=integration|api`
+- Input/processing/output bindings：<consumed_input_refs + input_bindings>
+- Assertions：<ids/comparators/business observables>
+- Validator：`scripts/checks/validate-test-case-contract.py` <passed/failed>
 - 覆盖端点：<method path list>
 - 数据准备：<fixtures/mocks/env>
 - 执行命令：<pytest command>

@@ -9,6 +9,8 @@
 - 浏览器/viewport：<list>
 - baseURL：<url>
 - 退出码：<code>
+- Observed DOM/URL/可见状态：<structured refs>
+- Assertion results：<assertion_id/comparator/actual/expected/passed list>
 - 截图/trace：<paths>
 - console/network 错误：<none or details>
 - BugFix 任务：<created/not_applicable>

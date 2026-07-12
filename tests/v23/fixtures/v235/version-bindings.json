@@ -1,0 +1,77 @@
+{
+  "schema_version": "goal-teams-version-binding-fixtures-v2.35",
+  "default_expected": {
+    "project_version": "V2.34",
+    "release_version": "V2.34",
+    "artifact_version": "V2.34",
+    "archive_prefix": "docs/archive/V2.34"
+  },
+  "explicit_expected": {
+    "project_version": "V2.35",
+    "release_version": "V2.35",
+    "artifact_version": "V2.35-run2",
+    "archive_prefix": "docs/archive/V2.35"
+  },
+  "invalid_overlays": [
+    {
+      "case_id": "MIXED-PROJECT-RELEASE",
+      "patch": {"release_version": "V2.34"},
+      "error_code": "E_V235_VERSION_BINDING_MISMATCH"
+    },
+    {
+      "case_id": "ARBITRARY-VERSION-SAME-HASH",
+      "patch": {"project_version": "V9.9", "release_version": "V9.9"},
+      "error_code": "E_V235_VERSION_BINDING_MISMATCH"
+    },
+    {
+      "case_id": "ARTIFACT-MISMATCH",
+      "patch": {"artifact_version": "V2.35-run9"},
+      "error_code": "E_V235_VERSION_BINDING_MISMATCH"
+    },
+    {
+      "case_id": "BAD-CONTRACT-HASH",
+      "patch": {"contract_sha256": "0000000000000000000000000000000000000000000000000000000000000000"},
+      "error_code": "E_V235_VERSION_BINDING_CONTRACT"
+    },
+    {
+      "case_id": "BAD-REVIEW-HASH",
+      "patch": {"review_sha256": "0000000000000000000000000000000000000000000000000000000000000000"},
+      "error_code": "E_V235_VERSION_BINDING_REVIEW"
+    },
+    {
+      "case_id": "FAILED-REVIEW",
+      "patch": {"review_state": "failed"},
+      "error_code": "E_V235_VERSION_BINDING_REVIEW"
+    },
+    {
+      "case_id": "TRAVERSAL-CONTRACT-REF",
+      "patch": {"contract_ref": "../outside-contract.md"},
+      "error_code": "E_V235_VERSION_BINDING_PATH"
+    },
+    {
+      "case_id": "ABSOLUTE-CONTRACT-REF",
+      "patch": {"contract_ref": "/tmp/outside-contract.md"},
+      "error_code": "E_V235_VERSION_BINDING_PATH"
+    },
+    {
+      "case_id": "ENCODED-SLASH-VERSION",
+      "patch": {"release_version": "V2.35%2fescape"},
+      "error_code": "E_V235_VERSION_BINDING_PATH"
+    },
+    {
+      "case_id": "BACKSLASH-ARTIFACT",
+      "patch": {"artifact_version": "V2.35\\run2"},
+      "error_code": "E_V235_VERSION_BINDING_PATH"
+    },
+    {
+      "case_id": "NUL-DELIVERY-ID",
+      "delivery_id": "DELIVERY-V235-001\u0000escape",
+      "error_code": "E_V235_VERSION_BINDING_PATH"
+    },
+    {
+      "case_id": "TRAVERSAL-DELIVERY-ID",
+      "delivery_id": "../DELIVERY-V235-001",
+      "error_code": "E_V235_VERSION_BINDING_PATH"
+    }
+  ]
+}

@@ -7,7 +7,10 @@
 - 测试作者：<goal_unit_test_designer member_id>
 - 执行命令：<commands>
 - Red 证据：<path or not_applicable_reason>
+- Red 绑定：test_sha256 / pre_implementation_tree / ledger_prefix / domain_log
 - Green 证据：<path or blocked_reason>
+- Observed output：<structured ref>
+- Assertion results：<assertion_id/comparator/actual/expected/passed list>
 - 退出码：<code>
 - 失败摘要：<none or details>
 - BugFix 任务：<created/not_applicable>

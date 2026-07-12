@@ -5,7 +5,7 @@ This document is the English index of the visible Goal Teams package. Its Chines
 ## Current boundary
 
 - This inventory lists only verifiable repository contents. It does not claim unimplemented capabilities.
-- V2.34 keeps the V2.3 machine-contract baseline and adds contract/architecture/environment gates, a recoverable LOOP, constrained reset, and fail-closed delivery. This index cannot replace those rules or their validation.
+- V2.35 retains V2.34 control-plane defaults and adds four specialist proposals, project-size/work-type routing, test assertion contracts, and explicit version binding. This index cannot replace contracts or validation.
 - The manually maintained `SKILL.md` and READMEs are the baseline. This inventory cannot override them or replace scripted validation.
 - The local planning source `docs/后续版本规划 V3.3-3.5.md` is user-maintained and is not part of the repository or install package. AI must not edit it and, without separate user authorization, must not include it in a GitHub commit. Planning text is not a release commitment.
 
@@ -19,18 +19,18 @@ This document is the English index of the visible Goal Teams package. Its Chines
 | Tooling and checks | `scripts/check.sh`, compatibility entrypoints in `scripts/*.py`, and `scripts/v23/`, `scripts/checks/`, `scripts/harness/`, `scripts/benchmark/`, `scripts/review/`, and `scripts/install/` |
 | Machine contracts and tests | `schemas/`, `tests/v23/`, `.github/workflows/` |
 | Examples and benchmarks | `examples/mini-goal-run/`, `examples/canonical-v23/`, `benchmarks/` |
-| Release documentation | This file, [Change History](change-history.en.md), their Chinese counterparts, and audited public archives under `docs/archive/V2.34/<delivery_id>/` |
+| Release documentation | This file, [Change History](change-history.en.md), the bilingual V2.35 pre-audit release summary, and public documents archived under a validated release version |
 
 ## Detailed path index
 
 For installation, validation, and manual review, this is the detailed path index for the release package. It is the only human-visible release-inventory location in this repository.
 
 - Root files: `VERSION`, `SKILL.md`, `RULES.md`, `goal-teams.md`, `AGENTS.md`, `CHANGELOG.md`, `README.md`, `README.en.md`, `agents/openai.yaml`.
-- Rules and references: `references/goal-teams-runtime.md`, `references/default-AGENTS.md`, `references/invariants.md`, `references/compat.md`, `references/rules-ui.md`, `references/rules-testing.md`, `references/rules-loop.md`, `references/goal-teams-automation-protocol.md`, `references/goal-teams-production-pipeline.md`, `references/goal-teams-scripted-tooling.md`, `references/goal-teams-v2.3-contract.md`, `references/google-okf-bilingual-spec.md`, `references/ui-e2e-pixel-protocol.md`, `references/ui-visual-contract-protocol.md`, `references/subagent-dispatch-protocol.md`, `references/dual-review-protocol.md`.
+- Rules and references: the compatibility files above plus the V2.35 conditional entrypoints `references/rules-project-sizing.md`, `references/rules-specialists.md`, and `references/test-case-assertion-protocol.md`.
 - Members and prompts: `subagents/goal-*.toml`, `prompts/`, `prompts/lead/core.md`, `prompts/lead/requirement-card.md`, `prompts/members/shared.md`, `prompts/members/backend/prompt.md`, `prompts/members/backend/template.md`, `prompts/members/backend/workflow.md`, `prompts/members/backend/scripts.md`, `prompts/members/unit-test-designer/prompt.md`, `prompts/members/unit-test-runner/prompt.md`, `prompts/members/api-integration-test-designer/prompt.md`, `prompts/members/api-integration-test-runner/prompt.md`, `prompts/members/e2e-test-designer/prompt.md`, `prompts/members/e2e-test-runner/prompt.md`, `prompts/packets/member-goal-packet.md`, `prompts/packets/handoff-artifacts.md`, `prompts/packets/page-spec-card.md`, `prompts/packets/memory.md`, `prompts/packets/html-prototype-mock.md`, `prompts/packets/requirement-card.md`, `prompts/packets/dual-review-record.md`.
-- Scripts: `scripts/check.sh`, `scripts/validate.py`, `scripts/install-local.sh`, `scripts/check-version-sync.py`, `scripts/check-routing-fixtures.py`, `scripts/check-agent-names.py`, `scripts/check-member-layout.py`, `scripts/validate-harness.py`, `scripts/pixel-diff.py`, `scripts/compare-artifacts.py`, `scripts/validate-dual-review.py`, `scripts/benchmark-runner.py`; implementation directories `scripts/v23/`, `scripts/checks/` (including `scripts/checks/check-routing-fixtures.py`), `scripts/harness/`, `scripts/benchmark/`, `scripts/review/`, and `scripts/install/`.
+- Scripts: `scripts/check.sh`, `scripts/validate.py`, `scripts/install-local.sh`, `scripts/check-version-sync.py`, `scripts/check-routing-fixtures.py`, `scripts/check-agent-names.py`, `scripts/check-member-layout.py`, `scripts/validate-harness.py`, `scripts/pixel-diff.py`, `scripts/compare-artifacts.py`, `scripts/validate-dual-review.py`, `scripts/benchmark-runner.py`, and `scripts/validate-test-case-contract.py`; implementation directories `scripts/v23/`, `scripts/checks/` (including `scripts/checks/check-routing-fixtures.py` and `scripts/checks/validate-test-case-contract.py`), `scripts/harness/`, `scripts/benchmark/`, `scripts/review/`, and `scripts/install/`.
 - Contracts, tests, and regression material: `schemas/`, `tests/v23/`, `.github/workflows/`, `examples/mini-goal-run`, `examples/canonical-v23/`, and `benchmarks/`.
-- Public completion archives: `docs/archive/V2.34/<delivery_id>/`, containing only completed/public documents and a public manifest that passed both sanitization and independent audit.
+- Public completion archives: `docs/archive/<release_version>/<delivery_id>/`, where the release version comes from a validated descriptor and the archive contains only completed/public documents plus a public manifest that passed sanitization and independent audit.
 
 ## Pre-release checks
 

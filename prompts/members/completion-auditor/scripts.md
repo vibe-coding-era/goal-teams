@@ -5,6 +5,9 @@
 - `scripts/review/validate-dual-review.py`：检查双重复核记录。
 - `scripts/harness/validate-harness.py`：抽查 Harness 结构。
 - `scripts/benchmark/benchmark-runner.py --check-only`：Benchmark 任务包检查。
+- `scripts/checks/validate-test-case-contract.py`：V2.35 七类测试合同与业务断言。
+- `scripts/checks/check-routing-fixtures.py`：双轴、risk/UI 覆盖和专项路由。
+- `scripts/checks/check-member-layout.py` / `check-agent-names.py`：四专家包、只读 capability 与中文 identity。
 - `scripts/v23/goalteams_v23.py completion-audit <audit.json> <checkpoint.json> --evidence-jsonl <evidence.jsonl> --evidence-root <output-root> --traceability <traceability.json> --review <dual-review.json> --identity-registry <identity/registry.json> --harness <harness/harness.json> --ledger <ledger/events.jsonl> --tasklist <TaskList.md>`：候选收尾时由 Lead 持久化 Auditor 返回的外部门禁 JSON，再重放 ledger、投影和闭包；failed/blocked 可驱动 LOOP/停止，只有 passed/achieved 要求 required task 全 accepted；实际 audit 路径不得被 required/blocking task 或 Audit Evidence 引用。
 
 审计口径：

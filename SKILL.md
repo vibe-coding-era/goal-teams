@@ -5,15 +5,15 @@ description: 多 subagent 编排器。用于 $goal-teams、Goal Mode、Plan Mode
 
 # Goal Teams
 
-当前版本 `V2.34`，以 `VERSION` 为准。本会话是 Goal Lead；成员使用独立 subagent/指定 skill。规则冲突时：系统/用户 → 项目 `AGENTS.md` → `references/invariants.md` → 已触发条件规则 → `RULES.md`（仅用户可见响应）→ Lead → Member；`RULES.md` 不得放宽状态、安全、Evidence、Harness 或独立验证。
+当前版本 `V2.35`，以 `VERSION` 为准。本会话是 Goal Lead；成员使用独立 subagent/指定 skill。规则冲突时：系统/用户 → 项目 `AGENTS.md` → `references/invariants.md` → 已触发条件规则 → `RULES.md`（仅用户可见响应）→ Lead → Member；`RULES.md` 不得放宽状态、安全、Evidence、Harness 或独立验证。
 
 显式调用或首次建立身份时使用；已有上下文不重复：
 
 ```text
-我是 Goal Teams Lead V2.34。
+我是 Goal Teams Lead V2.35。
 ```
 
-兼容性标记（不是用户可见启动模板）：`我是 Goal Teams Leader V2.34，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：`
+兼容性标记（不是用户可见启动模板）：`我是 Goal Teams Leader V2.35，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：`
 
 仅当缺少历史资料会改变执行时，才按 Lead core 提问；已有上下文直接工作。
 
@@ -30,7 +30,7 @@ description: 多 subagent 编排器。用于 $goal-teams、Goal Mode、Plan Mode
 
 ## 规划检查
 
-能从仓库验证的不要问用户；检查 Done Criteria、版本/目录、SPEC/ledger/TaskList、角色与 Harness/Evidence。UI 追加页面/E2E/pixel（`references/rules-ui.md`）；实现追加架构/TDD/API/E2E（`references/rules-testing.md`）；长任务追加 LOOP、Budget/轮次超限与停止条件（`references/rules-loop.md`）。
+能从仓库验证的不要问；按任务条件路由 `references/rules-project-sizing.md`、`references/rules-specialists.md`、UI（`references/rules-ui.md`）、测试（`references/rules-testing.md`）与 LOOP（`references/rules-loop.md`），检查 Done Criteria、SPEC/ledger/TaskList、Harness/Evidence、Budget/轮次与停止条件。
 
 ## 失败降级
 

@@ -95,6 +95,12 @@ Task Handoff Record（ledger checkpoint 与 TaskList 投影的同一任务）:
 | `frontend_architecture_design` | Frontend Architecture Design、前端架构设计 | `goal_frontend` | `goal_reviewer` 或 `goal_qa` | 前端开发前必须写入或写原因 | `spec/frontend-architecture-design.md`、组件库/状态/路由/数据边界 |
 | `architecture_design` | Architecture Design、跨端架构设计 | `goal_backend`、`goal_frontend` 或 `goal_product` | `goal_reviewer` | 涉及架构决策时写入 | `spec/architecture-design.md`、架构评审 |
 | `development_environment_check` | Architecture accepted 后的开发环境检查与安全 remediation | 当前 `goal_backend` / `goal_frontend` 实现 Owner | `goal_qa` 或 `goal_reviewer`（必须是不同 run） | 任一实现前必须写入 | `spec/development-environment-check.md`、Architecture/workspace/tool exact hash、argv/cwd/log、remediation before/after、current `local_verified` Evidence；只有 `ready` 开实现门 |
+| `security_assessment` | 代码、依赖、secret、注入、端口暴露只读安全评估 | `goal_security` | `goal_reviewer`（不同 run，最低 safety） | 路由命中 security 时 | coverage、授权记录、findings、脚本 + 独立语义安全复核 |
+| `performance_benchmark_proposal` | SQL、页面、数据路径 baseline 与优化 proposal | `goal_performance` | `goal_qa` 或 `goal_reviewer` | 路由命中 performance 时 | environment/data scale/argv/cwd/candidate digest/current benchmark Evidence |
+| `refactor_equivalence_proposal` | 工程、代码、文档结构的行为等价重构 proposal | `goal_refactor` | `goal_qa` 或 `goal_reviewer` | 路由命中 refactor 时 | equivalence contract、regression、holdout、rollback boundary |
+| `sqa_process_archive_proposal` | 过程改进与版本化文档归档 proposal | `goal_sqa` | `goal_reviewer` | 路由命中 sqa 时 | version record、index、classification、version directory、sanitized public/private provenance |
+| `specialist_improvement_proposal` | 四专家共同的分级改进 proposal | 对应 `goal_security|goal_performance|goal_refactor|goal_sqa` | `goal_reviewer` | 专家建议进入 reviewed 前 | L0/L1/L2、scope、AC、proposal hash、lifecycle、Evidence request |
+| `specialist_dispatch_request` | 专家向 Lead 提交的派发请求，不是已派发事实 | 对应只读专家 | Lead 校验 + 独立 `goal_reviewer` | proposal 需实现/测试时 | proposal hash、requested owner/validators、locked/forbidden scope、risk/review class/approval gate |
 | `iteration_state_bundle` | V2.34 四文件 LOOP 状态与 transaction/reconcile receipt | Goal Lead / 唯一 state writer | `goal_qa` 或 `goal_completion_auditor`（不同 run） | 启用 V2.34 可恢复 LOOP 时每个 committed revision 必须登记 | `feature_list.json`、`progress.md`、`contract.md`、`log.md`、journal/receipt hash、marker-last/CAS/reconcile Evidence |
 | `public_completion_doc` | 审计完成且清除调用痕迹的公开交付文档 | `goal_docs` 或 Goal Lead | `goal_reviewer` 与最终 `goal_completion_auditor` | 进入 `docs/archive/V2.34/<delivery_id>/` 前必须写入 | accepted source hash、sanitizer report、public manifest/tree digest、private provenance receipt；不包含 invocation/tool-call/transport/raw log |
 | `html_prototype` | HTML Prototype | `goal_frontend` | `goal_qa` 或 `goal_reviewer` | 是，界面不适用时写原因 | `spec/HTML-prototype.html`、截图、控制台检查 |
@@ -128,6 +134,8 @@ Task Handoff Record（ledger checkpoint 与 TaskList 投影的同一任务）:
    `artifact_sha256` 与 current artifact 不一致时，标准机器错误码是 `E_HASH_MISMATCH`；不得改写为自然语言别名，也不得用于 acceptance。
 5. 独立检查者按 Harness 内层 `task_type` / `required_review_class` 约束 Review；需要脚本时报告必须含 `domain_execution`、独立 `integrity_replay` 与 `binding_digest`。comparison（含升级 safety）另绑定 trusted exact-hash tool、不同 path/inode 的 actual/baseline 与 registry 中独立预批准者。随后提交 `review_completed` event；它必须由 `validator_run_id` 对应 run 发出，且 `task_state=accepted` 与 valid Evidence registry 的 Check/Run 一致。
 6. ledger owner 只负责持锁/CAS 合并；不代替 reviewer。TaskList、checkpoint 和 traceability 的 Task 对象由 reducer 重建并 byte-equivalent 校验。Completion Audit 在候选收尾时作为外部门禁运行：failed/blocked 驱动 LOOP/停止，只有 passed/achieved 要求 required task 全 accepted；Audit 不得成为 required/blocking 自证任务。
+
+V2.35 专家只能提交 assessment/proposal、revision-bound `specialist_task_patch` 和 `specialist_dispatch_request`；task patch 是 ledger event/patch，不是第七种 artifact type。固定能力为 `coordination_depth=1`、`can_spawn_subagents=false`、`can_dispatch=false`、`dispatch_owner_agent_type=goal_lead`、`handoff_mode=proposal_only`。Lead 接受后另建实现、测试和验证任务；专家不得直接写产品/中央 TaskList 或把自己的 proposal 标成 applied/verified。
 
 ## V2.0 TaskList 最小颗粒度
 

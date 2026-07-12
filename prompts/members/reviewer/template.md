@@ -15,6 +15,11 @@ LLM 发现：
 - file:
 - issue:
 - recommendation:
+V2.35：
+- route/specialists:
+- test_case_validator / observed assertions:
+- red-implementation-green timing:
+- remote/local/post-release / graph-external Audit:
 tasklist 检查建议：
 - artifact_type:
 - validator_agent_type:

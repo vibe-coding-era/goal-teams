@@ -27,6 +27,11 @@ from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any, Callable, Iterable
 
+try:
+    from scripts.v23 import version_binding as _version_binding
+except ModuleNotFoundError:  # Direct execution from scripts/v23.
+    import version_binding as _version_binding  # type: ignore[no-redef]
+
 
 V234_STATE_SCHEMA = "goal-teams-v2.34-state-v1"
 V234_CLI_SCHEMA = "goal-teams-v2.34-cli-v1"
@@ -106,6 +111,16 @@ _V234_PRODUCT_EXACT_PATHS = frozenset(
 _V234_PRODUCT_PREFIXES = (
     "docs/archive/V2.34/", "examples/", "prompts/", "schemas/v2.3/", "scripts/",
 )
+_V235_PRODUCT_EXACT_PATHS = frozenset(
+    {
+        *_V234_PRODUCT_EXACT_PATHS,
+        "docs/v2.35-release-summary.md",
+        "docs/v2.35-release-summary.en.md",
+    }
+)
+_V235_REQUIRED_CANDIDATE_PATHS = frozenset(
+    {"VERSION", "scripts/v23/v234_state.py", "scripts/v23/goalteams_v23.py", "scripts/v23/version_binding.py"}
+)
 
 
 def _now() -> str:
@@ -130,6 +145,87 @@ def _ok(**data: Any) -> dict[str, Any]:
 
 def _error(code: str, *, errors: Iterable[Any] | None = None, **data: Any) -> dict[str, Any]:
     return {"ok": False, "error_code": code, "errors": list(errors or [code]), **data}
+
+
+def _binding_result(
+    repo_root: Path | str, supplied: dict[str, Any] | None,
+    *, marker: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Resolve one binding before any lock, directory, or archive mutation."""
+    if supplied is not None:
+        normalized_input = bool(
+            isinstance(supplied, dict)
+            and supplied.get("schema_version") == _version_binding.NORMALIZED_SCHEMA
+        )
+        if normalized_input:
+            structural = _version_binding.validate_normalized_binding(supplied)
+            if not structural.get("ok"):
+                return structural
+            if supplied.get("explicit") is not True:
+                result = _version_binding.normalize_version_binding(None, repo_root=repo_root)
+            else:
+                descriptor = {
+                    "schema_version": _version_binding.DESCRIPTOR_SCHEMA,
+                    "project_version": supplied.get("project_version"),
+                    "release_version": supplied.get("release_version"),
+                    "artifact_version": supplied.get("artifact_version"),
+                    "contract_ref": supplied.get("contract_ref"),
+                    "contract_sha256": supplied.get("contract_sha256"),
+                    "contract_revision": supplied.get("contract_revision"),
+                    "review_ref": supplied.get("review_ref"),
+                    "review_sha256": supplied.get("review_sha256"),
+                    "review_state": supplied.get("review_state"),
+                }
+                result = _version_binding.normalize_version_binding(
+                    descriptor, repo_root=repo_root
+                )
+        else:
+            result = _version_binding.normalize_version_binding(supplied, repo_root=repo_root)
+        if not result.get("ok"):
+            return result
+        normalized = result["binding"]
+        if normalized_input and normalized != supplied:
+            return _version_binding._error("E_V235_VERSION_BINDING_MISMATCH")
+        if marker is not None:
+            embedded = _marker_binding(marker)
+            if not embedded.get("ok"):
+                return embedded
+            if embedded["binding"].get("binding_digest") != normalized.get("binding_digest"):
+                return _version_binding._error("E_V235_VERSION_BINDING_MISMATCH")
+        return result
+    if marker is not None:
+        embedded = _marker_binding(marker)
+        if not embedded.get("ok") or embedded["binding"].get("explicit") is not True:
+            return embedded
+        # An explicit marker is trusted provenance, not a permanent approval.
+        # Re-read its exact contract and current independent review on every
+        # public operation that has repository context.
+        return _binding_result(repo_root, embedded["binding"], marker=marker)
+    return _version_binding.normalize_version_binding(None, repo_root=repo_root)
+
+
+def _marker_binding(marker: dict[str, Any]) -> dict[str, Any]:
+    embedded = marker.get("version_binding")
+    if embedded is None:
+        normalized = _version_binding.default_version_binding()
+        if (
+            marker.get("project_version", normalized["project_version"]) != normalized["project_version"]
+            or marker.get("artifact_version", normalized["artifact_version"]) != normalized["artifact_version"]
+            or marker.get("release_version", normalized["release_version"]) != normalized["release_version"]
+        ):
+            return _version_binding._error("E_V235_VERSION_BINDING_MISMATCH")
+        return _version_binding._ok(normalized)
+    result = _version_binding.validate_normalized_binding(embedded)
+    if not result.get("ok"):
+        return result
+    normalized = result["binding"]
+    if (
+        marker.get("project_version") != normalized["project_version"]
+        or marker.get("artifact_version") != normalized["artifact_version"]
+        or marker.get("release_version") != normalized["release_version"]
+    ):
+        return _version_binding._error("E_V235_VERSION_BINDING_MISMATCH")
+    return result
 
 
 def _json_object(path: Path) -> dict[str, Any]:
@@ -254,6 +350,9 @@ def _encode_progress(marker: dict[str, Any]) -> bytes:
         "bottleneck": marker.get("bottleneck"),
         "delivery": marker.get("delivery", {"state": "not_ready"}),
     }
+    if "version_binding" in marker:
+        projection["release_version"] = marker["release_version"]
+        projection["version_binding"] = copy.deepcopy(marker["version_binding"])
     return (
         "# Goal Teams V2.34 Progress\n\n"
         + "GTSTATE "
@@ -348,7 +447,9 @@ def _base_marker(
     *, loop_id: str, contract_bytes: bytes, ledger_binding: dict[str, Any],
     actor_run_id: str, initial_loop: dict[str, Any],
     legacy_import: dict[str, Any] | None = None,
+    normalized_binding: dict[str, Any] | None = None,
 ) -> tuple[dict[str, Any], bytes]:
+    binding = normalized_binding or _version_binding.default_version_binding()
     loop = {
         "iteration": int(initial_loop.get("iteration", 1)),
         "attempt": int(initial_loop.get("attempt", 1)),
@@ -382,8 +483,8 @@ def _base_marker(
         raise ValueError("invalid V2.34 contract")
     marker = {
         "schema_version": V234_STATE_SCHEMA,
-        "project_version": "V2.34",
-        "artifact_version": "V2.34",
+        "project_version": binding["project_version"],
+        "artifact_version": binding["artifact_version"],
         "loop_run_id": loop_id,
         "bundle_revision": 1,
         "loop": loop,
@@ -401,6 +502,9 @@ def _base_marker(
         "log_commit_event_id": commit_event["event_id"],
         "log_commit_event_digest": commit_event["event_digest"],
     }
+    if binding.get("explicit") is True:
+        marker["release_version"] = binding["release_version"]
+        marker["version_binding"] = copy.deepcopy(binding)
     marker["contract_sha256"] = _digest_bytes(contract_bytes)
     marker["log_sha256"] = _digest_bytes(log_bytes)
     progress = _encode_progress(marker)
@@ -460,6 +564,7 @@ def _initialize_state_bundle_locked(
     initial_loop: dict[str, Any] | None = None, adopt_legacy_digest: str | None = None,
     ledger_events: list[dict[str, Any]] | None = None,
     checkpoint_bytes: bytes | None = None,
+    normalized_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Create the four-file bundle exactly once, with the marker replaced last."""
     state_root = Path(root)
@@ -520,6 +625,7 @@ def _initialize_state_bundle_locked(
             loop_id=loop_id, contract_bytes=contract_bytes, ledger_binding=ledger_binding,
             actor_run_id=actor_run_id, initial_loop=initial_loop or {},
             legacy_import=legacy_import,
+            normalized_binding=normalized_binding,
         )
         progress_bytes = _encode_progress(marker)
         transaction_id = f"TXN-V234-INIT-{os.getpid()}-{marker['bundle_revision']}"
@@ -551,6 +657,10 @@ def _initialize_state_bundle_locked(
             transaction_id=transaction_id,
             legacy_imported=legacy_import is not None,
             legacy_import_receipt=str(receipt_path) if receipt_path is not None else None,
+            **(
+                {"version_binding_digest": normalized_binding["binding_digest"]}
+                if isinstance(normalized_binding, dict) and normalized_binding.get("explicit") is True else {}
+            ),
         )
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         return _error("E_V234_STATE_INIT", errors=[{"error": "E_V234_STATE_INIT", "type": type(exc).__name__}])
@@ -562,8 +672,12 @@ def initialize_state_bundle(
     initial_loop: dict[str, Any] | None = None, adopt_legacy_digest: str | None = None,
     ledger_events: list[dict[str, Any]] | None = None,
     checkpoint_bytes: bytes | None = None,
+    version_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     state_root = Path(root)
+    binding_result = _binding_result(repo_root, version_binding)
+    if not binding_result.get("ok"):
+        return binding_result
     try:
         descriptor = _acquire_state_lock(state_root)
     except OSError:
@@ -575,6 +689,7 @@ def initialize_state_bundle(
             actor_run_id=actor_run_id, initial_loop=initial_loop,
             adopt_legacy_digest=adopt_legacy_digest,
             ledger_events=ledger_events, checkpoint_bytes=checkpoint_bytes,
+            normalized_binding=binding_result["binding"],
         )
     finally:
         _release_state_lock(descriptor)
@@ -605,6 +720,27 @@ def _pending_journals(state_root: Path) -> list[Path]:
     return pending
 
 
+def _journal_binding_errors(
+    state_root: Path, normalized_binding: dict[str, Any]
+) -> list[str]:
+    if normalized_binding.get("explicit") is not True:
+        return []
+    errors: list[str] = []
+    patterns = (
+        ".goalteams-state/transactions/*/journal.json",
+        ".goalteams-state/deliveries/*/journal.json",
+    )
+    for pattern in patterns:
+        for journal_path in sorted(state_root.glob(pattern)):
+            try:
+                journal = _json_object(journal_path)
+                if journal.get("version_binding_digest") != normalized_binding["binding_digest"]:
+                    errors.append(f"E_V235_VERSION_BINDING_JOURNAL:{journal_path.name}")
+            except (OSError, ValueError, json.JSONDecodeError):
+                errors.append(f"E_V235_VERSION_BINDING_JOURNAL:{journal_path.name}")
+    return errors
+
+
 def _record_divergent_hashes(state_root: Path, scope: str, records: list[dict[str, Any]]) -> str:
     payload = {
         "schema_version": "goal-teams-v2.34-divergence-receipt-v1",
@@ -621,6 +757,8 @@ def _record_divergent_hashes(state_root: Path, scope: str, records: list[dict[st
 def validate_state_bundle(
     root: Path | str, *, ledger_events: list[dict[str, Any]] | None = None,
     checkpoint: dict[str, Any] | None = None,
+    repo_root: Path | str | None = None,
+    version_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     state_root = Path(root)
     names = ("feature_list.json", "progress.md", "contract.md", "log.md")
@@ -630,6 +768,16 @@ def validate_state_bundle(
     errors: list[str] = []
     try:
         marker = _json_object(state_root / "feature_list.json")
+        marker_binding = _marker_binding(marker)
+        if not marker_binding.get("ok"):
+            return marker_binding
+        if marker_binding["binding"].get("explicit") is True and repo_root is None:
+            return _version_binding._error("E_V235_VERSION_BINDING_PROVENANCE")
+        binding_result = _binding_result(
+            repo_root or state_root, version_binding, marker=marker
+        )
+        if not binding_result.get("ok"):
+            return binding_result
         progress_bytes = (state_root / "progress.md").read_bytes()
         contract_bytes = (state_root / "contract.md").read_bytes()
         log_bytes = (state_root / "log.md").read_bytes()
@@ -645,11 +793,18 @@ def validate_state_bundle(
         if marker.get("contract", {}).get("contract_sha256") != _digest_bytes(contract_bytes):
             errors.append("E_V234_CONTRACT_DIGEST")
         progress = _decode_progress(progress_bytes)
-        for field in ("schema_version", "project_version", "artifact_version", "loop_run_id", "bundle_revision", "loop", "ledger"):
+        progress_fields = [
+            "schema_version", "project_version", "artifact_version", "loop_run_id",
+            "bundle_revision", "loop", "ledger",
+        ]
+        if binding_result["binding"].get("explicit") is True:
+            progress_fields.extend(("release_version", "version_binding"))
+        for field in progress_fields:
             if progress.get(field) != marker.get(field):
                 errors.append(f"E_V234_PROGRESS_BINDING:{field}")
         events, log_errors = _parse_log(log_bytes)
         errors.extend(log_errors)
+        errors.extend(_journal_binding_errors(state_root, binding_result["binding"]))
         if not events or events[-1].get("event_id") != marker.get("log_commit_event_id") or events[-1].get("event_digest") != marker.get("log_commit_event_digest"):
             errors.append("E_V234_LOG_COMMIT_BINDING")
         if not isinstance(marker.get("ledger"), dict) or not all(
@@ -710,6 +865,10 @@ def validate_state_bundle(
         return _ok(
             state=state, errors=[], bundle_revision=marker["bundle_revision"],
             bundle_digest=marker["bundle_digest"], ledger_revision=marker["ledger"]["revision"], marker=marker,
+            **(
+                {"version_binding_digest": binding_result["binding"]["binding_digest"]}
+                if binding_result["binding"].get("explicit") is True else {}
+            ),
         )
     except (OSError, ValueError, json.JSONDecodeError, UnicodeDecodeError) as exc:
         return _error(
@@ -768,6 +927,8 @@ def _commit_bundle_bytes(
     state_root: Path, *, old_marker: dict[str, Any], new_marker: dict[str, Any],
     new_log: bytes, new_progress: bytes, transaction_id: str,
     replace_contract: bytes | None = None,
+    repo_root: Path | str | None = None,
+    version_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     try:
         lock_descriptor = _acquire_state_lock(state_root)
@@ -784,6 +945,7 @@ def _commit_bundle_bytes(
             state_root, old_marker=old_marker, new_marker=new_marker, new_log=new_log,
             new_progress=new_progress, transaction_id=transaction_id,
             replace_contract=replace_contract,
+            repo_root=repo_root, version_binding=version_binding,
         )
     finally:
         _release_state_lock(lock_descriptor)
@@ -793,7 +955,20 @@ def _commit_bundle_bytes_locked(
     state_root: Path, *, old_marker: dict[str, Any], new_marker: dict[str, Any],
     new_log: bytes, new_progress: bytes, transaction_id: str,
     replace_contract: bytes | None = None,
+    repo_root: Path | str | None = None,
+    version_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    marker_binding = _marker_binding(new_marker)
+    if not marker_binding.get("ok"):
+        return marker_binding
+    if marker_binding["binding"].get("explicit") is True:
+        if repo_root is None:
+            return _version_binding._error("E_V235_VERSION_BINDING_PROVENANCE")
+        current_binding = _binding_result(
+            repo_root, version_binding, marker=new_marker
+        )
+        if not current_binding.get("ok"):
+            return current_binding
     candidates: list[tuple[str, bytes]] = []
     if replace_contract is not None:
         candidates.append(("contract.md", replace_contract))
@@ -823,13 +998,17 @@ def _commit_bundle_bytes_locked(
             for name, data in candidates
         },
     }
+    if marker_binding["binding"].get("explicit") is True:
+        journal["version_binding_digest"] = marker_binding["binding"]["binding_digest"]
     _atomic_json(journal_path, journal)
     for name, _ in candidates:
         _replace_verified(temp_paths[name], state_root / name)
         _fsync_directory(state_root)
     journal["phase"] = "marker_replaced"
     _atomic_json(journal_path, journal)
-    validation = validate_state_bundle(state_root)
+    validation = validate_state_bundle(
+        state_root, repo_root=repo_root, version_binding=version_binding,
+    )
     # The current journal is intentionally still pending during validation.
     if validation.get("state") not in {"valid", "ledger_unverified", "recoverable_pending"}:
         return _error("E_V234_STATE_COMMIT", validation=validation)
@@ -838,6 +1017,10 @@ def _commit_bundle_bytes_locked(
     return _ok(
         bundle_revision=new_marker["bundle_revision"], bundle_digest=new_marker["bundle_digest"],
         ledger_revision=new_marker.get("ledger", {}).get("revision"), transaction_id=transaction_id,
+        **(
+            {"version_binding_digest": marker_binding["binding"]["binding_digest"]}
+            if marker_binding["binding"].get("explicit") is True else {}
+        ),
     )
 
 
@@ -849,9 +1032,14 @@ def transition_state_bundle(
     ledger_events: list[dict[str, Any]] | None = None,
     identity_registry: dict[str, Any] | None = None,
     checkpoint: dict[str, Any] | None = None,
+    repo_root: Path | str | None = None,
+    version_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     state_root = Path(root)
-    validation = validate_state_bundle(state_root, ledger_events=ledger_events, checkpoint=checkpoint)
+    validation = validate_state_bundle(
+        state_root, ledger_events=ledger_events, checkpoint=checkpoint,
+        repo_root=repo_root, version_binding=version_binding,
+    )
     if not validation.get("ok") or validation.get("state") != "valid":
         return _state_write_error(validation)
     marker = validation["marker"]
@@ -904,14 +1092,20 @@ def transition_state_bundle(
     result = _commit_bundle_bytes(
         state_root, old_marker=marker, new_marker=new_marker, new_log=new_log,
         new_progress=new_progress, transaction_id=transaction_id,
+        repo_root=repo_root, version_binding=version_binding,
     )
     if result.get("ok") and side_effect is not None:
         side_effect()
     return result
 
 
-def recover_state_bundle(root: Path | str) -> dict[str, Any]:
-    validation = validate_state_bundle(root)
+def recover_state_bundle(
+    root: Path | str, *, repo_root: Path | str | None = None,
+    version_binding: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    validation = validate_state_bundle(
+        root, repo_root=repo_root, version_binding=version_binding,
+    )
     marker = None
     try:
         marker = _json_object(Path(root) / "feature_list.json")
@@ -933,6 +1127,8 @@ def recover_state_bundle(root: Path | str) -> dict[str, Any]:
 
 
 def _state_write_error(validation: dict[str, Any]) -> dict[str, Any]:
+    if str(validation.get("error_code", "")).startswith("E_V235_VERSION_BINDING_"):
+        return validation
     if validation.get("state") in {"stale", "ledger_unverified"}:
         return _error("E_V234_LEDGER_REFRESH_REQUIRED", validation=validation)
     return _error("E_V234_STATE_INVALID", validation=validation)
@@ -942,13 +1138,16 @@ def _reconcile_state_bundle_locked(
     root: Path | str, *, mode: str, expected_bundle_revision: int,
     expected_bundle_digest: str, ledger_events: list[dict[str, Any]] | None = None,
     checkpoint: dict[str, Any] | None = None, actor_run_id: str | None = None,
+    repo_root: Path | str | None = None,
+    version_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     state_root = Path(root)
     if mode not in {"auto", "replay"}:
         return _error("E_V234_RECONCILE_MODE")
     if mode == "replay":
         validation = validate_state_bundle(
-            state_root, ledger_events=ledger_events, checkpoint=checkpoint
+            state_root, ledger_events=ledger_events, checkpoint=checkpoint,
+            repo_root=repo_root, version_binding=version_binding,
         )
         if validation.get("state") not in {"stale", "valid"}:
             return _error("E_V234_RECONCILE_EVIDENCE", validation=validation)
@@ -996,12 +1195,15 @@ def _reconcile_state_bundle_locked(
             state_root, old_marker=marker, new_marker=new_marker, new_log=new_log,
             new_progress=new_progress,
             transaction_id=f"TXN-V234-LEDGER-REFRESH-{new_marker['bundle_revision']:06d}-{os.getpid()}",
+            repo_root=repo_root, version_binding=version_binding,
         )
         if result.get("ok"):
             result["state"] = "valid"
             result["idempotent"] = False
         return result
-    validation = validate_state_bundle(state_root)
+    validation = validate_state_bundle(
+        state_root, repo_root=repo_root, version_binding=version_binding,
+    )
     if validation.get("state") != "recoverable_pending":
         return _error("E_V234_RECONCILE_EVIDENCE")
     # Only an internally prepared journal whose parent marker matches the CAS
@@ -1039,7 +1241,9 @@ def _reconcile_state_bundle_locked(
                 _fsync_directory(state_root)
         journal["phase"] = "committed"
         _atomic_json(journals[0], journal)
-        final = validate_state_bundle(state_root)
+        final = validate_state_bundle(
+            state_root, repo_root=repo_root, version_binding=version_binding,
+        )
         if not final.get("ok"):
             return _error("E_V234_RECONCILE_EVIDENCE", validation=final)
         return _ok(
@@ -1054,8 +1258,21 @@ def reconcile_state_bundle(
     root: Path | str, *, mode: str, expected_bundle_revision: int,
     expected_bundle_digest: str, ledger_events: list[dict[str, Any]] | None = None,
     checkpoint: dict[str, Any] | None = None, actor_run_id: str | None = None,
+    repo_root: Path | str | None = None,
+    version_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     state_root = Path(root)
+    try:
+        pre_marker = _json_object(state_root / "feature_list.json")
+        structural = _marker_binding(pre_marker)
+    except (OSError, ValueError, json.JSONDecodeError):
+        structural = None
+    if isinstance(structural, dict) and structural.get("ok") and structural["binding"].get("explicit") is True:
+        if repo_root is None:
+            return _version_binding._error("E_V235_VERSION_BINDING_PROVENANCE")
+        preflight = _binding_result(repo_root, version_binding, marker=pre_marker)
+        if not preflight.get("ok"):
+            return preflight
     try:
         descriptor = _acquire_state_lock(state_root)
     except OSError:
@@ -1065,6 +1282,7 @@ def reconcile_state_bundle(
             state_root, mode=mode, expected_bundle_revision=expected_bundle_revision,
             expected_bundle_digest=expected_bundle_digest,
             ledger_events=ledger_events, checkpoint=checkpoint, actor_run_id=actor_run_id,
+            repo_root=repo_root, version_binding=version_binding,
         )
     finally:
         _release_state_lock(descriptor)
@@ -1075,9 +1293,14 @@ def append_log_event(
     expected_bundle_digest: str,
     ledger_events: list[dict[str, Any]] | None = None,
     checkpoint: dict[str, Any] | None = None,
+    repo_root: Path | str | None = None,
+    version_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     state_root = Path(root)
-    validation = validate_state_bundle(state_root, ledger_events=ledger_events, checkpoint=checkpoint)
+    validation = validate_state_bundle(
+        state_root, ledger_events=ledger_events, checkpoint=checkpoint,
+        repo_root=repo_root, version_binding=version_binding,
+    )
     if not validation.get("ok"):
         return _state_write_error(validation)
     marker = validation["marker"]
@@ -1106,6 +1329,7 @@ def append_log_event(
         state_root, old_marker=marker, new_marker=new_marker, new_log=new_log,
         new_progress=new_progress,
         transaction_id=f"TXN-V234-LOG-{new_marker['bundle_revision']:06d}-{os.getpid()}",
+        repo_root=repo_root, version_binding=version_binding,
     )
 
 
@@ -1115,9 +1339,14 @@ def _commit_projection_update(
     mutation: Callable[[dict[str, Any]], None], event_data: dict[str, Any] | None = None,
     ledger_events: list[dict[str, Any]] | None = None,
     checkpoint: dict[str, Any] | None = None,
+    repo_root: Path | str | None = None,
+    version_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     state_root = Path(root)
-    validation = validate_state_bundle(state_root, ledger_events=ledger_events, checkpoint=checkpoint)
+    validation = validate_state_bundle(
+        state_root, ledger_events=ledger_events, checkpoint=checkpoint,
+        repo_root=repo_root, version_binding=version_binding,
+    )
     if not validation.get("ok"):
         return _state_write_error(validation)
     marker = validation["marker"]
@@ -1155,6 +1384,7 @@ def _commit_projection_update(
         state_root, old_marker=marker, new_marker=new_marker, new_log=new_log,
         new_progress=new_progress,
         transaction_id=f"TXN-V234-{event_type}-{new_marker['bundle_revision']:06d}-{os.getpid()}",
+        repo_root=repo_root, version_binding=version_binding,
     )
 
 
@@ -2050,10 +2280,15 @@ def plan_controlled_reset(
     artifact_root: Path | str | None = None,
     identity_registry: dict[str, Any] | None = None,
     ledger_events: list[dict[str, Any]] | None = None,
+    version_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     repository = Path(repo_root).absolute()
     state = Path(state_root).absolute()
     artifact = Path(artifact_root).absolute() if artifact_root is not None else None
+    binding_result = _binding_result(repository, version_binding, marker=bundle)
+    if not binding_result.get("ok"):
+        return binding_result
+    normalized_binding = binding_result["binding"]
     if not _CANDIDATE_ID.fullmatch(candidate_id or ""):
         return _reset_failure("E_V234_RESET_CANDIDATE_ID")
     if authorization is None:
@@ -2174,6 +2409,8 @@ def plan_controlled_reset(
         "planned_bundle_revision": bundle.get("bundle_revision"),
         "planned_bundle_digest": bundle.get("bundle_digest"),
     }
+    if normalized_binding.get("explicit") is True:
+        plan["version_binding_digest"] = normalized_binding["binding_digest"]
     plan["plan_sha256"] = _digest_bytes(_canonical_bytes(plan))
     return _ok(plan=plan, mutation_count=0)
 
@@ -2228,10 +2465,15 @@ def _apply_controlled_reset_locked(
     identity_registry: dict[str, Any] | None = None,
     ledger_events: list[dict[str, Any]] | None = None,
     checkpoint: dict[str, Any] | None = None,
+    normalized_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     repository = Path(repo_root).absolute().resolve()
     state = Path(state_root).absolute().resolve()
-    state_validation = validate_state_bundle(state, ledger_events=ledger_events, checkpoint=checkpoint)
+    binding = normalized_binding or _version_binding.default_version_binding()
+    state_validation = validate_state_bundle(
+        state, ledger_events=ledger_events, checkpoint=checkpoint,
+        repo_root=repository, version_binding=binding,
+    )
     if not state_validation.get("ok") or state_validation.get("state") != "valid":
         result = _state_write_error(state_validation)
         result["mutation_count"] = 0
@@ -2249,6 +2491,8 @@ def _apply_controlled_reset_locked(
     plan_core = {key: value for key, value in plan.items() if key != "plan_sha256"}
     if plan.get("plan_sha256") != _digest_bytes(_canonical_bytes(plan_core)):
         return _error("E_V234_RESET_TOCTOU", mutation_count=0)
+    if binding.get("explicit") is True and plan.get("version_binding_digest") != binding["binding_digest"]:
+        return _version_binding._error("E_V235_VERSION_BINDING_MISMATCH")
     if (
         authorization.get("authorization_id") != plan.get("authorization_id")
         or authorization.get("authorized_scope_digest") != plan.get("authorized_scope_digest")
@@ -2324,6 +2568,8 @@ def _apply_controlled_reset_locked(
             "authorization_id": authorization.get("authorization_id"),
             "recovery_command": f"mv -- {quarantine} {candidate}",
         }
+        if binding.get("explicit") is True:
+            manifest["version_binding_digest"] = binding["binding_digest"]
         manifest_name = f"manifest-{plan['candidate_id']}.json"
         manifest_path = parent / manifest_name
         manifest_bytes = json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True).encode("utf-8") + b"\n"
@@ -2353,6 +2599,8 @@ def _apply_controlled_reset_locked(
             "bundle_revision": bundle.get("bundle_revision"),
             "bundle_digest": bundle.get("bundle_digest"),
         }
+        if binding.get("explicit") is True:
+            receipt["version_binding_digest"] = binding["binding_digest"]
         receipt["receipt_sha256"] = _digest_bytes(_canonical_bytes(receipt))
         new_marker = copy.deepcopy(persisted_marker)
         new_marker["bundle_revision"] += 1
@@ -2374,6 +2622,8 @@ def _apply_controlled_reset_locked(
             "ledger_revision": persisted_marker.get("ledger", {}).get("revision"),
             "ledger_prefix_sha256": persisted_marker.get("ledger", {}).get("prefix_sha256"),
         }
+        if binding.get("explicit") is True:
+            new_marker["reset"]["version_binding_digest"] = binding["binding_digest"]
         reset_log_event = {
             "event_id": f"LOG-V234-RESET-{new_marker['bundle_revision']:06d}",
             "event_type": "RESET_QUARANTINED",
@@ -2405,6 +2655,7 @@ def _apply_controlled_reset_locked(
             state, old_marker=persisted_marker, new_marker=new_marker,
             new_log=new_log, new_progress=new_progress,
             transaction_id=f"TXN-V234-RESET-{new_marker['bundle_revision']:06d}-{os.getpid()}",
+            repo_root=repository, version_binding=binding,
         )
         if not state_commit.get("ok"):
             return _error(
@@ -2416,6 +2667,10 @@ def _apply_controlled_reset_locked(
             bundle_revision=state_commit["bundle_revision"],
             bundle_digest=state_commit["bundle_digest"],
             transaction_id=state_commit["transaction_id"],
+            **(
+                {"version_binding_digest": binding["binding_digest"]}
+                if binding.get("explicit") is True else {}
+            ),
         )
     except (OSError, ValueError):
         return _error("E_V234_RESET_TOCTOU", mutation_count=0)
@@ -2428,8 +2683,19 @@ def apply_controlled_reset(
     identity_registry: dict[str, Any] | None = None,
     ledger_events: list[dict[str, Any]] | None = None,
     checkpoint: dict[str, Any] | None = None,
+    version_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     state = Path(state_root)
+    repository = Path(repo_root).absolute().resolve()
+    try:
+        pre_marker = _json_object(state / "feature_list.json")
+    except (OSError, ValueError, json.JSONDecodeError):
+        pre_marker = bundle
+    binding_result = _binding_result(
+        repository, version_binding, marker=pre_marker
+    )
+    if not binding_result.get("ok"):
+        return binding_result
     try:
         descriptor = _acquire_state_lock(state)
     except OSError:
@@ -2442,6 +2708,7 @@ def apply_controlled_reset(
             expected_bundle_digest=expected_bundle_digest,
             identity_registry=identity_registry, ledger_events=ledger_events,
             checkpoint=checkpoint,
+            normalized_binding=binding_result["binding"],
         )
     finally:
         _release_state_lock(descriptor)
@@ -2452,6 +2719,8 @@ def repair_reset_task_binding(
     expected_bundle_revision: int, expected_bundle_digest: str,
     identity_registry: dict[str, Any], ledger_events: list[dict[str, Any]],
     checkpoint: dict[str, Any],
+    repo_root: Path | str | None = None,
+    version_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Repair only the task projection of an already quarantined reset.
 
@@ -2461,7 +2730,8 @@ def repair_reset_task_binding(
     """
     state_root = Path(root)
     validation = validate_state_bundle(
-        state_root, ledger_events=ledger_events, checkpoint=checkpoint
+        state_root, ledger_events=ledger_events, checkpoint=checkpoint,
+        repo_root=repo_root, version_binding=version_binding,
     )
     if not validation.get("ok") or validation.get("state") != "valid":
         return _state_write_error(validation)
@@ -2520,6 +2790,8 @@ def repair_reset_task_binding(
         },
         ledger_events=ledger_events,
         checkpoint=checkpoint,
+        repo_root=repo_root,
+        version_binding=version_binding,
     )
     if result.get("ok"):
         result.update(
@@ -2556,6 +2828,7 @@ def _json_record_matches(path_value: Any, expected: Any) -> bool:
 def _completion_proof_errors(
     proof: dict[str, Any], source_context: dict[str, Any], *, bundle: dict[str, Any] | None,
     archive_descriptor: list[dict[str, Any]] | None,
+    normalized_binding: dict[str, Any] | None = None,
 ) -> list[str]:
     """Validate release facts from immutable files, never caller booleans.
 
@@ -2564,6 +2837,22 @@ def _completion_proof_errors(
     gate into success by replacing a JSON ``true`` value.
     """
     errors: list[str] = []
+    binding = normalized_binding or (
+        _marker_binding(bundle).get("binding")
+        if isinstance(bundle, dict) else _version_binding.default_version_binding()
+    )
+    binding_validation = _version_binding.validate_normalized_binding(binding)
+    if not binding_validation.get("ok"):
+        return ["version_binding"]
+    binding = binding_validation["binding"]
+    if binding.get("explicit") is True and (
+        source_context.get("version_binding_digest") not in {None, binding["binding_digest"]}
+        or (
+            source_context.get("version_binding") is not None
+            and source_context.get("version_binding") != binding
+        )
+    ):
+        errors.append("version_binding")
     if not isinstance(proof, dict) or proof.get("schema_version") != "goal-teams-v2.34-completion-proof-v1":
         return ["completion_proof"]
     projected = {key: value for key, value in proof.items() if key != "proof_digest"}
@@ -2739,7 +3028,14 @@ def _completion_proof_errors(
     bottleneck = proof.get("bottleneck", {})
     if not isinstance(bottleneck, dict) or bottleneck.get("iteration") != 11 or bottleneck.get("phase") != "verify":
         errors.append("bottleneck")
-    if proof.get("version") != "V2.34" or not validate_version_sync(repo, expected_version="V2.34").get("ok"):
+    if (
+        proof.get("version") != binding["project_version"]
+        or not validate_version_sync(repo, expected_version=binding["project_version"]).get("ok")
+        or (
+            binding.get("explicit") is True
+            and proof.get("version_binding_digest") != binding["binding_digest"]
+        )
+    ):
         errors.append("version")
     try:
         roadmap_path = Path(str(source_context.get("roadmap_path", "")))
@@ -2762,14 +3058,18 @@ def _completion_proof_errors(
             not isinstance(snapshot, dict)
             or not _json_record_matches(snapshot_path, snapshot)
             or proof.get("candidate_snapshot_receipt_sha256") != snapshot.get("receipt_sha256")
-            or not publish_guard(repo, mode="snapshot", snapshot_receipt=snapshot).get("ok")
+            or not publish_guard(
+                repo, mode="snapshot", snapshot_receipt=snapshot,
+                version_binding=binding,
+            ).get("ok")
         ):
             errors.append("publish")
     else:
         baseline = source_context.get("baseline_commit")
         candidate_commit = source_context.get("candidate_commit")
         if not isinstance(baseline, str) or not isinstance(candidate_commit, str) or not publish_guard(
-            repo, mode="commit", commit=candidate_commit, baseline_commit=baseline
+            repo, mode="commit", commit=candidate_commit, baseline_commit=baseline,
+            version_binding=binding,
         ).get("ok"):
             errors.append("publish")
     return sorted(set(errors))
@@ -2778,12 +3078,25 @@ def _completion_proof_errors(
 def evaluate_delivery_gate(
     bundle: dict[str, Any], completion_proof: dict[str, Any],
     archive_descriptor: list[dict[str, Any]], *, source_context: dict[str, Any] | None = None,
+    version_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     loop = bundle.get("loop", {})
     if loop.get("iteration") != 11 or loop.get("phase") != "verify":
         return _error("E_V234_DELIVERY_ITERATION", gaps=["delivery_iteration"], run_outcome="partial", next_iteration=None)
+    marker_binding = _marker_binding(bundle)
+    if not marker_binding.get("ok"):
+        return marker_binding
+    repository_context = (source_context or {}).get("repo_root")
+    if marker_binding["binding"].get("explicit") is True and repository_context is None:
+        return _version_binding._error("E_V235_VERSION_BINDING_PROVENANCE")
+    binding_result = _binding_result(
+        repository_context or ".", version_binding, marker=bundle,
+    )
+    if not binding_result.get("ok"):
+        return binding_result
     errors = _completion_proof_errors(
         completion_proof, source_context or {}, bundle=bundle, archive_descriptor=archive_descriptor,
+        normalized_binding=binding_result["binding"],
     )
     if errors:
         return _error("E_V234_COMPLETION_PROOF", gaps=errors, run_outcome="partial", next_iteration=None, archive_created=False)
@@ -2795,6 +3108,7 @@ def validate_archive_eligibility(
     repo_root: Path | str | None = None,
     completion_proof: dict[str, Any] | None = None,
     source_context: dict[str, Any] | None = None,
+    version_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     audit = completion.get("completion_audit", {})
     global_ready = bool(
@@ -2805,10 +3119,15 @@ def validate_archive_eligibility(
     )
     if repo_root is None:
         return _error("E_V234_ARCHIVE_SOURCE", artifact_ids=[], ineligible_artifact_ids=[str(item.get("source_artifact_id")) for item in descriptors])
+    binding_result = _binding_result(repo_root, version_binding)
+    if not binding_result.get("ok"):
+        return binding_result
+    normalized_binding = binding_result["binding"]
     proof_errors: list[str] = []
     if completion_proof is not None or source_context is not None:
         proof_errors = _completion_proof_errors(
             completion_proof or {}, source_context or {}, bundle=None, archive_descriptor=descriptors,
+            normalized_binding=normalized_binding,
         )
     if proof_errors:
         return _error(
@@ -2840,10 +3159,18 @@ def validate_archive_eligibility(
                 file_safe = False
         valid = bool(
             global_ready
+            and (
+                normalized_binding.get("explicit") is not True
+                or completion.get("version_binding_digest") in {None, normalized_binding["binding_digest"]}
+            )
             and isinstance(artifact_id, str) and artifact_id
             and descriptor.get("publication_state") == "completed"
             and descriptor.get("visibility") == "public"
-            and descriptor.get("artifact_version") == "V2.34"
+            and descriptor.get("artifact_version") == normalized_binding["artifact_version"]
+            and (
+                normalized_binding.get("explicit") is not True
+                or descriptor.get("version_binding_digest") in {None, normalized_binding["binding_digest"]}
+            )
             and descriptor.get("classification") == "public_completion_doc"
             and descriptor.get("accepted") is True
             and descriptor.get("validator_run_id")
@@ -2929,16 +3256,27 @@ def _prepare_archive(
     repo_root: Path, delivery_id: str, descriptors: list[dict[str, Any]],
     completion: dict[str, Any], *, completion_proof: dict[str, Any] | None = None,
     source_context: dict[str, Any] | None = None,
+    normalized_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    binding = normalized_binding or _version_binding.default_version_binding()
     eligibility = validate_archive_eligibility(
         descriptors, completion, repo_root=repo_root,
         completion_proof=completion_proof, source_context=source_context,
+        version_binding=binding,
     )
     if not eligibility.get("ok"):
         return eligibility
     if not _CANDIDATE_ID.fullmatch(delivery_id or ""):
+        if binding.get("explicit") is True:
+            return _version_binding._error("E_V235_VERSION_BINDING_PATH")
         return _error("E_V234_ARCHIVE_ID")
-    parent = repo_root / "docs" / "archive" / "V2.34"
+    if binding.get("explicit") is True:
+        archive_path = _version_binding.public_archive_path(
+            repo_root, binding, delivery_id=delivery_id
+        )
+        if not archive_path.get("ok"):
+            return archive_path
+    parent = repo_root.joinpath(*PurePosixPath(binding["archive_prefix"]).parts)
     temp_root = parent / f".{delivery_id}.tmp"
     archive_root = parent / delivery_id
     try:
@@ -2994,11 +3332,14 @@ def _prepare_archive(
         manifest = {
             "schema_version": "goal-teams-v2.34-public-archive-v1",
             "delivery_id": delivery_id,
-            "artifact_version": "V2.34",
+            "artifact_version": binding["artifact_version"],
             "contract_revision": completion.get("contract_revision"),
             "completion_audit_sha256": completion.get("completion_audit", {}).get("sha256"),
             "artifacts": manifest_items,
         }
+        if binding.get("explicit") is True:
+            manifest["release_version"] = binding["release_version"]
+            manifest["version_binding_digest"] = binding["binding_digest"]
         manifest_path = temp_root / "manifest.json"
         manifest_path.write_bytes(json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True).encode("utf-8") + b"\n")
         with manifest_path.open("rb") as stream:
@@ -3012,6 +3353,10 @@ def _prepare_archive(
         return _ok(
             temp_root=temp_root, archive_root=archive_root, manifest=manifest,
             manifest_sha256=_digest_path(manifest_path), archive_tree_sha256=desired_tree,
+            **(
+                {"version_binding_digest": binding["binding_digest"]}
+                if binding.get("explicit") is True else {}
+            ),
         )
     except (OSError, ValueError, KeyError):
         if temp_root.is_dir() and not temp_root.is_symlink():
@@ -3022,20 +3367,43 @@ def _prepare_archive(
 def create_public_archive(
     repo_root: Path | str, *, delivery_id: str,
     descriptors: list[dict[str, Any]], completion: dict[str, Any],
+    version_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     repository = Path(repo_root).absolute().resolve()
-    prepared = _prepare_archive(repository, delivery_id, descriptors, completion)
+    binding_result = _binding_result(repository, version_binding)
+    if not binding_result.get("ok"):
+        return binding_result
+    normalized_binding = binding_result["binding"]
+    if normalized_binding.get("explicit") is True:
+        archive_path = _version_binding.public_archive_path(
+            repository, normalized_binding, delivery_id=delivery_id
+        )
+        if not archive_path.get("ok"):
+            return archive_path
+    prepared = _prepare_archive(
+        repository, delivery_id, descriptors, completion,
+        normalized_binding=normalized_binding,
+    )
     if not prepared.get("ok"):
         return prepared
     temp_root = Path(prepared["temp_root"])
     archive_root = Path(prepared["archive_root"])
     try:
+        current_binding = _binding_result(repository, normalized_binding)
+        if not current_binding.get("ok"):
+            if temp_root.is_dir() and not temp_root.is_symlink():
+                shutil.rmtree(temp_root)
+            return current_binding
         if archive_root.exists() or archive_root.is_symlink():
             if archive_root.is_dir() and not archive_root.is_symlink() and _archive_tree_digest(archive_root) == prepared["archive_tree_sha256"]:
                 shutil.rmtree(temp_root)
                 return _ok(
                     idempotent=True, archive_ref=archive_root.relative_to(repository).as_posix(),
                     manifest_sha256=prepared["manifest_sha256"], archive_tree_sha256=prepared["archive_tree_sha256"],
+                    **(
+                        {"version_binding_digest": normalized_binding["binding_digest"]}
+                        if normalized_binding.get("explicit") is True else {}
+                    ),
                 )
             shutil.rmtree(temp_root)
             return _error("E_V234_ARCHIVE_CONFLICT")
@@ -3044,6 +3412,10 @@ def create_public_archive(
         return _ok(
             idempotent=False, archive_ref=archive_root.relative_to(repository).as_posix(),
             manifest_sha256=prepared["manifest_sha256"], archive_tree_sha256=prepared["archive_tree_sha256"],
+            **(
+                {"version_binding_digest": normalized_binding["binding_digest"]}
+                if normalized_binding.get("explicit") is True else {}
+            ),
         )
     except OSError:
         if temp_root.is_dir() and not temp_root.is_symlink():
@@ -3062,15 +3434,26 @@ def _deliver_locked(
     expected_bundle_digest: str, actor_run_id: str,
     fault_injector: Callable[[str], Any] | None = None,
     source_context: dict[str, Any] | None = None,
+    normalized_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     state_root = Path(root)
     repository = Path(repo_root).absolute().resolve()
-    validation = validate_state_bundle(state_root)
+    binding = normalized_binding or _version_binding.default_version_binding()
+    validation = validate_state_bundle(
+        state_root, repo_root=repository, version_binding=binding,
+    )
     if not validation.get("ok"):
         return _state_write_error(validation)
     marker = validation["marker"]
+    marker_binding = _marker_binding(marker)
+    if (
+        not marker_binding.get("ok")
+        or marker_binding["binding"].get("binding_digest") != binding.get("binding_digest")
+    ):
+        return _version_binding._error("E_V235_VERSION_BINDING_MISMATCH")
     gate = evaluate_delivery_gate(
         marker, delivery_inputs, descriptors, source_context=source_context,
+        version_binding=binding,
     )
     if not gate.get("ok"):
         return gate
@@ -3078,6 +3461,7 @@ def _deliver_locked(
         repository, delivery_id, descriptors, completion,
         completion_proof=delivery_inputs if source_context is not None else None,
         source_context=source_context,
+        normalized_binding=binding,
     )
     if not prepared.get("ok"):
         return prepared
@@ -3098,6 +3482,10 @@ def _deliver_locked(
             return _ok(
                 idempotent=True, achieved=True, bundle_revision=marker["bundle_revision"],
                 bundle_digest=marker["bundle_digest"], transaction_id=transaction_id,
+                **(
+                    {"version_binding_digest": binding["binding_digest"]}
+                    if binding.get("explicit") is True else {}
+                ),
             )
         return _error("E_V234_ARCHIVE_CONFLICT")
     if marker["bundle_revision"] != expected_bundle_revision or marker["bundle_digest"] != expected_bundle_digest:
@@ -3113,6 +3501,8 @@ def _deliver_locked(
         "manifest_sha256": prepared["manifest_sha256"],
         "completion_audit_sha256": completion.get("completion_audit", {}).get("sha256"),
     }
+    if binding.get("explicit") is True:
+        new_marker["delivery"]["version_binding_digest"] = binding["binding_digest"]
     event = {
         "event_id": f"LOG-V234-DELIVERY-{delivery_id}",
         "event_type": "DELIVERY_COMMIT",
@@ -3158,6 +3548,8 @@ def _deliver_locked(
             for name, data in files.items()
         },
     }
+    if binding.get("explicit") is True:
+        journal["version_binding_digest"] = binding["binding_digest"]
     _atomic_json(journal_path, journal)
     try:
         os.replace(temp_root, archive_root)
@@ -3174,7 +3566,9 @@ def _deliver_locked(
             _fsync_directory(state_root)
             if fault_injector:
                 fault_injector(point)
-        final_validation = validate_state_bundle(state_root)
+        final_validation = validate_state_bundle(
+            state_root, repo_root=repository, version_binding=binding,
+        )
         if not final_validation.get("ok") or final_validation.get("state") not in {"valid", "ledger_unverified"}:
             raise OSError("delivery state failed final validation")
         journal["phase"] = "committed"
@@ -3183,6 +3577,10 @@ def _deliver_locked(
             idempotent=False, achieved=True, bundle_revision=new_marker["bundle_revision"],
             bundle_digest=new_marker["bundle_digest"], ledger_revision=new_marker.get("ledger", {}).get("revision"),
             transaction_id=transaction_id,
+            **(
+                {"version_binding_digest": binding["binding_digest"]}
+                if binding.get("explicit") is True else {}
+            ),
         )
     except Exception:
         # The complete journal and same-directory staged bytes intentionally
@@ -3198,8 +3596,26 @@ def deliver(
     expected_bundle_digest: str, actor_run_id: str,
     fault_injector: Callable[[str], Any] | None = None,
     source_context: dict[str, Any] | None = None,
+    version_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     state_root = Path(root)
+    repository = Path(repo_root).absolute().resolve()
+    try:
+        pre_marker = _json_object(state_root / "feature_list.json")
+    except (OSError, ValueError, json.JSONDecodeError):
+        pre_marker = None
+    binding_result = _binding_result(
+        repository, version_binding, marker=pre_marker if pre_marker is not None else None,
+    )
+    if not binding_result.get("ok"):
+        return binding_result
+    normalized_binding = binding_result["binding"]
+    if normalized_binding.get("explicit") is True:
+        path_result = _version_binding.public_archive_path(
+            repository, normalized_binding, delivery_id=delivery_id
+        )
+        if not path_result.get("ok"):
+            return path_result
     try:
         descriptor = _acquire_state_lock(state_root)
     except OSError:
@@ -3213,6 +3629,7 @@ def deliver(
             expected_bundle_digest=expected_bundle_digest,
             actor_run_id=actor_run_id, fault_injector=fault_injector,
             source_context=source_context,
+            normalized_binding=normalized_binding,
         )
     finally:
         _release_state_lock(descriptor)
@@ -3224,11 +3641,15 @@ def _recover_delivery_locked(
     completion: dict[str, Any] | None = None,
     delivery_inputs: dict[str, Any] | None = None,
     actor_run_id: str | None = None,
+    normalized_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     state_root = Path(root)
     repository = Path(repo_root).absolute().resolve()
+    binding = normalized_binding or _version_binding.default_version_binding()
     journal_path = _delivery_journal_path(state_root, delivery_id)
-    archive_root = repository / "docs" / "archive" / "V2.34" / delivery_id
+    archive_root = repository.joinpath(
+        *PurePosixPath(binding["archive_prefix"]).parts, delivery_id
+    )
     if not journal_path.is_file() or journal_path.is_symlink():
         return _error(
             "E_V234_DELIVERY_ORPHAN", state="reconcile_required", achieved=False,
@@ -3237,11 +3658,24 @@ def _recover_delivery_locked(
         journal = _json_object(journal_path)
         if (
             journal.get("delivery_id") != delivery_id
+            or (
+                binding.get("explicit") is True
+                and journal.get("version_binding_digest") != binding["binding_digest"]
+            )
             or not archive_root.is_dir() or archive_root.is_symlink()
             or _archive_tree_digest(archive_root) != journal.get("archive_tree_sha256")
         ):
             return _error("E_V234_DELIVERY_JOURNAL", state="reconcile_required", achieved=False)
         marker = _json_object(state_root / "feature_list.json")
+        current_binding = _binding_result(repository, binding, marker=marker)
+        if not current_binding.get("ok"):
+            return current_binding
+        marker_binding = _marker_binding(marker)
+        if (
+            not marker_binding.get("ok")
+            or marker_binding["binding"].get("binding_digest") != binding.get("binding_digest")
+        ):
+            return _version_binding._error("E_V235_VERSION_BINDING_MISMATCH")
         if (
             marker.get("loop", {}).get("run_outcome") == "achieved"
             and marker.get("delivery", {}).get("delivery_id") == delivery_id
@@ -3254,6 +3688,10 @@ def _recover_delivery_locked(
                 state="valid", idempotent=True, achieved=True,
                 bundle_revision=marker["bundle_revision"], bundle_digest=marker["bundle_digest"],
                 transaction_id=journal.get("transaction_id"), journal_verified=True,
+                **(
+                    {"version_binding_digest": binding["binding_digest"]}
+                    if binding.get("explicit") is True else {}
+                ),
             )
         if mode == "inspect":
             return {
@@ -3288,13 +3726,19 @@ def _recover_delivery_locked(
                 _fsync_directory(state_root)
         journal["phase"] = "committed"
         _atomic_json(journal_path, journal)
-        final = validate_state_bundle(state_root)
+        final = validate_state_bundle(
+            state_root, repo_root=repository, version_binding=binding,
+        )
         if not final.get("ok") or final["marker"].get("loop", {}).get("run_outcome") != "achieved":
             return _error("E_V234_DELIVERY_JOURNAL", state="reconcile_required", achieved=False)
         return _ok(
             state="valid", idempotent=False, achieved=True, journal_verified=True,
             bundle_revision=final["bundle_revision"], bundle_digest=final["bundle_digest"],
             transaction_id=journal.get("transaction_id"),
+            **(
+                {"version_binding_digest": binding["binding_digest"]}
+                if binding.get("explicit") is True else {}
+            ),
         )
     except (OSError, ValueError, KeyError, json.JSONDecodeError, base64.binascii.Error):
         return _error("E_V234_DELIVERY_JOURNAL", state="reconcile_required", achieved=False)
@@ -3306,8 +3750,26 @@ def recover_delivery(
     completion: dict[str, Any] | None = None,
     delivery_inputs: dict[str, Any] | None = None,
     actor_run_id: str | None = None,
+    version_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     state_root = Path(root)
+    repository = Path(repo_root).absolute().resolve()
+    try:
+        pre_marker = _json_object(state_root / "feature_list.json")
+    except (OSError, ValueError, json.JSONDecodeError):
+        pre_marker = None
+    binding_result = _binding_result(
+        repository, version_binding, marker=pre_marker if pre_marker is not None else None,
+    )
+    if not binding_result.get("ok"):
+        return binding_result
+    normalized_binding = binding_result["binding"]
+    if normalized_binding.get("explicit") is True:
+        path_result = _version_binding.public_archive_path(
+            repository, normalized_binding, delivery_id=delivery_id
+        )
+        if not path_result.get("ok"):
+            return path_result
     try:
         descriptor = _acquire_state_lock(state_root)
     except OSError:
@@ -3317,6 +3779,7 @@ def recover_delivery(
             state_root, repo_root=repo_root, delivery_id=delivery_id, mode=mode,
             descriptors=descriptors, completion=completion,
             delivery_inputs=delivery_inputs, actor_run_id=actor_run_id,
+            normalized_binding=normalized_binding,
         )
     finally:
         _release_state_lock(descriptor)
@@ -3338,31 +3801,47 @@ def _git_with_env(
     )
 
 
-def _v234_product_path(relative: str) -> bool:
+def _v234_product_path(
+    relative: str, normalized_binding: dict[str, Any] | None = None,
+) -> bool:
     """Return whether a path belongs to the versioned V2.34 product surface."""
+    binding = normalized_binding or _version_binding.default_version_binding()
     parts = _relative_parts(relative)
     if not parts or parts[0].startswith("GoalTeamsWork-"):
         return False
     if relative == "references/skill-authoring-guide.md":
         # This is an optional user-provided reference, not a Goal Teams release file.
         return False
-    if relative in _V234_PRODUCT_EXACT_PATHS:
+    exact_paths = _V235_PRODUCT_EXACT_PATHS if binding.get("explicit") is True else _V234_PRODUCT_EXACT_PATHS
+    if relative in exact_paths:
         return True
     if relative.startswith("references/"):
         return True
     if relative.startswith("tests/v23/"):
-        return bool(re.fullmatch(r"tests/v23/test_v234_[A-Za-z0-9_.-]+\.py", relative))
-    return any(relative.startswith(prefix) for prefix in _V234_PRODUCT_PREFIXES)
+        versions = "v23[45]" if binding.get("explicit") is True else "v234"
+        return bool(re.fullmatch(rf"tests/v23/test_{versions}_[A-Za-z0-9_.-]+\.py", relative))
+    prefixes = _V234_PRODUCT_PREFIXES
+    if binding.get("explicit") is True:
+        prefixes = (
+            f"docs/archive/{binding['release_version']}/", "examples/", "prompts/",
+            "schemas/v2.3/", "schemas/v2.35/", "scripts/", "subagents/",
+        )
+    return any(relative.startswith(prefix) for prefix in prefixes)
 
 
-def _candidate_path_requirements(paths: list[str]) -> list[str]:
+def _candidate_path_requirements(
+    paths: list[str], normalized_binding: dict[str, Any] | None = None,
+) -> list[str]:
+    binding = normalized_binding or _version_binding.default_version_binding()
     available = set(paths)
-    gaps = sorted(_V234_REQUIRED_CANDIDATE_PATHS - available)
+    required = _V235_REQUIRED_CANDIDATE_PATHS if binding.get("explicit") is True else _V234_REQUIRED_CANDIDATE_PATHS
+    gaps = sorted(required - available)
+    test_version = "v235" if binding.get("explicit") is True else "v234"
     if not any(
-        re.fullmatch(r"tests/v23/test_v234_[A-Za-z0-9_.-]+\.py", path)
+        re.fullmatch(rf"tests/v23/test_{test_version}_[A-Za-z0-9_.-]+\.py", path)
         for path in paths
     ):
-        gaps.append("tests/v23/test_v234_*.py")
+        gaps.append(f"tests/v23/test_{test_version}_*.py")
     return gaps
 
 
@@ -3411,6 +3890,7 @@ def _repository_protection_state(repository: Path) -> dict[str, Any] | None:
 
 def _discover_v234_product_changes(
     repository: Path, baseline_commit: str,
+    normalized_binding: dict[str, Any] | None = None,
 ) -> tuple[str | None, list[str] | None, str | None]:
     resolved = _git(repository, ["rev-parse", "--verify", f"{baseline_commit}^{{commit}}"])
     head = _git(repository, ["rev-parse", "--verify", "HEAD^{commit}"])
@@ -3431,10 +3911,12 @@ def _discover_v234_product_changes(
         }
     except UnicodeDecodeError:
         return None, None, "E_V234_SNAPSHOT_PATH"
-    changed = sorted(path for path in candidates if _v234_product_path(path))
+    changed = sorted(
+        path for path in candidates if _v234_product_path(path, normalized_binding)
+    )
     if not changed:
         return baseline, None, "E_V234_SNAPSHOT_EMPTY_DELTA"
-    gaps = _candidate_path_requirements(changed)
+    gaps = _candidate_path_requirements(changed, normalized_binding)
     if gaps:
         return baseline, None, "E_V234_SNAPSHOT_REQUIRED_PRODUCT_DELTA"
     return baseline, changed, None
@@ -3442,12 +3924,14 @@ def _discover_v234_product_changes(
 
 def _isolated_candidate_snapshot_core(
     repository: Path, baseline_commit: str,
+    normalized_binding: dict[str, Any] | None = None,
 ) -> tuple[dict[str, Any] | None, str | None, list[str]]:
+    binding = normalized_binding or _version_binding.default_version_binding()
     before = _repository_protection_state(repository)
     if before is None:
         return None, "E_V234_SNAPSHOT_REPOSITORY", []
     baseline, product_paths, discovery_error = _discover_v234_product_changes(
-        repository, baseline_commit
+        repository, baseline_commit, binding
     )
     if discovery_error or baseline is None or product_paths is None:
         return None, discovery_error or "E_V234_SNAPSHOT_GIT", []
@@ -3552,17 +4036,29 @@ def _isolated_candidate_snapshot_core(
         "product_manifest_sha256": _digest_bytes(_canonical_bytes(records)),
         "protected_repository_state": before,
     }
+    if binding.get("explicit") is True:
+        core["version_binding"] = copy.deepcopy(binding)
+        core["version_binding_digest"] = binding["binding_digest"]
     return core, None, []
 
 
 def create_protected_candidate_snapshot(
     repo_root: Path | str, *, baseline_commit: str, receipt_path: Path | str | None = None,
+    version_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Create a current-worktree tree receipt without touching index, refs, or history."""
     repository = Path(repo_root).absolute().resolve()
-    core, error, details = _isolated_candidate_snapshot_core(repository, baseline_commit)
+    binding_result = _binding_result(repository, version_binding)
+    if not binding_result.get("ok"):
+        return binding_result
+    core, error, details = _isolated_candidate_snapshot_core(
+        repository, baseline_commit, binding_result["binding"]
+    )
     if error or core is None:
         return _error(error or "E_V234_SNAPSHOT_GIT", affected_paths=details, mutation_count=0)
+    current_binding = _binding_result(repository, binding_result["binding"])
+    if not current_binding.get("ok"):
+        return current_binding
     receipt = {**core, "receipt_sha256": _digest_bytes(_canonical_bytes(core))}
     if receipt_path is not None:
         destination = Path(receipt_path).absolute()
@@ -3586,7 +4082,8 @@ def create_protected_candidate_snapshot(
 
 
 def validate_protected_candidate_snapshot(
-    repo_root: Path | str, receipt: dict[str, Any],
+    repo_root: Path | str, receipt: dict[str, Any], *,
+    version_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     repository = Path(repo_root).absolute().resolve()
     if (
@@ -3595,13 +4092,25 @@ def validate_protected_candidate_snapshot(
         or receipt.get("mode") != "isolated_index_tree"
     ):
         return _error("E_V234_SNAPSHOT_RECEIPT")
+    embedded_binding = receipt.get("version_binding")
+    binding_result = _binding_result(
+        repository,
+        version_binding if version_binding is not None else embedded_binding,
+    )
+    if not binding_result.get("ok"):
+        return binding_result
+    normalized_binding = binding_result["binding"]
+    if normalized_binding.get("explicit") is True and receipt.get("version_binding_digest") != normalized_binding["binding_digest"]:
+        return _version_binding._error("E_V235_VERSION_BINDING_DIGEST")
     supplied_core = {key: value for key, value in receipt.items() if key != "receipt_sha256"}
     if receipt.get("receipt_sha256") != _digest_bytes(_canonical_bytes(supplied_core)):
         return _error("E_V234_SNAPSHOT_RECEIPT")
     baseline = receipt.get("baseline_commit")
     if not isinstance(baseline, str):
         return _error("E_V234_SNAPSHOT_RECEIPT")
-    current_core, error, details = _isolated_candidate_snapshot_core(repository, baseline)
+    current_core, error, details = _isolated_candidate_snapshot_core(
+        repository, baseline, normalized_binding
+    )
     if error or current_core is None:
         return _error(error or "E_V234_SNAPSHOT_STALE", affected_paths=details)
     if current_core != supplied_core:
@@ -3633,11 +4142,24 @@ def publish_guard(
     repo_root: Path | str, *, mode: str, commit: str | None = None,
     baseline_commit: str | None = None,
     snapshot_receipt: dict[str, Any] | None = None,
+    version_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     repository = Path(repo_root).absolute().resolve()
+    embedded_binding = (
+        snapshot_receipt.get("version_binding")
+        if isinstance(snapshot_receipt, dict) else None
+    )
+    binding_result = _binding_result(
+        repository,
+        version_binding if version_binding is not None else embedded_binding,
+    )
+    if not binding_result.get("ok"):
+        return binding_result
+    normalized_binding = binding_result["binding"]
     if mode == "snapshot":
         validation = validate_protected_candidate_snapshot(
-            repository, snapshot_receipt if isinstance(snapshot_receipt, dict) else {}
+            repository, snapshot_receipt if isinstance(snapshot_receipt, dict) else {},
+            version_binding=normalized_binding,
         )
         if not validation.get("ok"):
             return _error(
@@ -3648,6 +4170,10 @@ def publish_guard(
             denied_paths=[], checked_paths=validation["checked_paths"], mode=mode,
             candidate_tree_oid=validation["candidate_tree_oid"],
             receipt_sha256=validation["receipt_sha256"],
+            **(
+                {"version_binding_digest": normalized_binding["binding_digest"]}
+                if normalized_binding.get("explicit") is True else {}
+            ),
         )
     if mode == "index":
         names_result = _git(repository, ["diff", "--cached", "--name-only", "-z"])
@@ -3689,7 +4215,13 @@ def publish_guard(
             denied.append(name)
     if denied:
         return _error("E_V234_PUBLISH_GUARD", denied_paths=sorted(denied), checked_paths=sorted(names))
-    return _ok(denied_paths=[], checked_paths=sorted(names), mode=mode)
+    return _ok(
+        denied_paths=[], checked_paths=sorted(names), mode=mode,
+        **(
+            {"version_binding_digest": normalized_binding["binding_digest"]}
+            if normalized_binding.get("explicit") is True else {}
+        ),
+    )
 
 
 def capture_worktree_guard(repo_root: Path | str, *, protected_paths: list[str]) -> dict[str, Any]:
@@ -3763,9 +4295,20 @@ def validate_version_sync(repo_root: Path | str, *, expected_version: str) -> di
 
 def validate_release_closure(
     completion_proof: dict[str, Any], *, source_context: dict[str, Any] | None = None,
+    version_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    supplied_binding = version_binding
+    if supplied_binding is None and isinstance(source_context, dict):
+        candidate = source_context.get("version_binding")
+        supplied_binding = candidate if isinstance(candidate, dict) else None
+    binding_result = _binding_result(
+        (source_context or {}).get("repo_root", "."), supplied_binding
+    )
+    if not binding_result.get("ok"):
+        return binding_result
     errors = _completion_proof_errors(
         completion_proof, source_context or {}, bundle=None, archive_descriptor=None,
+        normalized_binding=binding_result["binding"],
     )
     if errors:
         return _error("E_V234_RELEASE_CLOSURE", gaps=errors)

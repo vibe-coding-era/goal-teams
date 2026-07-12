@@ -62,6 +62,21 @@
 
 单元测试作者、后端实现者和单元测试执行者不能是同一唯一 subagent。E2E 用例作者和 E2E 执行者也必须分离。API 集成测试默认 Python + pytest；项目另有规范时必须写明依据。
 
+## V2.35 四专家 Lead-only 派发
+
+仅当结构化 route 将专项标为 required/requested 时加载 `references/rules-specialists.md` 和对应单一成员包。
+
+| 专家 | agent_type | capability | 只读交接物 |
+| --- | --- | --- | --- |
+| 安全 | `goal_security` | `security_assessment`, `security_proposal` | `security_assessment`、proposal、dispatch request |
+| 性能 | `goal_performance` | `performance_benchmark`, `performance_proposal` | `performance_benchmark_proposal`、dispatch request |
+| 重构 | `goal_refactor` | `refactor_equivalence`, `refactor_proposal` | `refactor_equivalence_proposal`、dispatch request |
+| SQA | `goal_sqa` | `sqa_process_review`, `sqa_archive_proposal` | `sqa_process_archive_proposal`、dispatch request |
+
+四者固定 `sandbox_mode=read-only`、`coordination_depth=1`、`can_spawn_subagents=false`、`can_dispatch=false`、`dispatch_owner_agent_type=goal_lead`、`handoff_mode=proposal_only`。专家只能把 assessment/proposal/task patch/dispatch request 交给 Lead；禁止直接派发、nested team、写产品或中央 TaskList、自我 applied/verified。
+
+Lead 收到 `specialist_dispatch_request` 后校验 proposal hash、scope containment、capability、Budget、Conflict Policy、授权与 review class，再由 ledger owner 创建 task，并派不同实现/测试/validator run。请求本身不是派发或执行 Evidence；违反时返回 `E_V235_SPECIALIST_DISPATCH_FORBIDDEN`。
+
 ## 并发冲突
 
 - 同一 `locked_scope` 只有一个写 Owner。

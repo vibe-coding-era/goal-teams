@@ -11,9 +11,12 @@
 | PRD 基于规格卡 | passed | `PRD.md` |
 | HTML 原型表达空状态 | passed | `HTML-prototype.html` |
 | 测试计划覆盖验收标准 | passed | `test-plan.md` |
-| V1.91 界面验证规则已说明 | passed | `tasklist.md` + `test-plan.md` |
-| 独立校验证据已记录 | passed | `progress.md` |
-| 收尾审计已完成 | passed | `progress.md#收尾审计` |
+| Architecture 独立 acceptance | blocked | 缺 exact-hash review Evidence |
+| Architecture-bound Environment `ready` | blocked | 缺 `development_environment_check` 与 current Evidence |
+| UI E2E 规则已说明 | passed | `tasklist.md` + `test-plan.md` |
+| 独立 E2E 用例与执行 Evidence | blocked | 当前仅 `sample_only` / `no_runner`，不得充当 Evidence |
+| 独立整体验收证据 | blocked | E2E required task 未闭合 |
+| 图外收尾审计 | not_started | required task 未 accepted，不允许启动自证 |
 | Harness setup 输入和边界清楚 | passed | `../harness/setup.md` |
 | Harness run 记录可复盘 | passed | `../harness/run.md` |
 | Harness checks 覆盖关键规则 | passed | `../harness/checks.md` |
@@ -25,7 +28,7 @@
 ## 剩余风险
 
 - 支持入口的真实目标地址仍需业务方确认。
-- 本示例没有运行浏览器 E2E 或截图验证，因为它只作为 `sample_only` 静态文档结构样例；真实界面级任务必须做 E2E。
+- 本示例尚未运行浏览器 E2E 或截图验证；`sample_only` 仅限制分发/生产声明，不豁免 UI E2E，因此当前状态是 blocked，不是 passed/done。
 - 本示例不是复刻任务且没有参考图，因此像素级对比不适用；真实复刻任务必须记录基准图、实际图、diff 图或差异指标。
 - Harness 是静态复盘资料，不代表存在可执行测试框架。
 - automation protocol、evidence ledger 和 pipeline gates 是静态样例，不代表真实生产流接入。

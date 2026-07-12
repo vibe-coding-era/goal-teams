@@ -6,6 +6,7 @@
 - `scripts/review/compare-artifacts.py`：比较 API schema、golden output、报告或生成文件。
 - `scripts/review/validate-dual-review.py`：按 review_class 校验 required half 与结构化 N/A。
 - 后端单元测试由 `goal_unit_test_runner` 执行；API 集成测试默认由 `goal_api_integration_test_runner` 使用 `python -m pytest` 或项目命令执行。
+- V2.35 实现门前运行 `scripts/checks/validate-test-case-contract.py`；失败时不得进入实现，不得修改测试制造通过。
 
 规则：
 

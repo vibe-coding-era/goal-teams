@@ -1,5 +1,7 @@
 # V0.1 文档索引
 
+V2.35 compatibility status: overall `blocked` on required independent E2E. A `done` row below describes file generation only, not project acceptance or Completion Audit.
+
 | 文档 | Owner | 状态 | 说明 |
 | --- | --- | --- | --- |
 | `plan.md` | Goal Lead | done | 计划、假设、确认表 |

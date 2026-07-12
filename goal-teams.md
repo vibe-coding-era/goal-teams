@@ -4,11 +4,14 @@
 
 ## 基本原则
 
-- 当前 skill 版本号为 `V2.34`，版本号保存在仓库根目录 `VERSION`，并同步写入 `SKILL.md` 正文；`SKILL.md` frontmatter 只保留 `name` 和 `description`。
+- 当前 skill 版本号为 `V2.35`，版本号保存在仓库根目录 `VERSION`，并同步写入 `SKILL.md` 正文；`SKILL.md` frontmatter 只保留 `name` 和 `description`。
 - 历史 `V2.02` 与 `V2.1` 是 `V2.3` 前的补丁线；后续版本优先使用 `V2.3`、`V2.4` 这类递增格式，避免继续新增 `V2.0x` 版本叙事。
-- 显式调用 Goal Teams 或当前会话首次需要建立身份时，Goal Lead 简短汇报：`我是 Goal Teams Lead V2.34。`；已有完整上下文时直接执行，不重复仪式。
-- `V1.5` 引入 Harness 契约与三层 Loop 规则，`V1.6` 补充最小 Harness 示例，`V1.7` 引入 Benchmark 外层评估模板，`V1.8` 引入机器可读研发协议，`V1.9` 引入生产流与 Release Gate 协议，`V1.91` 强化中文右边栏成员显示名、界面 E2E 和复刻像素级对比，`V1.92` 引入脚本化工具链、派发协议、冲突策略、预算门和证据不足打回规则，`V1.93` 引入 `SKILL.md` 轻量入口、`prompts/` 角色提示词目录和脚本分目录，`V1.94` 引入成员包子目录和 LLM + 脚本双重复核，`V1.95` 引入 Plan 模式 `需求卡片`，`V1.96` 引入用户故事和功能验收标准，`V1.97` 引入 Google OKF、默认输出目录、memory.md、页面规格卡/HTML 原型组件库记录，`V2.0` 引入版本子目录 SSOT、TaskList 先行、后端架构先行、TDD 单测生成/执行、API 集成 pytest 和前端 E2E 生成/执行，`V2.02` 引入 `RULES.md` 响应规范，`V2.1` 引入 Lead LOOP、Loop Decision、Loop Gate、状态快照和 `GT-BENCH-004`，`V2.3` 引入机器契约与 release gates，`V2.33` 明确规则优先级、显式 preview、引用降级和双语发布结构，`V2.34` 引入合同与环境门、可恢复状态 LOOP、限定重置和第 11 轮交付门；当前运行规则按 `V2.34` 执行。
-- `SKILL.md` 只保留触发导向 description、固定启动语、不变量、规划检查、失败降级摘要、工作流摘要和渐进式加载路由；完整硬边界和条件规则分别放入 `references/invariants.md`、`references/rules-ui.md`、`references/rules-testing.md`、`references/rules-loop.md` 和 `references/compat.md`。
+- 显式调用 Goal Teams 或当前会话首次需要建立身份时，Goal Lead 简短汇报：`我是 Goal Teams Lead V2.35。`；已有完整上下文时直接执行，不重复仪式。
+- `V1.5` 引入 Harness 契约与三层 Loop 规则，`V1.6` 补充最小 Harness 示例，`V1.7` 引入 Benchmark 外层评估模板，`V1.8` 引入机器可读研发协议，`V1.9` 引入生产流与 Release Gate 协议，`V1.91` 强化中文右边栏成员显示名、界面 E2E 和复刻像素级对比，`V1.92` 引入脚本化工具链、派发协议、冲突策略、预算门和证据不足打回规则，`V1.93` 引入 `SKILL.md` 轻量入口、`prompts/` 角色提示词目录和脚本分目录，`V1.94` 引入成员包子目录和 LLM + 脚本双重复核，`V1.95` 引入 Plan 模式 `需求卡片`，`V1.96` 引入用户故事和功能验收标准，`V1.97` 引入 Google OKF、默认输出目录、memory.md、页面规格卡/HTML 原型组件库记录，`V2.0` 引入版本子目录 SSOT、TaskList 先行、后端架构先行、TDD 单测生成/执行、API 集成 pytest 和前端 E2E 生成/执行，`V2.02` 引入 `RULES.md` 响应规范，`V2.1` 引入 Lead LOOP、Loop Decision、Loop Gate、状态快照和 `GT-BENCH-004`，`V2.3` 引入机器契约与 release gates，`V2.33` 明确规则优先级、显式 preview、引用降级和双语发布结构，`V2.34` 引入合同与环境门、可恢复状态 LOOP、限定重置和第 11 轮交付门，`V2.35` 引入四专家提案、项目规模/工作类型路由、可执行断言契约和显式版本绑定；当前运行规则按 `V2.35` 执行。
+- `SKILL.md` 只保留触发导向 description、固定启动语、不变量、规划检查、失败降级摘要、工作流摘要和渐进式加载路由；完整硬边界和条件规则分别放入 `references/invariants.md`、`references/rules-ui.md`、`references/rules-testing.md`、`references/rules-loop.md`、`references/rules-project-sizing.md`、`references/rules-specialists.md`、`references/test-case-assertion-protocol.md` 和 `references/compat.md`。
+- V2.35 的 `project_size=large|medium|small` 与 `work_type=feature|bugfix` 必须作为两个结构化事实路由；任何规模都不得省略 Architecture、Environment、独立测试和 Evidence，UI 必须独立 E2E，BugFix 必须 TDD + integration，安全/高风险覆盖不得被规模降级。
+- V2.35 的 `goal_security`、`goal_performance`、`goal_refactor`、`goal_sqa` 是只读 proposal-only 专家：只向 Goal Lead 输出 assessment、proposal、task patch 和 dispatch request；不得直接实现、测试、派发、创建嵌套团队、写中央状态或自证 verified。只有 Goal Lead 能派发独立实现与验证。
+- V2.35 适用的 unit、TDD、integration、E2E、CLI、API 和 fixture 用例必须同时提供非空 `input`、`processing`、`expected_output`、`assertions`；退出码或 HTTP status 不得单独证明业务正确。
 - `RULES.md` 承载 Goal Lead 和所有成员的 Response Contract，要求执行优先、只报告已验证事实、未验证不宣称完成、区分观察和结论、避免无关解释和建议。
 - SSOT 是核心原则：交接物类型、Owner 字段、独立检查字段和状态字段以 `prompts/packets/handoff-artifacts.md` 为 Single Source of Truth；其他 workflow、template、README 和 runtime 示例只能引用或同步它，不能另起一套口径。
 - Google OKF 是生成文档的核心格式：所有 Markdown 输出默认使用 YAML frontmatter，且必须包含非空 `type`；本地双语规范为 `references/google-okf-bilingual-spec.md`。
@@ -196,6 +199,9 @@
   - `references/rules-ui.md`
   - `references/rules-testing.md`
   - `references/rules-loop.md`
+  - `references/rules-project-sizing.md`
+  - `references/rules-specialists.md`
+  - `references/test-case-assertion-protocol.md`
   - `references/goal-teams-runtime.md`
   - `references/default-AGENTS.md`
   - `references/google-okf-bilingual-spec.md`

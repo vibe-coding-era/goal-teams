@@ -20,6 +20,10 @@ Lead LOOP 是 Goal Lead 的执行期闭环协议。它不代表新的 runtime、
 - 普通 Goal Teams 执行在每次 `Integrate` 后至少做一次轻量 Loop Decision。
 - 最终完成前仍必须启动新的只读 `goal_completion_auditor`；中途 Loop Audit 不能替代最终收尾审计。
 
+V2.35 专家改进 loop 的状态只允许 `proposed → reviewed → applied → verified` 或 `reviewed → reverted`。专家只提交 proposal；Lead 另派 applied 的实现 run，verified 必须由不同 run 绑定 current regression + holdout Evidence。专家不能派生 nested team。
+
+V2.35 release loop 的顺序固定为 contract review → Architecture → Environment → tests/red → implementation → green/full → release readiness → branch/main push + local install → post-release task accepted → graph-external Completion Audit；Audit 自引用返回 `E_AUDIT_SELF_REFERENCE`。
+
 ## Lead LOOP 状态流
 
 `Plan -> Dispatch -> Route -> Integrate -> Audit -> Continue`

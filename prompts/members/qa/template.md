@@ -8,6 +8,11 @@ Harness：
 - commands:
 - artifact_checks:
 - evidence_paths:
+- v2_35_route: <project_size/work_type/overrides/specialists>
+- test_case_contracts: <validator reports>
+- observed_output_and_assertion_results: <refs>
+- specialist_checks: <security/performance/refactor/sqa evidence or N/A>
+- release_audit_boundary: <remote/local/post-release accepted; Audit graph-external>
 复核（先选 review_class）：
 - review_class: structural | comparison | safety | semantic
 - script:

@@ -19,8 +19,8 @@
 
 | 项目 | 规则 | 证据 |
 | --- | --- | --- |
-| 允许范围 | 只读示例输入，写入版本目录文档 | `plan.md#环境检查` |
-| 禁止范围 | 不修改真实业务代码 | `plan.md#用户目标` |
+| 允许范围 | 只读示例输入，写入版本目录文档 | [`../plan.md#门禁现状`](../plan.md#门禁现状) |
+| 禁止范围 | 不修改真实业务代码 | [`../plan.md#用户目标`](../plan.md#用户目标) |
 | 依赖 | 不新增运行时依赖或脚本 | 本文件和 `decisions.md` |
 | Harness 形态 | Markdown、YAML、JSON 静态复盘资料 | `README.md` |
 | 生产边界 | 不连接真实生产、CI、凭证、支付或认证系统 | `automation-protocol.sample.yaml`、`pipeline-gates.sample.yaml` |

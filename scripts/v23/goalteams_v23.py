@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Goal Teams V2.3 machine core and V2.34 recoverable control-plane adapter."""
+"""Goal Teams V2.3 core with V2.34 recovery and V2.35 policy adapters."""
 
 from __future__ import annotations
 
@@ -96,11 +96,13 @@ def _bootstrap_json(path: Path) -> dict[str, Any]:
 SCHEMA = _bootstrap_json(SCHEMA_PATH)
 SCHEMA_VERSION = str(SCHEMA["schema_version"])
 ARTIFACT_VERSION = str(SCHEMA["artifact_version"])
-PRODUCT_VERSION = "V2.34"
+PRODUCT_VERSION = "V2.35"
 
 
 _V234_RUNTIME: Any | None = None
 _V234_CLOSURE: Any | None = None
+_V235_POLICY: Any | None = None
+_EMIT_COMPACT = False
 
 
 def _load_v234_runtime() -> Any:
@@ -134,6 +136,24 @@ def _load_v234_closure() -> Any:
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     _V234_CLOSURE = module
+    return module
+
+
+def _load_v235_policy() -> Any:
+    """Load the V2.35 pure policy only when a V2.35 surface is invoked."""
+    global _V235_POLICY
+    if _V235_POLICY is not None:
+        return _V235_POLICY
+    path = Path(__file__).resolve().with_name("v235_policy.py")
+    if not path.is_file() or path.is_symlink():
+        raise ContractError("E_COMMAND", ["E_COMMAND"])
+    spec = importlib.util.spec_from_file_location("_goalteams_v235_policy", path)
+    if spec is None or spec.loader is None:
+        raise ContractError("E_COMMAND", ["E_COMMAND"])
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    _V235_POLICY = module
     return module
 
 
@@ -272,7 +292,13 @@ def envelope(ok: bool, code: str = "OK", **data: Any) -> dict[str, Any]:
 
 
 def emit(payload: dict[str, Any], rc: int = 0) -> None:
-    sys.stdout.write(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
+    if _EMIT_COMPACT:
+        rendered = json.dumps(
+            payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        )
+    else:
+        rendered = json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True)
+    sys.stdout.write(rendered + "\n")
     raise SystemExit(rc)
 
 
@@ -3510,7 +3536,7 @@ def validate_canonical(root: Path) -> list[str]:
     return sorted(set(errors))
 
 
-def route(features: Any) -> dict[str, Any]:
+def _legacy_route(features: Any) -> dict[str, Any]:
     if not isinstance(features, dict):
         raise ContractError("E_ROUTE_TYPE", ["E_ROUTE_TYPE"])
     profile = "lite"
@@ -3570,6 +3596,24 @@ def route(features: Any) -> dict[str, Any]:
         "plan_preview_policy": preview_policy,
         "reference_policy": reference_result,
     }
+
+
+def _looks_like_v235_route(features: Any) -> bool:
+    if not isinstance(features, dict):
+        return False
+    schema = features.get("schema_version")
+    return bool(
+        (isinstance(schema, str) and schema.startswith("goal-teams-project-route-"))
+        or "project_size" in features
+        or "work_type" in features
+    )
+
+
+def route(features: Any) -> dict[str, Any]:
+    """Route V2.35 structured requests without changing legacy V2.3 inputs."""
+    if _looks_like_v235_route(features):
+        return _load_v235_policy().normalize_project_route(features)
+    return _legacy_route(features)
 
 
 def plan_preview_policy(request: Any) -> dict[str, Any]:
@@ -5917,6 +5961,8 @@ def _build_parser() -> argparse.ArgumentParser:
     command.add_argument("--license-decision")
     command = sub.add_parser("route")
     command.add_argument("features")
+    command = sub.add_parser("validate-test-case")
+    command.add_argument("path")
     command = sub.add_parser("plan-preview-policy")
     command.add_argument("request")
     command = sub.add_parser("reference-policy")
@@ -5983,6 +6029,9 @@ def _build_parser() -> argparse.ArgumentParser:
         value.add_argument("--expected-bundle-revision", required=True, type=int)
         value.add_argument("--expected-bundle-digest", required=True)
 
+    def version_binding(value: argparse.ArgumentParser) -> None:
+        value.add_argument("--version-binding")
+
     command = state_root_command("v234-state-init")
     command.add_argument("--repo-root", required=True)
     command.add_argument("--loop-id", required=True)
@@ -5992,10 +6041,12 @@ def _build_parser() -> argparse.ArgumentParser:
     command.add_argument("--checkpoint")
     command.add_argument("--actor-run-id", required=True)
     command.add_argument("--adopt-legacy-digest")
+    version_binding(command)
     command = state_root_command("v234-state-validate")
     command.add_argument("--repo-root")
     command.add_argument("--ledger")
     command.add_argument("--checkpoint")
+    version_binding(command)
     command = state_root_command("v234-state-transition")
     command.add_argument("--event", required=True)
     command.add_argument("--actor-run-id")
@@ -6003,12 +6054,16 @@ def _build_parser() -> argparse.ArgumentParser:
     command.add_argument("--checkpoint", required=True)
     command.add_argument("--evidence-jsonl")
     command.add_argument("--identity-registry")
+    command.add_argument("--repo-root")
+    version_binding(command)
     cas(command)
     command = state_root_command("v234-state-reconcile")
     command.add_argument("--mode", choices=["auto", "replay"], required=True)
     command.add_argument("--ledger")
     command.add_argument("--checkpoint")
     command.add_argument("--actor-run-id")
+    command.add_argument("--repo-root")
+    version_binding(command)
     cas(command)
     command = state_root_command("v234-contract-gate")
     command.add_argument("--identity-registry", required=True)
@@ -6016,6 +6071,8 @@ def _build_parser() -> argparse.ArgumentParser:
     command.add_argument("--checkpoint", required=True)
     command.add_argument("--review-record", required=True)
     command.add_argument("--actor-run-id", required=True)
+    command.add_argument("--repo-root")
+    version_binding(command)
     cas(command)
     command = state_root_command("v234-environment-record")
     command.add_argument("--report", required=True)
@@ -6024,6 +6081,8 @@ def _build_parser() -> argparse.ArgumentParser:
     command.add_argument("--ledger", required=True)
     command.add_argument("--actor-run-id", required=True)
     command.add_argument("--checkpoint", required=True)
+    command.add_argument("--repo-root")
+    version_binding(command)
     cas(command)
     command = state_root_command("v234-implementation-gate")
     command.add_argument("--task-id", required=True)
@@ -6039,11 +6098,15 @@ def _build_parser() -> argparse.ArgumentParser:
     command.add_argument("--actor-run-id", required=True)
     command.add_argument("--ledger", required=True)
     command.add_argument("--checkpoint", required=True)
+    command.add_argument("--repo-root")
+    version_binding(command)
     cas(command)
     command = state_root_command("v234-log-append")
     command.add_argument("--event", required=True)
     command.add_argument("--ledger", required=True)
     command.add_argument("--checkpoint", required=True)
+    command.add_argument("--repo-root")
+    version_binding(command)
     cas(command)
     state_root_command("v234-log-diagnose")
     command = state_root_command("v234-bottleneck-recompute")
@@ -6052,6 +6115,8 @@ def _build_parser() -> argparse.ArgumentParser:
     command.add_argument("--actor-run-id", required=True)
     command.add_argument("--ledger", required=True)
     command.add_argument("--checkpoint", required=True)
+    command.add_argument("--repo-root")
+    version_binding(command)
     cas(command)
     command = state_root_command("v234-reset-plan")
     command.add_argument("--repo-root", required=True)
@@ -6060,6 +6125,7 @@ def _build_parser() -> argparse.ArgumentParser:
     command.add_argument("--artifact-root")
     command.add_argument("--ledger", required=True)
     command.add_argument("--identity-registry", required=True)
+    version_binding(command)
     command = state_root_command("v234-reset-apply")
     command.add_argument("--repo-root", required=True)
     command.add_argument("--plan", required=True)
@@ -6068,6 +6134,7 @@ def _build_parser() -> argparse.ArgumentParser:
     command.add_argument("--ledger", required=True)
     command.add_argument("--checkpoint", required=True)
     command.add_argument("--identity-registry", required=True)
+    version_binding(command)
     cas(command)
     command = state_root_command("v234-reset-rebind-task")
     command.add_argument("--authorization", required=True)
@@ -6075,20 +6142,25 @@ def _build_parser() -> argparse.ArgumentParser:
     command.add_argument("--ledger", required=True)
     command.add_argument("--checkpoint", required=True)
     command.add_argument("--identity-registry", required=True)
+    command.add_argument("--repo-root")
+    version_binding(command)
     cas(command)
     command = state_root_command("v234-delivery-gate")
     command.add_argument("--completion-inputs", required=True)
     command.add_argument("--archive-descriptor", required=True)
     command.add_argument("--source-context", required=True)
+    version_binding(command)
     command = state_root_command("v234-publish-guard")
     group = command.add_mutually_exclusive_group(required=True)
     group.add_argument("--index", action="store_true")
     group.add_argument("--commit")
     group.add_argument("--snapshot-receipt")
     command.add_argument("--baseline-commit")
+    version_binding(command)
     command = state_root_command("v234-candidate-snapshot")
     command.add_argument("--baseline-commit", required=True)
     command.add_argument("--receipt", required=True)
+    version_binding(command)
     command = state_root_command("v234-deliver")
     command.add_argument("--repo-root", required=True)
     command.add_argument("--delivery-id", required=True)
@@ -6098,6 +6170,7 @@ def _build_parser() -> argparse.ArgumentParser:
     command.add_argument("--completion-inputs", required=True)
     command.add_argument("--source-context", required=True)
     command.add_argument("--actor-run-id", required=True)
+    version_binding(command)
     cas(command)
     command = state_root_command("v234-closure-ledger-binding")
     command.add_argument("--ledger", required=True)
@@ -6113,6 +6186,7 @@ def _build_parser() -> argparse.ArgumentParser:
     command.add_argument("--ledger", required=True)
     command.add_argument("--artifact-root")
     command.add_argument("--output-dir", required=True)
+    version_binding(command)
     command = state_root_command("v234-closure-build")
     command.add_argument("--repo-root", required=True)
     command.add_argument("--ledger", required=True)
@@ -6136,6 +6210,7 @@ def _build_parser() -> argparse.ArgumentParser:
     command.add_argument("--protected-path", action="append", required=True)
     command.add_argument("--prompt-lifecycle")
     command.add_argument("--output-dir", required=True)
+    version_binding(command)
     command = state_root_command("v234-loop-advance")
     command.add_argument("--target-iteration", required=True, type=int)
     command.add_argument("--target-phase", choices=["gather", "reason", "act", "verify", "repeat"], required=True)
@@ -6145,6 +6220,8 @@ def _build_parser() -> argparse.ArgumentParser:
     command.add_argument("--evidence-registry", required=True)
     command.add_argument("--identity-registry", required=True)
     command.add_argument("--output-dir", required=True)
+    command.add_argument("--repo-root")
+    version_binding(command)
     return parser
 
 
@@ -6548,9 +6625,16 @@ def _validate_v234_implementation_events(
 
 
 def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
+    global _EMIT_COMPACT
+    _EMIT_COMPACT = False
     if args.cmd.startswith("v234-"):
         runtime = _load_v234_runtime()
         state_root = Path(args.root)
+        version_binding = (
+            load_json_object(Path(args.version_binding))
+            if getattr(args, "version_binding", None)
+            else None
+        )
         if args.cmd == "v234-closure-ledger-binding":
             closure = _load_v234_closure()
             return _v234_cli_envelope(
@@ -6582,6 +6666,7 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
                     ledger_path=Path(args.ledger),
                     output_dir=Path(args.output_dir),
                     artifact_root=Path(args.artifact_root) if args.artifact_root else None,
+                    version_binding=version_binding,
                 ),
                 runtime,
             )
@@ -6611,6 +6696,7 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
                     protected_paths=args.protected_path,
                     output_dir=Path(args.output_dir),
                     prompt_lifecycle_path=Path(args.prompt_lifecycle) if args.prompt_lifecycle else None,
+                    version_binding=version_binding,
                 ),
                 runtime,
             )
@@ -6627,6 +6713,8 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
                     evidence_registry_path=Path(args.evidence_registry),
                     identity_registry_path=Path(args.identity_registry),
                     output_dir=Path(args.output_dir),
+                    repo_root=Path(args.repo_root) if args.repo_root else None,
+                    version_binding=version_binding,
                 ),
                 runtime,
             )
@@ -6644,12 +6732,22 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
                 adopt_legacy_digest=args.adopt_legacy_digest,
                 ledger_events=_jsonl_objects(Path(args.ledger)) if args.ledger else None,
                 checkpoint_bytes=Path(args.checkpoint).read_bytes() if args.checkpoint else None,
+                version_binding=version_binding,
             )
             return _v234_cli_envelope(result, runtime)
         if args.cmd == "v234-state-validate":
             events = _jsonl_objects(Path(args.ledger)) if args.ledger else None
             checkpoint = _checkpoint_with_source(Path(args.checkpoint)) if args.checkpoint else None
-            return _v234_cli_envelope(runtime.validate_state_bundle(state_root, ledger_events=events, checkpoint=checkpoint), runtime)
+            return _v234_cli_envelope(
+                runtime.validate_state_bundle(
+                    state_root,
+                    ledger_events=events,
+                    checkpoint=checkpoint,
+                    repo_root=Path(args.repo_root) if args.repo_root else None,
+                    version_binding=version_binding,
+                ),
+                runtime,
+            )
         if args.cmd == "v234-state-transition":
             event = load_json_object(Path(args.event))
             actor = args.actor_run_id or event.get("actor_run_id")
@@ -6676,6 +6774,8 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
                 transition=event,
                 ledger_events=events, checkpoint=checkpoint,
                 evidence_registry=evidence_wrapper, identity_registry=identity_doc,
+                repo_root=Path(args.repo_root) if args.repo_root else None,
+                version_binding=version_binding,
             )
             return _v234_cli_envelope(result, runtime)
         if args.cmd == "v234-state-reconcile":
@@ -6687,6 +6787,8 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
                     expected_bundle_revision=args.expected_bundle_revision,
                     expected_bundle_digest=args.expected_bundle_digest,
                     ledger_events=events, checkpoint=checkpoint, actor_run_id=args.actor_run_id,
+                    repo_root=Path(args.repo_root) if args.repo_root else None,
+                    version_binding=version_binding,
                 ), runtime,
             )
         if args.cmd == "v234-contract-gate":
@@ -6720,6 +6822,8 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
                         },
                     ),
                     ledger_events=events, checkpoint=checkpoint,
+                    repo_root=Path(args.repo_root) if args.repo_root else None,
+                    version_binding=version_binding,
                 )
             return _v234_cli_envelope(result, runtime)
         if args.cmd == "v234-environment-record":
@@ -6727,6 +6831,8 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
             checkpoint = _checkpoint_with_source(Path(args.checkpoint))
             validation = runtime.validate_state_bundle(
                 state_root, ledger_events=ledger_events, checkpoint=checkpoint,
+                repo_root=Path(args.repo_root) if args.repo_root else None,
+                version_binding=version_binding,
             )
             if not validation.get("ok"):
                 return _v234_cli_envelope(validation, runtime)
@@ -6770,6 +6876,8 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
                 assertion_refs=["ASSERT-V234-018", "ASSERT-V234-019", "ASSERT-V234-021"],
                 mutation=environment_mutation,
                 ledger_events=ledger_events, checkpoint=checkpoint,
+                repo_root=Path(args.repo_root) if args.repo_root else None,
+                version_binding=version_binding,
             )
             return _v234_cli_envelope(result, runtime)
         if args.cmd == "v234-implementation-gate":
@@ -6822,6 +6930,8 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
                 mutation=lambda marker: marker.__setitem__("quality_scores", scores),
                 ledger_events=_jsonl_objects(Path(args.ledger)),
                 checkpoint=_checkpoint_with_source(Path(args.checkpoint)),
+                repo_root=Path(args.repo_root) if args.repo_root else None,
+                version_binding=version_binding,
             )
             return _v234_cli_envelope(result, runtime)
         if args.cmd == "v234-log-append":
@@ -6832,6 +6942,8 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
                     expected_bundle_digest=args.expected_bundle_digest,
                     ledger_events=_jsonl_objects(Path(args.ledger)),
                     checkpoint=_checkpoint_with_source(Path(args.checkpoint)),
+                    repo_root=Path(args.repo_root) if args.repo_root else None,
+                    version_binding=version_binding,
                 ), runtime,
             )
         if args.cmd == "v234-log-diagnose":
@@ -6843,6 +6955,8 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
             validation = runtime.validate_state_bundle(
                 state_root, ledger_events=_jsonl_objects(Path(args.ledger)),
                 checkpoint=_checkpoint_with_source(Path(args.checkpoint)),
+                repo_root=Path(args.repo_root) if args.repo_root else None,
+                version_binding=version_binding,
             )
             if not validation.get("ok"):
                 return _v234_cli_envelope(validation, runtime)
@@ -6864,6 +6978,8 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
                 event_data={"assessment_id": args.assessment_id},
                 ledger_events=_jsonl_objects(Path(args.ledger)),
                 checkpoint=_checkpoint_with_source(Path(args.checkpoint)),
+                repo_root=Path(args.repo_root) if args.repo_root else None,
+                version_binding=version_binding,
             )
             return _v234_cli_envelope(result, runtime)
         if args.cmd == "v234-reset-plan":
@@ -6874,6 +6990,7 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
                 artifact_root=Path(args.artifact_root) if args.artifact_root else None,
                 identity_registry=load_json_object(Path(args.identity_registry)),
                 ledger_events=_jsonl_objects(Path(args.ledger)),
+                version_binding=version_binding,
             )
             return _v234_cli_envelope(result, runtime)
         if args.cmd == "v234-reset-apply":
@@ -6888,6 +7005,7 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
                 identity_registry=load_json_object(Path(args.identity_registry)),
                 ledger_events=_jsonl_objects(Path(args.ledger)),
                 checkpoint=_checkpoint_with_source(Path(args.checkpoint)),
+                version_binding=version_binding,
             )
             return _v234_cli_envelope(result, runtime)
         if args.cmd == "v234-reset-rebind-task":
@@ -6900,6 +7018,8 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
                 identity_registry=load_json_object(Path(args.identity_registry)),
                 ledger_events=_jsonl_objects(Path(args.ledger)),
                 checkpoint=_checkpoint_with_source(Path(args.checkpoint)),
+                repo_root=Path(args.repo_root) if args.repo_root else None,
+                version_binding=version_binding,
             )
             return _v234_cli_envelope(result, runtime)
         if args.cmd == "v234-delivery-gate":
@@ -6908,6 +7028,7 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
                 load_json_object(Path(args.completion_inputs)),
                 _json_array(Path(args.archive_descriptor)),
                 source_context=load_json_object(Path(args.source_context)),
+                version_binding=version_binding,
             )
             return _v234_cli_envelope(result, runtime)
         if args.cmd == "v234-candidate-snapshot":
@@ -6915,6 +7036,7 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
                 state_root,
                 baseline_commit=args.baseline_commit,
                 receipt_path=Path(args.receipt),
+                version_binding=version_binding,
             )
             return _v234_cli_envelope(result, runtime)
         if args.cmd == "v234-publish-guard":
@@ -6926,6 +7048,7 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
                     load_json_object(Path(args.snapshot_receipt))
                     if args.snapshot_receipt else None
                 ),
+                version_binding=version_binding,
             )
             return _v234_cli_envelope(result, runtime)
         if args.cmd == "v234-deliver":
@@ -6939,6 +7062,7 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
                 expected_bundle_digest=args.expected_bundle_digest,
                 actor_run_id=args.actor_run_id,
                 source_context=load_json_object(Path(args.source_context)),
+                version_binding=version_binding,
             )
             return _v234_cli_envelope(result, runtime)
         raise ContractError("E_COMMAND", ["E_COMMAND"])
@@ -7094,7 +7218,63 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
             release_composition=composition_report,
         ), 0 if not errors else 1
     if args.cmd == "route":
-        return envelope(True, route=route(load_json(Path(args.features)))), 0
+        try:
+            raw_request = Path(args.features).read_text(encoding="utf-8")
+        except OSError:
+            raise ContractError("E_FILE_READ", ["E_FILE_READ"]) from None
+        try:
+            request = json.loads(raw_request)
+        except json.JSONDecodeError as exc:
+            raise ContractError(
+                "E_JSON_PARSE",
+                [{"error": "E_JSON_PARSE", "line": exc.lineno, "column": exc.colno}],
+            ) from None
+        if _looks_like_v235_route(request):
+            policy = _load_v235_policy()
+            try:
+                request = policy.strict_json_loads(raw_request)
+            except policy.DuplicateKeyError:
+                _EMIT_COMPACT = True
+                return envelope(
+                    False,
+                    "E_V235_ROUTE_CONFLICT",
+                    errors=["E_V235_ROUTE_CONFLICT"],
+                    mutation_count=0,
+                ), 1
+        result = route(request)
+        if _looks_like_v235_route(request):
+            _EMIT_COMPACT = True
+        if isinstance(result, dict) and result.get("ok") is False:
+            code = str(result.get("error_code") or "E_V235_ROUTE_TYPE")
+            data = {
+                key: value
+                for key, value in result.items()
+                if key not in {"ok", "error_code"}
+            }
+            return envelope(False, code, **data), 1
+        return envelope(True, route=result), 0
+    if args.cmd == "validate-test-case":
+        _EMIT_COMPACT = True
+        policy = _load_v235_policy()
+        try:
+            document = policy.strict_json_loads(Path(args.path).read_text(encoding="utf-8"))
+        except policy.DuplicateKeyError:
+            return envelope(
+                False,
+                "E_V235_TEST_CASE_UNKNOWN_FIELD",
+                errors=["E_V235_TEST_CASE_UNKNOWN_FIELD"],
+                mutation_count=0,
+            ), 1
+        result = policy.validate_test_case_document(document)
+        if result.get("ok") is not True:
+            code = str(result.get("error_code") or "E_V235_TEST_CASE_REQUIRED")
+            data = {
+                key: value
+                for key, value in result.items()
+                if key not in {"ok", "error_code"}
+            }
+            return envelope(False, code, **data), 1
+        return envelope(True, validation=result), 0
     if args.cmd == "plan-preview-policy":
         return envelope(True, policy=plan_preview_policy(load_json(Path(args.request)))), 0
     if args.cmd == "reference-policy":

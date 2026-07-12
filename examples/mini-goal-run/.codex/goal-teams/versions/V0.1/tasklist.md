@@ -1,44 +1,56 @@
 # Goal Teams Tasklist
 
 Goal: 规划登录页空状态提示 V0.1
-Status: done
+Status: blocked
+
+V2.35 下 `sample_only` 只限制分发/生产声明，不豁免 Architecture、Environment、独立测试、Evidence 或 UI E2E。
 
 ## Member Ownership
 
-| Task ID | Member | Skill/Subagent | Claimed By | Workflow | 前置任务 | Status | Locked Scope | Deliverable | Done Criteria | Harness Contract | Verification | Docs/SPEC Update |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| GT-001 | 需求分析-登录页空状态需求澄清 | goal_requirements_analyst | 需求分析-登录页空状态需求澄清 | 串行 | - | done | `spec/` | 需求规格卡 | 目标/用户故事/功能验收标准/流程/边界清楚 | 结构清单、用户故事、功能验收标准、边界/非目标检查，证据：`progress.md` | 评审-登录页空状态文档校验 | requirement-card + requirement-spec-card |
-| GT-002 | 产品-登录页空状态 PRD | goal_product | 产品-登录页空状态 PRD | 串行 | GT-001 | done | `spec/` | PRD | 基于规格卡并承接用户故事和功能验收标准 | PRD 溯源、用户故事覆盖和功能验收标准清单，证据：`progress.md` | 评审-登录页空状态文档校验 | PRD |
-| GT-003 | 前端-登录页空状态 HTML 原型 | goal_frontend | 前端-登录页空状态 HTML 原型 | 串行 | GT-002 | done | `spec/HTML-prototype.html` | HTML 原型 | 展示空状态 | HTML 静态结构和文案检查；E2E not_applicable_reason：sample_only 静态文档示例，无真实运行应用；复刻像素级对比 not_applicable_reason：无参考图 | 评审-登录页空状态文档校验 | HTML Prototype |
-| GT-004 | 测试-登录页空状态验收测试 | goal_qa | 测试-登录页空状态验收测试 | 串行 | GT-003 | done | `spec/test-plan.md` | 测试计划 | 覆盖验收点 | 测试计划边界和断言有效性检查；真实界面任务必须补 E2E，复刻任务必须补截图像素级对比 | 评审-登录页空状态测试有效性 | test-plan |
-| GT-005 | 文档-登录页空状态验收文档 | goal_docs | 文档-登录页空状态验收文档 | 串行 | GT-004 | done | `spec/acceptance.md` | 验收清单 | 证据完整 | 验收证据完整性检查，证据：`spec/acceptance.md` | 评审-登录页空状态文档校验 | acceptance |
-| GT-006 | 文档-Harness 示例复盘 | goal_docs | 文档-Harness 示例复盘 | 串行 | GT-005 | done | `harness/` | Harness 复盘资料和静态样例 | setup/run/checks/report、automation protocol、evidence ledger、pipeline gates 可追溯到验收证据 | setup/run/checks/report 和静态样例追溯检查，证据：`harness/report.md` | 评审-登录页空状态文档校验 | harness + progress + acceptance |
-| GT-007 | 评审-登录页空状态文档校验 | goal_reviewer | 评审-登录页空状态文档校验 | 串行 | GT-001, GT-002, GT-003, GT-004, GT-005, GT-006 | done | read-only | 校验记录 | 非作者校验完成 | 人工只读评审清单，证据：`progress.md` | 不适用 | progress |
-| GT-008 | 收尾-登录页空状态未完成工作检查 | goal_completion_auditor | 收尾-登录页空状态未完成工作检查 | 串行 | GT-007 | done | read-only | 收尾审计记录 | 无未完成工作或自动续跑任务已列出 | 收尾审计清单，证据：`progress.md`；not_applicable_reason：无外部命令 | 不适用 | progress + acceptance |
+| Task ID | Member | Skill/Subagent | Workflow / 前置 | Status | Locked Scope | Deliverable | Done Criteria | Harness Contract | Verification |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| GT-001 | 需求分析-空状态 | `goal_requirements_analyst` | 串行 / - | done | `spec/` | requirement spec | 用户故事/功能验收标准齐备 | 结构和边界 | `goal_reviewer` |
+| GT-002 | 产品-空状态 PRD | `goal_product` | 串行 / GT-001 | done | `spec/` | PRD | 可追溯到 requirement spec | 溯源检查 | `goal_reviewer` |
+| GT-011 | 架构-空状态 | `goal_backend` | 串行 / GT-002 | blocked | `spec/architecture-design.md` | Architecture accepted Evidence | 独立 accepted 且 hash-bound | 作者/校验者独立 | `goal_reviewer` |
+| GT-012 | 环境-空状态 | `goal_backend` | 串行 / GT-011 | blocked | `spec/development-environment-check.md` | `development_environment_check` | Architecture-bound + `ready` | current environment Evidence | `goal_qa` |
+| GT-003 | 前端-HTML 原型 | `goal_frontend` | 串行 / GT-012 | blocked | `spec/HTML-prototype.html` | HTML prototype | 只有上游门开放后可 accepted | HTML 静态结构；像素对比 `not_applicable_reason=无参考图` | `goal_reviewer` |
+| GT-009 | E2E用例-空状态 | `goal_e2e_test_designer` | 串行 / GT-003 | blocked | `spec/e2e-test-cases.json` | E2E test cases | `input/processing/expected_output/assertions` 齐备 | V2.35 test-case contract | `goal_reviewer` |
+| GT-010 | E2E执行-空状态 | `goal_e2e_test_runner` | 串行 / GT-009 | blocked | read-only | screenshot/trace/assertion Evidence | 真实浏览器 current Evidence | browser E2E | `goal_reviewer` |
+| GT-004 | QA-空状态 | `goal_qa` | 串行 / GT-010 | blocked | `spec/test-plan.md` | test plan/result | 静态覆盖 + E2E accepted | 整体证据门 | `goal_reviewer` |
+| GT-005 | 文档-验收 | `goal_docs` | 串行 / GT-004 | blocked | `spec/acceptance.md` | acceptance | required Evidence 完整 | 证据完整性 | `goal_reviewer` |
+| GT-006 | 文档-Harness | `goal_docs` | 串行 / GT-005 | blocked | `harness/` | setup -> run -> checks -> report | 如实保留 blocker | `sample_only` / `no_runner` 不充当 E2E | `goal_reviewer` |
+| GT-007 | 评审-完整性 | `goal_reviewer` | 串行 / GT-011, GT-012, GT-003, GT-009, GT-010, GT-004, GT-005, GT-006 | blocked | read-only | review record | 不把 blocker 写成 passed | 只读独立评审 | not applicable |
 
 ## Handoff Artifact Ledger
 
 Source SSOT: `prompts/packets/handoff-artifacts.md`
 
-| Task ID | Handoff Artifact | Artifact Type | Owner Subagent | Validator Subagent | Handoff Status | Independent Check Status | Harness | Evidence Path | Tasklist Update Owner | Blocked/Deferred Reason |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| GT-001 | Requirement Specification Card | requirement_spec_card | goal_requirements_analyst | goal_reviewer | done | passed | 结构清单、用户故事、功能验收标准、边界/非目标检查 | `progress.md` | goal_requirements_analyst | - |
-| GT-002 | PRD、用户故事、功能验收标准 | prd | goal_product | goal_reviewer | done | passed | PRD 溯源、用户故事覆盖和功能验收标准清单 | `progress.md` | goal_product | - |
-| GT-003 | HTML Prototype | html_prototype | goal_frontend | goal_reviewer | done | passed | HTML 静态结构、文案检查、E2E 不适用说明、像素对比不适用说明 | `progress.md` | goal_frontend | - |
-| GT-004 | Test Plan | test_plan | goal_qa | goal_reviewer | done | passed | 测试计划边界和断言有效性检查 | `progress.md` | goal_qa | - |
-| GT-005 | Acceptance | acceptance_record | goal_docs | goal_reviewer | done | passed | 验收证据完整性检查 | `spec/acceptance.md` | goal_docs | - |
-| GT-006 | Harness 示例复盘资料 | evidence_record | goal_docs | goal_reviewer | done | passed | setup/run/checks/report 和静态样例追溯检查 | `harness/report.md` | goal_docs | - |
-| GT-007 | Dual Review Record | dual_review_record | goal_reviewer | goal_completion_auditor | done | passed | 人工只读评审清单 | `progress.md` | goal_reviewer | - |
-| GT-008 | Completion Audit | tasklist_update | goal_completion_auditor | goal_completion_auditor | done | passed | 收尾审计清单 | `progress.md` | goal_completion_auditor | - |
+| Task ID | Handoff Artifact | Artifact Type | Owner Subagent | Validator Subagent | Handoff Status | Independent Check Status | Harness | Evidence Path | Blocked/Deferred Reason |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| GT-001 | Requirement Specification | requirement_spec_card | goal_requirements_analyst | goal_reviewer | done | passed | 结构校验 | `progress.md` | - |
+| GT-002 | PRD | prd | goal_product | goal_reviewer | done | passed | 溯源校验 | `progress.md` | - |
+| GT-011 | Architecture | architecture_design | goal_backend | goal_reviewer | blocked | blocked | exact hash + independent review | missing | independent acceptance missing |
+| GT-012 | Environment | development_environment_check | goal_backend | goal_qa | blocked | blocked | Architecture-bound current Evidence | missing | Architecture not accepted |
+| GT-003 | HTML Prototype | html_prototype | goal_frontend | goal_reviewer | blocked | blocked | gate order + static structure | `spec/HTML-prototype.html` | upstream gates closed |
+| GT-009 | E2E Test Cases | e2e_test_cases | goal_e2e_test_designer | goal_reviewer | blocked | blocked | four-part contract | missing | no test contract |
+| GT-010 | E2E Execution | e2e_test_execution | goal_e2e_test_runner | goal_reviewer | blocked | blocked | browser Evidence | missing | no_runner |
+| GT-004 | Test Plan | test_plan | goal_qa | goal_reviewer | blocked | blocked | static + E2E coverage | `spec/test-plan.md` | E2E not accepted |
+| GT-005 | Acceptance | acceptance_record | goal_docs | goal_reviewer | blocked | blocked | Evidence completeness | `spec/acceptance.md` | required Evidence missing |
+| GT-006 | Harness | evidence_record | goal_docs | goal_reviewer | blocked | blocked | setup/run/checks/report trace | `harness/report.md` | static only |
+| GT-007 | Review | dual_review_record | goal_reviewer | not applicable | blocked | not applicable | read-only gap review | `progress.md` | upstream tasks blocked; reviewer 本身是独立检查者，不用图外 auditor 自证 |
+
+## Graph-external Completion Audit
+
+- Audit id: `AUD-V0.1-001`
+- Legacy compatibility label: `GT-008` (not a task, not required, not blocking, and not present in the Handoff Artifact Ledger).
+- `audit_state=not_started`; `goal_completion_auditor` is not dispatched until every required task is accepted.
 
 ## Independent Validation
 
 | Artifact | Author | Validator | Method | Evidence |
 | --- | --- | --- | --- | --- |
-| `spec/requirement-card.md` | Goal Lead | 评审-登录页空状态文档校验 | 核心目标/关键功能/用户故事/功能验收标准/边界/约束/风险清单 | `progress.md` |
-| `spec/requirement-spec-card.md` | 需求分析-登录页空状态需求澄清 | 评审-登录页空状态文档校验 | 结构和边界检查 | `progress.md` |
-| `spec/PRD.md` | 产品-登录页空状态 PRD | 评审-登录页空状态文档校验 | PRD 来源追踪 | `progress.md` |
-| `spec/HTML-prototype.html` | 前端-登录页空状态 HTML 原型 | 评审-登录页空状态文档校验 | 原型静态检查 | `progress.md` |
-| `spec/test-plan.md` | 测试-登录页空状态验收测试 | 评审-登录页空状态测试有效性 | 断言和边界检查 | `progress.md` |
-| `harness/` | 文档-Harness 示例复盘 | 评审-登录页空状态文档校验 | setup/run/checks/report 与静态样例追溯检查 | `progress.md` + `spec/acceptance.md` |
-| 完成状态 | 收尾-登录页空状态未完成工作检查 | `goal_completion_auditor` | 未完成工作审计 | `progress.md` |
+| requirement/PRD | Goal Lead / requirement / product | `goal_reviewer` | structure and traceability | `progress.md` |
+| Architecture | `goal_backend` | `goal_reviewer` | independent exact-hash acceptance | missing / blocked |
+| Environment | `goal_backend` | `goal_qa` | current Architecture-bound check | missing / blocked |
+| HTML/E2E | frontend / E2E designer / E2E runner | `goal_reviewer` | real browser assertions and Evidence | missing / blocked |
+| Completion state | graph-external auditor | n/a | not started before required acceptance | `progress.md` |

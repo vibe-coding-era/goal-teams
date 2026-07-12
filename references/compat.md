@@ -54,6 +54,15 @@ okf_version: "0.1"
 - 历史 change/compat 文档可记录 V2.33，但所有 current/startup surface 以 `VERSION` 的 V2.34 为准；旧启动身份模板不得进入当前公开归档。
 - 只有 sanitizer 后的 completed/public 文档可进入 `docs/archive/V2.34/<delivery_id>/`。`GoalTeamsWork-*`、`.goalteams-state/`、`.goalteams-candidates/`、`.goalteams-quarantine/` 和私有 provenance 不属于公开安装输入；已跟踪的历史 V2.3 数据不因 ignore 而删除。
 
+## V2.35 增量兼容
+
+- `references/rules-project-sizing.md`、`references/rules-specialists.md` 和 `references/test-case-assertion-protocol.md` 都是条件引用：结构化执行路由、专项命中、测试设计/执行/评审分别触发；触发后缺失即 blocked，未触发时不得预载四专家包。
+- `project_size` 与 `work_type` 是 V2.35 route 的正交新字段；旧 V2.33 `plan_preview`/route 继续使用原入口，不能由新 adapter 猜测或补齐持久化输入。
+- 四个新成员包使用标准四文件布局，agent type 为 `goal_security`、`goal_performance`、`goal_refactor`、`goal_sqa`；安装时与既有 `goal-*.toml` 一并管理。
+- `scripts/validate-test-case-contract.py` 是 `scripts/checks/validate-test-case-contract.py` 的兼容入口；只对明确适用 V2.35 的 test-case fail closed，历史 V2.3 fixture 不静默伪升级。
+- 无 version binding 的 V2.34 state/archive bytes 与错误码保持；显式 V2.35 descriptor 必须绑定 current contract/review，`project_version=release_version=V2.35`、artifact 可为 run 版本。错误 binding 必须 blocked，不得回退到 V2.34 目录。
+- V2.35 release summary 是 pre-audit 公开候选说明；最终 Completion Audit 仅保存在私有过程 bundle，Audit 后不得为改 summary 制造新 commit/push。
+
 ## 成员包布局
 
 成员包标准文件为：
@@ -77,6 +86,7 @@ prompts/members/<role>/scripts.md
 | `scripts/check-routing-fixtures.py` | `scripts/checks/check-routing-fixtures.py` |
 | `scripts/check-agent-names.py` | `scripts/checks/check-agent-names.py` |
 | `scripts/check-member-layout.py` | `scripts/checks/check-member-layout.py` |
+| `scripts/validate-test-case-contract.py` | `scripts/checks/validate-test-case-contract.py` |
 | `scripts/validate-harness.py` | `scripts/harness/validate-harness.py` |
 | `scripts/pixel-diff.py` | `scripts/harness/pixel-diff.py` |
 | `scripts/compare-artifacts.py` | `scripts/review/compare-artifacts.py` |
@@ -93,6 +103,7 @@ prompts/members/<role>/scripts.md
 - 历史版本 `V2.02` 与 `V2.1` 是 `V2.3` 前的补丁线；后续版本优先使用 `V2.3`、`V2.4` 这类递增格式，避免继续新增 `V2.0x` 版本叙事。
 - 发布或提交前运行 `./scripts/check.sh`。
 - V2.33 及后续版本必须保留 README 与双语 release/history 的分离结构；当前版本的文档、链接和标记缺失时 fail closed。
+- V2.35 还必须同步四专家、三份条件 reference、三份 schema、test-case validator、双语 pre-audit release summary 与安装面；历史 V2.34 默认合同和 completion 文档不得批量改写。
 
 ## transport handle
 

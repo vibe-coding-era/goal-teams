@@ -15,7 +15,7 @@
 ```text
 Benchmark ID: GT-BENCH-002
 Mode: baseline | goal-teams
-Repo: /Users/Rou/dev_projects/goal-teams
+Repo: `<repo-root>`
 Base commit: <commit>
 Branch/worktree: <branch or path>
 Started at: <ISO-8601>

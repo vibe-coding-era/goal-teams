@@ -1,0 +1,645 @@
+{
+  "schema_version": "goal-teams-test-case-fixtures-v2.35",
+  "valid_cases": [
+    {
+      "schema_version": "goal-teams-test-case-v2.35",
+      "case_id": "TC-V235-UNIT-001",
+      "test_kind": "unit",
+      "acceptance_refs": ["ASSERT-V235-026"],
+      "test_file_refs": ["tests/v23/test_v235_protocol.py"],
+      "input": {
+        "fixtures": ["tests/v23/fixtures/v235/routing.json"],
+        "values": {"project_size": "large"},
+        "preconditions": ["structured route input is available"]
+      },
+      "processing": {
+        "kind": "call",
+        "target": "scripts.v23.v235_policy.normalize_project_route",
+        "invocation_ref": "input.values"
+      },
+      "expected_output": {
+        "value": {"project_size": "large"},
+        "observable_refs": ["observed_output.route.project_size"]
+      },
+      "assertions": [
+        {
+          "assertion_id": "A-TC-V235-UNIT-001-01",
+          "actual_ref": "observed_output.route.project_size",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.project_size"
+        }
+      ]
+    },
+    {
+      "schema_version": "goal-teams-test-case-v2.35",
+      "case_id": "TC-V235-TDD-001",
+      "test_kind": "tdd",
+      "acceptance_refs": ["ASSERT-V235-024"],
+      "test_file_refs": ["tests/v23/test_v235_versioned_runtime.py"],
+      "input": {
+        "fixtures": ["tests/v23/fixtures/v235/version-bindings.json"],
+        "values": {"descriptor": "explicit_v235"},
+        "preconditions": ["implementation files are absent from the pre-implementation tree"]
+      },
+      "processing": {
+        "kind": "call",
+        "target": "scripts.v23.version_binding.normalize_version_binding",
+        "invocation_ref": "input.values.descriptor"
+      },
+      "expected_output": {
+        "value": {"release_version": "V2.35"},
+        "observable_refs": ["observed_output.binding.release_version"]
+      },
+      "assertions": [
+        {
+          "assertion_id": "A-TC-V235-TDD-001-01",
+          "actual_ref": "observed_output.binding.release_version",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.release_version"
+        }
+      ],
+      "tdd": {
+        "phase": "pre_implementation",
+        "expected_initial_state": "red",
+        "test_sha256_ref": "artifact.test_file.sha256",
+        "preimplementation_tree_ref": "artifact.git.preimplementation_tree",
+        "domain_log_ref": "execution.red.domain_log",
+        "ledger_event_ref": "artifact.ledger.test_design_event"
+      }
+    },
+    {
+      "schema_version": "goal-teams-test-case-v2.35",
+      "case_id": "TC-V235-INTEGRATION-001",
+      "test_kind": "integration",
+      "acceptance_refs": ["ASSERT-V235-025"],
+      "test_file_refs": ["tests/v23/test_v235_protocol.py"],
+      "input": {
+        "fixtures": ["tests/v23/fixtures/v235/test-cases.json"],
+        "values": {"case_id": "TC-V235-UNIT-001"},
+        "preconditions": ["canonical validator is installed"]
+      },
+      "processing": {
+        "kind": "command",
+        "target": "scripts/checks/validate-test-case-contract.py",
+        "invocation_ref": "processing.command.argv",
+        "consumed_input_refs": ["input.values.case_id"],
+        "command": {
+          "argv": ["python3", "scripts/checks/validate-test-case-contract.py", "tests/v23/fixtures/v235/test-cases.json"],
+          "cwd": "."
+        }
+      },
+      "expected_output": {
+        "value": {"validated_case_id": "TC-V235-UNIT-001", "passed": true},
+        "observable_refs": ["observed_output.validation.validated_case_ids", "execution.exit_code"],
+        "input_bindings": [
+          {
+            "input_ref": "input.values.case_id",
+            "observable_ref": "observed_output.validation.validated_case_ids"
+          }
+        ]
+      },
+      "assertions": [
+        {
+          "assertion_id": "A-TC-V235-INTEGRATION-001-01",
+          "actual_ref": "observed_output.validation.validated_case_ids",
+          "comparator": "contains",
+          "expected_ref": "expected_output.value.validated_case_id"
+        },
+        {
+          "assertion_id": "A-TC-V235-INTEGRATION-001-02",
+          "actual_ref": "execution.exit_code",
+          "comparator": "exit_code_equals",
+          "expected_value": 0
+        }
+      ]
+    },
+    {
+      "schema_version": "goal-teams-test-case-v2.35",
+      "case_id": "TC-V235-E2E-001",
+      "test_kind": "e2e",
+      "acceptance_refs": ["ASSERT-V235-032"],
+      "test_file_refs": ["tests/v23/test_v235_protocol.py"],
+      "input": {
+        "fixtures": ["tests/v23/fixtures/v235/routing.json"],
+        "values": {"project_size": "small", "work_type": "bugfix", "ui": true},
+        "preconditions": ["UI route is normalized"]
+      },
+      "processing": {
+        "kind": "browser",
+        "target": "route-preview[data-work-type='bugfix']",
+        "invocation_ref": "input.values"
+      },
+      "expected_output": {
+        "value": {"visible_gate": "e2e:required"},
+        "observable_refs": ["observed_output.dom.visible_gate"]
+      },
+      "assertions": [
+        {
+          "assertion_id": "A-TC-V235-E2E-001-01",
+          "actual_ref": "observed_output.dom.visible_gate",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.visible_gate"
+        }
+      ]
+    },
+    {
+      "schema_version": "goal-teams-test-case-v2.35",
+      "case_id": "TC-V235-CLI-001",
+      "test_kind": "cli",
+      "acceptance_refs": ["ASSERT-V235-023"],
+      "test_file_refs": ["tests/v23/test_v235_protocol.py"],
+      "input": {
+        "fixtures": ["tests/v23/fixtures/v235/test-cases.json"],
+        "values": {"subcommand": "validate-test-case"},
+        "preconditions": ["Goal Teams runtime is importable"]
+      },
+      "processing": {
+        "kind": "command",
+        "target": "scripts/v23/goalteams_v23.py validate-test-case",
+        "invocation_ref": "processing.command.argv",
+        "command": {
+          "argv": ["python3", "scripts/v23/goalteams_v23.py", "validate-test-case", "tests/v23/fixtures/v235/test-cases.json"],
+          "cwd": "."
+        }
+      },
+      "expected_output": {
+        "value": {"ok": true, "schema_version": "goal-teams-v2.3"},
+        "observable_refs": ["observed_output.envelope.ok", "observed_output.envelope.schema_version", "execution.exit_code"]
+      },
+      "assertions": [
+        {
+          "assertion_id": "A-TC-V235-CLI-001-01",
+          "actual_ref": "observed_output.envelope.ok",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.ok"
+        },
+        {
+          "assertion_id": "A-TC-V235-CLI-001-02",
+          "actual_ref": "execution.exit_code",
+          "comparator": "exit_code_equals",
+          "expected_value": 0
+        }
+      ]
+    },
+    {
+      "schema_version": "goal-teams-test-case-v2.35",
+      "case_id": "TC-V235-API-001",
+      "test_kind": "api",
+      "acceptance_refs": ["ASSERT-V235-025"],
+      "test_file_refs": ["tests/v23/test_v235_protocol.py"],
+      "input": {
+        "fixtures": ["tests/v23/fixtures/v235/routing.json"],
+        "values": {"request_id": "REQ-V235-001"},
+        "preconditions": ["API adapter receives a structured route"]
+      },
+      "processing": {
+        "kind": "http",
+        "target": "/goal-teams/v2.35/route",
+        "invocation_ref": "input.values",
+        "consumed_input_refs": ["input.values.request_id"]
+      },
+      "expected_output": {
+        "value": {"status": 200, "project_size": "large", "request_id": "REQ-V235-001"},
+        "observable_refs": ["execution.status_code", "observed_output.response.project_size", "observed_output.response.request_id"],
+        "input_bindings": [
+          {
+            "input_ref": "input.values.request_id",
+            "observable_ref": "observed_output.response.request_id"
+          }
+        ]
+      },
+      "assertions": [
+        {
+          "assertion_id": "A-TC-V235-API-001-00",
+          "actual_ref": "observed_output.response.request_id",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.request_id"
+        },
+        {
+          "assertion_id": "A-TC-V235-API-001-01",
+          "actual_ref": "observed_output.response.project_size",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.project_size"
+        },
+        {
+          "assertion_id": "A-TC-V235-API-001-02",
+          "actual_ref": "execution.status_code",
+          "comparator": "status_code_equals",
+          "expected_ref": "expected_output.value.status"
+        }
+      ]
+    },
+    {
+      "schema_version": "goal-teams-test-case-v2.35",
+      "case_id": "TC-V235-FIXTURE-001",
+      "test_kind": "fixture",
+      "acceptance_refs": ["ASSERT-V235-021"],
+      "test_file_refs": ["tests/v23/test_v235_protocol.py"],
+      "input": {
+        "fixtures": ["tests/v23/fixtures/v235/routing.json"],
+        "values": {"expected_case_id": "ROUTE-LARGE-FEATURE-RELEASE"},
+        "preconditions": ["fixture is a regular JSON file"]
+      },
+      "processing": {
+        "kind": "fixture_load",
+        "target": "tests/v23/fixtures/v235/routing.json",
+        "invocation_ref": "input.fixtures"
+      },
+      "expected_output": {
+        "value": {"case_id": "ROUTE-LARGE-FEATURE-RELEASE"},
+        "observable_refs": ["artifact.fixture.case_ids"]
+      },
+      "assertions": [
+        {
+          "assertion_id": "A-TC-V235-FIXTURE-001-01",
+          "actual_ref": "artifact.fixture.case_ids",
+          "comparator": "contains",
+          "expected_ref": "expected_output.value.case_id"
+        }
+      ]
+    }
+  ],
+  "invalid_cases": [
+    {
+      "case_id": "INVALID-EMPTY-INPUT",
+      "base_case_id": "TC-V235-UNIT-001",
+      "patch": {"input": {}},
+      "error_code": "E_V235_INPUT_EMPTY"
+    },
+    {
+      "case_id": "INVALID-PROSE-ONLY-PROCESSING",
+      "base_case_id": "TC-V235-UNIT-001",
+      "patch": {"processing": {"steps": "call the router and inspect it"}},
+      "error_code": "E_V235_PROCESSING_NOT_EXECUTABLE"
+    },
+    {
+      "case_id": "INVALID-EMPTY-EXPECTED-OUTPUT",
+      "base_case_id": "TC-V235-UNIT-001",
+      "patch": {"expected_output": {}},
+      "error_code": "E_V235_EXPECTED_OUTPUT_EMPTY"
+    },
+    {
+      "case_id": "INVALID-EMPTY-ASSERTIONS",
+      "base_case_id": "TC-V235-UNIT-001",
+      "patch": {"assertions": []},
+      "error_code": "E_V235_ASSERTIONS_EMPTY"
+    },
+    {
+      "case_id": "INVALID-UNKNOWN-COMPARATOR",
+      "base_case_id": "TC-V235-UNIT-001",
+      "assertion_patch": {"comparator": "python_eval"},
+      "error_code": "E_V235_COMPARATOR_UNKNOWN"
+    },
+    {
+      "case_id": "INVALID-BAD-ACTUAL-REF",
+      "base_case_id": "TC-V235-UNIT-001",
+      "assertion_patch": {"actual_ref": "../../private/secret"},
+      "error_code": "E_V235_ASSERTION_REF"
+    },
+    {
+      "case_id": "INVALID-BOTH-EXPECTED-FORMS",
+      "base_case_id": "TC-V235-UNIT-001",
+      "assertion_patch": {"expected_value": "large"},
+      "error_code": "E_V235_ASSERTION_REF"
+    },
+    {
+      "case_id": "INVALID-EXIT-CODE-ONLY-INTEGRATION",
+      "base_case_id": "TC-V235-INTEGRATION-001",
+      "replace_assertions": [
+        {
+          "assertion_id": "A-INVALID-EXIT-ONLY-01",
+          "actual_ref": "execution.exit_code",
+          "comparator": "exit_code_equals",
+          "expected_value": 0
+        }
+      ],
+      "error_code": "E_V235_EXIT_CODE_ONLY"
+    },
+    {
+      "case_id": "INVALID-TDD-BINDING",
+      "base_case_id": "TC-V235-TDD-001",
+      "remove": ["tdd"],
+      "error_code": "E_V235_TDD_BINDING"
+    },
+    {
+      "case_id": "INVALID-TDD-TEST-HASH-REF",
+      "base_case_id": "TC-V235-TDD-001",
+      "remove_paths": ["tdd.test_sha256_ref"],
+      "error_code": "E_V235_TDD_BINDING"
+    },
+    {
+      "case_id": "INVALID-TDD-TREE-REF",
+      "base_case_id": "TC-V235-TDD-001",
+      "remove_paths": ["tdd.preimplementation_tree_ref"],
+      "error_code": "E_V235_TDD_BINDING"
+    },
+    {
+      "case_id": "INVALID-TDD-DOMAIN-LOG-REF",
+      "base_case_id": "TC-V235-TDD-001",
+      "remove_paths": ["tdd.domain_log_ref"],
+      "error_code": "E_V235_TDD_BINDING"
+    },
+    {
+      "case_id": "INVALID-TDD-LEDGER-REF",
+      "base_case_id": "TC-V235-TDD-001",
+      "remove_paths": ["tdd.ledger_event_ref"],
+      "error_code": "E_V235_TDD_BINDING"
+    },
+    {
+      "case_id": "INVALID-INTEGRATION-NO-CONSUMED-INPUT",
+      "base_case_id": "TC-V235-INTEGRATION-001",
+      "remove_paths": ["processing.consumed_input_refs"],
+      "error_code": "E_V235_INTEGRATION_COMPARISON"
+    },
+    {
+      "case_id": "INVALID-INTEGRATION-NO-INPUT-BINDING",
+      "base_case_id": "TC-V235-INTEGRATION-001",
+      "remove_paths": ["expected_output.input_bindings"],
+      "error_code": "E_V235_INTEGRATION_COMPARISON"
+    },
+    {
+      "case_id": "INVALID-ABSOLUTE-ACTUAL-REF",
+      "base_case_id": "TC-V235-UNIT-001",
+      "assertion_patch": {"actual_ref": "/private/result"},
+      "error_code": "E_V235_ASSERTION_REF"
+    },
+    {
+      "case_id": "INVALID-TRAVERSAL-ACTUAL-REF",
+      "base_case_id": "TC-V235-UNIT-001",
+      "assertion_patch": {"actual_ref": "observed_output../private"},
+      "error_code": "E_V235_ASSERTION_REF"
+    },
+    {
+      "case_id": "INVALID-URL-ACTUAL-REF",
+      "base_case_id": "TC-V235-UNIT-001",
+      "assertion_patch": {"actual_ref": "https://example.invalid/result"},
+      "error_code": "E_V235_ASSERTION_REF"
+    },
+    {
+      "case_id": "INVALID-COMMAND-ACTUAL-REF",
+      "base_case_id": "TC-V235-UNIT-001",
+      "assertion_patch": {"actual_ref": "observed_output.$(id)"},
+      "error_code": "E_V235_ASSERTION_REF"
+    },
+    {
+      "case_id": "INVALID-ABSOLUTE-EXPECTED-REF",
+      "base_case_id": "TC-V235-UNIT-001",
+      "assertion_patch": {"expected_ref": "/private/expected"},
+      "error_code": "E_V235_ASSERTION_REF"
+    },
+    {
+      "case_id": "INVALID-TRAVERSAL-EXPECTED-REF",
+      "base_case_id": "TC-V235-UNIT-001",
+      "assertion_patch": {"expected_ref": "expected_output../private"},
+      "error_code": "E_V235_ASSERTION_REF"
+    },
+    {
+      "case_id": "INVALID-URL-EXPECTED-REF",
+      "base_case_id": "TC-V235-UNIT-001",
+      "assertion_patch": {"expected_ref": "https://example.invalid/expected"},
+      "error_code": "E_V235_ASSERTION_REF"
+    },
+    {
+      "case_id": "INVALID-COMMAND-EXPECTED-REF",
+      "base_case_id": "TC-V235-UNIT-001",
+      "assertion_patch": {"expected_ref": "expected_output.$(id)"},
+      "error_code": "E_V235_ASSERTION_REF"
+    },
+    {
+      "case_id": "INVALID-EXPECTED-REF-CONTAINMENT",
+      "base_case_id": "TC-V235-UNIT-001",
+      "assertion_patch": {"expected_ref": "input.values.project_size"},
+      "error_code": "E_V235_ASSERTION_REF"
+    },
+    {
+      "case_id": "INVALID-UNKNOWN-FIELD",
+      "base_case_id": "TC-V235-UNIT-001",
+      "patch": {"shell_expression": "$(id)"},
+      "error_code": "E_V235_TEST_CASE_UNKNOWN_FIELD"
+    }
+  ],
+  "implementation_gate": {
+    "valid": {
+      "schema_version": "goal-teams-implementation-gate-v2.35",
+      "requested_action": "start_implementation",
+      "implementation_start_revision": 36,
+      "implementer_run_id": "RUN-V235-IMPLEMENT-TEST",
+      "contract": {
+        "state": "accepted",
+        "check_state": "passed",
+        "artifact_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "current_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "owner_run_id": "RUN-V235-CONTRACT-OWNER-TEST",
+        "validator_run_id": "RUN-V235-CONTRACT-REVIEW-TEST"
+      },
+      "architecture": {
+        "state": "accepted",
+        "check_state": "passed",
+        "artifact_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "current_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "contract_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "owner_run_id": "RUN-V235-ARCH-OWNER-TEST",
+        "validator_run_id": "RUN-V235-ARCH-REVIEW-TEST"
+      },
+      "environment": {
+        "conclusion": "ready",
+        "check_state": "passed",
+        "artifact_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "current_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "architecture_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "owner_run_id": "RUN-V235-ENV-OWNER-TEST",
+        "validator_run_id": "RUN-V235-ENV-REVIEW-TEST"
+      },
+      "red_evidence": {
+        "state": "red",
+        "current": true,
+        "test_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+        "current_test_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+        "preimplementation_tree": "5555555555555555555555555555555555555555555555555555555555555555",
+        "current_preimplementation_tree": "5555555555555555555555555555555555555555555555555555555555555555",
+        "domain_log_ref": "tests/reports/red-domain-log.json",
+        "domain_log_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+        "domain_log_current": true,
+        "ledger_prefix_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+        "ledger_revision": 35,
+        "ledger_current": true,
+        "test_design_event_revision": 35,
+        "designer_run_id": "RUN-V235-TEST-DESIGN-TEST",
+        "implementation_started": false
+      }
+    },
+    "invalid_cases": [
+      {"case_id": "GATE-CONTRACT-STATE", "patch": {"contract": {"state": "review"}}, "error_code": "E_V235_GATE_CONTRACT"},
+      {"case_id": "GATE-CONTRACT-CHECK", "patch": {"contract": {"check_state": "failed"}}, "error_code": "E_V235_GATE_CONTRACT"},
+      {"case_id": "GATE-CONTRACT-HASH", "patch": {"contract": {"current_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}, "error_code": "E_V235_GATE_CONTRACT"},
+      {"case_id": "GATE-CONTRACT-SELF-REVIEW", "patch": {"contract": {"validator_run_id": "RUN-V235-CONTRACT-OWNER-TEST"}}, "error_code": "E_V235_GATE_INDEPENDENCE"},
+      {"case_id": "GATE-ARCH-STATE", "patch": {"architecture": {"state": "review"}}, "error_code": "E_V235_GATE_ARCHITECTURE"},
+      {"case_id": "GATE-ARCH-CHECK", "patch": {"architecture": {"check_state": "failed"}}, "error_code": "E_V235_GATE_ARCHITECTURE"},
+      {"case_id": "GATE-ARCH-HASH", "patch": {"architecture": {"current_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}, "error_code": "E_V235_GATE_ARCHITECTURE"},
+      {"case_id": "GATE-ARCH-CONTRACT-DRIFT", "patch": {"architecture": {"contract_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}, "error_code": "E_V235_GATE_ARCHITECTURE"},
+      {"case_id": "GATE-ARCH-SELF-REVIEW", "patch": {"architecture": {"validator_run_id": "RUN-V235-ARCH-OWNER-TEST"}}, "error_code": "E_V235_GATE_INDEPENDENCE"},
+      {"case_id": "GATE-ENV-NOT-READY", "patch": {"environment": {"conclusion": "needs_remediation"}}, "error_code": "E_V235_GATE_ENVIRONMENT"},
+      {"case_id": "GATE-ENV-CHECK", "patch": {"environment": {"check_state": "failed"}}, "error_code": "E_V235_GATE_ENVIRONMENT"},
+      {"case_id": "GATE-ENV-HASH", "patch": {"environment": {"current_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}, "error_code": "E_V235_GATE_ENVIRONMENT"},
+      {"case_id": "GATE-ENV-ARCH-DRIFT", "patch": {"environment": {"architecture_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}, "error_code": "E_V235_GATE_ENVIRONMENT"},
+      {"case_id": "GATE-ENV-SELF-REVIEW", "patch": {"environment": {"validator_run_id": "RUN-V235-ENV-OWNER-TEST"}}, "error_code": "E_V235_GATE_INDEPENDENCE"},
+      {"case_id": "GATE-RED-STALE", "patch": {"red_evidence": {"current": false}}, "error_code": "E_V235_TDD_EVIDENCE"},
+      {"case_id": "GATE-RED-WRONG-STATE", "patch": {"red_evidence": {"state": "green"}}, "error_code": "E_V235_TDD_EVIDENCE"},
+      {"case_id": "GATE-IMPLEMENTATION-ALREADY-STARTED", "patch": {"red_evidence": {"implementation_started": true}}, "error_code": "E_V235_TDD_TIMING"},
+      {"case_id": "GATE-RED-TEST-HASH", "patch": {"red_evidence": {"current_test_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}, "error_code": "E_V235_TDD_TEST_HASH"},
+      {"case_id": "GATE-RED-TREE", "patch": {"red_evidence": {"current_preimplementation_tree": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}, "error_code": "E_V235_TDD_TREE"},
+      {"case_id": "GATE-RED-DOMAIN-LOG", "remove_paths": ["red_evidence.domain_log_ref"], "error_code": "E_V235_TDD_DOMAIN_LOG"},
+      {"case_id": "GATE-RED-DOMAIN-HASH", "remove_paths": ["red_evidence.domain_log_sha256"], "error_code": "E_V235_TDD_DOMAIN_LOG"},
+      {"case_id": "GATE-RED-DOMAIN-STALE", "patch": {"red_evidence": {"domain_log_current": false}}, "error_code": "E_V235_TDD_DOMAIN_LOG"},
+      {"case_id": "GATE-RED-LEDGER", "patch": {"red_evidence": {"ledger_prefix_sha256": "bad"}}, "error_code": "E_V235_TDD_LEDGER"},
+      {"case_id": "GATE-RED-LEDGER-STALE", "patch": {"red_evidence": {"ledger_current": false}}, "error_code": "E_V235_TDD_LEDGER"},
+      {"case_id": "GATE-RED-TIMING", "patch": {"red_evidence": {"test_design_event_revision": 36}}, "error_code": "E_V235_TDD_TIMING"},
+      {"case_id": "GATE-IMPLEMENTER-IS-DESIGNER", "patch": {"implementer_run_id": "RUN-V235-TEST-DESIGN-TEST"}, "error_code": "E_V235_GATE_INDEPENDENCE"}
+    ]
+  },
+  "green_gate": {
+    "valid": {
+      "schema_version": "goal-teams-green-gate-v2.35",
+      "designer_run_id": "RUN-V235-TEST-DESIGN-TEST",
+      "implementer_run_id": "RUN-V235-IMPLEMENT-TEST",
+      "runner_run_id": "RUN-V235-TEST-RUNNER-TEST",
+      "red_event_revision": 35,
+      "implementation_event_revision": 36,
+      "green_event_revision": 37,
+      "green_evidence": {
+        "state": "green",
+        "current": true,
+        "test_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+        "red_test_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+        "implementation_tree": "8888888888888888888888888888888888888888888888888888888888888888",
+        "current_implementation_tree": "8888888888888888888888888888888888888888888888888888888888888888",
+        "domain_log_ref": "tests/reports/green-domain-log.json",
+        "domain_log_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+        "domain_log_current": true,
+        "assertion_results": [{"assertion_id": "A-GREEN-001", "state": "passed"}]
+      }
+    },
+    "invalid_cases": [
+      {"case_id": "GREEN-RUNNER-IS-DESIGNER", "patch": {"runner_run_id": "RUN-V235-TEST-DESIGN-TEST"}, "error_code": "E_V235_GREEN_INDEPENDENCE"},
+      {"case_id": "GREEN-RUNNER-IS-IMPLEMENTER", "patch": {"runner_run_id": "RUN-V235-IMPLEMENT-TEST"}, "error_code": "E_V235_GREEN_INDEPENDENCE"},
+      {"case_id": "GREEN-STALE", "patch": {"green_evidence": {"current": false}}, "error_code": "E_V235_GREEN_EVIDENCE"},
+      {"case_id": "GREEN-WRONG-STATE", "patch": {"green_evidence": {"state": "red"}}, "error_code": "E_V235_GREEN_EVIDENCE"},
+      {"case_id": "GREEN-ASSERTIONS-EMPTY", "patch": {"green_evidence": {"assertion_results": []}}, "error_code": "E_V235_GREEN_ASSERTIONS"},
+      {"case_id": "GREEN-TEST-HASH", "patch": {"green_evidence": {"test_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}, "error_code": "E_V235_TDD_TEST_HASH"},
+      {"case_id": "GREEN-TREE", "patch": {"green_evidence": {"current_implementation_tree": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}, "error_code": "E_V235_GREEN_EVIDENCE"},
+      {"case_id": "GREEN-DOMAIN-LOG", "remove_paths": ["green_evidence.domain_log_ref"], "error_code": "E_V235_GREEN_EVIDENCE"},
+      {"case_id": "GREEN-DOMAIN-HASH", "remove_paths": ["green_evidence.domain_log_sha256"], "error_code": "E_V235_GREEN_EVIDENCE"},
+      {"case_id": "GREEN-DOMAIN-STALE", "patch": {"green_evidence": {"domain_log_current": false}}, "error_code": "E_V235_GREEN_EVIDENCE"},
+      {"case_id": "GREEN-ASSERTION-FAILED", "patch": {"green_evidence": {"assertion_results": [{"assertion_id": "A-GREEN-001", "state": "failed"}]}}, "error_code": "E_V235_GREEN_ASSERTIONS"},
+      {"case_id": "GREEN-RED-EQUALS-IMPLEMENTATION", "patch": {"red_event_revision": 36}, "error_code": "E_V235_TDD_TIMING"},
+      {"case_id": "GREEN-RED-AFTER-IMPLEMENTATION", "patch": {"red_event_revision": 37}, "error_code": "E_V235_TDD_TIMING"},
+      {"case_id": "GREEN-IMPLEMENTATION-EQUALS-GREEN", "patch": {"green_event_revision": 36}, "error_code": "E_V235_TDD_TIMING"},
+      {"case_id": "GREEN-IMPLEMENTATION-AFTER-GREEN", "patch": {"implementation_event_revision": 38}, "error_code": "E_V235_TDD_TIMING"},
+      {"case_id": "GREEN-MISSING-RED-REVISION", "remove_paths": ["red_event_revision"], "error_code": "E_V235_TDD_TIMING"},
+      {"case_id": "GREEN-MISSING-IMPLEMENTATION-REVISION", "remove_paths": ["implementation_event_revision"], "error_code": "E_V235_TDD_TIMING"},
+      {"case_id": "GREEN-MISSING-GREEN-REVISION", "remove_paths": ["green_event_revision"], "error_code": "E_V235_TDD_TIMING"}
+    ]
+  },
+  "release_audit_gate": {
+    "valid": {
+      "schema_version": "goal-teams-release-audit-gate-v2.35",
+      "action": "start_completion_audit",
+      "release_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "release_task": {"task_state": "accepted", "check_state": "passed"},
+      "remote_evidence": {"state": "accepted", "current": true, "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "branch_fast_forward": true, "main_fast_forward": true},
+      "local_evidence": {"state": "accepted", "current": true, "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "installed_version": "V2.35", "full_check_passed": true},
+      "post_release_task": {"task_state": "accepted", "check_state": "passed", "evidence_refs": ["EVID-REMOTE-001", "EVID-LOCAL-001"]},
+      "required_tasks": ["release", "post_release"],
+      "required_task_artifact_refs": ["docs/v2.35-release-summary.md"],
+      "required_task_evidence_refs": ["EVID-REMOTE-001", "EVID-LOCAL-001"],
+      "completion_audit": {"state": "not_started", "in_required_graph": false, "artifact_ref": "audit/completion-audit.json"}
+    },
+    "invalid_cases": [
+      {"case_id": "RELEASE-NOT-ACCEPTED", "patch": {"release_task": {"task_state": "review"}}, "error_code": "E_V235_RELEASE_TASK"},
+      {"case_id": "RELEASE-CHECK-FAILED", "patch": {"release_task": {"check_state": "failed"}}, "error_code": "E_V235_RELEASE_TASK"},
+      {"case_id": "REMOTE-NOT-ACCEPTED", "patch": {"remote_evidence": {"state": "review"}}, "error_code": "E_V235_REMOTE_EVIDENCE"},
+      {"case_id": "REMOTE-STALE", "patch": {"remote_evidence": {"current": false}}, "error_code": "E_V235_REMOTE_EVIDENCE"},
+      {"case_id": "REMOTE-COMMIT-DRIFT", "patch": {"remote_evidence": {"commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}}, "error_code": "E_V235_REMOTE_EVIDENCE"},
+      {"case_id": "REMOTE-BRANCH-NOT-FF", "patch": {"remote_evidence": {"branch_fast_forward": false}}, "error_code": "E_V235_REMOTE_EVIDENCE"},
+      {"case_id": "REMOTE-MAIN-NOT-FF", "patch": {"remote_evidence": {"main_fast_forward": false}}, "error_code": "E_V235_REMOTE_EVIDENCE"},
+      {"case_id": "LOCAL-NOT-ACCEPTED", "patch": {"local_evidence": {"state": "review"}}, "error_code": "E_V235_LOCAL_EVIDENCE"},
+      {"case_id": "LOCAL-STALE", "patch": {"local_evidence": {"current": false}}, "error_code": "E_V235_LOCAL_EVIDENCE"},
+      {"case_id": "LOCAL-COMMIT-DRIFT", "patch": {"local_evidence": {"commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}}, "error_code": "E_V235_LOCAL_EVIDENCE"},
+      {"case_id": "LOCAL-WRONG-VERSION", "patch": {"local_evidence": {"installed_version": "V2.34"}}, "error_code": "E_V235_LOCAL_EVIDENCE"},
+      {"case_id": "LOCAL-CHECK-FAILED", "patch": {"local_evidence": {"full_check_passed": false}}, "error_code": "E_V235_LOCAL_EVIDENCE"},
+      {"case_id": "POST-RELEASE-NOT-ACCEPTED", "patch": {"post_release_task": {"task_state": "review"}}, "error_code": "E_V235_POST_RELEASE_TASK"},
+      {"case_id": "POST-RELEASE-CHECK-FAILED", "patch": {"post_release_task": {"check_state": "failed"}}, "error_code": "E_V235_POST_RELEASE_TASK"},
+      {"case_id": "POST-RELEASE-MISSING-REMOTE-EVIDENCE", "patch": {"post_release_task": {"evidence_refs": ["EVID-LOCAL-001"]}}, "error_code": "E_V235_POST_RELEASE_TASK"},
+      {"case_id": "POST-RELEASE-MISSING-LOCAL-EVIDENCE", "patch": {"post_release_task": {"evidence_refs": ["EVID-REMOTE-001"]}}, "error_code": "E_V235_POST_RELEASE_TASK"},
+      {"case_id": "AUDIT-IN-REQUIRED-GRAPH", "patch": {"completion_audit": {"in_required_graph": true}}, "error_code": "E_AUDIT_SELF_REFERENCE"},
+      {"case_id": "AUDIT-REQUIRED-TASK", "patch": {"required_tasks": ["release", "post_release", "completion_audit"]}, "error_code": "E_AUDIT_SELF_REFERENCE"},
+      {"case_id": "AUDIT-ARTIFACT-SELF-REF", "patch": {"required_task_artifact_refs": ["audit/completion-audit.json"]}, "error_code": "E_AUDIT_SELF_REFERENCE"},
+      {"case_id": "AUDIT-EVIDENCE-SELF-REF", "patch": {"required_task_evidence_refs": ["EVID-COMPLETION-AUDIT-001"]}, "error_code": "E_AUDIT_SELF_REFERENCE"}
+    ]
+  },
+  "specialist_registry": {
+    "schema_version": "goal-teams-specialist-capability-registry-v2.35",
+    "identities": [
+      {"role": "security", "agent_type": "goal_security", "agent_run_id": "RUN-V235-SECURITY-TEST", "member_id": "安全-V2.35", "display_name": "安全-V2.35", "transport_handle": "security-a", "capabilities": ["security_assessment", "security_proposal"], "sandbox_mode": "read-only", "coordination_depth": 1, "can_spawn_subagents": false, "can_dispatch": false, "dispatch_owner_agent_type": "goal_lead", "handoff_mode": "proposal_only"},
+      {"role": "performance", "agent_type": "goal_performance", "agent_run_id": "RUN-V235-PERFORMANCE-TEST", "member_id": "性能-V2.35", "display_name": "性能-V2.35", "transport_handle": "performance-a", "capabilities": ["performance_benchmark", "performance_proposal"], "sandbox_mode": "read-only", "coordination_depth": 1, "can_spawn_subagents": false, "can_dispatch": false, "dispatch_owner_agent_type": "goal_lead", "handoff_mode": "proposal_only"},
+      {"role": "refactor", "agent_type": "goal_refactor", "agent_run_id": "RUN-V235-REFACTOR-TEST", "member_id": "重构-V2.35", "display_name": "重构-V2.35", "transport_handle": "refactor-a", "capabilities": ["refactor_equivalence", "refactor_proposal"], "sandbox_mode": "read-only", "coordination_depth": 1, "can_spawn_subagents": false, "can_dispatch": false, "dispatch_owner_agent_type": "goal_lead", "handoff_mode": "proposal_only"},
+      {"role": "sqa", "agent_type": "goal_sqa", "agent_run_id": "RUN-V235-SQA-TEST", "member_id": "质量-V2.35", "display_name": "质量-V2.35", "transport_handle": "sqa-a", "capabilities": ["sqa_process_review", "sqa_archive_proposal"], "sandbox_mode": "read-only", "coordination_depth": 1, "can_spawn_subagents": false, "can_dispatch": false, "dispatch_owner_agent_type": "goal_lead", "handoff_mode": "proposal_only"}
+    ]
+  },
+  "specialist_proposals": {
+    "security": {
+      "schema_version": "goal-teams-specialist-proposal-v2.35",
+      "proposal_id": "PROP-SECURITY-001",
+      "role": "security",
+      "specialist_run_id": "RUN-V235-SECURITY-TEST",
+      "lifecycle_state": "proposed",
+      "priority_level": "L1",
+      "relaxes": [],
+      "coverage": ["code", "dependencies", "secrets", "injection", "ports"],
+      "required_review_class": "safety",
+      "target_scope": "repository",
+      "write_scope": []
+    },
+    "performance": {
+      "schema_version": "goal-teams-specialist-proposal-v2.35",
+      "proposal_id": "PROP-PERF-001",
+      "role": "performance",
+      "specialist_run_id": "RUN-V235-PERFORMANCE-TEST",
+      "lifecycle_state": "proposed",
+      "priority_level": "L1",
+      "relaxes": [],
+      "benchmark": {"environment_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "data_scale": {"rows": 10000, "pages": 100}, "command": {"argv": ["python3", "bench.py"], "cwd": "."}, "candidate_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},
+      "benchmark_evidence": {"evidence_id": "EVID-PERF-001", "current": true, "environment_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "candidate_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "data_scale": {"rows": 10000, "pages": 100}},
+      "claim": {"performance_improved": true}
+    },
+    "refactor": {
+      "schema_version": "goal-teams-specialist-proposal-v2.35",
+      "proposal_id": "PROP-REFACTOR-001",
+      "role": "refactor",
+      "specialist_run_id": "RUN-V235-REFACTOR-TEST",
+      "lifecycle_state": "proposed",
+      "priority_level": "L1",
+      "relaxes": [],
+      "equivalence_contract": {"public_behavior_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "scope": ["src", "docs"]},
+      "regression_evidence": {"evidence_id": "EVID-REFACTOR-REG-001", "current": true, "state": "passed"},
+      "holdout_evidence": {"evidence_id": "EVID-REFACTOR-HOLD-001", "current": true, "state": "passed"},
+      "rollback_boundary": {"paths": ["src", "docs"], "command": ["git", "revert", "<candidate-commit>"]}
+    },
+    "sqa": {
+      "schema_version": "goal-teams-specialist-proposal-v2.35",
+      "proposal_id": "PROP-SQA-001",
+      "role": "sqa",
+      "specialist_run_id": "RUN-V235-SQA-TEST",
+      "lifecycle_state": "proposed",
+      "priority_level": "L1",
+      "relaxes": [],
+      "release_version": "V2.35",
+      "version_record": {"version": "V2.35", "change_ids": ["CHANGE-V235-001"]},
+      "index_ref": "docs/archive/index.md",
+      "classifications": ["release", "process", "quality"],
+      "version_directory": "docs/archive/V2.35",
+      "public_copy": {"sanitized": true, "secret_count": 0, "absolute_home_path_count": 0},
+      "private_provenance": {"retained": true, "ref": "GoalTeamsWork-V2.35/provenance/sqa.json", "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"}
+    }
+  }
+}

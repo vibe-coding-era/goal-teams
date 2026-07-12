@@ -132,6 +132,15 @@ For long-running, multi-agent, UI E2E, pixel comparison, benchmark, or productio
 For Goal Teams projects, establish `ledger/events.jsonl` first and let the V2.3 reducer generate `TaskList.md`; members never edit that projection directly. SSOT outputs belong under `GoalTeamsWork-<project_version>/versions/<artifact_version>/` unless the user specifies another output directory. A chat-only `plan_preview` is the no-write exception and must not create either file.
 <!-- 中文注释：Goal Teams 项目先建立 ledger，再由 reducer 生成 TaskList；成员不得直接编辑投影。聊天内 plan_preview 是不写文件的例外。 -->
 
+For V2.35 execution, classify `project_size=large|medium|small` and `work_type=feature|bugfix` as separate structured facts. Architecture, Environment, independent tests, and Evidence remain required for every size. UI always requires independent E2E; BugFix always requires TDD plus integration testing. Security-sensitive, external-write, authentication, payment, migration, destructive, high-risk, or critical-risk work uses the regulated safety route.
+<!-- 中文注释：V2.35 将项目规模和工作类型分开路由；规模不得降级架构、环境、独立测试、证据、UI E2E、BugFix TDD/集成或安全门。 -->
+
+The V2.35 `goal_security`, `goal_performance`, `goal_refactor`, and `goal_sqa` roles are read-only proposal specialists. They may return assessment, proposal, task patch, and dispatch request artifacts to Goal Lead, but cannot implement, dispatch, spawn nested teams, mutate central state, or self-verify. Goal Lead assigns independent implementation and validation runs.
+<!-- 中文注释：V2.35 四专家只读且只提案，不得实现、派发、创建嵌套团队、写中央状态或自证；独立实现和验证由 Goal Lead 派发。 -->
+
+Applicable V2.35 test cases must provide non-empty structured `input`, `processing`, `expected_output`, and executable `assertions`. Exit code or HTTP status alone does not prove business correctness; TDD and integration cases must bind inputs through processing to asserted business outputs.
+<!-- 中文注释：V2.35 适用测试用例必须有非空输入、处理、期望输出和可执行断言；退出码或 HTTP status 不能单独证明业务正确。 -->
+
 Backend work follows architecture-first TDD: write/update Backend Architecture Design, have an independent subagent write unit tests, implement code, then have another independent subagent run unit tests. API integration tests default to Python + pytest and run after unit tests pass.
 <!-- 中文注释：后端工作遵循架构先行和 TDD：先写/更新后端架构设计，由独立 subagent 写单元测试，再实现代码，再由另一个独立 subagent 执行单元测试。API 集成测试默认 Python + pytest，并在单测通过后执行。 -->
 

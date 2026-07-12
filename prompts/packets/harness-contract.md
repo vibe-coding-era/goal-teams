@@ -21,6 +21,9 @@ Harness Contract（验证契约）:
 - tdd_checks:
 - api_integration_checks:
 - e2e_checks:
+- test_case_contracts: <V2.35 unit|tdd|integration|e2e|cli|api|fixture>
+- assertion_results: <observed_output + per assertion result>
+- specialist_checks: <security|performance|refactor|sqa proposal/Evidence>
 - evidence_paths:
 - failure_report:
 - not_applicable_reason:
@@ -43,6 +46,16 @@ Harness Contract（验证契约）:
 - 前端 Harness 必须能区分前端实现、E2E 用例生成和 E2E 执行；用例作者和执行者不能是同一唯一 subagent。
 - 只引用已有或计划中明确要创建的检查；不要宣称会运行未验证、未授权或不存在的命令。
 - 任务没有 Harness 契约、有效 Evidence 或不适用说明时，不能标记为 `accepted`。
+
+## V2.35 Assertion 与 Specialist Harness
+
+- V2.35 test-case 必须通过 `scripts/checks/validate-test-case-contract.py`，包含非空 input/processing/expected_output/assertions、真实 test refs 和至少一个非 exit/status 业务断言。
+- TDD Harness 绑定 test hash、pre-implementation tree、ledger 时序、red domain log；green 由不同 runner 记录 observed output 和逐 assertion result。
+- integration/API Harness 必须证明 consumed input 与业务 output/state 对应；E2E 绑定 DOM/URL/可见状态，不能只记录命令/截图存在。
+- security Harness 记录 code/dependency/secret/injection/ports、授权与 safety review；无新精确授权的外部主动扫描必须 command=null、mutation=0。
+- performance Harness 绑定 environment、data scale、argv/cwd、candidate digest 与 current benchmark Evidence。
+- refactor Harness 绑定 equivalence、regression、holdout 与 rollback；SQA Harness 绑定 version/index/classification/version directory、sanitized public copy 与 retained private provenance。
+- 专家 Harness 只允许 proposal-only；Lead 另派实现/测试。verified 需要不同 run 的 current regression + holdout。
 
 ## V2.34 Harness 扩展
 

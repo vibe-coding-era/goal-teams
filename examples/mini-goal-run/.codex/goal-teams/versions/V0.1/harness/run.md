@@ -1,30 +1,37 @@
 # Harness Run
 
-## 执行顺序
+## 依赖顺序
 
-| 顺序 | 成员 | 任务 | 输出 | 证据 |
+| 顺序 | 成员 | Task | 当前结果 | 证据/缺口 |
 | --- | --- | --- | --- | --- |
-| 1 | 需求分析-登录页空状态需求澄清 | GT-001 | 需求规格卡 | `../spec/requirement-spec-card.md` |
-| 2 | 产品-登录页空状态 PRD | GT-002 | PRD | `../spec/PRD.md` |
-| 3 | 前端-登录页空状态 HTML 原型 | GT-003 | HTML 原型 | `../spec/HTML-prototype.html` |
-| 4 | 测试-登录页空状态验收测试 | GT-004 | 测试计划 | `../spec/test-plan.md` |
-| 5 | 文档-登录页空状态验收文档 | GT-005 | 验收清单 | `../spec/acceptance.md` |
-| 6 | 文档-Harness 示例复盘 | GT-006 | Harness 复盘资料 | `README.md`、`setup.md`、`run.md`、`checks.md`、`report.md`、`automation-protocol.sample.yaml`、`evidence-ledger.sample.json`、`pipeline-gates.sample.yaml` |
-| 7 | 评审-登录页空状态文档校验 | GT-007 | 独立校验记录 | `../progress.md#独立校验` |
-| 8 | 收尾-登录页空状态未完成工作检查 | GT-008 | 收尾审计 | `../progress.md#收尾审计` |
+| 1 | 需求分析 | GT-001 | done | `../spec/requirement-spec-card.md` |
+| 2 | 产品 | GT-002 | done | `../spec/PRD.md` |
+| 3 | 架构 | GT-011 | blocked | 缺独立 Architecture acceptance Evidence |
+| 4 | 环境 | GT-012 | blocked | 缺 Architecture-bound `development_environment_check` / `ready` Evidence |
+| 5 | 前端 | GT-003 | blocked | HTML 文件存在，但上游 gates 关闭 |
+| 6 | E2E designer | GT-009 | blocked | 缺 four-part test contract |
+| 7 | E2E runner | GT-010 | blocked | 缺 browser screenshot/trace/assertion Evidence |
+| 8 | QA | GT-004 | blocked | GT-010 未 accepted |
+| 9 | Docs / Harness | GT-005 / GT-006 | blocked | required Evidence 未闭合 |
+| 10 | Reviewer | GT-007 | blocked | 保留上游 blockers |
 
-## 运行记录
+## 静态运行记录
 
 | 检查点 | 结果 | 说明 |
 | --- | --- | --- |
-| Teams 规划表先于执行产物 | passed | `../plan.md#teams-规划表` 记录成员、workflow、前置任务和验证安排 |
-| tasklist 记录认领关系 | passed | `../tasklist.md#member-ownership` 覆盖 GT-001 到 GT-008 |
-| progress 记录执行轮次 | passed | `../progress.md#2026-05-27-1000-执行轮次` |
-| Harness 资料连接验收证据 | passed | `checks.md` 和 `report.md` 引用 acceptance/progress |
-| 静态样例不触发真实自动化 | passed | `.sample.yaml` / `.sample.json` 文件均声明静态边界或 `sample_only` |
+| Teams 规划表先于执行产物 | passed | `../plan.md#teams-规划表` 与 TaskList 依赖一致 |
+| tasklist 记录认领关系 | passed | `../tasklist.md#member-ownership` 覆盖 Architecture、Environment、E2E 与下游 blocker |
+| Harness 资料可追溯 | passed | setup -> run -> checks -> report |
+| 静态样例不触发真实自动化 | passed | `.sample.yaml` / `.sample.json` 声明 `sample_only` / `no_runner` |
+| Architecture / Environment | blocked | 没有独立 accepted/ready Evidence |
+| 界面 E2E | blocked | 没有可执行 contract 与 current browser Evidence |
+
+## 图外 Completion Audit
+
+`AUD-V0.1-001` 为 `not_started`。它不是上表 required task；只在所有 required tasks accepted 后派发。历史标签 `GT-008` 仅作兼容引用。
 
 ## run 完成标准
 
-- 每个任务都有 Owner、前置任务、输出和证据。
-- Harness 不要求实际调用外部服务。
-- 运行记录能被维护者按表格顺序复盘。
+- 静态文档的 Owner、前置、输出和缺口可追溯。
+- `sample_only` 不得被当作 Architecture、Environment 或 E2E Evidence。
+- 本记录只证明静态 Harness 结构可复盘；整体状态仍为 blocked。

@@ -7,6 +7,8 @@
 5. 脚本报告分别核对真实 `domain_execution`、不同日志且随后运行的 runtime-locked `integrity_replay` 与覆盖领域记录/artifact/identity 的 `binding_digest`；不得把 hash replay 写成领域工具重跑。
 6. required Check 的 expected argv/cwd 必须与 Evidence command 精确一致；comparison（含升级 safety）只接受 trusted exact-hash tool、不同 path/inode 的 actual/baseline、registry 中独立预批准者和 exact passed log。
 7. 独立审查语义正确性、规则完整性、风险、缺测和回归。
+7a. V2.35 运行/核对 test-case validator，检查业务 assertion、observed output、TDD 时序、integration bindings；再检查双轴覆盖与适用专家的 capability/domain/lifecycle Evidence。
 8. UI/复刻/生产流任务必须检查对应证据；UI 任务必须检查组件级视觉契约、交互状态矩阵、局部 crop/几何断言和 locked/unlocked 证据。
 9. 输出 findings，按严重程度排序，并返回 tasklist 中 `check_state` 的建议更新。
 10. comparison/safety 的脚本与 LLM 结论不一致时不得 approve；semantic/structural 缺 required half 或 N/A 未独立接受时同样不得 approve。
+11. V2.35 发布检查 remote/local/post-release 均 accepted 后才允许图外 Completion Audit；任何 required self-reference 返回 reject / `E_AUDIT_SELF_REFERENCE`。

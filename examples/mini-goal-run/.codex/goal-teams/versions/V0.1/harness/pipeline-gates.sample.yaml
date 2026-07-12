@@ -34,24 +34,42 @@ gates:
   - id: G3
     name: "证据门"
     owner: "评审-登录页空状态文档校验"
-    decision: pass
+    decision: block
     required_refs:
-      - "../progress.md#独立校验"
+      - "../progress.md#当前独立校验"
       - "evidence-ledger.sample.json"
     pass_criteria:
       - "每个 artifact 有作者和校验者"
       - "证据路径可打开并互相引用"
+      - "UI 任务有独立 E2E 用例、执行与 current browser Evidence"
+  - id: G2A
+    name: "Architecture acceptance 门"
+    owner: "评审-登录页空状态文档校验"
+    decision: block
+    required_refs:
+      - "../spec/architecture-design.md"
+    pass_criteria:
+      - "Architecture exact hash 有独立 accepted Evidence"
+  - id: G2B
+    name: "Development Environment 门"
+    owner: "QA-登录页空状态"
+    decision: block
+    required_refs:
+      - "../spec/development-environment-check.md"
+    pass_criteria:
+      - "检查绑定 accepted Architecture hash 且 conclusion=ready"
   - id: G4
     name: "收尾审计门"
     owner: "收尾-登录页空状态未完成工作检查"
-    decision: pass
+    decision: not_started
+    graph_external: true
     required_refs:
-      - "../progress.md#收尾审计"
+      - "../progress.md#图外-completion-audit"
     pass_criteria:
-      - "无已确认范围内的未完成工作"
+      - "required task 全部 accepted"
       - "自动续跑判断已记录"
 overall_decision:
-  status: pass
+  status: block
   release_type: "static_example_only"
-  reason: "示例产物完整，且不涉及真实生产发布。"
-  blocked_items: []
+  reason: "静态文档产物可追溯，但 Architecture acceptance、Environment ready 和 UI E2E current Evidence 均缺失。"
+  blocked_items: ["GT-011", "GT-012", "GT-003", "GT-009", "GT-010", "GT-004", "GT-005", "GT-006", "GT-007"]

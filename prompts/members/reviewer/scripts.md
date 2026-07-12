@@ -5,6 +5,8 @@
 - `scripts/checks/validate.py`
 - `scripts/checks/check-agent-names.py`
 - `scripts/checks/check-member-layout.py`
+- `scripts/checks/validate-test-case-contract.py`
+- `scripts/checks/check-routing-fixtures.py`
 - `scripts/review/compare-artifacts.py`
 - `scripts/review/validate-dual-review.py`
 

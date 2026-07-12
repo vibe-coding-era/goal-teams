@@ -17,7 +17,7 @@
 将以下提示作为被测执行者的任务输入。`<mode>` 由评测者替换为 `baseline` 或 `goal-teams`。
 
 ```text
-你正在 /Users/Rou/dev_projects/goal-teams 中执行 GT-BENCH-003。
+你正在 `<repo-root>` 中执行 GT-BENCH-003。
 
 目标：为“登录页空状态提示 V0.1”补一份 UI 验证包，假设它是一个参考图复刻任务，但当前仓库没有真实运行应用，也没有参考截图文件。
 

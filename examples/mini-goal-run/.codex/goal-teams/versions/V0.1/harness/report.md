@@ -2,7 +2,7 @@
 
 ## 总结
 
-最小 Harness 复盘完成。示例可以从 setup 输入、run 执行顺序、checks 静态校验追溯到 report 验收结论，适合维护者检查 Goal Teams 文档产物是否成套。
+最小 Harness 的静态文档复盘可追溯，但 Architecture 独立 acceptance、Architecture-bound Environment `ready` Evidence 和 UI E2E 用例/runner/current Evidence 均缺失；因此示例整体结论为 blocked，不是 complete。
 
 ## 验收证据
 
@@ -15,8 +15,9 @@
 | automation protocol 样例声明静态边界 | passed | `automation-protocol.sample.yaml` |
 | evidence ledger 样例可追溯作者、校验者和证据 | passed | `evidence-ledger.sample.json` |
 | pipeline gates 样例覆盖关键门禁 | passed | `pipeline-gates.sample.yaml` |
-| 独立校验已记录 | passed | `../progress.md#独立校验` |
-| 收尾审计已记录 | passed | `../progress.md#收尾审计` |
+| 独立 E2E 用例与执行 | blocked | missing contract/browser Evidence |
+| 整体独立验收 | blocked | `../progress.md#当前状态` |
+| 图外收尾审计 | not_started | required task 未 accepted |
 | 验收清单引用 Harness | passed | `../spec/acceptance.md` |
 
 ## 剩余风险
@@ -25,8 +26,10 @@
 | --- | --- | --- |
 | Harness 不是可执行框架 | 不能证明真实 CLI 调度行为 | 在 `README.md` 和 `setup.md` 明确非目标 |
 | 自动化和流水线文件是静态样例 | 不能替代真实 release gate 或 CI | 在文件名和 `sample_only` 字段中标记 |
+| Architecture / Environment 未闭合 | 不允许后续实现或验收进入 accepted | 保持 GT-011/GT-012 及下游 blocked |
+| UI E2E 未执行 | 不能宣称 UI 验收或项目完成 | 保持 GT-009/GT-010 及下游 blocked |
 | 示例日期为固定演示值 | 不代表当前真实运行时间 | 作为静态样例保留 |
 
 ## 结论
 
-Harness 示例通过。维护者可把它作为 V1.6 文档结构验收样板，并在根校验脚本中按需加入 Harness 必备文件和关键字检查。
+静态 Harness 结构检查通过；整体验收 blocked。补齐独立 E2E 设计/执行与 current Evidence 后才能重新验收。

@@ -6,6 +6,9 @@
 - `scripts/harness/pixel-diff.py`
 - `scripts/review/compare-artifacts.py`
 - `scripts/review/validate-dual-review.py`
+- `scripts/checks/validate-test-case-contract.py`
+- `scripts/checks/check-member-layout.py`
+- `scripts/checks/check-agent-names.py`
 
 规则：
 

@@ -57,11 +57,22 @@ okf_version: "0.1"
 
 允许的环境改善仅限已授权、仓库内、可逆且不改变产品语义的动作，例如创建临时测试目录或校验本地工具。系统安装、外部下载、凭证使用、放宽权限、删除数据或跳过测试仍需新授权；不可为了让环境门通过而修改测试、合同或 Evidence。
 
+## V2.35 测试用例断言合同
+
+测试设计、执行、QA 和 Review 必须读取 `references/test-case-assertion-protocol.md`。V2.35 的 `unit|tdd|integration|e2e|cli|api|fixture` 用例都要有 schema-valid contract，非空 `input`、`processing`、`expected_output`、`assertions` 和真实 `test_file_refs`。
+
+- 每条 assertion 有唯一 ID、受限 comparator、`actual_ref`，以及恰好一个 `expected_ref|expected_value`。
+- 每案至少一个非 `exit_code_equals|status_code_equals` 的业务断言；prose-only、空 assertions、未知 comparator 或 exit/status-only 全部 fail closed。
+- designer 在交接前运行 `scripts/checks/validate-test-case-contract.py`；runner 记录 `observed_output` 和逐 assertion result，不以退出码替代业务正确。
+- integration/API 必须显式绑定 consumed input、processing 与业务 output/state；CLI 比较 stdout/file/state/hash；E2E 比较 DOM/URL/可见状态。
+- TDD red Evidence 绑定测试 hash、pre-implementation tree、领域日志和 ledger 时序；implementation 后由不同 runner 产生 green。测试漂移或 implementation-before-red 关闭实现门。
+
 ## 后端与 API
 
 - 后端、API、TDD 或完整测试编排使用 schema 机器值 `profile=full`；纯 CLI 且不含 UI 时仍为 `full`，但不得加载 UI 条件规则。
 - 后端开发前必须先生成或更新 Backend Architecture Design，经独立评审 accepted 后再完成 Development Environment Check；环境未 ready 时不得写实现。
 - 后端遵循 TDD：`goal_unit_test_designer` 先写单元测试用例，`goal_backend` 再实现，`goal_unit_test_runner` 独立执行并记录红/绿证据。
+- V2.35 中上述 designer 同时产出 test-case contract；runner 返回 observed output 与 assertion results。API integration 不能只检查 HTTP/命令退出成功。
 - 单元测试作者、后端实现者和单元测试执行者不能是同一唯一 subagent。
 - 架构设计完成后，可以并行派发 `goal_api_integration_test_designer` 生成 API 集成测试脚本；默认脚本语言为 Python，默认测试框架为 `pytest`，除非项目已有更明确技术栈。
 - 单元测试通过后，由 `goal_api_integration_test_runner` 执行 API 集成测试；无法执行时写阻塞、原因和风险。
@@ -71,6 +82,7 @@ okf_version: "0.1"
 - 前端开发前必须先生成或更新 Frontend Architecture Design，经独立评审 accepted 后再完成 Development Environment Check；不适用时写 `not_applicable_reason`。
 - 前端开发完成后，由 `goal_e2e_test_designer` 生成 E2E 测试用例，再由 `goal_e2e_test_runner` 执行。
 - E2E 用例作者不能作为唯一执行者。
+- E2E contract 必须把输入/处理与 DOM、URL、可见交互状态或视觉 observable 对应起来；只有截图存在不等于 assertion passed。
 - UI 任务的 E2E 和像素对比细节读取 `references/rules-ui.md`。
 
 ## 验证和打回

@@ -1,5 +1,7 @@
 # Goal Teams Index
 
+V2.35 compatibility status: artifact files are present, but the UI sample is overall `blocked` until independent E2E design/execution and current browser Evidence exist. Table `done` values below mean only that the listed static document was generated.
+
 | 文档 | 版本 | Owner | 状态 | 说明 |
 | --- | --- | --- | --- | --- |
 | `versions/V0.1/INDEX.md` | V0.1 | 文档-索引维护 | done | 示例版本索引 |

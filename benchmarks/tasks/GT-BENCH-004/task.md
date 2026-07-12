@@ -19,7 +19,7 @@
 将以下提示作为被测执行者的任务输入。`<mode>` 由评测者分别替换为 `baseline`、`goal-teams-v2.02`、`goal-teams-v2.1-loop`。除替换 `<mode>` 外，不加入隐藏要求。
 
 ```text
-你正在 /Users/Rou/dev_projects/goal-teams 中执行 GT-BENCH-004。
+你正在 `<repo-root>` 中执行 GT-BENCH-004。
 
 执行模式：<mode>
 目标：模拟一次 Goal Lead 执行到中途发现证据不足的 LOOP 决策，输出静态 LOOP 状态包，用于评估 Lead 是否能正确续跑、停止和恢复状态。

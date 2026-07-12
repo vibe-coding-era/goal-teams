@@ -257,6 +257,7 @@ def snapshot_reset_plan(
     candidate_id: str, authorization_path: Path | str,
     identity_registry_path: Path | str, ledger_path: Path | str,
     output_dir: Path | str, artifact_root: Path | str | None = None,
+    version_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Validate and persist reset authorization plus a no-mutation plan."""
     root = Path(state_root)
@@ -270,6 +271,7 @@ def snapshot_reset_plan(
             repo_root=Path(repo_root), state_root=root,
             artifact_root=Path(artifact_root) if artifact_root is not None else None,
             identity_registry=identities, ledger_events=events,
+            version_binding=version_binding,
         )
         if not result.get("ok") or result.get("mutation_count") != 0:
             return result
@@ -312,6 +314,7 @@ def _completion_proof(
     evidence_ids: list[str], rebuilt_candidate_ref: str,
     rebuilt_candidate_path: Path, rebuilt_candidate_evidence_id: str,
     repository_check_evidence_id: str, prompt_lifecycle: list[Any],
+    normalized_binding: dict[str, Any],
 ) -> dict[str, Any]:
     records = context["evidence_registry"]["records"]
     reset = bundle.get("reset", {})
@@ -341,11 +344,15 @@ def _completion_proof(
         "quality_scores": copy.deepcopy(bundle.get("quality_scores")),
         "prompt_lifecycle": copy.deepcopy(prompt_lifecycle),
         "bottleneck": copy.deepcopy(bundle.get("bottleneck")),
-        "version": "V2.34",
+        "version": normalized_binding["project_version"],
         "roadmap_sha256": _digest_bytes(Path(context["roadmap_path"]).read_bytes()),
         "worktree_guard_sha256": context["worktree_guard"].get("guard_sha256"),
         "archive_descriptor_sha256": _digest_bytes(_canonical_bytes(descriptors)),
     }
+    if normalized_binding.get("explicit") is True:
+        proof["release_version"] = normalized_binding["release_version"]
+        proof["artifact_version"] = normalized_binding["artifact_version"]
+        proof["version_binding_digest"] = normalized_binding["binding_digest"]
     proof["proof_digest"] = _digest_bytes(_canonical_bytes(proof))
     return proof
 
@@ -362,6 +369,7 @@ def build_completion_snapshot(
     baseline_commit: str | None, candidate_commit: str | None,
     candidate_snapshot_path: Path | str | None, protected_paths: list[str],
     output_dir: Path | str, prompt_lifecycle_path: Path | str | None = None,
+    version_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build and gate all JSON inputs required by delivery.
 
@@ -394,6 +402,12 @@ def build_completion_snapshot(
         if any(item not in records for item in evidence_ids):
             return _error("E_V234_CLOSURE_EVIDENCE", errors=["unknown evidence id"])
         bundle = runtime.load_state_bundle(root)
+        binding_result = runtime._binding_result(
+            repo, version_binding, marker=bundle
+        )
+        if not binding_result.get("ok"):
+            return binding_result
+        normalized_binding = binding_result["binding"]
         contract_revision = bundle.get("contract", {}).get("contract_revision")
         descriptors: list[dict[str, Any]] = []
         seen_archive: set[str] = set()
@@ -405,16 +419,24 @@ def build_completion_snapshot(
             seen_archive.add(archive_ref)
             descriptors.append(
                 {
-                    "source_artifact_id": f"ART-V234-PUBLIC-{index:03d}",
+                    "source_artifact_id": (
+                        f"ART-V235-PUBLIC-{index:03d}"
+                        if normalized_binding.get("explicit") is True
+                        else f"ART-V234-PUBLIC-{index:03d}"
+                    ),
                     "source_ref": source_ref,
                     "archive_ref": archive_ref,
                     "publication_state": "completed",
                     "visibility": "public",
-                    "artifact_version": "V2.34",
+                    "artifact_version": normalized_binding["artifact_version"],
                     "validator_run_id": validator_run_id,
                     "contract_revision": contract_revision,
                     "classification": "public_completion_doc",
                     "accepted": True,
+                    **(
+                        {"version_binding_digest": normalized_binding["binding_digest"]}
+                        if normalized_binding.get("explicit") is True else {}
+                    ),
                 }
             )
         guard = runtime.capture_worktree_guard(repo, protected_paths=protected_paths)
@@ -444,7 +466,7 @@ def build_completion_snapshot(
                 raise ValueError("publish sources are mutually exclusive")
             candidate_snapshot = _load_json(Path(candidate_snapshot_path))
             snapshot_check = runtime.validate_protected_candidate_snapshot(
-                repo, candidate_snapshot
+                repo, candidate_snapshot, version_binding=normalized_binding,
             )
             if not snapshot_check.get("ok"):
                 return _error(
@@ -479,6 +501,7 @@ def build_completion_snapshot(
             rebuilt_candidate_evidence_id=rebuilt_candidate_evidence_id,
             repository_check_evidence_id=repository_check_evidence_id,
             prompt_lifecycle=lifecycle,
+            normalized_binding=normalized_binding,
         )
         if candidate_snapshot is not None:
             proof["candidate_snapshot_receipt_sha256"] = candidate_snapshot.get(
@@ -499,6 +522,12 @@ def build_completion_snapshot(
             },
             "contract_revision": contract_revision,
         }
+        if normalized_binding.get("explicit") is True:
+            completion["release_version"] = normalized_binding["release_version"]
+            completion["artifact_version"] = normalized_binding["artifact_version"]
+            completion["version_binding_digest"] = normalized_binding["binding_digest"]
+            context["version_binding"] = copy.deepcopy(normalized_binding)
+            context["version_binding_digest"] = normalized_binding["binding_digest"]
         final_output = Path(output_dir).absolute().resolve(strict=False)
         validation_root = root / ".goalteams-state" / "closure-validation"
         validation_root.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -518,11 +547,13 @@ def build_completion_snapshot(
                 os.fsync(stream.fileno())
             context["completion_proof_path"] = str(proof_validation_path)
             gate = runtime.evaluate_delivery_gate(
-                bundle, proof, descriptors, source_context=context
+                bundle, proof, descriptors, source_context=context,
+                version_binding=normalized_binding,
             )
             eligibility = runtime.validate_archive_eligibility(
                 descriptors, completion, repo_root=repo,
                 completion_proof=proof, source_context=context,
+                version_binding=normalized_binding,
             ) if gate.get("ok") else None
         finally:
             if proof_validation_path.exists() and not proof_validation_path.is_symlink():
@@ -554,6 +585,10 @@ def build_completion_snapshot(
                 "bundle_digest": bundle.get("bundle_digest"),
                 "ledger_revision": binding.get("revision"),
                 "proof_digest": proof.get("proof_digest"),
+                **(
+                    {"version_binding_digest": normalized_binding["binding_digest"]}
+                    if normalized_binding.get("explicit") is True else {}
+                ),
             },
         )
         return {
@@ -573,6 +608,8 @@ def advance_loop(
     target_phase: str, actor_run_id: str, ledger_path: Path | str,
     checkpoint_path: Path | str, evidence_registry_path: Path | str,
     identity_registry_path: Path | str, output_dir: Path | str,
+    repo_root: Path | str | None = None,
+    version_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Advance normal LOOP edges transaction-by-transaction with fresh CAS.
 
@@ -595,8 +632,13 @@ def advance_loop(
         checkpoint, _ = _checkpoint_with_source(Path(checkpoint_path))
         registry = _load_json(Path(evidence_registry_path))
         identities = _load_json(Path(identity_registry_path))
-        start = runtime.validate_state_bundle(root, ledger_events=events, checkpoint=checkpoint)
+        start = runtime.validate_state_bundle(
+            root, ledger_events=events, checkpoint=checkpoint,
+            repo_root=repo_root, version_binding=version_binding,
+        )
         if not start.get("ok") or start.get("state") != "valid":
+            if str(start.get("error_code", "")).startswith("E_V235_VERSION_BINDING_"):
+                return start
             return _error("E_V234_LOOP_STATE", validation=start)
         initial = start["marker"]["loop"]
         start_ordinal = (initial["iteration"] - 1) * len(_PHASES) + _PHASES.index(initial["phase"])
@@ -604,8 +646,13 @@ def advance_loop(
         if target_ordinal < start_ordinal:
             return _error("E_V234_LOOP_TARGET")
         while True:
-            current = runtime.validate_state_bundle(root, ledger_events=events, checkpoint=checkpoint)
+            current = runtime.validate_state_bundle(
+                root, ledger_events=events, checkpoint=checkpoint,
+                repo_root=repo_root, version_binding=version_binding,
+            )
             if not current.get("ok") or current.get("state") != "valid":
+                if str(current.get("error_code", "")).startswith("E_V235_VERSION_BINDING_"):
+                    return current
                 result = _error("E_V234_LOOP_STATE", validation=current)
                 break
             marker = current["marker"]
@@ -635,7 +682,11 @@ def advance_loop(
                 ledger_events=events,
                 identity_registry=identities,
                 checkpoint=checkpoint,
+                repo_root=repo_root,
+                version_binding=version_binding,
             )
+            if str(step.get("error_code", "")).startswith("E_V235_VERSION_BINDING_"):
+                return step
             receipt = {
                 "from_iteration": loop["iteration"],
                 "from_phase": loop["phase"],

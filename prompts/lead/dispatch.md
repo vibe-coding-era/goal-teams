@@ -30,6 +30,7 @@
 - 每个实现成员必须有 `locked_scope`。
 - 验证必须由独立测试成员或 testing skill/subagent 负责。
 - `max_depth = 1`，成员不能创建嵌套团队。
+- V2.35 专家另固定 `sandbox_mode=read-only`、`coordination_depth=1`、`can_spawn_subagents=false`、`can_dispatch=false`、`dispatch_owner_agent_type=goal_lead`、`handoff_mode=proposal_only`。
 
 成员派发：
 
@@ -38,6 +39,7 @@
 - 分析/评审成员可只读；实现成员必须有明确 `locked_scope`。
 - 成员不能自我批准生成的文档、代码或测试。
 - Lead 负责路由阻塞、跨成员问题、共享核心改动、高风险审批和整合。
+- 专家只提交 proposal/dispatch request；Lead 校验 proposal hash、scope、capability、预算、冲突、授权和 review class 后，才在 ledger 创建实现/测试任务。专家请求不得当作已派发或执行 Evidence。
 - Lead 每轮整合后必须记录 `loop_decision=continue|replan|stop` 与正交 `run_outcome`；如果决策为 continue 或 replan，续跑计划也必须展示为四列 Teams 规划表。
 
 使用完整派发协议时读取 `references/subagent-dispatch-protocol.md`。

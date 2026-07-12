@@ -6,13 +6,13 @@
 
 | 阶段 | 文档 | 作用 | 关键证据 |
 | --- | --- | --- | --- |
-| setup | `setup.md` | 记录目标、输入、边界和版本目录 | `plan.md`、`tasklist.md` |
-| run | `run.md` | 记录成员执行顺序和产物 | `progress.md` |
-| checks | `checks.md` | 记录静态校验点和通过条件 | `spec/test-plan.md`、`spec/acceptance.md` |
-| report | `report.md` | 汇总验收结论、证据和剩余风险 | `progress.md#完成汇报` |
-| automation protocol | `automation-protocol.sample.yaml` | 展示自动化协议的静态记录字段 | `plan.md`、`progress.md` |
-| evidence ledger | `evidence-ledger.sample.json` | 展示 artifact、author、validator、evidence_ref 的证据账本 | `progress.md#独立校验` |
-| pipeline gates | `pipeline-gates.sample.yaml` | 展示范围门、SPEC 门、证据门和收尾审计门 | `acceptance.md` |
+| setup | `setup.md` | 记录目标、输入、边界和版本目录 | [`../plan.md`](../plan.md)、[`../tasklist.md`](../tasklist.md) |
+| run | `run.md` | 记录成员执行顺序和产物 | [`../progress.md`](../progress.md) |
+| checks | `checks.md` | 记录静态校验点和通过条件 | [`../spec/test-plan.md`](../spec/test-plan.md)、[`../spec/acceptance.md`](../spec/acceptance.md) |
+| report | `report.md` | 汇总静态检查、blockers 和整体结论 | [`../progress.md#当前状态`](../progress.md#当前状态) |
+| automation protocol | `automation-protocol.sample.yaml` | 展示自动化协议的静态记录字段 | [`../plan.md`](../plan.md)、[`../progress.md`](../progress.md) |
+| evidence ledger | `evidence-ledger.sample.json` | 展示 artifact、author、validator、evidence_ref 及 blocked gap | [`../progress.md#当前独立校验`](../progress.md#当前独立校验) |
+| pipeline gates | `pipeline-gates.sample.yaml` | 展示范围门、SPEC 门、证据门和收尾审计门 | [`../spec/acceptance.md`](../spec/acceptance.md) |
 
 ## 使用方式
 

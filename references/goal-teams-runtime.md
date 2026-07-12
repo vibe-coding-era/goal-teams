@@ -2,7 +2,7 @@
 
 本文件定义通用 Goal Teams runtime。它不假设业务领域，也不假设项目已经存在 tasklist。
 
-当前 Skill 版本：`V2.34`。版本号必须和仓库根目录 `VERSION`、`SKILL.md` 正文、README 和启动语保持一致。
+当前 Skill 版本：`V2.35`。版本号必须和仓库根目录 `VERSION`、`SKILL.md` 正文、README 和启动语保持一致。
 
 V2.0 结构约定：`SKILL.md` 只保留核心问题、硬边界、工作流摘要和渐进式加载路由；详细 Lead 提示词放在 `prompts/lead/`，成员角色按包放在 `prompts/members/<role>/`，packet 模板放在 `prompts/packets/`；确定性脚本按职责放在 `scripts/checks/`、`scripts/harness/`、`scripts/review/`、`scripts/benchmark/` 和 `scripts/install/`，根 `scripts/*.py` 与 `scripts/*.sh` 保留兼容入口。Plan 模式新增 `需求卡片`，由 Lead 在完整 SPEC 前写入；需求卡片必须包含用户故事和功能验收标准。所有生成 Markdown 文档默认采用 Google OKF，未指定生成目录时输出根目录为 `GoalTeamsWork-<project_version>/`，根部维护 `memory.md`；所有 SSOT 产出物写入 `versions/<artifact_version>/`。V2.0 建立 TaskList 先行和独立测试流；V2.3 将 append-only ledger 升级为唯一执行事实源，TaskList 只能由 reducer 生成，成员通过带 revision 的 event/patch 交接。V2.02 起 `RULES.md` 是 Goal Lead 和所有成员的响应规范。V2.3 的 `prompts/lead/loop.md` 将 `loop_decision` 与 `run_outcome` 正交化；它是调度协议，不是新的 runtime、后台执行器、CI/CD 或生产审批系统。
 
@@ -71,7 +71,7 @@ Goal Teams = Goal Lead + 独立 subagent 成员。
 
 ```text
 Goal Lead
-  - 显式调用或会话首次建立身份时简短汇报：我是 Goal Teams Lead V2.34。
+  - 显式调用或会话首次建立身份时简短汇报：我是 Goal Teams Lead V2.35。
   - 遵守 RULES.md：执行优先，只报告已验证事实，未验证不宣称完成，不输出无关解释或建议
   - 只有缺失历史资料会改变执行时才询问；完整上下文下直接工作
   - 默认中文沟通
@@ -1372,6 +1372,44 @@ Completion Audit Packet（收尾审计包）:
 7. 照常执行独立测试和独立校验。
 8. 续跑完成后再次执行 integration audit；看似完成时再次执行收尾审计。
 
+## V2.35 结构化路由、测试合同与版本绑定
+
+V2.35 持久化执行先建立 `goal-teams-project-route-v2.35` JSON；`project_size` 与 `work_type` 正交，字段完整性、类型、risk/security/UI precedence 由 runtime fail closed。示例：
+
+```bash
+python3 scripts/v23/goalteams_v23.py route route.json
+```
+
+只有 route 命中专项时才读取 `references/rules-specialists.md` 和对应单一成员包；四专家只提交 proposal/dispatch request，Lead 是唯一派发者。测试设计、执行和评审读取 `references/test-case-assertion-protocol.md`：
+
+```bash
+python3 scripts/checks/validate-test-case-contract.py test-case.json
+python3 scripts/v23/goalteams_v23.py validate-test-case test-case.json
+```
+
+七类用例都必须比较 input、processing、expected_output 与 assertions；命令退出码不能替代业务断言。TDD red 绑定实现前 tree/test hash/ledger prefix，implementation 后由不同 runner 产出 green 与逐 assertion results。
+
+无 version binding 时，V2.34 state/archive 默认语义保持。显式 V2.35 descriptor 必须绑定 current delta contract 和独立 review：
+
+```json
+{
+  "schema_version": "goal-teams-version-binding-v1",
+  "project_version": "V2.35",
+  "release_version": "V2.35",
+  "artifact_version": "V2.35-run2",
+  "contract_ref": "GoalTeamsWork-V2.35/versions/V2.35-run2/spec/v2.35-contract.md",
+  "contract_sha256": "<sha256>",
+  "contract_revision": 2,
+  "review_ref": "<independent review>",
+  "review_sha256": "<sha256>",
+  "review_state": "passed"
+}
+```
+
+runtime 不接受 caller 提供的 `archive_path`，只从已校验 `release_version` 推导 `docs/archive/V2.35/<delivery_id>/`。binding/hash/path 错误必须 0 mutation，不得静默回退 V2.34。
+
+V2.35 发布顺序是 release readiness → branch/main fast-forward push → local install → independent post-release task accepted → graph-external Completion Audit；Audit 不进入 required task 或 public package。
+
 ## 命令行桥接（CLI Bridge）
 
 dashboard 不直接执行 shell 命令；需要时用本地 bridge。
@@ -1391,7 +1429,7 @@ codex exec \
   - <<'PROMPT' | tee -a ".codex/goal-teams/events.jsonl"
 Use $goal-teams.
 
-先汇报：我是 Goal Teams Lead V2.34。
+先汇报：我是 Goal Teams Lead V2.35。
 用户沟通与治理记录全程中文，Goal Lead 消息要简洁、人类友好；代码、注释、产品字符串、测试名和 fixture 遵循目标仓库约定。
 分离 agent_type、agent_run_id、member_id、display_name 和 transport_handle；display_name 使用 <中文角色>-<具体任务名>，独立性以 agent_run_id 判断。真实 subagent/skill 配置名写入 agent_type（兼容字段 skill_or_subagent）；宿主英文昵称只记录为 transport_handle。
 启动 worker subagents 或编辑实现文件前，展示四列 Teams 规划表；除非有直接执行词，否则等待确认。

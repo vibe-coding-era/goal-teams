@@ -21,6 +21,8 @@ V2.34 的执行内环固定为 `Gather → Reason → Act → Verify → Repeat`
 2. 顺序固定为 `contract frozen + independent review → Architecture Design accepted → development_environment_check ready + independent Evidence → independent tests written → implementation`。少任一 current exact-hash 绑定即 fail closed。
 3. 合同变更必须创建新 revision 并重跑受影响的 review/Evidence；不得以代码或高分反向改写完成定义。
 
+V2.35 required gate 顺序进一步固定为：delta contract review → Architecture accepted → Environment ready → independent tests written/current TDD red → implementation → independent green/full regression → release readiness → branch/main fast-forward push + local install → independent post-release task accepted。只有此后才启动任务图外 Completion Audit。Audit 不得成为 required/blocking task，也不得被 required artifact/evidence 引用；自引用返回 `E_AUDIT_SELF_REFERENCE`。
+
 ### 四文件磁盘状态
 
 可恢复版本目录使用四个固定路径：
@@ -93,6 +95,7 @@ run_outcome: achieved | partial | blocked | aborted
 - 所有续跑任务必须有 Owner、validator、Harness、预期新增证据和停止条件。
 - 中途 Loop Audit 不能替代最终 `goal_completion_auditor`。
 - Lead LOOP 不代表新的 runtime、后台自动执行器、CI/CD、生产审批或无限运行能力。
+- 四专家只提交 proposal/dispatch request，不能在自己的 loop 内派生实现团队。Lead 接受 proposal 后必须创建新的实现/测试 task/run；`proposed|reviewed|applied|verified|reverted` 任一转换都记录 actor run，verified 另需 current regression + holdout。
 
 ## 状态快照
 

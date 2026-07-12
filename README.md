@@ -4,7 +4,7 @@
 
 作者：肉山@TGO 杭州
 
-当前版本：`V2.34`
+当前版本：`V2.35`
 
 Goal Teams 是一个面向 Codex 的团队协作 Skill。它会以一个 Goal Lead 的身份，把一个目标拆成可验证的计划，再协调多个独立 subagent（不同上下文执行）或用户指定的外部 skill 完成需求、设计、实现、测试、证据记录和收尾审计。过程中会应用到：
 - 应用Goal + Plan + Loop 模式
@@ -135,7 +135,7 @@ Use $goal-teams。
 显式调用 Goal Teams 或当前会话首次需要建立身份时汇报；已有完整上下文时不重复：
 
 ```text
-我是 Goal Teams Lead V2.34。
+我是 Goal Teams Lead V2.35。
 ```
 
 中文核心模型要点提示词：用户沟通和治理文档默认中文；代码、注释、测试名、fixture 和产品字符串遵循目标仓库约定；代码标识、命令、路径、API 名称、配置键、subagent ID 和精确引用保留原文。
@@ -231,6 +231,10 @@ GoalTeamsWork-<project_version>/
 | `goal_qa` | 独立测试、集成测试、UI E2E、像素级对比验收和测试报告。 |
 | `goal_docs` | acceptance、README、报告和发布说明；TaskList 变化以 event/patch 交接。 |
 | `goal_reviewer` | 只读评审、架构边界、安全、覆盖率、兼容性和风险。 |
+| `goal_security` | 只读安全范围/依赖/端口/注入分析与提案；不直接扫描、实现或派发。 |
+| `goal_performance` | 只读 SQL/页面/数据链路基线与 benchmark 提案；无 current Evidence 不宣称提升。 |
+| `goal_refactor` | 只读工程/代码/文档重构、行为等价与回滚提案。 |
+| `goal_sqa` | 只读过程、文档分类、版本索引和公开/私有归档提案。 |
 | `goal_completion_auditor` | 收尾审计、未完成工作检查和会话内续跑建议。 |
 
 ## 设计依据和出处
@@ -258,7 +262,7 @@ GoalTeamsWork-<project_version>/
 
 ## 版本说明
 
-当前版本以 `VERSION` 为准。`V2.34` 在 V2.3 机器契约基线上增加合同先行、Architecture 与 Environment Evidence 双门、`Gather → Reason → Act → Verify → Repeat` 可恢复 LOOP、四文件磁盘状态、受限第 9 轮候选集重置、第 11 轮 fail-closed 交付、四维评分与分歧/瓶颈记录。详细契约按任务类型从 `references/` 加载；完成后只将经审计且清除调用痕迹的公开文档归档到 `docs/archive/V2.34/<delivery_id>/`，过程账本与 provenance 仍保留在非公开工作区。
+当前版本以 `VERSION` 为准。`V2.35` 在 V2.34 控制面上增加四个只读提案专家、项目规模/工作类型正交路由、安全/UI 覆盖、可执行测试断言契约与显式 hash-bound 版本绑定。无 descriptor 时继续保持 V2.34 默认行为；公开归档路径只能由已校验 `release_version` 推导。详细契约按任务类型从 `references/` 加载，过程账本与 provenance 仍保留在非公开工作区。
 
 发布包的可见组成见[发布内容](docs/release-contents.md)；英文读者见[Release Contents](docs/release-contents.en.md)。该清单不会替代运行规则、`VERSION` 或安装校验。
 

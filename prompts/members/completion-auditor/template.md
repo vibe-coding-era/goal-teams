@@ -56,3 +56,5 @@ Auditor 另可返回人类摘要，但它不替代 JSON：
 ```
 
 Lead/ledger owner 在候选收尾时持久化 JSON，并用 checkpoint、identity registry、Harness、Evidence JSONL、Traceability 和实际 Dual Review 文件运行 V2.3 `completion-audit`。failed/blocked 可驱动 LOOP/停止，只有 passed/achieved 要求 required task 全 accepted。本 Audit 是外部门禁，不能作为 required/blocking task 或 Audit Evidence 自证；命中 `E_AUDIT_SELF_REFERENCE` 或命令未通过时该记录不具有完成资格。
+
+V2.35 字段必须由 Auditor 从 route、test-case reports、四专家 proposal/lifecycle、remote/local/post-release Evidence 与 required graph 重算；不得由作者预填 true。

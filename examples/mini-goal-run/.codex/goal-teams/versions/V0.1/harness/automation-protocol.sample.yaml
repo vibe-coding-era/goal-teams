@@ -40,7 +40,7 @@ stages:
     name: "独立校验"
     owner: "评审-登录页空状态文档校验"
     input_refs:
-      - "../progress.md#独立校验"
+      - "../progress.md#当前独立校验"
     required_evidence:
       - "Artifact / Author / Validator 对照"
       - "Evidence 路径"
@@ -48,12 +48,14 @@ stages:
   - id: completion_audit
     name: "收尾审计"
     owner: "收尾-登录页空状态未完成工作检查"
+    graph_external: true
+    activation_condition: "all required tasks accepted"
     input_refs:
-      - "../progress.md#收尾审计"
+      - "../progress.md#图外-completion-audit"
     required_evidence:
       - "完成结论"
       - "自动续跑判断"
-    on_missing_evidence: auto_continue_within_confirmed_scope
+    on_missing_evidence: keep_not_started_and_continue_required_tasks
 auto_continue_policy:
   allowed_when:
     - "遗漏属于已确认目标范围"

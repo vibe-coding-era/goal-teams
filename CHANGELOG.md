@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### V2.35
+
+- Added four read-only, proposal-only specialist roles: `goal_security`, `goal_performance`, `goal_refactor`, and `goal_sqa`. Specialists cannot implement, dispatch, spawn nested teams, mutate central state, or self-verify; Goal Lead dispatches independent implementation and validation runs.
+- Added deterministic `project_size=large|medium|small` and `work_type=feature|bugfix` routing with safety, risk, UI, and explicit-specialist overrides. Architecture, Environment, independent tests, and Evidence remain required; UI always requires E2E, and BugFix always requires TDD plus integration testing.
+- Added the V2.35 test-case contract and canonical validator for non-empty `input`, `processing`, `expected_output`, and executable `assertions`; exit/status-only success cannot substitute for business-output assertions.
+- Added explicit, hash-bound V2.35 version descriptors for state, recovery, closure, snapshot, and public archives while retaining byte-compatible V2.34 behavior when no descriptor is supplied. Invalid, stale, mismatched, traversal, or symlink bindings fail before mutation.
+- Added strict pre-implementation and release/audit gates: delta contract review, accepted Architecture, ready Environment, independent RED tests, implementation, independent GREEN/full regression, release, remote/local Evidence, then graph-external Completion Audit.
+- Added V2.35 schemas, negative fixtures, release-summary documents, package-selection denial of local roadmap/process bundles, and startup/routed-role context budgets.
+
 ### V2.34
 
 - Added a contract-first `Gather -> Reason -> Act -> Verify -> Repeat` LOOP with durable four-file state (`feature_list.json`, `progress.md`, `contract.md`, `log.md`), revision/CAS checks, a journal, marker-last commits, reconciliation, and session-scoped crash recovery.

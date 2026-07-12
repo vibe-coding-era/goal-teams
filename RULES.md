@@ -1,12 +1,11 @@
 # Response Contract（响应规范）
 
-本契约约束 Goal Lead 和成员在执行期的用户可见响应。目标是执行优先、事实优先、信息密度高，并防止未验证成功声明。它不是状态机、权限、证据或安全规则的替代来源。
+本契约约束 Goal Lead 和成员的用户可见响应：执行优先、事实优先，不做未验证成功声明；不替代状态、权限、证据或安全规则。
 
 ## 规则位置与职责
 
 - 对同一事项的控制规则，优先级固定为：系统/用户指令 → 项目 `AGENTS.md` → `references/invariants.md` → 适用的条件规则 → `RULES.md`（仅用户可见响应）→ Lead prompt → Member prompt。
-- `RULES.md` 只能约束措辞、事实标签和汇报诚实性；不能放宽上层权限、locked scope、独立验证、schema 状态、Harness、Evidence 或完成谓词。
-- 若响应表述与上层规则冲突，服从上层规则，并用本契约要求的事实标签报告该约束；不得以“响应规范”为由改变执行状态。
+- `RULES.md` 只约束措辞、事实标签和诚实汇报；不得放宽权限、locked scope、独立验证、schema 状态、Harness、Evidence 或完成谓词。冲突时服从上层规则并如实报告。
 
 ## V2.3 Fact Labels（事实标签）
 
@@ -32,6 +31,7 @@
 9. **Report failures precisely.** 写明失败检查、稳定错误码/命令、影响和下一验证；不要把 partial、blocked、skipped 或 unavailable 写成 passed。
 10. **Use honest status.** Goal Teams 状态使用 V2.3 正交字段；自然语言“完成”不能绕过 `task_state`、`check_state`、`audit_state`、`run_outcome` 与 Evidence。
 11. **Use one machine state.** `check_state` 只能使用 schema 枚举中的一个值。文档中的“failed 或 blocked”是二选一的自然语言，不是 `failed|blocked` 组合态：已执行但未通过或证据无效用 `failed`；因缺少授权、核心依赖或能力而不能执行/完成用 `blocked`。
+12. **Do not imply routed checks.** 项目规模/工作类型或安全、性能、重构、SQA 专项未实际路由并执行时，不得宣称已检查；如实报告 `not_loaded` / `not_applicable` 及原因。
 
 ## 最小执行更新
 

@@ -34,6 +34,16 @@ okf_version: "0.1"
 6. `GoalTeamsWork-*`、`.goalteams-state/`、`.goalteams-candidates/`、`.goalteams-quarantine/`、Member Goal Packet、原始执行日志和私有 provenance 是过程物，不得进入公开 package/archive/commit。`.gitignore` 不会删除已跟踪的历史 V2.3 证据，也不构成删除授权。公开完成文档只能位于 `docs/archive/V2.34/<delivery_id>/`。
 7. 所有 continuation/recovery 只是当前会话与磁盘协议；不得声称 daemon、后台/跨会话 runner、CI/CD、生产审批或无限自动执行能力。宿主未提供的持续能力不得由 prompt 或状态文件伪造。
 
+## V2.35 专项、路由与测试硬边界
+
+1. `project_size=large|medium|small` 与 `work_type=feature|bugfix` 正交；未知、缺失、类型错误或冲突输入 fail closed。风险、安全和 UI 是覆盖规则，不能被规模降级。
+2. medium/small 只减少默认专家或需求文档，不减少 Architecture、Environment、独立测试、Harness、Evidence 或独立验证；bugfix 必须 TDD red/green + integration，`ui=true` 必须独立 E2E。
+3. `goal_security|goal_performance|goal_refactor|goal_sqa` 固定只读、`coordination_depth=1`、no spawn、no dispatch、proposal-only；只向 Lead 交接，不能创建 nested team、写产品/中央 TaskList 或自我 applied/verified。
+4. 无本轮新的目标精确授权，外部主动端口扫描返回 `E_V235_EXTERNAL_PORT_SCAN_AUTH_REQUIRED` 且不得生成/执行命令；安全任务最低 safety review。
+5. 七类 V2.35 test-case 必须有非空 input/processing/expected_output/assertions，且至少一个非 exit/status 的业务断言；TDD red 必须先于 implementation 并由独立 green runner 验证。
+6. V2.35 显式 state/archive 只能使用 current delta contract/review hash 绑定的 version descriptor；缺 descriptor 保持 V2.34 默认，binding 错误不得静默回退。公开 archive 只从 contract-bound `release_version` 推导。
+7. release readiness、remote push、local install 与 post-release task 全 accepted 后才启动图外 Completion Audit；Audit 不得作为 required task 或被 required artifact/Evidence 自引用。
+
 ## 身份与能力边界
 
 - `agent_type`、唯一 `agent_run_id`、稳定 `member_id`、本地化 `display_name` 与 `transport_handle` 必须分离；独立性使用 agent_run_id，不能使用显示名。

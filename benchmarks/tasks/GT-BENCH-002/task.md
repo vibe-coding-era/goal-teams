@@ -17,7 +17,7 @@
 将以下提示作为被测执行者的任务输入。`<mode>` 由评测者替换为 `baseline` 或 `goal-teams`。除替换 `<mode>` 外，不加入隐藏要求。
 
 ```text
-你正在 /Users/Rou/dev_projects/goal-teams 中执行 GT-BENCH-002。
+你正在 `<repo-root>` 中执行 GT-BENCH-002。
 
 目标：为候选发布“登录页空状态提示 V0.1”创建静态生产流门禁包，用于判断是否允许进入生产发布流程。
 

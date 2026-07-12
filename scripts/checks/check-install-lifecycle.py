@@ -208,6 +208,25 @@ def main() -> None:
             raise AssertionError("initial install did not switch both skill and agent targets")
         if not (old_skill / "scripts" / "checks" / "check-ci-pins.py").is_file():
             raise AssertionError("Round2 CI pin checker was omitted from the install package manifest")
+        if (old_skill / "VERSION").read_text(encoding="utf-8").strip() != "V2.35":
+            raise AssertionError("V2.35 VERSION was not installed")
+        v235_skill_paths = (
+            "schemas/v2.35/project-route.schema.json",
+            "schemas/v2.35/test-case.schema.json",
+            "schemas/v2.35/version-binding.schema.json",
+            "scripts/checks/validate-test-case-contract.py",
+            "scripts/validate-test-case-contract.py",
+            "docs/v2.35-release-summary.md",
+            "docs/v2.35-release-summary.en.md",
+        )
+        missing_v235 = [path for path in v235_skill_paths if not (old_skill / path).is_file()]
+        if missing_v235:
+            raise AssertionError(f"V2.35 install package omitted files: {missing_v235}")
+        for role in ("security", "performance", "refactor", "sqa"):
+            if not (old_skill / "subagents" / f"goal-{role}.toml").is_file():
+                raise AssertionError(f"V2.35 skill omitted goal-{role}.toml")
+            if not (home / "agents" / f"goal-{role}.toml").is_file():
+                raise AssertionError(f"V2.35 live agent omitted goal-{role}.toml")
         if digest_file(fallback_agent) != original_fallback_digest:
             raise AssertionError("default install modified fallback agent without opt-in")
 

@@ -30,7 +30,12 @@ ROLE_PREFIXES = {
     "goal_qa": "测试",
     "goal_requirements_analyst": "需求分析",
     "goal_reviewer": "评审",
+    "goal_security": "安全",
+    "goal_performance": "性能",
+    "goal_refactor": "重构",
+    "goal_sqa": "质量保证",
 }
+SPECIALIST_NAMES = {"goal_security", "goal_performance", "goal_refactor", "goal_sqa"}
 ENGLISH_NICKNAME_RE = re.compile(r"\b(?:Reviewer|QA|Implementer|Researcher)\s+[A-Z]\b")
 
 
@@ -48,6 +53,20 @@ def check_file(path: Path) -> None:
     for required in ("transport handle", "成员：<中文展示名>", "member_id", "display_name"):
         if required not in instructions:
             fail(f"{path} missing naming rule: {required}")
+    if name in SPECIALIST_NAMES:
+        if data.get("sandbox_mode") != "read-only":
+            fail(f"{path} specialist must use sandbox_mode=read-only")
+        for required in (
+            "coordination_depth: 1",
+            "can_spawn_subagents: false",
+            "can_dispatch: false",
+            "dispatch_owner_agent_type: goal_lead",
+            "handoff_mode: proposal_only",
+            "不要创建嵌套团队",
+            "独立校验",
+        ):
+            if required not in instructions:
+                fail(f"{path} missing specialist capability rule: {required}")
     for candidate in data.get("nickname_candidates", []):
         if ENGLISH_NICKNAME_RE.search(candidate):
             fail(f"{path} contains English runtime nickname candidate: {candidate}")

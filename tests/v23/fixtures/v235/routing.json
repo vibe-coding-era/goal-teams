@@ -1,0 +1,410 @@
+{
+  "schema_version": "goal-teams-project-route-fixtures-v2.35",
+  "valid_cases": [
+    {
+      "case_id": "ROUTE-LARGE-FEATURE-RELEASE",
+      "input": {
+        "schema_version": "goal-teams-project-route-v2.35",
+        "project_size": "large",
+        "work_type": "feature",
+        "release": true,
+        "ui": false,
+        "backend": true,
+        "api": true,
+        "cli": true,
+        "tests": true,
+        "risk": "low",
+        "security_sensitive": false,
+        "external_write": false,
+        "auth": false,
+        "payment": false,
+        "migration": false,
+        "destructive": false,
+        "specialist_requests": []
+      },
+      "expected": {
+        "project_size": "large",
+        "work_type": "feature",
+        "gates": {
+          "architecture": "required",
+          "environment": "required",
+          "independent_tests": "required",
+          "evidence": "required",
+          "tdd": "required",
+          "integration": "required",
+          "full_regression": "required",
+          "release_evidence": "required"
+        },
+        "specialists": {
+          "security": "required",
+          "performance": "required",
+          "refactor": "required",
+          "sqa": "required"
+        },
+        "reason_codes_contains": ["V235_LARGE_RELEASE"]
+      }
+    },
+    {
+      "case_id": "ROUTE-LARGE-BUGFIX",
+      "input": {
+        "schema_version": "goal-teams-project-route-v2.35",
+        "project_size": "large",
+        "work_type": "bugfix",
+        "release": false,
+        "ui": false,
+        "backend": true,
+        "api": true,
+        "cli": false,
+        "tests": true,
+        "risk": "low",
+        "security_sensitive": false,
+        "external_write": false,
+        "auth": false,
+        "payment": false,
+        "migration": false,
+        "destructive": false,
+        "specialist_requests": []
+      },
+      "expected": {
+        "project_size": "large",
+        "work_type": "bugfix",
+        "gates": {
+          "architecture": "required",
+          "environment": "required",
+          "independent_tests": "required",
+          "evidence": "required",
+          "tdd": "required",
+          "integration": "required"
+        },
+        "reason_codes_contains": ["V235_BUGFIX_TDD_INTEGRATION"]
+      }
+    },
+    {
+      "case_id": "ROUTE-MEDIUM-FEATURE",
+      "input": {
+        "schema_version": "goal-teams-project-route-v2.35",
+        "project_size": "medium",
+        "work_type": "feature",
+        "release": true,
+        "ui": false,
+        "backend": true,
+        "api": true,
+        "cli": false,
+        "tests": true,
+        "risk": "low",
+        "security_sensitive": false,
+        "external_write": false,
+        "auth": false,
+        "payment": false,
+        "migration": false,
+        "destructive": false,
+        "specialist_requests": []
+      },
+      "expected": {
+        "project_size": "medium",
+        "work_type": "feature",
+        "gates": {
+          "architecture": "required",
+          "environment": "required",
+          "independent_tests": "required",
+          "evidence": "required"
+        },
+        "specialists": {
+          "security": "not_loaded",
+          "performance": "not_loaded",
+          "refactor": "not_loaded",
+          "sqa": "not_loaded"
+        },
+        "reason_codes_contains": ["V235_MEDIUM_DEFAULT"]
+      }
+    },
+    {
+      "case_id": "ROUTE-MEDIUM-BUGFIX",
+      "input": {
+        "schema_version": "goal-teams-project-route-v2.35",
+        "project_size": "medium",
+        "work_type": "bugfix",
+        "release": false,
+        "ui": false,
+        "backend": true,
+        "api": true,
+        "cli": false,
+        "tests": true,
+        "risk": "low",
+        "security_sensitive": false,
+        "external_write": false,
+        "auth": false,
+        "payment": false,
+        "migration": false,
+        "destructive": false,
+        "specialist_requests": []
+      },
+      "expected": {
+        "project_size": "medium",
+        "work_type": "bugfix",
+        "gates": {
+          "architecture": "required",
+          "environment": "required",
+          "independent_tests": "required",
+          "evidence": "required",
+          "tdd": "required",
+          "integration": "required"
+        },
+        "reason_codes_contains": ["V235_BUGFIX_TDD_INTEGRATION"]
+      }
+    },
+    {
+      "case_id": "ROUTE-SMALL-FEATURE",
+      "input": {
+        "schema_version": "goal-teams-project-route-v2.35",
+        "project_size": "small",
+        "work_type": "feature",
+        "release": false,
+        "ui": false,
+        "backend": true,
+        "api": false,
+        "cli": true,
+        "tests": true,
+        "risk": "low",
+        "security_sensitive": false,
+        "external_write": false,
+        "auth": false,
+        "payment": false,
+        "migration": false,
+        "destructive": false,
+        "specialist_requests": []
+      },
+      "expected": {
+        "project_size": "small",
+        "work_type": "feature",
+        "gates": {
+          "architecture": "required",
+          "environment": "required",
+          "independent_tests": "required",
+          "evidence": "required"
+        },
+        "specialists": {
+          "security": "not_loaded",
+          "performance": "not_loaded",
+          "refactor": "not_loaded",
+          "sqa": "not_loaded"
+        },
+        "reason_codes_contains": ["V235_SMALL_SHORT_REQUIREMENTS"]
+      }
+    },
+    {
+      "case_id": "ROUTE-SMALL-BUGFIX-UI",
+      "input": {
+        "schema_version": "goal-teams-project-route-v2.35",
+        "project_size": "small",
+        "work_type": "bugfix",
+        "release": false,
+        "ui": true,
+        "backend": true,
+        "api": true,
+        "cli": false,
+        "tests": true,
+        "risk": "low",
+        "security_sensitive": false,
+        "external_write": false,
+        "auth": false,
+        "payment": false,
+        "migration": false,
+        "destructive": false,
+        "specialist_requests": []
+      },
+      "expected": {
+        "project_size": "small",
+        "work_type": "bugfix",
+        "gates": {
+          "architecture": "required",
+          "environment": "required",
+          "independent_tests": "required",
+          "evidence": "required",
+          "tdd": "required",
+          "integration": "required",
+          "e2e": "required"
+        },
+        "reason_codes_contains": ["V235_BUGFIX_TDD_INTEGRATION", "V235_UI_E2E_OVERRIDE"]
+      }
+    },
+    {
+      "case_id": "ROUTE-MEDIUM-SECURITY-OVERRIDE",
+      "input": {
+        "schema_version": "goal-teams-project-route-v2.35",
+        "project_size": "medium",
+        "work_type": "feature",
+        "release": false,
+        "ui": false,
+        "backend": true,
+        "api": true,
+        "cli": false,
+        "tests": true,
+        "risk": "low",
+        "security_sensitive": true,
+        "external_write": false,
+        "auth": false,
+        "payment": false,
+        "migration": false,
+        "destructive": false,
+        "specialist_requests": []
+      },
+      "expected": {
+        "profile": "regulated",
+        "required_review_class": "safety",
+        "specialists": {"security": "required"},
+        "reason_codes_contains": ["V235_SECURITY_OVERRIDE"]
+      }
+    },
+    {
+      "case_id": "ROUTE-SMALL-HIGH-RISK-OVERRIDE",
+      "input": {
+        "schema_version": "goal-teams-project-route-v2.35",
+        "project_size": "small",
+        "work_type": "feature",
+        "release": false,
+        "ui": false,
+        "backend": true,
+        "api": false,
+        "cli": true,
+        "tests": true,
+        "risk": "high",
+        "security_sensitive": false,
+        "external_write": false,
+        "auth": false,
+        "payment": false,
+        "migration": false,
+        "destructive": false,
+        "specialist_requests": []
+      },
+      "expected": {
+        "project_size": "small",
+        "profile": "regulated",
+        "required_review_class": "safety",
+        "specialists": {"security": "required"},
+        "reason_codes_contains": ["V235_SECURITY_OVERRIDE"]
+      }
+    },
+    {
+      "case_id": "ROUTE-MEDIUM-EXPLICIT-PERFORMANCE",
+      "input": {
+        "schema_version": "goal-teams-project-route-v2.35",
+        "project_size": "medium",
+        "work_type": "feature",
+        "release": false,
+        "ui": false,
+        "backend": true,
+        "api": true,
+        "cli": false,
+        "tests": true,
+        "risk": "low",
+        "security_sensitive": false,
+        "external_write": false,
+        "auth": false,
+        "payment": false,
+        "migration": false,
+        "destructive": false,
+        "specialist_requests": ["performance"]
+      },
+      "expected": {
+        "specialists": {"performance": "required"},
+        "reason_codes_contains": ["V235_EXPLICIT_SPECIALIST_REQUEST"]
+      }
+    },
+    {
+      "case_id": "ROUTE-SMALL-CRITICAL-RISK-OVERRIDE",
+      "input": {
+        "schema_version": "goal-teams-project-route-v2.35",
+        "project_size": "small",
+        "work_type": "feature",
+        "release": false,
+        "ui": false,
+        "backend": true,
+        "api": false,
+        "cli": true,
+        "tests": true,
+        "risk": "critical",
+        "security_sensitive": false,
+        "external_write": false,
+        "auth": false,
+        "payment": false,
+        "migration": false,
+        "destructive": false,
+        "specialist_requests": []
+      },
+      "expected": {
+        "project_size": "small",
+        "profile": "regulated",
+        "required_review_class": "safety",
+        "gates": {
+          "architecture": "required",
+          "environment": "required",
+          "independent_tests": "required",
+          "evidence": "required"
+        },
+        "specialists": {"security": "required"},
+        "reason_codes_contains": ["V235_SECURITY_OVERRIDE"]
+      }
+    }
+  ],
+  "risk_override_flags": [
+    "security_sensitive",
+    "external_write",
+    "auth",
+    "payment",
+    "migration",
+    "destructive"
+  ],
+  "invalid_cases": [
+    {
+      "case_id": "INVALID-UNKNOWN-SIZE",
+      "patch": {"project_size": "tiny"},
+      "error_code": "E_V235_PROJECT_SIZE"
+    },
+    {
+      "case_id": "INVALID-BUGFIX-AS-SIZE",
+      "patch": {"project_size": "bugfix"},
+      "error_code": "E_V235_PROJECT_SIZE"
+    },
+    {
+      "case_id": "INVALID-UNKNOWN-WORK-TYPE",
+      "patch": {"work_type": "maintenance"},
+      "error_code": "E_V235_WORK_TYPE"
+    },
+    {
+      "case_id": "INVALID-UNKNOWN-RISK",
+      "patch": {"risk": "extreme"},
+      "error_code": "E_V235_RISK"
+    },
+    {
+      "case_id": "INVALID-SCHEMA-VERSION",
+      "patch": {"schema_version": "goal-teams-project-route-v9"},
+      "error_code": "E_V235_ROUTE_SCHEMA"
+    },
+    {
+      "case_id": "INVALID-MISSING-SIZE",
+      "remove": ["project_size"],
+      "error_code": "E_V235_ROUTE_REQUIRED"
+    },
+    {
+      "case_id": "INVALID-STRING-BOOLEAN",
+      "patch": {"ui": "false"},
+      "error_code": "E_V235_ROUTE_TYPE"
+    },
+    {
+      "case_id": "INVALID-UNKNOWN-FIELD",
+      "patch": {"project_tier": "large"},
+      "error_code": "E_V235_ROUTE_UNKNOWN_FIELD"
+    },
+    {
+      "case_id": "INVALID-CONFLICTING-SIZE-SOURCES",
+      "patch": {"project_size": ["large", "small"]},
+      "error_code": "E_V235_ROUTE_CONFLICT"
+    },
+    {
+      "case_id": "INVALID-SPECIALIST",
+      "patch": {"specialist_requests": ["database"]},
+      "error_code": "E_V235_SPECIALIST_REQUEST"
+    }
+  ]
+}

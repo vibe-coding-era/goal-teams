@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.35/project-route.schema.json",
+  "title": "Goal Teams V2.35 Project Route",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "project_size",
+    "work_type",
+    "release",
+    "ui",
+    "backend",
+    "api",
+    "cli",
+    "tests",
+    "risk",
+    "security_sensitive",
+    "external_write",
+    "auth",
+    "payment",
+    "migration",
+    "destructive",
+    "specialist_requests"
+  ],
+  "properties": {
+    "schema_version": {"const": "goal-teams-project-route-v2.35"},
+    "project_size": {"enum": ["large", "medium", "small"]},
+    "work_type": {"enum": ["feature", "bugfix"]},
+    "release": {"type": "boolean"},
+    "ui": {"type": "boolean"},
+    "backend": {"type": "boolean"},
+    "api": {"type": "boolean"},
+    "cli": {"type": "boolean"},
+    "tests": {"type": "boolean"},
+    "risk": {"enum": ["low", "medium", "high", "critical"]},
+    "security_sensitive": {"type": "boolean"},
+    "external_write": {"type": "boolean"},
+    "auth": {"type": "boolean"},
+    "payment": {"type": "boolean"},
+    "migration": {"type": "boolean"},
+    "destructive": {"type": "boolean"},
+    "specialist_requests": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"enum": ["security", "performance", "refactor", "sqa"]}
+    }
+  }
+}

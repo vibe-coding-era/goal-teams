@@ -148,6 +148,8 @@ release_gate:
 
 `gate_status: approved` 只表示协议层允许进入下一步；真实发布仍取决于外部系统权限和人工授权。
 
+V2.35 的 large + Release 在进入本门前默认要求 security、performance、refactor、sqa 四专项 proposal/review 与完整 Evidence gates；专家只读且不能自行派发。medium/small 默认不加载四专家，但 risk/security override 可强制专项，且 Architecture、Environment、独立测试和 Evidence 不得因规模减少。
+
 ## Safety Gate
 
 以下情况不得由 Goal Teams 自动执行，必须人工审批或外部系统授权：
@@ -204,5 +206,7 @@ Goal Teams 可以生成 rollback_plan 和检查清单；不能宣称已经执行
 - `progress.md`：记录阶段状态、命令结果、失败报告和人工审批证据。
 - `acceptance.md`：汇总 Release Gate、Observe、Promote/Rollback 的验收结果。
 - `decisions.md`：记录人工决策、风险接受和外部授权引用。
+
+V2.35 发布闭环按顺序记录：release-readiness accepted → release branch/main fast-forward push Evidence → 本地安装 VERSION/tree/full-check Evidence → 独立 post-release task accepted → graph-external Completion Audit。公开 `docs/v2.35-release-summary*.md` 是 Audit 前候选说明，必须声明 Audit 尚未运行/待运行；最终 Audit 保留在私有过程 bundle，不进入 package。
 
 V1.9 只定义生产流水线协议和门禁模板。若后续要接入真实 runner、CI/CD 或部署系统，需要新的版本目标、明确授权、独立安全评审和校验脚本支持。

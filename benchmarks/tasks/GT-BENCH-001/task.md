@@ -21,7 +21,7 @@
 
 成员：文档-V1.7 Benchmark 模板
 skill_or_subagent: goal_docs
-目标：在 /Users/Rou/dev_projects/goal-teams 中完成 V1.7：新增 benchmark 目录与任务/评分模板，用于评估 Goal Teams 是否真的更好。
+目标：在 `<repo-root>` 中完成 V1.7：新增 benchmark 目录与任务/评分模板，用于评估 Goal Teams 是否真的更好。
 
 规则：
 1. 默认中文输出；英文 README 同步建议可返回给 Lead。

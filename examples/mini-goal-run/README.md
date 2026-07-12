@@ -13,9 +13,10 @@
 ```text
 Use $goal-teams。
 请为“登录页空状态提示 V0.1”生成一个最小 Goal Teams 示例。
-先汇报：我是 Goal Teams Lead V2.34。
+先汇报：我是 Goal Teams Lead V2.35。
 只做规划和文档产物，不修改实现文件。
 过程和结果保存到 V0.1 版本目录。
+结构化路由记录 `project_size=small`、`work_type=feature`、`ui=true`；不因 small 省略 Architecture、Environment、独立测试或 Evidence，UI 仍要求 E2E。
 必须先写入包含用户故事和功能验收标准的需求卡片，再列出四列合并展示的 Teams 规划表，并包含 workflow、前置任务、需求规格卡、PRD、架构设计、HTML 原型、TaskList、测试计划、验收清单、独立校验计划和收尾审计。真实后端/前端项目还要按 V2.0 拆出后端 TDD、API 集成测试和 E2E 生成/执行任务；本示例不涉及真实代码时写 `not_applicable_reason`。
 ```
 
@@ -65,15 +66,15 @@ Use $goal-teams。
 
 - 多文档前是否先有总索引和版本索引。
 - `plan.md` 是否先列出四列合并展示的 Teams 规划表，且运行时 subagent id、member_id 和成员展示名是否采用 `<中文角色>-<具体任务名>`，例如 `后端-WIKI 列表后端开发`；如果用户指定 skill，则使用 skill 名称，例如 `browser-WIKI 列表页面验证`。
-- 首次建立身份时是否只简短汇报 `我是 Goal Teams Lead V2.34。`。
+- 首次建立身份时是否只简短汇报 `我是 Goal Teams Lead V2.35。`。
 - 是否只在缺少历史资料会改变执行时才询问；上下文已经完整时直接工作，并在需要时记录 `历史资料：未提供`。
 - 如果提示词包含 `直接执行` / `不用确认` / `跳过确认`，是否仍展示执行计划并跳过等待确认。
 - 如果等待用户选择，是否使用数字选项让用户能回复 `1`、`2` 或 `3`。
 - TaskList 是否包含成员、认领、workflow、前置任务、锁定范围、验收和校验者；真实项目是否拆到 V2.0 最小颗粒度。
 - Plan 是否先写入 `spec/requirement-card.md` 并覆盖核心目标、关键功能、用户故事、功能验收标准、边界、约束和风险。
 - SPEC 是否从需求规格卡到 PRD 再到设计/测试/验收逐层展开。
-- 涉及 HTML 原型时是否说明界面级 E2E 要求；静态示例可写 `sample_only` 例外，真实界面任务必须运行 E2E，复刻任务必须截图做像素级对比。
+- 涉及 HTML 原型时是否强制界面级 E2E；`sample_only` / `no_runner` 只说明当前不可执行，不豁免门禁，应将 E2E 及下游验收标为 blocked。复刻任务还必须截图做像素级对比。
 - 独立校验证据是否进入 `progress.md` 或 `acceptance.md`。
-- 是否由 `goal_completion_auditor` 做收尾审计，并在有未完成工作时自动续跑。
+- Completion Audit 是否保持在 required task 图外，只在全部 required tasks accepted 后派发 `goal_completion_auditor`；有未完成工作时先续跑 required tasks。
 - Harness 复盘资料是否能从 `harness/setup.md`、`harness/run.md`、`harness/checks.md`、`harness/report.md` 追到 `progress.md` 和 `acceptance.md`。
 - automation protocol、evidence ledger 和 pipeline gates 样例是否标明 `sample_only`，且不声明真实生产、CI、凭证、支付或认证接入。

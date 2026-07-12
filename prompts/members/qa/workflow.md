@@ -9,7 +9,9 @@
 7. 对 HTML Prototype MOCK 检查 `application/okf+yaml`、HTML 注释或 `data-*` 属性中的组件库元数据。
 8. 对弹窗、表单、菜单、头像、表格、分页等组件检查至少一个交互态证据。
 9. 对后端任务检查单测执行必须由 `goal_unit_test_runner` 完成，API 集成测试执行必须在单测通过后完成。
+9a. V2.35 用 `scripts/checks/validate-test-case-contract.py` 校验适用用例；核对 observed output/逐 assertion result、TDD red→implementation→独立 green 时序和 integration input/process/output 绑定。
 10. 对前端任务检查 E2E 用例作者和执行者必须分离。
 11. comparison/safety 汇总脚本与独立 LLM；semantic/structural 按 class matrix 汇总 required half 与结构化 N/A。
 12. 任一 required half 缺失/失败或 N/A 未独立接受时，结论不得 pass。
 13. 证据不足时打回，不给 accepted，并提交 failed/blocked review event，由 ledger owner 更新投影视图。
+14. 对 V2.35 重算双轴/risk/UI/specialist route；适用专家检查 capability/lifecycle/domain Evidence。发布任务检查 remote/local/post-release 先于图外 Completion Audit且无自引用。

@@ -642,7 +642,7 @@ class V234ReleaseTests(unittest.TestCase):
     def test_v234_version_surface_sync(self) -> None:
         """ASSERT-V234-051"""
         v234 = require_v234(self)
-        result = v234.validate_version_sync(ROOT, expected_version="V2.34")
+        result = v234.validate_version_sync(ROOT, expected_version="V2.35")
         self.assertTrue(result["ok"], result)
         expected_surfaces = {
             "VERSION", "SKILL.md", "README.md", "README.en.md",
@@ -659,6 +659,12 @@ class V234ReleaseTests(unittest.TestCase):
             _, proof, context, _ = strict_completion_fixture(
                 self, Path(directory), descriptors
             )
+            self.assertNotIn("version_binding", context)
+            legacy_sync = v234.validate_version_sync(
+                Path(directory), expected_version="V2.34"
+            )
+            self.assertTrue(legacy_sync["ok"], legacy_sync)
+            self.assertEqual(legacy_sync["stale_current_version_markers"], [])
             valid = v234.validate_release_closure(
                 proof, source_context=context
             )

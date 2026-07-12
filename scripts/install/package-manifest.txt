@@ -8,6 +8,8 @@ file docs/change-history.en.md
 file docs/change-history.md
 file docs/release-contents.en.md
 file docs/release-contents.md
+file docs/v2.35-release-summary.en.md
+file docs/v2.35-release-summary.md
 file docs/v2.34-completion.en.md
 file docs/v2.34-completion.md
 prefix docs/archive/

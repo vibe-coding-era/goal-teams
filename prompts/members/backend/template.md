@@ -7,6 +7,8 @@
 后端合同：<API/CLI/MCP/schema/migration>
 后端架构设计：<spec/backend-architecture-design.md>
 TDD 单元测试用例：<backend_unit_test_cases path/status>
+V2.35 Test-case contracts：<unit/tdd/integration refs + validator status>
+TDD red binding：<test hash / pre-implementation tree / ledger prefix / Evidence>
 TDD 单元测试执行：<backend_unit_test_execution path/status>
 API 集成测试：<script/plan/execution path/status>
 Harness：

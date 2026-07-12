@@ -27,6 +27,18 @@ Member Goal Packet（成员目标包）:
 - okf_required: true
 - workflow_mode: serial | parallel
 - depends_on:
+- project_route:
+  - schema_version: goal-teams-project-route-v2.35
+  - project_size: large | medium | small
+  - work_type: feature | bugfix
+  - profile / required_review_class
+  - gates / specialists / reason_codes
+- specialist_capability: <仅专家 packet>
+  - coordination_depth: 1
+  - can_spawn_subagents: false
+  - can_dispatch: false
+  - dispatch_owner_agent_type: goal_lead
+  - handoff_mode: proposal_only
 - budget_gate:
 - loop_gate:
   - max_loop_rounds:
@@ -79,6 +91,7 @@ Member Goal Packet（成员目标包）:
 - forbidden_scope:
 - locked_scope:
 - required_tests:
+- test_case_contract_refs: <unit|tdd|integration|e2e|cli|api|fixture；V2.35 测试任务必填>
 - harness_contract:
   - task_type: <review policy 的权威任务类型>
   - required_review_class: structural | comparison | safety | semantic
@@ -92,6 +105,12 @@ Member Goal Packet（成员目标包）:
   - evidence_paths: <versions/<artifact_version>/evidence/evidence.jsonl 等>
   - failure_report
   - not_applicable_reason
+- specialist_contract:
+  - priority_level: L0 | L1 | L2
+  - lifecycle_state: proposed | reviewed | applied | verified | reverted
+  - proposal_ref / proposal_sha256
+  - regression_evidence_ref / holdout_evidence_ref
+  - specialist_dispatch_request_ref
 - dual_review_contract:
   - review_class: <不得低于 harness_contract 推导结果>
   - script_review
