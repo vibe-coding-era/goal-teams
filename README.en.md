@@ -87,6 +87,16 @@ Validate before maintenance or release:
 ./scripts/check.sh
 ```
 
+A GitHub Release must be built locally as the same reproducible asset and pass source-bound validation before upload:
+
+```bash
+python3 scripts/release/build-release.py --version V2.37 --ref HEAD
+python3 scripts/release/validate-release.py --version V2.37
+scripts/release/publish-github-release.sh V2.37
+```
+
+Local release directories live at `release/versions/<VERSION>/`. Root `docs/` contains non-release knowledge, tests, and credentials only and is excluded by `.gitignore`. See `references/release-packaging-protocol.md` for the full contract.
+
 The standalone deterministic routing check is `scripts/checks/check-routing-fixtures.py` (compatibility entrypoint: `scripts/check-routing-fixtures.py`).
 
 `./scripts/check.sh` covers deterministic contract/mutation gates only; it is not real Behavior release evidence. Before RC, choose a new persistent directory outside the source repository, run the nine isolated blind scenarios, and pass their summary to the combined gate:

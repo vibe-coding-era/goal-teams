@@ -91,6 +91,16 @@ git clone https://github.com/vibe-coding-era/goal-teams.git ~/.codex/skills/goal
 ./scripts/check.sh
 ```
 
+GitHub Release 必须先在本地生成同一份可复现资产并通过来源绑定校验：
+
+```bash
+python3 scripts/release/build-release.py --version V2.37 --ref HEAD
+python3 scripts/release/validate-release.py --version V2.37
+scripts/release/publish-github-release.sh V2.37
+```
+
+本地发行目录为 `release/versions/<VERSION>/`；根 `docs/` 只保存非发行知识、测试与凭证，并由 `.gitignore` 排除。详细规则见 `references/release-packaging-protocol.md`。
+
 路由规则的独立确定性入口为 `scripts/checks/check-routing-fixtures.py`（兼容入口：`scripts/check-routing-fixtures.py`）。
 
 `./scripts/check.sh` 只覆盖确定性 contract/mutation gate，不构成真实 Behavior 发布证据。发布 RC 前在源码仓库外选择一个全新、持久目录，运行 9 场景隔离盲测，再把 summary 交给组合门禁：

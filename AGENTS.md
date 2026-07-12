@@ -52,6 +52,8 @@
 - `scripts/checks/check-routing-fixtures.py` 承载只规划/需求卡片、纯后端 CLI、UI 复刻和长任务续跑的渐进式加载路由 fixtures。
 - `subagents/goal-*.toml` 是实际可注册的成员 agent 配置。
 - `README.md` 和 `README.en.md` 只做介绍、安装、示例和发布说明，避免承载唯一规则。
+- `references/release-packaging-protocol.md` 是统一发行规范；所有版本必须先生成并校验 `release/versions/<VERSION>/`，再上传 GitHub Release。
+- `scripts/release/` 承载发行构建、验证与 GitHub 发布后复核脚本；不得绕过本地 release 门禁直接上传。
 
 ## 同步要求
 

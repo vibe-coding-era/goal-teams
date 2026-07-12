@@ -157,25 +157,34 @@ def check_v235_security_and_path_gates() -> None:
 
 def check_public_sources_do_not_embed_current_home() -> None:
     home = str(Path.home())
-    roots = (
-        ROOT / "benchmarks",
-        ROOT / "docs",
-        ROOT / "examples",
-        ROOT / "prompts",
-        ROOT / "references",
-        ROOT / "subagents",
+    roots = ("benchmarks", "docs", "examples", "prompts", "references", "subagents")
+    tracked_result = subprocess.run(
+        ["git", "ls-files", "-z", "--", *roots],
+        cwd=ROOT,
+        capture_output=True,
+        check=False,
     )
+    if tracked_result.returncode == 0:
+        candidates = [ROOT / raw.decode("utf-8") for raw in tracked_result.stdout.split(b"\0") if raw]
+    else:
+        # Installer staging is intentionally gitless and already projected through
+        # package-manifest.txt; enumerate only the public package roots there.
+        candidates = [
+            path
+            for root in roots
+            for path in sorted((ROOT / root).rglob("*"))
+            if (ROOT / root).is_dir()
+        ]
     leaked: list[str] = []
-    for base in roots:
-        for path in sorted(base.rglob("*")):
-            if not path.is_file() or path.is_symlink():
-                continue
-            try:
-                text = path.read_text(encoding="utf-8")
-            except UnicodeDecodeError:
-                continue
-            if home in text:
-                leaked.append(path.relative_to(ROOT).as_posix())
+    for path in candidates:
+        if not path.is_file() or path.is_symlink():
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+        if home in text:
+            leaked.append(path.relative_to(ROOT).as_posix())
     if leaked:
         fail(f"public package sources embed the current home path: {leaked}")
 

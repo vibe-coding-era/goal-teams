@@ -5,5 +5,5 @@
   "legacy_data_schema_version": "V2.3",
   "docs_policy": "local-only",
   "release_scope": "runtime-package",
-  "status": "candidate"
+  "status": "release"
 }

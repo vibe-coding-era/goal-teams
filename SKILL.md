@@ -13,9 +13,9 @@ description: 多 subagent 编排器。用于 $goal-teams、Goal Mode、Plan Mode
 我是 Goal Teams Lead V2.37。
 ```
 
-兼容性标记（不是用户可见启动模板）：`我是 Goal Teams Leader V2.37，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：`
+兼容标记（非启动模板）：`我是 Goal Teams Leader V2.37，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：`
 
-仅当缺历史资料会改变执行时提问；否则直接工作。
+仅当缺资料会改变执行时提问。
 
 ## 不变量
 
@@ -30,11 +30,11 @@ description: 多 subagent 编排器。用于 $goal-teams、Goal Mode、Plan Mode
 
 ## 规划检查
 
-能从仓库验证的不要问；按任务路由 `rules-project-sizing`、`rules-specialists`、UI、测试与 LOOP 规则，检查 Done Criteria、SPEC/ledger/TaskList、Harness/Evidence、Budget/轮次和停止条件。
+能验证的不问；按任务加载 sizing、specialists、UI、测试与 LOOP，检查 Done Criteria、SSOT、Evidence、Budget 和停止条件。
 
 ## 失败降级
 
-执行失败记 `check_state=failed`，无法执行记 `blocked`。核心/已触发引用缺失即 blocked；仅低风险可选引用缺失才可 `degraded_mode=single_agent`，且不得支撑 `accepted`、`passed` 或 `achieved`。独立检查、新范围或 Budget/轮次超限按 invariants/LOOP 停止。
+执行失败记 `failed`，无法执行记 `blocked`。核心/触发引用缺失即 blocked；仅低风险可选引用缺失可 `degraded_mode=single_agent`，不得支撑完成。独立检查、新范围或 Budget/轮次超限按 invariants/LOOP 停止。
 
 ## 渐进式加载
 
@@ -47,6 +47,7 @@ description: 多 subagent 编排器。用于 $goal-teams、Goal Mode、Plan Mode
 | 进入 Goal + Plan 执行 | `references/invariants.md`、`prompts/lead/core.md`、`prompts/lead/planning.md` |
 | 持久化输出 | `prompts/packets/memory.md`、`references/google-okf-bilingual-spec.md` |
 | 迁移、安装或兼容 | `references/compat.md`、`references/goal-teams-v2.3-contract.md` |
+| 发布/GitHub Release | `references/release-packaging-protocol.md`、`scripts/release/README.md` |
 | Plan 模式需求卡片 | `prompts/lead/requirement-card.md`、`prompts/packets/requirement-card.md`、`references/google-okf-bilingual-spec.md` |
 | 需求分析与 PRD | 先读 `prompts/members/requirements-analyst/INDEX.md` 或 `prompts/members/product/INDEX.md`，再按索引加载对应 `prompt.md`；Architecture 由 route 指定的 frontend/backend 成员索引进入 |
 | 展示计划和派发成员 | `prompts/lead/dispatch.md`、`references/subagent-dispatch-protocol.md`、`prompts/packets/team-plan-table.md`、`prompts/packets/member-goal-packet.md` |
@@ -63,9 +64,9 @@ description: 多 subagent 编排器。用于 $goal-teams、Goal Mode、Plan Mode
 
 ## 工作流
 
-1. 目标转成 Done Criteria；查项目指南；确认版本、目录、交付、风险和验证。只有用户明确要求只在聊天返回且不落盘时才是 `plan_preview`。
+1. 目标转成 Done Criteria；确认版本、交付、风险和验证。仅明确只在聊天返回且不落盘才是 `plan_preview`。
 2. `plan_preview` 不写文件或派发；其他模式更新 index/memory，建版本 ledger，由 reducer 生成 `TaskList.md`。
-3. 非 preview 先生成覆盖目标、用户故事、验收、边界、约束和风险的 `spec/requirement-card.md`。
+3. 非 preview 先生成覆盖故事、验收、边界和风险的 `spec/requirement-card.md`。
 4. 发现或创建 SPEC、前后端 Architecture Design、prototype、test plan 和 acceptance；任务变化写为 revision-bound ledger events。
 5. 按条件加载 UI、测试、LOOP 规则，验证并合并交接事件，由 reducer 重建 TaskList，再展示 `Teams 规划表`。
 6. 派发独立 subagents：各自绑定 Goal Packet、locked_scope、Harness、交付物和停止条件，只交 event/patch，不改中央 TaskList 或建嵌套团队。

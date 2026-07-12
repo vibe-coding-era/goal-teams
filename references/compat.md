@@ -113,6 +113,7 @@ prompts/members/<role>/scripts.md
 - `SKILL.md` frontmatter 只保留 `name` 和 `description`，不放版本字段。
 - 历史版本 `V2.02` 与 `V2.1` 是 `V2.3` 前的补丁线；后续版本优先使用 `V2.3`、`V2.4` 这类递增格式，避免继续新增 `V2.0x` 版本叙事。
 - 发布或提交前运行 `./scripts/check.sh`。
+- GitHub Release 之前必须按 `references/release-packaging-protocol.md` 在本地生成并校验 `release/versions/<VERSION>/`；`docs/` 只保留非发行知识与凭证，不进入安装包或 GitHub 提交。
 - V2.33 及后续版本必须保留 README 与双语 release/history 的分离结构；当前版本的文档、链接和标记缺失时 fail closed。
 - V2.35 还必须同步四专家、三份条件 reference、三份 schema、test-case validator、双语 pre-audit release summary 与安装面；历史 V2.34 默认合同和 completion 文档不得批量改写。
 

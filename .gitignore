@@ -4,6 +4,8 @@ __pycache__/
 # Ignore new process bundles; already tracked V2.3 evidence is preserved and is not deleted.
 /GoalTeamsWork-*/
 /docs/
+/release/versions/
+/release/README.md
 /.goalteams-candidates/
 /.goalteams-state/
 /.goalteams-quarantine/
