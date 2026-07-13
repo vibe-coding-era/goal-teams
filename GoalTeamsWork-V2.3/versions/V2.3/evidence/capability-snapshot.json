@@ -1,8 +1,0 @@
-{
-  "custom_goal_subagents": false,
-  "available_generic_subagents": ["explorer", "worker"],
-  "dispatch_mode": "generic_subagent_or_serial",
-  "telemetry": "unavailable",
-  "tokens": "未提供",
-  "recorded_at": "2026-07-10T00:00:00Z"
-}

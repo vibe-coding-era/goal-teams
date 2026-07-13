@@ -36,7 +36,7 @@ def main() -> None:
     if PROFILE not in profile or PRODUCT not in profile:
         fail("current self-release profile identity mismatch")
     manifest = read("scripts/install/package-manifest.txt")
-    for marker in ("docs/", "GoalTeams-PRD-V2.", "GoalTeamsWork-", "v2.34-completion", "v2.35-release-summary", "v2.36-release-summary"):
+    for marker in ("docs/", "develops/", "GoalTeams-PRD-V2.", "GoalTeamsWork-", "v2.34-completion", "v2.35-release-summary", "v2.36-release-summary"):
         if marker in manifest:
             fail(f"package manifest contains history/local marker: {marker}")
     for marker in ("file release/current/README.md", "file release/current/manifest.json", "prefix prompts/", "prefix references/"):
@@ -44,11 +44,11 @@ def main() -> None:
             fail(f"package manifest missing current runtime marker: {marker}")
     tracked_docs = ""
     if (ROOT / ".git").exists():
-        tracked_docs = subprocess.run(["git", "ls-files", "docs"], cwd=ROOT, text=True, capture_output=True, check=True).stdout.strip()
-    elif (ROOT / "docs").exists():
-        fail("gitless install package must not contain docs")
+        tracked_docs = subprocess.run(["git", "ls-files", "docs", "develops", "release/versions"], cwd=ROOT, text=True, capture_output=True, check=True).stdout.strip()
+    elif any((ROOT / path).exists() for path in ("docs", "develops", "release/versions")):
+        fail("gitless install package contains local-only workspace data")
     if tracked_docs:
-        fail("docs must be local-only")
+        fail("docs/develops/release versions must be local-only")
     release = json.loads(read("release/current/manifest.json"))
     if release.get("product_version") != PRODUCT or release.get("docs_policy") != "local-only":
         fail("current release manifest mismatch")

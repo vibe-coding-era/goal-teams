@@ -11,8 +11,25 @@ import subprocess
 import tarfile
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-RELEASE_ROOT = ROOT / "release" / "versions"
+SOURCE_ROOT = Path(__file__).resolve().parents[2]
+
+
+def workspace_root() -> Path:
+    result = subprocess.run(
+        ["git", "rev-parse", "--git-common-dir"],
+        cwd=SOURCE_ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    common = Path(result.stdout.strip())
+    if not common.is_absolute():
+        common = (SOURCE_ROOT / common).resolve()
+    return common.parent
+
+
+WORKSPACE_ROOT = workspace_root()
+RELEASE_ROOT = WORKSPACE_ROOT / "release" / "versions"
 META = {"_release.json", "_files.sha256", "_artifacts/SHA256SUMS"}
 
 
@@ -21,7 +38,7 @@ def digest(path: Path) -> str:
 
 
 def git_bytes(*args: str) -> bytes:
-    return subprocess.run(["git", *args], cwd=ROOT, check=True, capture_output=True).stdout
+    return subprocess.run(["git", *args], cwd=SOURCE_ROOT, check=True, capture_output=True).stdout
 
 
 def source_entries(commit: str) -> dict[str, tuple[str, bytes]]:
@@ -37,7 +54,7 @@ def source_entries(commit: str) -> dict[str, tuple[str, bytes]]:
 
 
 def excluded(path: str) -> bool:
-    return path.startswith(("docs/", "GoalTeamsWork-", "GoalTeams-PRD-", "outputs/", ".goalteams-", ".codex/"))
+    return path.startswith(("docs/", "develops/", "GoalTeamsWork-", "GoalTeams-PRD-", "outputs/", ".goalteams-", ".codex/"))
 
 
 def trusted_release_files(commit: str) -> tuple[dict[str, tuple[str, bytes]], str]:
@@ -88,7 +105,7 @@ def main() -> None:
             if current.get("product_version") != version or current.get("status") != "release":
                 errors.append(f"{version}: current release manifest is not final")
         source_ref = str(record.get("source_ref"))
-        resolved = subprocess.run(["git", "rev-parse", f"{source_ref}^{{commit}}"], cwd=ROOT, text=True, capture_output=True)
+        resolved = subprocess.run(["git", "rev-parse", f"{source_ref}^{{commit}}"], cwd=SOURCE_ROOT, text=True, capture_output=True)
         if resolved.returncode or resolved.stdout.strip() != record.get("source_commit"):
             errors.append(f"{version}: source ref missing or commit drifted")
 
@@ -107,6 +124,9 @@ def main() -> None:
 
         if resolved.returncode == 0:
             commit = resolved.stdout.strip()
+            forbidden_source = [path for path in source_entries(commit) if excluded(path)]
+            if forbidden_source:
+                errors.append(f"{version}: frozen Git source contains nonrelease paths {forbidden_source}")
             trusted, manifest_sha = trusted_release_files(commit)
             if set(trusted) != set(files):
                 errors.append(f"{version}: release files differ from source allowlist")
@@ -158,7 +178,7 @@ def main() -> None:
                 if tar_paths != set(listed): errors.append(f"{version}: tar manifest mismatch")
             except tarfile.TarError as exc:
                 errors.append(f"{version}: invalid tar archive: {exc}")
-        archive_index = ROOT / "docs" / "archive" / "releases" / version / "archive-index.json"
+        archive_index = WORKSPACE_ROOT / "docs" / "archive" / "releases" / version / "archive-index.json"
         if not archive_index.is_file():
             errors.append(f"{version}: root docs archive missing")
         else:

@@ -2,6 +2,14 @@
 
 本仓库是 Codex Skill 包，不是业务应用。修改时优先保持规则一致、安装可用、示例可复盘。
 
+## 工作区边界
+
+- Goal Teams 的开发、临时 worktree、版本过程目录和生成文件不得创建在仓库根目录之外；禁止在父目录建立 `goal-teams-*` 兄弟目录。
+- 所有开发过程版本和 Git worktree 统一放入根目录 `develops/<version-or-branch>/`；`develops/` 只在本地使用，禁止 Git 跟踪、安装、打包或上传 GitHub。
+- 非发行知识、测试报告、历史过程与凭证统一放入根目录 `docs/`；`docs/` 只在本地使用，禁止 Git 跟踪、安装、打包或上传 GitHub。
+- 正式发行快照统一放入 `release/versions/<VERSION>/`。GitHub Release 只能上传该目录经校验的资产；GitHub 分支可保留仓库治理与 CI 文件，但必须由 source-tree forbidden gate 排除所有非发行数据。
+- 新建或移动 worktree 必须以 `develops/` 为目标；发布前必须运行 workspace boundary、package manifest 和 release validator，任一出现 `docs/`、`develops/` 或父目录版本副本即 fail closed。
+
 ## 维护原则
 
 - `goal-teams.md` 记录长期用户指定要求，是规则变更的上游依据。
@@ -54,6 +62,7 @@
 - `README.md` 和 `README.en.md` 只做介绍、安装、示例和发布说明，避免承载唯一规则。
 - `references/release-packaging-protocol.md` 是统一发行规范；所有版本必须先生成并校验 `release/versions/<VERSION>/`，再上传 GitHub Release。
 - `scripts/release/` 承载发行构建、验证与 GitHub 发布后复核脚本；不得绕过本地 release 门禁直接上传。
+- `scripts/checks/check-workspace-boundaries.py` 检查 worktree 不越出仓库、`docs/`/`develops/` 不被跟踪或安装、GitHub Release 资产只来自 `release/versions/`。
 
 ## 同步要求
 

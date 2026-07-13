@@ -14,9 +14,26 @@ import subprocess
 import tarfile
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-RELEASE_ROOT = ROOT / "release" / "versions"
-ARCHIVE_ROOT = ROOT / "docs" / "archive" / "releases"
+SOURCE_ROOT = Path(__file__).resolve().parents[2]
+
+
+def workspace_root() -> Path:
+    result = subprocess.run(
+        ["git", "rev-parse", "--git-common-dir"],
+        cwd=SOURCE_ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    common = Path(result.stdout.strip())
+    if not common.is_absolute():
+        common = (SOURCE_ROOT / common).resolve()
+    return common.parent
+
+
+WORKSPACE_ROOT = workspace_root()
+RELEASE_ROOT = WORKSPACE_ROOT / "release" / "versions"
+ARCHIVE_ROOT = WORKSPACE_ROOT / "docs" / "archive" / "releases"
 KNOWN_RELEASES = {
     "V2.33": "codex/v2.33-finalize",
     "V2.34": "codex/v2.34-release",
@@ -27,7 +44,7 @@ KNOWN_RELEASES = {
 
 
 def git(*args: str, text: bool = False) -> bytes | str:
-    result = subprocess.run(["git", *args], cwd=ROOT, check=True, capture_output=True, text=text)
+    result = subprocess.run(["git", *args], cwd=SOURCE_ROOT, check=True, capture_output=True, text=text)
     return result.stdout
 
 
@@ -77,6 +94,8 @@ def manifest_rules(ref: str) -> tuple[set[str], tuple[str, ...], str]:
 def nonrelease_reason(path: str) -> str | None:
     if path.startswith("docs/"):
         return "repository_docs"
+    if path.startswith("develops/"):
+        return "development_workspace"
     if path.startswith("GoalTeamsWork-"):
         return "process_bundle"
     if path.startswith((".codex/", ".goalteams-", "outputs/")):
@@ -119,6 +138,9 @@ def build(version: str, ref: str) -> dict[str, object]:
         raise RuntimeError(f"invalid release version: {version}")
     commit = str(git("rev-parse", f"{ref}^{{commit}}", text=True)).strip()
     entries = tree(ref)
+    forbidden_source = [path for path in entries if nonrelease_reason(path)]
+    if forbidden_source:
+        raise RuntimeError(f"source tree contains nonrelease paths: {forbidden_source}")
     files, prefixes, manifest_sha = manifest_rules(ref)
     selected = sorted(path for path in entries if path in files or any(path.startswith(p) for p in prefixes))
     excluded = [{"path": path, "reason": nonrelease_reason(path)} for path in selected if nonrelease_reason(path)]

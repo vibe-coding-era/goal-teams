@@ -10,6 +10,7 @@
 2. 先运行仓库质量门禁，再执行 `python3 scripts/release/build-release.py --version <VERSION> --ref <REF>`。
 3. 发行目录必须包含纯发行文件、`_release.json`、`_files.sha256`、`_artifacts/goal-teams-<VERSION>.tar.gz` 与 `_artifacts/SHA256SUMS`。
 4. `docs/`、过程包、根 PRD、输出物和本地状态不得进入发行包；历史与过程资料只能归档到根 `docs/archive/releases/<VERSION>/`。
+   `develops/` 以及仓库父目录中的任何 Goal Teams 版本副本同样禁止进入 Git、安装包或发行资产；开发 worktree 只能位于根 `develops/`。
 5. `python3 scripts/release/validate-release.py --version <VERSION>` 必须通过，才可运行 `scripts/release/publish-github-release.sh <VERSION>`。
 6. 发布脚本必须校验 tag 指向、拒绝覆盖既有 GitHub Release，并在上传后重新下载压缩包；下载的 `SHA256SUMS` 必须与本地冻结凭证逐字节一致，再核对资产 SHA-256。
 7. 任一门禁失败即停止发布；不得以人工口头确认替代脚本证据。

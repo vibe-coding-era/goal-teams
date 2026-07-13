@@ -108,6 +108,7 @@ REQUIRED_FILES = [
     "scripts/checks/check.sh",
     "scripts/checks/validate.py",
     "scripts/checks/check-version-sync.py",
+    "scripts/checks/check-workspace-boundaries.py",
     "scripts/checks/check-routing-fixtures.py",
     "scripts/checks/check-agent-names.py",
     "scripts/checks/check-member-layout.py",
