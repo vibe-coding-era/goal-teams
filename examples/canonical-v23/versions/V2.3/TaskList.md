@@ -3,10 +3,11 @@ type: Goal Teams TaskList
 title: Generated TaskList
 description: Deterministic projection of the V2.3 append-only event ledger.
 tags: [goal-teams, tasklist, v2.3]
+timestamp: 2026-07-10T00:00:21Z
 okf_version: "0.1"
 schema_version: "goal-teams-v2.3"
 ledger_revision: 21
-schema_source_hash: "531ecaa680055e7e7bf887605fba7246d992fe30598f9101e647935b5e31d60e"
+schema_source_hash: "a5bd1a09eaac56481519de119c609d95dcfe15a83afd5e12054f91f58774fef4"
 generated: true
 ---
 

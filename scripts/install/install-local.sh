@@ -46,6 +46,7 @@ except ModuleNotFoundError:  # pragma: no cover - Windows fallback
 
 
 SCHEMA_VERSION = "goal-teams-install-v2.3"
+OKF_GENERATED_PATH = "references/okf-conformance-manifest.json"
 ROOT = Path(sys.argv[1]).resolve()
 ARGS = sys.argv[2:]
 
@@ -80,6 +81,7 @@ manifest_path = ROOT / "scripts" / "install" / "package-manifest.txt"
 validation_results: list[dict[str, Any]] = []
 preserved_changes: list[dict[str, Any]] = []
 package_files: list[dict[str, Any]] = []
+generated_paths: set[str] = set()
 backed_up_components: list[str] = []
 source_info: dict[str, Any] = {
     "version": "unknown",
@@ -87,6 +89,24 @@ source_info: dict[str, Any] = {
     "dirty": None,
     "dirty_entry_count": None,
     "tree_digest": None,
+    "tracked_tree_digest": None,
+    "git_tree_id": None,
+    "package_manifest_sha256": None,
+    "okf_conformance_manifest_sha256": None,
+    "okf_payload_tree_sha256": None,
+    "okf_policy_sha256": None,
+    "okf_checker_hashes": {},
+    "okf_package_completeness_state": "unavailable",
+    "skill_source_path": ".",
+    "prompt_identity_version": None,
+    "runtime_prompt_route": "installed_startup",
+    "runtime_prompt_refs": [],
+    "prefix_manifest_sha256": None,
+    "route_static_digest": None,
+    "prompt_manifest_status": "unavailable",
+    "prompt_digest_scope": "partial",
+    "stable_prefix_digest": None,
+    "runtime_prompt_digest": None,
 }
 dependencies = {
     "python": {"required": True, "available": True, "version": ".".join(map(str, sys.version_info[:3]))},
@@ -113,6 +133,31 @@ def sha256_file(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def compute_prompt_identity(root: Path) -> dict[str, Any]:
+    module_path = root / "scripts" / "v23" / "prompt_cache.py"
+    if not module_path.is_file() or module_path.is_symlink():
+        raise InstallError("E_PROMPT_IDENTITY_RUNTIME")
+    previous = sys.dont_write_bytecode
+    sys.dont_write_bytecode = True
+    try:
+        spec = importlib.util.spec_from_file_location(
+            f"_goalteams_install_prompt_cache_{stamp}", module_path
+        )
+        if spec is None or spec.loader is None:
+            raise InstallError("E_PROMPT_IDENTITY_RUNTIME")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+    finally:
+        sys.dont_write_bytecode = previous
+    try:
+        identity = module.build_prompt_identity(root, "installed_startup")
+    except (OSError, TypeError, ValueError) as exc:
+        raise InstallError("E_PROMPT_IDENTITY_INVALID") from exc
+    if identity.get("passed") is not True:
+        raise InstallError("E_PROMPT_IDENTITY_BUDGET")
+    return identity
 
 
 def atomic_json(path: Path, payload: dict[str, Any]) -> None:
@@ -231,34 +276,51 @@ def safe_source_file(relative: str) -> Path:
     return cursor
 
 
-def load_allowlist() -> tuple[set[str], list[str]]:
+def load_allowlist() -> tuple[set[str], list[str], set[str]]:
     try:
         safe_manifest_path = safe_source_file("scripts/install/package-manifest.txt")
     except InstallError as exc:
         raise InstallError("E_PACKAGE_MANIFEST_MISSING") from exc
     files: set[str] = set()
     prefixes: list[str] = []
+    generated: set[str] = set()
     for number, raw_line in enumerate(safe_manifest_path.read_text(encoding="utf-8").splitlines(), start=1):
         line = raw_line.strip()
         if not line or line.startswith("#"):
             continue
         parts = line.split(maxsplit=1)
-        if len(parts) != 2 or parts[0] not in {"file", "prefix"}:
+        if len(parts) != 2 or parts[0] not in {"file", "prefix", "generated"}:
             raise InstallError(f"E_PACKAGE_MANIFEST_SYNTAX:{number}")
         kind, value = parts
-        validate_relative_path(value)
+        validate_relative_path(value.rstrip("/"))
         if kind == "file":
+            if value.endswith("/"):
+                raise InstallError(f"E_PACKAGE_MANIFEST_FILE:{number}")
             files.add(value)
-        else:
+        elif kind == "prefix":
             if not value.endswith("/"):
                 raise InstallError(f"E_PACKAGE_MANIFEST_PREFIX:{number}")
             prefixes.append(value)
+        else:
+            if value.endswith("/"):
+                raise InstallError(f"E_PACKAGE_MANIFEST_GENERATED:{number}")
+            generated.add(value)
     required_entries = {"VERSION", "SKILL.md", "scripts/check.sh", "scripts/install/package-manifest.txt"}
     tracked_by_manifest = lambda item: item in files or any(item.startswith(prefix) for prefix in prefixes)
     missing = sorted(item for item in required_entries if not tracked_by_manifest(item))
     if missing:
         raise InstallError("E_PACKAGE_MANIFEST_REQUIRED:" + ",".join(missing))
-    return files, prefixes
+    if generated != {OKF_GENERATED_PATH}:
+        raise InstallError("E_PACKAGE_MANIFEST_GENERATED")
+    return files, prefixes, generated
+
+
+def package_tree_digest() -> str:
+    digest_input = "".join(
+        f"{entry['path']}\0{entry['sha256']}\0{entry['size']}\0{entry['mode']}\n"
+        for entry in sorted(package_files, key=lambda value: value["path"])
+    ).encode("utf-8")
+    return sha256_bytes(digest_input)
 
 
 def prepare_source() -> list[str]:
@@ -276,6 +338,10 @@ def prepare_source() -> list[str]:
     dirty_lines = [line for line in status_result.stdout.splitlines() if line]
     source_info["version"] = safe_source_file("VERSION").read_text(encoding="utf-8").strip()
     source_info["commit"] = commit.stdout.strip()
+    tree = git("rev-parse", "HEAD^{tree}")
+    if tree.returncode != 0:
+        raise InstallError("E_SOURCE_TREE")
+    source_info["git_tree_id"] = tree.stdout.strip()
     source_info["dirty"] = bool(dirty_lines)
     source_info["dirty_entry_count"] = len(dirty_lines)
     if dirty_lines and not args.allow_dirty:
@@ -284,7 +350,12 @@ def prepare_source() -> list[str]:
     if tracked_result.returncode != 0:
         raise InstallError("E_SOURCE_TRACKED_FILES")
     tracked = [item.decode("utf-8") for item in tracked_result.stdout.split(b"\0") if item]
-    allowed_files, allowed_prefixes = load_allowlist()
+    allowed_files, allowed_prefixes, required_generated = load_allowlist()
+    generated_paths.clear()
+    generated_paths.update(required_generated)
+    tracked_generated = sorted(set(tracked) & required_generated)
+    if tracked_generated:
+        raise InstallError("E_PACKAGE_GENERATED_TRACKED:" + ",".join(tracked_generated))
     selected = sorted(
         item for item in tracked
         if item in allowed_files or any(item.startswith(prefix) for prefix in allowed_prefixes)
@@ -303,10 +374,23 @@ def prepare_source() -> list[str]:
             "mode": file_mode,
         }
         package_files.append(entry)
-    digest_input = "".join(
-        f"{entry['path']}\0{entry['sha256']}\0{entry['size']}\0{entry['mode']}\n" for entry in package_files
-    ).encode("utf-8")
-    source_info["tree_digest"] = sha256_bytes(digest_input)
+    source_info["package_manifest_sha256"] = sha256_file(
+        safe_source_file("scripts/install/package-manifest.txt")
+    )
+    source_info["tracked_tree_digest"] = package_tree_digest()
+    source_info["tree_digest"] = source_info["tracked_tree_digest"]
+    prompt_identity = compute_prompt_identity(ROOT)
+    source_info.update({
+        "prompt_identity_version": prompt_identity["prompt_identity_version"],
+        "runtime_prompt_route": prompt_identity["route_id"],
+        "runtime_prompt_refs": prompt_identity["ordered_refs"],
+        "prefix_manifest_sha256": prompt_identity["prefix_manifest_sha256"],
+        "route_static_digest": prompt_identity["route_static_digest"],
+        "prompt_manifest_status": prompt_identity["manifest_status"],
+        "prompt_digest_scope": prompt_identity["digest_scope"],
+        "stable_prefix_digest": prompt_identity["stable_prefix_digest"],
+        "runtime_prompt_digest": prompt_identity["runtime_prompt_digest"],
+    })
     return selected
 
 
@@ -337,6 +421,26 @@ def validate_skill(root: Path, phase: str) -> None:
         if result.stderr:
             print(result.stderr, end="", file=sys.stderr)
         raise InstallError(f"E_VALIDATION_FAILED:{phase}")
+    prompt_identity = compute_prompt_identity(root)
+    if (
+        prompt_identity["prefix_manifest_sha256"]
+        != source_info.get("prefix_manifest_sha256")
+        or prompt_identity["route_static_digest"]
+        != source_info.get("route_static_digest")
+        or prompt_identity["ordered_refs"] != source_info.get("runtime_prompt_refs")
+    ):
+        raise InstallError(f"E_PROMPT_IDENTITY_DRIFT:{phase}")
+    validation_results.append({
+        "phase": f"prompt_identity_{phase}",
+        "command": "scripts/v23/prompt_cache.py:installed_startup",
+        "exit_code": 0,
+        "status": "passed",
+        "prefix_manifest_sha256": prompt_identity["prefix_manifest_sha256"],
+        "route_static_digest": prompt_identity["route_static_digest"],
+        "manifest_status": prompt_identity["manifest_status"],
+        "digest_scope": prompt_identity["digest_scope"],
+        "runtime_prompt_digest": prompt_identity["runtime_prompt_digest"],
+    })
 
 
 def copy_package(selected: list[str], destination: Path) -> None:
@@ -367,6 +471,125 @@ def copy_package(selected: list[str], destination: Path) -> None:
         if staged_record != expected:
             raise InstallError(f"E_PACKAGE_COPY_DRIFT:{relative}")
     validate_package_tree(destination, "copy")
+
+
+def generate_okf_manifest(stage: Path) -> None:
+    if generated_paths != {OKF_GENERATED_PATH}:
+        raise InstallError("E_PACKAGE_MANIFEST_GENERATED")
+    runtime_path = stage / "scripts" / "v23" / "okf_conformance.py"
+    checker_path = stage / "scripts" / "checks" / "check-okf.py"
+    if (
+        not runtime_path.is_file()
+        or runtime_path.is_symlink()
+        or not checker_path.is_file()
+        or checker_path.is_symlink()
+    ):
+        raise InstallError("E_OKF_PACKAGE_RUNTIME")
+    spec = importlib.util.spec_from_file_location(
+        f"_goalteams_install_okf_{stamp}", runtime_path
+    )
+    if spec is None or spec.loader is None:
+        raise InstallError("E_OKF_PACKAGE_RUNTIME")
+    module = importlib.util.module_from_spec(spec)
+    previous = sys.dont_write_bytecode
+    sys.dont_write_bytecode = True
+    try:
+        spec.loader.exec_module(module)
+    except (OSError, TypeError, ValueError) as exc:
+        raise InstallError("E_OKF_PACKAGE_RUNTIME") from exc
+    finally:
+        sys.dont_write_bytecode = previous
+    try:
+        policy = module.load_policy(stage)
+        manifest = module.build_package_manifest(
+            stage,
+            policy,
+            source_binding={
+                "commit_sha256": source_info["commit"],
+                "git_tree_id": source_info["git_tree_id"],
+                "package_manifest_sha256": source_info["package_manifest_sha256"],
+            },
+        )
+    except (OSError, TypeError, ValueError) as exc:
+        raise InstallError("E_OKF_PACKAGE_GENERATE") from exc
+    if (
+        manifest.get("manifest_scope") != "installed_package_complete"
+        or manifest.get("source", {}).get("commit_sha256") != source_info["commit"]
+        or manifest.get("source", {}).get("git_tree_id") != source_info["git_tree_id"]
+        or manifest.get("source", {}).get("package_manifest_sha256")
+        != source_info["package_manifest_sha256"]
+    ):
+        raise InstallError("E_OKF_PACKAGE_SOURCE_BINDING")
+    data = (
+        json.dumps(manifest, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        + "\n"
+    ).encode("utf-8")
+    target = stage / OKF_GENERATED_PATH
+    if target.exists() or target.is_symlink():
+        raise InstallError("E_OKF_PACKAGE_GENERATED_EXISTS")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        target.parent.resolve(strict=True).relative_to(stage.resolve(strict=True))
+    except (OSError, RuntimeError, ValueError) as exc:
+        raise InstallError("E_OKF_PACKAGE_GENERATED_PATH") from exc
+    temporary = target.with_name(f".{target.name}.tmp-{stamp}")
+    temporary.write_bytes(data)
+    temporary.chmod(0o644)
+    os.replace(temporary, target)
+    package_files.append(
+        {
+            "path": OKF_GENERATED_PATH,
+            "sha256": sha256_bytes(data),
+            "size": len(data),
+            "mode": 0o644,
+        }
+    )
+    source_info.update(
+        {
+            "tree_digest": package_tree_digest(),
+            "okf_conformance_manifest_sha256": sha256_bytes(data),
+            "okf_payload_tree_sha256": manifest["package"]["payload_tree_sha256"],
+            "okf_policy_sha256": manifest["policy"]["sha256"],
+            "okf_checker_hashes": {
+                item["path"]: item["sha256"] for item in manifest["checkers"]
+            },
+        }
+    )
+    validate_package_tree(stage, "generated_manifest")
+    replay = run(
+        [
+            sys.executable,
+            str(checker_path),
+            "--root",
+            str(stage),
+            "--package-tree",
+            str(stage),
+        ],
+        cwd=stage,
+        env=validation_environment(),
+    )
+    try:
+        replay_payload = json.loads(replay.stdout)
+    except json.JSONDecodeError as exc:
+        raise InstallError("E_OKF_PACKAGE_REPLAY") from exc
+    if (
+        replay.returncode != 0
+        or replay_payload.get("passed") is not True
+        or replay_payload.get("package_completeness_state") != "complete"
+    ):
+        raise InstallError("E_OKF_PACKAGE_REPLAY")
+    source_info["okf_package_completeness_state"] = "complete"
+    validation_results.append(
+        {
+            "phase": "okf_package_tree_staging",
+            "command": "scripts/checks/check-okf.py --package-tree",
+            "exit_code": 0,
+            "status": "passed",
+            "manifest_sha256": source_info["okf_conformance_manifest_sha256"],
+            "payload_tree_sha256": source_info["okf_payload_tree_sha256"],
+            "policy_sha256": source_info["okf_policy_sha256"],
+        }
+    )
 
 
 def validate_package_tree(root: Path, phase: str) -> None:
@@ -768,6 +991,24 @@ def state_payload(
         "source_commit": source_info["commit"],
         "source_dirty": source_info["dirty"],
         "source_tree_digest": source_info["tree_digest"],
+        "source_tracked_tree_digest": source_info["tracked_tree_digest"],
+        "source_git_tree_id": source_info["git_tree_id"],
+        "package_manifest_sha256": source_info["package_manifest_sha256"],
+        "okf_conformance_manifest_sha256": source_info["okf_conformance_manifest_sha256"],
+        "okf_payload_tree_sha256": source_info["okf_payload_tree_sha256"],
+        "okf_policy_sha256": source_info["okf_policy_sha256"],
+        "okf_checker_hashes": source_info["okf_checker_hashes"],
+        "okf_package_completeness_state": source_info["okf_package_completeness_state"],
+        "skill_source_path": source_info["skill_source_path"],
+        "prompt_identity_version": source_info["prompt_identity_version"],
+        "runtime_prompt_route": source_info["runtime_prompt_route"],
+        "runtime_prompt_refs": source_info["runtime_prompt_refs"],
+        "prefix_manifest_sha256": source_info["prefix_manifest_sha256"],
+        "route_static_digest": source_info["route_static_digest"],
+        "prompt_manifest_status": source_info["prompt_manifest_status"],
+        "prompt_digest_scope": source_info["prompt_digest_scope"],
+        "stable_prefix_digest": source_info["stable_prefix_digest"],
+        "runtime_prompt_digest": source_info["runtime_prompt_digest"],
         "skill_tree_digest": path_snapshot(skill_target).get("digest"),
         "agent_hashes": agent_hashes,
         "managed_agent_files": sorted(managed_agents),
@@ -788,6 +1029,26 @@ def lifecycle_action(action: str) -> None:
         "dirty": state.get("source_dirty"),
         "dirty_entry_count": None,
         "tree_digest": state.get("source_tree_digest"),
+        "tracked_tree_digest": state.get("source_tracked_tree_digest"),
+        "git_tree_id": state.get("source_git_tree_id"),
+        "package_manifest_sha256": state.get("package_manifest_sha256"),
+        "okf_conformance_manifest_sha256": state.get("okf_conformance_manifest_sha256"),
+        "okf_payload_tree_sha256": state.get("okf_payload_tree_sha256"),
+        "okf_policy_sha256": state.get("okf_policy_sha256"),
+        "okf_checker_hashes": state.get("okf_checker_hashes", {}),
+        "okf_package_completeness_state": state.get(
+            "okf_package_completeness_state", "unavailable"
+        ),
+        "skill_source_path": state.get("skill_source_path", "legacy_unknown"),
+        "prompt_identity_version": state.get("prompt_identity_version"),
+        "runtime_prompt_route": state.get("runtime_prompt_route", "installed_startup"),
+        "runtime_prompt_refs": state.get("runtime_prompt_refs", []),
+        "prefix_manifest_sha256": state.get("prefix_manifest_sha256"),
+        "route_static_digest": state.get("route_static_digest"),
+        "prompt_manifest_status": state.get("prompt_manifest_status", "unavailable"),
+        "prompt_digest_scope": state.get("prompt_digest_scope", "partial"),
+        "stable_prefix_digest": state.get("stable_prefix_digest"),
+        "runtime_prompt_digest": state.get("runtime_prompt_digest"),
     })
     stored_package_files = state.get("package_files", [])
     if isinstance(stored_package_files, list):
@@ -824,6 +1085,7 @@ def install() -> None:
         stage_skill = transaction / "stage" / "skill"
         stage_agents = transaction / "stage" / "agents"
         copy_package(selected, stage_skill)
+        generate_okf_manifest(stage_skill)
         managed_agents, fallback_agents = prepare_agents(stage_skill, stage_agents)
         if previous_state is not None:
             for name in previous_state.get("fallback_agent_files", []):

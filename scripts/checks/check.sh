@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+export PYTHONDONTWRITEBYTECODE=1
+
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 
@@ -31,6 +33,15 @@ fi
 "$PYTHON_BIN" scripts/checks/check-routing-fixtures.py
 "$PYTHON_BIN" scripts/checks/check-agent-names.py
 "$PYTHON_BIN" scripts/checks/check-member-layout.py
+"$PYTHON_BIN" scripts/checks/check-prompt-cache.py
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  "$PYTHON_BIN" scripts/checks/check-okf.py --root "$ROOT" --tracked
+  "$PYTHON_BIN" scripts/checks/check-okf.py --root "$ROOT" --preview-package-manifest
+else
+  "$PYTHON_BIN" scripts/checks/check-okf.py --root "$ROOT" --package-tree "$ROOT"
+fi
+"$PYTHON_BIN" scripts/checks/check-okf.py --root "$ROOT" --bundle-root examples/canonical-v23
+"$PYTHON_BIN" scripts/checks/check-okf.py --root "$ROOT" --bundle-root examples/mini-goal-run/.codex/goal-teams
 "$PYTHON_BIN" scripts/checks/check-context-budget.py
 "$PYTHON_BIN" scripts/checks/check-progressive-loading.py
 "$PYTHON_BIN" scripts/checks/check-security-fixtures.py

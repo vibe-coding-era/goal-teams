@@ -1,3 +1,13 @@
+---
+type: Decision Log
+title: Goal Teams Decisions
+description: 记录 mini-goal-run V0.1 的范围与 Harness 轻量化决策。
+tags: [goal-teams, example, decisions]
+timestamp: 2026-07-13T00:00:00+08:00
+okf_version: "0.1"
+project_version: V0.1
+---
+
 # Goal Teams Decisions
 
 | 时间 | 决策 | 原因 | 决策人 | 影响范围 |

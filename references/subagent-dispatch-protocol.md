@@ -1,3 +1,12 @@
+---
+type: Dispatch Protocol
+title: Subagent Dispatch Protocol V1.94
+description: 定义 Goal Lead 的成员选择、身份命名、transport handle 与降级策略。
+tags: [goal-teams, subagent, dispatch, identity]
+timestamp: 2026-07-13T00:00:00+08:00
+okf_version: "0.1"
+---
+
 # Subagent Dispatch Protocol V1.94
 
 本协议定义 Goal Lead 如何选择成员、命名成员、处理右边栏英文 transport handle，以及如何在冲突和预算约束下派发任务。

@@ -1,3 +1,13 @@
+---
+type: Acceptance Record
+title: 登录页空状态提示 V0.1 Acceptance
+description: 记录 mini-goal-run 静态产物的验收项与尚未闭合的独立 Evidence。
+tags: [goal-teams, example, acceptance]
+timestamp: 2026-07-13T00:00:00+08:00
+okf_version: "0.1"
+project_version: V0.1
+---
+
 # Acceptance
 
 ## 验收清单

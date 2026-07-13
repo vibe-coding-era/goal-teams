@@ -110,7 +110,7 @@ def _safe_regular_path(root: Path, relative: str) -> Path:
     return current
 
 
-def _manifest_rules(root: Path) -> tuple[set[str], list[str], bytes]:
+def _manifest_rules(root: Path) -> tuple[set[str], list[str], set[str], bytes]:
     path = _safe_regular_path(root, PACKAGE_MANIFEST_RELATIVE)
     manifest_bytes = path.read_bytes()
     try:
@@ -119,22 +119,31 @@ def _manifest_rules(root: Path) -> tuple[set[str], list[str], bytes]:
         raise PackageSelectionError("E_PACKAGE_IDENTITY") from exc
     files: set[str] = set()
     prefixes: list[str] = []
+    generated: set[str] = set()
     for raw_line in lines:
         line = raw_line.strip()
         if not line or line.startswith("#"):
             continue
         parts = line.split(maxsplit=1)
-        if len(parts) != 2 or parts[0] not in {"file", "prefix"}:
+        if len(parts) != 2 or parts[0] not in {"file", "prefix", "generated"}:
             raise PackageSelectionError("E_PACKAGE_IDENTITY")
         kind, value = parts
-        _validate_relative(value)
+        _validate_relative(value.rstrip("/"))
         if kind == "file":
+            if value.endswith("/"):
+                raise PackageSelectionError("E_PACKAGE_IDENTITY")
             files.add(value)
+        elif kind == "generated":
+            if value.endswith("/"):
+                raise PackageSelectionError("E_PACKAGE_IDENTITY")
+            generated.add(value)
         elif not value.endswith("/"):
             raise PackageSelectionError("E_PACKAGE_IDENTITY")
         else:
             prefixes.append(value)
-    return files, sorted(set(prefixes)), manifest_bytes
+    if generated and generated != {"references/okf-conformance-manifest.json"}:
+        raise PackageSelectionError("E_PACKAGE_IDENTITY")
+    return files, sorted(set(prefixes)), generated, manifest_bytes
 
 
 def _git_output(root: Path, arguments: list[str]) -> bytes:
@@ -300,10 +309,14 @@ def tree_manifest(root: Path) -> tuple[list[dict[str, Any]], str]:
 
 def build_blind_package_selection(root: Path) -> dict[str, Any]:
     root = root.resolve()
-    files, prefixes, manifest_bytes = _manifest_rules(root)
+    files, prefixes, generated, manifest_bytes = _manifest_rules(root)
 
     def selected_by_manifest(relative: str) -> bool:
-        return relative in files or any(relative.startswith(prefix) for prefix in prefixes)
+        return (
+            relative in files
+            or relative in generated
+            or any(relative.startswith(prefix) for prefix in prefixes)
+        )
 
     validated_install_projection = False
     try:
@@ -311,6 +324,10 @@ def build_blind_package_selection(root: Path) -> dict[str, Any]:
     except PackageSelectionError:
         index_entries = _validated_install_entries(root, selected_by_manifest)
         validated_install_projection = True
+    if not validated_install_projection and any(path in index_entries for path in generated):
+        raise PackageSelectionError("E_PACKAGE_IDENTITY")
+    if validated_install_projection and any(path not in index_entries for path in generated):
+        raise PackageSelectionError("E_PACKAGE_IDENTITY")
     installer_paths = sorted(path for path in index_entries if selected_by_manifest(path))
     blind_paths = [path for path in installer_paths if blind_path_allowed(path)]
     if (
@@ -349,6 +366,7 @@ def build_blind_package_selection(root: Path) -> dict[str, Any]:
     return {
         "package_manifest_path": PACKAGE_MANIFEST_RELATIVE,
         "package_manifest_sha256": _digest_bytes(manifest_bytes),
+        "generated_required_paths": sorted(generated),
         "installer_tracked_paths": installer_paths,
         "installer_tracked_paths_sha256": _path_list_digest(installer_paths),
         "installer_tracked_entries": installer_entries,

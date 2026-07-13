@@ -1,3 +1,13 @@
+---
+type: Harness Setup
+title: Mini Goal Run Harness Setup
+description: 冻结 mini-goal-run 静态 Harness 的目标、输入与边界。
+tags: [goal-teams, example, harness, setup]
+timestamp: 2026-07-13T00:00:00+08:00
+okf_version: "0.1"
+project_version: V0.1
+---
+
 # Harness Setup
 
 ## 目标

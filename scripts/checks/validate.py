@@ -20,7 +20,7 @@ CURRENT_VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 GENERAL_CORE_POLICY_VERSION = "V2.5"
 LEGACY_DATA_SCHEMA_VERSION = "V2.3"
 CORE_POLICY_PROFILE = "goal-teams-core-v2.5"
-SELF_RELEASE_POLICY_PROFILE = "goal-teams-self-release-v2.37"
+SELF_RELEASE_POLICY_PROFILE = "goal-teams-self-release-v2.39"
 STARTUP_LINE = f"我是 Goal Teams Lead {CURRENT_VERSION}。"
 COMPATIBILITY_MARKER = (
     f"我是 Goal Teams Leader {CURRENT_VERSION}，使用 Goal + Plan 模式帮你完成规划、执行和交付，"
@@ -47,7 +47,12 @@ REQUIRED_FILES = [
     "references/rules-testing.md",
     "references/rules-loop.md",
     "references/goal-teams-core-v2.5.md",
-    "references/profiles/goal-teams-self-release-v2.37.md",
+    "references/profiles/goal-teams-self-release-v2.39.md",
+    "references/profiles/goal-teams-self-release-v2.38.md",
+    "references/prompt-cache-manifest.json",
+    "references/prompt-cache-protocol.md",
+    "references/okf-conformance-policy.json",
+    "subagents/common-developer-instructions.txt",
     "references/rules-project-sizing.md",
     "references/rules-specialists.md",
     "references/test-case-assertion-protocol.md",
@@ -60,6 +65,14 @@ REQUIRED_FILES = [
     "references/ui-visual-contract-protocol.md",
     "references/subagent-dispatch-protocol.md",
     "references/dual-review-protocol.md",
+    "scripts/v23/prompt_cache.py",
+    "scripts/v23/prompt_compilers.py",
+    "scripts/v23/okf_conformance.py",
+    "scripts/benchmark/cache-probe.py",
+    "scripts/checks/check-prompt-cache.py",
+    "scripts/checks/check-okf.py",
+    "scripts/check-prompt-cache.py",
+    "scripts/check-okf.py",
     "prompts/lead/core.md",
     "prompts/lead/planning.md",
     "prompts/lead/loop.md",
@@ -110,6 +123,7 @@ REQUIRED_FILES = [
     "scripts/checks/check-version-sync.py",
     "scripts/checks/check-workspace-boundaries.py",
     "scripts/checks/check-routing-fixtures.py",
+    "scripts/checks/check-prompt-cache.py",
     "scripts/checks/check-agent-names.py",
     "scripts/checks/check-member-layout.py",
     "scripts/checks/validate-test-case-contract.py",
@@ -127,8 +141,9 @@ REQUIRED_FILES = [
     "scripts/compare-artifacts.py",
     "scripts/validate-dual-review.py",
     "examples/mini-goal-run/README.md",
-    "examples/mini-goal-run/.codex/goal-teams/INDEX.md",
-    "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/INDEX.md",
+    "examples/mini-goal-run/.codex/goal-teams/index.md",
+    "examples/mini-goal-run/.codex/goal-teams/memory.md",
+    "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/index.md",
     "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/plan.md",
     "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/tasklist.md",
     "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/progress.md",
@@ -425,7 +440,7 @@ FILE_RULES = {
         "references/rules-testing.md",
         "references/rules-loop.md",
         "references/goal-teams-core-v2.5.md",
-        "references/profiles/goal-teams-self-release-v2.37.md",
+        "references/profiles/goal-teams-self-release-v2.39.md",
         "references/rules-project-sizing.md",
         "references/rules-specialists.md",
         "规则冲突时",
@@ -483,11 +498,19 @@ FILE_RULES = {
         "`standard`",
         "显式提供时必须与派生值完全一致",
     ),
-    "references/profiles/goal-teams-self-release-v2.37.md": (
+    "references/profiles/goal-teams-self-release-v2.39.md": (
         SELF_RELEASE_POLICY_PROFILE,
         "52",
         "iteration 9",
         "iteration 11",
+    ),
+    "references/prompt-cache-protocol.md": (
+        "route_static_digest",
+        "stable_prefix_digest",
+        "runtime_prompt_digest",
+        "subject_visible_telemetry",
+        "observer_telemetry",
+        "request_hit_rate",
     ),
     "references/goal-teams-scripted-tooling.md": (
         "scripts/check-routing-fixtures.py",
@@ -559,7 +582,10 @@ README_RELEASE_ITEMS = [
     "references/rules-testing.md",
     "references/rules-loop.md",
     "references/goal-teams-core-v2.5.md",
-    "references/profiles/goal-teams-self-release-v2.37.md",
+    "references/profiles/goal-teams-self-release-v2.39.md",
+    "references/profiles/goal-teams-self-release-v2.38.md",
+    "references/prompt-cache-manifest.json",
+    "references/prompt-cache-protocol.md",
     "references/goal-teams-automation-protocol.md",
     "references/goal-teams-production-pipeline.md",
     "references/goal-teams-scripted-tooling.md",
@@ -588,6 +614,8 @@ README_RELEASE_ITEMS = [
     "scripts/checks/check-routing-fixtures.py",
     "scripts/harness/",
     "scripts/benchmark/",
+    "scripts/v23/prompt_cache.py",
+    "scripts/check-prompt-cache.py",
     "scripts/review/",
     "scripts/install/",
     "prompts/",
@@ -676,7 +704,12 @@ def check_skill_frontmatter() -> None:
         fail(f"SKILL.md frontmatter should stay compact, got {len(body)} characters")
     markdown_body = skill[match.end():]
     skill_versions = set(re.findall(r"\bV\d+(?:\.\d+)+\b", skill))
-    allowed_versions = {version, GENERAL_CORE_POLICY_VERSION, LEGACY_DATA_SCHEMA_VERSION}
+    allowed_versions = {
+        version,
+        GENERAL_CORE_POLICY_VERSION,
+        LEGACY_DATA_SCHEMA_VERSION,
+        "V2.38",  # replay-only prompt/profile identity retained by V2.39
+    }
     missing_versions = sorted(allowed_versions - skill_versions)
     if missing_versions:
         fail("SKILL.md missing required product/core/legacy versions: " + ", ".join(missing_versions))
@@ -697,29 +730,20 @@ def check_skill_frontmatter() -> None:
         "references/rules-testing.md",
         "references/rules-loop.md",
         "references/goal-teams-core-v2.5.md",
-        "references/profiles/goal-teams-self-release-v2.37.md",
+        "references/profiles/goal-teams-self-release-v2.39.md",
+        "references/prompt-cache-manifest.json",
         "prompts/lead/core.md",
         "prompts/lead/planning.md",
         "prompts/lead/requirement-card.md",
         "prompts/members/shared.md",
-        "prompts/members/backend/prompt.md",
-        "prompts/members/backend/template.md",
-        "prompts/members/unit-test-designer/prompt.md",
-        "prompts/members/unit-test-runner/prompt.md",
-        "prompts/members/api-integration-test-designer/prompt.md",
-        "prompts/members/api-integration-test-runner/prompt.md",
-        "prompts/members/e2e-test-designer/prompt.md",
-        "prompts/members/e2e-test-runner/prompt.md",
+        "prompts/members/backend/INDEX.md",
+        "prompts/members/<role>/INDEX.md",
         "prompts/packets/member-goal-packet.md",
         "prompts/packets/handoff-artifacts.md",
-        "prompts/packets/page-spec-card.md",
         "prompts/packets/memory.md",
-        "prompts/packets/html-prototype-mock.md",
         "prompts/packets/requirement-card.md",
-        "prompts/packets/dual-review-record.md",
-        "references/ui-visual-contract-protocol.md",
         "references/google-okf-bilingual-spec.md",
-        "scripts/review/validate-dual-review.py",
+        "references/dual-review-protocol.md",
     ):
         if route not in markdown_body:
             fail(f"SKILL.md progressive loading route missing {route}")
@@ -886,7 +910,10 @@ def check_key_rules() -> None:
             "references/rules-testing.md",
             "references/rules-loop.md",
             "references/goal-teams-core-v2.5.md",
-            "references/profiles/goal-teams-self-release-v2.37.md",
+            "references/profiles/goal-teams-self-release-v2.39.md",
+            "references/profiles/goal-teams-self-release-v2.38.md",
+            "references/prompt-cache-manifest.json",
+            "references/prompt-cache-protocol.md",
             "references/goal-teams-scripted-tooling.md",
     "references/goal-teams-v2.3-contract.md",
             "references/google-okf-bilingual-spec.md",

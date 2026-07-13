@@ -1,3 +1,13 @@
+---
+type: Task List
+title: Mini Goal Run Tasklist
+description: 记录登录页空状态 V0.1 的成员所有权、依赖、锁定范围和验证状态。
+tags: [goal-teams, example, tasklist]
+timestamp: 2026-07-13T00:00:00+08:00
+okf_version: "0.1"
+project_version: V0.1
+---
+
 # Goal Teams Tasklist
 
 Goal: 规划登录页空状态提示 V0.1

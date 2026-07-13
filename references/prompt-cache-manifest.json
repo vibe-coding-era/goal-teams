@@ -1,0 +1,179 @@
+{
+  "schema_version": "goal-teams-prompt-cache-v2.38",
+  "metric_semantics": "cached_input_share_is_token_weighted_not_request_hit_rate",
+  "budget_policy": {
+    "schema_version": "goal-teams-route-context-budget-v1",
+    "minimum_headroom_bytes": 512,
+    "minimum_headroom_ratio": 0.01,
+    "dynamic_packet_max_bytes": 16384,
+    "max_segment_count": 32,
+    "max_file_count": 24,
+    "token_budget_status": "unavailable",
+    "max_estimated_tokens": null,
+    "budget_source": "calibrated-v238-baseline",
+    "exceed_action": "replan"
+  },
+  "artifact_compilers": {
+    "schema_version": "goal-teams-prompt-artifact-compilers-v2.38",
+    "compiler_path": "scripts/v23/prompt_compilers.py",
+    "subagent_common_prefix": {
+      "schema_version": "goal-teams-subagent-common-prefix-v2.38",
+      "source_path": "subagents/common-developer-instructions.txt",
+      "common_prefix_version": "V2.38",
+      "common_prefix_sha256": "e422fdb025d206c728da7024152973173c6df3d6ffa93367d6eebe6c440adbb0",
+      "target_glob": "subagents/goal-*.toml",
+      "target_count": 18
+    },
+    "member_goal_packet": {
+      "schema_version": "goal-teams-member-goal-packet-v2.38",
+      "template_path": "prompts/packets/member-goal-packet.md",
+      "dynamic_tail_marker": "<!-- goal-teams-dynamic-tail -->",
+      "ordered_dynamic_fields": [
+        "agent_run_id",
+        "member_id",
+        "display_name",
+        "goal",
+        "output_dir",
+        "artifact_version",
+        "target_task_ids",
+        "context_refs",
+        "locked_scope",
+        "forbidden_scope",
+        "required_tests",
+        "harness_contract_ref",
+        "validator_run_id"
+      ],
+      "legacy_key_map": {
+        "run_id": "agent_run_id",
+        "member": "member_id",
+        "name": "display_name",
+        "objective": "goal",
+        "output_root": "output_dir",
+        "version": "artifact_version",
+        "tasks": "target_task_ids",
+        "context": "context_refs",
+        "scope": "locked_scope",
+        "excluded_scope": "forbidden_scope",
+        "tests": "required_tests",
+        "harness": "harness_contract_ref",
+        "validator": "validator_run_id"
+      }
+    }
+  },
+  "reference_order": [
+    "RULES.md",
+    "references/compat.md",
+    "references/goal-teams-core-v2.5.md",
+    "references/dual-review-protocol.md",
+    "references/invariants.md",
+    "references/profiles/goal-teams-self-release-v2.36.md",
+    "references/profiles/goal-teams-self-release-v2.38.md",
+    "references/profiles/goal-teams-self-release-v2.39.md",
+    "references/rules-project-sizing.md",
+    "references/rules-specialists.md",
+    "references/rules-loop.md",
+    "references/rules-testing.md",
+    "references/rules-ui.md",
+    "references/test-case-assertion-protocol.md",
+    "references/ui-e2e-pixel-protocol.md",
+    "references/ui-visual-contract-protocol.md"
+  ],
+  "routes": {
+    "installed_startup": {
+      "ordered_refs": ["SKILL.md", "agents/openai.yaml", "RULES.md"],
+      "limit_bytes": 12032,
+      "dynamic_tail_labels": ["user_request"]
+    },
+    "repository_startup": {
+      "ordered_refs": [".agents/skills/goal-teams/SKILL.md", "SKILL.md", "agents/openai.yaml", "RULES.md"],
+      "limit_bytes": 12032,
+      "dynamic_tail_labels": ["workspace_instructions", "user_request"]
+    },
+    "core_execution_repository": {
+      "ordered_refs": [".agents/skills/goal-teams/SKILL.md", "SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "prompts/lead/core.md", "prompts/lead/planning.md", "prompts/packets/memory.md", "references/compat.md"],
+      "limit_bytes": 65536,
+      "dynamic_tail_labels": ["route_facts", "user_request"]
+    },
+    "self_release_execution_repository": {
+      "ordered_refs": [".agents/skills/goal-teams/SKILL.md", "SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "references/goal-teams-core-v2.5.md", "references/profiles/goal-teams-self-release-v2.39.md", "references/rules-loop.md", "prompts/lead/loop.md"],
+      "limit_bytes": 81920,
+      "dynamic_tail_labels": ["route_receipt", "iteration_state", "user_request"]
+    },
+    "self_release_replay_v238": {
+      "ordered_refs": ["RULES.md", "references/compat.md", "references/goal-teams-core-v2.5.md", "references/profiles/goal-teams-self-release-v2.38.md", "references/prompt-cache-protocol.md"],
+      "limit_bytes": 49152,
+      "dynamic_tail_labels": ["legacy_artifact_identity", "replay_request"]
+    },
+    "persistence_repository": {
+      "ordered_refs": [".agents/skills/goal-teams/SKILL.md", "SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "prompts/packets/handoff-artifacts.md", "prompts/packets/harness-contract.md", "prompts/packets/memory.md"],
+      "limit_bytes": 73728,
+      "dynamic_tail_labels": ["ledger_prefix", "task_patch"]
+    },
+    "dispatch_repository": {
+      "ordered_refs": [".agents/skills/goal-teams/SKILL.md", "SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "prompts/lead/dispatch.md", "references/subagent-dispatch-protocol.md", "prompts/packets/member-goal-packet.md"],
+      "limit_bytes": 81920,
+      "dynamic_tail_labels": ["member_assignment"]
+    },
+    "backend_testing_repository": {
+      "ordered_refs": [".agents/skills/goal-teams/SKILL.md", "SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "references/rules-testing.md", "references/test-case-assertion-protocol.md", "prompts/members/backend/INDEX.md", "prompts/members/backend/prompt.md"],
+      "limit_bytes": 81920,
+      "dynamic_tail_labels": ["test_case_contract", "member_assignment"]
+    },
+    "review_repository": {
+      "ordered_refs": [".agents/skills/goal-teams/SKILL.md", "SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "references/dual-review-protocol.md", "prompts/lead/audit.md", "prompts/members/reviewer/INDEX.md", "prompts/members/reviewer/prompt.md"],
+      "limit_bytes": 98304,
+      "dynamic_tail_labels": ["artifact_identity", "evidence_refs"]
+    },
+    "completion_repository": {
+      "ordered_refs": [".agents/skills/goal-teams/SKILL.md", "SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "prompts/lead/completion.md", "prompts/members/completion-auditor/INDEX.md", "prompts/members/completion-auditor/prompt.md"],
+      "limit_bytes": 73728,
+      "dynamic_tail_labels": ["acceptance_snapshot"]
+    },
+    "runtime": {
+      "ordered_refs": ["SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "references/goal-teams-runtime.md", "references/runtime/01-v2-36-core-trust.md"],
+      "limit_bytes": 65536,
+      "dynamic_tail_labels": ["runtime_request"]
+    },
+    "capability": {
+      "ordered_refs": ["SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "references/rules-project-sizing.md", "references/runtime/01-v2-36-core-trust.md"],
+      "limit_bytes": 69632,
+      "dynamic_tail_labels": ["capability_manifest"]
+    },
+    "telemetry": {
+      "ordered_refs": ["SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "references/rules-project-sizing.md", "references/prompt-cache-protocol.md"],
+      "limit_bytes": 40960,
+      "dynamic_tail_labels": ["usage_events", "sample_boundary"]
+    },
+    "benchmark": {
+      "ordered_refs": ["SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "references/goal-teams-automation-protocol.md", "references/runtime/02-harness-benchmark-loop.md", "references/prompt-cache-protocol.md"],
+      "limit_bytes": 81920,
+      "dynamic_tail_labels": ["benchmark_manifest", "scenario_input"]
+    },
+    "production": {
+      "ordered_refs": ["SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "references/goal-teams-production-pipeline.md", "references/goal-teams-scripted-tooling.md", "references/prompt-cache-protocol.md"],
+      "limit_bytes": 57344,
+      "dynamic_tail_labels": ["pipeline_state", "approval_receipt"]
+    },
+    "runtime_loop": {
+      "ordered_refs": ["SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "references/rules-loop.md", "references/runtime/03-goal-loop.md"],
+      "limit_bytes": 57344,
+      "dynamic_tail_labels": ["loop_state"]
+    },
+    "backend": {
+      "ordered_refs": ["RULES.md", "references/compat.md", "references/invariants.md", "references/rules-testing.md"],
+      "limit_bytes": 36864,
+      "dynamic_tail_labels": ["route_facts"]
+    },
+    "structured_policy": {
+      "ordered_refs": ["RULES.md", "references/compat.md", "references/goal-teams-core-v2.5.md", "references/dual-review-protocol.md", "references/invariants.md", "references/profiles/goal-teams-self-release-v2.36.md", "references/profiles/goal-teams-self-release-v2.38.md", "references/profiles/goal-teams-self-release-v2.39.md", "references/rules-project-sizing.md", "references/rules-specialists.md", "references/rules-loop.md", "references/rules-testing.md", "references/rules-ui.md", "references/test-case-assertion-protocol.md", "references/ui-e2e-pixel-protocol.md", "references/ui-visual-contract-protocol.md"],
+      "limit_bytes": 131072,
+      "selection_mode": "ordered_subset_of_policy_rule_set",
+      "dynamic_tail_labels": ["normalized_route_facts", "execution_contract", "user_request"]
+    },
+    "blind_bootstrap": {
+      "ordered_refs": ["AGENTS.md", "SKILL.md", "RULES.md"],
+      "limit_bytes": 24576,
+      "dynamic_tail_labels": ["scenario_input"]
+    }
+  }
+}

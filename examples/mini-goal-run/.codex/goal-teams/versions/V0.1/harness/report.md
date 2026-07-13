@@ -1,3 +1,13 @@
+---
+type: Harness Report
+title: Mini Goal Run Harness Report
+description: 汇总 mini-goal-run 静态检查结果、Evidence 缺口与 blocked 结论。
+tags: [goal-teams, example, harness, report]
+timestamp: 2026-07-13T00:00:00+08:00
+okf_version: "0.1"
+project_version: V0.1
+---
+
 # Harness Report
 
 ## 总结

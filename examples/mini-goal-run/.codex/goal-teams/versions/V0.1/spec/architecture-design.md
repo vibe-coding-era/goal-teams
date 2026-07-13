@@ -1,3 +1,13 @@
+---
+type: Architecture Design
+title: 登录页空状态提示 V0.1 Architecture Design
+description: 定义静态示例的页面状态、模块边界与非实现范围。
+tags: [goal-teams, example, architecture]
+timestamp: 2026-07-13T00:00:00+08:00
+okf_version: "0.1"
+project_version: V0.1
+---
+
 # Architecture Design
 
 ## 范围

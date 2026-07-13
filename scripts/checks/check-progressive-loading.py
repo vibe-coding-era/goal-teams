@@ -59,7 +59,7 @@ def main() -> None:
         errors.append(f"docs must be local-only, but Git tracks: {tracked_docs}")
 
     result = {
-        "schema_version": "goal-teams-progressive-loading-v2.37",
+        "schema_version": "goal-teams-progressive-loading-v2.38",
         "member_count": len([path for path in MEMBERS.iterdir() if path.is_dir()]),
         "max_single_markdown_bytes": MAX_SINGLE_MARKDOWN_BYTES,
         "max_member_index_bytes": MAX_MEMBER_INDEX_BYTES,

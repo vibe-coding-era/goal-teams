@@ -1,0 +1,61 @@
+{
+  "schema_version": "goal-teams-okf-conformance-policy-v1",
+  "unknown_action": "fail",
+  "overlap_action": "fail",
+  "max_document_bytes": 65536,
+  "required_fields": ["type"],
+  "enhanced_required_fields": ["title", "description", "timestamp", "okf_version"],
+  "okf_version": "0.1",
+  "claim_fields": {
+    "audit_state": ["passed", "accepted", "achieved"],
+    "run_outcome": ["passed", "accepted", "achieved"],
+    "validation_state": ["accepted", "passed", "achieved", "passed_independent_semantic_review"],
+    "status": ["passed", "accepted", "achieved", "complete", "completed"],
+    "review_state": ["passed", "accepted", "achieved"],
+    "semantic_review_state": ["passed", "accepted", "achieved"],
+    "check_state": ["passed", "accepted"]
+  },
+  "package_manifest": {
+    "schema_version": "goal-teams-okf-conformance-manifest-v2.39",
+    "path": "references/okf-conformance-manifest.json"
+  },
+  "rules": [
+    {
+      "rule_id": "A_PACKET",
+      "class": "A",
+      "priority": 10,
+      "globs": ["prompts/packets/*.md"]
+    },
+    {
+      "rule_id": "A_REFERENCE",
+      "class": "A",
+      "priority": 20,
+      "globs": ["references/*.md"]
+    },
+    {
+      "rule_id": "A_BUNDLE_DOCUMENT",
+      "class": "A",
+      "priority": 30,
+      "globs": ["memory.md", "plan.md", "spec/*.md", "bundle/**/*.md"],
+      "exclude_globs": ["bundle/**/index.md", "bundle/**/README.md"]
+    },
+    {
+      "rule_id": "B_RESERVED",
+      "class": "B",
+      "priority": 40,
+      "globs": ["SKILL.md", "**/SKILL.md", "README*.md", "**/README*.md", "**/index.md"]
+    },
+    {
+      "rule_id": "B_PROMPT",
+      "class": "B",
+      "priority": 50,
+      "globs": ["prompts/lead/*.md", "prompts/members/**/*.md"]
+    },
+    {
+      "rule_id": "C_NATIVE",
+      "class": "C",
+      "priority": 60,
+      "globs": ["**/*.json", "**/*.jsonl", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.py", "**/*.sh"]
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "schema_version": "goal-teams-ordered-prompt-manifest-v2",
+  "manifest_id": "PM-V239-PARTIAL-001",
+  "product_version": "V2.39",
+  "agent_run_id": "RUN-V239-FIXTURE",
+  "turn_id": "TURN-001",
+  "route_id": "benchmark",
+  "policy_profile": "goal-teams-core-v2.5",
+  "capability_receipt_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "request_binding_id": "opaque:fixture-request-binding",
+  "assembly_boundary": "pre_provider_send",
+  "host_adapter_identity_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "evidence_origin": "synthetic_fixture",
+  "manifest_status": "partial",
+  "digest_scope": "partial",
+  "missing_segment_classes": [
+    "provider_adapter_injections",
+    "tool_results"
+  ],
+  "stable_segment_count": 1,
+  "dynamic_segment_count": 1,
+  "platform_managed_segment_count": 0,
+  "canonicalization": "utf8-lf-json-jcs-v1",
+  "segments": [
+    {
+      "order": 0,
+      "segment_id": "stable-skill",
+      "segment_class": "stable",
+      "source_type": "file",
+      "source_ref": "SKILL.md",
+      "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "byte_count": 100,
+      "token_count": null,
+      "token_count_status": "unavailable",
+      "inclusion_reason": "route_rule",
+      "inclusion_state": "included",
+      "redaction_state": "content_not_persisted"
+    },
+    {
+      "order": 1,
+      "segment_id": "dynamic-request",
+      "segment_class": "dynamic",
+      "source_type": "user",
+      "source_ref": "redacted:user_request",
+      "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "byte_count": 40,
+      "token_count": null,
+      "token_count_status": "unavailable",
+      "inclusion_reason": "user_request",
+      "inclusion_state": "included",
+      "redaction_state": "content_not_persisted"
+    }
+  ]
+}

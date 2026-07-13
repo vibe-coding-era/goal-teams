@@ -1,3 +1,13 @@
+---
+type: Requirement Card
+title: 需求卡片：登录页空状态提示 V0.1
+description: 定义登录页空状态示例的核心目标、关键功能、用户故事与验收标准。
+tags: [goal-teams, example, requirement-card]
+timestamp: 2026-07-13T00:00:00+08:00
+okf_version: "0.1"
+project_version: V0.1
+---
+
 # 需求卡片：登录页空状态提示 V0.1
 
 ## 核心目标

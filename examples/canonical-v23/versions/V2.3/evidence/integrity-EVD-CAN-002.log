@@ -1,1 +1,1 @@
-{"artifact_ref":"versions/V2.3/evidence/recovery.txt","artifact_sha256":"9cf03722179d9a4ded13c6477953dc4508bc54bafdf02f98089df4d25ba833b3","binding_digest":"3f73d88c4e1b77ce4a2007343ad17bd3e38e6836b4190b618e07e1a2cbcd51d0","verifier":"goal-teams-v2.3-safe-artifact-verifier-v1"}
+{"artifact_ref":"versions/V2.3/evidence/recovery.txt","artifact_sha256":"9cf03722179d9a4ded13c6477953dc4508bc54bafdf02f98089df4d25ba833b3","binding_digest":"711b82d8074a3dae7dc9d5e29e297c0ea67756a5aad6db75c14e0ea50169b124","verifier":"goal-teams-v2.3-safe-artifact-verifier-v1"}

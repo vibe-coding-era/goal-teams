@@ -1,3 +1,13 @@
+---
+type: Goal Teams Plan
+title: Mini Goal Run Plan
+description: 规划登录页空状态 V0.1 的静态文档、原型与 Harness 示例。
+tags: [goal-teams, example, plan]
+timestamp: 2026-07-13T00:00:00+08:00
+okf_version: "0.1"
+project_version: V0.1
+---
+
 # Goal Teams Plan
 
 ## 用户目标
@@ -6,7 +16,7 @@
 
 ## 启动汇报
 
-我是 Goal Teams Lead V2.37。
+我是 Goal Teams Lead V2.39。
 
 - 检查示例项目执行规则和版本目录。
 - 记录正交路由：`project_size=small`、`work_type=feature`、`ui=true`。

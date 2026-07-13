@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check V2.37 identity, profile routing, and local-doc release boundaries."""
+"""Check V2.39 identity, profile routing, and local-doc release boundaries."""
 from __future__ import annotations
 import json
 import re
@@ -7,8 +7,8 @@ import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-PRODUCT, CORE, LEGACY = "V2.37", "V2.5", "V2.3"
-PROFILE = "goal-teams-self-release-v2.37"
+PRODUCT, CORE, LEGACY = "V2.39", "V2.5", "V2.3"
+PROFILE = "goal-teams-self-release-v2.39"
 
 def fail(message: str) -> None:
     print(f"[FAIL] {message}")
@@ -29,10 +29,10 @@ def main() -> None:
         if PRODUCT not in text or startup not in text:
             fail(f"{path} missing current product/startup identity")
     skill = read("SKILL.md")
-    for marker in (CORE, LEGACY, PROFILE, "references/profiles/goal-teams-self-release-v2.37.md", "requirements-analyst/INDEX.md", "product/INDEX.md", "members/<role>/INDEX.md"):
+    for marker in (CORE, LEGACY, PROFILE, "references/profiles/goal-teams-self-release-v2.39.md", "references/prompt-cache-manifest.json", "requirements-analyst/INDEX.md", "product/INDEX.md", "members/<role>/INDEX.md"):
         if marker not in skill:
             fail(f"SKILL.md missing current route marker: {marker}")
-    profile = read("references/profiles/goal-teams-self-release-v2.37.md")
+    profile = read("references/profiles/goal-teams-self-release-v2.39.md")
     if PROFILE not in profile or PRODUCT not in profile:
         fail("current self-release profile identity mismatch")
     manifest = read("scripts/install/package-manifest.txt")
@@ -52,8 +52,18 @@ def main() -> None:
     release = json.loads(read("release/current/manifest.json"))
     if release.get("product_version") != PRODUCT or release.get("docs_policy") != "local-only":
         fail("current release manifest mismatch")
-    if re.search(r"references/profiles/goal-teams-self-release-v2\.36\.md", skill):
+    expected_cache_state = {
+        "structural_delivery_state": "passed",
+        "host_integration_state": "unavailable",
+        "live_cache_validation_state": "not_authorized",
+        "request_hit_rate_support_state": "unavailable",
+    }
+    if release.get("cache_evidence") != expected_cache_state or release.get("claim_scope") != "structural_governance":
+        fail("current release manifest cache evidence/claim scope mismatch")
+    if re.search(r"references/profiles/goal-teams-self-release-v2\.(?:36|37)\.md", skill):
         fail("SKILL routes to stale self-release profile")
+    if "V2.38 Profile 仅用于历史 replay" not in skill:
+        fail("SKILL must keep V2.38 profile replay-only boundary")
     print(f"Version synchronization passed: product={PRODUCT}, core={CORE}, legacy={LEGACY}, docs=local-only.")
 
 if __name__ == "__main__":

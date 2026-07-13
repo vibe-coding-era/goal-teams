@@ -1,3 +1,12 @@
+---
+type: Production Pipeline Protocol
+title: Goal Teams Production Pipeline V1.9
+description: 定义生产流、Release Gate、观察与回退的协议模板和安全边界。
+tags: [goal-teams, production, pipeline, release-gate]
+timestamp: 2026-07-13T00:00:00+08:00
+okf_version: "0.1"
+---
+
 # Goal Teams Production Pipeline V1.9
 
 > V2.3 compatibility note：本文件是 V1.9 生产流模板。V2.3 任务状态、检查状态、循环决策和 Evidence 必须通过 V2.3 schema/validator；旧状态只作为 migration 输入，不得成为第二套可写 SSOT。

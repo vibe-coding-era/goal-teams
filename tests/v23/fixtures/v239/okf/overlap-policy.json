@@ -1,0 +1,10 @@
+{
+  "schema_version": "goal-teams-okf-conformance-policy-v1",
+  "unknown_action": "fail",
+  "overlap_action": "fail",
+  "max_document_bytes": 65536,
+  "rules": [
+    {"rule_id": "A_ALL_MD", "class": "A", "priority": 10, "globs": ["**/*.md"]},
+    {"rule_id": "B_ALL_MD", "class": "B", "priority": 10, "globs": ["**/*.md"]}
+  ]
+}

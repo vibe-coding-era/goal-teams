@@ -27,7 +27,7 @@ okf_version: "0.1"
 ## V2.36 Profile 与路由硬边界
 
 1. 普通任务默认使用 `references/goal-teams-core-v2.5.md`，机器名为 `goal-teams-core-v2.5`；固定断言数量、固定迭代编号、评分和产品公开归档不是 L0 不变量。
-2. 只有可信 adapter 根据产品版本、已验证目标仓库与任务类型派生 `goal-teams-self-release-v2.37` 时，才加载 `references/profiles/goal-teams-self-release-v2.37.md`。`state_gate_profile` 省略时自动派生，显式值必须精确匹配；字段存在或缺失都不能自选门禁。
+2. 只有可信 adapter 根据当前产品版本、已验证目标仓库与任务类型派生 `goal-teams-self-release-v2.39` 时，才加载 `references/profiles/goal-teams-self-release-v2.39.md`。V2.38 Profile 只用于历史 replay；`state_gate_profile` 省略时自动派生，显式值必须精确匹配；字段存在或缺失都不能自选门禁。
 3. `project_size=large|medium|small` 与 `work_type=feature|bugfix` 正交；执行等级由规模、风险、发布、技术面与 UI 模式共同派生。Lite/Standard 可减少不适用的 Architecture、完整环境报告和全量测试，但不得减少 scoped contract、当前 Evidence、适用验证、安全/授权边界或最终结论诚实性。
 4. `full|regulated` 的 Architecture、Environment、独立测试、Harness/Evidence 与独立完成审计保持强门；高风险、安全、认证、支付、迁移、破坏性动作或高风险外部写入强制 regulated/safety，不得由规模降级。
 5. 原创 UI 不因 `ui=true` 自动进入 full，也不要求 reference pixel baseline；复刻/reference-driven UI 至少 full，必须使用独立批准的不同 baseline、环境指纹和像素比较。
@@ -35,6 +35,7 @@ okf_version: "0.1"
 7. 无本轮新的目标精确授权，外部主动端口扫描返回 `E_V235_EXTERNAL_PORT_SCAN_AUTH_REQUIRED` 且不得生成/执行命令；安全任务最低 safety review。
 8. 适用 test-case 必须有非空 input/processing/expected_output/assertions，且至少一个非 exit/status 的业务断言；Full/Regulated 的 TDD red 必须先于 implementation 并由独立 green runner 验证。
 9. Completion Audit 位于任务图外，不得作为 required task 或被 required artifact/Evidence 自引用；所有 continuation/recovery 仅是当前会话与磁盘协议，不得声称 daemon、后台/跨会话 runner、CI/CD、生产审批或无限自动执行能力。
+10. `references/prompt-cache-manifest.json` 是 route-static 顺序与 byte budget 的机器 SSOT；静态计划只生成 `route_static_digest`。最终 prompt 不可见时 runtime digests 必须为 null；任何 digest 都不是 provider key。cache 遥测不得改变质量、安全、Evidence 或完成门禁。
 
 ## 身份与能力边界
 

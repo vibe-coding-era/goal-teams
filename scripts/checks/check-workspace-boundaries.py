@@ -38,13 +38,11 @@ def check_git_boundaries() -> None:
             if (ROOT / path).exists():
                 fail(f"gitless package contains local-only path: {path}")
         return
-
     tracked = run_git("ls-files", "--", *SOURCE_FORBIDDEN)
     if tracked.returncode != 0:
         fail("cannot inspect tracked local-only paths")
     if tracked.stdout.strip():
         fail(f"nonrelease paths are tracked: {tracked.stdout.strip().splitlines()}")
-
     common = Path(probe.stdout.strip())
     if not common.is_absolute():
         common = (ROOT / common).resolve()
@@ -54,17 +52,11 @@ def check_git_boundaries() -> None:
     if worktrees.returncode != 0:
         fail("cannot inspect Git worktree topology")
     for line in worktrees.stdout.splitlines():
-        if not line.startswith("worktree "):
-            continue
-        path = Path(line[len("worktree "):]).resolve()
-        if path == canonical_root:
-            continue
-        if allowed_develops not in path.parents:
-            fail(f"worktree escapes repository develops/: {path}")
-
-    siblings = sorted(
-        path for path in canonical_root.parent.glob(f"{canonical_root.name}-*") if path.is_dir()
-    )
+        if line.startswith("worktree "):
+            path = Path(line[len("worktree "):]).resolve()
+            if path != canonical_root and allowed_develops not in path.parents:
+                fail(f"worktree escapes repository develops/: {path}")
+    siblings = sorted(path for path in canonical_root.parent.glob(f"{canonical_root.name}-*") if path.is_dir())
     if siblings:
         fail(f"Goal Teams version directories exist outside repository: {siblings}")
 

@@ -127,6 +127,8 @@ Benchmark 任务包最少包含：
 
 Benchmark 任务包可用 `scripts/benchmark/benchmark-runner.py --check-only` 或兼容入口 `scripts/benchmark-runner.py --check-only` 检查结构。当前任务集包括 `GT-BENCH-001`、`GT-BENCH-002`、`GT-BENCH-003` 和 `GT-BENCH-004`。
 
+V2.39 benchmark 保留 V2.38 prompt-cache schema/parser/replay，并遵守 `references/prompt-cache-protocol.md`：route plan 记录 `prefix_manifest_sha256`、`route_static_digest`、budget receipt 与 staged package identity；最终 prompt 不可见时 runtime digests 为 null。runner 轮后按版本化 parser 聚合 observer telemetry，保留 invalid/unsupported/duplicate-identity 计数并按完整 identity 分组；无 request 事件时 hit rate unavailable。V2.39 live executor 只有在可信 capability/config/authorization/ordered manifest 全部可用时才运行；当前无授权时 `live_probe=not_authorized`，不得把 plan 或 synthetic fixture 称为 live A/B。
+
 ## Budget Gate 与 Conflict Policy
 
 以下任务必须写 Budget Gate：预计超过 4 个 subagents、需要自动续跑、生产流、Benchmark、浏览器 E2E、像素对比、或用户给出时间/tokens/费用约束。

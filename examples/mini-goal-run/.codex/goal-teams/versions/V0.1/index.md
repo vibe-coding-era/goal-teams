@@ -1,3 +1,13 @@
+---
+type: Bundle Index
+title: Mini Goal Run V0.1 Index
+description: 索引 V0.1 版本的计划、规格、Harness 与静态原型产物。
+tags: [goal-teams, example, index, v0.1]
+timestamp: 2026-07-13T00:00:00+08:00
+okf_version: "0.1"
+project_version: V0.1
+---
+
 # V0.1 文档索引
 
 V2.35 compatibility status: overall `blocked` on required independent E2E. A `done` row below describes file generation only, not project acceptance or Completion Audit.

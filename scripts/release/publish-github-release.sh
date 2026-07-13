@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+export PYTHONDONTWRITEBYTECODE=1
 
 SOURCE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 COMMON_DIR="$(git -C "$SOURCE_ROOT" rev-parse --git-common-dir)"
@@ -9,9 +10,14 @@ VERSION="${1:?usage: publish-github-release.sh VERSION}"
 [[ "$VERSION" =~ ^V[0-9]+\.[0-9]+$ ]] || { echo "invalid VERSION: $VERSION" >&2; exit 1; }
 DIR="$WORKSPACE_ROOT/release/versions/$VERSION"
 TAG="v${VERSION#V}"
+PYTHON_BIN="${PYTHON:-python3}"
+"$PYTHON_BIN" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)' || {
+  echo "Python 3.11+ is required (set PYTHON=/path/to/python3.11+)" >&2
+  exit 1
+}
 
-"$SOURCE_ROOT/scripts/check.sh"
-python3 "$SOURCE_ROOT/scripts/release/validate-release.py" --version "$VERSION"
+PYTHON="$PYTHON_BIN" "$SOURCE_ROOT/scripts/check.sh"
+"$PYTHON_BIN" "$SOURCE_ROOT/scripts/release/validate-release.py" --version "$VERSION"
 command -v gh >/dev/null || { echo "gh is required" >&2; exit 1; }
 gh auth status >/dev/null
 REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner)"
@@ -20,7 +26,7 @@ if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
   exit 1
 fi
 
-COMMIT="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["source_commit"])' "$DIR/_release.json")"
+COMMIT="$("$PYTHON_BIN" -c 'import json,sys; print(json.load(open(sys.argv[1]))["source_commit"])' "$DIR/_release.json")"
 if git -C "$SOURCE_ROOT" rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
   test "$(git -C "$SOURCE_ROOT" rev-list -n 1 "$TAG")" = "$COMMIT" || { echo "$TAG points to a different commit" >&2; exit 1; }
 else
@@ -43,7 +49,7 @@ EVIDENCE="$WORKSPACE_ROOT/docs/archive/releases/$VERSION/release-evidence"
 mkdir -p "$EVIDENCE"
 gh release view "$TAG" --json url,tagName,targetCommitish,publishedAt,assets > "$EVIDENCE/github-release.json"
 "$SOURCE_ROOT/scripts/install-local.sh" --update-team-fallback 2>&1 | tee "$EVIDENCE/local-install.log"
-python3 - "$VERSION" "$COMMIT" "$TAG" "$DIR/_artifacts/SHA256SUMS" "$EVIDENCE/post-release.json" <<'PY'
+"$PYTHON_BIN" - "$VERSION" "$COMMIT" "$TAG" "$DIR/_artifacts/SHA256SUMS" "$EVIDENCE/post-release.json" <<'PY'
 import datetime, hashlib, json, pathlib, sys
 version, commit, tag, sums_path, output = sys.argv[1:]
 sums = pathlib.Path(sums_path).read_bytes()

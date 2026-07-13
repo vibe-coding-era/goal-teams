@@ -1,3 +1,13 @@
+---
+type: Test Plan
+title: 登录页空状态提示 V0.1 Test Plan
+description: 定义静态 HTML、可访问性、Harness 和独立 E2E 的验收范围。
+tags: [goal-teams, example, test-plan, e2e]
+timestamp: 2026-07-13T00:00:00+08:00
+okf_version: "0.1"
+project_version: V0.1
+---
+
 # Test Plan
 
 ## 测试范围

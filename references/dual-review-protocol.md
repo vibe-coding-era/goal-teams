@@ -1,3 +1,12 @@
+---
+type: Review Protocol
+title: Dual Review Protocol V2.3
+description: 定义结构、语义、比较与安全复核的分级和独立验证要求。
+tags: [goal-teams, review, validation, evidence]
+timestamp: 2026-07-13T00:00:00+08:00
+okf_version: "0.1"
+---
+
 # Dual Review Protocol V2.3
 
 V2.3 按 `review_class` 分级。脚本负责可机械判断的事实，LLM reviewer 负责语义、风险、上下文和用户目标一致性；只有 comparison/safety 等同时需要两类判断的任务强制双重复核，不能为纯 semantic 任务编造无意义脚本结果。

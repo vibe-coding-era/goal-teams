@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+### V2.39
+
+- Added a fail-closed Cache Evidence contract with trusted host capability, ordered request manifest, registered configuration attestation, raw-to-normalized receipts, and an authorization-gated live probe executor.
+- Split cache reporting into four orthogonal states: structural validation `passed`, host integration `unavailable`, live probe `not_authorized`, and request hit rate `unavailable`; the release claim is limited to `structural_governance`.
+- Added deterministic Google OKF A/B/C classification, safe frontmatter parsing, tracked/changed/bundle/manifest/package-tree checks, and package completeness/identity binding.
+- Added the current `goal-teams-self-release-v2.39` Profile and switched current routes to it while preserving the V2.38 Profile, schemas, compilers, observer reports, fixtures, and artifacts for read-only replay.
+- Kept live provider and request-hit-rate claims fail-closed because no trusted host observation or live provider probe was authorized for this release.
+
+### V2.38
+
+- Added `references/prompt-cache-manifest.json` as the ordered route-static and byte-budget machine SSOT, including startup headroom enforcement.
+- Added order-sensitive `prefix_manifest_sha256`, byte-sensitive `route_static_digest`, host ordered-manifest digest helpers, and explicit unavailable/partial semantics when the final request is not observable.
+- Added fail-closed versioned observer aggregation and identity grouping; invalid, legacy, ambiguous, or unattested config inputs cannot produce a supported cache conclusion, and request hit rate remains unavailable.
+- Added a plan-only first-seen/repeat probe compiler (`live_ab_status=unavailable`); no live provider A/B records are claimed.
+- Added a single-source subagent common-prefix expander/validator and canonical Member Goal Packet compiler with stable, dynamic, combined, and legacy migration digests.
+- Documented the platform boundary: Goal Teams can observe reported cache usage but cannot force, clear, or guarantee a provider prompt cache.
+
 ### V2.37
 
 - Added progressive member indexes and deterministic index/document-budget gates.

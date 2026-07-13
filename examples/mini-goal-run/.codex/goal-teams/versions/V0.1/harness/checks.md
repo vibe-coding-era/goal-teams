@@ -1,3 +1,13 @@
+---
+type: Harness Checks
+title: Mini Goal Run Harness Checks
+description: 定义 mini-goal-run 静态 Harness 的校验清单与通过条件。
+tags: [goal-teams, example, harness, checks]
+timestamp: 2026-07-13T00:00:00+08:00
+okf_version: "0.1"
+project_version: V0.1
+---
+
 # Harness Checks
 
 ## 静态校验清单

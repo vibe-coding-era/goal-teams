@@ -1,9 +1,16 @@
 {
-  "schema_version": "goal-teams-release-manifest-v2.37",
-  "product_version": "V2.37",
+  "schema_version": "goal-teams-release-manifest-v2.39",
+  "product_version": "V2.39",
   "core_policy_version": "V2.5",
   "legacy_data_schema_version": "V2.3",
   "docs_policy": "local-only",
   "release_scope": "runtime-package",
+  "claim_scope": "structural_governance",
+  "cache_evidence": {
+    "structural_delivery_state": "passed",
+    "host_integration_state": "unavailable",
+    "live_cache_validation_state": "not_authorized",
+    "request_hit_rate_support_state": "unavailable"
+  },
   "status": "release"
 }

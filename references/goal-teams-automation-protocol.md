@@ -1,3 +1,12 @@
+---
+type: Automation Protocol
+title: Goal Teams Automation Protocol
+description: 定义 Harness、Evidence 与 Pipeline 的机器可读自动化协议和兼容边界。
+tags: [goal-teams, automation, harness, evidence]
+timestamp: 2026-07-13T00:00:00+08:00
+okf_version: "0.1"
+---
+
 # Goal Teams Automation Protocol
 
 > V2.3 compatibility note：本文件中的 V1.8 schema 和状态只作为 legacy migration 输入与历史示例；V2.3 新写入必须使用 `goal-teams-v2.3` schema、正交 `task_state/check_state/run_outcome/loop_decision`、append-only ledger 和 reducer 生成的 `TaskList.md`，不得双写或直接复用下方旧枚举。

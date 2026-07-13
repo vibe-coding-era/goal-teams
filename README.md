@@ -4,7 +4,7 @@
 
 作者：肉山@TGO 杭州
 
-当前版本：`V2.37`
+当前版本：`V2.39`
 
 Goal Teams 是一个面向 Codex 的团队协作 Skill。它会以一个 Goal Lead 的身份，把一个目标拆成可验证的计划，再协调多个独立 subagent（不同上下文执行）或用户指定的外部 skill 完成需求、设计、实现、测试、证据记录和收尾审计。过程中会应用到：
 - 应用Goal + Plan + Loop 模式
@@ -17,11 +17,11 @@ Goal Teams 是一个面向 Codex 的团队协作 Skill。它会以一个 Goal Le
 
 | 层 | 当前值 | 作用 |
 | --- | --- | --- |
-| 产品版本 | `V2.37` | Skill 包、启动语和发布文档的版本。 |
+| 产品版本 | `V2.39` | Skill 包、启动语和发布文档的版本。 |
 | 通用核心策略 | `V2.5` / `goal-teams-core-v2.5` | 普通项目的任务路由、执行等级和门禁。 |
 | legacy 数据 schema | `V2.3` | 兼容既有 ledger、Evidence、Harness 和 release-gate 数据；不代表当前产品版本。 |
 
-只有 Goal Teams 仓库自身发布使用 `goal-teams-self-release-v2.37`。52 条发布断言、第 9/11 轮、四维评分和公开归档都留在这个独立 Profile，不属于普通项目的全局不变量。`profile=lite|standard|full|regulated` 仍只表示执行等级，不等同于 `policy_profile`。
+只有 Goal Teams 仓库当前自发布使用 `goal-teams-self-release-v2.39`。52 条发布断言、第 9/11 轮、四维评分、prompt identity、Cache Evidence、OKF gate 和公开归档都留在这个独立 Profile，不属于普通项目的全局不变量；`goal-teams-self-release-v2.38` 只保留历史 replay。`profile=lite|standard|full|regulated` 仍只表示执行等级，不等同于 `policy_profile`。
 
 适合使用它的场景：
 
@@ -65,6 +65,18 @@ Goal Teams 内置 `benchmarks/` 任务包，用来比较不同工作流、prompt
 
 Benchmark 的价值是把“感觉变好了”变成可复盘的比较：同一任务可以对比 baseline 和 Goal Teams 在产物完整度、证据质量、UI 验证、生产门禁判断、Loop 状态恢复和成本上的差异。当前仓库提供 `GT-BENCH-001` 到 `GT-BENCH-004`，覆盖从基础产物质量到 Lead LOOP 恢复的几个典型维度。
 
+### Prompt cache 可观测性
+
+V2.39 继续使用 V2.38-compatible prompt cache schema、compiler、observer report 与 fixtures，当前 self-release ordered refs 已切换到 V2.39 Profile，V2.38 只读 replay。`references/prompt-cache-manifest.json` 仍是 route 静态顺序与 byte budget 的机器 SSOT；`route_static_digest` 绑定计划路径与文件 bytes，仓库看不到最终 provider request 时明确输出 `manifest_status=unavailable`、`digest_scope=partial`，不会用静态计划冒充 `runtime_prompt_digest`。完整安装树仍由独立 `skill_tree_digest` 证明。
+
+本版把缓存结论拆成四个正交状态轴：结构校验 `passed`、宿主集成 `unavailable`、live probe `not_authorized`、request hit rate `unavailable`。当前发布只声明 `structural_governance`；没有可信 host observation、用户授权和 provider request 语义时，不声称 live 缓存优化、provider hit 或 request hit rate。
+
+为保持历史签名与 replay byte-compatible，V2.35/V2.36 的 `rule_set` 仍是 policy membership 集合，不是 prompt 顺序；`prompt-plan --features` 会把它编译成 manifest 管理的 ordered subset。
+
+runner 在轮后采集 `observer_telemetry`，按 token 加权报告 share、uncached 与 coverage；没有 request 事件时 hit rate 必须为 null。只有 clean/versioned telemetry、完整 prompt identity 和可信 host config attestation 同时存在才支持 cache 结论；当前 runner 尚无该 attestation，故 live cache analytics 为 unsupported。
+
+仓库当前只生成 first-seen + 至少五次 repeat 的 probe plan，不执行 provider 调用，不声称 cold run 或 live A/B records；`live_ab_status=unavailable`。未来 executor 才能绑定模型、CLI、package、配置、scorer/Harness 和真实 prompt identity。Goal Teams 不能强制、清空或保证 provider prompt cache。
+
 ### 开放性和外部 Skill
 
 Goal Teams 不要求所有能力都来自内置 subagent。Plan 阶段可以把外部 skill、项目已有脚本、浏览器工具、测试工具或用户指定 subagent 纳入 `Teams 规划表`，并为它们定义 locked scope、输入、输出、Harness 和 validator。
@@ -94,9 +106,9 @@ git clone https://github.com/vibe-coding-era/goal-teams.git ~/.codex/skills/goal
 GitHub Release 必须先在本地生成同一份可复现资产并通过来源绑定校验：
 
 ```bash
-python3 scripts/release/build-release.py --version V2.37 --ref HEAD
-python3 scripts/release/validate-release.py --version V2.37
-scripts/release/publish-github-release.sh V2.37
+python3 scripts/release/build-release.py --version V2.39 --ref HEAD
+python3 scripts/release/validate-release.py --version V2.39
+scripts/release/publish-github-release.sh V2.39
 ```
 
 本地发行目录为 `release/versions/<VERSION>/`；根 `docs/` 只保存非发行知识、测试与凭证，并由 `.gitignore` 排除。详细规则见 `references/release-packaging-protocol.md`。
@@ -165,7 +177,7 @@ Goal Lead 会先把目标转成 Done Criteria，创建版本化 SSOT、`TaskList
 显式调用 Goal Teams 或当前会话首次需要建立身份时汇报；已有完整上下文时不重复：
 
 ```text
-我是 Goal Teams Lead V2.37。
+我是 Goal Teams Lead V2.39。
 ```
 
 中文核心模型要点提示词：用户沟通和治理文档默认中文；代码、注释、测试名、fixture 和产品字符串遵循目标仓库约定；代码标识、命令、路径、API 名称、配置键、subagent ID 和精确引用保留原文。
@@ -184,7 +196,12 @@ Goal Lead 会先把目标转成 Done Criteria，创建版本化 SSOT、`TaskList
 | `references/rules-testing.md` | 后端架构先行、TDD、API 集成 pytest、前端 E2E 和独立测试规则。 |
 | `references/rules-loop.md` | Lead LOOP、Loop Decision、Loop Gate、Budget Gate 和自动续跑边界。 |
 | `references/goal-teams-core-v2.5.md` | 普通项目的通用核心策略、Lite/Standard/Full/Regulated 路由和自动 gate 派生。 |
-| `references/profiles/goal-teams-self-release-v2.37.md` | 仅供 Goal Teams 仓库自身发布使用的专项 Profile。 |
+| `references/profiles/goal-teams-self-release-v2.39.md` | 仅供 Goal Teams 仓库当前自发布使用的专项 Profile。 |
+| `references/profiles/goal-teams-self-release-v2.38.md` | V2.38 历史对象只读 replay Profile。 |
+| `references/prompt-cache-manifest.json` | route-static 顺序、artifact compiler 和 context budget 的机器 SSOT。 |
+| `references/prompt-cache-protocol.md` | route/runtime identity 边界、observer telemetry 与 plan-only probe 语义。 |
+| `scripts/v23/prompt_compilers.py` | subagent common prefix 与 Member Goal Packet 的确定性编译/迁移工具。 |
+| `scripts/v23/prompt_cache.py` | 安全读取有序 manifest、计算 prompt identity，并聚合 provider/CLI usage 事件。 |
 | `prompts/packets/handoff-artifacts.md` | 交接物 SSOT，定义 artifact 类型、Owner、validator、状态字段和 TaskList 账本格式。 |
 
 ## 工作流
@@ -294,7 +311,7 @@ GoalTeamsWork-<project_version>/
 
 ## 版本说明
 
-当前产品版本以 `VERSION` 为准。`V2.37` 保留 `V2.5` 作为普通项目的通用核心策略，把仓库自发布规则拆到独立 Profile；门禁由产品/核心版本、任务类型、执行等级和 route facts 自动派生，省略 `state_gate_profile` 不能跳过门禁。Lite/Standard 按实际风险和工作量保留轻量路径。V2.37 同时统一 secret redaction，使用受保护 Git tree snapshot 自动覆盖完整 Git 变更集（tracked 修改/删除与 non-ignored untracked），并用宿主 attestation 证明 Agent 隔离身份。最终 acceptance 还要求宿主签名 route receipt、仓库外持久 challenge state，以及 Audit/Review/Harness 的完整 binding 和 current Evidence 的非循环 core binding。候选仓库 runtime 不存在可由 Python/CLI 注入的成功入口，必须返回 `E_V236_HOST_ADAPTER_REQUIRED`；仓库外宿主冻结包含 TaskList、引用日志/报告/artifact 在内的完整验收输入树后，才可在受信进程中验证并消费 challenge。现有机器数据继续兼容 legacy `V2.3` schema。
+当前产品版本以 `VERSION` 为准。`V2.39` 保留 `V2.5` 作为普通项目核心，并使用 `goal-teams-self-release-v2.39` Profile；门禁仍由版本、任务、执行等级和 route facts 派生。本版在不改写 V2.38 schema/fixtures/replay 的前提下新增可信 Cache Evidence 合同与 Google OKF 全量/package 门禁。结构校验已通过；宿主集成不可用，live probe 未获授权，request hit rate 不可用，因此只声明 structural/governance 完成，不声明 provider 缓存控制或 live 优化效果。机器数据继续兼容 legacy `V2.3` schema。
 
 当前发行说明与最小公开清单见 [`release/current/`](release/current/README.md)。历史过程、完整知识库、集成测试目录与发行凭证只保存在本地忽略的 `docs/`，不进入 GitHub 或安装包。
 
@@ -304,4 +321,4 @@ GoalTeamsWork-<project_version>/
 
 ## Legacy V2.3 数据 schema 与发布兼容
 
-Legacy V2.3 schema 定义闭合状态枚举、单写者 ledger、Evidence/Traceability、typed migration 与 release-gate 数据格式；V2.37 继续读取这些数据，不表示产品版本回退到 V2.3。详见 `references/goal-teams-v2.3-contract.md`，发布前运行 `./scripts/check.sh`。技术 RC 与正式 GA 分开判断；只有 owner 的 License/内部共享决定而没有仓库外可信 host/signature attestation 时，GA 门禁仍必须 fail-closed。
+Legacy V2.3 schema 定义闭合状态枚举、单写者 ledger、Evidence/Traceability、typed migration 与 release-gate 数据格式；V2.39 继续读取这些数据，不表示产品版本回退到 V2.3。详见 `references/goal-teams-v2.3-contract.md`，发布前运行 `./scripts/check.sh`。技术 RC 与正式 GA 分开判断；只有 owner 的 License/内部共享决定而没有仓库外可信 host/signature attestation 时，GA 门禁仍必须 fail-closed。

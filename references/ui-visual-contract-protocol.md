@@ -1,3 +1,12 @@
+---
+type: UI Visual Contract Protocol
+title: UI 视觉防漏协议
+description: 定义组件级视觉契约、交互状态和 Reviewer/Auditor 的视觉风险门禁。
+tags: [goal-teams, ui, visual-contract, review]
+timestamp: 2026-07-13T00:00:00+08:00
+okf_version: "0.1"
+---
+
 # UI 视觉防漏协议
 
 适用范围：所有前端页面、HTML Prototype、浏览器工作流、UI 复刻、截图还原、Figma 对齐、视觉临摹、组件实现和交互样式验收任务。

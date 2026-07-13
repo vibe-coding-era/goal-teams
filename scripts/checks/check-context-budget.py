@@ -4,7 +4,9 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
+import sys
 from pathlib import Path
 
 
@@ -33,6 +35,23 @@ SPECIALIST_PROMPT_LIMIT = 3 * 1024
 SPECIALIST_PACKAGE_LIMIT = 10 * 1024
 
 
+def _load_prompt_cache(root: Path):
+    path = root / "scripts" / "v23" / "prompt_cache.py"
+    if not path.is_file():
+        raise ValueError("missing prompt cache runtime: scripts/v23/prompt_cache.py")
+    previous = sys.dont_write_bytecode
+    sys.dont_write_bytecode = True
+    try:
+        spec = importlib.util.spec_from_file_location("_goalteams_prompt_cache_budget", path)
+        if spec is None or spec.loader is None:
+            raise ValueError("cannot load prompt cache runtime")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+    finally:
+        sys.dont_write_bytecode = previous
+    return module
+
+
 def file_sizes(root: Path, relative_paths: tuple[str, ...]) -> dict[str, int]:
     result: dict[str, int] = {}
     for relative in relative_paths:
@@ -46,21 +65,58 @@ def file_sizes(root: Path, relative_paths: tuple[str, ...]) -> dict[str, int]:
 def evaluate(root: Path, limit: int) -> dict[str, object]:
     if limit <= 0:
         raise ValueError("context limit must be positive")
+    prompt_cache = _load_prompt_cache(root)
+    installed_identity = prompt_cache.build_prompt_identity(root, "installed_startup")
+    repository_scope = (root / ".agents" / "skills" / "goal-teams" / "SKILL.md").is_file()
+    repository_identity = prompt_cache.build_prompt_identity(
+        root, "repository_startup" if repository_scope else "installed_startup"
+    )
     base = file_sizes(root, BASE_FILES)
     routed = file_sizes(root, ROUTED_CORE_FILES)
     routing = file_sizes(root, V235_ROUTING_FILES)
     base_total = sum(base.values())
     routed_total = sum(routed.values())
     startup = {
-        "definition": "startup auto-load plus mandatory response contract",
+        "definition": (
+            "repository wrapper plus startup auto-load and mandatory response contract"
+            if repository_scope
+            else "installed startup auto-load plus mandatory response contract"
+        ),
+        "files": {
+            path: metadata["bytes"]
+            for path, metadata in repository_identity["files"].items()
+        },
+        "ordered_refs": repository_identity["ordered_refs"],
+        "manifest_ordered_refs": repository_identity["ordered_refs"],
+        "prefix_manifest_sha256": repository_identity["prefix_manifest_sha256"],
+        "route_static_digest": repository_identity["route_static_digest"],
+        "runtime_prompt_digest": repository_identity["runtime_prompt_digest"],
+        "manifest_status": repository_identity["manifest_status"],
+        "digest_scope": repository_identity["digest_scope"],
+        "budget_receipt": repository_identity["budget_receipt"],
+        "bytes": repository_identity["route_bytes"],
+        "limit_bytes": limit,
+        "remaining_bytes": limit - repository_identity["route_bytes"],
+        "passed": repository_identity["passed"] and repository_identity["route_bytes"] <= limit,
+    }
+    base_result = {
+        "definition": "installed startup auto-load plus mandatory response contract",
         "files": base,
+        "ordered_refs": installed_identity["ordered_refs"],
+        "manifest_ordered_refs": installed_identity["ordered_refs"],
+        "prefix_manifest_sha256": installed_identity["prefix_manifest_sha256"],
+        "route_static_digest": installed_identity["route_static_digest"],
+        "runtime_prompt_digest": installed_identity["runtime_prompt_digest"],
+        "manifest_status": installed_identity["manifest_status"],
+        "digest_scope": installed_identity["digest_scope"],
+        "budget_receipt": installed_identity["budget_receipt"],
         "bytes": base_total,
         "limit_bytes": limit,
         "remaining_bytes": limit - base_total,
-        "passed": base_total <= limit,
+        "passed": installed_identity["passed"] and base_total <= limit,
     }
     routing_result = {
-        "definition": "V2.37 conditionally routed core/profile policy files",
+        "definition": "V2.38 conditionally routed core/profile policy files",
         "files": routing,
         "bytes": sum(routing.values()),
         "limits": V235_ROUTING_LIMITS,
@@ -85,21 +141,33 @@ def evaluate(root: Path, limit: int) -> dict[str, object]:
                 and package_size <= SPECIALIST_PACKAGE_LIMIT
             ),
         }
+    route_ids = ("runtime", "capability", "telemetry", "benchmark", "production")
+    routes = {}
+    for route_id in route_ids:
+        identity = prompt_cache.build_prompt_identity(root, route_id)
+        routes[route_id] = {
+            **identity,
+            "bytes": identity["route_bytes"],
+            "manifest_ordered_refs": identity["ordered_refs"],
+        }
     passed = (
         bool(startup["passed"])
+        and bool(base_result["passed"])
         and bool(routing_result["passed"])
+        and all(bool(item["passed"]) for item in routes.values())
         and all(bool(item["passed"]) for item in specialists.values())
     )
     return {
-        "schema_version": "goal-teams-context-budget-v2.37",
+        "schema_version": "goal-teams-context-budget-v2.38",
         "startup": startup,
-        "base": startup,
+        "base": base_result,
         "routed": {
             "definition": "loaded only after goal/profile routing; reported separately from startup budget",
             "files": routed,
             "bytes": routed_total,
         },
         "routing": routing_result,
+        "routes": routes,
         "specialists": specialists,
         "passed": passed,
     }

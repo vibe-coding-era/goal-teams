@@ -1,11 +1,11 @@
 # Goal Teams Benchmarks
 
-本目录用于沉淀可复盘的 benchmark 任务，评估 Goal Teams 相比单会话或临时协作方式是否真的带来更好的结果。这里只提供轻量 task package 检查脚本，不声明真实自动执行 runner；每个 benchmark 主要定义输入、人工执行方法、评分标准和期望产物。
+本目录用于沉淀可复盘的 benchmark 任务，评估 Goal Teams 相比单会话或临时协作方式是否真的带来更好的结果。V2.38 runner 既检查 task package，也可解析 `codex exec --json` 的 observer usage；真实 provider 执行仍需显式选择，默认检查不会消费模型调用。
 
 ## 目标
 
 - 用同一份任务输入比较 `baseline`、`goal-teams` 及任务指定的版本化执行模式。
-- 记录产物质量、范围遵守、独立校验、文档完整度、耗时、tokens 和费用。
+- 记录产物质量、范围遵守、独立校验、文档完整度、耗时、tokens、缓存覆盖和费用。
 - 让评分者可以仅凭任务文件、运行记录和最终 diff 复盘结论。
 - 为后续版本判断 Goal Teams 规则是否改进提供稳定样本。
 
@@ -81,4 +81,4 @@ benchmarks/runs/
 - [`tasks/GT-BENCH-003/task.md`](tasks/GT-BENCH-003/task.md)：界面 E2E、复刻像素级对比和证据不足打回任务。
 - [`tasks/GT-BENCH-004/task.md`](tasks/GT-BENCH-004/task.md)：V2.1 Lead LOOP Protocol 任务，比较中途缺证、自动续跑、停止边界和状态恢复。
 
-可用 `scripts/benchmark/benchmark-runner.py --check-only` 检查 benchmark task package 结构；兼容入口 `scripts/benchmark-runner.py --check-only` 仍可用。该脚本只检查文件和关键字段，不执行真实任务。
+可用 `scripts/benchmark/benchmark-runner.py --check-only` 检查 task package；兼容入口仍可用。`scripts/benchmark/cache-probe.py --route benchmark` 只生成 baseline-current、dynamic-suffix-change、stable-prefix-candidate 三组“1 次 first-seen reference + 5 次 repeat”计划，不执行 provider 请求，live A/B 为 unavailable。blind-agent runner 从 staged package 绑定 route-static identity、有效配置边界和 observer telemetry；最终 prompt 不可见时 cache analytics 不得声称 runtime digest 或 request hit rate。

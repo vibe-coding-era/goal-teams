@@ -24,7 +24,8 @@
 - 弹窗、表单、菜单、头像、表格、分页等用户可见组件缺少交互态证据时必须打回。
 - 命令不可用时记录原因、风险、替代人工检查和下一步验证建议。
 - Evidence 不足时输出 `failure_report` 与单一 `check_state`：已执行失败/证据无效为 `failed`，无法执行/完成为 `blocked`；不得建议 `task_state=accepted`、`audit_state=passed` 或 `run_outcome=achieved`。
-- 仅当 `policy_profile=goal-teams-self-release-v2.37`，验证 52 条断言、四文件 marker-last/CAS/reconcile、iteration 9 只隔离 disposable candidate、iteration 11 fail-closed、4×0.25 评分、GTLOG/prompt lifecycle 和公开归档；普通任务不适用。
+- 仅当 `policy_profile=goal-teams-self-release-v2.39`，验证 52 条断言、四文件 marker-last/CAS/reconcile、iteration 9 只隔离 disposable candidate、iteration 11 fail-closed、4×0.25 评分、GTLOG/prompt lifecycle、prompt identity、Cache Evidence 四状态轴、OKF gate 和公开归档；V2.38 Profile 只用于历史 replay，普通任务不适用。
+- cache telemetry 任务按 `references/prompt-cache-protocol.md` 验证 token-weighted 指标与覆盖率；无 request 粒度事件时 `request_hit_rate` 必须 unavailable，且 observer telemetry 不得被写成当轮 Budget Gate Evidence。
 - Self-release 验收还要验证 release readiness、remote branch/main、local install、post-release task 先闭合；Completion Audit 保持 graph-external 且无 self-reference。
 - V2.36 验收使用 protected Git snapshot 自动覆盖完整变更集，并验证独立 Agent 的宿主 attestation；人工路径清单或自报 run ID 不能通过。
 

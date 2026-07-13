@@ -1,0 +1,197 @@
+{
+  "schema_version": "goal-teams-okf-conformance-policy-v1",
+  "unknown_action": "fail",
+  "overlap_action": "fail",
+  "max_document_bytes": 65536,
+  "required_fields": ["type"],
+  "enhanced_required_fields": ["title", "description", "timestamp", "okf_version"],
+  "okf_version": "0.1",
+  "claim_fields": {
+    "audit_state": ["passed", "accepted", "achieved"],
+    "run_outcome": ["passed", "accepted", "achieved"],
+    "validation_state": ["accepted", "passed", "achieved", "passed_independent_semantic_review"],
+    "status": ["passed", "accepted", "achieved", "complete", "completed"],
+    "review_state": ["passed", "accepted", "achieved"],
+    "semantic_review_state": ["passed", "accepted", "achieved"],
+    "check_state": ["passed", "accepted"]
+  },
+  "package_manifest": {
+    "path": "references/okf-conformance-manifest.json",
+    "schema_version": "goal-teams-okf-conformance-manifest-v2.39"
+  },
+  "forbidden_package_roots": ["docs", "develops", "GoalTeamsWork-*"],
+  "legacy_field_exemptions": [
+    {
+      "path": "examples/canonical-v23/versions/V2.3/reviews/semantic-review.md",
+      "sha256": "0d95f0df54fc030abd4f965977c36b772a5aa0089dbb52844c3b966ced7b600d",
+      "missing_fields": ["description", "okf_version", "timestamp"]
+    },
+    {
+      "path": "versions/V2.3/reviews/semantic-review.md",
+      "sha256": "0d95f0df54fc030abd4f965977c36b772a5aa0089dbb52844c3b966ced7b600d",
+      "missing_fields": ["description", "okf_version", "timestamp"]
+    }
+  ],
+  "rules": [
+    {
+      "rule_id": "A_PACKET",
+      "class": "A",
+      "contract_id": "okf-concept-document-v0.1",
+      "priority": 10,
+      "globs": ["prompts/packets/*.md"]
+    },
+    {
+      "rule_id": "A_REFERENCE",
+      "class": "A",
+      "contract_id": "okf-concept-document-v0.1",
+      "priority": 20,
+      "globs": ["references/*.md", "references/**/*.md"],
+      "exclude_globs": ["references/default-AGENTS.md", "references/**/README*.md"]
+    },
+    {
+      "rule_id": "A_CANONICAL_BUNDLE",
+      "class": "A",
+      "contract_id": "okf-concept-document-v0.1",
+      "priority": 30,
+      "globs": ["examples/canonical-v23/*.md", "examples/canonical-v23/**/*.md"],
+      "exclude_globs": [
+        "examples/canonical-v23/index.md",
+        "examples/canonical-v23/INDEX.md",
+        "examples/canonical-v23/README*.md",
+        "examples/canonical-v23/**/index.md",
+        "examples/canonical-v23/**/INDEX.md",
+        "examples/canonical-v23/**/README*.md"
+      ]
+    },
+    {
+      "rule_id": "A_MINI_BUNDLE",
+      "class": "A",
+      "contract_id": "okf-concept-document-v0.1",
+      "priority": 40,
+      "globs": [
+        "examples/mini-goal-run/.codex/goal-teams/*.md",
+        "examples/mini-goal-run/.codex/goal-teams/**/*.md"
+      ],
+      "exclude_globs": [
+        "examples/mini-goal-run/.codex/goal-teams/index.md",
+        "examples/mini-goal-run/.codex/goal-teams/INDEX.md",
+        "examples/mini-goal-run/.codex/goal-teams/README*.md",
+        "examples/mini-goal-run/.codex/goal-teams/**/index.md",
+        "examples/mini-goal-run/.codex/goal-teams/**/INDEX.md",
+        "examples/mini-goal-run/.codex/goal-teams/**/README*.md"
+      ]
+    },
+    {
+      "rule_id": "A_BUNDLE_DOCUMENT",
+      "class": "A",
+      "contract_id": "okf-concept-document-v0.1",
+      "priority": 50,
+      "globs": [
+        "memory.md",
+        "plan.md",
+        "progress.md",
+        "decisions.md",
+        "tasklist.md",
+        "TaskList.md",
+        "V*.md",
+        "spec/*.md",
+        "harness/*.md",
+        "reviews/*.md",
+        "versions/**/*.md",
+        "bundle/**/*.md"
+      ],
+      "exclude_globs": [
+        "**/index.md",
+        "**/INDEX.md",
+        "**/README*.md"
+      ]
+    },
+    {
+      "rule_id": "B_RESERVED",
+      "class": "B",
+      "contract_id": "reserved-special-format",
+      "priority": 60,
+      "globs": [
+        "SKILL.md",
+        "**/SKILL.md",
+        "README*.md",
+        "**/README*.md",
+        "index.md",
+        "INDEX.md",
+        "**/index.md",
+        "**/INDEX.md"
+      ]
+    },
+    {
+      "rule_id": "B_MAINTENANCE",
+      "class": "B",
+      "contract_id": "repository-maintenance-format",
+      "priority": 70,
+      "globs": [
+        "AGENTS.md",
+        "RULES.md",
+        "CHANGELOG.md",
+        "goal-teams.md",
+        "references/default-AGENTS.md"
+      ]
+    },
+    {
+      "rule_id": "B_PROMPT",
+      "class": "B",
+      "contract_id": "goal-teams-prompt-format",
+      "priority": 80,
+      "globs": [
+        "prompts/lead/*.md",
+        "prompts/members/*/prompt.md",
+        "prompts/members/shared.md"
+      ]
+    },
+    {
+      "rule_id": "B_MEMBER_PACKAGE",
+      "class": "B",
+      "contract_id": "goal-teams-member-package-format",
+      "priority": 90,
+      "globs": [
+        "prompts/members/*/template.md",
+        "prompts/members/*/workflow.md",
+        "prompts/members/*/scripts.md"
+      ]
+    },
+    {
+      "rule_id": "B_BENCHMARK",
+      "class": "B",
+      "contract_id": "goal-teams-benchmark-format",
+      "priority": 100,
+      "globs": ["benchmarks/**/*.md"],
+      "exclude_globs": ["benchmarks/**/README*.md"]
+    },
+    {
+      "rule_id": "B_TEST_FIXTURE",
+      "class": "B",
+      "contract_id": "test-fixture-format",
+      "priority": 110,
+      "globs": ["tests/**/*.md"],
+      "exclude_globs": [
+        "tests/**/README*.md",
+        "tests/**/index.md",
+        "tests/**/INDEX.md"
+      ]
+    },
+    {
+      "rule_id": "C_NATIVE",
+      "class": "C",
+      "contract_id": "native-schema",
+      "priority": 120,
+      "globs": [
+        "**/*.json",
+        "**/*.jsonl",
+        "**/*.toml",
+        "**/*.yaml",
+        "**/*.yml",
+        "**/*.py",
+        "**/*.sh",
+        "**/*.html"
+      ]
+    }
+  ]
+}

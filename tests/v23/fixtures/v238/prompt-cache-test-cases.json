@@ -1,0 +1,111 @@
+{
+  "schema_version": "goal-teams-test-case-fixtures-v2.38",
+  "valid_cases": [
+    {
+      "schema_version": "goal-teams-test-case-v2.35",
+      "case_id": "TC-V238-CACHE-IDENTITY-001",
+      "test_kind": "tdd",
+      "acceptance_refs": ["ASSERT-V238-CACHE-001", "ASSERT-V238-CACHE-002", "ASSERT-V238-CACHE-003"],
+      "test_file_refs": ["tests/v23/test_v238_prompt_cache.py"],
+      "input": {
+        "values": {"route_id": "probe", "nonruntime_change": "README.md", "runtime_change": "RULES.md"},
+        "preconditions": ["ordered prompt manifest fixture is materialized in a temporary root"]
+      },
+      "processing": {
+        "kind": "call",
+        "target": "scripts.v23.prompt_cache.build_prompt_identity",
+        "invocation_ref": "input.values"
+      },
+      "expected_output": {
+        "value": {"readme_digest_stable": true, "runtime_digest_changed": true, "reorder_digest_changed": true},
+        "observable_refs": ["observed_output.identity.readme_digest_stable", "observed_output.identity.runtime_digest_changed", "observed_output.identity.reorder_digest_changed"]
+      },
+      "assertions": [
+        {"assertion_id": "A-TC-V238-CACHE-IDENTITY-001-01", "actual_ref": "observed_output.identity.readme_digest_stable", "comparator": "equals", "expected_ref": "expected_output.value.readme_digest_stable"},
+        {"assertion_id": "A-TC-V238-CACHE-IDENTITY-001-02", "actual_ref": "observed_output.identity.runtime_digest_changed", "comparator": "equals", "expected_ref": "expected_output.value.runtime_digest_changed"},
+        {"assertion_id": "A-TC-V238-CACHE-IDENTITY-001-03", "actual_ref": "observed_output.identity.reorder_digest_changed", "comparator": "equals", "expected_ref": "expected_output.value.reorder_digest_changed"}
+      ],
+      "tdd": {"phase": "pre_implementation", "expected_initial_state": "red", "test_sha256_ref": "artifact.test_file.sha256", "preimplementation_tree_ref": "artifact.git.preimplementation_tree", "domain_log_ref": "execution.red.domain_log", "ledger_event_ref": "artifact.ledger.test_design_event"}
+    },
+    {
+      "schema_version": "goal-teams-test-case-v2.35",
+      "case_id": "TC-V238-CACHE-TELEMETRY-001",
+      "test_kind": "tdd",
+      "acceptance_refs": ["ASSERT-V238-CACHE-004", "ASSERT-V238-CACHE-005"],
+      "test_file_refs": ["tests/v23/test_v238_prompt_cache.py"],
+      "input": {
+        "values": {"completed_turns": 3, "telemetry_turns": 2, "covered_input_tokens": 1100, "cached_input_tokens": 900},
+        "preconditions": ["one completed turn intentionally omits cached_input_tokens"]
+      },
+      "processing": {
+        "kind": "call",
+        "target": "scripts.v23.prompt_cache.aggregate_usage_events",
+        "invocation_ref": "input.values"
+      },
+      "expected_output": {
+        "value": {"cached_input_share": 0.8181818181818182, "telemetry_coverage": 0.6666666666666666, "request_hit_rate_reason": "turn_aggregate_cannot_estimate_request_hit_rate"},
+        "observable_refs": ["observed_output.telemetry.cached_input_share", "observed_output.telemetry.telemetry_coverage", "observed_output.telemetry.request_hit_rate_reason"]
+      },
+      "assertions": [
+        {"assertion_id": "A-TC-V238-CACHE-TELEMETRY-001-01", "actual_ref": "observed_output.telemetry.cached_input_share", "comparator": "equals", "expected_ref": "expected_output.value.cached_input_share"},
+        {"assertion_id": "A-TC-V238-CACHE-TELEMETRY-001-02", "actual_ref": "observed_output.telemetry.telemetry_coverage", "comparator": "equals", "expected_ref": "expected_output.value.telemetry_coverage"},
+        {"assertion_id": "A-TC-V238-CACHE-TELEMETRY-001-03", "actual_ref": "observed_output.telemetry.request_hit_rate_reason", "comparator": "equals", "expected_ref": "expected_output.value.request_hit_rate_reason"}
+      ],
+      "tdd": {"phase": "pre_implementation", "expected_initial_state": "red", "test_sha256_ref": "artifact.test_file.sha256", "preimplementation_tree_ref": "artifact.git.preimplementation_tree", "domain_log_ref": "execution.red.domain_log", "ledger_event_ref": "artifact.ledger.test_design_event"}
+    },
+    {
+      "schema_version": "goal-teams-test-case-v2.35",
+      "case_id": "TC-V238-CACHE-BUDGET-001",
+      "test_kind": "tdd",
+      "acceptance_refs": ["ASSERT-V238-CACHE-006"],
+      "test_file_refs": ["tests/v23/test_v238_prompt_cache.py"],
+      "input": {"values": {"startup_limit_bytes": 12032, "repo_wrapper": ".agents/skills/goal-teams/SKILL.md"}, "preconditions": ["repository wrapper exists"]},
+      "processing": {"kind": "call", "target": "scripts.checks.check-context-budget.evaluate", "invocation_ref": "input.values"},
+      "expected_output": {"value": {"wrapper_counted": true, "all_routes_within_budget": true}, "observable_refs": ["observed_output.budget.wrapper_counted", "observed_output.budget.all_routes_within_budget"]},
+      "assertions": [
+        {"assertion_id": "A-TC-V238-CACHE-BUDGET-001-01", "actual_ref": "observed_output.budget.wrapper_counted", "comparator": "equals", "expected_ref": "expected_output.value.wrapper_counted"},
+        {"assertion_id": "A-TC-V238-CACHE-BUDGET-001-02", "actual_ref": "observed_output.budget.all_routes_within_budget", "comparator": "equals", "expected_ref": "expected_output.value.all_routes_within_budget"}
+      ],
+      "tdd": {"phase": "pre_implementation", "expected_initial_state": "red", "test_sha256_ref": "artifact.test_file.sha256", "preimplementation_tree_ref": "artifact.git.preimplementation_tree", "domain_log_ref": "execution.red.domain_log", "ledger_event_ref": "artifact.ledger.test_design_event"}
+    },
+    {
+      "schema_version": "goal-teams-test-case-v2.35",
+      "case_id": "TC-V238-CACHE-ROUTER-001",
+      "test_kind": "tdd",
+      "acceptance_refs": ["ASSERT-V238-CACHE-007"],
+      "test_file_refs": ["tests/v23/test_v238_prompt_cache.py"],
+      "input": {"values": {"backend": true, "tests": true, "risk": "medium"}, "preconditions": ["backend route is declared in the ordered prompt manifest"]},
+      "processing": {"kind": "call", "target": "scripts.v23.goalteams_v23.route", "invocation_ref": "input.values"},
+      "expected_output": {"value": {"matches_manifest_order": true, "has_duplicates": false}, "observable_refs": ["observed_output.route.matches_manifest_order", "observed_output.route.has_duplicates"]},
+      "assertions": [
+        {"assertion_id": "A-TC-V238-CACHE-ROUTER-001-01", "actual_ref": "observed_output.route.matches_manifest_order", "comparator": "equals", "expected_ref": "expected_output.value.matches_manifest_order"},
+        {"assertion_id": "A-TC-V238-CACHE-ROUTER-001-02", "actual_ref": "observed_output.route.has_duplicates", "comparator": "equals", "expected_ref": "expected_output.value.has_duplicates"}
+      ],
+      "tdd": {"phase": "pre_implementation", "expected_initial_state": "red", "test_sha256_ref": "artifact.test_file.sha256", "preimplementation_tree_ref": "artifact.git.preimplementation_tree", "domain_log_ref": "execution.red.domain_log", "ledger_event_ref": "artifact.ledger.test_design_event"}
+    },
+    {
+      "schema_version": "goal-teams-test-case-v2.35",
+      "case_id": "TC-V238-CACHE-SUBAGENT-001",
+      "test_kind": "tdd",
+      "acceptance_refs": ["ASSERT-V238-CACHE-008"],
+      "test_file_refs": ["tests/v23/test_v238_prompt_cache.py"],
+      "input": {"values": {"minimum_common_prefix_bytes": 512}, "preconditions": ["all shipped goal subagent TOML files are present"]},
+      "processing": {"kind": "call", "target": "tests.v23.test_v238_prompt_cache.V238PromptCacheContractTests.test_subagent_developer_instructions_have_a_shared_exact_prefix", "invocation_ref": "input.values"},
+      "expected_output": {"value": {"minimum_common_prefix_bytes": 512}, "observable_refs": ["observed_output.subagents.common_prefix_bytes"]},
+      "assertions": [{"assertion_id": "A-TC-V238-CACHE-SUBAGENT-001-01", "actual_ref": "observed_output.subagents.common_prefix_bytes", "comparator": "greater_than_or_equal", "expected_ref": "expected_output.value.minimum_common_prefix_bytes"}],
+      "tdd": {"phase": "pre_implementation", "expected_initial_state": "red", "test_sha256_ref": "artifact.test_file.sha256", "preimplementation_tree_ref": "artifact.git.preimplementation_tree", "domain_log_ref": "execution.red.domain_log", "ledger_event_ref": "artifact.ledger.test_design_event"}
+    },
+    {
+      "schema_version": "goal-teams-test-case-v2.35",
+      "case_id": "TC-V238-CACHE-PACKET-001",
+      "test_kind": "tdd",
+      "acceptance_refs": ["ASSERT-V238-CACHE-009"],
+      "test_file_refs": ["tests/v23/test_v238_prompt_cache.py"],
+      "input": {"values": {"minimum_dynamic_tail_ratio": 0.8}, "preconditions": ["Member Goal Packet template is loaded as UTF-8"]},
+      "processing": {"kind": "call", "target": "tests.v23.test_v238_prompt_cache.V238PromptCacheContractTests.test_member_goal_packet_puts_dynamic_instance_at_the_tail", "invocation_ref": "input.values"},
+      "expected_output": {"value": {"minimum_dynamic_tail_ratio": 0.8}, "observable_refs": ["observed_output.packet.dynamic_tail_ratio"]},
+      "assertions": [{"assertion_id": "A-TC-V238-CACHE-PACKET-001-01", "actual_ref": "observed_output.packet.dynamic_tail_ratio", "comparator": "greater_than_or_equal", "expected_ref": "expected_output.value.minimum_dynamic_tail_ratio"}],
+      "tdd": {"phase": "pre_implementation", "expected_initial_state": "red", "test_sha256_ref": "artifact.test_file.sha256", "preimplementation_tree_ref": "artifact.git.preimplementation_tree", "domain_log_ref": "execution.red.domain_log", "ledger_event_ref": "artifact.ledger.test_design_event"}
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "agent_run_id": "run-v238-backend-001",
+  "member_id": "member-backend",
+  "display_name": "后端-Prompt Cache 编译器",
+  "goal": "实现一个受限且可复算的编译切片",
+  "output_dir": "GoalTeamsWork-V2.38",
+  "artifact_version": "V2.38",
+  "target_task_ids": ["GT-V238-CACHE-004"],
+  "context_refs": [
+    {
+      "path": "references/prompt-cache-manifest.json",
+      "section": "artifact_compilers"
+    }
+  ],
+  "locked_scope": ["scripts/v23/prompt_compilers.py"],
+  "forbidden_scope": ["scripts/v23/goalteams_v23.py"],
+  "required_tests": ["python -m unittest tests.v23.test_v238_prompt_compilers"],
+  "harness_contract_ref": "HARNESS-V238-PROMPT-COMPILERS",
+  "validator_run_id": "run-v238-qa-002"
+}

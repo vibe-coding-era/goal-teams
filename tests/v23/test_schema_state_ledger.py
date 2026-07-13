@@ -726,6 +726,7 @@ class LedgerReducerTests(unittest.TestCase):
         first = gt.render_tasklist(gt.reduce_events(events))
         second = gt.render_tasklist(gt.reduce_events(json.loads(json.dumps(events))))
         self.assertEqual(first.encode("utf-8"), second.encode("utf-8"))
+        self.assertIn("timestamp:", first)
 
     def test_projection_preserves_handoff_ssot_identity_check_trace_and_harness_fields(self) -> None:
         task = {

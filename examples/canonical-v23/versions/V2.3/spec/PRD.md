@@ -7,7 +7,8 @@ timestamp: 2026-07-10T00:00:00Z
 okf_version: "0.1"
 goal_teams_version: V2.3
 artifact_version: V2.3
-status: Accepted
+status: historical_replay_fixture
+historical_acceptance_state: unbound_fixture_only
 owner_subagent: 实现-Canonical
 validator_subagent: 评审-Canonical
 ---

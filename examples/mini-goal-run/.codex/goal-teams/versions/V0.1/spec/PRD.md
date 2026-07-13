@@ -1,3 +1,13 @@
+---
+type: PRD
+title: 登录页空状态提示 V0.1 PRD
+description: 定义无会话登录页空状态的目标、用户故事与功能范围。
+tags: [goal-teams, example, prd, login-empty-state]
+timestamp: 2026-07-13T00:00:00+08:00
+okf_version: "0.1"
+project_version: V0.1
+---
+
 # PRD
 
 ## 背景

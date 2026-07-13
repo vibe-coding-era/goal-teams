@@ -9,21 +9,23 @@ okf_version: "0.1"
 
 # Member Goal Packet
 
+本文件前半部分是可缓存的稳定字段合同；字段顺序、状态语义、Harness/Evidence 边界与输出契约先声明。每次派发的身份、目标、路径、范围和动态引用只写在文末 `Dynamic Instance Tail`，不得插入稳定合同中间。
+
 ```text
 Member Goal Packet（成员目标包）:
 - agent_type: goal_* 配置名或用户指定 skill
 - agent_run_id: 每次派发唯一且不可用 display_name 替代
 - member_id: 本项目内稳定成员 ID
-- display_name: <中文角色>-<具体任务名>；若用户指定 skill，则使用 <skill 名称>-<具体任务名>
+- display_name: {中文角色}-{具体任务名}；若用户指定 skill，则使用 {skill 名称}-{具体任务名}
 - transport_handle: 仅记录宿主返回的路由 handle；不得替代 member_id、display_name 或 agent_run_id
 - role: 默认使用中文角色；若用户指定 skill，则使用 skill 名称
 - skill_or_subagent:
 - version:
-- output_dir: GoalTeamsWork-<project_version> 或用户指定目录
+- output_dir: GoalTeamsWork-{project_version} 或用户指定目录
 - artifact_version:
-- version_dir: <output_dir>/versions/<artifact_version>
-- tasklist_path: <version_dir>/TaskList.md
-- ledger_path: <version_dir>/ledger/events.jsonl
+- version_dir: {output_dir}/versions/{artifact_version}
+- tasklist_path: {version_dir}/TaskList.md
+- ledger_path: {version_dir}/ledger/events.jsonl
 - okf_required: true
 - workflow_mode: serial | parallel
 - depends_on:
@@ -33,7 +35,7 @@ Member Goal Packet（成员目标包）:
   - work_type: feature | bugfix
   - profile / required_review_class
   - gates / specialists / reason_codes
-- specialist_capability: <仅专家 packet>
+- specialist_capability: {仅专家 packet}
   - coordination_depth: 1
   - can_spawn_subagents: false
   - can_dispatch: false
@@ -84,25 +86,25 @@ Member Goal Packet（成员目标包）:
 - success_criteria:
 - user_stories:
 - functional_acceptance_criteria:
-- context_refs: <只列本成员所需 path/section/digest>
-- fetch_recipe: <缺上下文时由 Lead 按需提供的精确读取步骤；不得扫描整个输出目录>
-- required_doc_load: <兼容的人类可读列表；机器路由以 context_refs/fetch_recipe 为准>
+- context_refs: {只列本成员所需 path/section/digest}
+- fetch_recipe: {缺上下文时由 Lead 按需提供的精确读取步骤；不得扫描整个输出目录}
+- required_doc_load: {兼容的人类可读列表；机器路由以 context_refs/fetch_recipe 为准}
 - allowed_scope:
 - forbidden_scope:
 - locked_scope:
 - required_tests:
-- test_case_contract_refs: <unit|tdd|integration|e2e|cli|api|fixture；V2.35 测试任务必填>
+- test_case_contract_refs: {unit|tdd|integration|e2e|cli|api|fixture；V2.35 测试任务必填}
 - harness_contract:
-  - task_type: <review policy 的权威任务类型>
+  - task_type: {review policy 的权威任务类型}
   - required_review_class: structural | comparison | safety | semantic
-  - risk: <可选；只能提升最低等级>
-  - checks: <完整 V2.3 Check 对象>
-  - runs: <完整 V2.3 Run 对象>
+  - risk: {可选；只能提升最低等级}
+  - checks: {完整 V2.3 Check 对象}
+  - runs: {完整 V2.3 Run 对象}
   - commands
   - artifact_checks
   - e2e_checks
   - pixel_diff_checks
-  - evidence_paths: <versions/<artifact_version>/evidence/evidence.jsonl 等>
+  - evidence_paths: {versions/{artifact_version}/evidence/evidence.jsonl 等}
   - failure_report
   - not_applicable_reason
 - specialist_contract:
@@ -112,7 +114,7 @@ Member Goal Packet（成员目标包）:
   - regression_evidence_ref / holdout_evidence_ref
   - specialist_dispatch_request_ref
 - dual_review_contract:
-  - review_class: <不得低于 harness_contract 推导结果>
+  - review_class: {不得低于 harness_contract 推导结果}
   - script_review
   - llm_review
   - final_decision
@@ -166,4 +168,30 @@ Member Goal Packet（成员目标包）:
   - team-state updates
   - completion status
   - 阻塞和风险
+```
+
+稳定合同到此结束。`scripts/v23/prompt_compilers.py` 是本模板的 canonical serializer；字段顺序只从 `references/prompt-cache-manifest.json` 的 `artifact_compilers.member_goal_packet` 读取。编译必须对 marker 之前的真实 UTF-8 bytes、canonical dynamic assignment bytes 和最终 combined packet bytes 分别产出 `stable_prefix_sha256`、`dynamic_assignment_sha256`、`combined_packet_sha256`。combined digest 只写 sidecar metadata，避免自引用。旧 packet 可映射到下方动态块，但旧格式缺失的三项 digest 必须标记 `legacy/unavailable`；迁移后的新产物只能对实际新 bytes 重算 digest，不得伪造旧 digest。
+
+<!-- goal-teams-dynamic-tail -->
+
+## Dynamic Instance Tail
+
+以下内容每次派发变化，必须最后追加：
+
+```text
+Member Assignment:
+- agent_run_id: <unique run id>
+- member_id: <stable project member id>
+- display_name: <localized role-task name>
+- goal: <one bounded objective>
+- output_dir: <resolved output root>
+- artifact_version: <version>
+- target_task_ids: <ledger task ids>
+- context_refs: <ordered path/section/digest refs>
+- locked_scope: <exact writable or readable scope>
+- forbidden_scope: <explicit exclusions>
+- required_tests: <commands or contracts>
+- harness_contract_ref: <bound Harness>
+- validator_run_id: <independent run id>
+- dynamic_assignment_sha256: <canonical dynamic block digest>
 ```

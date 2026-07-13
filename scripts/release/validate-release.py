@@ -5,11 +5,16 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
+import os
 import re
+import stat
 import subprocess
+import sys
 import tarfile
-from pathlib import Path
+import tempfile
+from pathlib import Path, PurePosixPath
 
 SOURCE_ROOT = Path(__file__).resolve().parents[2]
 
@@ -31,6 +36,7 @@ def workspace_root() -> Path:
 WORKSPACE_ROOT = workspace_root()
 RELEASE_ROOT = WORKSPACE_ROOT / "release" / "versions"
 META = {"_release.json", "_files.sha256", "_artifacts/SHA256SUMS"}
+OKF_GENERATED_PATH = "references/okf-conformance-manifest.json"
 
 
 def digest(path: Path) -> str:
@@ -57,21 +63,119 @@ def excluded(path: str) -> bool:
     return path.startswith(("docs/", "develops/", "GoalTeamsWork-", "GoalTeams-PRD-", "outputs/", ".goalteams-", ".codex/"))
 
 
-def trusted_release_files(commit: str) -> tuple[dict[str, tuple[str, bytes]], str]:
+def safe_manifest_path(value: str) -> str:
+    normalized = value.rstrip("/")
+    path = PurePosixPath(normalized)
+    if (
+        not normalized
+        or "\\" in value
+        or path.is_absolute()
+        or any(part in {"", ".", ".."} for part in path.parts)
+    ):
+        raise RuntimeError(f"unsafe source manifest path: {value}")
+    return normalized
+
+
+def trusted_release_files(
+    commit: str,
+) -> tuple[dict[str, tuple[str, bytes]], set[str], str]:
     entries = source_entries(commit)
     manifest = entries["scripts/install/package-manifest.txt"][1]
     exact: set[str] = set()
     prefixes: list[str] = []
+    generated: set[str] = set()
     for raw in manifest.decode().splitlines():
         line = raw.strip()
         if not line or line.startswith("#"):
             continue
         kind, value = line.split(maxsplit=1)
-        if kind == "file": exact.add(value)
-        elif kind == "prefix": prefixes.append(value)
-        else: raise RuntimeError(f"invalid source manifest rule: {line}")
+        if kind == "file" and not value.endswith("/"):
+            exact.add(safe_manifest_path(value))
+        elif kind == "prefix" and value.endswith("/"):
+            safe_manifest_path(value)
+            prefixes.append(value)
+        elif kind == "generated" and not value.endswith("/"):
+            generated.add(safe_manifest_path(value))
+        else:
+            raise RuntimeError(f"invalid source manifest rule: {line}")
+    if generated and generated != {OKF_GENERATED_PATH}:
+        raise RuntimeError(f"unsupported builder-generated assets: {sorted(generated)}")
+    tracked_generated = generated & set(entries)
+    if tracked_generated:
+        raise RuntimeError(
+            f"builder-generated assets are tracked in source: {sorted(tracked_generated)}"
+        )
     selected = {p: entries[p] for p in entries if (p in exact or any(p.startswith(x) for x in prefixes)) and not excluded(p)}
-    return selected, hashlib.sha256(manifest).hexdigest()
+    return selected, generated, hashlib.sha256(manifest).hexdigest()
+
+
+def git_text(*args: str) -> str:
+    return subprocess.run(
+        ["git", *args], cwd=SOURCE_ROOT, check=True, capture_output=True, text=True
+    ).stdout.strip()
+
+
+def write_expected_file(root: Path, relative: str, mode: str, data: bytes) -> None:
+    target = root / relative
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(data)
+    target.chmod(0o755 if mode == "100755" else 0o644)
+
+
+def independently_materialize_release(
+    commit: str,
+) -> tuple[dict[str, tuple[str, bytes]], set[str], str, dict[str, object] | None]:
+    """Rebuild generated assets from the frozen source for byte comparison."""
+
+    trusted, generated, manifest_sha = trusted_release_files(commit)
+    source_version = trusted.get("VERSION", ("", b""))[1].decode("utf-8").strip()
+    if source_version == "V2.39" and generated != {OKF_GENERATED_PATH}:
+        raise RuntimeError("V2.39 source does not require the canonical generated manifest")
+    if not generated:
+        return trusted, generated, manifest_sha, None
+    with tempfile.TemporaryDirectory(prefix="goal-teams-release-validate-") as directory:
+        stage = Path(directory)
+        for relative, (mode, data) in trusted.items():
+            write_expected_file(stage, relative, mode, data)
+        runtime_path = stage / "scripts" / "v23" / "okf_conformance.py"
+        spec = importlib.util.spec_from_file_location(
+            f"_goalteams_validate_okf_{commit[:16]}", runtime_path
+        )
+        if spec is None or spec.loader is None:
+            raise RuntimeError("cannot load frozen OKF runtime for independent validation")
+        module = importlib.util.module_from_spec(spec)
+        previous = sys.dont_write_bytecode
+        sys.dont_write_bytecode = True
+        try:
+            spec.loader.exec_module(module)
+        finally:
+            sys.dont_write_bytecode = previous
+        policy = module.load_policy(stage)
+        git_tree_id = git_text("rev-parse", f"{commit}^{{tree}}")
+        manifest = module.build_package_manifest(
+            stage,
+            policy,
+            source_binding={
+                "commit_sha256": commit,
+                "git_tree_id": git_tree_id,
+                "package_manifest_sha256": manifest_sha,
+            },
+        )
+        data = (
+            json.dumps(manifest, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+            + "\n"
+        ).encode("utf-8")
+        trusted = dict(trusted)
+        trusted[OKF_GENERATED_PATH] = ("100644", data)
+        summary: dict[str, object] = {
+            "manifest_path": OKF_GENERATED_PATH,
+            "manifest_sha256": hashlib.sha256(data).hexdigest(),
+            "payload_tree_sha256": manifest["package"]["payload_tree_sha256"],
+            "policy_sha256": manifest["policy"]["sha256"],
+            "checker_bindings": manifest["checkers"],
+            "package_completeness_state": "complete",
+        }
+        return trusted, generated, manifest_sha, summary
 
 
 def parse_args() -> argparse.Namespace:
@@ -127,23 +231,89 @@ def main() -> None:
             forbidden_source = [path for path in source_entries(commit) if excluded(path)]
             if forbidden_source:
                 errors.append(f"{version}: frozen Git source contains nonrelease paths {forbidden_source}")
-            trusted, manifest_sha = trusted_release_files(commit)
+            try:
+                trusted, generated, manifest_sha, expected_okf = (
+                    independently_materialize_release(commit)
+                )
+            except (OSError, RuntimeError, UnicodeDecodeError, KeyError, ValueError) as exc:
+                errors.append(
+                    f"{version}: frozen source package reconstruction failed: {type(exc).__name__}:{exc}"
+                )
+                trusted, generated, manifest_sha, expected_okf = {}, set(), "unavailable", None
             if set(trusted) != set(files):
-                errors.append(f"{version}: release files differ from source allowlist")
+                errors.append(f"{version}: release files differ from frozen source plus generated allowlist")
             source_mismatches = [p for p, (_, data) in trusted.items() if p not in files or hashlib.sha256(data).hexdigest() != digest(files[p])]
             if source_mismatches:
-                errors.append(f"{version}: files differ from frozen Git source {source_mismatches}")
+                errors.append(f"{version}: files differ from independently reconstructed package {source_mismatches}")
+            mode_mismatches = [
+                path
+                for path, (mode, _) in trusted.items()
+                if path in files
+                and (
+                    (mode == "100755" and stat.S_IMODE(files[path].stat().st_mode) != 0o755)
+                    or (mode == "100644" and stat.S_IMODE(files[path].stat().st_mode) != 0o644)
+                )
+            ]
+            if mode_mismatches:
+                errors.append(f"{version}: release file mode mismatch {mode_mismatches}")
             rows = [{"path": p, "mode": mode, "size": len(data), "sha256": hashlib.sha256(data).hexdigest()} for p, (mode, data) in sorted(trusted.items())]
             tree_input = b"".join(f"{r['path']}\0{r['mode']}\0{r['size']}\0{r['sha256']}\n".encode() for r in rows)
+            generated_rows = [row for row in rows if row["path"] in generated]
             expected_record = {
                 "source_package_manifest_sha256": manifest_sha,
                 "file_count": len(rows),
                 "total_bytes": sum(int(r["size"]) for r in rows),
                 "tree_sha256": hashlib.sha256(tree_input).hexdigest(),
             }
+            if generated:
+                expected_record.update(
+                    {
+                        "source_git_tree_id": git_text("rev-parse", f"{commit}^{{tree}}"),
+                        "builder_generated_files": generated_rows,
+                        "okf_conformance": expected_okf,
+                    }
+                )
             for key, expected in expected_record.items():
                 if record.get(key) != expected:
                     errors.append(f"{version}: metadata {key} is not bound to frozen source")
+            if generated:
+                # Release metadata and archives intentionally live beside the
+                # payload.  Rebuild the frozen payload in an isolated root for
+                # the strict complete-tree replay; actual release bytes/modes
+                # are already compared with this trusted map above and again
+                # with the tar manifest below.
+                with tempfile.TemporaryDirectory(
+                    prefix="goal-teams-release-payload-replay-"
+                ) as directory:
+                    payload_root = Path(directory)
+                    for relative, (mode, data) in trusted.items():
+                        write_expected_file(payload_root, relative, mode, data)
+                    checker = payload_root / "scripts" / "checks" / "check-okf.py"
+                    replay = subprocess.run(
+                        [
+                            sys.executable,
+                            str(checker),
+                            "--root",
+                            str(payload_root),
+                            "--package-tree",
+                            str(payload_root),
+                        ],
+                        cwd=payload_root,
+                        text=True,
+                        capture_output=True,
+                        check=False,
+                        env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
+                    )
+                    try:
+                        replay_payload = json.loads(replay.stdout)
+                    except json.JSONDecodeError:
+                        replay_payload = {}
+                    if (
+                        replay.returncode != 0
+                        or replay_payload.get("passed") is not True
+                        or replay_payload.get("package_completeness_state") != "complete"
+                    ):
+                        errors.append(f"{version}: OKF package-tree replay failed")
 
         artifact_info = record.get("artifact", {})
         expected_artifact_path = f"_artifacts/goal-teams-{version}.tar.gz"
@@ -175,6 +345,10 @@ def main() -> None:
                         stream = archive.extractfile(member)
                         if stream is None or hashlib.sha256(stream.read()).hexdigest() != listed.get(relative):
                             errors.append(f"{version}: tar content mismatch {relative}")
+                        if resolved.returncode == 0 and relative in trusted:
+                            expected_mode = 0o755 if trusted[relative][0] == "100755" else 0o644
+                            if member.mode != expected_mode:
+                                errors.append(f"{version}: tar mode mismatch {relative}")
                 if tar_paths != set(listed): errors.append(f"{version}: tar manifest mismatch")
             except tarfile.TarError as exc:
                 errors.append(f"{version}: invalid tar archive: {exc}")

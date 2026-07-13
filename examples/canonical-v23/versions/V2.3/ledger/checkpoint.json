@@ -26,7 +26,7 @@
   "ledger_owner_run_id": "RUN-CAN-LEDGER-OWNER",
   "ledger_revision": 21,
   "revision": 21,
-  "schema_source_hash": "531ecaa680055e7e7bf887605fba7246d992fe30598f9101e647935b5e31d60e",
+  "schema_source_hash": "a5bd1a09eaac56481519de119c609d95dcfe15a83afd5e12054f91f58774fef4",
   "schema_version": "goal-teams-v2.3",
   "seen_events": [
     "EVT-CAN-001",
@@ -200,5 +200,5 @@
       "validator_run_id": "RUN-CAN-REVIEWER"
     }
   },
-  "valid_evidence_registry_digest": "f08a97cfe0407ef69a9f72d3a4706c2a896a3fe42a12b310d5f16a2a2a74bdec"
+  "valid_evidence_registry_digest": "c1cad3eb972f927fea6dc01d5a7f82c21f67a15ba118f3f613bc11a1543cc646"
 }

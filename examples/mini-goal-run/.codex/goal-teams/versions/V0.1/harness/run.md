@@ -1,3 +1,13 @@
+---
+type: Harness Run
+title: Mini Goal Run Harness Run
+description: 记录 mini-goal-run 成员执行依赖、产物与当前证据缺口。
+tags: [goal-teams, example, harness, run]
+timestamp: 2026-07-13T00:00:00+08:00
+okf_version: "0.1"
+project_version: V0.1
+---
+
 # Harness Run
 
 ## 依赖顺序

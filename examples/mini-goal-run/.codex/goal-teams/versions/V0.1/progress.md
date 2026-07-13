@@ -1,3 +1,13 @@
+---
+type: Progress Report
+title: Mini Goal Run Progress
+description: 记录 mini-goal-run 的 blocked 状态、Evidence 缺口与后续动作。
+tags: [goal-teams, example, progress]
+timestamp: 2026-07-13T00:00:00+08:00
+okf_version: "0.1"
+project_version: V0.1
+---
+
 # Goal Teams Progress
 
 ## 当前状态

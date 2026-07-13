@@ -111,7 +111,7 @@ def _bootstrap_json(path: Path) -> dict[str, Any]:
 SCHEMA = _bootstrap_json(SCHEMA_PATH)
 SCHEMA_VERSION = str(SCHEMA["schema_version"])
 ARTIFACT_VERSION = str(SCHEMA["artifact_version"])
-PRODUCT_VERSION = "V2.37"
+PRODUCT_VERSION = "V2.39"
 # Repository-self-release identity is anchored to the accepted V2.35 base,
 # never to mutable VERSION/SKILL bytes in the candidate worktree.
 V236_GOAL_TEAMS_TRUSTED_RELEASE_BASE = "c91e33737cc13c68bb5cb34c572fa05e7849f1e4"
@@ -122,6 +122,7 @@ _V234_CLOSURE: Any | None = None
 _V235_POLICY: Any | None = None
 _V236_TRUST: Any | None = None
 _V236_ACCEPTANCE: Any | None = None
+_PROMPT_CACHE: Any | None = None
 _EMIT_COMPACT = False
 
 
@@ -174,6 +175,24 @@ def _load_v235_policy() -> Any:
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     _V235_POLICY = module
+    return module
+
+
+def _load_prompt_cache() -> Any:
+    """Load the V2.38 ordered prompt manifest compiler on demand."""
+
+    global _PROMPT_CACHE
+    if _PROMPT_CACHE is not None:
+        return _PROMPT_CACHE
+    path = Path(__file__).resolve().with_name("prompt_cache.py")
+    if not path.is_file() or path.is_symlink():
+        raise ContractError("E_PROMPT_MANIFEST", ["E_PROMPT_MANIFEST"])
+    spec = importlib.util.spec_from_file_location("_goalteams_prompt_cache", path)
+    if spec is None or spec.loader is None:
+        raise ContractError("E_PROMPT_MANIFEST", ["E_PROMPT_MANIFEST"])
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    _PROMPT_CACHE = module
     return module
 
 
@@ -1442,12 +1461,26 @@ def _table_cell(value: Any) -> str:
 
 def render_tasklist(state: dict[str, Any]) -> str:
     ledger_revision = int(state.get("ledger_revision", state.get("revision", 0)))
+    tasks = state.get("tasks", {})
+    timestamps = (
+        sorted(
+            str(task.get("updated_at"))
+            for task in tasks.values()
+            if isinstance(task, dict)
+            and isinstance(task.get("updated_at"), str)
+            and task.get("updated_at")
+        )
+        if isinstance(tasks, dict)
+        else []
+    )
+    projection_timestamp = timestamps[-1] if timestamps else "1970-01-01T00:00:00Z"
     lines = [
         "---",
         "type: Goal Teams TaskList",
         "title: Generated TaskList",
         "description: Deterministic projection of the V2.3 append-only event ledger.",
         "tags: [goal-teams, tasklist, v2.3]",
+        f"timestamp: {projection_timestamp}",
         'okf_version: "0.1"',
         f'schema_version: "{SCHEMA_VERSION}"',
         f"ledger_revision: {ledger_revision}",
@@ -1460,7 +1493,6 @@ def render_tasklist(state: dict[str, Any]) -> str:
         "| Task | Title | State | Check | Required | Blocking | Owner member | Owner run | Validator member | Validator run | Merge owner | Attempt | Revision | Requirements | AC | Artifacts | Evidence | Harness | Last event |",
         "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
-    tasks = state.get("tasks", {})
     if not isinstance(tasks, dict):
         return "\n".join(lines) + "\n"
     for task_id in sorted(tasks):
@@ -3606,10 +3638,11 @@ def _legacy_route(features: Any) -> dict[str, Any]:
         # the V2.3 compatibility entrypoint.  Text-bearing callers must pass
         # the V2.33 policy and cannot force preview with a boolean flag.
         preview_mode = features.get("plan_preview") is True
+    legacy_refs = sorted(set(refs))
     reference_request = features.get("reference_policy")
     if reference_request is None:
         reference_request = {
-            "required_refs": sorted(set(refs)),
+            "required_refs": legacy_refs,
             "triggered_conditional_refs": [],
             "optional_refs": [],
             "available_refs": [],
@@ -3625,7 +3658,7 @@ def _legacy_route(features: Any) -> dict[str, Any]:
         "profile": profile,
         "mode": "plan_preview" if preview_mode else "execute",
         "writes_created": False if preview_mode else None,
-        "rule_set": sorted(set(refs)),
+        "rule_set": legacy_refs,
         "route_explanation": reasons,
         "plan_preview_policy": preview_policy,
         "reference_policy": reference_result,
@@ -3648,6 +3681,42 @@ def route(features: Any) -> dict[str, Any]:
     if _looks_like_v235_route(features):
         return _load_v235_policy().normalize_project_route(features)
     return _legacy_route(features)
+
+
+def prompt_plan(route_id: str) -> dict[str, Any]:
+    """Compile one named V2.38 ordered prompt plan without changing route JSON."""
+
+    if not isinstance(route_id, str) or not route_id:
+        raise ContractError("E_PROMPT_ROUTE", ["E_PROMPT_ROUTE"])
+    try:
+        return _load_prompt_cache().build_prompt_identity(REPO_ROOT, route_id)
+    except ValueError as exc:
+        raise ContractError("E_PROMPT_MANIFEST", [str(exc)]) from exc
+
+
+def prompt_plan_for_features(features: Any) -> dict[str, Any]:
+    """Keep signed policy membership stable while compiling its load order."""
+
+    policy_route = route(features)
+    if not isinstance(policy_route, dict) or policy_route.get("ok") is False:
+        return {"policy_route": policy_route, "prompt_plan": None}
+    refs = policy_route.get("rule_set")
+    if not isinstance(refs, list) or not refs:
+        raise ContractError("E_PROMPT_POLICY_RULE_SET", ["E_PROMPT_POLICY_RULE_SET"])
+    cache = _load_prompt_cache()
+    try:
+        ordered_refs = cache.order_prompt_refs(REPO_ROOT, refs)
+        identity = cache.build_prompt_identity_for_refs(
+            REPO_ROOT, "structured_policy", ordered_refs
+        )
+    except ValueError as exc:
+        raise ContractError("E_PROMPT_MANIFEST", [str(exc)]) from exc
+    return {
+        "policy_route": policy_route,
+        "prompt_plan": identity,
+        "rule_set_semantics": "signed_policy_membership_not_prompt_order",
+        "policy_route_byte_compatible": True,
+    }
 
 
 def plan_preview_policy(request: Any) -> dict[str, Any]:
@@ -3761,9 +3830,10 @@ def capability(manifest: Any) -> dict[str, Any]:
         "context_inheritance",
         "shared_filesystem",
         "recovery",
-        "telemetry",
     }
     missing_manifest_fields = sorted(required_manifest_fields - set(manifest))
+    if "telemetry" not in manifest and "subject_visible_telemetry" not in manifest:
+        missing_manifest_fields.append("subject_visible_telemetry|telemetry")
     errors: list[str] = ["E_CAPABILITY_MANIFEST_REQUIRED"] if missing_manifest_fields else []
     naming = manifest.get("naming_constraints", {"transport_handle_pattern": "host-defined", "localized_display_name": True})
     if not isinstance(naming, dict):
@@ -3799,10 +3869,22 @@ def capability(manifest: Any) -> dict[str, Any]:
     if recovery not in {"session", "persistent", "none", "unknown"}:
         errors.append("E_CAPABILITY_RECOVERY")
         recovery = "unknown"
-    telemetry = manifest.get("telemetry", "unavailable")
+    telemetry = manifest.get(
+        "subject_visible_telemetry", manifest.get("telemetry", "unavailable")
+    )
     if telemetry not in {"available", "partial", "unavailable"}:
         errors.append("E_CAPABILITY_TELEMETRY")
         telemetry = "unavailable"
+    if (
+        "telemetry" in manifest
+        and "subject_visible_telemetry" in manifest
+        and manifest.get("telemetry") != manifest.get("subject_visible_telemetry")
+    ):
+        errors.append("E_CAPABILITY_TELEMETRY_CONFLICT")
+    observer_telemetry = manifest.get("observer_telemetry", "unavailable")
+    if observer_telemetry not in {"available", "partial", "unavailable"}:
+        errors.append("E_CAPABILITY_OBSERVER_TELEMETRY")
+        observer_telemetry = "unavailable"
     requested = manifest.get("requested_permissions", [])
     fallback = manifest.get("fallback_permissions", requested)
     if not _string_list(requested) or not _string_list(fallback):
@@ -3839,11 +3921,14 @@ def capability(manifest: Any) -> dict[str, Any]:
         "shared_filesystem": shared_filesystem,
         "recovery": recovery,
         "telemetry": telemetry,
+        "subject_visible_telemetry": telemetry,
+        "observer_telemetry": observer_telemetry,
         "dispatch_mode": "goal_subagents" if custom else "generic_subagent_or_serial",
         "degraded_capability": sorted(set(degraded)),
         "reason": "full host capability" if not degraded else ", ".join(sorted(set(degraded))) + " unavailable or restricted",
         "impact": "none" if not degraded else "record degradation; do not claim unavailable host behavior",
         "budget_metric": "tokens_cost" if telemetry == "available" else "round_time_member_file_size",
+        "budget_telemetry_source": "subject_visible_telemetry",
         "fallback_allowed": fallback_allowed,
         "fallback_capability_equivalent": capability_equivalent,
         "requested_permissions": requested,
@@ -5919,6 +6004,9 @@ def _build_parser() -> argparse.ArgumentParser:
     command.add_argument("--license-decision")
     command = sub.add_parser("route")
     command.add_argument("features")
+    command = sub.add_parser("prompt-plan")
+    command.add_argument("route_id", nargs="?")
+    command.add_argument("--features")
     command = sub.add_parser("validate-test-case")
     command.add_argument("path")
     command = sub.add_parser("v236-snapshot-create")
@@ -7655,6 +7743,35 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
             }
             return envelope(False, code, **data), 1
         return envelope(True, route=result), 0
+    if args.cmd == "prompt-plan":
+        if args.features:
+            try:
+                raw_features = Path(args.features).read_text(encoding="utf-8")
+            except OSError:
+                raise ContractError("E_FILE_READ", ["E_FILE_READ"]) from None
+            try:
+                features = json.loads(raw_features)
+            except json.JSONDecodeError as exc:
+                raise ContractError(
+                    "E_JSON_PARSE",
+                    [{"error": "E_JSON_PARSE", "line": exc.lineno, "column": exc.colno}],
+                ) from None
+            if _looks_like_v235_route(features):
+                policy = _load_v235_policy()
+                try:
+                    features = policy.strict_json_loads(raw_features)
+                except policy.DuplicateKeyError:
+                    _EMIT_COMPACT = True
+                    return envelope(
+                        False,
+                        "E_V235_ROUTE_CONFLICT",
+                        errors=["E_V235_ROUTE_CONFLICT"],
+                        mutation_count=0,
+                    ), 1
+            return envelope(True, **prompt_plan_for_features(features)), 0
+        if not args.route_id:
+            raise ContractError("E_PROMPT_ROUTE", ["E_PROMPT_ROUTE"])
+        return envelope(True, prompt_plan=prompt_plan(args.route_id)), 0
     if args.cmd == "validate-test-case":
         _EMIT_COMPACT = True
         policy = _load_v235_policy()

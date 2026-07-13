@@ -31,9 +31,10 @@ def run(
     return result
 
 
-def parse_manifest() -> tuple[set[str], list[str]]:
+def parse_manifest() -> tuple[set[str], list[str], set[str]]:
     files: set[str] = set()
     prefixes: list[str] = []
+    generated: set[str] = set()
     for raw_line in MANIFEST.read_text(encoding="utf-8").splitlines():
         line = raw_line.strip()
         if not line or line.startswith("#"):
@@ -46,13 +47,17 @@ def parse_manifest() -> tuple[set[str], list[str]]:
             files.add(value)
         elif kind == "prefix" and value.endswith("/"):
             prefixes.append(value)
+        elif kind == "generated" and not value.endswith("/"):
+            generated.add(value)
         else:
             raise AssertionError(f"invalid package manifest line: {line}")
-    return files, prefixes
+    if generated != {"references/okf-conformance-manifest.json"}:
+        raise AssertionError(f"invalid generated-required package paths: {generated}")
+    return files, prefixes, generated
 
 
 def source_candidates() -> Iterable[tuple[Path, str]]:
-    files, prefixes = parse_manifest()
+    files, prefixes, _generated = parse_manifest()
     seen: set[str] = set()
     for relative in sorted(files):
         source = ROOT / relative
@@ -100,6 +105,24 @@ def digest_tree(path: Path) -> str:
     return hashlib.sha256(json.dumps(records, separators=(",", ":")).encode("utf-8")).hexdigest()
 
 
+def no_bytecode_environment(**updates: str) -> dict[str, str]:
+    environment = os.environ.copy()
+    environment.pop("PYTHONDONTWRITEBYTECODE", None)
+    environment.pop("PYTHONPYCACHEPREFIX", None)
+    environment.update(updates)
+    return environment
+
+
+def assert_no_python_bytecode(root: Path, phase: str) -> None:
+    polluted = sorted(
+        path.relative_to(root).as_posix()
+        for path in root.rglob("*")
+        if path.name == "__pycache__" or path.suffix == ".pyc"
+    )
+    if polluted:
+        raise AssertionError(f"{phase} created Python bytecode: {polluted}")
+
+
 def install_run(
     source: Path,
     home: Path,
@@ -108,12 +131,10 @@ def install_run(
     expected: int = 0,
     fail_at: str | None = None,
 ) -> subprocess.CompletedProcess[str]:
-    environment = os.environ.copy()
-    environment.update({
-        "CODEX_HOME": str(home),
-        "INSTALL_REPORT": str(report),
-        "PYTHONDONTWRITEBYTECODE": "1",
-    })
+    environment = no_bytecode_environment(
+        CODEX_HOME=str(home),
+        INSTALL_REPORT=str(report),
+    )
     if fail_at:
         environment["GOAL_TEAMS_INSTALL_FAIL_AT"] = fail_at
     return run(
@@ -193,6 +214,7 @@ def main() -> None:
         dry_payload = assert_report_minimized(dry_report, temporary_root)
         if dry_payload["status"] != "dry_run" or digest_tree(old_skill) != original_skill_digest:
             raise AssertionError("dry-run changed the live target")
+        assert_no_python_bytecode(temporary_root, "no-env dry-run")
 
         install_report = reports / "install.json"
         install_run(source, home, install_report)
@@ -211,6 +233,105 @@ def main() -> None:
             raise AssertionError("Round2 CI pin checker was omitted from the install package manifest")
         if (old_skill / "VERSION").read_text(encoding="utf-8").strip() != current_version:
             raise AssertionError(f"{current_version} VERSION was not installed")
+        canonical_okf = old_skill / "references" / "okf-conformance-manifest.json"
+        if not canonical_okf.is_file():
+            raise AssertionError("installer did not generate the canonical OKF manifest")
+        okf_manifest = load_json(canonical_okf)
+        if (
+            okf_manifest.get("manifest_scope") != "installed_package_complete"
+            or okf_manifest.get("source", {}).get("commit_sha256")
+            != install_payload.get("source", {}).get("commit")
+            or install_payload.get("source", {}).get("okf_conformance_manifest_sha256")
+            != digest_file(canonical_okf)
+            or install_payload.get("source", {}).get("okf_policy_sha256")
+            != okf_manifest.get("policy", {}).get("sha256")
+            or install_payload.get("source", {}).get("okf_payload_tree_sha256")
+            != okf_manifest.get("package", {}).get("payload_tree_sha256")
+            or install_payload.get("source", {}).get("okf_package_completeness_state")
+            != "complete"
+        ):
+            raise AssertionError("install report did not bind the canonical OKF manifest identity")
+        for field in (
+            "package_manifest_sha256",
+            "okf_conformance_manifest_sha256",
+            "okf_payload_tree_sha256",
+            "okf_policy_sha256",
+            "okf_checker_hashes",
+            "okf_package_completeness_state",
+        ):
+            if state_v1.get(field) != install_payload.get("source", {}).get(field):
+                raise AssertionError(f"install report/state OKF identity mismatch: {field}")
+        canonical_bytes = canonical_okf.read_bytes()
+        canonical_okf.unlink()
+        missing_check = run(
+            [
+                sys.executable,
+                str(old_skill / "scripts" / "checks" / "check-okf.py"),
+                "--root",
+                str(old_skill),
+                "--package-tree",
+                str(old_skill),
+            ],
+            cwd=old_skill,
+            env=no_bytecode_environment(),
+            expected=2,
+        )
+        missing_payload = json.loads(missing_check.stdout)
+        if missing_payload.get("error_code") != "E_OKF_PACKAGE_MISSING":
+            raise AssertionError("gitless package check did not fail closed on missing canonical manifest")
+        canonical_okf.write_bytes(canonical_bytes)
+        canonical_okf.chmod(0o644)
+        direct_gitless_checks = (
+            (
+                "okf-wrapper",
+                [
+                    sys.executable,
+                    str(old_skill / "scripts" / "check-okf.py"),
+                    "--root",
+                    str(old_skill),
+                    "--package-tree",
+                    str(old_skill),
+                ],
+            ),
+            (
+                "prompt-cache-checker",
+                [
+                    sys.executable,
+                    str(old_skill / "scripts" / "checks" / "check-prompt-cache.py"),
+                ],
+            ),
+            (
+                "prompt-cache-wrapper",
+                [
+                    sys.executable,
+                    str(old_skill / "scripts" / "check-prompt-cache.py"),
+                ],
+            ),
+            (
+                "context-budget-checker",
+                [
+                    sys.executable,
+                    str(old_skill / "scripts" / "checks" / "check-context-budget.py"),
+                    "--root",
+                    str(old_skill),
+                ],
+            ),
+        )
+        for label, command in direct_gitless_checks:
+            result = run(
+                command,
+                cwd=old_skill,
+                env=no_bytecode_environment(),
+            )
+            try:
+                payload = json.loads(result.stdout)
+            except json.JSONDecodeError as exc:
+                raise AssertionError(
+                    f"{label} did not emit a JSON result: {result.stdout!r}"
+                ) from exc
+            if payload.get("passed") is not True:
+                raise AssertionError(f"{label} did not pass: {payload}")
+            assert_no_python_bytecode(old_skill, f"no-env direct {label}")
         v236_skill_paths = (
             "references/goal-teams-core-v2.5.md",
             "references/profiles/goal-teams-self-release-v2.36.md",
@@ -228,13 +349,55 @@ def main() -> None:
             "schemas/v2.36/acceptance-input-snapshot.schema.json",
             "schemas/v2.36/policy-profile-selector.schema.json",
             "schemas/v2.36/attested-identity-registry.schema.json",
-            "references/profiles/goal-teams-self-release-v2.37.md",
+            "references/profiles/goal-teams-self-release-v2.38.md",
+            "references/prompt-cache-manifest.json",
+            "references/prompt-cache-protocol.md",
+            "references/okf-conformance-policy.json",
+            "references/okf-conformance-manifest.json",
+            "scripts/v23/prompt_cache.py",
+            "scripts/v23/okf_conformance.py",
+            "scripts/checks/check-prompt-cache.py",
+            "scripts/checks/check-okf.py",
             "release/current/README.md",
             "release/current/manifest.json",
         )
         missing_v236 = [path for path in v236_skill_paths if not (old_skill / path).is_file()]
         if missing_v236:
             raise AssertionError(f"V2.36 install package omitted files: {missing_v236}")
+        prompt_fields = (
+            "skill_source_path",
+            "prompt_identity_version",
+            "runtime_prompt_route",
+            "runtime_prompt_refs",
+            "prefix_manifest_sha256",
+            "route_static_digest",
+            "prompt_manifest_status",
+            "prompt_digest_scope",
+            "skill_tree_digest",
+        )
+        missing_prompt_fields = [field for field in prompt_fields if not state_v1.get(field)]
+        if missing_prompt_fields:
+            raise AssertionError(f"V2.38 install state omitted prompt identity: {missing_prompt_fields}")
+        if state_v1.get("runtime_prompt_digest") is not None or state_v1.get("stable_prefix_digest") is not None:
+            raise AssertionError("installer route plan impersonated a host-observed runtime prompt digest")
+        if state_v1["route_static_digest"] == state_v1["skill_tree_digest"]:
+            raise AssertionError("route static digest collapsed into full skill tree digest")
+        if state_v1["prompt_manifest_status"] != "unavailable" or state_v1["prompt_digest_scope"] != "partial":
+            raise AssertionError("installer prompt visibility boundary is not explicit")
+        for field in (
+            "prompt_identity_version",
+            "runtime_prompt_route",
+            "runtime_prompt_refs",
+            "prefix_manifest_sha256",
+            "route_static_digest",
+            "prompt_manifest_status",
+            "prompt_digest_scope",
+            "stable_prefix_digest",
+            "runtime_prompt_digest",
+        ):
+            if install_payload["source"].get(field) != state_v1.get(field):
+                raise AssertionError(f"install report/state prompt identity mismatch: {field}")
+        assert_no_python_bytecode(temporary_root, "no-env install")
         v235_skill_paths = (
             "schemas/v2.35/project-route.schema.json",
             "schemas/v2.35/test-case.schema.json",

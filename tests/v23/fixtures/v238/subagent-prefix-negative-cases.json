@@ -1,0 +1,18 @@
+{
+  "schema_version": "goal-teams-subagent-prefix-negative-fixtures-v2.38",
+  "cases": [
+    {
+      "case_id": "role-before-prefix",
+      "mutation": "prepend",
+      "value": "你是角色专属说明；这一行错误地出现在公共前缀之前。\n",
+      "expected_error": "E_SUBAGENT_ROLE_BEFORE_COMMON_PREFIX"
+    },
+    {
+      "case_id": "common-prefix-drift",
+      "mutation": "replace_once",
+      "find": "只以 current Evidence 支撑 accepted",
+      "replace": "只以未经绑定的 Evidence 支撑 accepted",
+      "expected_error": "E_SUBAGENT_COMMON_PREFIX_DRIFT"
+    }
+  ]
+}

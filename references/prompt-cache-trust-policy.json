@@ -1,0 +1,21 @@
+{
+  "schema_version": "goal-teams-prompt-cache-trust-policy-v2.39",
+  "product_version": "V2.39",
+  "policy_revision": "V2.39.0",
+  "enabled": false,
+  "verifiers": [],
+  "adapters": [],
+  "authorization_issuers": [],
+  "authorization_policy": {
+    "allowed_action": "live_cache_probe",
+    "max_validity_seconds": 0,
+    "max_invocations": 0,
+    "max_input_tokens": 0,
+    "max_cost_amount": 0,
+    "currencies": []
+  },
+  "nonce_policy": {
+    "replay_state": "exclusive_create",
+    "reuse": "forbidden"
+  }
+}

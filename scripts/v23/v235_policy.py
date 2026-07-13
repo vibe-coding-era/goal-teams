@@ -1547,6 +1547,14 @@ def _manifest_allowlist(path: Path) -> tuple[set[str], tuple[str, ...]] | None:
                 files.add(value)
             elif kind == "prefix" and value.endswith("/"):
                 prefixes.append(value)
+            elif (
+                kind == "generated"
+                and not value.endswith("/")
+                and value == "references/okf-conformance-manifest.json"
+            ):
+                # Builder/installer generated assets are required package output,
+                # never caller-selectable frozen source files.
+                continue
             else:
                 return None
     except (OSError, UnicodeDecodeError, ValueError):

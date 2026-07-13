@@ -6,13 +6,16 @@ from __future__ import annotations
 import argparse
 import gzip
 import hashlib
+import importlib.util
 import io
 import json
+import os
 import re
 import shutil
 import subprocess
+import sys
 import tarfile
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 SOURCE_ROOT = Path(__file__).resolve().parents[2]
 
@@ -40,7 +43,10 @@ KNOWN_RELEASES = {
     "V2.35": "codex/v2.35-release",
     "V2.36": "codex/v2.36",
     "V2.37": "codex/v2.37",
+    "V2.38": "codex/v2.38",
+    "V2.39": "codex/v2.39",
 }
+OKF_GENERATED_PATH = "references/okf-conformance-manifest.json"
 
 
 def git(*args: str, text: bool = False) -> bytes | str:
@@ -72,23 +78,48 @@ def blob(object_id: str) -> bytes:
     return value
 
 
-def manifest_rules(ref: str) -> tuple[set[str], tuple[str, ...], str]:
+def safe_manifest_path(value: str) -> str:
+    normalized = value.rstrip("/")
+    path = PurePosixPath(normalized)
+    if (
+        not normalized
+        or "\\" in value
+        or path.is_absolute()
+        or any(part in {"", ".", ".."} for part in path.parts)
+    ):
+        raise RuntimeError(f"unsafe package manifest path: {value}")
+    return normalized
+
+
+def manifest_rules(ref: str) -> tuple[set[str], tuple[str, ...], set[str], str]:
     content = git("show", f"{ref}:scripts/install/package-manifest.txt")
     assert isinstance(content, bytes)
     files: set[str] = set()
     prefixes: list[str] = []
+    generated: set[str] = set()
     for raw in content.decode("utf-8").splitlines():
         line = raw.strip()
         if not line or line.startswith("#"):
             continue
         kind, value = line.split(maxsplit=1)
         if kind == "file":
-            files.add(value)
+            if value.endswith("/"):
+                raise RuntimeError(f"invalid file rule in {ref}: {line}")
+            files.add(safe_manifest_path(value))
         elif kind == "prefix":
+            if not value.endswith("/"):
+                raise RuntimeError(f"invalid prefix rule in {ref}: {line}")
+            safe_manifest_path(value)
             prefixes.append(value)
+        elif kind == "generated":
+            if value.endswith("/"):
+                raise RuntimeError(f"invalid generated rule in {ref}: {line}")
+            generated.add(safe_manifest_path(value))
         else:
             raise RuntimeError(f"invalid manifest rule in {ref}: {line}")
-    return files, tuple(prefixes), sha256(content)
+    if generated and generated != {OKF_GENERATED_PATH}:
+        raise RuntimeError(f"unsupported generated package assets in {ref}: {sorted(generated)}")
+    return files, tuple(prefixes), generated, sha256(content)
 
 
 def nonrelease_reason(path: str) -> str | None:
@@ -111,6 +142,100 @@ def write_file(target: Path, data: bytes, mode: str) -> None:
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_bytes(data)
     target.chmod(0o755 if mode == "100755" else 0o644)
+
+
+def generate_okf_manifest(
+    target: Path,
+    *,
+    commit: str,
+    git_tree_id: str,
+    package_manifest_sha256: str,
+) -> tuple[dict[str, object], dict[str, object]]:
+    """Generate and replay the sole V2.39 staged package asset."""
+
+    runtime_path = target / "scripts" / "v23" / "okf_conformance.py"
+    checker_path = target / "scripts" / "checks" / "check-okf.py"
+    if not runtime_path.is_file() or runtime_path.is_symlink() or not checker_path.is_file():
+        raise RuntimeError("V2.39 OKF runtime/checker is missing from the staged payload")
+    module_name = f"_goalteams_release_okf_{commit[:16]}"
+    spec = importlib.util.spec_from_file_location(module_name, runtime_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("cannot load staged V2.39 OKF runtime")
+    module = importlib.util.module_from_spec(spec)
+    previous = sys.dont_write_bytecode
+    sys.dont_write_bytecode = True
+    try:
+        spec.loader.exec_module(module)
+    finally:
+        sys.dont_write_bytecode = previous
+    policy = module.load_policy(target)
+    manifest = module.build_package_manifest(
+        target,
+        policy,
+        source_binding={
+            "commit_sha256": commit,
+            "git_tree_id": git_tree_id,
+            "package_manifest_sha256": package_manifest_sha256,
+        },
+    )
+    if (
+        manifest.get("manifest_scope") != "installed_package_complete"
+        or manifest.get("source", {}).get("commit_sha256") != commit
+        or manifest.get("source", {}).get("git_tree_id") != git_tree_id
+        or manifest.get("source", {}).get("package_manifest_sha256")
+        != package_manifest_sha256
+    ):
+        raise RuntimeError("generated OKF manifest did not bind the frozen source")
+    data = (
+        json.dumps(manifest, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        + "\n"
+    ).encode("utf-8")
+    output = target / OKF_GENERATED_PATH
+    write_file(output, data, "100644")
+
+    replay = subprocess.run(
+        [
+            sys.executable,
+            str(checker_path),
+            "--root",
+            str(target),
+            "--package-tree",
+            str(target),
+        ],
+        cwd=target,
+        text=True,
+        capture_output=True,
+        check=False,
+        env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
+    )
+    try:
+        replay_payload = json.loads(replay.stdout)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError("staged OKF package-tree replay did not emit JSON") from exc
+    if (
+        replay.returncode != 0
+        or replay_payload.get("passed") is not True
+        or replay_payload.get("package_completeness_state") != "complete"
+    ):
+        raise RuntimeError(
+            "staged OKF package-tree replay failed: "
+            + json.dumps(replay_payload, ensure_ascii=False, sort_keys=True)
+        )
+    row: dict[str, object] = {
+        "path": OKF_GENERATED_PATH,
+        "mode": "100644",
+        "size": len(data),
+        "sha256": sha256(data),
+    }
+    summary: dict[str, object] = {
+        "manifest_path": OKF_GENERATED_PATH,
+        "manifest_sha256": row["sha256"],
+        "payload_tree_sha256": manifest["package"]["payload_tree_sha256"],
+        "policy_sha256": manifest["policy"]["sha256"],
+        "checker_bindings": manifest["checkers"],
+        "package_completeness_state": "complete",
+    }
+    return row, summary
 
 
 def deterministic_tar(target: Path, version: str, rows: list[dict[str, object]], root: Path) -> str:
@@ -141,7 +266,14 @@ def build(version: str, ref: str) -> dict[str, object]:
     forbidden_source = [path for path in entries if nonrelease_reason(path)]
     if forbidden_source:
         raise RuntimeError(f"source tree contains nonrelease paths: {forbidden_source}")
-    files, prefixes, manifest_sha = manifest_rules(ref)
+    files, prefixes, generated, manifest_sha = manifest_rules(ref)
+    if version == "V2.39" and generated != {OKF_GENERATED_PATH}:
+        raise RuntimeError("V2.39 requires exactly one generated OKF conformance manifest")
+    tracked_generated = sorted(generated & set(entries))
+    if tracked_generated:
+        raise RuntimeError(
+            f"builder-generated assets must not be tracked in frozen source: {tracked_generated}"
+        )
     selected = sorted(path for path in entries if path in files or any(path.startswith(p) for p in prefixes))
     excluded = [{"path": path, "reason": nonrelease_reason(path)} for path in selected if nonrelease_reason(path)]
     release_paths = [path for path in selected if not nonrelease_reason(path)]
@@ -159,6 +291,20 @@ def build(version: str, ref: str) -> dict[str, object]:
     if (target / "VERSION").read_text(encoding="utf-8").strip() != version:
         raise RuntimeError(f"{ref}: VERSION does not equal requested {version}")
 
+    generated_rows: list[dict[str, object]] = []
+    okf_summary: dict[str, object] | None = None
+    if generated:
+        git_tree_id = str(git("rev-parse", f"{commit}^{{tree}}", text=True)).strip()
+        generated_row, okf_summary = generate_okf_manifest(
+            target,
+            commit=commit,
+            git_tree_id=git_tree_id,
+            package_manifest_sha256=manifest_sha,
+        )
+        rows.append(generated_row)
+        generated_rows.append(generated_row)
+    rows.sort(key=lambda row: str(row["path"]))
+
     digest_input = b"".join(f"{r['path']}\0{r['mode']}\0{r['size']}\0{r['sha256']}\n".encode() for r in rows)
     artifact = target / "_artifacts" / f"goal-teams-{version}.tar.gz"
     artifact_sha = deterministic_tar(artifact, version, rows, target)
@@ -167,6 +313,7 @@ def build(version: str, ref: str) -> dict[str, object]:
         "version": version,
         "source_ref": ref,
         "source_commit": commit,
+        "source_git_tree_id": str(git("rev-parse", f"{commit}^{{tree}}", text=True)).strip(),
         "source_package_manifest_sha256": manifest_sha,
         "file_count": len(rows),
         "total_bytes": sum(int(r["size"]) for r in rows),
@@ -174,6 +321,8 @@ def build(version: str, ref: str) -> dict[str, object]:
         "artifact": {"path": artifact.relative_to(target).as_posix(), "sha256": artifact_sha, "size": artifact.stat().st_size},
         "excluded_nonrelease_count": len(excluded),
         "excluded_categories": sorted({str(r["reason"]) for r in excluded}),
+        "builder_generated_files": generated_rows,
+        "okf_conformance": okf_summary,
     }
     (target / "_release.json").write_text(json.dumps(record, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (target / "_files.sha256").write_text("".join(f"{r['sha256']}  {r['path']}\n" for r in rows), encoding="utf-8")
@@ -201,7 +350,7 @@ def build(version: str, ref: str) -> dict[str, object]:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="append", help="Version to build, e.g. V2.37")
+    parser.add_argument("--version", action="append", help="Version to build, e.g. V2.38")
     parser.add_argument("--ref", help="Explicit Git ref; valid with exactly one --version")
     parser.add_argument("--all-known", action="store_true", help="Build every known historical release")
     return parser.parse_args()

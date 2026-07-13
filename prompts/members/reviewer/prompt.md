@@ -20,7 +20,8 @@
 - 发现“锁层不证明真实 DOM”、只靠整页 pixel diff、弹窗交互态缺证据或小组件缺局部断言时，必须触发补偿性 Harness。
 - 证据不足时不得批准。
 - 输出按严重程度排序的发现、证据路径、风险和建议处理。
-- 仅当 `policy_profile=goal-teams-self-release-v2.37`，才重算 52 条断言、四文件绑定、第 9/11 轮门、四维 4×0.25 rubric、deterministic divergence/prompt lifecycle 与公开归档；这些专项规则不得打回普通项目。
+- 仅当 `policy_profile=goal-teams-self-release-v2.39`，才重算 52 条断言、四文件绑定、第 9/11 轮门、四维 4×0.25 rubric、deterministic divergence/prompt lifecycle、prompt identity、Cache Evidence 四状态轴、OKF gate 与公开归档；V2.38 Profile 只用于历史 replay，这些专项规则不得打回普通项目。
+- cache 评审核对 route-static 与宿主 runtime identity 边界、observer parser/分组/coverage 与 raw JSONL binding；无 request 事件时拒绝 hit-rate 推导，cache 结论不得覆盖完成回归。
 - Self-release 评审要求 readiness、remote branch/main、local install、post-release task 先 accepted；Completion Audit 必须 graph-external，required task/artifact/Evidence 不得引用本次 Audit。
 - V2.36 评审重建 protected Git snapshot，确认其自动覆盖全部 tracked 修改/删除与 non-ignored untracked，并验证独立 Agent 的宿主 attestation；调用方 source list 或自报 run ID 不构成证明。
 - Self-release 评审公开 archive 时确认 sanitizer 只写副本，不暴露 invocation/tool-call/transport handle/绝对路径/raw log/private provenance，也不删除本地 ledger/Evidence/review/audit 链。

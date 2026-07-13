@@ -1,3 +1,13 @@
+---
+type: Requirement Specification Card
+title: 登录页空状态提示 V0.1 Requirement Specification Card
+description: 细化登录页无会话状态的目标、功能结构和业务价值。
+tags: [goal-teams, example, requirement-specification]
+timestamp: 2026-07-13T00:00:00+08:00
+okf_version: "0.1"
+project_version: V0.1
+---
+
 # Requirement Specification Card
 
 来源：`spec/requirement-card.md`。

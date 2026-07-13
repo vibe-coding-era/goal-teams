@@ -4,7 +4,7 @@
 
 Author: 肉山@TGO Hangzhou
 
-Current version: `V2.37`
+Current version: `V2.39`
 
 Goal Teams is a Codex Skill for coordinated agent work. It turns one goal into a verifiable plan, then lets a Goal Lead coordinate subagents or user-selected external skills across requirements, design, implementation, tests, evidence, and completion audit. A separate subagent counts as an independent acceptance identity only when its isolated context is bound to a host attestation.
 
@@ -12,11 +12,11 @@ The version model has three layers so that release identity, policy, and data fo
 
 | Layer | Current value | Purpose |
 | --- | --- | --- |
-| Product version | `V2.37` | Version of the Skill package, startup line, and release documentation. |
+| Product version | `V2.39` | Version of the Skill package, startup line, and release documentation. |
 | General core policy | `V2.5` / `goal-teams-core-v2.5` | Task routing, execution class, and gates for ordinary projects. |
 | Legacy data schema | `V2.3` | Compatibility for existing ledger, Evidence, Harness, and release-gate data; it is not the current product version. |
 
-Only a release of the Goal Teams repository itself uses `goal-teams-self-release-v2.37`. Its 52 release assertions, iterations 9/11, four-dimension scoring, and public archive do not apply as global invariants to ordinary projects. `profile=lite|standard|full|regulated` remains the execution class and is distinct from `policy_profile`.
+Only a current release of the Goal Teams repository itself uses `goal-teams-self-release-v2.39`. Its 52 release assertions, iterations 9/11, four-dimension scoring, prompt identity, Cache Evidence, OKF gate, and public archive do not apply as global invariants to ordinary projects; `goal-teams-self-release-v2.38` is retained only for historical replay. `profile=lite|standard|full|regulated` remains the execution class and is distinct from `policy_profile`.
 
 Use it when:
 
@@ -61,6 +61,18 @@ Goal Teams includes `benchmarks/` task packages for comparing workflow, prompt, 
 
 The value is that benchmark results make improvement reviewable. The same task can compare baseline and Goal Teams behavior across output completeness, evidence quality, UI verification, production-gate judgment, Loop state recovery, and cost. This repository includes `GT-BENCH-001` through `GT-BENCH-004`, covering typical dimensions from basic output quality to Lead LOOP recovery.
 
+### Prompt Cache Observability
+
+V2.39 retains the V2.38-compatible prompt-cache schema, compilers, observer reports, fixtures, and replay behavior while switching current self-release ordered refs to the V2.39 Profile. `references/prompt-cache-manifest.json` remains the machine SSOT for route-static order and byte budgets. `route_static_digest` binds planned paths and file bytes. When the repository cannot observe the final provider request, it reports `manifest_status=unavailable` and `digest_scope=partial` instead of impersonating a `runtime_prompt_digest`; the full install remains bound by `skill_tree_digest`.
+
+This release reports four orthogonal cache states: structural validation `passed`, host integration `unavailable`, live probe `not_authorized`, and request hit rate `unavailable`. Its claim scope is limited to `structural_governance`; without trusted host observation, user authorization, and provider request semantics, it makes no live optimization, provider-hit, or request-hit-rate claim.
+
+For byte-compatible historical signatures and replay, the V2.35/V2.36 `rule_set` remains a policy-membership set rather than prompt order; `prompt-plan --features` compiles it into a manifest-managed ordered subset.
+
+After each turn, the runner reports token-weighted share, uncached input, and coverage; request hit rate stays null without request events. A cache conclusion requires clean versioned telemetry, complete prompt identity, and trusted host config attestation together. This runner does not yet have that attestation, so live cache analytics remains unsupported.
+
+The repository currently compiles only a first-seen plus five-repeat probe plan. It makes no provider calls and claims neither cold runs nor live A/B records; `live_ab_status=unavailable`. A future executor must bind model, CLI, package, configuration, scorer/Harness, and the observed prompt identity. Goal Teams cannot force, clear, or guarantee a provider prompt cache.
+
 ### Openness and External Skills
 
 Goal Teams does not require every capability to come from a built-in subagent. During Plan, external skills, project scripts, browser tools, test tools, or user-selected subagents can be added to the `Teams 规划表` with locked scope, inputs, outputs, Harness, and validator.
@@ -90,9 +102,9 @@ Validate before maintenance or release:
 A GitHub Release must be built locally as the same reproducible asset and pass source-bound validation before upload:
 
 ```bash
-python3 scripts/release/build-release.py --version V2.37 --ref HEAD
-python3 scripts/release/validate-release.py --version V2.37
-scripts/release/publish-github-release.sh V2.37
+python3 scripts/release/build-release.py --version V2.39 --ref HEAD
+python3 scripts/release/validate-release.py --version V2.39
+scripts/release/publish-github-release.sh V2.39
 ```
 
 Local release directories live at `release/versions/<VERSION>/`. Root `docs/` contains non-release knowledge, tests, and credentials only and is excluded by `.gitignore`. See `references/release-packaging-protocol.md` for the full contract.
@@ -161,7 +173,7 @@ Use the browser skill for page verification and independent members for E2E case
 Use this identity line on an explicit Goal Teams invocation or when the session first needs to establish identity; do not repeat it when full context already exists:
 
 ```text
-我是 Goal Teams Lead V2.37。
+我是 Goal Teams Lead V2.39。
 ```
 
 Core language rule: user communication and governance documents default to Chinese; code, comments, test names, fixtures, and product strings follow the target repository's conventions; keep identifiers, commands, paths, API names, config keys, subagent IDs, and exact references unchanged.
@@ -180,7 +192,12 @@ Core language rule: user communication and governance documents default to Chine
 | `references/rules-testing.md` | Backend architecture-first, TDD, API integration pytest, frontend E2E, and independent testing rules. |
 | `references/rules-loop.md` | Lead LOOP, Loop Decision, Loop Gate, Budget Gate, and auto-continuation boundaries. |
 | `references/goal-teams-core-v2.5.md` | General policy, Lite/Standard/Full/Regulated routing, and automatic gate derivation for ordinary projects. |
-| `references/profiles/goal-teams-self-release-v2.37.md` | Dedicated Profile used only to release the Goal Teams repository itself. |
+| `references/profiles/goal-teams-self-release-v2.39.md` | Dedicated Profile used only for the current Goal Teams repository release. |
+| `references/profiles/goal-teams-self-release-v2.38.md` | Read-only replay Profile for historical V2.38 objects. |
+| `references/prompt-cache-manifest.json` | Machine SSOT for route-static order, artifact compilers, and context budgets. |
+| `references/prompt-cache-protocol.md` | Route/runtime identity boundaries, observer telemetry, and plan-only probe semantics. |
+| `scripts/v23/prompt_compilers.py` | Deterministic subagent-prefix and Member Goal Packet compiler/migrator. |
+| `scripts/v23/prompt_cache.py` | Safely reads the ordered manifest, computes prompt identities, and aggregates provider/CLI usage events. |
 | `prompts/packets/handoff-artifacts.md` | Handoff SSOT for artifact types, Owner, validator, status fields, and TaskList ledger format. |
 
 ## Workflow
@@ -290,7 +307,7 @@ GoalTeamsWork-<project_version>/
 
 ## Version Note
 
-The product version is read from `VERSION`. `V2.37` keeps `V2.5` as the general core policy for ordinary projects and moves repository self-release rules into a dedicated Profile. Gates are derived from the product/core versions, task route facts, and execution class, so omitting `state_gate_profile` cannot bypass them. Lite and Standard remain genuinely lightweight according to risk and work size. V2.37 also unifies secret redaction, uses a protected Git tree snapshot to auto-cover the complete Git change set (tracked modifications/deletions plus non-ignored untracked files), and requires host attestation for an Agent isolation claim. Final acceptance additionally requires a host-signed route receipt, repository-external persistent challenge state, a full Audit/Review/Harness binding, and a non-circular core binding on current Evidence. The candidate runtime exposes no Python or CLI trust-context path to success and must return `E_V236_HOST_ADAPTER_REQUIRED`; only a repository-external host may freeze the complete acceptance input tree, including TaskList and referenced logs/reports/artifacts, then validate and consume challenges in its trusted process. Existing machine data remains compatible with the legacy `V2.3` schema.
+The product version is read from `VERSION`. `V2.39` keeps `V2.5` as the ordinary-project core and uses the dedicated `goal-teams-self-release-v2.39` Profile. Without rewriting V2.38 schemas, fixtures, or replay behavior, this release adds a trusted Cache Evidence contract and full/package Google OKF gates. Structural validation passed; host integration is unavailable, the live probe was not authorized, and request hit rate is unavailable. Therefore the release claims structural/governance completion only and does not claim provider-cache control or live optimization effectiveness. Existing machine data remains compatible with the legacy `V2.3` schema.
 
 See [`release/current/`](release/current/README.md) for the current release note and minimal public manifest. Historical process documents, the complete local knowledge base, integration catalog, and release evidence stay in ignored `docs/` and are excluded from GitHub and the install package.
 
@@ -300,4 +317,4 @@ This repository does not currently declare an open-source license. The owner sho
 
 ## Legacy V2.3 Data Schema and Release Compatibility
 
-The legacy V2.3 schema defines closed state enums, a single-writer ledger, Evidence/Traceability, typed migration, and release-gate data. V2.37 continues to read that data; this does not make V2.3 the product version. See `references/goal-teams-v2.3-contract.md` and run `./scripts/check.sh` before release. Technical RC and authorized GA distribution are evaluated separately; even with an owner License/internal-sharing decision, the GA gate must remain fail-closed until a trusted external host/signature attestation exists.
+The legacy V2.3 schema defines closed state enums, a single-writer ledger, Evidence/Traceability, typed migration, and release-gate data. V2.39 continues to read that data; this does not make V2.3 the product version. See `references/goal-teams-v2.3-contract.md` and run `./scripts/check.sh` before release. Technical RC and authorized GA distribution are evaluated separately; even with an owner License/internal-sharing decision, the GA gate must remain fail-closed until a trusted external host/signature attestation exists.

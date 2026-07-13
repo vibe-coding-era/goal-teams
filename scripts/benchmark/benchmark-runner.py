@@ -31,6 +31,7 @@ from package_selection import (  # noqa: E402
     blind_path_allowed,
     build_blind_package_selection,
 )
+from prompt_cache import aggregate_usage_events, build_prompt_identity  # noqa: E402
 
 V23_TOOL = ROOT / "scripts" / "v23" / "goalteams_v23.py"
 TASKS_DIR = ROOT / "benchmarks" / "tasks"
@@ -65,6 +66,834 @@ def digest_path(path: Path) -> str:
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _nonnegative_int(value: Any) -> int:
+    return (
+        value
+        if isinstance(value, int) and not isinstance(value, bool) and value >= 0
+        else 0
+    )
+
+
+def _observer_telemetry(jsonl_text: str) -> dict[str, Any]:
+    """Preserve parser evidence while adding only runner-owned provenance."""
+
+    observed = dict(aggregate_usage_events(jsonl_text))
+    adapter_versions: set[str] = set()
+    event_schema_versions: set[str] = set()
+    legacy_adapter_observed = False
+    legacy_schema_observed = False
+    for raw in jsonl_text.splitlines():
+        if not raw.strip():
+            continue
+        try:
+            event = json.loads(raw)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(event, dict) or event.get("type") != "turn.completed":
+            continue
+        adapter_version = event.get("adapter_version")
+        if isinstance(adapter_version, str) and adapter_version:
+            adapter_versions.add(adapter_version)
+        elif adapter_version is None:
+            legacy_adapter_observed = True
+        event_schema_version = event.get(
+            "event_schema_version", event.get("schema_version", event.get("version"))
+        )
+        if isinstance(event_schema_version, str) and event_schema_version:
+            event_schema_versions.add(event_schema_version)
+        elif event_schema_version is None:
+            legacy_schema_observed = True
+    if legacy_adapter_observed:
+        adapter_versions.add("legacy-unversioned")
+    if legacy_schema_observed:
+        event_schema_versions.add("legacy-unversioned")
+    observed.update(
+        {
+            "schema_version": "goal-teams-observer-telemetry-v2.38",
+            "visibility": "observer",
+            "source": "codex_exec_jsonl",
+            "observed_adapter_versions": sorted(adapter_versions),
+            "observed_event_schema_versions": sorted(event_schema_versions),
+            "turn_completed_count": _nonnegative_int(observed.get("completed_turns")),
+            "usage_observed_count": _nonnegative_int(observed.get("telemetry_turns")),
+        }
+    )
+    return observed
+
+
+def _summarize_identity_group(records: list[dict[str, Any]]) -> dict[str, Any]:
+    telemetry_records = [
+        record.get("observer_telemetry", {})
+        for record in records
+        if isinstance(record.get("observer_telemetry"), dict)
+    ]
+    completed_turns = sum(
+        _nonnegative_int(item.get("turn_completed_count")) for item in telemetry_records
+    )
+    telemetry_turns = sum(
+        _nonnegative_int(item.get("usage_observed_count")) for item in telemetry_records
+    )
+    input_tokens = sum(_nonnegative_int(item.get("input_tokens")) for item in telemetry_records)
+    covered_input_tokens = sum(
+        _nonnegative_int(item.get("covered_input_tokens")) for item in telemetry_records
+    )
+    cached_input_tokens = sum(
+        _nonnegative_int(item.get("cached_input_tokens")) for item in telemetry_records
+    )
+    uncached_input_tokens = sum(
+        _nonnegative_int(item.get("uncached_input_tokens")) for item in telemetry_records
+    )
+    output_tokens = sum(_nonnegative_int(item.get("output_tokens")) for item in telemetry_records)
+    reasoning_output_tokens = sum(
+        _nonnegative_int(item.get("reasoning_output_tokens"))
+        for item in telemetry_records
+    )
+    invalid_events = sum(
+        _nonnegative_int(item.get("invalid_events")) for item in telemetry_records
+    )
+    unsupported_events = sum(
+        _nonnegative_int(item.get("unsupported_events")) for item in telemetry_records
+    )
+    duplicate_events = sum(
+        _nonnegative_int(item.get("duplicate_events")) for item in telemetry_records
+    )
+    conflicting_events = sum(
+        _nonnegative_int(item.get("conflicting_events")) for item in telemetry_records
+    )
+    malformed_lines = sum(
+        _nonnegative_int(item.get("malformed_lines")) for item in telemetry_records
+    )
+    unavailable_turns = sum(
+        _nonnegative_int(item.get("unavailable_turns")) for item in telemetry_records
+    )
+    ambiguous_duplicate_candidates = sum(
+        _nonnegative_int(item.get("ambiguous_duplicate_candidates"))
+        for item in telemetry_records
+    )
+    events_without_stable_id = sum(
+        _nonnegative_int(item.get("events_without_stable_id"))
+        for item in telemetry_records
+    )
+    turns_with_cached_input = sum(
+        _nonnegative_int(item.get("turns_with_cached_input"))
+        for item in telemetry_records
+    )
+    passed_count = sum(record.get("result") == "passed" for record in records)
+    if (
+        records
+        and len(telemetry_records) == len(records)
+        and all(
+            _observer_telemetry_verification(item)["status"] == "complete"
+            for item in telemetry_records
+        )
+    ):
+        status = "available"
+    elif telemetry_turns > 0 or any(item.get("status") == "partial" for item in telemetry_records):
+        status = "partial"
+    else:
+        status = "unavailable"
+    return {
+        "schema_version": "goal-teams-observer-telemetry-summary-v2.38",
+        "visibility": "observer",
+        "source": "codex_exec_jsonl",
+        "status": status,
+        "scenario_count": len(records),
+        "passed_scenario_count": passed_count,
+        "turn_completed_count": completed_turns,
+        "usage_observed_count": telemetry_turns,
+        "input_tokens": input_tokens,
+        "covered_input_tokens": covered_input_tokens,
+        "cached_input_tokens": cached_input_tokens,
+        "uncached_input_tokens": uncached_input_tokens,
+        "output_tokens": output_tokens,
+        "reasoning_output_tokens": reasoning_output_tokens,
+        "cached_input_share": (
+            cached_input_tokens / covered_input_tokens if covered_input_tokens > 0 else None
+        ),
+        "telemetry_coverage": telemetry_turns / completed_turns if completed_turns > 0 else 0.0,
+        "turns_with_cached_input": turns_with_cached_input,
+        "turn_cache_presence": (
+            turns_with_cached_input / telemetry_turns if telemetry_turns > 0 else None
+        ),
+        "invalid_events": invalid_events,
+        "unsupported_events": unsupported_events,
+        "duplicate_events": duplicate_events,
+        "conflicting_events": conflicting_events,
+        "malformed_lines": malformed_lines,
+        "unavailable_turns": unavailable_turns,
+        "ambiguous_duplicate_candidates": ambiguous_duplicate_candidates,
+        "events_without_stable_id": events_without_stable_id,
+        "duplicate_detection_status": (
+            "available"
+            if telemetry_records
+            and len(telemetry_records) == len(records)
+            and all(
+                item.get("duplicate_detection_status") == "available"
+                for item in telemetry_records
+            )
+            else "partial"
+        ),
+        "uncached_input_tokens_per_passed_scenario": (
+            uncached_input_tokens / passed_count if passed_count > 0 else None
+        ),
+        "quality_pass_rate": passed_count / len(records) if records else 0.0,
+        "request_hit_rate": None,
+        "request_hit_rate_reason": "turn_aggregate_cannot_estimate_request_hit_rate",
+        "metric_semantics": "token_weighted_input_share_from_turn_aggregates",
+        "parser_versions": sorted(
+            {
+                str(item["parser_version"])
+                for item in telemetry_records
+                if isinstance(item.get("parser_version"), str)
+                and item.get("parser_version")
+            }
+        ),
+        "adapter_registry_versions": sorted(
+            {
+                str(item["adapter_registry_version"])
+                for item in telemetry_records
+                if isinstance(item.get("adapter_registry_version"), str)
+                and item.get("adapter_registry_version")
+            }
+        ),
+        "observed_adapter_versions": sorted(
+            {
+                str(version)
+                for item in telemetry_records
+                for version in item.get("observed_adapter_versions", [])
+                if isinstance(version, str) and version
+            }
+        ),
+        "observed_event_schema_versions": sorted(
+            {
+                str(version)
+                for item in telemetry_records
+                for version in item.get("observed_event_schema_versions", [])
+                if isinstance(version, str) and version
+            }
+        ),
+        "raw_jsonl_sha256s": sorted(
+            {
+                str(item["raw_jsonl_sha256"])
+                for item in telemetry_records
+                if isinstance(item.get("raw_jsonl_sha256"), str)
+                and item.get("raw_jsonl_sha256")
+            }
+        ),
+    }
+
+
+def _summarize_observer_telemetry(records: list[dict[str, Any]]) -> dict[str, Any]:
+    grouped: dict[str, dict[str, Any]] = {}
+    for index, record in enumerate(records):
+        cache_identity = record.get("cache_identity")
+        observer_telemetry = record.get("observer_telemetry")
+        telemetry_complete = bool(
+            isinstance(observer_telemetry, dict)
+            and observer_telemetry.get("cache_analytics_status") == "supported"
+            and _observer_telemetry_verification(observer_telemetry)["status"]
+            == "complete"
+        )
+        supported = bool(
+            isinstance(cache_identity, dict)
+            and cache_identity.get("cache_analytics_status") == "supported"
+            and isinstance(cache_identity.get("identity_sha256"), str)
+            and cache_identity.get("identity_sha256")
+            and telemetry_complete
+        )
+        if supported:
+            group_key = f"supported:{cache_identity['identity_sha256']}"
+        else:
+            scenario_id = record.get("scenario_id")
+            group_key = f"unsupported:{index}:{scenario_id}"
+            if isinstance(cache_identity, dict):
+                cache_identity = dict(cache_identity)
+                if cache_identity.get("cache_analytics_status") == "supported":
+                    missing_fields = list(
+                        cache_identity.get("missing_identity_fields", [])
+                    )
+                    if "observer_telemetry.verification" not in missing_fields:
+                        missing_fields.append("observer_telemetry.verification")
+                    cache_identity.update(
+                        {
+                            "cache_analytics_status": "unsupported",
+                            "cache_analytics_reason": "observer_telemetry_incomplete",
+                            "identity_status": "incomplete",
+                            "identity_sha256": None,
+                            "missing_identity_fields": missing_fields,
+                        }
+                    )
+            else:
+                cache_identity = {
+                    "schema_version": "goal-teams-cache-identity-v2.38",
+                    "cache_analytics_status": "unsupported",
+                    "cache_analytics_reason": "cache_identity_missing",
+                    "identity_sha256": None,
+                    "partial_identity_sha256": None,
+                    "missing_identity_fields": ["cache_identity"],
+                }
+        group = grouped.setdefault(
+            group_key,
+            {"cache_identity": cache_identity, "records": []},
+        )
+        group["records"].append(record)
+
+    identity_groups: list[dict[str, Any]] = []
+    for group_key in sorted(grouped):
+        group = grouped[group_key]
+        group_records = group["records"]
+        telemetry = _summarize_identity_group(group_records)
+        cache_identity = group["cache_identity"]
+        telemetry.update(
+            {
+                "cache_identity": cache_identity,
+                "cache_analytics_status": cache_identity.get(
+                    "cache_analytics_status", "unsupported"
+                ),
+                "cache_analytics_reason": cache_identity.get(
+                    "cache_analytics_reason", "cache_identity_missing"
+                ),
+                "scenario_ids": sorted(
+                    str(record.get("scenario_id")) for record in group_records
+                ),
+            }
+        )
+        if telemetry["cache_analytics_status"] != "supported":
+            telemetry["cached_input_share"] = None
+            telemetry["turn_cache_presence"] = None
+            telemetry["uncached_input_tokens_per_passed_scenario"] = None
+        identity_groups.append(telemetry)
+
+    aggregate_permitted = bool(
+        len(identity_groups) == 1
+        and identity_groups[0].get("cache_analytics_status") == "supported"
+        and identity_groups[0].get("status") == "available"
+    )
+    if aggregate_permitted:
+        only = identity_groups[0]
+        cache_status = "supported"
+        cache_reason = "single_complete_cache_identity"
+    elif not identity_groups or any(
+        group.get("cache_analytics_status") == "unsupported"
+        for group in identity_groups
+    ):
+        only = {}
+        cache_status = "unsupported"
+        cache_reason = "missing_or_incomplete_cache_identity"
+    else:
+        only = {}
+        cache_status = "grouped"
+        cache_reason = "multiple_cache_identities"
+    passed_count = sum(record.get("result") == "passed" for record in records)
+    metric_fields = (
+        "turn_completed_count",
+        "usage_observed_count",
+        "input_tokens",
+        "covered_input_tokens",
+        "cached_input_tokens",
+        "uncached_input_tokens",
+        "output_tokens",
+        "reasoning_output_tokens",
+        "cached_input_share",
+        "telemetry_coverage",
+        "turns_with_cached_input",
+        "turn_cache_presence",
+        "invalid_events",
+        "unsupported_events",
+        "duplicate_events",
+        "conflicting_events",
+        "malformed_lines",
+        "unavailable_turns",
+        "ambiguous_duplicate_candidates",
+        "events_without_stable_id",
+        "uncached_input_tokens_per_passed_scenario",
+    )
+    result = {
+        "schema_version": "goal-teams-observer-telemetry-summary-v2.38",
+        "visibility": "observer",
+        "source": "codex_exec_jsonl",
+        "status": only.get("status", "unavailable"),
+        "cache_analytics_status": cache_status,
+        "cache_analytics_reason": cache_reason,
+        "cross_identity_aggregation": False,
+        "identity_group_count": len(identity_groups),
+        "identity_groups": identity_groups,
+        "scenario_count": len(records),
+        "passed_scenario_count": passed_count,
+        "quality_pass_rate": passed_count / len(records) if records else 0.0,
+        "request_hit_rate": None,
+        "request_hit_rate_reason": "turn_aggregate_cannot_estimate_request_hit_rate",
+        "metric_semantics": "token_weighted_input_share_grouped_by_complete_identity",
+        "by_scenario": {
+            str(record.get("scenario_id")): record.get("observer_telemetry")
+            for record in records
+            if isinstance(record.get("scenario_id"), str)
+            and isinstance(record.get("observer_telemetry"), dict)
+        },
+    }
+    for field in metric_fields:
+        result[field] = only.get(field) if aggregate_permitted else None
+    return result
+
+
+def _command_model_identity(command: list[str]) -> dict[str, Any]:
+    candidates: list[tuple[str, str]] = []
+    index = 1
+    while index < len(command):
+        token = command[index]
+        if token in {"--model", "-m"}:
+            if index + 1 >= len(command) or not command[index + 1]:
+                return {
+                    "status": "unsupported",
+                    "model": None,
+                    "source": "command_argv",
+                    "reason": "model_argument_missing_value",
+                }
+            candidates.append((token, command[index + 1]))
+            index += 2
+            continue
+        if token.startswith("--model="):
+            candidates.append(("--model", token.split("=", 1)[1]))
+        elif token in {"--config", "-c"} and index + 1 < len(command):
+            override = command[index + 1]
+            if override.startswith("model="):
+                candidates.append((token, override.split("=", 1)[1]))
+            index += 1
+        elif token.startswith("--config=model="):
+            candidates.append(("--config", token.split("=", 2)[2]))
+        index += 1
+    normalized = [value.strip().strip("\"'") for _, value in candidates]
+    normalized = [value for value in normalized if value]
+    unique = sorted(set(normalized))
+    if not unique:
+        return {
+            "status": "unsupported",
+            "model": None,
+            "source": "command_argv",
+            "reason": "model_not_explicit_in_command",
+        }
+    if len(unique) != 1:
+        return {
+            "status": "unsupported",
+            "model": None,
+            "source": "command_argv",
+            "reason": "conflicting_model_arguments",
+            "candidate_count": len(unique),
+        }
+    return {
+        "status": "bound",
+        "model": unique[0],
+        "source": "command_argv",
+        "argument_sha256": digest_bytes(canonical_bytes(candidates)),
+    }
+
+
+def _effective_config_trace_verification(
+    trace_proof: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Validate an optional host-produced trace without trusting a CLI declaration."""
+
+    if trace_proof is None:
+        return {
+            "status": "unavailable",
+            "trace_proof_sha256": None,
+            "reason": "host_effective_config_trace_not_provided",
+        }
+    return {
+        "status": "invalid_untrusted",
+        "trace_proof_sha256": None,
+        "reason": "self_reported_trace_proof_not_accepted",
+    }
+
+
+def _effective_codex_config_identity(
+    command: list[str],
+    *,
+    codex_home: Path | None = None,
+    trace_proof: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Hash config inputs while keeping CLI declarations distinct from trace proof."""
+
+    ignored = "--ignore-user-config" in command
+    trace_verification = _effective_config_trace_verification(trace_proof)
+    # No host-attestation verifier is wired into this runner yet.  A CLI flag,
+    # caller-supplied mapping, or plain hash is a declaration, never proof.
+    if ignored:
+        entries: list[dict[str, Any]] = []
+        return {
+            "schema_version": "goal-teams-effective-codex-config-v2.38",
+            "isolation_mode": "user_config_ignore_declared",
+            "declaration_status": "declared",
+            "verification_status": "partial",
+            "effective_config_verified": False,
+            "isolation_verified": False,
+            "trace_proof_status": trace_verification["status"],
+            "trace_proof_sha256": trace_verification["trace_proof_sha256"],
+            "verification_reason": trace_verification["reason"],
+            "user_config_ignored": True,
+            "local_config_scanned": False,
+            "file_count": 0,
+            "class_counts": {name: 0 for name in ("config", "agents", "skills", "plugins")},
+            "effective_manifest_sha256": digest_bytes(canonical_bytes(entries)),
+            "entries": entries,
+            "path_disclosure": "sha256_and_class_only",
+            "raw_config_persisted": False,
+        }
+
+    home = Path(
+        codex_home
+        if codex_home is not None
+        else os.environ.get("CODEX_HOME", str(Path.home() / ".codex"))
+    ).expanduser()
+    entries: list[dict[str, Any]] = []
+    seen: set[Path] = set()
+
+    def add_file(path: Path, config_class: str) -> None:
+        try:
+            if path in seen or not path.is_file() or path.is_symlink():
+                return
+            relative = path.relative_to(home).as_posix()
+        except (OSError, ValueError):
+            return
+        seen.add(path)
+        entries.append(
+            {
+                "path_sha256": digest_bytes(relative.encode("utf-8")),
+                "class": config_class,
+                "size": path.stat().st_size,
+                "content_sha256": digest_path(path),
+            }
+        )
+
+    add_file(home / "config.toml", "config")
+    for config_class in ("config", "agents", "skills", "plugins"):
+        base = home / config_class
+        if not base.is_dir() or base.is_symlink():
+            continue
+        for directory, directory_names, file_names in os.walk(base, followlinks=False):
+            directory_path = Path(directory)
+            directory_names[:] = sorted(
+                name
+                for name in directory_names
+                if not (directory_path / name).is_symlink()
+            )
+            for name in sorted(file_names):
+                add_file(directory_path / name, config_class)
+    entries.sort(key=lambda item: (item["class"], item["path_sha256"]))
+    class_counts = {
+        name: sum(entry["class"] == name for entry in entries)
+        for name in ("config", "agents", "skills", "plugins")
+    }
+    return {
+        "schema_version": "goal-teams-effective-codex-config-v2.38",
+        "isolation_mode": "local_config_manifest_observed",
+        "declaration_status": "observed_local_manifest",
+        "verification_status": "partial",
+        "effective_config_verified": False,
+        "isolation_verified": False,
+        "trace_proof_status": trace_verification["status"],
+        "trace_proof_sha256": trace_verification["trace_proof_sha256"],
+        "verification_reason": trace_verification["reason"],
+        "user_config_ignored": False,
+        "local_config_scanned": True,
+        "file_count": len(entries),
+        "class_counts": class_counts,
+        "effective_manifest_sha256": digest_bytes(canonical_bytes(entries)),
+        "entries": entries,
+        "path_disclosure": "sha256_and_class_only",
+        "raw_config_persisted": False,
+    }
+
+
+def _nonempty_string(value: Any) -> str | None:
+    return value if isinstance(value, str) and value else None
+
+
+def _observer_telemetry_verification(telemetry: dict[str, Any]) -> dict[str, Any]:
+    """Fail closed unless observer evidence is complete and ambiguity-free."""
+
+    counter_fields = (
+        "invalid_events",
+        "unsupported_events",
+        "duplicate_events",
+        "conflicting_events",
+        "malformed_lines",
+        "unavailable_turns",
+        "ambiguous_duplicate_candidates",
+        "events_without_stable_id",
+    )
+    failures: list[str] = []
+    if telemetry.get("status") != "available":
+        failures.append("status")
+    for field in counter_fields:
+        value = telemetry.get(field)
+        if not isinstance(value, int) or isinstance(value, bool) or value != 0:
+            failures.append(field)
+    if telemetry.get("duplicate_detection_status") != "available":
+        failures.append("duplicate_detection_status")
+    if telemetry.get("observed_adapter_versions") != ["codex-cli-jsonl-v1"]:
+        failures.append("observed_adapter_versions")
+    if telemetry.get("observed_event_schema_versions") != [
+        "codex-turn-completed-v1"
+    ]:
+        failures.append("observed_event_schema_versions")
+    coverage = telemetry.get("telemetry_coverage")
+    if not isinstance(coverage, (int, float)) or isinstance(coverage, bool) or coverage != 1:
+        failures.append("telemetry_coverage")
+    return {
+        "status": "complete" if not failures else "incomplete",
+        "required_status": "available",
+        "required_duplicate_detection_status": "available",
+        "required_observed_adapter_versions": ["codex-cli-jsonl-v1"],
+        "required_observed_event_schema_versions": ["codex-turn-completed-v1"],
+        "required_telemetry_coverage": 1.0,
+        "required_zero_counters": list(counter_fields),
+        "failure_fields": failures,
+    }
+
+
+def _build_cache_record_identity(
+    *,
+    staged_root: Path,
+    manifest: dict[str, Any],
+    scenario: dict[str, Any],
+    adapter: dict[str, Any],
+    command: list[str],
+    prompt_identity: dict[str, Any],
+    provider_version: str,
+    executable_sha256: str,
+    staged_package_sha256: str,
+    effective_config: dict[str, Any],
+    observer_telemetry: dict[str, Any],
+) -> dict[str, Any]:
+    version_path = staged_root / "VERSION"
+    product_version = None
+    if version_path.is_file() and not version_path.is_symlink():
+        try:
+            product_version = _nonempty_string(version_path.read_text(encoding="utf-8").strip())
+        except (OSError, UnicodeDecodeError):
+            product_version = None
+    policy_profile = _nonempty_string(
+        scenario.get("policy_profile", manifest.get("policy_profile"))
+    )
+    gate_profile = _nonempty_string(
+        scenario.get("gate_profile", manifest.get("gate_profile"))
+    )
+    adapter_type = _nonempty_string(adapter.get("type"))
+    provider = _nonempty_string(adapter.get("provider"))
+    agent_identity = {
+        "agent_type": adapter_type,
+        "provider": provider,
+        "declared_agent": _nonempty_string(adapter.get("agent_identity")),
+    }
+    route_identity = {
+        "route_id": _nonempty_string(prompt_identity.get("route_id")),
+        "scenario_class": _nonempty_string(scenario.get("scenario_class")) or "core",
+    }
+    model_identity = _command_model_identity(command)
+    command_identity_sha256 = digest_bytes(
+        canonical_bytes(adapter.get("command", []))
+    )
+    adapter_payload = {
+        "adapter_type": adapter_type,
+        "provider": provider,
+        "provider_version_sha256": digest_bytes(provider_version.encode("utf-8")),
+        "executable_sha256": executable_sha256,
+        "command_identity_sha256": command_identity_sha256,
+    }
+    adapter_identity = {
+        **adapter_payload,
+        "adapter_identity_sha256": digest_bytes(canonical_bytes(adapter_payload)),
+    }
+    parser_identity = {
+        "parser_version": _nonempty_string(observer_telemetry.get("parser_version")),
+        "adapter_registry_version": _nonempty_string(
+            observer_telemetry.get("adapter_registry_version")
+        ),
+        "observed_adapter_versions": list(
+            observer_telemetry.get("observed_adapter_versions", [])
+        ),
+        "observed_event_schema_versions": list(
+            observer_telemetry.get("observed_event_schema_versions", [])
+        ),
+    }
+    trace_claimed = bool(
+        effective_config.get("trace_proof_sha256")
+        or effective_config.get("trace_proof_status") == "available"
+        or effective_config.get("effective_config_verified") is True
+        or effective_config.get("verification_status") == "complete"
+    )
+    effective_config_verification = {
+        "declared_verification_status": effective_config.get("verification_status"),
+        "verification_status": "partial",
+        "effective_config_verified": False,
+        "attestation_verifier_status": "unavailable",
+        "trace_proof_status": (
+            "invalid_untrusted" if trace_claimed else "unavailable"
+        ),
+        "trace_proof_sha256": None,
+    }
+    observer_verification = _observer_telemetry_verification(observer_telemetry)
+    digest_identity = {
+        "prefix_manifest_sha256": prompt_identity.get("prefix_manifest_sha256"),
+        "route_static_digest": prompt_identity.get("route_static_digest"),
+        "stable_prefix_digest": prompt_identity.get("stable_prefix_digest"),
+        "runtime_prompt_digest": prompt_identity.get("runtime_prompt_digest"),
+        "manifest_status": prompt_identity.get("manifest_status"),
+        "digest_scope": prompt_identity.get("digest_scope"),
+        "staged_package_sha256": staged_package_sha256,
+        "effective_config_manifest_sha256": effective_config.get(
+            "effective_manifest_sha256"
+        ),
+        "effective_config_verification": effective_config_verification,
+    }
+    identity_payload = {
+        "product_version": product_version,
+        "policy_profile": policy_profile,
+        "gate_profile": gate_profile,
+        "agent_identity": agent_identity,
+        "route_identity": route_identity,
+        "model_identity": model_identity,
+        "adapter_identity": adapter_identity,
+        "parser_identity": parser_identity,
+        "digest_identity": digest_identity,
+    }
+    missing: list[str] = []
+    if product_version is None:
+        missing.append("product_version")
+    if policy_profile is None:
+        missing.append("policy_profile")
+    if gate_profile is None:
+        missing.append("gate_profile")
+    if adapter_type is None or provider is None:
+        missing.append("agent_identity")
+    if route_identity["route_id"] is None:
+        missing.append("route_identity.route_id")
+    if model_identity.get("status") != "bound":
+        missing.append("model_identity.model")
+    if not parser_identity["parser_version"]:
+        missing.append("parser_identity.parser_version")
+    if not parser_identity["adapter_registry_version"]:
+        missing.append("parser_identity.adapter_registry_version")
+    if not _nonempty_string(digest_identity.get("runtime_prompt_digest")):
+        missing.append("digest_identity.runtime_prompt_digest")
+    if not _nonempty_string(digest_identity.get("effective_config_manifest_sha256")):
+        missing.append("digest_identity.effective_config_manifest_sha256")
+    # Cache conclusions stay disabled until a real host-attestation verifier is
+    # wired in.  Caller-provided booleans and hashes are not an authority.
+    missing.append("digest_identity.effective_config_verification")
+    missing.extend(
+        f"observer_telemetry.{field}"
+        for field in observer_verification["failure_fields"]
+    )
+    partial_identity_sha256 = digest_bytes(canonical_bytes(identity_payload))
+    supported = not missing
+    if observer_verification["status"] != "complete":
+        cache_reason = "observer_telemetry_incomplete"
+    elif "digest_identity.effective_config_verification" in missing:
+        cache_reason = "effective_config_verification_incomplete"
+    elif missing:
+        cache_reason = "missing_required_identity"
+    else:
+        cache_reason = "complete_identity_and_telemetry"
+    return {
+        "schema_version": "goal-teams-cache-identity-v2.38",
+        **identity_payload,
+        "observer_telemetry_verification": observer_verification,
+        "identity_sha256": partial_identity_sha256 if supported else None,
+        "partial_identity_sha256": partial_identity_sha256,
+        "identity_status": "complete" if supported else "incomplete",
+        "missing_identity_fields": missing,
+        "cache_analytics_status": "supported" if supported else "unsupported",
+        "cache_analytics_reason": cache_reason,
+    }
+
+
+def _bind_observer_cache_identity(
+    telemetry: dict[str, Any],
+    cache_identity: dict[str, Any],
+) -> dict[str, Any]:
+    bound = dict(telemetry)
+    telemetry_verification = _observer_telemetry_verification(telemetry)
+    identity_supported = cache_identity.get("cache_analytics_status") == "supported"
+    supported = identity_supported and telemetry_verification["status"] == "complete"
+    reason = (
+        cache_identity.get("cache_analytics_reason", "missing_required_identity")
+        if not identity_supported
+        else (
+            "complete_identity_and_telemetry"
+            if supported
+            else "observer_telemetry_incomplete"
+        )
+    )
+    bound.update(
+        {
+            "cache_analytics_status": "supported" if supported else "unsupported",
+            "cache_analytics_reason": reason,
+            "cache_identity_sha256": (
+                cache_identity.get("identity_sha256") if supported else None
+            ),
+            "observer_telemetry_verification": telemetry_verification,
+            "cache_conclusion": {
+                "status": "supported" if supported else "unsupported",
+                "reason": reason,
+                "cached_input_share": (
+                    bound.get("cached_input_share") if supported else None
+                ),
+                "turn_cache_presence": (
+                    bound.get("turn_cache_presence") if supported else None
+                ),
+            },
+        }
+    )
+    return bound
+
+
+def _build_benchmark_prompt_identity_report(
+    source_root: Path,
+    staged_root: Path,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Build the subject identity from staged bytes and compare source separately."""
+
+    subject_identity = build_prompt_identity(staged_root, "benchmark")
+    source_identity = build_prompt_identity(source_root, "benchmark")
+    compared_fields = (
+        "ordered_refs",
+        "dynamic_tail_labels",
+        "prefix_manifest_sha256",
+        "route_static_digest",
+        "stable_prefix_digest",
+        "runtime_prompt_digest",
+        "manifest_status",
+        "digest_scope",
+        "route_bytes",
+        "limit_bytes",
+        "passed",
+        "files",
+    )
+    mismatch_fields = [
+        field
+        for field in compared_fields
+        if source_identity.get(field) != subject_identity.get(field)
+    ]
+    comparison = {
+        "schema_version": "goal-teams-source-stage-prompt-identity-v2.38",
+        "subject_identity_scope": "staged_package",
+        "diagnostic_identity_scope": "source_repository",
+        "identities_match": not mismatch_fields,
+        "mismatch_fields": mismatch_fields,
+        "source_prefix_manifest_sha256": source_identity["prefix_manifest_sha256"],
+        "source_route_static_digest": source_identity.get("route_static_digest"),
+        "source_runtime_prompt_digest": source_identity.get("runtime_prompt_digest"),
+        "source_route_bytes": source_identity["route_bytes"],
+        "staged_prefix_manifest_sha256": subject_identity["prefix_manifest_sha256"],
+        "staged_route_static_digest": subject_identity.get("route_static_digest"),
+        "staged_runtime_prompt_digest": subject_identity.get("runtime_prompt_digest"),
+        "staged_route_bytes": subject_identity["route_bytes"],
+    }
+    return subject_identity, comparison
 
 
 def repository_commit() -> str:
@@ -869,6 +1698,7 @@ def execute_blind_agent_eval(
     *,
     release_gate: bool,
     selected_scenarios: set[str] | None = None,
+    effective_config_trace_proof: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     manifest = _load_blind_manifest(manifest_path)
     adapter = manifest["adapter"]
@@ -934,6 +1764,14 @@ def execute_blind_agent_eval(
         isolation_root = Path(td).resolve()
         staged_root = isolation_root / "staged-package"
         stage = _stage_blind_package(staged_root)
+        prompt_identity, source_stage_prompt_identity = (
+            _build_benchmark_prompt_identity_report(ROOT, staged_root)
+        )
+        base_command = _resolve_argv(adapter.get("command"))
+        effective_codex_config = _effective_codex_config_identity(
+            base_command,
+            trace_proof=effective_config_trace_proof,
+        )
         shutil.copytree(
             staged_root,
             output_dir / "staged-package",
@@ -946,7 +1784,8 @@ def execute_blind_agent_eval(
             version_argv, cwd=staged_root, text=True, capture_output=True, check=False
         )
         provider_version = (version_proc.stdout + version_proc.stderr).strip()
-        executable = Path(_resolve_argv(adapter.get("command"))[0]).resolve()
+        executable = Path(base_command[0]).resolve()
+        executable_sha256 = digest_path(executable)
         provider_provenance = {
             "adapter_type": adapter_type,
             "provider": provider,
@@ -955,7 +1794,7 @@ def execute_blind_agent_eval(
             "version_argv": version_argv,
             "version_exit_code": version_proc.returncode,
             "executable": str(executable),
-            "executable_sha256": digest_path(executable),
+            "executable_sha256": executable_sha256,
             "invocation_id": invocation_id,
             "source_commit": source_commit,
             "staged_package_sha256": stage["package_sha256"],
@@ -1009,6 +1848,23 @@ def execute_blind_agent_eval(
                 check=False,
             )
             ended_at = utc_now()
+            observer_telemetry = _observer_telemetry(proc.stdout)
+            cache_identity = _build_cache_record_identity(
+                staged_root=staged_root,
+                manifest=manifest,
+                scenario=scenario,
+                adapter=adapter,
+                command=command,
+                prompt_identity=prompt_identity,
+                provider_version=provider_version,
+                executable_sha256=executable_sha256,
+                staged_package_sha256=stage["package_sha256"],
+                effective_config=effective_codex_config,
+                observer_telemetry=observer_telemetry,
+            )
+            observer_telemetry = _bind_observer_cache_identity(
+                observer_telemetry, cache_identity
+            )
             (scenario_dir / "stdout.log").write_text(proc.stdout, encoding="utf-8")
             (scenario_dir / "stderr.log").write_text(proc.stderr, encoding="utf-8")
             if not output_last_message.is_file():
@@ -1073,6 +1929,11 @@ def execute_blind_agent_eval(
                 "evaluation_class": evaluation_class,
                 "provider_trust_level": "local_process_attested",
                 "release_eligible": release_eligible,
+                "prompt_identity": prompt_identity,
+                "source_stage_prompt_identity": source_stage_prompt_identity,
+                "cache_identity": cache_identity,
+                "cache_conclusion": observer_telemetry["cache_conclusion"],
+                "observer_telemetry": observer_telemetry,
                 "input": subject_input,
                 "output": output_value,
                 "executed": True,
@@ -1085,6 +1946,7 @@ def execute_blind_agent_eval(
                     "commit": source_commit,
                     "platform": platform.platform(),
                     "python_version": platform.python_version(),
+                    "effective_codex_config": effective_codex_config,
                 },
                 "provider_provenance": provider_provenance,
                 "isolation": {
@@ -1202,6 +2064,7 @@ def execute_blind_agent_eval(
         records[index] = record
     passed_ids = {record["scenario_id"] for record in records if record["result"] == "passed"}
     release_eligible_ids = {record["scenario_id"] for record in records if record["release_eligible"]}
+    observer_telemetry = _summarize_observer_telemetry(records)
     summary = {
         "schema_version": BLIND_SCHEMA_VERSION,
         "evaluation_id": manifest.get("evaluation_id"),
@@ -1219,6 +2082,14 @@ def execute_blind_agent_eval(
         "required_scenarios": sorted(required_ids),
         "passed_scenarios": sorted(passed_ids),
         "release_eligible_scenarios": sorted(release_eligible_ids),
+        "prompt_identity": prompt_identity,
+        "source_stage_prompt_identity": source_stage_prompt_identity,
+        "effective_codex_config": effective_codex_config,
+        "observer_telemetry": observer_telemetry,
+        "uncached_input_tokens_per_passed_scenario": observer_telemetry[
+            "uncached_input_tokens_per_passed_scenario"
+        ],
+        "quality_pass_rate": observer_telemetry["quality_pass_rate"],
         "records": record_refs,
         "output_dir": str(output_dir.resolve()),
         "release_gate_passed": source_repository_unchanged and required_ids <= release_eligible_ids,

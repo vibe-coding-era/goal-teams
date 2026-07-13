@@ -451,7 +451,7 @@
     },
     "capability_manifest": {
       "type": "object",
-      "required": ["naming_constraints", "custom_goal_subagents", "concurrency", "context_inheritance", "shared_filesystem", "recovery", "telemetry"],
+      "required": ["naming_constraints", "custom_goal_subagents", "concurrency", "context_inheritance", "shared_filesystem", "recovery"],
       "properties": {
         "naming_constraints": {"type": "object"},
         "custom_goal_subagents": {"type": "boolean"},
@@ -459,8 +459,18 @@
         "context_inheritance": {"enum": ["isolated", "forked", "shared", "unknown"]},
         "shared_filesystem": {"type": "boolean"},
         "recovery": {"enum": ["session", "persistent", "none", "unknown"]},
-        "telemetry": {"enum": ["available", "partial", "unavailable"]}
+        "telemetry": {"enum": ["available", "partial", "unavailable"]},
+        "subject_visible_telemetry": {"enum": ["available", "partial", "unavailable"]},
+        "observer_telemetry": {"enum": ["available", "partial", "unavailable"]}
       },
+      "allOf": [
+        {
+          "anyOf": [
+            {"required": ["telemetry"]},
+            {"required": ["subject_visible_telemetry"]}
+          ]
+        }
+      ],
       "additionalProperties": true
     },
     "license_decision": {

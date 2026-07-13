@@ -1,10 +1,19 @@
+---
+type: Bundle Index
+title: Mini Goal Run Index
+description: 跨版本索引 mini-goal-run 的静态文档、HTML 原型与 Harness 示例。
+tags: [goal-teams, example, index, mini-bundle]
+timestamp: 2026-07-13T00:00:00+08:00
+okf_version: "0.1"
+---
+
 # Goal Teams Index
 
 V2.35 compatibility status: artifact files are present, but the UI sample is overall `blocked` until independent E2E design/execution and current browser Evidence exist. Table `done` values below mean only that the listed static document was generated.
 
 | 文档 | 版本 | Owner | 状态 | 说明 |
 | --- | --- | --- | --- | --- |
-| `versions/V0.1/INDEX.md` | V0.1 | 文档-索引维护 | done | 示例版本索引 |
+| `versions/V0.1/index.md` | V0.1 | 文档-索引维护 | done | 示例版本索引 |
 | `versions/V0.1/plan.md` | V0.1 | Goal Lead | done | 示例计划和确认表 |
 | `versions/V0.1/tasklist.md` | V0.1 | 文档-任务清单 | done | 示例任务认领和校验计划 |
 | `versions/V0.1/spec/requirement-card.md` | V0.1 | Goal Lead | done | 示例需求卡片 |
@@ -19,3 +28,4 @@ V2.35 compatibility status: artifact files are present, but the UI sample is ove
 | `versions/V0.1/harness/run.md` | V0.1 | 文档-Harness 示例复盘 | done | Harness 执行记录 |
 | `versions/V0.1/harness/checks.md` | V0.1 | 文档-Harness 示例复盘 | done | Harness 校验清单 |
 | `versions/V0.1/harness/report.md` | V0.1 | 文档-Harness 示例复盘 | done | Harness 验收报告 |
+| `memory.md` | V0.1 | GoalTeams | done | 示例边界与兼容状态时间线 |

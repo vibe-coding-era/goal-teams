@@ -1,0 +1,10 @@
+{
+  "schema_version": "goal-teams-cache-identity-v2.38",
+  "identity_status": "incomplete",
+  "identity_sha256": null,
+  "partial_identity_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "cache_analytics_status": "unsupported",
+  "cache_analytics_reason": "effective_config_verification_incomplete",
+  "request_hit_rate": null,
+  "request_hit_rate_reason": "turn_aggregate_cannot_estimate_request_hit_rate"
+}

@@ -1,3 +1,12 @@
+---
+type: UI Validation Protocol
+title: UI E2E And Pixel Protocol V1.94
+description: 定义 UI 复刻任务的 E2E、截图和像素级对比证据合同。
+tags: [goal-teams, ui, e2e, pixel]
+timestamp: 2026-07-13T00:00:00+08:00
+okf_version: "0.1"
+---
+
 # UI E2E And Pixel Protocol V1.94
 
 本协议只在路由结果为 `ui_mode=replica`（复刻、临摹、还原、对照参考图/页面或其他 reference-driven UI）时作为 required 规则加载。原创 UI 的 browser/DOM/截图/几何检查由 `references/rules-ui.md` 定义，不加载本文件，也不因缺少 reference baseline blocked。

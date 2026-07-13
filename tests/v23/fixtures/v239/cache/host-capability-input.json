@@ -1,0 +1,32 @@
+{
+  "schema_version": "goal-teams-host-capability-receipt-v2.39",
+  "receipt_id": "CAP-V239-FIXTURE-001",
+  "product_version": "V2.39",
+  "host_adapter_id": "fixture-adapter-v1",
+  "host_adapter_version": "1",
+  "evidence_origin": "synthetic_fixture",
+  "capabilities": {
+    "final_request_boundary": {
+      "status": "available",
+      "reason": "synthetic_boundary_fixture"
+    },
+    "effective_config_attestation": {
+      "status": "available",
+      "reason": "synthetic_attestation_fixture"
+    },
+    "provider_usage_events": {
+      "status": "available",
+      "granularity": "turn",
+      "reason": "turn_aggregate_fixture"
+    },
+    "cache_namespace_control": {
+      "status": "unavailable",
+      "reason": "fixture_has_no_provider_namespace"
+    },
+    "request_hit_semantics": {
+      "status": "unsupported",
+      "reason": "turn_aggregate_has_no_request_hit_semantics"
+    }
+  },
+  "redaction_state": "metadata_only"
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": "goal-teams-member-goal-packet-v2.37-legacy",
+  "run_id": "legacy-run-backend-001",
+  "member": "legacy-member-backend",
+  "name": "后端-旧格式迁移",
+  "objective": "验证旧字段到 V2.38 动态尾的确定性迁移",
+  "output_root": "GoalTeamsWork-V2.38",
+  "version": "V2.38",
+  "tasks": ["GT-V238-MIGRATION-001"],
+  "context": ["prompts/packets/member-goal-packet.md"],
+  "scope": ["tests/v23/fixtures/v238"],
+  "excluded_scope": ["runtime"],
+  "tests": ["legacy-migration-fixture"],
+  "harness": "HARNESS-V238-LEGACY-PACKET",
+  "validator": "legacy-validator-run-001"
+}
