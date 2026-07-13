@@ -121,31 +121,41 @@ cp ~/.codex/skills/goal-teams/subagents/goal-*.toml ~/.codex/agents/
 
 ## Usage
 
+The simplest direct-execution form:
+
+```text
+Use $goal-teams to complete the backend API, frontend pages, and acceptance tests for Rental V3.0.
+Keep the LOOP running and finish only after an independent audit passes.
+```
+
+The Goal Lead converts the objective into Done Criteria, creates the versioned SSOT, `TaskList.md`, and Harness/Evidence, then dispatches members according to scope and risk. Users do not need to select every role manually.
+
 Plan and wait for confirmation:
 
 ```text
-Use $goal-teams。
-请为“分时租赁 V3.0”做 Goal Teams 计划。
-过程和结果保存到 `GoalTeamsWork-V3.0/`。
-先生成带用户故事和功能验收标准的需求卡片，再生成需求规格卡和 PRD。
+Use $goal-teams to plan Rental V3.0 and save the work under `GoalTeamsWork-V3.0/`.
+Create the requirement card, PRD, architecture design, and Teams plan first, then wait for my confirmation.
 ```
 
-Execute directly:
+Return only an in-chat plan without files or members:
 
 ```text
-Use $goal-teams。
-请直接执行：为 WIKI 列表 V2.0 规划并实现后端 API、页面验证、独立测试和验收文档。
-仍然先展示 Teams 规划表作为执行记录，但不用等我确认。
+Use $goal-teams in planning-only mode. Do not create or modify files and do not dispatch members.
+Return the plan preview in chat.
 ```
 
-Assign capabilities:
+Continue a long-running task automatically:
 
 ```text
-Use $goal-teams。
-需求分析使用 goal_requirements_analyst。
-页面验证使用 browser skill。
-测试成员使用 goal_qa。
-安全审核使用 goal_reviewer，只读模式。
+Use $goal-teams to complete the full V3.0 implementation without asking about routine choices.
+Keep the LOOP running: record each decision/outcome and continue fixing gaps until the independent Completion Audit passes.
+```
+
+Members and tools can be named when needed. Each member reads its own `INDEX.md` first and progressively loads only the required files:
+
+```text
+Use goal_requirements_analyst for requirements and goal_security for a read-only security audit.
+Use the browser skill for page verification and independent members for E2E case design and execution.
 ```
 
 Use this identity line on an explicit Goal Teams invocation or when the session first needs to establish identity; do not repeat it when full context already exists:

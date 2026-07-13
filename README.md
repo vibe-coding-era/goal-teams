@@ -125,31 +125,41 @@ cp ~/.codex/skills/goal-teams/subagents/goal-*.toml ~/.codex/agents/
 
 ## 使用方式
 
-规划并等待确认：
+最简单的直接执行方式：
 
 ```text
-Use $goal-teams。
-请为“分时租赁 V3.0”做 Goal Teams 计划。
-过程和结果保存到 `GoalTeamsWork-V3.0/`。
-先生成带用户故事和功能验收标准的需求卡片，再生成需求规格卡和 PRD。
+使用 $goal-teams 完成“分时租赁 V3.0”后端 API、前端页面和验收测试。
+保持 LOOP，独立审计通过后再结束。
 ```
 
-直接执行：
+Goal Lead 会先把目标转成 Done Criteria，创建版本化 SSOT、`TaskList.md`、Harness/Evidence，再按任务规模和风险派发成员；用户不需要手工指定所有角色。
+
+只规划并等待确认：
 
 ```text
-Use $goal-teams。
-请直接执行：为 WIKI 列表 V2.0 规划并实现后端 API、页面验证、独立测试和验收文档。
-仍然先展示 Teams 规划表作为执行记录，但不用等我确认。
+使用 $goal-teams 为“分时租赁 V3.0”制定计划，过程保存到 `GoalTeamsWork-V3.0/`。
+先生成需求卡片、PRD、架构设计和 Teams 规划表，等我确认后再执行。
 ```
 
-指定成员能力：
+只在聊天中返回计划、不创建文件或成员：
 
 ```text
-Use $goal-teams。
-需求分析使用 goal_requirements_analyst。
-页面验证使用 browser skill。
-测试成员使用 goal_qa。
-安全审核使用 goal_reviewer，只读模式。
+使用 $goal-teams，只规划，不落盘、不创建或修改任何文件，也不派发成员。
+请在聊天中返回计划预览。
+```
+
+长任务自动续跑：
+
+```text
+使用 $goal-teams 完成 V3.0 全量开发，不要中途询问常规选择。
+保持 LOOP：每轮记录 decision/outcome；发现缺口继续修复，直到独立 Completion Audit 通过。
+```
+
+需要时可以指定成员或工具；每个成员会先读取自己的 `INDEX.md`，再渐进加载必要文件：
+
+```text
+需求分析使用 goal_requirements_analyst；安全审计使用 goal_security，只读模式。
+页面验证使用 browser skill；E2E 用例设计与执行使用独立成员。
 ```
 
 显式调用 Goal Teams 或当前会话首次需要建立身份时汇报；已有完整上下文时不重复：
