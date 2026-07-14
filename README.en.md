@@ -282,6 +282,25 @@ GoalTeamsWork-<project_version>/
 | `goal_sqa` | Read-only process, document classification, version index, and public/private archive proposals. |
 | `goal_completion_auditor` | Completion audit, unfinished-work checks, and session-scoped continuation suggestions. |
 
+## Core Capabilities
+
+| Capability | Purpose | Workflow relationship |
+| --- | --- | --- |
+| 1. Goal and plan modeling | Turns an ambiguous goal into Done Criteria, requirement cards, user stories, acceptance criteria, and a SPEC | Starts the workflow by defining what completion means |
+| 2. Risk routing and progressive loading | Selects `Lite / Standard / Full / Regulated` and loads only applicable UI, backend, testing, and LOOP rules | Sets the required rigor without forcing small tasks through the full process |
+| 3. Multi-agent role orchestration | Provides requirements, product, frontend, backend, unit-test, API, E2E, QA, documentation, Reviewer, and Auditor roles, with support for external Skills | Dispatches work serially or in parallel according to dependencies |
+| 4. Scope and responsibility isolation | Gives each member a `locked_scope`; Owners, testers, Reviewers, and Auditors use distinct identities and cannot self-approve | Prevents overlapping edits, scope drift, and self-verification |
+| 5. SSOT, Ledger, and project memory | Stores facts in an append-only ledger, projects `TaskList.md` through a reducer, versions artifacts, and maintains root `memory.md` | Keeps state replayable, recoverable, and traceable throughout the workflow |
+| 6. Contract-first engineering gates | Requires contract freeze and independent review → accepted Architecture → ready Environment Evidence → independent tests → implementation | Prevents implementation before requirements, architecture, and environment are stable |
+| 7. Independent test orchestration | Separates unit-test design, implementation, unit-test execution, API test design/execution, and E2E design/execution | Establishes TDD, API integration, and E2E verification while reducing implementer bias |
+| 8. UI and visual acceptance | Uses page specification cards, component-library metadata, interaction states, browser E2E, screenshots, component checks, and pixel comparison | Applies to UI tasks; replica work also requires reference baselines and environment fingerprints |
+| 9. Harness, Evidence, and traceability | Harness defines validation; Evidence binds commands, logs, file hashes, run identity, and ledger revision | Builds the `Requirement → AC → Task → Check → Run → Evidence` chain |
+| 10. Tiered Review and completion audit | Scripts check mechanical facts, an LLM Reviewer checks semantics and risk, and an independent Completion Auditor closes the workflow | Required tasks, current Evidence, and the final audit must all pass before `achieved` |
+| 11. Long-running LOOP and recovery | Uses `Gather → Reason → Act → Verify → Repeat` with `continue / replan / stop`, four-file state, CAS, and interruption recovery | Repairs or replans after verification failures and fails closed on inconsistent state |
+| 12. Safety, budget, and failure governance | Governs credentials, destructive actions, external writes, budgets, conflicts, redaction, and untrusted content | Can block any stage and distinguishes `failed / blocked / partial` |
+| 13. Migration, installation, and release governance | Supports legacy scanning and migration, atomic installation, backup, rollback, uninstall, release gates, and public archives | Supports Skill upgrades and candidate releases; real production actions still require external authorization |
+| 14. Benchmark and quality improvement | Compares prompts, Skill versions, and execution approaches while recording scores, failures, divergence, regressions, and bottlenecks | Sits outside the primary delivery workflow and tests whether the process actually improved |
+
 ## Design Sources
 
 | Principle or technology | Why Goal Teams uses it | Source |

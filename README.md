@@ -286,6 +286,25 @@ GoalTeamsWork-<project_version>/
 | `goal_sqa` | 只读过程、文档分类、版本索引和公开/私有归档提案。 |
 | `goal_completion_auditor` | 收尾审计、未完成工作检查和会话内续跑建议。 |
 
+## 核心能力
+
+| 核心能力 | 作用 | 流程关系 |
+| --- | --- | --- |
+| 1. 目标与计划建模 | 把模糊目标转成 Done Criteria、需求卡片、用户故事、验收标准和 SPEC | 整个流程的起点，先定义“什么算完成” |
+| 2. 风险路由与渐进加载 | 按任务选择 `Lite / Standard / Full / Regulated`，只加载 UI、后端、测试、LOOP 等适用规则 | 决定任务需要多严格，避免小任务也走完整重流程 |
+| 3. 多 Agent 角色编排 | 内置需求、产品、前后端、单测、API、E2E、QA、文档、Reviewer、Auditor 等 14 类角色，也可接入外部 Skill | 根据依赖关系串行或并行派发任务 |
+| 4. 范围与职责隔离 | 每个成员获得 `locked_scope`；Owner、测试者、Reviewer、Auditor 使用不同身份，禁止自我批准 | 防止多人覆盖同一文件、范围失控和“自己证明自己正确” |
+| 5. SSOT、Ledger 与项目记忆 | append-only ledger 保存事实，reducer 生成 `TaskList.md`；产物按版本保存，根目录维护 `memory.md` | 贯穿全流程，保证状态可重放、可恢复、可追踪 |
+| 6. Contract-first 工程门禁 | 顺序为：合同冻结并独立评审 → 架构通过 → 开发环境 Evidence 就绪 → 独立测试准备 → 实现 | 防止需求、架构或环境尚未稳定就开始编码 |
+| 7. 独立测试编排 | 分离单测设计、实现、单测执行、API 测试设计/执行、E2E 设计/执行 | 建立 TDD、API 集成和 E2E 验证链，降低实现者自测偏差 |
+| 8. UI 与视觉验收 | 页面规格卡、组件库元数据、交互状态、浏览器 E2E、截图、局部组件检查和像素对比 | 仅 UI 任务触发；复刻任务额外要求参考基线和环境指纹 |
+| 9. Harness、Evidence 与追踪 | Harness 定义怎么验证；Evidence 绑定命令、日志、文件 hash、运行身份和 ledger 版本 | 建立 `Requirement → AC → Task → Check → Run → Evidence` 追踪链 |
+| 10. 分级 Review 与完成审计 | 脚本检查机械事实，LLM Reviewer 检查语义和风险；最后由独立 Completion Auditor 判断闭环 | Required 任务、当前 Evidence 和最终审计全部通过，才能 `achieved` |
+| 11. 长任务 LOOP 与恢复 | 使用 `Gather → Reason → Act → Verify → Repeat`；支持 `continue / replan / stop`、四文件状态、CAS 和中断恢复 | 验证失败时补缺或重规划；状态不一致时失败关闭，不猜测继续 |
+| 12. 安全、预算与失败治理 | 管理凭证、破坏性操作、外部写入、预算、冲突、脱敏和不可信内容 | 可在任何阶段阻断流程；明确区分 `failed / blocked / partial` |
+| 13. 迁移、安装与发布治理 | 支持旧版本扫描迁移、原子安装、备份、回滚、卸载，以及发布门禁和公开归档 | 用于 Skill 自身升级和候选发布；真实生产操作仍需外部授权 |
+| 14. Benchmark 与质量改进 | 对比不同 Prompt、Skill 版本和执行方式；记录评分、失败类型、分歧、回归与瓶颈 | 位于主交付流程之外，用于判断流程是否真的改进 |
+
 ## 设计依据和出处
 
 | 原则或技术 | 为什么采用 | 出处 |
