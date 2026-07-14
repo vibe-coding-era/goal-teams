@@ -4,19 +4,9 @@
 
 Author: 肉山@TGO Hangzhou
 
-Current version: `V2.39`
+Current version: `V2.34`
 
-Goal Teams is a Codex Skill for coordinated agent work. It turns one goal into a verifiable plan, then lets a Goal Lead coordinate subagents or user-selected external skills across requirements, design, implementation, tests, evidence, and completion audit. A separate subagent counts as an independent acceptance identity only when its isolated context is bound to a host attestation.
-
-The version model has three layers so that release identity, policy, and data format are not conflated:
-
-| Layer | Current value | Purpose |
-| --- | --- | --- |
-| Product version | `V2.39` | Version of the Skill package, startup line, and release documentation. |
-| General core policy | `V2.5` / `goal-teams-core-v2.5` | Task routing, execution class, and gates for ordinary projects. |
-| Legacy data schema | `V2.3` | Compatibility for existing ledger, Evidence, Harness, and release-gate data; it is not the current product version. |
-
-Only a current release of the Goal Teams repository itself uses `goal-teams-self-release-v2.39`. Its 52 release assertions, iterations 9/11, four-dimension scoring, prompt identity, Cache Evidence, OKF gate, and public archive do not apply as global invariants to ordinary projects; `goal-teams-self-release-v2.38` is retained only for historical replay. `profile=lite|standard|full|regulated` remains the execution class and is distinct from `policy_profile`.
+Goal Teams is a Codex Skill for coordinated agent work. It turns one goal into a verifiable plan, then lets a Goal Lead coordinate independent subagents running in separate contexts, or user-selected external skills, across requirements, design, implementation, tests, evidence, and completion audit.
 
 Use it when:
 
@@ -61,18 +51,6 @@ Goal Teams includes `benchmarks/` task packages for comparing workflow, prompt, 
 
 The value is that benchmark results make improvement reviewable. The same task can compare baseline and Goal Teams behavior across output completeness, evidence quality, UI verification, production-gate judgment, Loop state recovery, and cost. This repository includes `GT-BENCH-001` through `GT-BENCH-004`, covering typical dimensions from basic output quality to Lead LOOP recovery.
 
-### Prompt Cache Observability
-
-V2.39 retains the V2.38-compatible prompt-cache schema, compilers, observer reports, fixtures, and replay behavior while switching current self-release ordered refs to the V2.39 Profile. `references/prompt-cache-manifest.json` remains the machine SSOT for route-static order and byte budgets. `route_static_digest` binds planned paths and file bytes. When the repository cannot observe the final provider request, it reports `manifest_status=unavailable` and `digest_scope=partial` instead of impersonating a `runtime_prompt_digest`; the full install remains bound by `skill_tree_digest`.
-
-This release reports four orthogonal cache states: structural validation `passed`, host integration `unavailable`, live probe `not_authorized`, and request hit rate `unavailable`. Its claim scope is limited to `structural_governance`; without trusted host observation, user authorization, and provider request semantics, it makes no live optimization, provider-hit, or request-hit-rate claim.
-
-For byte-compatible historical signatures and replay, the V2.35/V2.36 `rule_set` remains a policy-membership set rather than prompt order; `prompt-plan --features` compiles it into a manifest-managed ordered subset.
-
-After each turn, the runner reports token-weighted share, uncached input, and coverage; request hit rate stays null without request events. A cache conclusion requires clean versioned telemetry, complete prompt identity, and trusted host config attestation together. This runner does not yet have that attestation, so live cache analytics remains unsupported.
-
-The repository currently compiles only a first-seen plus five-repeat probe plan. It makes no provider calls and claims neither cold runs nor live A/B records; `live_ab_status=unavailable`. A future executor must bind model, CLI, package, configuration, scorer/Harness, and the observed prompt identity. Goal Teams cannot force, clear, or guarantee a provider prompt cache.
-
 ### Openness and External Skills
 
 Goal Teams does not require every capability to come from a built-in subagent. During Plan, external skills, project scripts, browser tools, test tools, or user-selected subagents can be added to the `Teams 规划表` with locked scope, inputs, outputs, Harness, and validator.
@@ -99,16 +77,6 @@ Validate before maintenance or release:
 ./scripts/check.sh
 ```
 
-A GitHub Release must be built locally as the same reproducible asset and pass source-bound validation before upload:
-
-```bash
-python3 scripts/release/build-release.py --version V2.39 --ref HEAD
-python3 scripts/release/validate-release.py --version V2.39
-scripts/release/publish-github-release.sh V2.39
-```
-
-Local release directories live at `release/versions/<VERSION>/`. Root `docs/` contains non-release knowledge, tests, and credentials only and is excluded by `.gitignore`. See `references/release-packaging-protocol.md` for the full contract.
-
 The standalone deterministic routing check is `scripts/checks/check-routing-fixtures.py` (compatibility entrypoint: `scripts/check-routing-fixtures.py`).
 
 `./scripts/check.sh` covers deterministic contract/mutation gates only; it is not real Behavior release evidence. Before RC, choose a new persistent directory outside the source repository, run the nine isolated blind scenarios, and pass their summary to the combined gate:
@@ -133,47 +101,37 @@ cp ~/.codex/skills/goal-teams/subagents/goal-*.toml ~/.codex/agents/
 
 ## Usage
 
-The simplest direct-execution form:
-
-```text
-Use $goal-teams to complete the backend API, frontend pages, and acceptance tests for Rental V3.0.
-Keep the LOOP running and finish only after an independent audit passes.
-```
-
-The Goal Lead converts the objective into Done Criteria, creates the versioned SSOT, `TaskList.md`, and Harness/Evidence, then dispatches members according to scope and risk. Users do not need to select every role manually.
-
 Plan and wait for confirmation:
 
 ```text
-Use $goal-teams to plan Rental V3.0 and save the work under `GoalTeamsWork-V3.0/`.
-Create the requirement card, PRD, architecture design, and Teams plan first, then wait for my confirmation.
+Use $goal-teams。
+请为“分时租赁 V3.0”做 Goal Teams 计划。
+过程和结果保存到 `GoalTeamsWork-V3.0/`。
+先生成带用户故事和功能验收标准的需求卡片，再生成需求规格卡和 PRD。
 ```
 
-Return only an in-chat plan without files or members:
+Execute directly:
 
 ```text
-Use $goal-teams in planning-only mode. Do not create or modify files and do not dispatch members.
-Return the plan preview in chat.
+Use $goal-teams。
+请直接执行：为 WIKI 列表 V2.0 规划并实现后端 API、页面验证、独立测试和验收文档。
+仍然先展示 Teams 规划表作为执行记录，但不用等我确认。
 ```
 
-Continue a long-running task automatically:
+Assign capabilities:
 
 ```text
-Use $goal-teams to complete the full V3.0 implementation without asking about routine choices.
-Keep the LOOP running: record each decision/outcome and continue fixing gaps until the independent Completion Audit passes.
-```
-
-Members and tools can be named when needed. Each member reads its own `INDEX.md` first and progressively loads only the required files:
-
-```text
-Use goal_requirements_analyst for requirements and goal_security for a read-only security audit.
-Use the browser skill for page verification and independent members for E2E case design and execution.
+Use $goal-teams。
+需求分析使用 goal_requirements_analyst。
+页面验证使用 browser skill。
+测试成员使用 goal_qa。
+安全审核使用 goal_reviewer，只读模式。
 ```
 
 Use this identity line on an explicit Goal Teams invocation or when the session first needs to establish identity; do not repeat it when full context already exists:
 
 ```text
-我是 Goal Teams Lead V2.39。
+我是 Goal Teams Leader V2.34，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：
 ```
 
 Core language rule: user communication and governance documents default to Chinese; code, comments, test names, fixtures, and product strings follow the target repository's conventions; keep identifiers, commands, paths, API names, config keys, subagent IDs, and exact references unchanged.
@@ -191,13 +149,6 @@ Core language rule: user communication and governance documents default to Chine
 | `references/rules-ui.md` | UI, Page Specification Card, HTML Prototype MOCK, E2E, and pixel-comparison rules. |
 | `references/rules-testing.md` | Backend architecture-first, TDD, API integration pytest, frontend E2E, and independent testing rules. |
 | `references/rules-loop.md` | Lead LOOP, Loop Decision, Loop Gate, Budget Gate, and auto-continuation boundaries. |
-| `references/goal-teams-core-v2.5.md` | General policy, Lite/Standard/Full/Regulated routing, and automatic gate derivation for ordinary projects. |
-| `references/profiles/goal-teams-self-release-v2.39.md` | Dedicated Profile used only for the current Goal Teams repository release. |
-| `references/profiles/goal-teams-self-release-v2.38.md` | Read-only replay Profile for historical V2.38 objects. |
-| `references/prompt-cache-manifest.json` | Machine SSOT for route-static order, artifact compilers, and context budgets. |
-| `references/prompt-cache-protocol.md` | Route/runtime identity boundaries, observer telemetry, and plan-only probe semantics. |
-| `scripts/v23/prompt_compilers.py` | Deterministic subagent-prefix and Member Goal Packet compiler/migrator. |
-| `scripts/v23/prompt_cache.py` | Safely reads the ordered manifest, computes prompt identities, and aggregates provider/CLI usage events. |
 | `prompts/packets/handoff-artifacts.md` | Handoff SSOT for artifact types, Owner, validator, status fields, and TaskList ledger format. |
 
 ## Workflow
@@ -276,30 +227,7 @@ GoalTeamsWork-<project_version>/
 | `goal_qa` | Independent tests, integration tests, UI E2E, pixel-comparison acceptance, and test reports. |
 | `goal_docs` | Acceptance, README, reports, and release notes; TaskList changes are handed off as events/patches. |
 | `goal_reviewer` | Read-only review, architecture boundaries, security, coverage, compatibility, and risk. |
-| `goal_security` | Read-only security scope, dependency, port, and injection analysis/proposals; no direct scan, implementation, or dispatch. |
-| `goal_performance` | Read-only SQL/page/data-path baselines and benchmark proposals; no improvement claim without current Evidence. |
-| `goal_refactor` | Read-only engineering/code/document refactor, behavioral-equivalence, and rollback proposals. |
-| `goal_sqa` | Read-only process, document classification, version index, and public/private archive proposals. |
 | `goal_completion_auditor` | Completion audit, unfinished-work checks, and session-scoped continuation suggestions. |
-
-## Core Capabilities
-
-| Capability | Purpose | Workflow relationship |
-| --- | --- | --- |
-| 1. Goal and plan modeling | Turns an ambiguous goal into Done Criteria, requirement cards, user stories, acceptance criteria, and a SPEC | Starts the workflow by defining what completion means |
-| 2. Risk routing and progressive loading | Selects `Lite / Standard / Full / Regulated` and loads only applicable UI, backend, testing, and LOOP rules | Sets the required rigor without forcing small tasks through the full process |
-| 3. Multi-agent role orchestration | Provides requirements, product, frontend, backend, unit-test, API, E2E, QA, documentation, Reviewer, and Auditor roles, with support for external Skills | Dispatches work serially or in parallel according to dependencies |
-| 4. Scope and responsibility isolation | Gives each member a `locked_scope`; Owners, testers, Reviewers, and Auditors use distinct identities and cannot self-approve | Prevents overlapping edits, scope drift, and self-verification |
-| 5. SSOT, Ledger, and project memory | Stores facts in an append-only ledger, projects `TaskList.md` through a reducer, versions artifacts, and maintains root `memory.md` | Keeps state replayable, recoverable, and traceable throughout the workflow |
-| 6. Contract-first engineering gates | Requires contract freeze and independent review → accepted Architecture → ready Environment Evidence → independent tests → implementation | Prevents implementation before requirements, architecture, and environment are stable |
-| 7. Independent test orchestration | Separates unit-test design, implementation, unit-test execution, API test design/execution, and E2E design/execution | Establishes TDD, API integration, and E2E verification while reducing implementer bias |
-| 8. UI and visual acceptance | Uses page specification cards, component-library metadata, interaction states, browser E2E, screenshots, component checks, and pixel comparison | Applies to UI tasks; replica work also requires reference baselines and environment fingerprints |
-| 9. Harness, Evidence, and traceability | Harness defines validation; Evidence binds commands, logs, file hashes, run identity, and ledger revision | Builds the `Requirement → AC → Task → Check → Run → Evidence` chain |
-| 10. Tiered Review and completion audit | Scripts check mechanical facts, an LLM Reviewer checks semantics and risk, and an independent Completion Auditor closes the workflow | Required tasks, current Evidence, and the final audit must all pass before `achieved` |
-| 11. Long-running LOOP and recovery | Uses `Gather → Reason → Act → Verify → Repeat` with `continue / replan / stop`, four-file state, CAS, and interruption recovery | Repairs or replans after verification failures and fails closed on inconsistent state |
-| 12. Safety, budget, and failure governance | Governs credentials, destructive actions, external writes, budgets, conflicts, redaction, and untrusted content | Can block any stage and distinguishes `failed / blocked / partial` |
-| 13. Migration, installation, and release governance | Supports legacy scanning and migration, atomic installation, backup, rollback, uninstall, release gates, and public archives | Supports Skill upgrades and candidate releases; real production actions still require external authorization |
-| 14. Benchmark and quality improvement | Compares prompts, Skill versions, and execution approaches while recording scores, failures, divergence, regressions, and bottlenecks | Sits outside the primary delivery workflow and tests whether the process actually improved |
 
 ## Design Sources
 
@@ -326,14 +254,16 @@ GoalTeamsWork-<project_version>/
 
 ## Version Note
 
-The product version is read from `VERSION`. `V2.39` keeps `V2.5` as the ordinary-project core and uses the dedicated `goal-teams-self-release-v2.39` Profile. Without rewriting V2.38 schemas, fixtures, or replay behavior, this release adds a trusted Cache Evidence contract and full/package Google OKF gates. Structural validation passed; host integration is unavailable, the live probe was not authorized, and request hit rate is unavailable. Therefore the release claims structural/governance completion only and does not claim provider-cache control or live optimization effectiveness. Existing machine data remains compatible with the legacy `V2.3` schema.
+The current version is read from `VERSION`. On the V2.3 machine-contract baseline, `V2.34` adds contract-first execution, Architecture and Environment Evidence gates, a recoverable `Gather → Reason → Act → Verify → Repeat` LOOP, four-file disk state, a constrained iteration-9 candidate reset, a fail-closed iteration-11 delivery gate, four-dimensional scoring, and divergence/bottleneck records. Detailed contracts are loaded from `references/` by task type. After completion, only audited public documents with invocation traces removed are archived under `docs/archive/V2.34/<delivery_id>/`; process ledgers and provenance remain in the non-public workspace.
 
-See [`release/current/`](release/current/README.md) for the current release note and minimal public manifest. Historical process documents, the complete local knowledge base, integration catalog, and release evidence stay in ignored `docs/` and are excluded from GitHub and the install package.
+See [Release Contents](docs/release-contents.en.md) for the visible package inventory, or [发布内容](docs/release-contents.md) for Chinese. The inventory does not replace runtime rules, `VERSION`, or installation validation.
+
+See [Change History](docs/change-history.en.md) for the chronological version summary, or [版本变更记录](docs/change-history.md) for Chinese. `CHANGELOG.md` retains the compatibility record of individual technical changes.
 
 ## License
 
 This repository does not currently declare an open-source license. The owner should first choose a license or internal sharing agreement; that local decision is only a proposal, and GA authorization additionally requires a trusted external host/signature attestation. The current technical deliverable is RC at most.
 
-## Legacy V2.3 Data Schema and Release Compatibility
+## V2.3 Contract and Release Boundary
 
-The legacy V2.3 schema defines closed state enums, a single-writer ledger, Evidence/Traceability, typed migration, and release-gate data. V2.39 continues to read that data; this does not make V2.3 the product version. See `references/goal-teams-v2.3-contract.md` and run `./scripts/check.sh` before release. Technical RC and authorized GA distribution are evaluated separately; even with an owner License/internal-sharing decision, the GA gate must remain fail-closed until a trusted external host/signature attestation exists.
+V2.3 adds deterministic machine contracts for closed state enums, a single-writer ledger, strict Evidence/Traceability, capability degradation, Profile routing, typed migration, and release gates. See `references/goal-teams-v2.3-contract.md` and run `./scripts/check.sh` before release. Technical RC and authorized GA distribution are evaluated separately; even with an owner License/internal-sharing decision, the GA gate must remain fail-closed until a trusted external host/signature attestation exists.
