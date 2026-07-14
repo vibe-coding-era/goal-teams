@@ -23,18 +23,26 @@ exec "$PYTHON_BIN" - "$ROOT" "$@" <<'PY'
 from __future__ import annotations
 
 import argparse
+import contextlib
 import datetime as dt
 import hashlib
 import importlib.util
 import json
 import os
+try:
+    import pwd
+except ModuleNotFoundError:  # pragma: no cover - production installs are Unix-only
+    pwd = None  # type: ignore[assignment]
+import re
 import shutil
 import signal
 import stat
 import subprocess
 import sys
+import tarfile
 import tempfile
 import tomllib
+import unicodedata
 import uuid
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -48,7 +56,21 @@ except ModuleNotFoundError:  # pragma: no cover - Windows fallback
 SCHEMA_VERSION = "goal-teams-install-v2.3"
 OKF_GENERATED_PATH = "references/okf-conformance-manifest.json"
 ROOT = Path(sys.argv[1]).resolve()
+SOURCE_ROOT = ROOT
 ARGS = sys.argv[2:]
+SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+GIT_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+REPOSITORY_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
+VERSION_RE = re.compile(r"^V[0-9]+\.[0-9]+$")
+TAG_RE = re.compile(r"^v[0-9]+\.[0-9]+$")
+RELEASE_SOURCE_KINDS = {"local_release_bundle", "github_release_asset"}
+TAR_LIMITS = {
+    "max_members": 2048,
+    "max_path_bytes": 240,
+    "max_single_file_bytes": 16 * 1024 * 1024,
+    "max_total_uncompressed_bytes": 128 * 1024 * 1024,
+    "max_compression_ratio": 100,
+}
 
 
 class InstallError(RuntimeError):
@@ -63,11 +85,23 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--update-team-fallback", action="store_true", help="opt in to timestamped fallback agent edits")
     parser.add_argument("--dry-run", action="store_true", help="validate source and staging without switching targets")
     parser.add_argument("--allow-dirty", action="store_true", help="package tracked files from a dirty tree and record the downgrade")
-    return parser.parse_args(ARGS)
+    parser.add_argument("--release-bundle", type=Path, help="install an exact four-asset, Gitless release bundle")
+    parser.add_argument("--release-identity", type=Path, help="identity receipt binding the downloaded release assets")
+    parsed = parser.parse_args(ARGS)
+    if bool(parsed.release_bundle) != bool(parsed.release_identity):
+        parser.error("--release-bundle and --release-identity must be provided together")
+    if parsed.release_bundle and (parsed.rollback or parsed.uninstall or parsed.allow_dirty):
+        parser.error("--release-bundle conflicts with --rollback, --uninstall, and --allow-dirty")
+    return parsed
 
 
 args = parse_args()
-code_home = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex"))).expanduser().resolve()
+code_home_input = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex"))).expanduser()
+code_home = (
+    Path(os.path.abspath(code_home_input))
+    if args.release_bundle
+    else code_home_input.resolve()
+)
 skill_target = code_home / "skills" / "goal-teams"
 agent_target = code_home / "agents"
 state_dir = code_home / "state" / "goal-teams"
@@ -84,6 +118,15 @@ package_files: list[dict[str, Any]] = []
 generated_paths: set[str] = set()
 backed_up_components: list[str] = []
 source_info: dict[str, Any] = {
+    "source_kind": "worktree",
+    "repository": None,
+    "release_tag": None,
+    "release_id": None,
+    "release_state": None,
+    "release_assets": [],
+    "release_asset_sha256": None,
+    "release_identity_sha256": None,
+    "bundle_tree_sha256": None,
     "version": "unknown",
     "commit": "unknown",
     "dirty": None,
@@ -111,12 +154,14 @@ source_info: dict[str, Any] = {
 dependencies = {
     "python": {"required": True, "available": True, "version": ".".join(map(str, sys.version_info[:3]))},
     "tomllib": {"required": True, "available": True},
-    "git": {"required": True, "available": shutil.which("git") is not None},
+    "git": {"required": not bool(args.release_bundle), "available": shutil.which("git") is not None},
     "pyyaml": {"required": False, "available": importlib.util.find_spec("yaml") is not None},
     "pillow": {"required": False, "available": importlib.util.find_spec("PIL") is not None},
 }
 install_lock_handle: Any = None
 install_lock_directory: Path | None = None
+release_bundle_preflight: dict[str, Any] | None = None
+release_bundle_verified = False
 
 
 def utc_now() -> str:
@@ -133,6 +178,898 @@ def sha256_file(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def canonical_json_sha256(value: Any) -> str:
+    return sha256_bytes(
+        json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    )
+
+
+def absolute_lexical(path: Path) -> Path:
+    return Path(os.path.abspath(path.expanduser()))
+
+
+def path_within(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root)
+    except ValueError:
+        return False
+    return True
+
+
+def validate_no_symlink_ancestors(path: Path, error_code: str) -> Path:
+    """Reject symlinks without resolving away the evidence first."""
+
+    absolute = absolute_lexical(path)
+    cursor = Path(absolute.anchor)
+    for part in absolute.parts[1:]:
+        cursor = cursor / part
+        try:
+            metadata = cursor.lstat()
+        except FileNotFoundError:
+            break
+        except OSError as exc:
+            raise InstallError(error_code) from exc
+        if stat.S_ISLNK(metadata.st_mode):
+            raise InstallError(f"{error_code}:{cursor.name}")
+    return absolute
+
+
+def validate_owned_existing_ancestors(path: Path, home: Path, owner_uid: int) -> Path:
+    """Validate existing target ancestors from the passwd home downward."""
+
+    safe_home = validate_no_symlink_ancestors(home, "E_RELEASE_PRODUCTION_HOME_SYMLINK")
+    absolute = validate_no_symlink_ancestors(path, "E_RELEASE_TARGET_SYMLINK")
+    if absolute != safe_home and not path_within(absolute, safe_home):
+        raise InstallError("E_RELEASE_TARGET_OUTSIDE")
+    try:
+        relative = absolute.relative_to(safe_home)
+    except ValueError as exc:  # Defensive duplicate of the lexical boundary above.
+        raise InstallError("E_RELEASE_TARGET_OUTSIDE") from exc
+    cursor = safe_home
+    checkpoints = [safe_home]
+    for part in relative.parts:
+        cursor = cursor / part
+        checkpoints.append(cursor)
+    for index, candidate in enumerate(checkpoints):
+        try:
+            metadata = candidate.lstat()
+        except FileNotFoundError:
+            break
+        except OSError as exc:
+            raise InstallError("E_RELEASE_TARGET_METADATA") from exc
+        if stat.S_ISLNK(metadata.st_mode):
+            raise InstallError(f"E_RELEASE_TARGET_SYMLINK:{candidate.name}")
+        if metadata.st_uid != owner_uid:
+            raise InstallError(f"E_RELEASE_TARGET_OWNER:{candidate.name}")
+        if index < len(checkpoints) - 1 and not stat.S_ISDIR(metadata.st_mode):
+            raise InstallError(f"E_RELEASE_TARGET_TYPE:{candidate.name}")
+    return absolute
+
+
+def validate_production_release_target(identity: dict[str, Any]) -> None:
+    """Bind a published GitHub asset install to the real login home.
+
+    Local release-bundle rehearsals intentionally keep their explicit temporary
+    ``CODEX_HOME`` path.  A published release is different: neither HOME nor
+    CODEX_HOME is authority.  The passwd database and real uid are the trust
+    root, and every existing target ancestor below that home must remain owned
+    by the same uid and free of symlinks before the installer may mutate it.
+    """
+
+    if identity.get("source_kind") != "github_release_asset":
+        return
+    if pwd is None or not hasattr(os, "getuid") or not hasattr(os, "geteuid"):
+        raise InstallError("E_RELEASE_PRODUCTION_PLATFORM")
+    uid = os.getuid()
+    if uid != os.geteuid():
+        raise InstallError("E_RELEASE_PRODUCTION_EUID")
+    if "SUDO_UID" in os.environ or "SUDO_USER" in os.environ:
+        raise InstallError("E_RELEASE_PRODUCTION_SUDO")
+    try:
+        account = pwd.getpwuid(uid)
+    except (KeyError, OSError) as exc:
+        raise InstallError("E_RELEASE_PRODUCTION_PASSWD_HOME") from exc
+    raw_home = getattr(account, "pw_dir", None)
+    if not isinstance(raw_home, str) or not raw_home:
+        raise InstallError("E_RELEASE_PRODUCTION_PASSWD_HOME")
+    passwd_home = Path(raw_home)
+    if not passwd_home.is_absolute() or raw_home != str(absolute_lexical(passwd_home)):
+        raise InstallError("E_RELEASE_PRODUCTION_PASSWD_HOME")
+    try:
+        home_metadata = passwd_home.lstat()
+    except OSError as exc:
+        raise InstallError("E_RELEASE_PRODUCTION_PASSWD_HOME") from exc
+    if not stat.S_ISDIR(home_metadata.st_mode):
+        raise InstallError("E_RELEASE_PRODUCTION_PASSWD_HOME")
+    if home_metadata.st_uid != uid:
+        raise InstallError("E_RELEASE_TARGET_OWNER:home")
+    if os.environ.get("HOME") != raw_home:
+        raise InstallError("E_RELEASE_PRODUCTION_HOME")
+    canonical_code_home = passwd_home / ".codex"
+    if (
+        os.environ.get("CODEX_HOME") != str(canonical_code_home)
+        or code_home != canonical_code_home
+    ):
+        raise InstallError("E_RELEASE_PRODUCTION_CODEX_HOME")
+    for target in (
+        canonical_code_home,
+        skill_target,
+        agent_target,
+        state_dir,
+        backup_root,
+        preserved_root,
+        report_root,
+        current_state_path,
+        report_path,
+        state_dir / "install.lock",
+        state_dir / "install.lock.d",
+    ):
+        validate_owned_existing_ancestors(target, passwd_home, uid)
+
+
+def validate_release_runtime_boundary() -> None:
+    global report_path
+    if not args.release_bundle:
+        return
+    safe_home = validate_no_symlink_ancestors(code_home, "E_RELEASE_TARGET_SYMLINK")
+    if safe_home == Path(safe_home.anchor):
+        raise InstallError("E_RELEASE_TARGET_ROOT")
+    for target in (
+        skill_target,
+        agent_target,
+        state_dir,
+        backup_root,
+        preserved_root,
+        report_root,
+        current_state_path,
+        state_dir / "install.lock",
+        state_dir / "install.lock.d",
+    ):
+        absolute = validate_no_symlink_ancestors(target, "E_RELEASE_TARGET_SYMLINK")
+        if not path_within(absolute, safe_home):
+            raise InstallError("E_RELEASE_TARGET_OUTSIDE")
+    if "INSTALL_REPORT" in os.environ:
+        if os.environ.get("GOAL_TEAMS_INSTALL_TEST_VALIDATION") != "1":
+            raise InstallError("E_RELEASE_CUSTOM_REPORT_FORBIDDEN")
+        report_path = absolute_lexical(report_path)
+        validate_no_symlink_ancestors(report_path, "E_RELEASE_TARGET_SYMLINK")
+        if not path_within(report_path, safe_home):
+            raise InstallError("E_RELEASE_CUSTOM_REPORT_OUTSIDE")
+    else:
+        report_path = report_root / f"{stamp}.json"
+
+
+def stable_file_record(path: Path, *, max_bytes: int | None = None) -> dict[str, Any]:
+    absolute = validate_no_symlink_ancestors(path, "E_RELEASE_ASSET_SYMLINK")
+    try:
+        before = absolute.lstat()
+    except OSError as exc:
+        raise InstallError(f"E_RELEASE_ASSET_MISSING:{absolute.name}") from exc
+    if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1:
+        raise InstallError(f"E_RELEASE_ASSET_TYPE:{absolute.name}")
+    if max_bytes is not None and before.st_size > max_bytes:
+        raise InstallError(f"E_RELEASE_ASSET_SIZE:{absolute.name}")
+    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+    try:
+        descriptor = os.open(absolute, flags)
+    except OSError as exc:
+        raise InstallError(f"E_RELEASE_ASSET_OPEN:{absolute.name}") from exc
+    digest = hashlib.sha256()
+    try:
+        opened = os.fstat(descriptor)
+        if (
+            opened.st_dev != before.st_dev
+            or opened.st_ino != before.st_ino
+            or opened.st_size != before.st_size
+            or not stat.S_ISREG(opened.st_mode)
+            or opened.st_nlink != 1
+        ):
+            raise InstallError(f"E_RELEASE_ASSET_CHANGED:{absolute.name}")
+        while True:
+            chunk = os.read(descriptor, 1024 * 1024)
+            if not chunk:
+                break
+            digest.update(chunk)
+        after = os.fstat(descriptor)
+        if (
+            after.st_dev != opened.st_dev
+            or after.st_ino != opened.st_ino
+            or after.st_size != opened.st_size
+            or after.st_mtime_ns != opened.st_mtime_ns
+        ):
+            raise InstallError(f"E_RELEASE_ASSET_CHANGED:{absolute.name}")
+    finally:
+        os.close(descriptor)
+    return {
+        "path": absolute,
+        "name": absolute.name,
+        "sha256": digest.hexdigest(),
+        "size": before.st_size,
+        "device": before.st_dev,
+        "inode": before.st_ino,
+        "mtime_ns": before.st_mtime_ns,
+    }
+
+
+def read_stable_bytes(path: Path, *, max_bytes: int) -> tuple[bytes, dict[str, Any]]:
+    record = stable_file_record(path, max_bytes=max_bytes)
+    with verified_asset_handle(record) as handle:
+        data = handle.read()
+    return data, record
+
+
+def require_json_object(data: bytes, error_code: str) -> dict[str, Any]:
+    try:
+        payload = json.loads(data.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise InstallError(error_code) from exc
+    if not isinstance(payload, dict):
+        raise InstallError(error_code)
+    return payload
+
+
+def normalize_release_relative(raw: str, error_code: str) -> str:
+    if not isinstance(raw, str):
+        raise InstallError(error_code)
+    normalized = unicodedata.normalize("NFC", raw)
+    path = PurePosixPath(normalized)
+    if (
+        not normalized
+        or normalized != raw
+        or "\x00" in normalized
+        or "\\" in normalized
+        or normalized.startswith("/")
+        or path.is_absolute()
+        or any(part in {"", ".", ".."} for part in path.parts)
+        or path.as_posix() != normalized
+    ):
+        raise InstallError(f"{error_code}:{raw}")
+    return path.as_posix()
+
+
+def parse_release_identity(data: bytes) -> dict[str, Any]:
+    payload = require_json_object(data, "E_RELEASE_IDENTITY_JSON")
+    source_kind = payload.get("source_kind")
+    repository = payload.get("repository")
+    version = payload.get("version")
+    tag = payload.get("release_tag", payload.get("tag"))
+    if payload.get("release_tag") and payload.get("tag") and payload["release_tag"] != payload["tag"]:
+        raise InstallError("E_RELEASE_IDENTITY_TAG")
+    release_id = payload.get("release_id")
+    release_state = payload.get("release_state")
+    source_commit = payload.get("source_commit")
+    source_git_tree_id = payload.get("source_git_tree_id")
+    if source_kind not in RELEASE_SOURCE_KINDS:
+        raise InstallError("E_RELEASE_IDENTITY_SOURCE_KIND")
+    if not isinstance(repository, str) or not REPOSITORY_RE.fullmatch(repository):
+        raise InstallError("E_RELEASE_IDENTITY_REPOSITORY")
+    if not isinstance(version, str) or not VERSION_RE.fullmatch(version):
+        raise InstallError("E_RELEASE_IDENTITY_VERSION")
+    if not isinstance(tag, str) or not TAG_RE.fullmatch(tag) or tag != f"v{version[1:]}":
+        raise InstallError("E_RELEASE_IDENTITY_TAG")
+    if not isinstance(source_commit, str) or not GIT_SHA_RE.fullmatch(source_commit):
+        raise InstallError("E_RELEASE_IDENTITY_COMMIT")
+    if not isinstance(source_git_tree_id, str) or not GIT_SHA_RE.fullmatch(source_git_tree_id):
+        raise InstallError("E_RELEASE_IDENTITY_TREE")
+    if source_kind == "github_release_asset":
+        if release_state != "published":
+            raise InstallError("E_RELEASE_IDENTITY_NOT_PUBLISHED")
+        if not isinstance(release_id, int) or isinstance(release_id, bool) or release_id < 1:
+            raise InstallError("E_RELEASE_IDENTITY_RELEASE_ID")
+    else:
+        if release_state not in {"local", "draft", "rehearsal"}:
+            raise InstallError("E_RELEASE_IDENTITY_REHEARSAL_STATE")
+        if not ((isinstance(release_id, int) and not isinstance(release_id, bool) and release_id >= 0) or (isinstance(release_id, str) and release_id)):
+            raise InstallError("E_RELEASE_IDENTITY_RELEASE_ID")
+        if os.environ.get("GOAL_TEAMS_RELEASE_REHEARSAL") != "1" or "CODEX_HOME" not in os.environ:
+            raise InstallError("E_RELEASE_REHEARSAL_ONLY")
+    raw_assets = payload.get("assets")
+    normalized_assets: dict[str, dict[str, Any]] = {}
+    if isinstance(raw_assets, dict):
+        iterable = []
+        for name, value in raw_assets.items():
+            if not isinstance(value, dict):
+                raise InstallError("E_RELEASE_IDENTITY_ASSETS")
+            iterable.append({"name": name, **value})
+    elif isinstance(raw_assets, list):
+        iterable = raw_assets
+    else:
+        raise InstallError("E_RELEASE_IDENTITY_ASSETS")
+    for value in iterable:
+        if not isinstance(value, dict) or not isinstance(value.get("name"), str):
+            raise InstallError("E_RELEASE_IDENTITY_ASSETS")
+        name = value["name"]
+        if Path(name).name != name or name in normalized_assets:
+            raise InstallError("E_RELEASE_IDENTITY_ASSETS")
+        digest = value.get("sha256")
+        downloaded = value.get("download_sha256")
+        size = value.get("size")
+        asset_id = value.get("asset_id")
+        if not isinstance(digest, str) or not SHA256_RE.fullmatch(digest):
+            raise InstallError(f"E_RELEASE_IDENTITY_ASSET_HASH:{name}")
+        if not isinstance(downloaded, str) or downloaded != digest:
+            raise InstallError(f"E_RELEASE_IDENTITY_DOWNLOAD_HASH:{name}")
+        if not isinstance(size, int) or isinstance(size, bool) or size < 0:
+            raise InstallError(f"E_RELEASE_IDENTITY_ASSET_SIZE:{name}")
+        if source_kind == "github_release_asset":
+            if not isinstance(asset_id, int) or isinstance(asset_id, bool) or asset_id < 1:
+                raise InstallError(f"E_RELEASE_IDENTITY_ASSET_ID:{name}")
+        elif asset_id is not None and not (
+            (isinstance(asset_id, int) and not isinstance(asset_id, bool) and asset_id >= 0)
+            or (isinstance(asset_id, str) and asset_id)
+        ):
+            raise InstallError(f"E_RELEASE_IDENTITY_ASSET_ID:{name}")
+        normalized_assets[name] = {
+            "name": name,
+            "asset_id": asset_id,
+            "size": size,
+            "sha256": digest,
+            "download_sha256": downloaded,
+        }
+    return {
+        "source_kind": source_kind,
+        "repository": repository,
+        "version": version,
+        "release_tag": tag,
+        "release_id": release_id,
+        "release_state": release_state,
+        "source_commit": source_commit,
+        "source_git_tree_id": source_git_tree_id,
+        "assets": normalized_assets,
+    }
+
+
+def parse_release_file_manifest(data: bytes, version: str) -> dict[str, dict[str, Any]]:
+    if not data.endswith(b"\n"):
+        raise InstallError("E_RELEASE_FILES_CANONICAL")
+    try:
+        lines = data.decode("utf-8").splitlines()
+    except UnicodeDecodeError as exc:
+        raise InstallError("E_RELEASE_FILES_ENCODING") from exc
+    entries: dict[str, dict[str, Any]] = {}
+    collision_keys: set[str] = set()
+    previous_path: str | None = None
+    for number, line in enumerate(lines, start=1):
+        if not line:
+            raise InstallError(f"E_RELEASE_FILES_ROW:{number}")
+        if "\t" in line:
+            fields = line.split("\t", 3)
+            if len(fields) != 4:
+                raise InstallError(f"E_RELEASE_FILES_ROW:{number}")
+            digest, git_mode, size_raw, raw_path = fields
+            if git_mode not in {"100644", "100755"}:
+                raise InstallError(f"E_RELEASE_FILES_MODE:{number}")
+            try:
+                size = int(size_raw)
+            except ValueError as exc:
+                raise InstallError(f"E_RELEASE_FILES_SIZE:{number}") from exc
+            if size < 0:
+                raise InstallError(f"E_RELEASE_FILES_SIZE:{number}")
+        else:
+            if version == "V2.40" or "  " not in line:
+                raise InstallError(f"E_RELEASE_FILES_EXTENDED_REQUIRED:{number}")
+            digest, raw_path = line.split("  ", 1)
+            git_mode = "100644"
+            size = -1
+        if not SHA256_RE.fullmatch(digest):
+            raise InstallError(f"E_RELEASE_FILES_HASH:{number}")
+        relative = normalize_release_relative(raw_path, "E_RELEASE_FILES_PATH")
+        collision = relative.casefold()
+        if relative in entries or collision in collision_keys:
+            raise InstallError(f"E_RELEASE_FILES_DUPLICATE:{relative}")
+        if previous_path is not None and relative <= previous_path:
+            raise InstallError("E_RELEASE_FILES_ORDER")
+        previous_path = relative
+        collision_keys.add(collision)
+        entries[relative] = {
+            "path": relative,
+            "sha256": digest,
+            "size": size,
+            "git_mode": git_mode,
+            "mode": 0o755 if git_mode == "100755" else 0o644,
+        }
+    if not entries:
+        raise InstallError("E_RELEASE_FILES_EMPTY")
+    return entries
+
+
+def validate_release_record(
+    payload: dict[str, Any], identity: dict[str, Any], files: dict[str, dict[str, Any]]
+) -> None:
+    version = identity["version"]
+    if (
+        payload.get("schema_version") != "goal-teams-release-snapshot-v2.40"
+        or
+        payload.get("version") != version
+        or payload.get("source_commit") != identity["source_commit"]
+        or payload.get("source_git_tree_id") != identity["source_git_tree_id"]
+        or payload.get("identity_authority") != "source_commit"
+        or payload.get("sealed") is not True
+    ):
+        raise InstallError("E_RELEASE_RECORD_IDENTITY")
+    manifest_sha = payload.get("source_package_manifest_sha256")
+    tree_sha = payload.get("tree_sha256")
+    if not isinstance(manifest_sha, str) or not SHA256_RE.fullmatch(manifest_sha):
+        raise InstallError("E_RELEASE_RECORD_MANIFEST")
+    if not isinstance(tree_sha, str) or not SHA256_RE.fullmatch(tree_sha):
+        raise InstallError("E_RELEASE_RECORD_TREE")
+    if payload.get("file_count") != len(files) or payload.get("total_bytes") != sum(
+        entry["size"] for entry in files.values()
+    ):
+        raise InstallError("E_RELEASE_RECORD_COUNTS")
+    digest_input = b"".join(
+        f"{entry['path']}\0{entry['git_mode']}\0{entry['size']}\0{entry['sha256']}\n".encode("utf-8")
+        for entry in files.values()
+    )
+    if sha256_bytes(digest_input) != tree_sha:
+        raise InstallError("E_RELEASE_RECORD_TREE")
+    artifact = payload.get("artifact")
+    expected_name = f"goal-teams-{version}.tar.gz"
+    if not isinstance(artifact, dict) or artifact.get("path") != f"_artifacts/{expected_name}":
+        raise InstallError("E_RELEASE_RECORD_ARTIFACT")
+    if not isinstance(artifact.get("sha256"), str) or not SHA256_RE.fullmatch(artifact["sha256"]):
+        raise InstallError("E_RELEASE_RECORD_ARTIFACT")
+    if not isinstance(artifact.get("size"), int) or artifact["size"] < 1:
+        raise InstallError("E_RELEASE_RECORD_ARTIFACT")
+    generated = payload.get("builder_generated_files")
+    okf = files.get(OKF_GENERATED_PATH)
+    if not isinstance(generated, list) or len(generated) != 1 or okf is None:
+        raise InstallError("E_RELEASE_RECORD_OKF")
+    generated_row = generated[0]
+    if not isinstance(generated_row, dict) or any(
+        generated_row.get(field) != okf.get(field)
+        for field in ("path", "size", "sha256")
+    ) or generated_row.get("mode") != okf["git_mode"]:
+        raise InstallError("E_RELEASE_RECORD_OKF")
+
+
+@contextlib.contextmanager
+def verified_asset_handle(record: dict[str, Any]):
+    path = Path(record["path"])
+    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+    try:
+        descriptor = os.open(path, flags)
+    except OSError as exc:
+        raise InstallError(f"E_RELEASE_ASSET_OPEN:{path.name}") from exc
+    handle = os.fdopen(descriptor, "rb", closefd=True)
+    try:
+        metadata = os.fstat(handle.fileno())
+        if (
+            not stat.S_ISREG(metadata.st_mode)
+            or metadata.st_nlink != 1
+            or metadata.st_dev != record["device"]
+            or metadata.st_ino != record["inode"]
+            or metadata.st_size != record["size"]
+            or metadata.st_mtime_ns != record["mtime_ns"]
+        ):
+            raise InstallError(f"E_RELEASE_ASSET_CHANGED:{path.name}")
+        digest = hashlib.sha256()
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+        if digest.hexdigest() != record["sha256"]:
+            raise InstallError(f"E_RELEASE_ASSET_CHANGED:{path.name}")
+        handle.seek(0)
+        yield handle
+        after = os.fstat(handle.fileno())
+        if (
+            after.st_dev != metadata.st_dev
+            or after.st_ino != metadata.st_ino
+            or after.st_size != metadata.st_size
+            or after.st_mtime_ns != metadata.st_mtime_ns
+        ):
+            raise InstallError(f"E_RELEASE_ASSET_CHANGED:{path.name}")
+    finally:
+        handle.close()
+
+
+def inspect_release_tar(
+    tar_record: dict[str, Any],
+    version: str,
+    expected_files: dict[str, dict[str, Any]],
+) -> tuple[list[dict[str, Any]], bytes]:
+    prefix = f"goal-teams-{version}/"
+    prepared: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    total = 0
+    max_single = 0
+    max_path = 0
+    okf_bytes: bytes | None = None
+    with verified_asset_handle(tar_record) as raw:
+        try:
+            archive = tarfile.open(fileobj=raw, mode="r:*")
+        except tarfile.TarError as exc:
+            raise InstallError("E_RELEASE_TAR_INVALID") from exc
+        try:
+            members = archive.getmembers()
+            if len(members) > TAR_LIMITS["max_members"]:
+                raise InstallError("E_RELEASE_TAR_MEMBER_LIMIT")
+            for member in members:
+                if any(key in member.pax_headers for key in ("path", "linkpath", "GNU.sparse.name")):
+                    raise InstallError("E_RELEASE_TAR_PAX_OVERRIDE")
+                if member.issym() or member.islnk():
+                    raise InstallError("E_RELEASE_TAR_LINK")
+                if member.type not in {tarfile.REGTYPE, tarfile.AREGTYPE}:
+                    raise InstallError("E_RELEASE_TAR_TYPE")
+                normalized_name = unicodedata.normalize("NFC", member.name)
+                if normalized_name != member.name or not normalized_name.startswith(prefix):
+                    raise InstallError("E_RELEASE_TAR_ROOT")
+                relative = normalize_release_relative(
+                    normalized_name[len(prefix):], "E_RELEASE_TAR_PATH"
+                )
+                collision = relative.casefold()
+                if collision in seen:
+                    raise InstallError("E_RELEASE_TAR_DUPLICATE")
+                seen.add(collision)
+                path_bytes = len(normalized_name.encode("utf-8"))
+                max_path = max(max_path, path_bytes)
+                if path_bytes > TAR_LIMITS["max_path_bytes"]:
+                    raise InstallError("E_RELEASE_TAR_PATH_LIMIT")
+                if member.size < 0 or member.size > TAR_LIMITS["max_single_file_bytes"]:
+                    raise InstallError("E_RELEASE_TAR_SINGLE_LIMIT")
+                mode = stat.S_IMODE(member.mode)
+                if mode not in {0o644, 0o755}:
+                    raise InstallError("E_RELEASE_TAR_MODE")
+                source = archive.extractfile(member)
+                if source is None:
+                    raise InstallError("E_RELEASE_TAR_INVALID")
+                digest = hashlib.sha256()
+                captured = bytearray() if relative == OKF_GENERATED_PATH else None
+                read_size = 0
+                with source:
+                    while True:
+                        chunk = source.read(1024 * 1024)
+                        if not chunk:
+                            break
+                        read_size += len(chunk)
+                        digest.update(chunk)
+                        if captured is not None:
+                            captured.extend(chunk)
+                if read_size != member.size:
+                    raise InstallError("E_RELEASE_TAR_TRUNCATED")
+                expected = expected_files.get(relative)
+                if expected is None or (
+                    expected["sha256"] != digest.hexdigest()
+                    or expected["size"] != member.size
+                    or expected["mode"] != mode
+                ):
+                    raise InstallError(f"E_RELEASE_TAR_FILE_IDENTITY:{relative}")
+                total += member.size
+                max_single = max(max_single, member.size)
+                if total > TAR_LIMITS["max_total_uncompressed_bytes"]:
+                    raise InstallError("E_RELEASE_TAR_TOTAL_LIMIT")
+                if captured is not None:
+                    okf_bytes = bytes(captured)
+                prepared.append(
+                    {
+                        "archive_name": member.name,
+                        "path": relative,
+                        "sha256": digest.hexdigest(),
+                        "size": member.size,
+                        "mode": mode,
+                    }
+                )
+        finally:
+            archive.close()
+    if set(seen) != {path.casefold() for path in expected_files} or len(prepared) != len(expected_files):
+        raise InstallError("E_RELEASE_TAR_FILE_SET")
+    if total and total / max(1, tar_record["size"]) > TAR_LIMITS["max_compression_ratio"]:
+        raise InstallError("E_RELEASE_TAR_RATIO_LIMIT")
+    if okf_bytes is None:
+        raise InstallError("E_RELEASE_TAR_OKF_MISSING")
+    prepared.sort(key=lambda entry: entry["path"])
+    return prepared, okf_bytes
+
+
+def validate_okf_release_bytes(
+    data: bytes, identity: dict[str, Any], record: dict[str, Any]
+) -> dict[str, Any]:
+    manifest = require_json_object(data, "E_RELEASE_OKF_JSON")
+    source = manifest.get("source")
+    package = manifest.get("package")
+    policy = manifest.get("policy")
+    checkers = manifest.get("checkers")
+    if (
+        manifest.get("manifest_scope") != "installed_package_complete"
+        or not isinstance(source, dict)
+        or source.get("commit_sha256") != identity["source_commit"]
+        or source.get("git_tree_id") != identity["source_git_tree_id"]
+        or source.get("package_manifest_sha256") != record["source_package_manifest_sha256"]
+        or not isinstance(package, dict)
+        or not isinstance(package.get("payload_tree_sha256"), str)
+        or not SHA256_RE.fullmatch(package["payload_tree_sha256"])
+        or not isinstance(policy, dict)
+        or not isinstance(policy.get("sha256"), str)
+        or not SHA256_RE.fullmatch(policy["sha256"])
+        or not isinstance(checkers, list)
+    ):
+        raise InstallError("E_RELEASE_OKF_IDENTITY")
+    checker_hashes: dict[str, str] = {}
+    for checker in checkers:
+        if (
+            not isinstance(checker, dict)
+            or not isinstance(checker.get("path"), str)
+            or not isinstance(checker.get("sha256"), str)
+            or not SHA256_RE.fullmatch(checker["sha256"])
+        ):
+            raise InstallError("E_RELEASE_OKF_CHECKERS")
+        if checker["path"] in checker_hashes:
+            raise InstallError("E_RELEASE_OKF_CHECKERS")
+        checker_hashes[checker["path"]] = checker["sha256"]
+    summary = record.get("okf_conformance")
+    if not isinstance(summary, dict) or (
+        summary.get("manifest_path") != OKF_GENERATED_PATH
+        or summary.get("manifest_sha256") != sha256_bytes(data)
+        or summary.get("payload_tree_sha256") != package["payload_tree_sha256"]
+        or summary.get("policy_sha256") != policy["sha256"]
+        or summary.get("package_completeness_state") != "complete"
+        or summary.get("checker_bindings") != checkers
+    ):
+        raise InstallError("E_RELEASE_OKF_RECORD")
+    return {
+        "manifest_sha256": sha256_bytes(data),
+        "payload_tree_sha256": package["payload_tree_sha256"],
+        "policy_sha256": policy["sha256"],
+        "checker_hashes": checker_hashes,
+    }
+
+
+def prepare_release_bundle() -> None:
+    global release_bundle_preflight, release_bundle_verified
+    assert args.release_bundle is not None and args.release_identity is not None
+    bundle = validate_no_symlink_ancestors(args.release_bundle, "E_RELEASE_BUNDLE_SYMLINK")
+    identity_path = validate_no_symlink_ancestors(args.release_identity, "E_RELEASE_IDENTITY_SYMLINK")
+    if not bundle.is_dir() or bundle.is_symlink():
+        raise InstallError("E_RELEASE_BUNDLE_DIRECTORY")
+    if path_within(bundle, code_home) or path_within(code_home, bundle):
+        raise InstallError("E_RELEASE_BUNDLE_TARGET_OVERLAP")
+    if path_within(identity_path, code_home):
+        raise InstallError("E_RELEASE_IDENTITY_TARGET_OVERLAP")
+    identity_data, identity_file_record = read_stable_bytes(identity_path, max_bytes=2 * 1024 * 1024)
+    identity = parse_release_identity(identity_data)
+    # This is intentionally immediately after identity validation and before
+    # any live target mkdir/lock/report write.
+    validate_production_release_target(identity)
+    expected_names = {
+        f"goal-teams-{identity['version']}.tar.gz",
+        "SHA256SUMS",
+        "_release.json",
+        "_files.sha256",
+    }
+    children = list(bundle.iterdir())
+    actual_names = {child.name for child in children}
+    if len(children) != 4 or actual_names != expected_names:
+        raise InstallError("E_RELEASE_BUNDLE_ASSET_SET")
+    asset_records: dict[str, dict[str, Any]] = {}
+    for child in children:
+        asset_records[child.name] = stable_file_record(
+            child, max_bytes=128 * 1024 * 1024
+        )
+    if set(identity["assets"]) != expected_names:
+        raise InstallError("E_RELEASE_IDENTITY_ASSET_SET")
+    normalized_asset_receipts: list[dict[str, Any]] = []
+    for name in sorted(expected_names):
+        expected = identity["assets"][name]
+        actual = asset_records[name]
+        if expected["sha256"] != actual["sha256"] or expected["size"] != actual["size"]:
+            raise InstallError(f"E_RELEASE_IDENTITY_ASSET_DRIFT:{name}")
+        normalized_asset_receipts.append(dict(expected))
+    sums_data, _ = read_stable_bytes(asset_records["SHA256SUMS"]["path"], max_bytes=64 * 1024)
+    try:
+        sums_lines = sums_data.decode("utf-8").splitlines()
+    except UnicodeDecodeError as exc:
+        raise InstallError("E_RELEASE_SHA256SUMS") from exc
+    tar_name = f"goal-teams-{identity['version']}.tar.gz"
+    if len(sums_lines) != 1 or "  " not in sums_lines[0]:
+        raise InstallError("E_RELEASE_SHA256SUMS")
+    sum_digest, sum_name = sums_lines[0].split("  ", 1)
+    if sum_name != tar_name or sum_digest != asset_records[tar_name]["sha256"]:
+        raise InstallError("E_RELEASE_SHA256SUMS")
+    record_data, _ = read_stable_bytes(asset_records["_release.json"]["path"], max_bytes=2 * 1024 * 1024)
+    record = require_json_object(record_data, "E_RELEASE_RECORD_JSON")
+    files_data, _ = read_stable_bytes(asset_records["_files.sha256"]["path"], max_bytes=8 * 1024 * 1024)
+    files = parse_release_file_manifest(files_data, identity["version"])
+    validate_release_record(record, identity, files)
+    if (
+        record["artifact"]["sha256"] != asset_records[tar_name]["sha256"]
+        or record["artifact"]["size"] != asset_records[tar_name]["size"]
+    ):
+        raise InstallError("E_RELEASE_RECORD_ARTIFACT")
+    prepared, okf_bytes = inspect_release_tar(asset_records[tar_name], identity["version"], files)
+    okf = validate_okf_release_bytes(okf_bytes, identity, record)
+    package_files.clear()
+    package_files.extend(
+        {
+            "path": entry["path"],
+            "sha256": entry["sha256"],
+            "size": entry["size"],
+            "mode": entry["mode"],
+        }
+        for entry in prepared
+    )
+    source_info.update(
+        {
+            "source_kind": identity["source_kind"],
+            "repository": identity["repository"],
+            "release_tag": identity["release_tag"],
+            "release_id": identity["release_id"],
+            "release_state": identity["release_state"],
+            "release_assets": normalized_asset_receipts,
+            "release_asset_sha256": asset_records[tar_name]["sha256"],
+            "release_identity_sha256": sha256_bytes(identity_data),
+            "bundle_tree_sha256": record["tree_sha256"],
+            "version": identity["version"],
+            "commit": identity["source_commit"],
+            "dirty": False,
+            "dirty_entry_count": 0,
+            "tree_digest": record["tree_sha256"],
+            "tracked_tree_digest": record["tree_sha256"],
+            "git_tree_id": identity["source_git_tree_id"],
+            "package_manifest_sha256": record["source_package_manifest_sha256"],
+            "okf_conformance_manifest_sha256": okf["manifest_sha256"],
+            "okf_payload_tree_sha256": okf["payload_tree_sha256"],
+            "okf_policy_sha256": okf["policy_sha256"],
+            "okf_checker_hashes": okf["checker_hashes"],
+            "okf_package_completeness_state": "complete",
+            "skill_source_path": "release-bundle",
+        }
+    )
+    release_bundle_preflight = {
+        "bundle": bundle,
+        "identity": identity,
+        "identity_file_record": identity_file_record,
+        "asset_records": asset_records,
+        "files": files,
+        "prepared": prepared,
+        "record": record,
+        "preflight_sha256": canonical_json_sha256(
+            {
+                "identity": identity,
+                "assets": {
+                    name: {"sha256": value["sha256"], "size": value["size"]}
+                    for name, value in sorted(asset_records.items())
+                },
+                "files": prepared,
+            }
+        ),
+    }
+    validate_production_release_target(identity)
+    release_bundle_verified = True
+
+
+def validate_verified_release_target() -> None:
+    if release_bundle_preflight is None:
+        return
+    identity = release_bundle_preflight.get("identity")
+    if not isinstance(identity, dict):
+        raise InstallError("E_RELEASE_IDENTITY_JSON")
+    validate_production_release_target(identity)
+
+
+def recheck_release_assets() -> None:
+    if release_bundle_preflight is None:
+        raise InstallError("E_RELEASE_BUNDLE_NOT_PREPARED")
+    for name, expected in release_bundle_preflight["asset_records"].items():
+        actual = stable_file_record(Path(expected["path"]), max_bytes=128 * 1024 * 1024)
+        if any(actual[field] != expected[field] for field in ("sha256", "size", "device", "inode", "mtime_ns")):
+            raise InstallError(f"E_RELEASE_ASSET_CHANGED:{name}")
+    expected_identity = release_bundle_preflight["identity_file_record"]
+    actual_identity = stable_file_record(
+        Path(expected_identity["path"]), max_bytes=2 * 1024 * 1024
+    )
+    if any(
+        actual_identity[field] != expected_identity[field]
+        for field in ("sha256", "size", "device", "inode", "mtime_ns")
+    ):
+        raise InstallError("E_RELEASE_IDENTITY_CHANGED")
+
+
+def materialize_release_bundle(destination: Path) -> None:
+    if release_bundle_preflight is None:
+        raise InstallError("E_RELEASE_BUNDLE_NOT_PREPARED")
+    validate_no_symlink_ancestors(destination, "E_RELEASE_TARGET_SYMLINK")
+    if not path_within(absolute_lexical(destination), code_home):
+        raise InstallError("E_RELEASE_TARGET_OUTSIDE")
+    recheck_release_assets()
+    identity = release_bundle_preflight["identity"]
+    tar_name = f"goal-teams-{identity['version']}.tar.gz"
+    prepared, _ = inspect_release_tar(
+        release_bundle_preflight["asset_records"][tar_name],
+        identity["version"],
+        release_bundle_preflight["files"],
+    )
+    if canonical_json_sha256(prepared) != canonical_json_sha256(release_bundle_preflight["prepared"]):
+        raise InstallError("E_RELEASE_TAR_CHANGED")
+    destination.mkdir(parents=True, exist_ok=False)
+    try:
+        tar_record = release_bundle_preflight["asset_records"][tar_name]
+        with verified_asset_handle(tar_record) as raw:
+            with tarfile.open(fileobj=raw, mode="r:*") as archive:
+                members = {member.name: member for member in archive.getmembers()}
+                for entry in prepared:
+                    member = members.get(entry["archive_name"])
+                    if member is None or not member.isfile():
+                        raise InstallError("E_RELEASE_TAR_CHANGED")
+                    target = destination.joinpath(*PurePosixPath(entry["path"]).parts)
+                    validate_no_symlink_ancestors(target.parent, "E_RELEASE_TARGET_SYMLINK")
+                    if not path_within(absolute_lexical(target), absolute_lexical(destination)):
+                        raise InstallError("E_RELEASE_TARGET_OUTSIDE")
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    source = archive.extractfile(member)
+                    if source is None:
+                        raise InstallError("E_RELEASE_TAR_INVALID")
+                    digest = hashlib.sha256()
+                    written = 0
+                    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+                    descriptor = os.open(target, flags, entry["mode"])
+                    try:
+                        with source:
+                            while True:
+                                chunk = source.read(1024 * 1024)
+                                if not chunk:
+                                    break
+                                remaining = memoryview(chunk)
+                                while remaining:
+                                    count = os.write(descriptor, remaining)
+                                    if count <= 0:
+                                        raise InstallError("E_RELEASE_TAR_WRITE")
+                                    remaining = remaining[count:]
+                                digest.update(chunk)
+                                written += len(chunk)
+                        os.fchmod(descriptor, entry["mode"])
+                    finally:
+                        os.close(descriptor)
+                    if written != entry["size"] or digest.hexdigest() != entry["sha256"]:
+                        raise InstallError(f"E_RELEASE_TAR_WRITE_DRIFT:{entry['path']}")
+        validate_package_tree(destination, "release_materialized")
+    except BaseException:
+        shutil.rmtree(destination, ignore_errors=True)
+        raise
+
+
+def prepare_release_source() -> list[str]:
+    allowed_files, allowed_prefixes, required_generated = load_allowlist()
+    generated_paths.clear()
+    generated_paths.update(required_generated)
+    selected = sorted(entry["path"] for entry in package_files)
+    allowed = lambda item: item in allowed_files or item in required_generated or any(
+        item.startswith(prefix) for prefix in allowed_prefixes
+    )
+    unexpected = [item for item in selected if not allowed(item)]
+    if unexpected:
+        raise InstallError("E_RELEASE_PACKAGE_ALLOWLIST:" + ",".join(unexpected))
+    actual = sorted(
+        path.relative_to(SOURCE_ROOT).as_posix()
+        for path in SOURCE_ROOT.rglob("*")
+        if path.is_file() and not path.is_symlink()
+    )
+    if actual != selected:
+        raise InstallError("E_RELEASE_PACKAGE_FILE_SET")
+    for relative in selected:
+        source = safe_source_file(relative)
+        expected = next(entry for entry in package_files if entry["path"] == relative)
+        if (
+            sha256_file(source) != expected["sha256"]
+            or source.stat().st_size != expected["size"]
+            or stat.S_IMODE(source.stat().st_mode) != expected["mode"]
+        ):
+            raise InstallError(f"E_RELEASE_PACKAGE_DRIFT:{relative}")
+    prompt_identity = compute_prompt_identity(SOURCE_ROOT)
+    source_info.update(
+        {
+            "prompt_identity_version": prompt_identity["prompt_identity_version"],
+            "runtime_prompt_route": prompt_identity["route_id"],
+            "runtime_prompt_refs": prompt_identity["ordered_refs"],
+            "prefix_manifest_sha256": prompt_identity["prefix_manifest_sha256"],
+            "route_static_digest": prompt_identity["route_static_digest"],
+            "prompt_manifest_status": prompt_identity["manifest_status"],
+            "prompt_digest_scope": prompt_identity["digest_scope"],
+            "stable_prefix_digest": prompt_identity["stable_prefix_digest"],
+            "runtime_prompt_digest": prompt_identity["runtime_prompt_digest"],
+        }
+    )
+    return selected
 
 
 def compute_prompt_identity(root: Path) -> dict[str, Any]:
@@ -200,7 +1137,13 @@ def write_report(status: str, action: str, *, backup_id: str | None = None, erro
 
 def acquire_install_lock() -> None:
     global install_lock_handle, install_lock_directory
+    if args.release_bundle:
+        validate_release_runtime_boundary()
+        validate_verified_release_target()
     state_dir.mkdir(parents=True, exist_ok=True)
+    if args.release_bundle:
+        validate_release_runtime_boundary()
+        validate_verified_release_target()
     if fcntl is not None:
         lock_path = state_dir / "install.lock"
         handle = lock_path.open("a+", encoding="utf-8")
@@ -241,7 +1184,7 @@ def run(command: list[str], *, cwd: Path, env: dict[str, str] | None = None) -> 
 
 def git(*git_args: str, text: bool = True) -> subprocess.CompletedProcess[Any]:
     return subprocess.run(
-        ["git", *git_args], cwd=ROOT, capture_output=True, text=text, check=False
+        ["git", *git_args], cwd=SOURCE_ROOT, capture_output=True, text=text, check=False
     )
 
 
@@ -255,7 +1198,7 @@ def safe_source_file(relative: str) -> Path:
     """Resolve a tracked package file without following any ancestor symlink."""
     validate_relative_path(relative)
     parts = PurePosixPath(relative).parts
-    cursor = ROOT
+    cursor = SOURCE_ROOT
     for index, part in enumerate(parts):
         cursor = cursor / part
         try:
@@ -270,7 +1213,7 @@ def safe_source_file(relative: str) -> Path:
         if not is_final and not stat.S_ISDIR(metadata.st_mode):
             raise InstallError(f"E_PACKAGE_ANCESTOR_UNSAFE:{relative}")
     try:
-        cursor.resolve(strict=True).relative_to(ROOT)
+        cursor.resolve(strict=True).relative_to(SOURCE_ROOT.resolve(strict=True))
     except (OSError, RuntimeError, ValueError) as exc:
         raise InstallError(f"E_PACKAGE_ANCESTOR_UNSAFE:{relative}") from exc
     return cursor
@@ -324,6 +1267,7 @@ def package_tree_digest() -> str:
 
 
 def prepare_source() -> list[str]:
+    source_info["source_kind"] = "worktree"
     if not dependencies["git"]["available"]:
         raise InstallError("E_DEPENDENCY_GIT: install Git before running the installer")
     inside = git("rev-parse", "--is-inside-work-tree")
@@ -379,7 +1323,7 @@ def prepare_source() -> list[str]:
     )
     source_info["tracked_tree_digest"] = package_tree_digest()
     source_info["tree_digest"] = source_info["tracked_tree_digest"]
-    prompt_identity = compute_prompt_identity(ROOT)
+    prompt_identity = compute_prompt_identity(SOURCE_ROOT)
     source_info.update({
         "prompt_identity_version": prompt_identity["prompt_identity_version"],
         "runtime_prompt_route": prompt_identity["route_id"],
@@ -592,6 +1536,58 @@ def generate_okf_manifest(stage: Path) -> None:
     )
 
 
+def replay_okf_manifest(stage: Path, phase: str) -> None:
+    """Validate the builder-generated manifest without regenerating it."""
+
+    manifest = stage / OKF_GENERATED_PATH
+    checker = stage / "scripts" / "checks" / "check-okf.py"
+    if (
+        not manifest.is_file()
+        or manifest.is_symlink()
+        or not checker.is_file()
+        or checker.is_symlink()
+    ):
+        raise InstallError(f"E_RELEASE_OKF_PACKAGE:{phase}")
+    before = sha256_file(manifest)
+    if before != source_info.get("okf_conformance_manifest_sha256"):
+        raise InstallError(f"E_RELEASE_OKF_DRIFT:{phase}")
+    result = run(
+        [
+            sys.executable,
+            str(checker),
+            "--root",
+            str(stage),
+            "--package-tree",
+            str(stage),
+        ],
+        cwd=stage,
+        env=validation_environment(),
+    )
+    try:
+        payload = json.loads(result.stdout)
+    except json.JSONDecodeError as exc:
+        raise InstallError(f"E_RELEASE_OKF_REPLAY:{phase}") from exc
+    if (
+        result.returncode != 0
+        or payload.get("passed") is not True
+        or payload.get("package_completeness_state") != "complete"
+        or sha256_file(manifest) != before
+    ):
+        raise InstallError(f"E_RELEASE_OKF_REPLAY:{phase}")
+    validate_package_tree(stage, f"okf_replay_{phase}")
+    validation_results.append(
+        {
+            "phase": f"okf_package_tree_{phase}",
+            "command": "scripts/checks/check-okf.py --package-tree (replay only)",
+            "exit_code": 0,
+            "status": "passed",
+            "manifest_sha256": before,
+            "payload_tree_sha256": source_info["okf_payload_tree_sha256"],
+            "policy_sha256": source_info["okf_policy_sha256"],
+        }
+    )
+
+
 def validate_package_tree(root: Path, phase: str) -> None:
     actual: list[dict[str, Any]] = []
     if not root.is_dir() or root.is_symlink():
@@ -738,6 +1734,91 @@ def read_state() -> dict[str, Any] | None:
             or not isinstance(entry.get("mode"), int)
         ):
             raise InstallError("E_INSTALL_STATE_FIELD:package_files")
+    source_kind = payload.get("source_kind", "worktree")
+    if source_kind not in {"worktree", *RELEASE_SOURCE_KINDS}:
+        raise InstallError("E_INSTALL_STATE_FIELD:source_kind")
+    if source_kind in RELEASE_SOURCE_KINDS:
+        repository = payload.get("repository")
+        version = payload.get("version")
+        release_tag = payload.get("release_tag")
+        release_state = payload.get("release_state")
+        release_id = payload.get("release_id")
+        if not isinstance(repository, str) or not REPOSITORY_RE.fullmatch(repository):
+            raise InstallError("E_INSTALL_STATE_FIELD:repository")
+        if not isinstance(version, str) or not VERSION_RE.fullmatch(version):
+            raise InstallError("E_INSTALL_STATE_FIELD:version")
+        if not isinstance(release_tag, str) or not TAG_RE.fullmatch(release_tag):
+            raise InstallError("E_INSTALL_STATE_FIELD:release_tag")
+        if release_tag != f"v{str(payload.get('version'))[1:]}":
+            raise InstallError("E_INSTALL_STATE_FIELD:release_tag")
+        if source_kind == "github_release_asset":
+            if release_state != "published" or not isinstance(release_id, int) or isinstance(release_id, bool) or release_id < 1:
+                raise InstallError("E_INSTALL_STATE_FIELD:release_identity")
+        elif (
+            release_state not in {"local", "draft", "rehearsal"}
+            or not (
+                (isinstance(release_id, int) and not isinstance(release_id, bool) and release_id >= 0)
+                or (isinstance(release_id, str) and release_id)
+            )
+        ):
+            raise InstallError("E_INSTALL_STATE_FIELD:release_identity")
+        if payload.get("source_dirty") is not False:
+            raise InstallError("E_INSTALL_STATE_FIELD:source_dirty")
+        for field in (
+            "source_commit",
+            "source_git_tree_id",
+        ):
+            value = payload.get(field)
+            if not isinstance(value, str) or not GIT_SHA_RE.fullmatch(value):
+                raise InstallError(f"E_INSTALL_STATE_FIELD:{field}")
+        for field in (
+            "release_asset_sha256",
+            "release_identity_sha256",
+            "bundle_tree_sha256",
+        ):
+            value = payload.get(field)
+            if not isinstance(value, str) or not SHA256_RE.fullmatch(value):
+                raise InstallError(f"E_INSTALL_STATE_FIELD:{field}")
+        assets = payload.get("release_assets")
+        expected_names = {
+            f"goal-teams-{payload.get('version')}.tar.gz",
+            "SHA256SUMS",
+            "_release.json",
+            "_files.sha256",
+        }
+        if not isinstance(assets, list) or len(assets) != 4:
+            raise InstallError("E_INSTALL_STATE_FIELD:release_assets")
+        names: set[str] = set()
+        for asset in assets:
+            if not isinstance(asset, dict) or asset.get("name") in names:
+                raise InstallError("E_INSTALL_STATE_FIELD:release_assets")
+            name = asset.get("name")
+            digest = asset.get("sha256")
+            if (
+                not isinstance(name, str)
+                or not isinstance(digest, str)
+                or not SHA256_RE.fullmatch(digest)
+                or asset.get("download_sha256") != digest
+                or not isinstance(asset.get("size"), int)
+                or asset["size"] < 0
+            ):
+                raise InstallError("E_INSTALL_STATE_FIELD:release_assets")
+            asset_id = asset.get("asset_id")
+            if source_kind == "github_release_asset" and (
+                not isinstance(asset_id, int)
+                or isinstance(asset_id, bool)
+                or asset_id < 1
+            ):
+                raise InstallError("E_INSTALL_STATE_FIELD:release_assets")
+            names.add(name)
+        if names != expected_names:
+            raise InstallError("E_INSTALL_STATE_FIELD:release_assets")
+        tar_name = f"goal-teams-{payload.get('version')}.tar.gz"
+        tar_asset = next(asset for asset in assets if asset.get("name") == tar_name)
+        if payload.get("release_asset_sha256") != tar_asset.get("sha256"):
+            raise InstallError("E_INSTALL_STATE_FIELD:release_asset_sha256")
+        if payload.get("bundle_tree_sha256") != payload.get("source_tree_digest"):
+            raise InstallError("E_INSTALL_STATE_FIELD:bundle_tree_sha256")
     return payload
 
 
@@ -987,6 +2068,15 @@ def state_payload(
     return {
         "schema_version": SCHEMA_VERSION,
         "installed_at": utc_now(),
+        "source_kind": source_info["source_kind"],
+        "repository": source_info["repository"],
+        "release_tag": source_info["release_tag"],
+        "release_id": source_info["release_id"],
+        "release_state": source_info["release_state"],
+        "release_assets": source_info["release_assets"],
+        "release_asset_sha256": source_info["release_asset_sha256"],
+        "release_identity_sha256": source_info["release_identity_sha256"],
+        "bundle_tree_sha256": source_info["bundle_tree_sha256"],
         "version": source_info["version"],
         "source_commit": source_info["commit"],
         "source_dirty": source_info["dirty"],
@@ -1024,6 +2114,15 @@ def lifecycle_action(action: str) -> None:
     if state is None:
         raise InstallError(f"E_{action.upper()}_NO_STATE")
     source_info.update({
+        "source_kind": state.get("source_kind", "worktree"),
+        "repository": state.get("repository"),
+        "release_tag": state.get("release_tag"),
+        "release_id": state.get("release_id"),
+        "release_state": state.get("release_state"),
+        "release_assets": state.get("release_assets", []),
+        "release_asset_sha256": state.get("release_asset_sha256"),
+        "release_identity_sha256": state.get("release_identity_sha256"),
+        "bundle_tree_sha256": state.get("bundle_tree_sha256"),
         "version": state.get("version", "unknown"),
         "commit": state.get("source_commit", "unknown"),
         "dirty": state.get("source_dirty"),
@@ -1071,10 +2170,9 @@ def lifecycle_action(action: str) -> None:
 
 
 def install() -> None:
+    global SOURCE_ROOT
     previous_state = read_state()
-    selected = prepare_source()
     action = "update" if previous_state is not None else "install"
-    validate_skill(ROOT, "source")
     code_home.mkdir(parents=True, exist_ok=True)
     state_dir.mkdir(parents=True, exist_ok=True)
     transaction = Path(tempfile.mkdtemp(prefix=f".goal-teams-transaction-{stamp}-", dir=code_home))
@@ -1082,10 +2180,32 @@ def install() -> None:
     backup_id: str | None = None
     switched = False
     try:
+        if args.release_bundle:
+            # A rehearsal CODEX_HOME may itself live below a repository.  An
+            # transaction-local .git indirection prevents Git discovery
+            # from walking upward and binding gitless package checks to that
+            # unrelated ancestor index.  It never enters the staged package.
+            git_discovery_barrier = transaction / ".git"
+            git_discovery_barrier.write_text(
+                "gitdir: .goal-teams-gitless\n", encoding="utf-8"
+            )
+            git_discovery_barrier.chmod(0o600)
+            release_source = transaction / "release-source"
+            materialize_release_bundle(release_source)
+            SOURCE_ROOT = release_source
+            selected = prepare_release_source()
+            replay_okf_manifest(SOURCE_ROOT, "source")
+        else:
+            SOURCE_ROOT = ROOT
+            selected = prepare_source()
+        validate_skill(SOURCE_ROOT, "source")
         stage_skill = transaction / "stage" / "skill"
         stage_agents = transaction / "stage" / "agents"
         copy_package(selected, stage_skill)
-        generate_okf_manifest(stage_skill)
+        if args.release_bundle:
+            replay_okf_manifest(stage_skill, "staging")
+        else:
+            generate_okf_manifest(stage_skill)
         managed_agents, fallback_agents = prepare_agents(stage_skill, stage_agents)
         if previous_state is not None:
             for name in previous_state.get("fallback_agent_files", []):
@@ -1102,7 +2222,8 @@ def install() -> None:
         maybe_fail("staging_validation")
         if args.dry_run:
             write_report("dry_run", action)
-            print(f"Dry-run {action}: source and tracked allowlist staging verified.")
+            source_label = "release bundle" if args.release_bundle else "tracked allowlist"
+            print(f"Dry-run {action}: source and {source_label} staging verified.")
             return
 
         detect_and_preserve_user_changes(previous_state, action)
@@ -1143,7 +2264,8 @@ def install() -> None:
         )
         atomic_json(current_state_path, state)
         write_report("installed", action, backup_id=backup_id)
-        print(f"Goal Teams {action} completed from tracked allowlist; report {safe_report_path(report_path)}")
+        source_label = "verified release bundle" if args.release_bundle else "tracked allowlist"
+        print(f"Goal Teams {action} completed from {source_label}; report {safe_report_path(report_path)}")
     except BaseException as exc:
         if switched and backup_dir is not None:
             try:
@@ -1157,6 +2279,7 @@ def install() -> None:
                 raise InstallError(f"E_AUTOMATIC_ROLLBACK:{rollback_exc}") from exc
         raise
     finally:
+        SOURCE_ROOT = ROOT
         shutil.rmtree(transaction, ignore_errors=True)
 
 
@@ -1169,6 +2292,10 @@ for handled_signal in (signal.SIGINT, signal.SIGTERM):
 
 
 try:
+    if args.release_bundle:
+        validate_release_runtime_boundary()
+        prepare_release_bundle()
+        validate_release_runtime_boundary()
     acquire_install_lock()
     if args.rollback:
         lifecycle_action("rollback")
@@ -1177,7 +2304,7 @@ try:
     else:
         install()
 except InstallError as exc:
-    if not report_path.exists():
+    if not report_path.exists() and (not args.release_bundle or release_bundle_verified):
         action = "rollback" if args.rollback else "uninstall" if args.uninstall else "install"
         try:
             write_report("failed", action, error_code=str(exc).split(":", 1)[0])
@@ -1187,7 +2314,7 @@ except InstallError as exc:
     raise SystemExit(1)
 except Exception as exc:
     action = "rollback" if args.rollback else "uninstall" if args.uninstall else "install"
-    if not report_path.exists():
+    if not report_path.exists() and (not args.release_bundle or release_bundle_verified):
         try:
             write_report("failed", action, error_code="E_INTERNAL")
         except OSError:

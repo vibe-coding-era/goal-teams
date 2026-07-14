@@ -1,18 +1,27 @@
-# Goal Teams V2.39 Release
+# Goal Teams V2.40 Release
 
-V2.39 closes the structural Cache Evidence and Google OKF governance gaps while preserving Goal Teams' V2.38 prompt-cache schemas, fixtures, and read-only replay behavior.
+V2.40 makes the repository root, packaged current release, self-release Profile, and installed identity project the same product version while preserving the V2.39/V2.38 cache schemas, fixtures, and replay-only history.
 
-- Every member package has a progressive `INDEX.md`.
-- Runtime guidance is split into indexed files below the single-document budget.
-- Local knowledge, historical process documents, integration catalogs, and private release evidence live in ignored `docs/`.
-- The runtime package contains current release material only; legacy schemas and runtime identifiers remain solely for data compatibility.
-- Deterministic gates validate member indexes, document size, context budget, security fixtures, package scope, and install lifecycle.
-- Release contents include the prompt-cache manifest, protocol, V2.39 Cache Evidence runtime, OKF policy/checker, and current self-release Profile. The manifest remains the V2.38-compatible route-static order/budget SSOT; current self-release ordered refs point to V2.39 and V2.38 is replay-only. Final `stable_prefix_digest`/`runtime_prompt_digest` require a host-observed ordered request manifest and remain `null` when unavailable.
-- Post-turn telemetry reports token-weighted share, uncached input, coverage, and invalid/unsupported counts. Without trusted host config attestation, cache conclusions remain unsupported; request hit rate remains unavailable without request events.
-- Cache Evidence reports four independent states: structural validation `passed`, host integration `unavailable`, live probe `not_authorized`, and request hit rate `unavailable`. The release claim is limited to `structural_governance`; no live provider optimization, provider-hit, or request-hit-rate result is claimed.
-- The V2.39 live executor remains fail-closed unless trusted capability, configuration, authorization, ordered-manifest, and provider-event semantics are all available. Historical V2.38 plan-only probe and artifacts remain read-only compatibility inputs.
-- `scripts/v23/prompt_compilers.py` deterministically expands the single-source member common prefix and serializes Member Goal Packets with stable, dynamic, and combined digests plus legacy migration receipts.
-- Tracked and packaged Markdown is classified deterministically under the Google OKF policy. Unknown/overlapping classification, unsafe YAML, stale identity/hash, package drift, or forbidden local roots fail closed.
+## Release governance
+
+- Both root READMEs contain exactly one controlled release marker that points to `v2.40` and this `release/current` note; the surrounding user-authored README body remains intact.
+- `goal-teams-self-release-v2.40` is the only current repository self-release Profile. V2.39 and V2.38 Profiles are replay-only and cannot be selected for a current V2.40 release.
+- The CP00–CP18 lifecycle binds every non-idempotent operation to intent, expected-before state, live readback, and marker-last recovery.
+- Promotion holds an active remote main lock, advances main only through an exact compare-and-swap lease, and publishes the already verified Draft last. Tag and published Release identities are immutable.
+- Draft assets are verified and rehearsed only in a temporary `CODEX_HOME`; the actual local installation consumes the published four-asset release and records its commit, tag, Release ID, asset IDs, and digests.
+- Current version checks derive the product identity from `VERSION`. `development` and `candidate` are deterministic local projections; `stable` is decided only by the independent live release audit.
+
+## Cache compatibility and claim boundary
+
+- The V2.38-compatible prompt-cache manifest remains the route-static order and budget SSOT; V2.39/V2.38 schemas and fixtures retain their historical meaning.
+- Cache Evidence keeps structural, host, live-validation, and request-hit-rate states separate. Structural governance cannot be promoted into a live provider or request-hit-rate claim.
 - Goal Teams cannot force, clear, or guarantee a provider prompt cache.
+
+## Release telemetry
+
+- Tokens consumed / Tokens 消耗：**Unavailable / 未获取到**.
+- Cache hit rate / Cache 命中率：**Unavailable / 未获取到**.
+
+No trusted host usage artifact was available to this release note. These values are intentionally unavailable; they are not estimated, inferred, or reported as zero.
 
 Requirements: Python 3.11+ for the complete validated toolchain. The installer fails fast when a compatible Python with `tomllib` is unavailable.

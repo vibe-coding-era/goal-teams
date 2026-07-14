@@ -1,0 +1,549 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/vibe-coding-era/goal-teams/schemas/release-promotion-state-v2.40.schema.json",
+  "title": "Goal Teams V2.40 release promotion state",
+  "$comment": "Revised for follow-up independent review; this contract does not self-attest accepted or passed.",
+  "x-review-status": "revised_for_followup_independent_review",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "repository",
+    "version",
+    "tag",
+    "base_main_commit",
+    "candidate_commit",
+    "candidate_tree",
+    "phase",
+    "current_checkpoint",
+    "transition_map_version",
+    "checkpoints",
+    "github_authority",
+    "sanitization_receipts",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_version": {"const": "goal-teams-release-promotion-v2.40"},
+    "repository": {"type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"},
+    "version": {"type": "string", "pattern": "^V[0-9]+\\.[0-9]+$"},
+    "tag": {"type": "string", "pattern": "^v[0-9]+\\.[0-9]+$"},
+    "base_main_commit": {"$ref": "#/$defs/git_sha"},
+    "candidate_commit": {"$ref": "#/$defs/git_sha"},
+    "candidate_tree": {"$ref": "#/$defs/git_sha"},
+    "phase": {
+      "enum": [
+        "DRIFTED",
+        "RECOVERED",
+        "DEV_OPEN",
+        "RC_FROZEN",
+        "RC_VALIDATED",
+        "CANDIDATE_CI_GREEN",
+        "PROMOTION_LOCKED",
+        "TAG_PUSHED",
+        "DRAFT_VERIFIED",
+        "MAIN_PROMOTED",
+        "RELEASE_PUBLISHED",
+        "INSTALLED_VERIFIED",
+        "CLOSED",
+        "FAILED",
+        "CONFLICT"
+      ]
+    },
+    "current_checkpoint": {"$ref": "#/$defs/checkpoint_id"},
+    "transition_map_version": {"const": "goal-teams-v2.40-transition-map-v1"},
+    "checkpoints": {
+      "type": "object",
+      "propertyNames": {"$ref": "#/$defs/checkpoint_id"},
+      "additionalProperties": {"$ref": "#/$defs/checkpoint"},
+      "minProperties": 1,
+      "maxProperties": 19
+    },
+    "github_authority": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/github_authority"}]},
+    "remote_lock": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/remote_lock"}]},
+    "remote_identity": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/remote_identity"}]},
+    "ci_runs": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/ci_run"},
+      "maxItems": 16
+    },
+    "install_identity": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/install_identity"}]},
+    "sanitization_receipts": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/private_log_sanitization"},
+      "maxItems": 128
+    },
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "state_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "git_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "checkpoint_id": {
+      "enum": [
+        "CP00", "CP01", "CP02", "CP03", "CP04", "CP05", "CP06",
+        "CP07", "CP08", "CP09", "CP10", "CP11", "CP12", "CP13",
+        "CP14", "CP15", "CP16", "CP17", "CP18"
+      ]
+    },
+    "live_classification": {
+      "enum": ["absent", "exact", "conflict", "unavailable"]
+    },
+    "intent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["intent_id", "operation_id", "action", "idempotency_key", "inputs_sha256", "created_at"],
+      "properties": {
+        "intent_id": {"type": "string", "pattern": "^INT-V240-[A-Z0-9-]+$"},
+        "operation_id": {"type": "string", "pattern": "^CP(?:0[0-9]|1[0-8])\\.[a-z0-9_]+$"},
+        "action": {
+          "enum": [
+            "local_validate", "local_build", "local_snapshot_seal", "local_install_rehearsal", "rc_commit",
+            "github_authority_verify", "immutable_release_enable", "immutable_release_verify", "ruleset_capability_verify", "tag_ruleset_create",
+            "candidate_push", "ci_wait", "promotion_lock_create",
+            "tag_push", "draft_create", "asset_upload", "asset_download_verify",
+            "main_promote", "release_publish", "published_asset_download",
+            "actual_install", "post_release_ci", "independent_audit",
+            "promotion_lock_finalize", "archive_close"
+          ]
+        },
+        "idempotency_key": {"$ref": "#/$defs/sha256"},
+        "inputs_sha256": {"$ref": "#/$defs/sha256"},
+        "expected_before": {
+          "type": "object",
+          "$comment": "Required by the semantic validator only when action is listed in x-semantic-validator.external_actions_require_expected_before."
+        },
+        "created_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "readback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["classification", "source", "observed_at", "state_sha256"],
+      "properties": {
+        "classification": {"$ref": "#/$defs/live_classification"},
+        "source": {
+          "enum": ["local_filesystem", "git_ls_remote", "github_api", "github_actions_api", "installed_tree"]
+        },
+        "observed_at": {"type": "string", "format": "date-time"},
+        "state_sha256": {"$ref": "#/$defs/sha256"},
+        "details": {"type": "object"}
+      }
+    },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation_id", "sequence", "status", "intent"],
+      "properties": {
+        "operation_id": {"type": "string", "pattern": "^CP(?:0[0-9]|1[0-8])\\.[a-z0-9_]+$"},
+        "sequence": {"type": "integer", "minimum": 1, "maximum": 32},
+        "status": {"enum": ["pending", "in_progress", "passed", "failed", "conflict"]},
+        "intent": {"$ref": "#/$defs/intent"},
+        "readback": {"$ref": "#/$defs/readback"},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"},
+        "completed_at": {"type": "string", "format": "date-time"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"status": {"const": "passed"}}, "required": ["status"]},
+          "then": {"required": ["readback", "receipt_sha256", "completed_at"], "properties": {"readback": {"properties": {"classification": {"const": "exact"}}}}}
+        },
+        {
+          "if": {"properties": {"status": {"enum": ["failed", "conflict"]}}, "required": ["status"]},
+          "then": {"required": ["readback", "completed_at"]}
+        },
+        {
+          "if": {"properties": {"status": {"enum": ["pending", "in_progress"]}}, "required": ["status"]},
+          "then": {"not": {"required": ["completed_at"]}}
+        }
+      ]
+    },
+    "checkpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checkpoint_id", "status", "candidate_commit", "operations"],
+      "properties": {
+        "checkpoint_id": {"$ref": "#/$defs/checkpoint_id"},
+        "status": {"enum": ["pending", "in_progress", "passed", "failed", "conflict"]},
+        "candidate_commit": {"$ref": "#/$defs/git_sha"},
+        "operations": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/operation"},
+          "minItems": 1,
+          "maxItems": 32
+        },
+        "receipt_sha256": {"$ref": "#/$defs/sha256"},
+        "completed_at": {"type": "string", "format": "date-time"},
+        "invalidates_from": {"$ref": "#/$defs/checkpoint_id"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"status": {"const": "passed"}}, "required": ["status"]},
+          "then": {"required": ["receipt_sha256", "completed_at"]}
+        },
+        {
+          "if": {"properties": {"status": {"enum": ["pending", "in_progress"]}}, "required": ["status"]},
+          "then": {"not": {"required": ["completed_at"]}}
+        }
+      ]
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "asset_id", "size", "sha256", "download_sha256"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^(goal-teams-V[0-9]+\\.[0-9]+\\.tar\\.gz|SHA256SUMS|_release\\.json|_files\\.sha256)$"
+        },
+        "asset_id": {"type": "integer", "minimum": 1},
+        "size": {"type": "integer", "minimum": 1, "maximum": 134217728},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "download_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "remote_lock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ruleset_id", "name", "target_ref", "candidate_commit", "bypass_actor_id", "ruleset_sha256", "observed_at"],
+      "properties": {
+        "ruleset_id": {"type": "integer", "minimum": 1},
+        "name": {"type": "string", "pattern": "^goal-teams-promotion-lock-V[0-9]+\\.[0-9]+-[0-9a-f]{12}$"},
+        "target_ref": {"const": "refs/heads/main"},
+        "candidate_commit": {"$ref": "#/$defs/git_sha"},
+        "bypass_actor_id": {"type": "integer", "minimum": 1},
+        "ruleset_sha256": {"$ref": "#/$defs/sha256"},
+        "observed_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "github_authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "api_host", "actor_id", "actor_login", "repository_id", "repository_full_name", "origin_binding", "origin_binding_sha256", "permission",
+        "immutable_endpoint_capability", "ruleset_capability", "authorized_external_actions",
+        "observed_at", "actor_binding_sha256", "repository_binding_sha256",
+        "capability_binding_sha256", "authorized_actions_sha256", "receipt_sha256"
+      ],
+      "properties": {
+        "api_host": {"const": "github.com"},
+        "actor_id": {"type": "integer", "minimum": 1},
+        "actor_login": {"type": "string", "pattern": "^[A-Za-z0-9-]{1,39}$"},
+        "repository_id": {"const": 1249985345},
+        "repository_full_name": {"const": "vibe-coding-era/goal-teams"},
+        "origin_binding": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["api_host", "repository", "raw_fetch_urls", "raw_push_urls", "resolved_fetch_urls", "resolved_push_urls", "pushurl_configured", "url_rewrite_count", "origin_binding_sha256"],
+          "properties": {
+            "api_host": {"const": "github.com"},
+            "repository": {"const": "vibe-coding-era/goal-teams"},
+            "raw_fetch_urls": {"type": "array", "minItems": 1, "maxItems": 1, "items": {"type": "string", "pattern": "^(?:git@github\\.com:|https://github\\.com/|ssh://git@github\\.com/)vibe-coding-era/goal-teams(?:\\.git)?/?$"}},
+            "raw_push_urls": {"type": "array", "minItems": 1, "maxItems": 1, "items": {"type": "string", "pattern": "^(?:git@github\\.com:|https://github\\.com/|ssh://git@github\\.com/)vibe-coding-era/goal-teams(?:\\.git)?/?$"}},
+            "resolved_fetch_urls": {"type": "array", "minItems": 1, "maxItems": 1, "items": {"type": "string", "pattern": "^(?:git@github\\.com:|https://github\\.com/|ssh://git@github\\.com/)vibe-coding-era/goal-teams(?:\\.git)?/?$"}},
+            "resolved_push_urls": {"type": "array", "minItems": 1, "maxItems": 1, "items": {"type": "string", "pattern": "^(?:git@github\\.com:|https://github\\.com/|ssh://git@github\\.com/)vibe-coding-era/goal-teams(?:\\.git)?/?$"}},
+            "pushurl_configured": {"type": "boolean"},
+            "url_rewrite_count": {"const": 0},
+            "origin_binding_sha256": {"$ref": "#/$defs/sha256"}
+          }
+        },
+        "origin_binding_sha256": {"$ref": "#/$defs/sha256"},
+        "permission": {"const": "admin"},
+        "immutable_endpoint_capability": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["read", "enable", "enabled", "endpoint_sha256"],
+          "properties": {
+            "read": {"const": true},
+            "enable": {"const": true},
+            "enabled": {"type": "boolean"},
+            "endpoint_sha256": {"$ref": "#/$defs/sha256"}
+          }
+        },
+        "ruleset_capability": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["read", "write", "bypass_actor_supported", "endpoint_sha256"],
+          "properties": {
+            "read": {"const": true},
+            "write": {"const": true},
+            "bypass_actor_supported": {"const": true},
+            "endpoint_sha256": {"$ref": "#/$defs/sha256"}
+          }
+        },
+        "authorized_external_actions": {
+          "type": "array",
+          "uniqueItems": true,
+          "minItems": 15,
+          "maxItems": 15,
+          "items": {
+            "enum": [
+              "read_repository", "read_refs", "read_workflows", "read_releases", "read_rulesets",
+              "enable_immutable_releases", "manage_promotion_ruleset", "manage_tag_ruleset",
+              "push_candidate", "push_tag", "promote_main", "create_release_draft",
+              "upload_release_assets", "publish_release", "dispatch_workflow"
+            ]
+          }
+        },
+        "observed_at": {"type": "string", "format": "date-time"},
+        "actor_binding_sha256": {"$ref": "#/$defs/sha256"},
+        "repository_binding_sha256": {"$ref": "#/$defs/sha256"},
+        "capability_binding_sha256": {"$ref": "#/$defs/sha256"},
+        "authorized_actions_sha256": {"$ref": "#/$defs/sha256"},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "remote_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["main_commit", "tag_object", "tag_commit", "release_id", "release_state", "immutable", "immutable_release_enabled", "tag_ruleset_id", "assets"],
+      "properties": {
+        "main_commit": {"$ref": "#/$defs/git_sha"},
+        "tag_object": {"$ref": "#/$defs/git_sha"},
+        "tag_commit": {"$ref": "#/$defs/git_sha"},
+        "release_id": {"type": "integer", "minimum": 1},
+        "release_state": {"enum": ["absent", "draft", "published"]},
+        "latest": {"type": "boolean"},
+        "immutable": {"type": "boolean"},
+        "immutable_release_enabled": {"const": true},
+        "tag_ruleset_id": {"type": "integer", "minimum": 1},
+        "assets": {"type": "array", "items": {"$ref": "#/$defs/asset"}, "minItems": 4, "maxItems": 4}
+      }
+    },
+    "ci_job": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "head_sha", "conclusion"],
+      "properties": {
+        "name": {"enum": ["check-ubuntu", "check-macos", "release-asset-gate"]},
+        "head_sha": {"$ref": "#/$defs/git_sha"},
+        "conclusion": {"const": "success"}
+      }
+    },
+    "ci_run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stage", "workflow_path", "workflow_blob_sha", "workflow_approval_sha256", "workflow_id", "run_id", "run_attempt", "event", "actor_id", "triggering_actor_id", "head_sha", "jobs", "created_at"],
+      "properties": {
+        "stage": {"enum": ["candidate", "post_release"]},
+        "workflow_path": {"const": ".github/workflows/release-gate.yml"},
+        "workflow_blob_sha": {"$ref": "#/$defs/git_sha"},
+        "workflow_approval_sha256": {"$ref": "#/$defs/sha256"},
+        "workflow_id": {"type": "integer", "minimum": 1},
+        "run_id": {"type": "integer", "minimum": 1},
+        "run_attempt": {"type": "integer", "minimum": 1},
+        "event": {"enum": ["push", "workflow_dispatch"]},
+        "actor_id": {"type": "integer", "minimum": 1},
+        "triggering_actor_id": {"type": "integer", "minimum": 1},
+        "head_sha": {"$ref": "#/$defs/git_sha"},
+        "jobs": {"type": "array", "items": {"$ref": "#/$defs/ci_job"}, "minItems": 3, "maxItems": 3},
+        "created_at": {"type": "string", "format": "date-time"}
+        ,"release_intent": {"$ref": "#/$defs/sha256"}
+        ,"display_title": {"type": "string", "pattern": "^Goal Teams V2\\.40 release [0-9a-f]{64}$"}
+      }
+      ,"allOf": [
+        {
+          "if": {"properties": {"stage": {"const": "post_release"}}, "required": ["stage"]},
+          "then": {"required": ["release_intent", "display_title"]}
+        }
+      ]
+    },
+    "install_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_kind", "repository", "version", "tag", "release_id", "source_commit", "source_git_tree_id", "asset_sha256", "installed_tree_sha256", "state_sha256"],
+      "properties": {
+        "source_kind": {"const": "github_release_asset"},
+        "repository": {"type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"},
+        "version": {"type": "string", "pattern": "^V[0-9]+\\.[0-9]+$"},
+        "tag": {"type": "string", "pattern": "^v[0-9]+\\.[0-9]+$"},
+        "release_id": {"type": "integer", "minimum": 1},
+        "source_commit": {"$ref": "#/$defs/git_sha"},
+        "source_git_tree_id": {"$ref": "#/$defs/git_sha"},
+        "asset_sha256": {"$ref": "#/$defs/sha256"},
+        "installed_tree_sha256": {"$ref": "#/$defs/sha256"},
+        "state_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "private_log_sanitization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope", "public_release_surface_policy", "private_input_ref", "private_output_ref",
+        "input_sha256", "checker_sha256", "output_sha256", "redacted_fields", "created_at"
+      ],
+      "properties": {
+        "scope": {"const": "ignored_private_logs_only"},
+        "public_release_surface_policy": {"const": "fail_closed_no_redaction"},
+        "private_input_ref": {"type": "string", "pattern": "^docs/(?!.*(?:^|/)\\.\\.?(?:/|$))[^\\\\\u0000]+$"},
+        "private_output_ref": {"type": "string", "pattern": "^docs/(?!.*(?:^|/)\\.\\.?(?:/|$))[^\\\\\u0000]+$"},
+        "input_sha256": {"$ref": "#/$defs/sha256"},
+        "checker_sha256": {"$ref": "#/$defs/sha256"},
+        "output_sha256": {"$ref": "#/$defs/sha256"},
+        "redacted_fields": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1, "maxLength": 256},
+          "uniqueItems": true,
+          "maxItems": 256
+        },
+        "created_at": {"type": "string", "format": "date-time"}
+      }
+    }
+  },
+  "x-operation-plan": {
+    "CP00": [{"sequence": 1, "operation_id": "CP00.scope_freeze", "action": "local_validate"}],
+    "CP01": [{"sequence": 1, "operation_id": "CP01.legacy_recovery", "action": "local_validate"}],
+    "CP02": [{"sequence": 1, "operation_id": "CP02.topology_validate", "action": "local_validate"}],
+    "CP03": [
+      {"sequence": 1, "operation_id": "CP03.github_authority_readback", "action": "github_authority_verify"},
+      {"sequence": 2, "operation_id": "CP03.immutable_release_enable", "action": "immutable_release_enable"},
+      {"sequence": 3, "operation_id": "CP03.ruleset_capability_verify", "action": "ruleset_capability_verify"}
+    ],
+    "CP04": [{"sequence": 1, "operation_id": "CP04.development_identity", "action": "local_validate"}],
+    "CP05": [
+      {"sequence": 1, "operation_id": "CP05.contract_validate", "action": "local_validate"},
+      {"sequence": 2, "operation_id": "CP05.workflow_approve", "action": "local_validate"}
+    ],
+    "CP06": [{"sequence": 1, "operation_id": "CP06.static_gates", "action": "local_validate"}],
+    "CP07": [{"sequence": 1, "operation_id": "CP07.quality_gates", "action": "local_validate"}],
+    "CP08": [
+      {"sequence": 1, "operation_id": "CP08.candidate_identity", "action": "local_validate"},
+      {"sequence": 2, "operation_id": "CP08.rc_commit", "action": "rc_commit"}
+    ],
+    "CP09": [
+      {"sequence": 1, "operation_id": "CP09.build_primary", "action": "local_build"},
+      {"sequence": 2, "operation_id": "CP09.build_reproducibility", "action": "local_build"}
+    ],
+    "CP10": [
+      {"sequence": 1, "operation_id": "CP10.asset_validate", "action": "local_validate"},
+      {"sequence": 2, "operation_id": "CP10.snapshot_seal", "action": "local_snapshot_seal"}
+    ],
+    "CP11": [{"sequence": 1, "operation_id": "CP11.local_bundle_rehearsal", "action": "local_install_rehearsal"}],
+    "CP12": [{"sequence": 1, "operation_id": "CP12.candidate_push", "action": "candidate_push"}],
+    "CP13": [{"sequence": 1, "operation_id": "CP13.candidate_ci", "action": "ci_wait"}],
+    "CP14": [
+      {"sequence": 1, "operation_id": "CP14.github_authority_revalidate", "action": "github_authority_verify"},
+      {"sequence": 2, "operation_id": "CP14.main_promotion_lock", "action": "promotion_lock_create"},
+      {"sequence": 3, "operation_id": "CP14.immutable_release_verify", "action": "immutable_release_verify"},
+      {"sequence": 4, "operation_id": "CP14.tag_ruleset", "action": "tag_ruleset_create"},
+      {"sequence": 5, "operation_id": "CP14.promotion_lease", "action": "local_validate"}
+    ],
+    "CP15": [{"sequence": 1, "operation_id": "CP15.tag_push", "action": "tag_push"}],
+    "CP16": [
+      {"sequence": 1, "operation_id": "CP16.draft_create", "action": "draft_create"},
+      {"sequence": 2, "operation_id": "CP16.asset_upload_tar", "action": "asset_upload"},
+      {"sequence": 3, "operation_id": "CP16.asset_upload_sums", "action": "asset_upload"},
+      {"sequence": 4, "operation_id": "CP16.asset_upload_release", "action": "asset_upload"},
+      {"sequence": 5, "operation_id": "CP16.asset_upload_files", "action": "asset_upload"},
+      {"sequence": 6, "operation_id": "CP16.asset_download_verify", "action": "asset_download_verify"},
+      {"sequence": 7, "operation_id": "CP16.remote_bundle_rehearsal", "action": "local_install_rehearsal"}
+    ],
+    "CP17": [
+      {"sequence": 1, "operation_id": "CP17.main_promote", "action": "main_promote"},
+      {"sequence": 2, "operation_id": "CP17.release_publish", "action": "release_publish"},
+      {"sequence": 3, "operation_id": "CP17.published_asset_download", "action": "published_asset_download"},
+      {"sequence": 4, "operation_id": "CP17.actual_install", "action": "actual_install"},
+      {"sequence": 5, "operation_id": "CP17.post_release_ci", "action": "post_release_ci"},
+      {"sequence": 6, "operation_id": "CP17.independent_audit", "action": "independent_audit"}
+    ],
+    "CP18": [
+      {"sequence": 1, "operation_id": "CP18.promotion_lock_finalize", "action": "promotion_lock_finalize"},
+      {"sequence": 2, "operation_id": "CP18.archive_close", "action": "archive_close"}
+    ]
+  },
+  "x-semantic-validator": {
+    "validator_id": "goal-teams-release-promotion-semantic-v2.40-v1",
+    "exact_checkpoint_order": [
+      "CP00", "CP01", "CP02", "CP03", "CP04", "CP05", "CP06", "CP07", "CP08", "CP09",
+      "CP10", "CP11", "CP12", "CP13", "CP14", "CP15", "CP16", "CP17", "CP18"
+    ],
+    "require_checkpoint_prefix_without_gaps": true,
+    "require_exact_operation_plan": true,
+    "operation_plan_entry_contract": ["sequence", "operation_id", "action"],
+    "require_operation_plan_array_order_equal_sequence": true,
+    "require_operation_id_checkpoint_prefix": true,
+    "require_contiguous_unique_sequence_starting_at_one": true,
+    "require_prior_checkpoint_passed_before_next": true,
+    "checkpoint_pass_requires_all_operations_passed": true,
+    "passed_operation_requires_exact_readback_and_marker": true,
+    "current_checkpoint_rule": "first_non_passed_or_CP18_when_all_passed",
+    "candidate_commit_must_match_every_checkpoint": true,
+    "external_actions_require_expected_before": [
+      "github_authority_verify", "immutable_release_enable", "immutable_release_verify",
+      "ruleset_capability_verify", "tag_ruleset_create", "candidate_push", "ci_wait",
+      "promotion_lock_create", "tag_push", "draft_create", "asset_upload",
+      "asset_download_verify", "main_promote", "release_publish",
+      "published_asset_download", "actual_install", "post_release_ci",
+      "independent_audit", "promotion_lock_finalize"
+    ],
+    "checkpoint_phase_after_pass": {
+      "CP00": "DRIFTED",
+      "CP01": "RECOVERED",
+      "CP02": "DEV_OPEN",
+      "CP03": "DEV_OPEN",
+      "CP04": "DEV_OPEN",
+      "CP05": "DEV_OPEN",
+      "CP06": "DEV_OPEN",
+      "CP07": "DEV_OPEN",
+      "CP08": "RC_FROZEN",
+      "CP09": "RC_VALIDATED",
+      "CP10": "RC_VALIDATED",
+      "CP11": "RC_VALIDATED",
+      "CP12": "RC_VALIDATED",
+      "CP13": "CANDIDATE_CI_GREEN",
+      "CP14": "PROMOTION_LOCKED",
+      "CP15": "TAG_PUSHED",
+      "CP16": "DRAFT_VERIFIED",
+      "CP17": "INSTALLED_VERIFIED",
+      "CP18": "CLOSED"
+    },
+    "operation_phase_after_pass": {
+      "CP17.main_promote": "MAIN_PROMOTED",
+      "CP17.release_publish": "RELEASE_PUBLISHED",
+      "CP17.published_asset_download": "RELEASE_PUBLISHED",
+      "CP17.actual_install": "INSTALLED_VERIFIED",
+      "CP17.post_release_ci": "INSTALLED_VERIFIED",
+      "CP17.independent_audit": "INSTALLED_VERIFIED"
+    },
+    "terminal_phase_override": {
+      "any_conflict": "CONFLICT",
+      "any_failed_without_conflict": "FAILED"
+    },
+    "github_authority_required_from": "CP03",
+    "github_authority_exact_revalidation_at": "CP14.github_authority_revalidate",
+    "github_authority_drift_result": "conflict",
+    "public_release_surface_redaction": "forbidden_fail_closed",
+    "private_log_sanitization_scope": "ignored_private_logs_only"
+  },
+  "x-recovery-matrix": {
+    "absent": "execute the persisted intent exactly once, then live readback",
+    "exact": "do not replay; bind the matching prior intent and append the completion marker",
+    "conflict": "stop permanently for this version until an authorized external reconciliation preserves the frozen identity",
+    "unavailable": "remain blocked and retry only the readback; never infer success",
+    "published_exact_after_marker_crash": "exact when release ID, target commit, four asset IDs and digests all match the prior intent",
+    "published_mismatch": "conflict",
+    "main_exact_draft_exact_before_publish": "do not replay main; execute only the persisted CP17.release_publish intent while the remote promotion lock remains active",
+    "main_conflict_before_publish": "conflict; never publish the draft",
+    "release_exact_after_publish_marker_crash": "do not republish; require immutable=true and exact release ID, target commit, tag and four asset IDs/digests, then append the marker",
+    "github_authority_drift": "conflict before any further external write",
+    "promotion_lock_unavailable": "blocked; retry live readback only and never infer the lock is active"
+  },
+  "x-transition-map": {
+    "DRIFTED": ["RECOVERED", "FAILED", "CONFLICT"],
+    "RECOVERED": ["DEV_OPEN", "FAILED", "CONFLICT"],
+    "DEV_OPEN": ["RC_FROZEN", "FAILED", "CONFLICT"],
+    "RC_FROZEN": ["RC_VALIDATED", "FAILED", "CONFLICT"],
+    "RC_VALIDATED": ["CANDIDATE_CI_GREEN", "FAILED", "CONFLICT"],
+    "CANDIDATE_CI_GREEN": ["PROMOTION_LOCKED", "FAILED", "CONFLICT"],
+    "PROMOTION_LOCKED": ["TAG_PUSHED", "FAILED", "CONFLICT"],
+    "TAG_PUSHED": ["DRAFT_VERIFIED", "FAILED", "CONFLICT"],
+    "DRAFT_VERIFIED": ["MAIN_PROMOTED", "FAILED", "CONFLICT"],
+    "MAIN_PROMOTED": ["RELEASE_PUBLISHED", "FAILED", "CONFLICT"],
+    "RELEASE_PUBLISHED": ["INSTALLED_VERIFIED", "FAILED", "CONFLICT"],
+    "INSTALLED_VERIFIED": ["CLOSED", "FAILED", "CONFLICT"],
+    "FAILED": ["RECOVERED", "CONFLICT"],
+    "CONFLICT": [],
+    "CLOSED": []
+  }
+}

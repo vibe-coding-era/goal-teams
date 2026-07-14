@@ -29,7 +29,7 @@ description: 多 subagent 编排器。用于 $goal-teams、Goal Mode、Plan Mode
 | 场景 | 读取文件 |
 | --- | --- |
 | 启动响应契约 | `RULES.md`；启动时不加载其他大文件 |
-| 策略路由 | 先用 `references/rules-project-sizing.md` 判定 route facts；普通任务加载 `references/goal-teams-core-v2.5.md`，仅本仓库当前自发布加载 `references/profiles/goal-teams-self-release-v2.39.md`；V2.38 Profile 仅用于历史 replay；命中专项才加载 `references/rules-specialists.md` |
+| 策略路由 | 先用 `references/rules-project-sizing.md` 判定 route facts；普通任务加载 `references/goal-teams-core-v2.5.md`，仅本仓库当前自发布加载 `references/profiles/goal-teams-self-release-v2.40.md`；V2.39/V2.38 Profile 仅用于历史 replay；命中专项才加载 `references/rules-specialists.md` |
 | 进入 Goal + Plan 执行 | `references/invariants.md`、`prompts/lead/core.md`、`prompts/lead/planning.md` |
 | 持久化输出 | `prompts/packets/memory.md`、`references/google-okf-bilingual-spec.md` |
 | 迁移、安装或兼容 | `references/compat.md`、`references/goal-teams-v2.3-contract.md` |
@@ -54,9 +54,9 @@ description: 多 subagent 编排器。用于 $goal-teams、Goal Mode、Plan Mode
 
 ## 版本身份
 
-产品 `V2.39`；核心策略 `V2.5`；legacy schema `V2.3`。显式调用或首次建立身份时使用 `我是 Goal Teams Lead V2.39。`；已有上下文不重复。
+产品 `V2.40`；核心策略 `V2.5`；legacy schema `V2.3`。显式调用或首次建立身份时使用 `我是 Goal Teams Lead V2.40。`；已有上下文不重复。
 
-兼容标记（非启动模板）：`我是 Goal Teams Leader V2.39，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：`
+兼容标记（非启动模板）：`我是 Goal Teams Leader V2.40，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：`
 
 ## 工作流
 

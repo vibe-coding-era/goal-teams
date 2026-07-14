@@ -4,12 +4,12 @@
 
 ## 基本原则
 
-- 当前产品版本为 `V2.39`，保存在仓库根目录 `VERSION`，并同步写入 `SKILL.md` 正文和启动语；通用 Goal Teams 核心策略版本为 `V2.5`，legacy 机器数据 schema 版本为 `V2.3`，三者必须分开表达；`SKILL.md` frontmatter 只保留 `name` 和 `description`。
+- 当前产品版本为 `V2.40`，保存在仓库根目录 `VERSION`，并同步写入 `SKILL.md` 正文和启动语；通用 Goal Teams 核心策略版本为 `V2.5`，legacy 机器数据 schema 版本为 `V2.3`，三者必须分开表达；`SKILL.md` frontmatter 只保留 `name` 和 `description`。
 - 历史 `V2.02` 与 `V2.1` 是 `V2.3` 前的补丁线；后续版本优先使用 `V2.3`、`V2.4` 这类递增格式，避免继续新增 `V2.0x` 版本叙事。
-- 显式调用 Goal Teams 或当前会话首次需要建立身份时，Goal Lead 简短汇报：`我是 Goal Teams Lead V2.39。`；已有完整上下文时直接执行，不重复仪式。
-- 当前产品按 `V2.39` 执行；历史版本过程与演进说明只保存在本地 `docs/archive/`，正式运行面仅说明当前规则。legacy schema/runtime 标识只用于机器兼容，不代表当前产品版本。
+- 显式调用 Goal Teams 或当前会话首次需要建立身份时，Goal Lead 简短汇报：`我是 Goal Teams Lead V2.40。`；已有完整上下文时直接执行，不重复仪式。
+- 当前产品按 `V2.40` 执行；历史版本过程与演进说明只保存在本地 `docs/archive/`，正式运行面仅说明当前规则。legacy schema/runtime 标识只用于机器兼容，不代表当前产品版本。
 - `SKILL.md` 只保留触发导向 description、固定启动语、不变量、规划检查、失败降级摘要、工作流摘要和渐进式加载路由；完整硬边界和条件规则分别放入 `references/invariants.md`、`references/rules-ui.md`、`references/rules-testing.md`、`references/rules-loop.md`、`references/rules-project-sizing.md`、`references/rules-specialists.md`、`references/test-case-assertion-protocol.md` 和 `references/compat.md`。
-- 普通任务使用 `policy_profile=goal-teams-core-v2.5`；只有 Goal Teams 仓库当前自发布使用 `policy_profile=goal-teams-self-release-v2.39`，V2.38 Profile 只用于历史 replay。52 条发布断言、第 9/11 轮、四维评分、prompt identity、Cache Evidence、OKF gate 与公开归档只属于 self-release Profile，不属于全局不变量。
+- 普通任务使用 `policy_profile=goal-teams-core-v2.5`；只有 Goal Teams 仓库当前自发布使用 `policy_profile=goal-teams-self-release-v2.40`，V2.39/V2.38 Profile 只用于历史 replay。52 条发布断言、第 9/11 轮、四维评分、prompt identity、Cache Evidence、OKF gate、V2.40 发行状态机与公开归档只属于 self-release Profile，不属于全局不变量。
 - `references/prompt-cache-manifest.json` 是 route-static 顺序与 byte budget 的机器 SSOT；`route_static_digest` 只标识计划文件 bytes。最终 prompt 不可见时 runtime digests 为 null；只有宿主 ordered manifest 可生成它们。Goal Teams 不能强制、清空或保证 provider cache。
 - 当轮 Budget Gate 只使用 agent 可见的 `subject_visible_telemetry`；runner 轮后采集的 `observer_telemetry` 只用于事后分析。cache 报告使用 token-weighted `cached_input_share`、`uncached_input_tokens` 与 `telemetry_coverage`；没有 request 粒度事件时 `request_hit_rate=null/unavailable`，不得由 turn 聚合外推。
 - `gate_profile` 必须由 `policy_profile + product_version + task_type + route facts` 自动派生；调用方不得通过提交或省略 `state_gate_profile` 自选、跳过或降低门禁。

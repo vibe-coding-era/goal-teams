@@ -1,0 +1,448 @@
+{
+  "schema_version": "goal-teams-test-case-fixtures-v2.35",
+  "valid_cases": [
+    {
+      "schema_version": "goal-teams-test-case-v2.35",
+      "case_id": "TC-V240-README-001",
+      "test_kind": "tdd",
+      "acceptance_refs": ["AC-240-003", "AC-240-007"],
+      "test_file_refs": ["tests/v23/test_v240_release_lifecycle.py"],
+      "input": {
+        "fixtures": ["README.md", "README.en.md"],
+        "values": {"version": "V2.40", "required_marker_count": 1},
+        "preconditions": ["the controlled release block is the only mutable README identity surface"]
+      },
+      "processing": {
+        "kind": "call",
+        "target": "scripts.release.release.validate_readme_projection",
+        "invocation_ref": "input.values"
+      },
+      "expected_output": {
+        "value": {"passed": true, "version": "V2.40", "marker_count": 1},
+        "observable_refs": [
+          "observed_output.receipt.passed",
+          "observed_output.receipt.version",
+          "observed_output.receipt.marker_count"
+        ]
+      },
+      "assertions": [
+        {
+          "assertion_id": "A-TC-V240-README-001-01",
+          "actual_ref": "observed_output.receipt.passed",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.passed"
+        },
+        {
+          "assertion_id": "A-TC-V240-README-001-02",
+          "actual_ref": "observed_output.receipt.version",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.version"
+        },
+        {
+          "assertion_id": "A-TC-V240-README-001-03",
+          "actual_ref": "observed_output.receipt.marker_count",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.marker_count"
+        }
+      ],
+      "tdd": {
+        "phase": "pre_implementation",
+        "expected_initial_state": "red",
+        "test_sha256_ref": "artifact.test_file.sha256",
+        "preimplementation_tree_ref": "artifact.git.preimplementation_tree",
+        "domain_log_ref": "execution.red.domain_log",
+        "ledger_event_ref": "artifact.ledger.test_design_event"
+      }
+    },
+    {
+      "schema_version": "goal-teams-test-case-v2.35",
+      "case_id": "TC-V240-FROZEN-SHA-001",
+      "test_kind": "tdd",
+      "acceptance_refs": ["AC-240-004", "AC-240-007"],
+      "test_file_refs": ["tests/v23/test_v240_release_lifecycle.py"],
+      "input": {
+        "fixtures": ["release/versions/V2.40/_release.json"],
+        "values": {"candidate_commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},
+        "preconditions": ["mutable refs are descriptive metadata only"]
+      },
+      "processing": {
+        "kind": "call",
+        "target": "scripts.release.release.validate_frozen_release_record",
+        "invocation_ref": "input.values.candidate_commit"
+      },
+      "expected_output": {
+        "value": {"passed": true, "identity_authority": "source_commit"},
+        "observable_refs": [
+          "observed_output.receipt.passed",
+          "observed_output.receipt.identity_authority"
+        ]
+      },
+      "assertions": [
+        {
+          "assertion_id": "A-TC-V240-FROZEN-SHA-001-01",
+          "actual_ref": "observed_output.receipt.passed",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.passed"
+        },
+        {
+          "assertion_id": "A-TC-V240-FROZEN-SHA-001-02",
+          "actual_ref": "observed_output.receipt.identity_authority",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.identity_authority"
+        }
+      ],
+      "tdd": {
+        "phase": "pre_implementation",
+        "expected_initial_state": "red",
+        "test_sha256_ref": "artifact.test_file.sha256",
+        "preimplementation_tree_ref": "artifact.git.preimplementation_tree",
+        "domain_log_ref": "execution.red.domain_log",
+        "ledger_event_ref": "artifact.ledger.test_design_event"
+      }
+    },
+    {
+      "schema_version": "goal-teams-test-case-v2.35",
+      "case_id": "TC-V240-DOCTOR-001",
+      "test_kind": "tdd",
+      "acceptance_refs": ["AC-240-003", "AC-240-007"],
+      "test_file_refs": ["tests/v23/test_v240_release_lifecycle.py"],
+      "input": {
+        "fixtures": ["GoalTeamsWork-V2.40/versions/V2.40/spec/architecture-design.md"],
+        "values": {"candidate_location": "develops/v2.40", "candidate_branch": "codex/v2.40"},
+        "preconditions": ["Git and GitHub observations are collected before policy evaluation"]
+      },
+      "processing": {
+        "kind": "call",
+        "target": "scripts.release.release.validate_workspace_facts",
+        "invocation_ref": "input.values"
+      },
+      "expected_output": {
+        "value": {"passed": true, "candidate_commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},
+        "observable_refs": [
+          "observed_output.receipt.passed",
+          "observed_output.receipt.candidate_commit"
+        ]
+      },
+      "assertions": [
+        {
+          "assertion_id": "A-TC-V240-DOCTOR-001-01",
+          "actual_ref": "observed_output.receipt.passed",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.passed"
+        },
+        {
+          "assertion_id": "A-TC-V240-DOCTOR-001-02",
+          "actual_ref": "observed_output.receipt.candidate_commit",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.candidate_commit"
+        }
+      ],
+      "tdd": {
+        "phase": "pre_implementation",
+        "expected_initial_state": "red",
+        "test_sha256_ref": "artifact.test_file.sha256",
+        "preimplementation_tree_ref": "artifact.git.preimplementation_tree",
+        "domain_log_ref": "execution.red.domain_log",
+        "ledger_event_ref": "artifact.ledger.test_design_event"
+      }
+    },
+    {
+      "schema_version": "goal-teams-test-case-v2.35",
+      "case_id": "TC-V240-CHECKPOINT-001",
+      "test_kind": "tdd",
+      "acceptance_refs": ["AC-240-003", "AC-240-007"],
+      "test_file_refs": ["tests/v23/test_v240_release_lifecycle.py"],
+      "input": {
+        "fixtures": ["docs/archive/releases/V2.40/release-evidence/promote-state.json"],
+        "values": {"current_checkpoint": "CP09", "next_checkpoint": "CP10"},
+        "preconditions": ["the state file is local-only and the side effect has been independently observed"]
+      },
+      "processing": {
+        "kind": "call",
+        "target": "scripts.release.release.commit_checkpoint",
+        "invocation_ref": "input.values"
+      },
+      "expected_output": {
+        "value": {"current_checkpoint": "CP10", "marker_last": true, "resume_idempotent": true},
+        "observable_refs": [
+          "observed_output.state.current_checkpoint",
+          "observed_output.state.marker_last",
+          "observed_output.state.resume_idempotent"
+        ]
+      },
+      "assertions": [
+        {
+          "assertion_id": "A-TC-V240-CHECKPOINT-001-01",
+          "actual_ref": "observed_output.state.current_checkpoint",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.current_checkpoint"
+        },
+        {
+          "assertion_id": "A-TC-V240-CHECKPOINT-001-02",
+          "actual_ref": "observed_output.state.marker_last",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.marker_last"
+        },
+        {
+          "assertion_id": "A-TC-V240-CHECKPOINT-001-03",
+          "actual_ref": "observed_output.state.resume_idempotent",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.resume_idempotent"
+        }
+      ],
+      "tdd": {
+        "phase": "pre_implementation",
+        "expected_initial_state": "red",
+        "test_sha256_ref": "artifact.test_file.sha256",
+        "preimplementation_tree_ref": "artifact.git.preimplementation_tree",
+        "domain_log_ref": "execution.red.domain_log",
+        "ledger_event_ref": "artifact.ledger.test_design_event"
+      }
+    },
+    {
+      "schema_version": "goal-teams-test-case-v2.35",
+      "case_id": "TC-V240-CI-001",
+      "test_kind": "tdd",
+      "acceptance_refs": ["AC-240-005", "AC-240-007"],
+      "test_file_refs": ["tests/v23/test_v240_release_lifecycle.py"],
+      "input": {
+        "fixtures": [".github/workflows/check.yml"],
+        "values": {"required_conclusion": "success", "head_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},
+        "preconditions": ["all required job names are known"]
+      },
+      "processing": {
+        "kind": "call",
+        "target": "scripts.release.release.evaluate_ci_conclusions",
+        "invocation_ref": "input.values"
+      },
+      "expected_output": {
+        "value": {"passed": true, "head_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},
+        "observable_refs": [
+          "observed_output.receipt.passed",
+          "observed_output.receipt.head_sha"
+        ]
+      },
+      "assertions": [
+        {
+          "assertion_id": "A-TC-V240-CI-001-01",
+          "actual_ref": "observed_output.receipt.passed",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.passed"
+        },
+        {
+          "assertion_id": "A-TC-V240-CI-001-02",
+          "actual_ref": "observed_output.receipt.head_sha",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.head_sha"
+        }
+      ],
+      "tdd": {
+        "phase": "pre_implementation",
+        "expected_initial_state": "red",
+        "test_sha256_ref": "artifact.test_file.sha256",
+        "preimplementation_tree_ref": "artifact.git.preimplementation_tree",
+        "domain_log_ref": "execution.red.domain_log",
+        "ledger_event_ref": "artifact.ledger.test_design_event"
+      }
+    },
+    {
+      "schema_version": "goal-teams-test-case-v2.35",
+      "case_id": "TC-V240-DRAFT-ASSET-001",
+      "test_kind": "tdd",
+      "acceptance_refs": ["AC-240-005", "AC-240-007"],
+      "test_file_refs": ["tests/v23/test_v240_release_lifecycle.py"],
+      "input": {
+        "fixtures": ["release/versions/V2.40/_artifacts/SHA256SUMS"],
+        "values": {"asset_count": 4, "verification": "downloaded_byte_identity"},
+        "preconditions": ["the GitHub Release remains draft until all assets are downloaded"]
+      },
+      "processing": {
+        "kind": "call",
+        "target": "scripts.release.release.validate_draft_assets",
+        "invocation_ref": "input.values"
+      },
+      "expected_output": {
+        "value": {"passed": true, "asset_count": 4, "verification": "downloaded_byte_identity"},
+        "observable_refs": [
+          "observed_output.receipt.passed",
+          "observed_output.receipt.asset_count",
+          "observed_output.receipt.verification"
+        ]
+      },
+      "assertions": [
+        {
+          "assertion_id": "A-TC-V240-DRAFT-ASSET-001-01",
+          "actual_ref": "observed_output.receipt.passed",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.passed"
+        },
+        {
+          "assertion_id": "A-TC-V240-DRAFT-ASSET-001-02",
+          "actual_ref": "observed_output.receipt.asset_count",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.asset_count"
+        },
+        {
+          "assertion_id": "A-TC-V240-DRAFT-ASSET-001-03",
+          "actual_ref": "observed_output.receipt.verification",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.verification"
+        }
+      ],
+      "tdd": {
+        "phase": "pre_implementation",
+        "expected_initial_state": "red",
+        "test_sha256_ref": "artifact.test_file.sha256",
+        "preimplementation_tree_ref": "artifact.git.preimplementation_tree",
+        "domain_log_ref": "execution.red.domain_log",
+        "ledger_event_ref": "artifact.ledger.test_design_event"
+      }
+    },
+    {
+      "schema_version": "goal-teams-test-case-v2.35",
+      "case_id": "TC-V240-INSTALL-001",
+      "test_kind": "tdd",
+      "acceptance_refs": ["AC-240-006", "AC-240-007"],
+      "test_file_refs": ["tests/v23/test_v240_release_lifecycle.py"],
+      "input": {
+        "fixtures": ["state/goal-teams/current.json"],
+        "values": {"source_kind": "github_release_asset", "release_tag": "v2.40"},
+        "preconditions": ["the release tarball was redownloaded and byte-verified"]
+      },
+      "processing": {
+        "kind": "call",
+        "target": "scripts.release.release.validate_install_identity",
+        "invocation_ref": "input.values"
+      },
+      "expected_output": {
+        "value": {"passed": true, "source_kind": "github_release_asset", "release_tag": "v2.40"},
+        "observable_refs": [
+          "observed_output.receipt.passed",
+          "observed_output.receipt.source_kind",
+          "observed_output.receipt.release_tag"
+        ]
+      },
+      "assertions": [
+        {
+          "assertion_id": "A-TC-V240-INSTALL-001-01",
+          "actual_ref": "observed_output.receipt.passed",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.passed"
+        },
+        {
+          "assertion_id": "A-TC-V240-INSTALL-001-02",
+          "actual_ref": "observed_output.receipt.source_kind",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.source_kind"
+        },
+        {
+          "assertion_id": "A-TC-V240-INSTALL-001-03",
+          "actual_ref": "observed_output.receipt.release_tag",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.release_tag"
+        }
+      ],
+      "tdd": {
+        "phase": "pre_implementation",
+        "expected_initial_state": "red",
+        "test_sha256_ref": "artifact.test_file.sha256",
+        "preimplementation_tree_ref": "artifact.git.preimplementation_tree",
+        "domain_log_ref": "execution.red.domain_log",
+        "ledger_event_ref": "artifact.ledger.test_design_event"
+      }
+    },
+    {
+      "schema_version": "goal-teams-test-case-v2.35",
+      "case_id": "TC-V240-FIVE-POINT-001",
+      "test_kind": "tdd",
+      "acceptance_refs": ["AC-240-005", "AC-240-006", "AC-240-007"],
+      "test_file_refs": ["tests/v23/test_v240_release_lifecycle.py"],
+      "input": {
+        "fixtures": ["docs/archive/releases/V2.40/release-evidence/final-identity-audit.json"],
+        "values": {"identity_points": ["main", "tag", "release", "asset", "installed"]},
+        "preconditions": ["the auditor rereads raw Git, GitHub, asset and install observations"]
+      },
+      "processing": {
+        "kind": "call",
+        "target": "scripts.release.audit-release.audit_release_identity",
+        "invocation_ref": "input.values"
+      },
+      "expected_output": {
+        "value": {
+          "passed": true,
+          "source_commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "latest_release_tag": "v2.40"
+        },
+        "observable_refs": [
+          "observed_output.audit.passed",
+          "observed_output.audit.source_commit",
+          "observed_output.audit.latest_release_tag"
+        ]
+      },
+      "assertions": [
+        {
+          "assertion_id": "A-TC-V240-FIVE-POINT-001-01",
+          "actual_ref": "observed_output.audit.passed",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.passed"
+        },
+        {
+          "assertion_id": "A-TC-V240-FIVE-POINT-001-02",
+          "actual_ref": "observed_output.audit.source_commit",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.source_commit"
+        },
+        {
+          "assertion_id": "A-TC-V240-FIVE-POINT-001-03",
+          "actual_ref": "observed_output.audit.latest_release_tag",
+          "comparator": "equals",
+          "expected_ref": "expected_output.value.latest_release_tag"
+        }
+      ],
+      "tdd": {
+        "phase": "pre_implementation",
+        "expected_initial_state": "red",
+        "test_sha256_ref": "artifact.test_file.sha256",
+        "preimplementation_tree_ref": "artifact.git.preimplementation_tree",
+        "domain_log_ref": "execution.red.domain_log",
+        "ledger_event_ref": "artifact.ledger.test_design_event"
+      }
+    },
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-001","test_kind":"tdd","acceptance_refs":["AC-240-002","SEC-240-001"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"candidate":"HEAD","reason":"mutable ref is not a frozen commit id"},"preconditions":["a mutable symbolic ref must be rejected before any build read"]},"processing":{"kind":"call","target":"scripts.release.release.require_frozen_commit","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_FROZEN_COMMIT","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-001-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-001-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-001-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-001-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-002","test_kind":"tdd","acceptance_refs":["AC-240-002","SEC-240-002"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"candidate":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","object_type":"tree"},"preconditions":["a 40-hex object that is not a commit must be rejected"]},"processing":{"kind":"call","target":"scripts.release.release.require_frozen_commit","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_FROZEN_OBJECT_TYPE","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-002-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-002-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-002-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-002-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-003","test_kind":"tdd","acceptance_refs":["AC-240-003","SEC-240-003"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"member_name":"goal-teams-V2.40/../escape.txt","target_root":"allowed/target"},"preconditions":["validation runs before target creation or member write"]},"processing":{"kind":"call","target":"scripts.release.release.safe_extract_release_tar","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_TAR_UNSAFE_PATH","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-003-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-003-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-003-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-003-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-004","test_kind":"tdd","acceptance_refs":["AC-240-003","SEC-240-004"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"members":[{"name":"goal-teams-V2.40/link","type":"symlink","linkname":"../escape"},{"name":"goal-teams-V2.40/hard","type":"hardlink","linkname":"goal-teams-V2.40/VERSION"}]},"preconditions":["symbolic and hard links are forbidden before extraction"]},"processing":{"kind":"call","target":"scripts.release.release.safe_extract_release_tar","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_TAR_LINK","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-004-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-004-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-004-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-004-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-005","test_kind":"tdd","acceptance_refs":["AC-240-003","SEC-240-005"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"member_name":"goal-teams-V2.40/safe.txt","pax_headers":{"path":"../escape.txt"}},"preconditions":["PAX path overrides are validated before extraction"]},"processing":{"kind":"call","target":"scripts.release.release.safe_extract_release_tar","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_TAR_PAX_OVERRIDE","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-005-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-005-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-005-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-005-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-006","test_kind":"tdd","acceptance_refs":["AC-240-003","SEC-240-006"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"member_names":["goal-teams-V2.40/VERSION","goal-teams-V2.40/VERSION"]},"preconditions":["duplicate normalized member paths are rejected before extraction"]},"processing":{"kind":"call","target":"scripts.release.release.safe_extract_release_tar","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_TAR_DUPLICATE","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-006-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-006-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-006-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-006-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-007","test_kind":"tdd","acceptance_refs":["AC-240-003","SEC-240-007"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"member_count":2049,"limits":{"member_count":2048,"path_bytes":240,"single_file_bytes":16777216,"total_uncompressed_bytes":134217728,"compression_ratio":100}},"preconditions":["fixed archive limits cannot be relaxed by caller input"]},"processing":{"kind":"call","target":"scripts.release.release.validate_tar_limits","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_TAR_LIMIT_MEMBERS","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-007-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-007-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-007-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-007-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-008","test_kind":"tdd","acceptance_refs":["AC-240-004","SEC-240-008"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"expected":{"active":true,"target_ref":"refs/heads/main","candidate_commit":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bypass_actor_id":240,"ruleset_sha256":"7777777777777777777777777777777777777777777777777777777777777777"},"observed":{"active":false,"target_ref":"refs/heads/main","candidate_commit":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bypass_actor_id":240,"ruleset_sha256":"7777777777777777777777777777777777777777777777777777777777777777"}},"preconditions":["all lock identity fields are read back before remote mutation"]},"processing":{"kind":"call","target":"scripts.release.release.validate_remote_promotion_lock","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_PROMOTION_LOCK","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-008-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-008-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-008-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-008-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-009","test_kind":"tdd","acceptance_refs":["AC-240-004","SEC-240-009"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"base_main":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","observed_main":"9999999999999999999999999999999999999999","candidate_commit":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},"preconditions":["main drift fails before tag, release, asset, main or install mutation"]},"processing":{"kind":"call","target":"scripts.release.release.validate_remote_lease","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_REMOTE_MAIN_LEASE","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-009-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-009-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-009-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-009-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-010","test_kind":"tdd","acceptance_refs":["AC-240-004","AC-240-005","SEC-240-010"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"resource_kind":["tag","release"],"expected":{"source_commit":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","digest":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"observed":{"source_commit":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","digest":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},"prior_intent":true},"preconditions":["absent permits create, exact permits adopt, and any identity drift is conflict"]},"processing":{"kind":"call","target":"scripts.release.release.classify_remote_resource","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_REMOTE_RESOURCE_CONFLICT","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-010-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-010-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-010-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-010-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-011","test_kind":"tdd","acceptance_refs":["AC-240-005","SEC-240-011"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"intent":null,"marker_present":false,"observed":{"classification":"exact","release_state":"published","release_id":240,"source_commit":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}},"preconditions":["published exact may be adopted only with a durable matching prior intent"]},"processing":{"kind":"call","target":"scripts.release.release.recover_operation","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_PUBLISHED_RECOVERY_INTENT","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-011-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-011-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-011-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-011-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-012","test_kind":"tdd","acceptance_refs":["AC-240-004","AC-240-005","SEC-240-012"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"approval":{"head_sha":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","workflow_path":".github/workflows/release-gate.yml","workflow_blob_sha":"dddddddddddddddddddddddddddddddddddddddd","workflow_id":240,"required_jobs":["check-ubuntu","check-macos","release-asset-gate"]},"invalid_variants":["wrong_head_sha","wrong_workflow_blob_or_id","wrong_or_missing_required_job"]},"preconditions":["CI evidence must bind exact candidate SHA, approved workflow identity and all required jobs"]},"processing":{"kind":"call","target":"scripts.release.release.validate_ci_receipt","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_CI_TRUST_BINDING","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-012-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-012-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-012-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-012-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-013","test_kind":"tdd","acceptance_refs":["AC-240-006","SEC-240-013"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"expected_candidate_commit":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","checkpoint_candidate_commit":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","promote_reported_passed":true},"preconditions":["self-reported local success cannot override checkpoint and live identity evidence"]},"processing":{"kind":"call","target":"scripts.release.release.validate_promotion_state","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_STATE_FORGED","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-013-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-013-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-013-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-013-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-014","test_kind":"tdd","acceptance_refs":["AC-240-003","SEC-240-014"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"allowed_root":"allowed","target":"allowed/linked/child","linked_ancestor":"allowed/linked -> allowed/real"},"preconditions":["all existing ancestors are inspected without following a symlink into the write path"]},"processing":{"kind":"call","target":"scripts.release.release.validate_safe_ancestors","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_SYMLINK_ANCESTOR","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-014-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-014-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-014-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-014-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-015","test_kind":"tdd","acceptance_refs":["AC-240-003","AC-240-005","SEC-240-015"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"path":"README.md","content_class":"authorization bearer plus synthetic secret-shaped fixture"},"preconditions":["public files are scanned before bundle or release publication"]},"processing":{"kind":"call","target":"scripts.release.release.scan_public_payload","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_PUBLIC_SECRET","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-015-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-015-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-015-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-015-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-016","test_kind":"tdd","acceptance_refs":["AC-240-003","AC-240-005","SEC-240-016"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"path":"_release.json","content":"/Users/private/release-evidence.json"},"preconditions":["absolute home and local evidence paths are forbidden on the public surface"]},"processing":{"kind":"call","target":"scripts.release.release.scan_public_payload","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_PUBLIC_ABSOLUTE_PATH","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-016-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-016-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-016-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-016-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-017","test_kind":"tdd","acceptance_refs":["AC-240-003","AC-240-005","SEC-240-017"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"expected_manifest_digest":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","observed_manifest_digest":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff","target":"allowed/target"},"preconditions":["manifest, asset digest and bytes are verified before target creation"]},"processing":{"kind":"call","target":"scripts.release.release.validate_release_bundle","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_BUNDLE_TAMPER","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-017-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-017-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-017-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-017-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-018","test_kind":"tdd","acceptance_refs":["AC-240-003","SEC-240-018"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"allowed_root":"allowed","target":"../outside/target","bundle_identity":"otherwise exact"},"preconditions":["destination containment is verified before any directory or file write"]},"processing":{"kind":"call","target":"scripts.release.release.validate_release_bundle","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_TARGET_OUTSIDE","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-018-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-018-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-018-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-018-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-019","test_kind":"tdd","acceptance_refs":["AC-240-005","AC-240-007","SEC-240-019"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"release_state":"published","immutable_release_enabled":true,"release_immutable":false,"tag_ruleset_active":true,"tag_update_allowed":false,"tag_deletion_allowed":false},"preconditions":["published Release immutability is an independent close gate"]},"processing":{"kind":"call","target":"scripts.release.release.validate_remote_immutability","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_RELEASE_IMMUTABILITY","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-019-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-019-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-019-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-019-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-020","test_kind":"tdd","acceptance_refs":["AC-240-005","AC-240-007","SEC-240-020"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"release_state":"published","immutable_release_enabled":true,"release_immutable":true,"tag_ruleset_active":true,"tag_update_allowed":true,"tag_deletion_allowed":false},"preconditions":["v* tag update and deletion protection are independent close gates"]},"processing":{"kind":"call","target":"scripts.release.release.validate_remote_immutability","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_TAG_RULESET","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-020-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-020-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-020-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-020-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-021","test_kind":"tdd","acceptance_refs":["AC-240-004","AC-240-006","SEC-240-021"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"current_checkpoint":"CP09","tamper":{"operation_id":"CP09.build_unapproved","intent_operation_id":"CP09.build_unapproved"}},"preconditions":["operation IDs and intent IDs must match the exact x-operation-plan"]},"processing":{"kind":"call","target":"scripts.release.release.validate_promotion_state","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_STATE_OPERATION_PLAN","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-021-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-021-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-021-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-021-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-022","test_kind":"tdd","acceptance_refs":["AC-240-004","AC-240-006","SEC-240-022"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"current_checkpoint":"CP09","operation_order":["CP09.build_reproducibility","CP09.build_primary"],"sequence":[1,2]},"preconditions":["renumbering a reversed operation list must not make it valid"]},"processing":{"kind":"call","target":"scripts.release.release.validate_promotion_state","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_STATE_OPERATION_PLAN","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-022-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-022-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-022-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-022-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-023","test_kind":"tdd","acceptance_refs":["AC-240-004","AC-240-006","SEC-240-023"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"current_checkpoint":"CP09","present_checkpoints":["CP00","CP01","CP02","CP03","CP04","CP05","CP06","CP07","CP09"]},"preconditions":["passed checkpoint keys must be the continuous CP00 through current prefix"]},"processing":{"kind":"call","target":"scripts.release.release.validate_promotion_state","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_STATE_CHECKPOINT_GAP","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-023-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-023-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-023-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-023-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-024","test_kind":"tdd","acceptance_refs":["AC-240-004","AC-240-006","SEC-240-024"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"current_checkpoint":"CP09","expected_phase":"RC_VALIDATED","observed_phase":"DRAFT_VERIFIED"},"preconditions":["phase must be the exact milestone mapped from the completed current checkpoint"]},"processing":{"kind":"call","target":"scripts.release.release.validate_promotion_state","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_STATE_PHASE","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-024-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-024-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-024-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-024-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-025","test_kind":"tdd","acceptance_refs":["AC-240-004","AC-240-005","SEC-240-025"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"checkpoint":"CP17","required_order":["main_promote","release_publish","published_asset_download","actual_install","post_release_ci","independent_audit"],"invalid_order":["release_publish","main_promote","published_asset_download","actual_install","post_release_ci","independent_audit"],"remote_lock_active":true,"exact_main_cas":true},"preconditions":["CP17 is remote-lock and exact-CAS before publish; it is not main-last"]},"processing":{"kind":"call","target":"scripts.release.release.validate_promotion_state","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_STATE_OPERATION_PLAN","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-025-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-025-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-025-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-025-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-026","test_kind":"tdd","acceptance_refs":["AC-240-004","SEC-240-026"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"binding":{"actor":{"login":"release-owner","id":240}},"observed_variants":[{"actor":{"login":"other-owner","id":240}},{"actor":{"login":"release-owner","id":241}}]},"preconditions":["GitHub /user login and immutable numeric actor id must both match"]},"processing":{"kind":"call","target":"scripts.release.release.validate_github_live_authority","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_GITHUB_ACTOR_BINDING","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-026-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-026-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-026-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-026-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-027","test_kind":"tdd","acceptance_refs":["AC-240-004","SEC-240-027"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"binding":{"repository":{"full_name":"vibe-coding-era/goal-teams","id":1249985345}},"observed_variants":[{"repository":{"full_name":"vibe-coding-era/other","id":1249985345}},{"repository":{"full_name":"vibe-coding-era/goal-teams","id":1249985346}}]},"preconditions":["repository full name and immutable numeric repository id must both match"]},"processing":{"kind":"call","target":"scripts.release.release.validate_github_live_authority","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_GITHUB_REPOSITORY_BINDING","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-027-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-027-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-027-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-027-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-028","test_kind":"tdd","acceptance_refs":["AC-240-004","SEC-240-028"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"required_permission":"admin","observed_permission":"maintain"},"preconditions":["release authority requires live repository admin permission"]},"processing":{"kind":"call","target":"scripts.release.release.validate_github_live_authority","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_GITHUB_ADMIN_REQUIRED","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-028-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-028-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-028-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-028-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-029","test_kind":"tdd","acceptance_refs":["AC-240-004","SEC-240-029"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"required_actions":["read_repository","read_refs","read_workflows","read_releases","read_rulesets","enable_immutable_releases","manage_promotion_ruleset","manage_tag_ruleset","push_candidate","push_tag","promote_main","create_release_draft","upload_release_assets","publish_release","dispatch_workflow"],"observed_actions":["read_repository","read_refs","read_workflows","read_releases","read_rulesets","enable_immutable_releases","manage_tag_ruleset","push_candidate","push_tag","promote_main","create_release_draft","upload_release_assets","publish_release","dispatch_workflow"]},"preconditions":["every release action must be explicitly authorized by live authority evidence"]},"processing":{"kind":"call","target":"scripts.release.release.validate_github_live_authority","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_GITHUB_ACTION_UNAUTHORIZED","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-029-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-029-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-029-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-029-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-030","test_kind":"tdd","acceptance_refs":["AC-240-004","AC-240-005","SEC-240-030"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"required_capabilities":{"immutable_releases":true},"observed_capabilities":{"immutable_releases":false}},"preconditions":["immutable release capability is required before remote release mutation"]},"processing":{"kind":"call","target":"scripts.release.release.validate_github_live_authority","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_GITHUB_IMMUTABLE_CAPABILITY","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-030-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-030-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-030-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-030-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-031","test_kind":"tdd","acceptance_refs":["AC-240-004","AC-240-005","SEC-240-031"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"required_capabilities":{"rulesets":true},"observed_capabilities":{"rulesets":false}},"preconditions":["ruleset read and write capability is required for promotion and tag protection"]},"processing":{"kind":"call","target":"scripts.release.release.validate_github_live_authority","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_GITHUB_RULESET_CAPABILITY","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-031-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-031-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-031-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-031-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-032","test_kind":"tdd","acceptance_refs":["AC-240-004","SEC-240-032"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"binding_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","observed_binding_sha256":"0000000000000000000000000000000000000000000000000000000000000000"},"preconditions":["live observed authority must bind the accepted authority payload digest"]},"processing":{"kind":"call","target":"scripts.release.release.validate_github_live_authority","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_GITHUB_AUTHORITY_BINDING","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-032-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-032-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-032-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-032-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-033","test_kind":"tdd","acceptance_refs":["AC-240-003","AC-240-005","SEC-240-033"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"record":{"surface_kind":"private_log","ignored":true,"path":"docs/private/release-run.json","fields":{"authorization":"private-value","run_id":"RUN-V240-PRIVATE","status":"failed"}},"expected_input_sha256":"fd3fc478574b970fcfd76ab865b4b687b180abe13734e754a3cf4347daad0c0a","sanitizer_sha256":"5555555555555555555555555555555555555555555555555555555555555555","redacted_fields":["authorization"]},"preconditions":["the source is an ignored private log and the redaction policy names explicit fields"]},"processing":{"kind":"call","target":"scripts.release.release.redact_private_ignored_log","invocation_ref":"input.values"},"expected_output":{"value":{"passed":true,"private_input_sha256":"fd3fc478574b970fcfd76ab865b4b687b180abe13734e754a3cf4347daad0c0a","sanitizer_sha256":"5555555555555555555555555555555555555555555555555555555555555555","public_output_sha256":"d57359636f370daa2c931785d703aea059e9ce3bce70a38faa71b8a4223c1e92","redacted_fields":["authorization"],"public_fields":{"authorization":"[REDACTED]","run_id":"RUN-V240-PRIVATE","status":"failed"},"mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.receipt.passed","observed_output.receipt.private_input_sha256","observed_output.receipt.sanitizer_sha256","observed_output.receipt.public_output_sha256","observed_output.receipt.redacted_fields","observed_output.receipt.public_fields","observed_output.receipt.mutation_count","observed_output.receipt.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-033-01","actual_ref":"observed_output.receipt.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-033-02","actual_ref":"observed_output.receipt.private_input_sha256","comparator":"sha256_equals","expected_ref":"expected_output.value.private_input_sha256"},{"assertion_id":"A-SEC-240-033-03","actual_ref":"observed_output.receipt.sanitizer_sha256","comparator":"sha256_equals","expected_ref":"expected_output.value.sanitizer_sha256"},{"assertion_id":"A-SEC-240-033-04","actual_ref":"observed_output.receipt.public_output_sha256","comparator":"sha256_equals","expected_ref":"expected_output.value.public_output_sha256"},{"assertion_id":"A-SEC-240-033-05","actual_ref":"observed_output.receipt.redacted_fields","comparator":"sequence_equals","expected_ref":"expected_output.value.redacted_fields"},{"assertion_id":"A-SEC-240-033-06","actual_ref":"observed_output.receipt.public_fields","comparator":"equals","expected_ref":"expected_output.value.public_fields"},{"assertion_id":"A-SEC-240-033-07","actual_ref":"observed_output.receipt.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-033-08","actual_ref":"observed_output.receipt.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-034","test_kind":"tdd","acceptance_refs":["AC-240-003","AC-240-005","SEC-240-034"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"record":{"surface_kind":"private_log","ignored":false,"path":"docs/private/release-run.json"},"redacted_fields":["authorization"]},"preconditions":["redaction is allowed only for ignored private logs"]},"processing":{"kind":"call","target":"scripts.release.release.redact_private_ignored_log","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_REDACTION_SCOPE","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-034-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-034-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-034-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-034-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-035","test_kind":"tdd","acceptance_refs":["AC-240-003","AC-240-005","SEC-240-035"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"surface_kinds":["release_asset","tag_message","tracked_release_note","tracked_readme"],"contains_sensitive_value":true},"preconditions":["release public surfaces fail closed and cannot be made publishable by redaction"]},"processing":{"kind":"call","target":"scripts.release.release.redact_private_ignored_log","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_PUBLIC_REDACTION_FORBIDDEN","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-035-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-035-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-035-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-035-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}},
+    {"schema_version":"goal-teams-test-case-v2.35","case_id":"SEC-240-036","test_kind":"tdd","acceptance_refs":["AC-240-003","AC-240-005","SEC-240-036"],"test_file_refs":["tests/v23/test_v240_release_lifecycle.py"],"input":{"fixtures":["tests/v23/test_v240_release_lifecycle.py"],"values":{"private_input_sha256":"fd3fc478574b970fcfd76ab865b4b687b180abe13734e754a3cf4347daad0c0a","supplied_input_sha256":"0000000000000000000000000000000000000000000000000000000000000000"},"preconditions":["the sanitizer must bind the exact private input digest before producing output"]},"processing":{"kind":"call","target":"scripts.release.release.redact_private_ignored_log","invocation_ref":"input.values"},"expected_output":{"value":{"passed":false,"error_code":"E_V240_REDACTION_DIGEST","mutation_count":0,"external_side_effect_count":0},"observable_refs":["observed_output.failure.passed","observed_output.failure.error_code","observed_output.failure.mutation_count","observed_output.failure.external_side_effect_count"]},"assertions":[{"assertion_id":"A-SEC-240-036-01","actual_ref":"observed_output.failure.passed","comparator":"equals","expected_ref":"expected_output.value.passed"},{"assertion_id":"A-SEC-240-036-02","actual_ref":"observed_output.failure.error_code","comparator":"equals","expected_ref":"expected_output.value.error_code"},{"assertion_id":"A-SEC-240-036-03","actual_ref":"observed_output.failure.mutation_count","comparator":"equals","expected_ref":"expected_output.value.mutation_count"},{"assertion_id":"A-SEC-240-036-04","actual_ref":"observed_output.failure.external_side_effect_count","comparator":"equals","expected_ref":"expected_output.value.external_side_effect_count"}],"tdd":{"phase":"pre_implementation","expected_initial_state":"red","test_sha256_ref":"artifact.test_file.sha256","preimplementation_tree_ref":"artifact.git.preimplementation_tree","domain_log_ref":"execution.red.domain_log","ledger_event_ref":"artifact.ledger.test_design_event"}}
+  ]
+}

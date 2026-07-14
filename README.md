@@ -4,7 +4,11 @@
 
 作者：肉山@TGO 杭州
 
-当前版本：`V2.34`
+<!-- goal-teams-release:start -->
+当前发行：**V2.40** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.40) · [发行说明](release/current/README.md)
+<!-- goal-teams-release:end -->
+
+当前版本：`V2.40`
 
 Goal Teams 是一个面向 Codex 的团队协作 Skill。它会以一个 Goal Lead 的身份，把一个目标拆成可验证的计划，再协调多个独立 subagent（不同上下文执行）或用户指定的外部 skill 完成需求、设计、实现、测试、证据记录和收尾审计。过程中会应用到：
 - 应用Goal + Plan + Loop 模式
@@ -135,7 +139,7 @@ Use $goal-teams。
 显式调用 Goal Teams 或当前会话首次需要建立身份时汇报；已有完整上下文时不重复：
 
 ```text
-我是 Goal Teams Leader V2.34，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：
+我是 Goal Teams Lead V2.40。
 ```
 
 中文核心模型要点提示词：用户沟通和治理文档默认中文；代码、注释、测试名、fixture 和产品字符串遵循目标仓库约定；代码标识、命令、路径、API 名称、配置键、subagent ID 和精确引用保留原文。
@@ -276,11 +280,11 @@ GoalTeamsWork-<project_version>/
 
 ## 版本说明
 
-当前版本以 `VERSION` 为准。`V2.34` 在 V2.3 机器契约基线上增加合同先行、Architecture 与 Environment Evidence 双门、`Gather → Reason → Act → Verify → Repeat` 可恢复 LOOP、四文件磁盘状态、受限第 9 轮候选集重置、第 11 轮 fail-closed 交付、四维评分与分歧/瓶颈记录。详细契约按任务类型从 `references/` 加载；完成后只将经审计且清除调用痕迹的公开文档归档到 `docs/archive/V2.34/<delivery_id>/`，过程账本与 provenance 仍保留在非公开工作区。
+当前版本以 `VERSION` 为准。`V2.40` 在 V2.3 机器契约与 V2.5 核心策略上保留合同先行、Architecture 与 Environment Evidence 双门、`Gather → Reason → Act → Verify → Repeat` 可恢复 LOOP、四文件磁盘状态、受限第 9 轮候选集重置、第 11 轮 fail-closed 交付、四维评分与分歧/瓶颈记录，并增加可恢复发行状态机与公开版本身份治理。详细契约按任务类型从 `references/` 加载；公开发行说明以 [release/current](release/current/README.md) 为准，过程账本与 provenance 仍保留在非公开工作区。
 
-发布包的可见组成见[发布内容](docs/release-contents.md)；英文读者见[Release Contents](docs/release-contents.en.md)。该清单不会替代运行规则、`VERSION` 或安装校验。
+发布包的当前可见组成见[发行说明](release/current/README.md)。该说明不会替代运行规则、`VERSION` 或安装校验。
 
-按时间整理的版本改动见[版本变更记录](docs/change-history.md)；英文读者见[Change History](docs/change-history.en.md)。`CHANGELOG.md` 保留逐项技术变更的兼容记录。
+按时间整理的版本改动见 [CHANGELOG.md](CHANGELOG.md)，其中保留逐项技术变更与兼容记录。
 
 ## License
 

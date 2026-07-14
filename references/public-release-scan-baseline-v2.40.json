@@ -1,0 +1,11 @@
+{
+  "schema_version": "goal-teams-public-scan-baseline-v1",
+  "version": "V2.40",
+  "review": {
+    "reviewer_type": "independent_release_reviewer",
+    "independent": true,
+    "decision": "accepted",
+    "review_id": "v240-public-scan-independent-review"
+  },
+  "assertions": []
+}

@@ -15,7 +15,7 @@ okf_version: "0.1"
 
 通用执行内环为 `Gather → Reason → Act → Verify → Repeat`。`Gather` 只收集当前契约、图和 Evidence；`Reason` 写出可测试断言、预期结果与 action scope；`Act` 只执行已过门动作；`Verify` 产生 current Evidence；`Repeat` 按 current gaps 决定继续、重规划或停止。不可幂等的外部动作必须先持久化 intent、预期副作用和授权边界。
 
-固定 52 条断言、第 9/11 轮、四文件恢复 bundle、四维评分、prompt identity/Cache Evidence/OKF gate 与公开归档只属于当前 `goal-teams-self-release-v2.39`。只有路由结果明确包含该 `policy_profile` 时才加载 `references/profiles/goal-teams-self-release-v2.39.md`；V2.38 Profile 只用于历史 replay，普通任务不得从本文件推导这些专项门禁。
+固定 52 条断言、第 9/11 轮、四文件恢复 bundle、四维评分、prompt identity/Cache Evidence/OKF gate、V2.40 发行状态机与公开归档只属于当前 `goal-teams-self-release-v2.40`。只有路由结果明确包含该 `policy_profile` 时才加载 `references/profiles/goal-teams-self-release-v2.40.md`；V2.39/V2.38 Profile 只用于历史 replay，普通任务不得从本文件推导这些专项门禁。
 
 ### Contract-first 与门禁顺序
 
@@ -38,7 +38,7 @@ okf_version: "0.1"
 - `prompts/lead/audit.md`
 - `prompts/lead/completion.md`
 - `references/goal-teams-scripted-tooling.md`
-- 当前路由为 `goal-teams-self-release-v2.39` 时读取 `references/profiles/goal-teams-self-release-v2.39.md`；V2.38 Profile 只读 replay
+- 当前路由为 `goal-teams-self-release-v2.40` 时读取 `references/profiles/goal-teams-self-release-v2.40.md`；V2.39/V2.38 Profile 只读 replay
 - 生产流读取 `references/goal-teams-production-pipeline.md`
 - Benchmark 读取 `benchmarks/README.md` 和对应任务包
 

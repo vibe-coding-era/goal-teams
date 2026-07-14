@@ -1,0 +1,87 @@
+name: Goal Teams V2.40 release gate
+run-name: >-
+  ${{ github.event_name == 'workflow_dispatch'
+      && format('Goal Teams V2.40 release {0}', inputs.release_intent)
+      || format('Goal Teams V2.40 release {0}', github.sha) }}
+
+on:
+  push:
+    branches: [main, codex/v2.40]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      release_intent:
+        description: Persisted V2.40 operation idempotency key
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: goal-teams-v240-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  check-ubuntu:
+    name: check-ubuntu
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.11'
+      - name: Full deterministic gate
+        env:
+          GOAL_TEAMS_INSTALL_VALIDATION: '1'
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: ./scripts/check.sh
+
+  check-macos:
+    name: check-macos
+    runs-on: macos-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.11'
+      - name: Full deterministic gate
+        env:
+          GOAL_TEAMS_INSTALL_VALIDATION: '1'
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: ./scripts/check.sh
+
+  release-asset-gate:
+    name: release-asset-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.11'
+      - name: Build twice from the exact candidate commit
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 scripts/release/build-release.py --version V2.40 --commit "${GITHUB_SHA}" --source-ref "${GITHUB_REF}" --output-root "${RUNNER_TEMP}/release-a"
+          python3 scripts/release/build-release.py --version V2.40 --commit "${GITHUB_SHA}" --source-ref "${GITHUB_REF}" --output-root "${RUNNER_TEMP}/release-b"
+          diff -rq "${RUNNER_TEMP}/release-a/V2.40" "${RUNNER_TEMP}/release-b/V2.40"
+      - name: Independently validate both isolated release trees
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 scripts/release/validate-release.py --version V2.40 --release-root "${RUNNER_TEMP}/release-a" --isolated-no-docs-archive
+          python3 scripts/release/validate-release.py --version V2.40 --release-root "${RUNNER_TEMP}/release-b" --isolated-no-docs-archive
+      - name: Verify fixed four-asset identity
+        run: |
+          test -f "${RUNNER_TEMP}/release-a/V2.40/_artifacts/goal-teams-V2.40.tar.gz"
+          test -f "${RUNNER_TEMP}/release-a/V2.40/_artifacts/SHA256SUMS"
+          test -f "${RUNNER_TEMP}/release-a/V2.40/_release.json"
+          test -f "${RUNNER_TEMP}/release-a/V2.40/_files.sha256"
+          cd "${RUNNER_TEMP}/release-a/V2.40/_artifacts"
+          sha256sum -c SHA256SUMS

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### V2.40
+
+- Added a single controlled release-identity block to both root READMEs so the public repository surface points to `v2.40` and `release/current` without replacing the user-authored body.
+- Added the current `goal-teams-self-release-v2.40` Profile and moved V2.39/V2.38 Profiles to replay-only routing while preserving their cache schemas, fixtures, and historical semantics.
+- Added development/candidate version projections derived from `VERSION`; stable identity remains an independent live-audit responsibility.
+- Added the CP00–CP18 recoverable release lifecycle, exact operation semantics, remote promotion lock, exact main compare-and-swap before publish, immutable tag/Release gates, four-asset verification, and published-asset installation identity.
+- Made release telemetry honest by reporting Tokens consumed and Cache hit rate as `未获取到` / `Unavailable` whenever trusted host usage Evidence is absent.
+
 ### V2.39
 
 - Added a fail-closed Cache Evidence contract with trusted host capability, ordered request manifest, registered configuration attestation, raw-to-normalized receipts, and an authorization-gated live probe executor.
