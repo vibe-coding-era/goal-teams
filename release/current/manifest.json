@@ -1,6 +1,6 @@
 {
-  "schema_version": "goal-teams-release-manifest-v2.39",
-  "product_version": "V2.39",
+  "schema_version": "goal-teams-release-manifest-v2.40",
+  "product_version": "V2.40",
   "core_policy_version": "V2.5",
   "legacy_data_schema_version": "V2.3",
   "docs_policy": "local-only",
@@ -11,6 +11,21 @@
     "host_integration_state": "unavailable",
     "live_cache_validation_state": "not_authorized",
     "request_hit_rate_support_state": "unavailable"
+  },
+  "completion_telemetry": {
+    "tokens_consumed": {
+      "status": "unavailable",
+      "value": null,
+      "display_zh": "未获取到",
+      "display_en": "Unavailable"
+    },
+    "cache_hit_rate": {
+      "status": "unavailable",
+      "value": null,
+      "display_zh": "未获取到",
+      "display_en": "Unavailable"
+    },
+    "claim_policy": "no_estimation_without_trusted_host_usage_evidence"
   },
   "status": "release"
 }

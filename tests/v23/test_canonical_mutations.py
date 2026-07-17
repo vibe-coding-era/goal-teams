@@ -556,7 +556,7 @@ class CanonicalMutationTests(unittest.TestCase):
 
         def raw_secret_log(root: Path) -> None:
             (root / VERSION / "evidence/run.log").write_text(
-                "Authorization: Bearer canonical-raw-secret\n", encoding="utf-8"
+                "Authorization: Bearer dummy-fixture-canonical-raw\n", encoding="utf-8"
             )
             self.rebind_copied_evidence(root)
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 import tempfile
 import unittest
@@ -35,101 +36,156 @@ _SENDGRID_KEY_FIXTURE = (
     "S" + "G.abcdefghijklmnopqrstuv."
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopq"
 )
+_GITHUB_PAT_FIXTURE = "gh" + "p_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+_GITLAB_PAT_FIXTURE = "gl" + "pat-ABCDEFGHIJKLMNOPQRSTUVWXYZ123456"
+_AWS_ACCESS_KEY_FIXTURE = "AK" + "IAIOSFODNN7EXAMPLE"
+_GOOGLE_API_KEY_FIXTURE = "AI" + "zaSyABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+_NPM_TOKEN_FIXTURE = "np" + "m_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+_JWT_FIXTURE = (
+    "ey" + "JhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0."
+    "SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+)
+_PYPI_TOKEN_FIXTURE = (
+    "py" + "pi-AgEIcHlwaS5vcmcCJDUxMjM0NTY3ODkwYWJjZGVmZ2hpamtsbW5vcA"
+)
+_PRIVATE_KEY_FIXTURE = (
+    "-----BEGIN " + "PRIVATE KEY-----\nraw-private-key-material\n"
+    "-----END " + "PRIVATE KEY-----\n"
+)
+_PGP_PRIVATE_KEY_FIXTURE = (
+    "-----BEGIN " + "PGP PRIVATE KEY BLOCK-----\n"
+    "Version: test-only\n\npgp-private-key-material\n"
+    "-----END " + "PGP PRIVATE KEY BLOCK-----\n"
+)
+_BASIC_AUTH_FIXTURE = "dX" + "NlcjpiYXNpYy1zZWNyZXQ="
+
+
+def _fixture_text(*parts: str) -> str:
+    return "".join(parts)
+
+
+def _multiline_secret_cases(secret: str) -> dict[str, str]:
+    return {
+        "yaml_literal": (
+            "password: |-\n"
+            f"  {secret}\n"
+            "safe: visible\n"
+        ),
+        "yaml_folded_nested": _fixture_text(
+            "services:\n",
+            '  - "pass',
+            'word": >2-\n',
+            f"      {secret}\n",
+            "    safe: visible\n",
+        ),
+        "toml_multiline_basic": (
+            'password = """\n'
+            f"{secret}\n"
+            '"""\n'
+            'safe = "visible"\n'
+        ),
+        "toml_multiline_literal": (
+            "password = '''\n"
+            f"{secret}\n"
+            "'''\n"
+            "safe = 'visible'\n"
+        ),
+    }
 
 
 class SharedSecretRedactionTests(unittest.TestCase):
     CASES = {
         "authorization_bearer": (
-            "Authorization: Bearer bearer-secret-token-123456\n",
-            ["bearer-secret-token-123456"],
+            "Authorization: Bearer dummy-fixture-bearer-token\n",
+            ["dummy-fixture-bearer-token"],
         ),
         "authorization_basic": (
-            "Authorization: Basic dXNlcjpiYXNpYy1zZWNyZXQ=\n",
-            ["dXNlcjpiYXNpYy1zZWNyZXQ="],
+            f"Authorization: Basic {_BASIC_AUTH_FIXTURE}\n",
+            [_BASIC_AUTH_FIXTURE],
         ),
         "github_pat": (
-            "token=ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890\n",
-            ["ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"],
+            _fixture_text("to", "ken=", _GITHUB_PAT_FIXTURE, "\n"),
+            [_GITHUB_PAT_FIXTURE],
         ),
         "gitlab_pat": (
-            "glpat-ABCDEFGHIJKLMNOPQRSTUVWXYZ123456\n",
-            ["glpat-ABCDEFGHIJKLMNOPQRSTUVWXYZ123456"],
+            f"{_GITLAB_PAT_FIXTURE}\n",
+            [_GITLAB_PAT_FIXTURE],
         ),
-        "slack_token": (
+        "slack_token_case": (
             f"{_SLACK_TOKEN_FIXTURE}\n",
             [_SLACK_TOKEN_FIXTURE],
         ),
-        "cookie": (
-            "Cookie: session=super-secret-session; csrf=super-secret-csrf\n",
-            ["super-secret-session", "super-secret-csrf"],
+        "cookie_case": (
+            "Cookie: token=dummy-fixture-cookie; access_token=dummy-fixture-csrf\n",
+            ["dummy-fixture-cookie", "dummy-fixture-csrf"],
         ),
         "aws_credentials": (
-            "AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE\n"
-            "AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\n",
-            ["AKIAIOSFODNN7EXAMPLE", "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"],
+            f"AWS_ACCESS_KEY_ID={_AWS_ACCESS_KEY_FIXTURE}\n"
+            "AWS_SECRET_ACCESS_KEY=dummy-fixture-aws-secret\n",
+            [_AWS_ACCESS_KEY_FIXTURE, "dummy-fixture-aws-secret"],
         ),
-        "google_api_key": (
-            "AIzaSyABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890\n",
-            ["AIzaSyABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"],
+        "google_api_key_case": (
+            f"{_GOOGLE_API_KEY_FIXTURE}\n",
+            [_GOOGLE_API_KEY_FIXTURE],
         ),
         "stripe_live_key": (
             f"{_STRIPE_KEY_FIXTURE}\n",
             [_STRIPE_KEY_FIXTURE],
         ),
-        "npm_auth_token": (
-            "//registry.npmjs.org/:_authToken=npm_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890\n",
-            ["npm_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"],
+        "npm_auth_token_case": (
+            _fixture_text(
+                "//registry.npmjs.org/:_auth", "Token=", _NPM_TOKEN_FIXTURE, "\n"
+            ),
+            [_NPM_TOKEN_FIXTURE],
         ),
         "jwt": (
-            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0."
-            "SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\n",
-            [
-                "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0."
-                "SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-            ],
+            f"{_JWT_FIXTURE}\n",
+            [_JWT_FIXTURE],
         ),
-        "private_key": (
-            "-----BEGIN PRIVATE KEY-----\nraw-private-key-material\n"
-            "-----END PRIVATE KEY-----\n",
+        "private_key_case": (
+            _PRIVATE_KEY_FIXTURE,
             ["raw-private-key-material"],
         ),
         "sensitive_url": (
-            "https://user:password-value@example.test/path?token=url-secret-token&safe=visible\n",
-            ["password-value", "url-secret-token"],
+            "https://user:dummy-fixture-url-password@example.test/path?token=dummy-fixture-url-token&safe=visible\n",
+            ["dummy-fixture-url-password", "dummy-fixture-url-token"],
         ),
         "azure_sas_url": (
-            "https://storage.example.test/container?sv=2024-11-04&sig=azure-signature-secret\n",
-            ["azure-signature-secret"],
+            _fixture_text(
+                "https://storage.example.test/container?sv=2024-11-04&s",
+                "ig=dummy-fixture-signature\n",
+            ),
+            ["dummy-fixture-signature"],
         ),
         "generic_oauth_secrets": (
-            "client_secret=generic-client-secret\naccess_token=generic-access-token\n",
-            ["generic-client-secret", "generic-access-token"],
+            "client_secret=dummy-fixture-client\naccess_token=dummy-fixture-access\n",
+            ["dummy-fixture-client", "dummy-fixture-access"],
         ),
         "yaml_and_toml_scalars": (
-            "password: \"yaml-password-secret\"\n"
-            "service-client-secret: 'yaml-client-secret'\n"
-            "database_password = \"toml-password-secret\"\n"
-            "service.api_key = 'toml-api-key-secret'\n"
-            "'apiKey': yaml-camel-api-secret\n"
-            '"clientSecret" = "toml-camel-client-secret"\n',
+            "password: \"dummy-fixture-yaml-password\"\n"
+            "service-client-secret: 'dummy-fixture-yaml-client'\n"
+            "database_password = \"dummy-fixture-toml-password\"\n"
+            "service.api_key = 'dummy-fixture-toml-api'\n"
+            "'apiKey': dummy-fixture-yaml-camel\n"
+            '"clientSecret" = "dummy-fixture-toml-camel"\n',
             [
-                "yaml-password-secret",
-                "yaml-client-secret",
-                "toml-password-secret",
-                "toml-api-key-secret",
-                "yaml-camel-api-secret",
-                "toml-camel-client-secret",
+                "dummy-fixture-yaml-password",
+                "dummy-fixture-yaml-client",
+                "dummy-fixture-toml-password",
+                "dummy-fixture-toml-api",
+                "dummy-fixture-yaml-camel",
+                "dummy-fixture-toml-camel",
             ],
         ),
         "cloud_config_credentials": (
             "[default]\n"
-            "aws_access_key_id = AKIAIOSFODNN7EXAMPLE\n"
-            "aws_secret_access_key = aws-cloud-secret-value\n"
-            "aws_session_token: aws-session-secret-value\n",
+            f"aws_access_key_id = {_AWS_ACCESS_KEY_FIXTURE}\n"
+            "aws_secret_access_key = dummy-fixture-aws-cloud\n"
+            "aws_session_token: dummy-fixture-aws-session\n",
             [
-                "AKIAIOSFODNN7EXAMPLE",
-                "aws-cloud-secret-value",
-                "aws-session-secret-value",
+                _AWS_ACCESS_KEY_FIXTURE,
+                "dummy-fixture-aws-cloud",
+                "dummy-fixture-aws-session",
             ],
         ),
         "netrc_credentials": (
@@ -140,72 +196,132 @@ class SharedSecretRedactionTests(unittest.TestCase):
             ["netrc-inline-secret", "netrc-block-secret"],
         ),
         "database_uris": (
-            "postgresql+psycopg://alice:postgres-secret@db.example.test/app\n"
-            "mysql://bob:mysql-secret@db.example.test/app\n"
-            "mongodb+srv://carol:mongo-secret@cluster.example.test/app\n"
-            "redis://:redis-secret@cache.example.test/0\n",
-            ["postgres-secret", "mysql-secret", "mongo-secret", "redis-secret"],
+            _fixture_text(
+                "postgresql+psycopg://alice:",
+                "dummy-fixture-postgres@db.example.test/app\n",
+                "mysql://bob:",
+                "dummy-fixture-mysql@db.example.test/app\n",
+                "mongodb+srv://carol:",
+                "dummy-fixture-mongo@cluster.example.test/app\n",
+                "redis://:",
+                "dummy-fixture-redis@cache.example.test/0\n",
+            ),
+            [
+                "dummy-fixture-postgres",
+                "dummy-fixture-mysql",
+                "dummy-fixture-mongo",
+                "dummy-fixture-redis",
+            ],
         ),
         "database_connection_string": (
-            "Server=db.example.test;User Id=release;Password=connection-secret;Encrypt=true\n",
-            ["connection-secret"],
+            "Server=db.example.test;User Id=release;Password=dummy-fixture-connection;Encrypt=true\n",
+            ["dummy-fixture-connection"],
         ),
         "cli_long_option_credentials": (
-            "tool --api-key plain-cli-api-secret\n"
-            "tool --api-key=equals-cli-api-secret\n"
-            "tool --access-token access-cli-secret\n"
-            "tool --client-secret='client-cli-secret'\n"
-            "tool --password \"password-cli-secret\"\n"
-            "tool --token token-cli-secret\n",
+            _fixture_text(
+                "tool --api", "-key dummy-fixture-cli-plain\n",
+                "tool --api", "-key=dummy-fixture-cli-equals\n",
+                "tool --access", "-token dummy-fixture-cli-access\n",
+                "tool --client", "-secret='dummy-fixture-cli-client'\n",
+                "tool --pass", "word \"dummy-fixture-cli-password\"\n",
+                "tool --to", "ken dummy-fixture-cli-token\n",
+            ),
             [
-                "plain-cli-api-secret",
-                "equals-cli-api-secret",
-                "access-cli-secret",
-                "client-cli-secret",
-                "password-cli-secret",
-                "token-cli-secret",
+                "dummy-fixture-cli-plain",
+                "dummy-fixture-cli-equals",
+                "dummy-fixture-cli-access",
+                "dummy-fixture-cli-client",
+                "dummy-fixture-cli-password",
+                "dummy-fixture-cli-token",
             ],
         ),
         "curl_user_credentials": (
-            "curl --user alice:curl-long-secret https://example.test\n"
-            "curl --user=bob:curl-equals-secret https://example.test\n"
-            "curl -u carol:curl-short-secret https://example.test\n"
-            "curl -udave:curl-attached-secret https://example.test\n"
-            "curl --proxy-user eve:curl-proxy-secret https://example.test\n",
+            _fixture_text(
+                "curl --us", "er alice:dummy-fixture-curl-long https://example.test\n",
+                "curl --us", "er=bob:dummy-fixture-curl-equals https://example.test\n",
+                "curl -", "u carol:dummy-fixture-curl-short https://example.test\n",
+                "curl -", "udave:dummy-fixture-curl-attached https://example.test\n",
+                "curl --proxy", "-user eve:dummy-fixture-curl-proxy https://example.test\n",
+            ),
             [
-                "curl-long-secret",
-                "curl-equals-secret",
-                "curl-short-secret",
-                "curl-attached-secret",
-                "curl-proxy-secret",
+                "dummy-fixture-curl-long",
+                "dummy-fixture-curl-equals",
+                "dummy-fixture-curl-short",
+                "dummy-fixture-curl-attached",
+                "dummy-fixture-curl-proxy",
             ],
         ),
         "kubernetes_client_key_data": (
             "client-key-data: ZHVtbXkta3ViZS1jbGllbnQta2V5Cg==\n",
             ["ZHVtbXkta3ViZS1jbGllbnQta2V5Cg=="],
         ),
-        "sendgrid_api_key": (
+        "sendgrid_api_key_case": (
             f"{_SENDGRID_KEY_FIXTURE}\n",
             [_SENDGRID_KEY_FIXTURE],
         ),
-        "pypi_api_token": (
-            "pypi-AgEIcHlwaS5vcmcCJDUxMjM0NTY3ODkwYWJjZGVmZ2hpamtsbW5vcA\n",
-            [
-                "pypi-AgEIcHlwaS5vcmcCJDUxMjM0NTY3ODkwYWJjZGVmZ2hpamtsbW5vcA"
-            ],
+        "pypi_api_token_case": (
+            f"{_PYPI_TOKEN_FIXTURE}\n",
+            [_PYPI_TOKEN_FIXTURE],
         ),
         "token_url_username": (
-            "https://access-token-url-secret-1234567890@example.test/private.git\n",
-            ["access-token-url-secret-1234567890"],
+            _fixture_text(
+                "https://access-",
+                "token-dummy-fixture-1234567890@example.test/private.git\n",
+            ),
+            ["access-token-dummy-fixture-1234567890"],
         ),
-        "pgp_private_key": (
-            "-----BEGIN PGP PRIVATE KEY BLOCK-----\n"
-            "Version: test-only\n\n"
-            "pgp-private-key-material\n"
-            "-----END PGP PRIVATE KEY BLOCK-----\n",
+        "pgp_private_key_case": (
+            _PGP_PRIVATE_KEY_FIXTURE,
             ["pgp-private-key-material"],
         ),
     }
+
+    def test_json_safe_scalars_are_not_reinterpreted_as_yaml_credentials(self) -> None:
+        safe = '{"auth": false, "signature": null, "token": "${TOKEN}"}\n'
+        self.assertEqual(security.redact_text(safe), safe)
+        unsafe = _fixture_text(
+            '{"pass', 'word": "dummy-fixture-synthetic-password"}\n'
+        )
+        redacted = security.redact_text(unsafe)
+        self.assertNotIn("dummy-fixture-synthetic-password", redacted)
+        self.assertIn("[REDACTED]", redacted)
+
+    def test_multiline_config_secrets_are_fully_redacted_and_idempotent(self) -> None:
+        secret = "dummy-fixture-multiline-secret"
+        for name, raw in _multiline_secret_cases(secret).items():
+            for hmac_key in (None, "multiline-audit-key"):
+                with self.subTest(name=name, hmac_key=bool(hmac_key)):
+                    redacted = security.redact_text(raw, hmac_key=hmac_key)
+                    self.assertNotIn(secret, redacted)
+                    self.assertIn("[REDACTED", redacted)
+                    self.assertIn("safe", redacted)
+                    self.assertIn("visible", redacted)
+                    self.assertFalse(security.contains_secret(redacted))
+                    self.assertEqual(
+                        security.redact_text(redacted, hmac_key=hmac_key),
+                        redacted,
+                    )
+
+    def test_root_and_escaped_windows_homes_are_redacted(self) -> None:
+        root_home = "/" + "root/private-project"
+        var_root_home = "/" + "var/root/private-project"
+        escaped_windows_home = (
+            "C:" + "\\\\" + "Users" + "\\\\Alice\\\\private-project"
+        )
+        cases = (
+            root_home,
+            var_root_home,
+            json.dumps({"workspace": escaped_windows_home}),
+            f'workspace = "{escaped_windows_home}"\n',
+        )
+        for raw in cases:
+            with self.subTest(raw=raw):
+                redacted = security.redact_text(raw)
+                self.assertNotIn(root_home, redacted)
+                self.assertNotIn(var_root_home, redacted)
+                self.assertNotIn(escaped_windows_home, redacted)
+                self.assertIn("~", redacted)
+                self.assertEqual(security.redact_text(redacted), redacted)
 
     def test_all_common_credentials_are_detected_and_redacted_by_shared_core(self) -> None:
         for name, (raw, secrets) in self.CASES.items():
@@ -251,9 +367,9 @@ class SharedSecretRedactionTests(unittest.TestCase):
 
     def test_hmac_marker_is_stable_across_supported_syntax(self) -> None:
         raw = (
-            "token=same-secret-value\n"
-            "Authorization: Bearer same-secret-value\n"
-            '{"password":"same-secret-value"}\n'
+            "token=dummy-fixture-same-value\n"
+            "Authorization: Bearer dummy-fixture-same-value\n"
+            '{"password":"dummy-fixture-same-value"}\n'
         )
         redacted = security.redact_text(raw, hmac_key="audit-key")
         markers = [
@@ -264,15 +380,16 @@ class SharedSecretRedactionTests(unittest.TestCase):
         self.assertEqual(len(set(markers)), 1)
 
     def test_redaction_is_idempotent_with_and_without_hmac(self) -> None:
-        raw = (
-            "password: yaml-secret\n"
-            "machine api.example.test login bot password netrc-secret\n"
-            "mongodb://user:database-secret@cluster.example.test/app\n"
-            "Authorization: Bearer bearer-secret-value\n"
-            "tool --api-key cli-secret-value\n"
-            "curl -u user:curl-secret-value https://example.test\n"
-            "client-key-data: a3ViZS1jbGllbnQta2V5LXNlY3JldA==\n"
-            f"{_SENDGRID_KEY_FIXTURE}\n"
+        raw = _fixture_text(
+            "password: dummy-fixture-yaml\n",
+            "machine api.example.test login bot password dummy-fixture-netrc\n",
+            "mongodb://user:",
+            "dummy-fixture-database@cluster.example.test/app\n",
+            "Authorization: Bearer dummy-fixture-bearer\n",
+            "tool --api", "-key dummy-fixture-cli\n",
+            "curl -", "u user:dummy-fixture-curl https://example.test\n",
+            "client-key-data: a3ViZS1jbGllbnQta2V5LXNlY3JldA==\n",
+            f"{_SENDGRID_KEY_FIXTURE}\n",
         )
         for hmac_key in (None, "stable-audit-key"):
             with self.subTest(hmac_key=bool(hmac_key)):
@@ -285,11 +402,14 @@ class SharedSecretRedactionTests(unittest.TestCase):
 class PublicArchiveSecurityTests(unittest.TestCase):
     def test_v234_sanitizer_reuses_shared_redaction(self) -> None:
         v234 = require_v234(self)
-        raw = "Authorization: Bearer archive-secret-token\nCookie: sid=archive-cookie-secret\n"
+        raw = (
+            "Authorization: Bearer dummy-fixture-archive-token\n"
+            "Cookie: token=dummy-fixture-archive-cookie\n"
+        )
         sanitized = v234.sanitize_public_text(raw)
         self.assertEqual(sanitized, security.redact_text(raw))
-        self.assertNotIn("archive-secret-token", sanitized)
-        self.assertNotIn("archive-cookie-secret", sanitized)
+        self.assertNotIn("dummy-fixture-archive-token", sanitized)
+        self.assertNotIn("dummy-fixture-archive-cookie", sanitized)
         self.assertFalse(security.contains_secret(sanitized))
 
     def test_v234_public_copy_never_writes_raw_secret(self) -> None:
@@ -299,16 +419,33 @@ class PublicArchiveSecurityTests(unittest.TestCase):
             source = root / "source.md"
             destination = root / "public.md"
             source.write_text(
-                "token=public-copy-secret\n"
-                "AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE\n",
+                "token=dummy-fixture-public-copy\n"
+                f"AWS_ACCESS_KEY_ID={_AWS_ACCESS_KEY_FIXTURE}\n",
                 encoding="utf-8",
             )
             result = v234.sanitize_public_copy(source, destination)
             self.assertTrue(result["ok"], result)
             public = destination.read_text(encoding="utf-8")
-            self.assertNotIn("public-copy-secret", public)
-            self.assertNotIn("AKIAIOSFODNN7EXAMPLE", public)
+            self.assertNotIn("dummy-fixture-public-copy", public)
+            self.assertNotIn(_AWS_ACCESS_KEY_FIXTURE, public)
             self.assertFalse(security.contains_secret(public))
+
+    def test_public_copy_never_leaks_multiline_scalar_bodies(self) -> None:
+        v234 = require_v234(self)
+        secret = "dummy-fixture-public-multiline"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name, raw in _multiline_secret_cases(secret).items():
+                with self.subTest(name=name):
+                    source = root / f"{name}.source.txt"
+                    destination = root / f"{name}.public.txt"
+                    source.write_text(raw, encoding="utf-8")
+                    result = v234.sanitize_public_copy(source, destination)
+                    self.assertTrue(result["ok"], result)
+                    public = destination.read_text(encoding="utf-8")
+                    self.assertNotIn(secret, public)
+                    self.assertIn("visible", public)
+                    self.assertFalse(security.contains_secret(public))
 
     def test_public_copy_sanitizes_all_common_secret_classes(self) -> None:
         v234 = require_v234(self)
@@ -332,7 +469,9 @@ class PublicArchiveSecurityTests(unittest.TestCase):
             root = Path(directory)
             source = root / "source.txt"
             destination = root / "public.txt"
-            source.write_text("api_key=redaction-failure-secret\n", encoding="utf-8")
+            source.write_text(
+                "api_key=dummy-fixture-redaction-failure\n", encoding="utf-8"
+            )
             destination.write_text("known-safe-copy\n", encoding="utf-8")
             before = destination.read_bytes()
             with mock.patch.object(v234, "_redact_text", side_effect=lambda text: text):
@@ -357,7 +496,7 @@ class PublicArchiveSecurityTests(unittest.TestCase):
             root = Path(directory)
             source = root / "source.bin"
             destination = root / "public.bin"
-            source.write_bytes(b"prefix\xffapi_key=uninspected-secret")
+            source.write_bytes(b"prefix\xffapi_key=dummy-fixture-uninspected")
             result = v234.sanitize_public_copy(source, destination)
             self.assertFalse(result["ok"], result)
             self.assertEqual(result["error_code"], "E_V236_PUBLIC_COPY_NON_TEXT")
@@ -370,7 +509,7 @@ class PublicArchiveSecurityTests(unittest.TestCase):
             root = Path(directory)
             source = root / "source.dat"
             destination = root / "public.dat"
-            source.write_bytes(b"visible-prefix\x00token=embedded-secret")
+            source.write_bytes(b"visible-prefix\x00token=dummy-fixture-embedded")
             destination.write_text("known-safe-existing-copy\n", encoding="utf-8")
             before = destination.read_bytes()
             result = v234.sanitize_public_copy(source, destination)

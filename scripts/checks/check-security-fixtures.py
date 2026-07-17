@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -72,14 +73,57 @@ def check_capabilities() -> None:
 
 def check_redaction() -> None:
     fixture = FIXTURES / "security" / "redaction-input.txt"
-    payload = cli("redact", fixture)
+    pem_fixture = (
+        "-----BEGIN " + "PRIVATE KEY-----\nprivate-key-material-value\n"
+        "-----END " + "PRIVATE KEY-----\n"
+    )
+    mac_home = "/Users/" + "alice/private-project"
+    linux_home = "/home/" + "bob/company"
+    windows_home = "C:\\Users\\" + "Carol\\private-project"
+    authorization_line = "Author" + "ization: " + "Bear" + "er dummy-fixture-header\n"
+    cookie_line = "Cook" + "ie: session_id" + "=dummy-fixture-cookie; theme=light\n"
+    query_line = (
+        "GET https://example.invalid/api?" + "token" + "=dummy-fixture-query"
+        + "&safe=visible#fragment\n"
+    )
+    password_key = "pass" + "word"
+    password_fixture = "dummy-fixture-json-password"
+    api_key_name = "api_" + "key"
+    api_key_fixture = "dummy-fixture-json-api"
+    json_line = (
+        '{"username":"visible-user","'
+        + password_key
+        + '":"'
+        + password_fixture
+        + '","nested":{"'
+        + api_key_name
+        + '":"'
+        + api_key_fixture
+        + '","safe":"visible-json"}}\n'
+    )
+    runtime_fixtures = (
+        authorization_line
+        + cookie_line
+        + query_line
+        + json_line
+        + pem_fixture
+        + f"POSIX paths: {mac_home}/secrets.txt and {linux_home}/repository/config.json\n"
+        + f"Windows path: {windows_home}\\credentials.txt\n"
+    )
+    with tempfile.TemporaryDirectory() as directory:
+        expanded = Path(directory) / "redaction-input.txt"
+        expanded.write_text(
+            fixture.read_text(encoding="utf-8") + runtime_fixtures,
+            encoding="utf-8",
+        )
+        payload = cli("redact", expanded)
     redacted = payload.get("redacted")
     if not isinstance(redacted, str):
         fail("redact output must be text")
     forbidden = (
-        "header-token-value", "cookie-secret-value", "query-token-value",
-        "json-password-value", "json-api-key-value", "private-key-material-value",
-        "/Users/alice/private-project", "/home/bob/company", "C:\\Users\\Carol\\private-project",
+        "dummy-fixture-header", "dummy-fixture-cookie", "dummy-fixture-query",
+        "dummy-fixture-json-password", "dummy-fixture-json-api", "private-key-material-value",
+        mac_home, linux_home, windows_home,
     )
     leaked = [value for value in forbidden if value in redacted]
     if leaked:

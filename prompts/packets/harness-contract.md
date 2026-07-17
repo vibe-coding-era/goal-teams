@@ -61,11 +61,11 @@ Harness Contract（验证契约）:
 - refactor Harness 绑定 equivalence、regression、holdout 与 rollback；SQA Harness 绑定 version/index/classification/version directory、sanitized public copy 与 retained private provenance。
 - 专家 Harness 只允许 proposal-only；Lead 另派实现/测试。verified 需要不同 run 的 current regression + holdout。
 
-V2.39 telemetry/cache Harness 只在命中时适用，必须分别定义 structural/host/live/request-hit 四状态轴、V2.38-compatible route-static identity、manifest status/scope、宿主可用时的 runtime digests、模型/CLI/package/effective config/parser/scenario/profile、raw hash、invalid/unsupported/duplicate counts 与 token-weighted totals/coverage。轮后 telemetry 不得作为同轮 Budget Gate；无授权 live probe 为 `not_authorized`，无 request 事件时 hit rate 为 null/unavailable。cache 指标不进入完成谓词。
+V2.40 telemetry/cache Harness 只在命中时适用，必须分别定义 structural/host/live/request-hit 四状态轴、V2.38-compatible route-static identity、manifest status/scope、宿主可用时的 runtime digests、模型/CLI/package/effective config/parser/scenario/profile、raw hash、invalid/unsupported/duplicate counts 与 token-weighted totals/coverage。轮后 telemetry 不得作为同轮 Budget Gate；无可信 usage Evidence 时 Tokens/Cache 命中率写 `未获取到` / `Unavailable`，无授权 live probe 为 `not_authorized`。cache 指标不进入完成谓词。
 
 ## Self-release Harness 扩展
 
-以下字段只在 `policy_profile=goal-teams-self-release-v2.39` 时 required；V2.38 Profile 只用于历史 replay，普通项目不得为了满足模板而创建固定轮次、评分或公开归档检查。
+以下字段只在 `policy_profile=goal-teams-self-release-v2.40` 时 required；V2.39/V2.38 Profile 只用于历史 replay，普通项目不得为了满足模板而创建固定轮次、评分或公开归档检查。
 
 实现类 Harness 还必须定义：
 

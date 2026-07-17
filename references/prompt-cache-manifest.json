@@ -69,6 +69,7 @@
     "references/profiles/goal-teams-self-release-v2.36.md",
     "references/profiles/goal-teams-self-release-v2.38.md",
     "references/profiles/goal-teams-self-release-v2.39.md",
+    "references/profiles/goal-teams-self-release-v2.40.md",
     "references/rules-project-sizing.md",
     "references/rules-specialists.md",
     "references/rules-loop.md",
@@ -95,7 +96,7 @@
       "dynamic_tail_labels": ["route_facts", "user_request"]
     },
     "self_release_execution_repository": {
-      "ordered_refs": [".agents/skills/goal-teams/SKILL.md", "SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "references/goal-teams-core-v2.5.md", "references/profiles/goal-teams-self-release-v2.39.md", "references/rules-loop.md", "prompts/lead/loop.md"],
+      "ordered_refs": [".agents/skills/goal-teams/SKILL.md", "SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "references/goal-teams-core-v2.5.md", "references/profiles/goal-teams-self-release-v2.40.md", "references/rules-loop.md", "prompts/lead/loop.md"],
       "limit_bytes": 81920,
       "dynamic_tail_labels": ["route_receipt", "iteration_state", "user_request"]
     },
@@ -165,7 +166,7 @@
       "dynamic_tail_labels": ["route_facts"]
     },
     "structured_policy": {
-      "ordered_refs": ["RULES.md", "references/compat.md", "references/goal-teams-core-v2.5.md", "references/dual-review-protocol.md", "references/invariants.md", "references/profiles/goal-teams-self-release-v2.36.md", "references/profiles/goal-teams-self-release-v2.38.md", "references/profiles/goal-teams-self-release-v2.39.md", "references/rules-project-sizing.md", "references/rules-specialists.md", "references/rules-loop.md", "references/rules-testing.md", "references/rules-ui.md", "references/test-case-assertion-protocol.md", "references/ui-e2e-pixel-protocol.md", "references/ui-visual-contract-protocol.md"],
+      "ordered_refs": ["RULES.md", "references/compat.md", "references/goal-teams-core-v2.5.md", "references/dual-review-protocol.md", "references/invariants.md", "references/profiles/goal-teams-self-release-v2.36.md", "references/profiles/goal-teams-self-release-v2.38.md", "references/profiles/goal-teams-self-release-v2.39.md", "references/profiles/goal-teams-self-release-v2.40.md", "references/rules-project-sizing.md", "references/rules-specialists.md", "references/rules-loop.md", "references/rules-testing.md", "references/rules-ui.md", "references/test-case-assertion-protocol.md", "references/ui-e2e-pixel-protocol.md", "references/ui-visual-contract-protocol.md"],
       "limit_bytes": 131072,
       "selection_mode": "ordered_subset_of_policy_rule_set",
       "dynamic_tail_labels": ["normalized_route_facts", "execution_contract", "user_request"]

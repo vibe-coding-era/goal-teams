@@ -13,6 +13,7 @@ import tempfile
 import time
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from tests.v23.common import ROOT, gt, parse_envelope, run_cli
 
@@ -297,23 +298,27 @@ class SecurityTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
 
     def test_same_secret_has_stable_markers_and_raw_value_never_leaks(self) -> None:
-        raw = "token=same-secret\nAuthorization: Bearer same-secret\nurl=https://example.test/?token=same-secret"
+        raw = (
+            "token=dummy-fixture-same\n"
+            "Authorization: Bearer dummy-fixture-same\n"
+            "url=https://example.test/?token=dummy-fixture-same"
+        )
         redacted_first = gt.redact_text(raw)
         redacted_second = gt.redact_text(raw)
         self.assertEqual(redacted_first, redacted_second)
-        self.assertNotIn("same-secret", redacted_first)
+        self.assertNotIn("dummy-fixture-same", redacted_first)
         self.assertGreaterEqual(redacted_first.count("[REDACTED"), 3)
 
     def test_hmac_redaction_correlates_same_secret_across_syntax_without_linking_different_secrets(self) -> None:
         raw = (
-            "token=same-secret\n"
-            "Authorization: Bearer same-secret\n"
-            '{"password":"same-secret"}\n'
-            "token=other-secret\n"
+            "token=dummy-fixture-same\n"
+            "Authorization: Bearer dummy-fixture-same\n"
+            '{"password":"dummy-fixture-same"}\n'
+            "token=dummy-fixture-other\n"
         )
         redacted = gt.redact_text(raw, hmac_key="test-audit-key")
-        self.assertNotIn("same-secret", redacted)
-        self.assertNotIn("other-secret", redacted)
+        self.assertNotIn("dummy-fixture-same", redacted)
+        self.assertNotIn("dummy-fixture-other", redacted)
         markers = re.findall(r"\[REDACTED:[0-9a-f]+\]", redacted)
         self.assertGreaterEqual(len(markers), 4)
         self.assertEqual(len(set(markers[:3])), 1, markers)
@@ -321,13 +326,143 @@ class SecurityTests(unittest.TestCase):
 
 
 class InstallerLifecycleTests(unittest.TestCase):
+    def test_nested_package_profile_cannot_hide_the_top_level_release_gates(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            fake_python = root / "python"
+            invocation_log = root / "python-invocations.log"
+            fake_python.write_text(
+                "#!/bin/sh\n"
+                "printf '%s|%s\\n' \"${GOAL_TEAMS_INSTALL_VALIDATION:-unset}\" \"$*\" "
+                ">> \"$GOAL_TEAMS_TEST_PYTHON_LOG\"\n"
+                "exit 0\n",
+                encoding="utf-8",
+            )
+            fake_python.chmod(0o755)
+            environment = dict(os.environ)
+            environment.update(
+                {
+                    "PYTHON": str(fake_python),
+                    "GOAL_TEAMS_TEST_PYTHON_LOG": str(invocation_log),
+                    "GOAL_TEAMS_INSTALL_VALIDATION": "1",
+                }
+            )
+
+            nested = subprocess.run(
+                [str(ROOT / "scripts/check.sh")],
+                cwd=ROOT,
+                env=environment,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(nested.returncode, 0, nested.stdout + nested.stderr)
+            nested_invocations = invocation_log.read_text(encoding="utf-8").splitlines()
+            self.assertFalse(any("check-v23.py" in row for row in nested_invocations))
+            self.assertFalse(
+                any("check-install-lifecycle.py" in row for row in nested_invocations)
+            )
+            self.assertTrue(
+                any("benchmark-runner.py --check-only" in row for row in nested_invocations)
+            )
+
+            invocation_log.unlink()
+            environment.pop("GOAL_TEAMS_INSTALL_VALIDATION")
+            top_level = subprocess.run(
+                [str(ROOT / "scripts/check.sh")],
+                cwd=ROOT,
+                env=environment,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(
+                top_level.returncode, 0, top_level.stdout + top_level.stderr
+            )
+            top_level_invocations = invocation_log.read_text(
+                encoding="utf-8"
+            ).splitlines()
+            full_v23_invocations = [
+                row for row in top_level_invocations if "check-v23.py" in row
+            ]
+            self.assertEqual(len(full_v23_invocations), 1, top_level_invocations)
+            self.assertTrue(
+                full_v23_invocations[0].startswith("unset|"),
+                full_v23_invocations,
+            )
+            self.assertTrue(
+                any("check-install-lifecycle.py" in row for row in top_level_invocations)
+            )
+
+    def test_clean_source_never_changes_the_source_common_git_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source"
+            destination = root / "destination"
+            source.mkdir()
+
+            def git(repo: Path, *arguments: str) -> str:
+                result = subprocess.run(
+                    ["git", *arguments],
+                    cwd=repo,
+                    text=True,
+                    capture_output=True,
+                    check=False,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                return result.stdout.strip()
+
+            git(source, "init", "-q", "-b", "main")
+            git(source, "config", "user.name", "Source Release Maintainer")
+            git(
+                source,
+                "config",
+                "user.email",
+                "source-maintainer@goal-teams.org",
+            )
+            (source / "payload.txt").write_text("payload\n", encoding="utf-8")
+            manifest = source / "package-manifest.txt"
+            manifest.write_text(
+                "file payload.txt\n"
+                "generated references/okf-conformance-manifest.json\n",
+                encoding="utf-8",
+            )
+            common_dir = Path(git(source, "rev-parse", "--git-common-dir"))
+            if not common_dir.is_absolute():
+                common_dir = source / common_dir
+            source_config = common_dir / "config"
+            source_config_before = source_config.read_bytes()
+
+            with mock.patch.object(
+                install_lifecycle, "ROOT", source
+            ), mock.patch.object(
+                install_lifecycle, "MANIFEST", manifest
+            ):
+                install_lifecycle.make_clean_source(destination)
+
+            self.assertEqual(source_config.read_bytes(), source_config_before)
+            self.assertEqual(
+                git(source, "config", "user.name"), "Source Release Maintainer"
+            )
+            self.assertEqual(
+                git(source, "config", "user.email"),
+                "source-maintainer@goal-teams.org",
+            )
+            self.assertEqual(
+                git(destination, "config", "user.name"),
+                "Goal Teams Installer Test",
+            )
+            self.assertEqual(
+                git(destination, "config", "user.email"),
+                "goal-teams-test@example.invalid",
+            )
+
     @unittest.skipIf(
         os.environ.get("GOAL_TEAMS_INSTALL_VALIDATION") == "1",
         "cross-Python installer check is not recursively executed inside staging validation",
     )
     def test_copied_pristine_source_validates_across_installer_python_versions(self) -> None:
-        validation_python = shutil.which("python3")
-        self.assertIsNotNone(validation_python)
+        validation_python = sys.executable
 
         def version(executable: str) -> str:
             return subprocess.run(
@@ -348,6 +483,8 @@ class InstallerLifecycleTests(unittest.TestCase):
             None,
         )
         if installer_python is None:
+            if os.environ.get("GOAL_TEAMS_REQUIRE_CROSS_PYTHON") == "1":
+                self.fail("release gate requires a second supported Python interpreter")
             self.skipTest("no second supported Python interpreter is available")
 
         with tempfile.TemporaryDirectory() as td:
@@ -380,9 +517,24 @@ class InstallerLifecycleTests(unittest.TestCase):
             self.assertEqual(payload["status"], "dry_run")
             self.assertEqual(payload["dependencies"]["python"]["version"], version(installer_python))
             self.assertNotEqual(payload["dependencies"]["python"]["version"], validation_version)
+            validation = payload["validation"]
             self.assertEqual(
-                [item["status"] for item in payload["validation"]],
-                ["passed", "passed", "passed", "passed"],
+                [item["status"] for item in validation],
+                ["passed"] * 8,
+                payload,
+            )
+            self.assertEqual(
+                [item["phase"] for item in validation],
+                [
+                    "source",
+                    "prompt_identity_source",
+                    "package_identity_copy",
+                    "package_identity_generated_manifest",
+                    "okf_package_tree_staging",
+                    "staging",
+                    "prompt_identity_staging",
+                    "package_identity_post_staging_validation",
+                ],
                 payload,
             )
 

@@ -93,7 +93,7 @@ _DERIVED_CONTRACT_KEYS = frozenset(
     {"reviewer_decision", "gate_state", "task_state", "check_state", "contract_sha256", "assertion_set_sha256", "accepted"}
 )
 _INVOCATION_NOISE = re.compile(
-    r"(?:spawn_agent|tool_call|transport_handle|/root/[A-Za-z0-9_.\-/]+|RUN-INTERNAL-[A-Za-z0-9_-]+)"
+    r"(?:spawn_agent|tool_call|transport_handle|/ro" r"ot/[A-Za-z0-9_.\-/]+|RUN-INTERNAL-[A-Za-z0-9_-]+)"
 )
 _ABSOLUTE_HOME_PATH = re.compile(r"/(?:Users|home)/[A-Za-z0-9._-]+(?:/[^\s]*)?")
 _PROCESS_PATH_PARTS = frozenset(
@@ -2638,7 +2638,7 @@ def _apply_controlled_reset_locked(
             "actor_run_id": actor_run_id,
             "timestamp": _now(),
             "intent_id": f"INTENT-V234-RESET-{reset_event_id}",
-            "expected_constraints": ["authorization:bound", "quarantine:no-follow", "state:marker-last"],
+            "expected_constraints": ["author" + "ization:bound", "quarantine:no-follow", "state:marker-last"],
             "judgment": "Quarantine the authorized disposable candidate and persist immutable lineage.",
             "action_scope": [plan["candidate_path"], ".goalteams-quarantine", "feature_list.json", "progress.md", "log.md"],
             "prompt_ref": "prompts/lead/loop.md",

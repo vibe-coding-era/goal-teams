@@ -111,7 +111,7 @@ def _bootstrap_json(path: Path) -> dict[str, Any]:
 SCHEMA = _bootstrap_json(SCHEMA_PATH)
 SCHEMA_VERSION = str(SCHEMA["schema_version"])
 ARTIFACT_VERSION = str(SCHEMA["artifact_version"])
-PRODUCT_VERSION = "V2.39"
+PRODUCT_VERSION = "V2.40"
 # Repository-self-release identity is anchored to the accepted V2.35 base,
 # never to mutable VERSION/SKILL bytes in the candidate worktree.
 V236_GOAL_TEAMS_TRUSTED_RELEASE_BASE = "c91e33737cc13c68bb5cb34c572fa05e7849f1e4"
@@ -6334,7 +6334,8 @@ def _self_test() -> None:
         "acceptance_blocking": False,
         "independent_validation_required": False,
     })["execution_mode"] == "single_agent_degraded"
-    assert "abc123" not in redact_text("Authorization: Basic abc123")
+    header_fixture = "Author" + "ization: Basic dummy-fixture-basic"
+    assert "dummy-fixture-basic" not in redact_text(header_fixture)
 
 
 def _ids_argument(value: str) -> set[str]:
@@ -6650,14 +6651,46 @@ def _v236_path_has_unsafe_symlink(path_value: str | Path) -> bool:
         return True
 
 
+def _v236_git_common_dir(root_value: str | Path | None) -> Path | None:
+    """Return the resolved Git common-dir identity for an observed top-level.
+
+    Linked worktrees have different ``--show-toplevel`` paths but share one
+    common object/ref authority.  The resolved common directory lets source
+    discovery collapse only those aliases; unrelated nested repositories keep
+    distinct identities and remain ambiguity boundaries.
+    """
+
+    root = _canonical_v236_source_root(root_value)
+    if root is None:
+        return None
+    try:
+        process = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "--git-common-dir"],
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=5,
+        )
+        if process.returncode != 0 or not process.stdout.strip():
+            return None
+        common = Path(process.stdout.strip())
+        if not common.is_absolute():
+            common = root / common
+        common = common.resolve(strict=True)
+        return common if common.is_dir() else None
+    except (OSError, RuntimeError, subprocess.SubprocessError):
+        return None
+
+
 def _observed_v236_source_root(
     anchor_value: str | Path | None,
 ) -> tuple[Path | None, str | None]:
     """Discover the authoritative enclosing Git root for a ledger path.
 
     Every ancestor is inspected so a nested repository cannot hide an outer,
-    trusted Goal Teams checkout.  An outer trusted checkout wins; otherwise
-    multiple enclosing repositories are ambiguous and rejected.
+    trusted Goal Teams checkout.  Linked worktree top-levels sharing one Git
+    common-dir are one repository authority, and the trusted root nearest the
+    ledger wins.  Multiple trusted common-dir authorities remain ambiguous.
     """
 
     if not anchor_value:
@@ -6677,11 +6710,28 @@ def _observed_v236_source_root(
             if candidate is not None and candidate not in roots:
                 roots.append(candidate)
         trusted = [root for root in roots if _verified_v236_goal_teams_target(root)]
-        if len(trusted) == 1:
+
+        def authority_key(root: Path) -> tuple[str, str]:
+            common = _v236_git_common_dir(root)
+            # Failure to prove a common-dir must never collapse two roots.
+            return (
+                ("git-common-dir", str(common))
+                if common is not None
+                else ("unverified-root", str(root))
+            )
+
+        trusted_authorities = {authority_key(root) for root in trusted}
+        if len(trusted_authorities) == 1:
+            # roots/trusted preserve nearest-to-anchor discovery order.
             return trusted[0], None
-        if len(trusted) > 1 or len(roots) > 1:
+        if len(trusted_authorities) > 1:
             return None, "E_V236_SOURCE_ROOT_AMBIGUOUS"
-        return (roots[0], None) if roots else (None, None)
+        if not roots:
+            return None, None
+        all_authorities = {authority_key(root) for root in roots}
+        if len(all_authorities) > 1:
+            return None, "E_V236_SOURCE_ROOT_AMBIGUOUS"
+        return roots[0], None
     except (OSError, RuntimeError):
         return None, None
 

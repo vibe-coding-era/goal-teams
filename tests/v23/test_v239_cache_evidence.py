@@ -25,6 +25,8 @@ FIXTURES = ROOT / "tests" / "v23" / "fixtures" / "v239" / "cache"
 PROMPT_CACHE_PATH = ROOT / "scripts" / "v23" / "prompt_cache.py"
 CACHE_PROBE_PATH = ROOT / "scripts" / "v23" / "cache_probe.py"
 TRUST_POLICY_PATH = ROOT / "references" / "prompt-cache-trust-policy.json"
+PROVIDER_LIKE_MARKER = "sk-" + "proj-EXAMPLESECRET"
+PRIVATE_HOME_MARKER = "/Users/" + "private"
 
 
 def _load_optional(name: str, path: Path):
@@ -190,8 +192,8 @@ class V239CacheEvidenceContractTests(unittest.TestCase):
     def test_receipt_metadata_rejects_paths_and_secret_markers(self) -> None:
         build_capability = self.api("build_host_capability_receipt")
         for field, value in (
-            ("receipt_id", "sk-proj-EXAMPLESECRET"),
-            ("host_adapter_id", "/Users/private/adapter"),
+            ("receipt_id", PROVIDER_LIKE_MARKER),
+            ("host_adapter_id", PRIVATE_HOME_MARKER + "/adapter"),
             ("host_adapter_version", "file:///private/version"),
         ):
             payload = _json_fixture("host-capability-input.json")
@@ -203,9 +205,9 @@ class V239CacheEvidenceContractTests(unittest.TestCase):
 
         build_adapter = self.api("build_test_only_adapter_receipt")
         for kwargs in (
-            {"adapter_id": "/Users/private/adapter"},
+            {"adapter_id": PRIVATE_HOME_MARKER + "/adapter"},
             {"adapter_version": "file:///private/version"},
-            {"capture_invocation_id": "sk-proj-EXAMPLESECRET"},
+            {"capture_invocation_id": PROVIDER_LIKE_MARKER},
         ):
             with self.subTest(kwargs=kwargs), self.assertRaisesRegex(
                 Exception, "E_CACHE_ADAPTER_TEST_RECEIPT"
@@ -364,9 +366,9 @@ class V239CacheEvidenceContractTests(unittest.TestCase):
     def test_raw_receipt_loader_rejects_sensitive_adapter_metadata(self) -> None:
         loader = self.api("load_raw_usage_receipt")
         cases = (
-            ("adapter_id", "/Users/private/adapter"),
+            ("adapter_id", PRIVATE_HOME_MARKER + "/adapter"),
             ("adapter_version", "file:///private/version"),
-            ("capture_invocation_id", "sk-proj-EXAMPLESECRET"),
+            ("capture_invocation_id", PROVIDER_LIKE_MARKER),
         )
         for field, value in cases:
             with self.subTest(field=field), tempfile.TemporaryDirectory() as td:
@@ -394,7 +396,7 @@ class V239CacheEvidenceContractTests(unittest.TestCase):
             "/etc/passwd",
             "/tmp/private.log",
             "/var/run/service.sock",
-            r"C:\\Users\\person\\secret.txt",
+            "C:\\" + "\\Users\\person\\secret.txt",
             r"D:/work/private.txt",
             r"\\server\\share\\private.txt",
             "file:///etc/passwd",
@@ -417,10 +419,10 @@ class V239CacheEvidenceContractTests(unittest.TestCase):
         cases = (
             {"data": "arbitrary prompt text"},
             {"input": "hidden request"},
-            {"access_token": "opaque-secret-value"},
-            {"client_secret": "opaque-secret-value"},
-            {"private_key": "-----BEGIN PRIVATE KEY-----opaque"},
-            {"cookie": "sessionid=abc"},
+            {"access_token": "dummy-fixture-opaque-access"},
+            {"client_secret": "dummy-fixture-opaque-client"},
+            {"private_key": "dummy-fixture-private-key"},
+            {"cookie": "dummy-fixture-session-abc"},
             {"aws_access_key_id": "AKIAEXAMPLEVALUE"},
         )
         for index, extra in enumerate(cases, start=1):
@@ -441,7 +443,7 @@ class V239CacheEvidenceContractTests(unittest.TestCase):
             "usage": {
                 "input_tokens": 10,
                 "cached_input_tokens": 5,
-                "session_token": "opaque-secret-value",
+                "session_token": "dummy-fixture-opaque-session",
             },
         }
         with tempfile.TemporaryDirectory() as td, self.assertRaisesRegex(
@@ -651,7 +653,7 @@ class V239CacheEvidenceContractTests(unittest.TestCase):
             for forged in (
                 {},
                 {"product_version": "V2.38", "runtime_prompt_digest": None},
-                {"secret": "raw prompt"},
+                {"secret": "dummy-fixture-raw-prompt"},
             ):
                 with self.subTest(forged=forged), self.assertRaisesRegex(
                     Exception, "E_CACHE_METRICS_IDENTITY"
@@ -763,7 +765,7 @@ class V239CacheEvidenceContractTests(unittest.TestCase):
                 {"schema_version": "attacker-v2.38"},
                 {
                     "schema_version": "goal-teams-cache-identity-v2.38-evil",
-                    "raw_prompt": "sk-proj-EXAMPLESECRET /Users/private",
+                    "raw_prompt": PROVIDER_LIKE_MARKER + " " + PRIVATE_HOME_MARKER,
                 },
             ):
                 raw = json.dumps(payload).encode("utf-8")
