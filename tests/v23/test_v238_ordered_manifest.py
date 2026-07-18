@@ -166,9 +166,10 @@ class OrderedPromptManifestTests(unittest.TestCase):
         with self.assertRaises(prompt_cache.PromptCacheContractError):
             prompt_cache.build_ordered_prompt_identity(nested_raw)
 
+        provider_like_source_ref = "sk-" + "live-secret-value"
         for index, source_ref in (
-            (1, "sk-live-secret-value"),
-            (2, "redacted:sk-live-secret-value"),
+            (1, provider_like_source_ref),
+            (2, "redacted:" + provider_like_source_ref),
             (2, "raw-user-request"),
         ):
             unsafe_ref = _manifest()

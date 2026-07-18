@@ -806,7 +806,10 @@ class V236AcceptanceBindingTests(unittest.TestCase):
         "macOS /var system alias only",
     )
     def test_snapshot_accepts_exact_macos_var_system_alias(self) -> None:
-        with tempfile.TemporaryDirectory(dir="/var/tmp") as directory:
+        alias_tmp = Path(tempfile.gettempdir())
+        if not alias_tmp.as_posix().startswith("/var/"):
+            self.skipTest("active writable temp root does not use the macOS /var alias")
+        with tempfile.TemporaryDirectory(dir=alias_tmp) as directory:
             root = Path(directory)
             _, fixture = self._fixture(root)
             snapshot = acceptance.build_acceptance_input_snapshot(

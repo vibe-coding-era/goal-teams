@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### V2.40
+
+- Added a single controlled release-identity block to both root READMEs so the public repository surface points to `v2.40` and `release/current` without replacing the user-authored body.
+- Added the current `goal-teams-self-release-v2.40` Profile and moved V2.39/V2.38 Profiles to replay-only routing while preserving their cache schemas, fixtures, and historical semantics.
+- Added development/candidate version projections derived from `VERSION`; stable identity remains an independent live-audit responsibility.
+- Added the CP00–CP18 recoverable release lifecycle, exact operation semantics, remote promotion lock, exact main compare-and-swap before publish, immutable tag/Release gates, four-asset verification, and published-asset installation identity.
+- Made release telemetry honest by reporting Tokens consumed and Cache hit rate as `未获取到` / `Unavailable` whenever trusted host usage Evidence is absent.
+
 ### V2.39
 
 - Added a fail-closed Cache Evidence contract with trusted host capability, ordered request manifest, registered configuration attestation, raw-to-normalized receipts, and an authorization-gated live probe executor.
@@ -60,7 +68,7 @@
 
 - Breaking contract: replaced legacy handoff/loop completion labels with orthogonal `task_state`, `check_state`, `run_outcome`, `loop_decision`, and `audit_state`; unknown core enums fail closed.
 - Breaking persistence: append-only ledger events are the execution SSOT; members submit revision-bound events/patches and only the reducer writes `TaskList.md`. Lowercase `tasklist.md` is read-only V2.2 migration input.
-- Separated `agent_type`, `agent_run_id`, `member_id`, localized `display_name`, and `transport_handle`; author/reviewer independence is bound to concrete run identity and artifact hash.
+- Separated `agent_type`, `agent_run_id`, `member_id`, localized `display_name`, and the transport handle; author/reviewer independence is bound to concrete run identity and artifact hash.
 - Added versioned schema/source lock, task-local CAS, deterministic replay/projection, atomic checkpoints, strict Evidence/Traceability/Dual Review/Completion Audit, stable JSON envelopes, and negative mutation gates.
 - Added Lite/Standard/Full/Regulated routing, capability manifests and non-escalating fallback, a 12 KiB base-context gate, secret redaction/trust boundaries, and environment-aware pixel validation.
 - Added typed V2.2 `scan -> plan -> apply -> verify -> rollback` migration, manifest-driven atomic install/update/rollback/uninstall, dirty-source provenance, Linux/macOS CI, canonical success/blocked/failure/recovery replay, and fresh behavior scenarios.

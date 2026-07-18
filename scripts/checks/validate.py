@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -20,7 +21,7 @@ CURRENT_VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 GENERAL_CORE_POLICY_VERSION = "V2.5"
 LEGACY_DATA_SCHEMA_VERSION = "V2.3"
 CORE_POLICY_PROFILE = "goal-teams-core-v2.5"
-SELF_RELEASE_POLICY_PROFILE = "goal-teams-self-release-v2.39"
+SELF_RELEASE_POLICY_PROFILE = "goal-teams-self-release-v2.40"
 STARTUP_LINE = f"我是 Goal Teams Lead {CURRENT_VERSION}。"
 COMPATIBILITY_MARKER = (
     f"我是 Goal Teams Leader {CURRENT_VERSION}，使用 Goal + Plan 模式帮你完成规划、执行和交付，"
@@ -47,6 +48,7 @@ REQUIRED_FILES = [
     "references/rules-testing.md",
     "references/rules-loop.md",
     "references/goal-teams-core-v2.5.md",
+    "references/profiles/goal-teams-self-release-v2.40.md",
     "references/profiles/goal-teams-self-release-v2.39.md",
     "references/profiles/goal-teams-self-release-v2.38.md",
     "references/prompt-cache-manifest.json",
@@ -136,6 +138,15 @@ REQUIRED_FILES = [
     "scripts/review/compare-artifacts.py",
     "scripts/review/validate-dual-review.py",
     "scripts/install/install-local.sh",
+    "scripts/release/release.py",
+    "scripts/release/audit-release.py",
+    "scripts/release/github_adapter.py",
+    "scripts/release/public_scan.py",
+    "scripts/release/build-release.py",
+    "scripts/release/validate-release.py",
+    "scripts/release/publish-github-release.sh",
+    "scripts/release/README.md",
+    "references/public-release-scan-baseline-v2.40.json",
     "scripts/check-member-layout.py",
     "scripts/validate-test-case-contract.py",
     "scripts/compare-artifacts.py",
@@ -191,6 +202,11 @@ REQUIRED_FILES = [
     "schemas/v2.36/acceptance-binding.schema.json",
     "schemas/v2.36/acceptance-core-binding.schema.json",
     "schemas/v2.36/acceptance-input-snapshot.schema.json",
+    "schemas/release-promotion-state.schema.json",
+]
+
+REPOSITORY_REQUIRED_FILES = [
+    ".github/workflows/release-gate.yml",
 ]
 
 
@@ -440,7 +456,7 @@ FILE_RULES = {
         "references/rules-testing.md",
         "references/rules-loop.md",
         "references/goal-teams-core-v2.5.md",
-        "references/profiles/goal-teams-self-release-v2.39.md",
+        "references/profiles/goal-teams-self-release-v2.40.md",
         "references/rules-project-sizing.md",
         "references/rules-specialists.md",
         "规则冲突时",
@@ -498,7 +514,7 @@ FILE_RULES = {
         "`standard`",
         "显式提供时必须与派生值完全一致",
     ),
-    "references/profiles/goal-teams-self-release-v2.39.md": (
+    "references/profiles/goal-teams-self-release-v2.40.md": (
         SELF_RELEASE_POLICY_PROFILE,
         "52",
         "iteration 9",
@@ -582,6 +598,7 @@ README_RELEASE_ITEMS = [
     "references/rules-testing.md",
     "references/rules-loop.md",
     "references/goal-teams-core-v2.5.md",
+    "references/profiles/goal-teams-self-release-v2.40.md",
     "references/profiles/goal-teams-self-release-v2.39.md",
     "references/profiles/goal-teams-self-release-v2.38.md",
     "references/prompt-cache-manifest.json",
@@ -660,6 +677,21 @@ def version_at_least(version: str, floor: tuple[int, int]) -> bool:
 
 def check_required_files() -> None:
     required_files = list(REQUIRED_FILES)
+    # Repository governance files are intentionally excluded from the Gitless
+    # install bundle.  A lifecycle fixture may initialize Git around that
+    # bundle, so detect the canonical repository by its tracked CI baseline.
+    try:
+        repository_checkout = subprocess.run(
+            ["git", "ls-files", "--error-unmatch", ".github/workflows/check.yml"],
+            cwd=ROOT,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        ).returncode == 0
+    except OSError:
+        repository_checkout = False
+    if repository_checkout:
+        required_files.extend(REPOSITORY_REQUIRED_FILES)
     if version_at_least(CURRENT_VERSION, (2, 33)):
         required_files.extend(SPLIT_PUBLICATION_FILES)
     missing = [path for path in required_files if not (ROOT / path).is_file()]
@@ -708,7 +740,8 @@ def check_skill_frontmatter() -> None:
         version,
         GENERAL_CORE_POLICY_VERSION,
         LEGACY_DATA_SCHEMA_VERSION,
-        "V2.38",  # replay-only prompt/profile identity retained by V2.39
+        "V2.39",  # replay-only self-release Profile retained by V2.40
+        "V2.38",  # replay-only prompt/profile identity retained by V2.40
     }
     missing_versions = sorted(allowed_versions - skill_versions)
     if missing_versions:
@@ -730,7 +763,7 @@ def check_skill_frontmatter() -> None:
         "references/rules-testing.md",
         "references/rules-loop.md",
         "references/goal-teams-core-v2.5.md",
-        "references/profiles/goal-teams-self-release-v2.39.md",
+        "references/profiles/goal-teams-self-release-v2.40.md",
         "references/prompt-cache-manifest.json",
         "prompts/lead/core.md",
         "prompts/lead/planning.md",
@@ -910,6 +943,7 @@ def check_key_rules() -> None:
             "references/rules-testing.md",
             "references/rules-loop.md",
             "references/goal-teams-core-v2.5.md",
+            "references/profiles/goal-teams-self-release-v2.40.md",
             "references/profiles/goal-teams-self-release-v2.39.md",
             "references/profiles/goal-teams-self-release-v2.38.md",
             "references/prompt-cache-manifest.json",

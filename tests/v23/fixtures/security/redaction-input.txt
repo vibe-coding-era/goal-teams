@@ -1,9 +1,1 @@
-Authorization: Bearer header-token-value
-Cookie: session_id=cookie-secret-value; theme=light
-GET https://example.invalid/api?token=query-token-value&safe=visible#fragment
-{"username":"visible-user","password":"json-password-value","nested":{"api_key":"json-api-key-value","safe":"visible-json"}}
------BEGIN PRIVATE KEY-----
-private-key-material-value
------END PRIVATE KEY-----
-POSIX paths: /Users/alice/private-project/secrets.txt and /home/bob/company/repository/config.json
-Windows path: C:\Users\Carol\private-project\credentials.txt
+Runtime-only credential, private-key, and home-path fixtures are assembled by the checker.

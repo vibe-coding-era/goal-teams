@@ -49,7 +49,7 @@ okf_version: "0.1"
 
 ## V2.34 扩展兼容
 
-- `feature_list.json` / `progress.md` / `contract.md` / `log.md` 是 legacy 自发布控制平面，不取代 V2.3 ledger、TaskList reducer、Harness、Evidence 或 Completion Audit。当前只由 `goal-teams-self-release-v2.39` 加载；V2.38 Profile 只读 replay，不是通用 core 默认文件集。
+- `feature_list.json` / `progress.md` / `contract.md` / `log.md` 是 legacy 自发布控制平面，不取代 V2.3 ledger、TaskList reducer、Harness、Evidence 或 Completion Audit。当前只由 `goal-teams-self-release-v2.40` 加载；V2.39/V2.38 Profile 只读 replay，不是通用 core 默认文件集。
 - 四文件不完整、marker/digest/checkpoint 不一致或有无法证明的 pending journal 时 fail closed；旧输出不得静默补齐或猜测 revision。
 - 历史 V2.34 state/profile id 只用于 byte-compatible replay，不能作为 V2.36 当前门禁选择器；新任务必须由版本与任务类型重新派生 Profile。
 - 历史 `docs/archive/V2.34/<delivery_id>/` 保持只读兼容。V2.36 自发布的新公开归档使用 `docs/archive/V2.36/<delivery_id>/`；普通项目不继承该归档路径。
@@ -76,7 +76,7 @@ okf_version: "0.1"
 
 ## V2.38 Prompt Cache 可观测性兼容
 
-- `references/profiles/goal-teams-self-release-v2.39.md` / `policy_profile=goal-teams-self-release-v2.39` 只在可信 adapter 验证目标为 Goal Teams 仓库、产品版本 `V2.39` 且任务类型 `goal_teams_self_release` 时加载；V2.36/V2.37/V2.38 Profile 仅保留历史 replay，不作为当前路由。
+- `references/profiles/goal-teams-self-release-v2.40.md` / `policy_profile=goal-teams-self-release-v2.40` 只在可信 adapter 验证目标为 Goal Teams 仓库、产品版本 `V2.40` 且任务类型 `goal_teams_self_release` 时加载；V2.36/V2.37/V2.38/V2.39 Profile 仅保留历史 replay，不作为当前路由。
 - `references/prompt-cache-manifest.json` 是 route-static 顺序、动态尾标签、artifact compiler 与 budget 的机器 SSOT。历史 route/schema/state ID 按原字节语义读取，不因 manifest 静默改序。
 - `route_static_digest` 只绑定当前 route 计划的有序路径、长度和文件 bytes；`prefix_manifest_sha256` 绑定 route/顺序/动态尾标签；`stable_prefix_digest`/`runtime_prompt_digest` 只来自宿主最终 ordered manifest；`skill_tree_digest` 绑定完整安装树，互不替代。
 - V2.38 usage 汇总新增 `observer_telemetry`、token-weighted `cached_input_share`、`uncached_input_tokens` 与 `telemetry_coverage`。旧报告无 usage 时保持 unavailable，不补零、不估算；无 request 粒度事件时 `request_hit_rate=null/unavailable`。
@@ -125,6 +125,7 @@ prompts/members/<role>/scripts.md
 - V2.33 及后续版本必须保留 README 与双语 release/history 的分离结构；当前版本的文档、链接和标记缺失时 fail closed。
 - V2.35 还必须同步四专家、三份条件 reference、三份 schema、test-case validator、双语 pre-audit release summary 与安装面；历史 V2.34 默认合同和 completion 文档不得批量改写。
 - V2.39 必须同步当前 self-release V2.39 Profile、Cache Evidence 四状态轴、OKF policy/checker、README 双语说明与 release contents；V2.38 的 `references/prompt-cache-manifest.json` schema、`scripts/v23/prompt_cache.py`、prompt compiler、observer/report schema、fixtures 与 Profile 必须保留原字节语义用于兼容 replay，不得批量改写历史 V2.38/V2.36/V2.35/V2.3 机器合同。
+- V2.40 同步 README marker、`release/current`、V2.40 Profile、动态 version checker 与 CP00–CP18；V2.39/V2.38 Profile 和 cache schema/fixture 只读 replay，禁止全局替换。
 
 ## transport handle
 

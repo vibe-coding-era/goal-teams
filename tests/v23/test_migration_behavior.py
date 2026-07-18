@@ -343,7 +343,9 @@ class MigrationTests(unittest.TestCase):
             self.assertEqual(tree_modes(dst), modes_before)
 
     def test_rollback_rejects_backup_mode_drift_before_touching_either_tree(self) -> None:
-        for drift_mode in (0o755, 0o4644):
+        # macOS clears setuid/setgid bits on ordinary files for an unprivileged
+        # owner, so use the sticky bit as the portable non-canonical mode.
+        for drift_mode in (0o755, 0o1644):
             with self.subTest(mode=oct(drift_mode)), tempfile.TemporaryDirectory() as td:
                 root = Path(td)
                 src, dst = root / "legacy", root / "target"
@@ -813,7 +815,9 @@ prefix tests/v23/
                 elif mutation == "worktree_only":
                     os.chmod(source, 0o755)
                 else:
-                    os.chmod(source, 0o4644)
+                    # The sticky bit persists on regular files on macOS and
+                    # Linux, unlike setuid/setgid bits which macOS may clear.
+                    os.chmod(source, 0o1644)
                 with self.assertRaises(module.BlindEvalError) as raised:
                     module._stage_blind_package(base / "staged")
                 self.assertEqual(raised.exception.code, "E_PACKAGE_IDENTITY")

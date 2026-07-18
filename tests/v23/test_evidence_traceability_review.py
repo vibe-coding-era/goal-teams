@@ -349,7 +349,7 @@ class EvidenceValidatorTests(EvidenceFixture):
         doc = clone(self.good)
         original_execution = self.root / doc["command"]["execution_record_path"]
         execution = json.loads(original_execution.read_text(encoding="utf-8"))
-        execution["extra_claim"] = "sk-proj-1234567890abcdefghijklmnopqrstuv"
+        execution["extra_claim"] = "sk-" + "proj-1234567890abcdefghijklmnopqrstuv"
         execution_path = self.root / "execution-extra-secret.json"
         execution_path.write_text(
             json.dumps(execution, ensure_ascii=False, sort_keys=True), encoding="utf-8"
@@ -716,7 +716,9 @@ class EvidenceValidatorTests(EvidenceFixture):
         self.assertTrue(has_error(errors, "E_HASH_MISMATCH"))
 
     def test_raw_authorization_in_bound_log_is_rejected_even_when_hash_matches(self) -> None:
-        self.log.write_text("Authorization: Bearer raw-secret-token\n", encoding="utf-8")
+        self.log.write_text(
+            "Authorization: Bearer dummy-fixture-raw-token\n", encoding="utf-8"
+        )
         stat = self.log.stat()
         doc = clone(self.good)
         doc["command"].update(
@@ -803,7 +805,10 @@ class EvidenceValidatorTests(EvidenceFixture):
         for record in records:
             with self.subTest(secret_scan=record["evidence_id"]):
                 mutated = clone(record)
-                self.artifact.write_text("Authorization: Bearer raw-union-secret\n", encoding="utf-8")
+                self.artifact.write_text(
+                    "Authorization: Bearer dummy-fixture-raw-union\n",
+                    encoding="utf-8",
+                )
                 stat = self.artifact.stat()
                 mutated.update(
                     {

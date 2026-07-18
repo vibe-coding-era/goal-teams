@@ -4,7 +4,11 @@
 
 Author: 肉山@TGO Hangzhou
 
-Current version: `V2.34`
+<!-- goal-teams-release:start -->
+Current release: **V2.40** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.40) · [release/current/README.md](release/current/README.md)
+<!-- goal-teams-release:end -->
+
+Current version: `V2.40`
 
 Goal Teams is a Codex Skill for coordinated agent work. It turns one goal into a verifiable plan, then lets a Goal Lead coordinate independent subagents running in separate contexts, or user-selected external skills, across requirements, design, implementation, tests, evidence, and completion audit.
 
@@ -131,7 +135,7 @@ Use $goal-teams。
 Use this identity line on an explicit Goal Teams invocation or when the session first needs to establish identity; do not repeat it when full context already exists:
 
 ```text
-我是 Goal Teams Leader V2.34，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：
+我是 Goal Teams Lead V2.40。
 ```
 
 Core language rule: user communication and governance documents default to Chinese; code, comments, test names, fixtures, and product strings follow the target repository's conventions; keep identifiers, commands, paths, API names, config keys, subagent IDs, and exact references unchanged.
@@ -254,11 +258,11 @@ GoalTeamsWork-<project_version>/
 
 ## Version Note
 
-The current version is read from `VERSION`. On the V2.3 machine-contract baseline, `V2.34` adds contract-first execution, Architecture and Environment Evidence gates, a recoverable `Gather → Reason → Act → Verify → Repeat` LOOP, four-file disk state, a constrained iteration-9 candidate reset, a fail-closed iteration-11 delivery gate, four-dimensional scoring, and divergence/bottleneck records. Detailed contracts are loaded from `references/` by task type. After completion, only audited public documents with invocation traces removed are archived under `docs/archive/V2.34/<delivery_id>/`; process ledgers and provenance remain in the non-public workspace.
+The current version is read from `VERSION`. On the V2.3 machine contract and V2.5 core policy, `V2.40` retains contract-first execution, Architecture and Environment Evidence gates, a recoverable `Gather → Reason → Act → Verify → Repeat` LOOP, four-file disk state, a constrained iteration-9 candidate reset, a fail-closed iteration-11 delivery gate, four-dimensional scoring, and divergence/bottleneck records, while adding a recoverable release state machine and public-version identity governance. Recovery on clean `main` read-only validates the fixed stash attestation, rejects executable Git configuration, and never applies or drops the stash. CP16 first persists only the Draft-create intent, then marker-last derives six follow-up intents from the exact numeric Draft ID and requires a second authorization; CP17 release ID, REST asset IDs, asset, and CI intents are then derived only from exact CP10/CP05/CP16 readbacks and cannot be predicted or overridden by the caller. CP17 independent audit freezes only live release identity, install, CI, and remote-protection facts. The interval after CP17 passes and before CP18 closes is the only legal SSOT finalization window: CP18 binds the final archive manifest to the same CP17 audit SHA and revalidates the final `GoalTeamsWork`, Completion, and whole close boundary both before and after the permanent-protection write. Candidate input cannot inject positive host authority, and CP18 marker-loss recovery must recompute the complete boundary instead of adopting a stale readback. `CLOSED` means distribution/archive closure only: state and every terminal command must explicitly echo `goal_achieved=false` and `external_host_acceptance_required=true`; true Goal achievement still requires repository-external single-use host acceptance. Detailed contracts are loaded from `references/` by task type. The current public release note is [release/current](release/current/README.md); process ledgers and provenance remain in the non-public workspace.
 
-See [Release Contents](docs/release-contents.en.md) for the visible package inventory, or [发布内容](docs/release-contents.md) for Chinese. The inventory does not replace runtime rules, `VERSION`, or installation validation.
+See the [current release note](release/current/README.md) for the visible package inventory. It does not replace runtime rules, `VERSION`, or installation validation.
 
-See [Change History](docs/change-history.en.md) for the chronological version summary, or [版本变更记录](docs/change-history.md) for Chinese. `CHANGELOG.md` retains the compatibility record of individual technical changes.
+See [CHANGELOG.md](CHANGELOG.md) for the chronological version summary and compatibility record of individual technical changes.
 
 ## License
 

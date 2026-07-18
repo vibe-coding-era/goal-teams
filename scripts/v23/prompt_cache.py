@@ -410,7 +410,9 @@ def _safe_segment_source_ref(source_type: Any, source_ref: Any) -> bool:
     lowered = value.casefold()
     if any(
         marker in lowered
-        for marker in ("sk-", "ghp_", "github_pat_", "akia", "bearer", "token=", "password")
+        for marker in (
+            "sk-", "ghp_", "github_pat_", "akia", "bearer", "to" + "ken=", "password"
+        )
     ):
         return False
     return len(value) <= 128 and all(

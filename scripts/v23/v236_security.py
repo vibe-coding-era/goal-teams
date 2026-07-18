@@ -125,9 +125,22 @@ YAML_ASSIGNMENT_RE = re.compile(
     r"(?P<key_quote>[\"']?)(?P<key>[A-Za-z_][A-Za-z0-9_.-]*)(?P=key_quote)"
     r"(?P<separator>[ \t]*:[ \t]*)(?P<value>[^\r\n]*)$"
 )
+YAML_BLOCK_HEADER_RE = re.compile(
+    r"^(?P<prefix>[ \t]*(?:-[ \t]+)?)"
+    r"(?P<key_quote>[\"']?)(?P<key>[A-Za-z_][A-Za-z0-9_.-]*)(?P=key_quote)"
+    r"(?P<separator>[ \t]*:[ \t]*)"
+    r"(?P<indicator>[|>](?:[1-9][+-]?|[+-][1-9]?)?)"
+    r"(?P<suffix>[ \t]*(?:#.*)?)$"
+)
+TOML_MULTILINE_HEADER_RE = re.compile(
+    r"^(?P<prefix>[ \t]*)"
+    r"(?P<key_quote>[\"']?)(?P<key>[A-Za-z_][A-Za-z0-9_.-]*)(?P=key_quote)"
+    r"(?P<separator>[ \t]*=[ \t]*)"
+    r"(?P<delimiter>\"\"\"|''')(?P<rest>.*)$"
+)
 NETRC_STANDALONE_RE = re.compile(
     r"(?im)^(?P<prefix>[ \t]*(?:password|passwd)[ \t]+)"
-    r"(?P<value>\"[^\"\r\n]*\"|'[^'\r\n]*'|[^\s#;]+)"
+    r"(?P<value>\"[^\"\r\n]*\"|'[^'\r\n]*'|(?![=:])[^\s#;]+)"
     r"(?P<suffix>[^\r\n]*)$"
 )
 NETRC_MACHINE_RE = re.compile(
@@ -183,7 +196,13 @@ TOKEN_LIKE_URL_USERNAME_RE = re.compile(
 )
 URL_RE = re.compile(r"(?i)[a-z][a-z0-9+.-]*://[^\s<>\"']+")
 HOME_PATH_RE = re.compile(
-    r"(?<![A-Za-z0-9_.-])(?:/Users/[^/\s]+|/home/[^/\s]+|[A-Za-z]:\\Users\\[^\\\s]+)(?=/|\\|\b)",
+    r"(?<![A-Za-z0-9_.-])(?:"
+    r"[A-Za-z]:[\\/]+Users[\\/]+[^\\/\s]+|"
+    r"/Users" r"/[^/\s]+|"
+    r"/home" r"/[^/\s]+|"
+    r"/ro" r"ot|"
+    r"/var/ro" r"ot"
+    r")(?=/|\\|\b)",
     re.IGNORECASE,
 )
 
@@ -293,6 +312,8 @@ def _safe_reference(value: str) -> bool:
         or re.fullmatch(r"\$\{[^{}]+\}", stripped)
         or re.fullmatch(r"\{\{\s*(?:secrets?|env|vault)\.[^{}]+\s*\}\}", stripped, re.IGNORECASE)
         or re.fullmatch(r"(?i)(?:env|secret|vault)://[^\s]+", stripped)
+        or re.fullmatch(r"(?i)(?:os\.)?getenv\([^\r\n]+\)", stripped)
+        or re.fullmatch(r"(?i)(?:os\.environ|env)\[[^\r\n]+\]", stripped)
     )
 
 
@@ -428,6 +449,11 @@ def _split_yaml_scalar(raw: str) -> tuple[str, str, str, str]:
 
 
 def _redact_yaml_assignment(match: re.Match[str], hmac_key: str | bytes | None) -> str:
+    # Double-quoted keys have already passed through JSON_PAIR_RE.  Replaying
+    # them as YAML would turn safe JSON scalars such as `"auth": false,` into
+    # false positives because the JSON comma is part of the YAML scalar.
+    if match.group("key_quote") == '"':
+        return match.group(0)
     normalized = _normalized_key(match.group("key"))
     # Header syntax is handled first by AUTH_HEADER_RE.  Do not reinterpret a
     # sanitized header as a YAML scalar on the next pass.
@@ -452,6 +478,133 @@ def _redact_yaml_assignment(match: re.Match[str], hmac_key: str | bytes | None) 
         f"{match.group('separator')}"
         f"{leading}{quote_start}{marker}{quote_end}{trailing}{extra}"
     )
+
+
+def _split_line_ending(line: str) -> tuple[str, str]:
+    if line.endswith("\r\n"):
+        return line[:-2], "\r\n"
+    if line.endswith(("\r", "\n")):
+        return line[:-1], line[-1]
+    return line, ""
+
+
+def _indent_width(line: str) -> int:
+    return len(line) - len(line.lstrip(" \t"))
+
+
+def _toml_multiline_close(value: str, delimiter: str) -> int:
+    """Return the first non-escaped TOML multiline delimiter."""
+
+    cursor = 0
+    while True:
+        index = value.find(delimiter, cursor)
+        if index < 0:
+            return -1
+        if delimiter == "'''":
+            return index
+        backslashes = 0
+        probe = index - 1
+        while probe >= 0 and value[probe] == "\\":
+            backslashes += 1
+            probe -= 1
+        if backslashes % 2 == 0:
+            return index
+        cursor = index + 1
+
+
+def _redact_sensitive_multiline_scalars(
+    text: str, hmac_key: str | bytes | None
+) -> str:
+    """Redact complete YAML block and TOML multiline credential values.
+
+    Line-oriented scalar matchers can only see the ``|``/``>`` or triple-quote
+    opener.  Replacing just that opener leaves the actual secret body public and
+    makes the second detector pass incorrectly report a clean result.  This
+    pre-pass consumes the whole scalar before any single-line redaction runs.
+    """
+
+    lines = text.splitlines(keepends=True)
+    output: list[str] = []
+    index = 0
+    while index < len(lines):
+        body, ending = _split_line_ending(lines[index])
+        yaml_header = YAML_BLOCK_HEADER_RE.fullmatch(body)
+        if yaml_header is not None and _sensitive_config_key(yaml_header.group("key")):
+            base_indent = _indent_width(yaml_header.group("prefix"))
+            first_content = index + 1
+            while first_content < len(lines):
+                candidate, _candidate_ending = _split_line_ending(lines[first_content])
+                if candidate.strip():
+                    break
+                first_content += 1
+            if (
+                first_content < len(lines)
+                and _indent_width(_split_line_ending(lines[first_content])[0])
+                > base_indent
+            ):
+                content_indent = _indent_width(
+                    _split_line_ending(lines[first_content])[0]
+                )
+                end = first_content + 1
+                while end < len(lines):
+                    candidate, _candidate_ending = _split_line_ending(lines[end])
+                    if candidate.strip() and _indent_width(candidate) < content_indent:
+                        break
+                    end += 1
+                secret = "".join(lines[index + 1 : end])
+                if not _safe_reference(secret.strip()):
+                    marker = _redaction_marker(secret, hmac_key)
+                    key_quote = yaml_header.group("key_quote")
+                    output.append(
+                        f"{yaml_header.group('prefix')}{key_quote}"
+                        f"{yaml_header.group('key')}{key_quote}"
+                        f"{yaml_header.group('separator')}{marker}"
+                        f"{yaml_header.group('suffix')}{ending}"
+                    )
+                    index = end
+                    continue
+
+        toml_header = TOML_MULTILINE_HEADER_RE.fullmatch(body)
+        if toml_header is not None and _sensitive_config_key(toml_header.group("key")):
+            delimiter = toml_header.group("delimiter")
+            rest = toml_header.group("rest")
+            close = _toml_multiline_close(rest, delimiter)
+            end = index + 1
+            suffix = ""
+            close_ending = ending
+            secret_parts: list[str] = []
+            if close >= 0:
+                secret_parts.append(rest[:close])
+                suffix = rest[close + len(delimiter) :]
+            else:
+                secret_parts.append(rest + ending)
+                while end < len(lines):
+                    candidate, candidate_ending = _split_line_ending(lines[end])
+                    close = _toml_multiline_close(candidate, delimiter)
+                    if close >= 0:
+                        secret_parts.append(candidate[:close])
+                        suffix = candidate[close + len(delimiter) :]
+                        close_ending = candidate_ending
+                        end += 1
+                        break
+                    secret_parts.append(lines[end])
+                    end += 1
+            secret = "".join(secret_parts)
+            if not _safe_reference(secret.strip()):
+                marker = _redaction_marker(secret, hmac_key)
+                key_quote = toml_header.group("key_quote")
+                output.append(
+                    f"{toml_header.group('prefix')}{key_quote}"
+                    f"{toml_header.group('key')}{key_quote}"
+                    f"{toml_header.group('separator')}"
+                    f"{json.dumps(marker)}{suffix}{close_ending}"
+                )
+                index = end
+                continue
+
+        output.append(lines[index])
+        index += 1
+    return "".join(output)
 
 
 def _redact_netrc(match: re.Match[str], hmac_key: str | bytes | None) -> str:
@@ -531,7 +684,10 @@ def redact_text(
     key = hmac_key if hmac_key is not None else os.environ.get(
         "GOAL_TEAMS_REDACTION_HMAC_KEY"
     )
-    redacted = PRIVATE_KEY_RE.sub(lambda match: _redaction_marker(match.group(0), key), text)
+    redacted = _redact_sensitive_multiline_scalars(text, key)
+    redacted = PRIVATE_KEY_RE.sub(
+        lambda match: _redaction_marker(match.group(0), key), redacted
+    )
     redacted = AUTH_HEADER_RE.sub(lambda match: _redact_header(match, key), redacted)
     redacted = JSON_PAIR_RE.sub(lambda match: _redact_json_pair(match, key), redacted)
     redacted = YAML_ASSIGNMENT_RE.sub(lambda match: _redact_yaml_assignment(match, key), redacted)

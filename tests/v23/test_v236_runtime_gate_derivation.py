@@ -470,6 +470,36 @@ class V236RuntimeGateDerivationTests(unittest.TestCase):
                 "E_V236_SOURCE_ROOT_CONFLICT",
             )
 
+    @requires_trusted_goal_teams_checkout
+    def test_same_common_dir_worktree_selects_nearest_trusted_root(self) -> None:
+        common = gt._v236_git_common_dir(ROOT)
+        self.assertIsNotNone(common)
+        observed, error = gt._observed_v236_source_root(
+            ROOT / "tests" / "v23" / "test_v236_runtime_gate_derivation.py"
+        )
+        self.assertIsNone(error)
+        self.assertEqual(observed, ROOT.resolve())
+
+        canonical = common.parent
+        if canonical.is_dir() and gt.git_toplevel(canonical) == canonical.resolve():
+            self.assertEqual(gt._v236_git_common_dir(canonical), common)
+
+    def test_distinct_trusted_common_dirs_remain_ambiguous(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            outer = Path(directory) / "outer"
+            nested = outer / "nested"
+            nested.mkdir(parents=True)
+            subprocess.run(["git", "init", "-q"], cwd=outer, check=True)
+            subprocess.run(["git", "init", "-q"], cwd=nested, check=True)
+            anchor = nested / "events.jsonl"
+            anchor.write_text("{}\n", encoding="utf-8")
+            with mock.patch.object(
+                gt, "_verified_v236_goal_teams_target", return_value=True
+            ):
+                observed, error = gt._observed_v236_source_root(anchor)
+        self.assertIsNone(observed)
+        self.assertEqual(error, "E_V236_SOURCE_ROOT_AMBIGUOUS")
+
     def test_git_auto_discovery_rejects_intermediate_ledger_symlink(self) -> None:
         events_path = self.generic_repo / "symlink-events.jsonl"
         events_path.write_text(

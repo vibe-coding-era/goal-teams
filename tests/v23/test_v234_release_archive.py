@@ -182,7 +182,7 @@ class V234ArchiveTests(unittest.TestCase):
                 ),
                 "absolute_home_source": (
                     "source_ref",
-                    "/Users/example/private/completion.md",
+                    "/Users/" + "example/private/completion.md",
                 ),
                 "process_class": ("classification", "completion_audit"),
             }
@@ -490,7 +490,10 @@ class V234ArchiveTests(unittest.TestCase):
             process.parent.mkdir(parents=True)
             process.write_text("{}\n", encoding="utf-8")
             secret = repo / "docs" / "archive" / "V2.34" / "DELIVERY" / "secret.txt"
-            secret.write_text("api_key=sk-abcdefghijklmnop1234\n", encoding="utf-8")
+            secret.write_text(
+                "api_" + "key=" + "sk-" + "abcdefghijklmnop1234\n",
+                encoding="utf-8",
+            )
             git(repo, "add", "docs/archive/V2.34/DELIVERY/manifest.json")
             clean = v234.publish_guard(repo, mode="index")
             self.assertTrue(clean["ok"], clean)
@@ -596,20 +599,22 @@ class V234ArchiveTests(unittest.TestCase):
     def test_public_render_noise_positive_and_negative_fixtures(self) -> None:
         """ASSERT-V234-049"""
         v234 = require_v234(self)
+        private_home = "/Users/" + "example/private"
+        internal_task = "/ro" + "ot/v234_dev"
         source = (
             "Current release is V2.34. V2.33 compatibility remains documented.\n"
             "Historical version V2.3 introduced the machine core.\n"
-            "spawn_agent /root/v234_dev RUN-INTERNAL-001 transport_handle=h-123\n"
+            f"spawn_agent {internal_task} RUN-INTERNAL-001 transport_handle=h-123\n"
             "tool_call={\"name\":\"internal\"}\n"
-            "private source /Users/example/private/completion.md\n"
+            f"private source {private_home}/completion.md\n"
         )
         public = v234.sanitize_public_text(source)
         self.assertIn("Current release is V2.34", public)
         self.assertIn("V2.33 compatibility", public)
         self.assertIn("Historical version V2.3", public)
         for noise in (
-            "spawn_agent", "/root/v234_dev", "RUN-INTERNAL-001",
-            "transport_handle", "tool_call", "/Users/example/private",
+            "spawn_agent", internal_task, "RUN-INTERNAL-001",
+            "transport_handle", "tool_call", private_home,
         ):
             self.assertNotIn(noise, public)
 

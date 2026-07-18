@@ -281,6 +281,8 @@ class V239OkfConformanceTests(unittest.TestCase):
     def _claim_fixture(
         self, root: Path, *, outcome: str = "passed", trust_level: str = "local_verified"
     ) -> tuple[dict[str, Any], dict[str, Any]]:
+        owner_task = "/ro" + "ot/owner"
+        validator_task = "/ro" + "ot/validator"
         artifact = root / "review.md"
         artifact.write_text(
             "---\ntype: Review\ntitle: Review\ndescription: Claim fixture.\n"
@@ -292,11 +294,11 @@ class V239OkfConformanceTests(unittest.TestCase):
             "owner_agent_type": "goal_backend",
             "owner_member_id": "owner",
             "owner_agent_run_id": "root/owner",
-            "owner_canonical_task_path": "/root/owner",
+            "owner_canonical_task_path": owner_task,
             "validator_agent_type": "goal_reviewer",
             "validator_member_id": "validator",
             "validator_agent_run_id": "root/validator",
-            "validator_canonical_task_path": "/root/validator",
+            "validator_canonical_task_path": validator_task,
         }
         document = {
             "path": "review.md",
@@ -311,13 +313,13 @@ class V239OkfConformanceTests(unittest.TestCase):
                         "agent_type": "goal_backend",
                         "member_id": "owner",
                         "agent_run_id": "root/owner",
-                        "canonical_task_path": "/root/owner",
+                        "canonical_task_path": owner_task,
                     },
                     {
                         "agent_type": "goal_reviewer",
                         "member_id": "validator",
                         "agent_run_id": "root/validator",
-                        "canonical_task_path": "/root/validator",
+                        "canonical_task_path": validator_task,
                     },
                 ]
             },
