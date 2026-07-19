@@ -1200,6 +1200,14 @@ class V240ReleaseCliSecurityTests(unittest.TestCase):
                     },
                 ), mock.patch.object(
                     adapter, "_validate_transport_authority", return_value={}
+                ), mock.patch.object(
+                    adapter,
+                    "_remote_tag_identity",
+                    return_value={
+                        "tag_object": "c" * 40,
+                        "peeled_commit": COMMIT,
+                        "message": adapter_module.CANONICAL_TAG_MESSAGE,
+                    },
                 ):
                     observed = adapter.observe(
                         operation_id="CP17.release_publish",
