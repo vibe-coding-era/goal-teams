@@ -34,10 +34,12 @@ install_lifecycle = load_script("goalteams_install_lifecycle_test", "scripts/che
 
 
 class ContextAndCapabilityTests(unittest.TestCase):
-    def test_startup_context_is_at_most_12_kib_and_routed_rules_are_separate(self) -> None:
-        result = context_budget.evaluate(ROOT, 12 * 1024)
+    def test_startup_context_uses_the_v241_manifest_budget_and_routed_rules_are_separate(self) -> None:
+        result = context_budget.evaluate(ROOT, context_budget.DEFAULT_LIMIT)
         self.assertTrue(result["passed"], result)
-        self.assertLessEqual(result["base"]["bytes"], 12 * 1024)
+        self.assertLessEqual(result["base"]["bytes"], context_budget.DEFAULT_LIMIT)
+        self.assertEqual(result["startup"]["limit_bytes"], context_budget.DEFAULT_LIMIT)
+        self.assertIn("references/flow-clarification-protocol.md", result["startup"]["ordered_refs"])
         self.assertEqual(set(result["base"]["files"]), {"SKILL.md", "agents/openai.yaml", "RULES.md"})
         self.assertEqual(
             set(result["routed"]["files"]),
