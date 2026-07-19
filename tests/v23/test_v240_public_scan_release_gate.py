@@ -192,14 +192,14 @@ class V240PublicScanReleaseGateTests(unittest.TestCase):
         )
         with patches[0], patches[1], patches[2], mock.patch.object(
             release, "_run_public_release_scan", return_value=scan
-        ):
+        ), mock.patch.object(release, "_workspace_root", return_value=ROOT):
             receipt = release._revalidate_canonical_release(_state())
         self.assertEqual(receipt["public_scan_receipt_sha256"], "3" * 64)
 
         drifted = {**scan, "receipt_sha256": "5" * 64}
         with patches[0], patches[1], patches[2], mock.patch.object(
             release, "_run_public_release_scan", return_value=drifted
-        ):
+        ), mock.patch.object(release, "_workspace_root", return_value=ROOT):
             with self.assertRaises(release.PolicyError) as caught:
                 release._revalidate_canonical_release(_state())
         self.assertEqual(caught.exception.receipt["error_code"], "E_V240_PUBLIC_SCAN")

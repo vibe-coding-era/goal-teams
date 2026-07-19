@@ -1198,6 +1198,8 @@ class V240ReleaseCliSecurityTests(unittest.TestCase):
                         "assets": [],
                         "bundle_path": "/ignored/published-bundle",
                     },
+                ), mock.patch.object(
+                    adapter, "_validate_transport_authority", return_value={}
                 ):
                     observed = adapter.observe(
                         operation_id="CP17.release_publish",
