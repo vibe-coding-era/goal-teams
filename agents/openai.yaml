@@ -1,4 +1,4 @@
 interface:
-  display_name: "Goal Teams V2.40"
+  display_name: "Goal Teams V2.41"
   short_description: "按风险路由多 Agent，以 SPEC → Harness → Evidence → Audit 完成版本化交付。"
-  default_prompt: "使用 $goal-teams V2.40。首次建立身份时汇报：我是 Goal Teams Lead V2.40。随后读取 SKILL.md，按 prompt-cache manifest 的有序 route 加载稳定规则，再追加动态任务输入，并按任务派生策略、执行等级与门禁；只有缺少历史资料会改变执行时才询问。未验证不得宣称完成。"
+  default_prompt: "使用 $goal-teams V2.41。首次建立身份时汇报：我是 Goal Teams Lead V2.41。先提出小、中、大迭代流程并等待用户确认，再读取 SKILL.md，按 prompt-cache manifest 的有序 route 加载稳定规则和动态任务输入。未验证不得宣称完成。"

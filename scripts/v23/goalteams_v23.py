@@ -111,7 +111,7 @@ def _bootstrap_json(path: Path) -> dict[str, Any]:
 SCHEMA = _bootstrap_json(SCHEMA_PATH)
 SCHEMA_VERSION = str(SCHEMA["schema_version"])
 ARTIFACT_VERSION = str(SCHEMA["artifact_version"])
-PRODUCT_VERSION = "V2.40"
+PRODUCT_VERSION = "V2.41"
 # Repository-self-release identity is anchored to the accepted V2.35 base,
 # never to mutable VERSION/SKILL bytes in the candidate worktree.
 V236_GOAL_TEAMS_TRUSTED_RELEASE_BASE = "c91e33737cc13c68bb5cb34c572fa05e7849f1e4"
@@ -3763,6 +3763,68 @@ def plan_preview_policy(request: Any) -> dict[str, Any]:
     }
 
 
+def flow_clarification_policy(request: Any) -> dict[str, Any]:
+    """Gate Plan and member dispatch on an explicit V2.41 flow selection.
+
+    This is deliberately a small deterministic adapter.  LLMs may propose a
+    size, but only a valid user-confirmed selection opens the existing Plan
+    workflow.  It does not replace structured V2.36 route facts.
+    """
+    if not isinstance(request, dict):
+        raise ContractError("E_FLOW_CLARIFICATION_TYPE", ["E_FLOW_CLARIFICATION_TYPE"])
+    proposed = request.get("proposed_flow")
+    selected = request.get("selected_flow")
+    confirmed = request.get("confirmed", False)
+    if proposed not in {"small", "medium", "large"}:
+        raise ContractError("E_FLOW_CLARIFICATION_PROPOSAL", ["E_FLOW_CLARIFICATION_PROPOSAL"])
+    if not isinstance(confirmed, bool):
+        raise ContractError("E_FLOW_CLARIFICATION_CONFIRMATION", ["E_FLOW_CLARIFICATION_CONFIRMATION"])
+    if selected == "skipped":
+        return {
+            "schema_version": SCHEMA_VERSION,
+            "state": "skipped",
+            "selected_flow": "skipped",
+            "plan_allowed": False,
+            "teams_allowed": False,
+            "subagent_dispatch_allowed": False,
+            "reason": "user_skipped_goal_teams_flow",
+        }
+    if selected is None:
+        return {
+            "schema_version": SCHEMA_VERSION,
+            "state": "awaiting_confirmation",
+            "proposed_flow": proposed,
+            "plan_allowed": False,
+            "teams_allowed": False,
+            "subagent_dispatch_allowed": False,
+            "reason": "flow_selection_required",
+        }
+    if selected not in {"small", "medium", "large"}:
+        raise ContractError("E_FLOW_CLARIFICATION_SELECTION", ["E_FLOW_CLARIFICATION_SELECTION"])
+    if not confirmed:
+        return {
+            "schema_version": SCHEMA_VERSION,
+            "state": "awaiting_confirmation",
+            "proposed_flow": proposed,
+            "selected_flow": selected,
+            "plan_allowed": False,
+            "teams_allowed": False,
+            "subagent_dispatch_allowed": False,
+            "reason": "selection_not_confirmed",
+        }
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "state": "confirmed",
+        "proposed_flow": proposed,
+        "selected_flow": selected,
+        "project_size": selected,
+        "plan_allowed": True,
+        "teams_allowed": True,
+        "subagent_dispatch_allowed": True,
+        "reason": "user_confirmed_flow_selection",
+    }
+
+
 def reference_policy(request: Any) -> dict[str, Any]:
     """Apply V2.33 reference availability policy without weakening acceptance."""
     if not isinstance(request, dict):
@@ -6024,6 +6086,8 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     command = sub.add_parser("plan-preview-policy")
     command.add_argument("request")
+    command = sub.add_parser("flow-clarification-policy")
+    command.add_argument("request")
     command = sub.add_parser("reference-policy")
     command.add_argument("request")
     command = sub.add_parser("capability")
@@ -7895,6 +7959,8 @@ def _dispatch(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
         ), 0 if ok else 1
     if args.cmd == "plan-preview-policy":
         return envelope(True, policy=plan_preview_policy(load_json(Path(args.request)))), 0
+    if args.cmd == "flow-clarification-policy":
+        return envelope(True, policy=flow_clarification_policy(load_json(Path(args.request)))), 0
     if args.cmd == "reference-policy":
         return envelope(True, policy=reference_policy(load_json(Path(args.request)))), 0
     if args.cmd == "capability":

@@ -28,7 +28,8 @@ if [[ -z "$PYTHON_BIN" ]]; then
 fi
 
 "$PYTHON_BIN" scripts/checks/validate.py
-"$PYTHON_BIN" scripts/checks/check-version-sync.py
+"$PYTHON_BIN" scripts/checks/check-version-sync.py --mode development --published-version V2.40
+"$PYTHON_BIN" scripts/checks/check-v241-flow.py
 "$PYTHON_BIN" scripts/checks/check-workspace-boundaries.py
 "$PYTHON_BIN" scripts/checks/check-routing-fixtures.py
 "$PYTHON_BIN" scripts/checks/check-agent-names.py

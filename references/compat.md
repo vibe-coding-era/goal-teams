@@ -21,6 +21,8 @@ okf_version: "0.1"
 ## 能力与互操作边界
 
 - fallback 只有在 capability manifest 证明能力等价且权限不扩大时才可自动执行；否则记录 degraded capability 并进入 blocked 或请求用户。
+- V2.41 的 Portable Core 可被不同 Agent 运行时采用；`references/agent-runtime-capability-contract.md` 是能力、adapter 与降级边界的 SSOT。Codex 的 `$goal-teams`、`CODEX_HOME`、`.codex`、TOML subagent 是 Codex Adapter，不是通用核心的前置条件。
+- 运行时缺少独立成员、命令、快照或 `identity_attestation` 时，只能按能力合同降级或 blocked，不能声称全功能兼容、`accepted` 或 `achieved`。
 - 自动续跑仅表示当前会话和宿主能力允许时的协议驱动 continuation，不代表后台 runner 或跨会话自动恢复服务。
 - V2.3 与 OpenSpec、Superpowers 共存，但不宣称存在 schema/status/command adapter；完整 adapter 属于 V2.4 范围。
 
@@ -49,7 +51,7 @@ okf_version: "0.1"
 
 ## V2.34 扩展兼容
 
-- `feature_list.json` / `progress.md` / `contract.md` / `log.md` 是 legacy 自发布控制平面，不取代 V2.3 ledger、TaskList reducer、Harness、Evidence 或 Completion Audit。当前只由 `goal-teams-self-release-v2.40` 加载；V2.39/V2.38 Profile 只读 replay，不是通用 core 默认文件集。
+- `feature_list.json` / `progress.md` / `contract.md` / `log.md` 是 legacy 自发布控制平面，不取代 V2.3 ledger、TaskList reducer、Harness、Evidence 或 Completion Audit。当前只由 `goal-teams-self-release-v2.41` 加载；V2.40/V2.39/V2.38 Profile 只读 replay，不是通用 core 默认文件集。
 - 四文件不完整、marker/digest/checkpoint 不一致或有无法证明的 pending journal 时 fail closed；旧输出不得静默补齐或猜测 revision。
 - 历史 V2.34 state/profile id 只用于 byte-compatible replay，不能作为 V2.36 当前门禁选择器；新任务必须由版本与任务类型重新派生 Profile。
 - 历史 `docs/archive/V2.34/<delivery_id>/` 保持只读兼容。V2.36 自发布的新公开归档使用 `docs/archive/V2.36/<delivery_id>/`；普通项目不继承该归档路径。
@@ -76,7 +78,7 @@ okf_version: "0.1"
 
 ## V2.38 Prompt Cache 可观测性兼容
 
-- `references/profiles/goal-teams-self-release-v2.40.md` / `policy_profile=goal-teams-self-release-v2.40` 只在可信 adapter 验证目标为 Goal Teams 仓库、产品版本 `V2.40` 且任务类型 `goal_teams_self_release` 时加载；V2.36/V2.37/V2.38/V2.39 Profile 仅保留历史 replay，不作为当前路由。
+- `references/profiles/goal-teams-self-release-v2.41.md` / `policy_profile=goal-teams-self-release-v2.41` 只在可信 adapter 验证目标为 Goal Teams 仓库、产品版本 `V2.41` 且任务类型 `goal_teams_self_release` 时加载；V2.36/V2.37/V2.38/V2.39/V2.40 Profile 仅保留历史 replay，不作为当前路由。
 - `references/prompt-cache-manifest.json` 是 route-static 顺序、动态尾标签、artifact compiler 与 budget 的机器 SSOT。历史 route/schema/state ID 按原字节语义读取，不因 manifest 静默改序。
 - `route_static_digest` 只绑定当前 route 计划的有序路径、长度和文件 bytes；`prefix_manifest_sha256` 绑定 route/顺序/动态尾标签；`stable_prefix_digest`/`runtime_prompt_digest` 只来自宿主最终 ordered manifest；`skill_tree_digest` 绑定完整安装树，互不替代。
 - V2.38 usage 汇总新增 `observer_telemetry`、token-weighted `cached_input_share`、`uncached_input_tokens` 与 `telemetry_coverage`。旧报告无 usage 时保持 unavailable，不补零、不估算；无 request 粒度事件时 `request_hit_rate=null/unavailable`。

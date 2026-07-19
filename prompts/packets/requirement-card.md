@@ -32,6 +32,19 @@ source_ssot: prompts/packets/handoff-artifacts.md
 
 # 需求卡片：<版本或目标名>
 
+## 流程澄清记录（Plan 前必填）
+
+| 字段 | 值 |
+| --- | --- |
+| LLM 初步判断 | <small / medium / large> |
+| 已展示的流程选项 | <小/中/大及节点差异> |
+| 用户选择 | <small / medium / large / skip> |
+| 确认状态 | `confirmed` / `awaiting_confirmation` / `skipped` |
+| 保留或裁剪节点 | <节点清单及原因> |
+| 覆盖/跳过原因 | <用户明确理由；未跳过则写 not_applicable> |
+
+`确认状态` 不为 `confirmed` 时，不得生成正式 Plan、Teams 规划表或派发成员；`skipped` 只记录用户跳过 Goal Teams 流程的决定，不伪造后续执行状态。
+
 ## 核心目标
 
 - <一句话说明本轮真正要完成什么>

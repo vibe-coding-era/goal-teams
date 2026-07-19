@@ -18,10 +18,11 @@ except ModuleNotFoundError:  # pragma: no cover
 
 ROOT = Path(__file__).resolve().parents[2]
 CURRENT_VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+PUBLISHED_VERSION = "V2.40"
 GENERAL_CORE_POLICY_VERSION = "V2.5"
 LEGACY_DATA_SCHEMA_VERSION = "V2.3"
 CORE_POLICY_PROFILE = "goal-teams-core-v2.5"
-SELF_RELEASE_POLICY_PROFILE = "goal-teams-self-release-v2.40"
+SELF_RELEASE_POLICY_PROFILE = "goal-teams-self-release-v2.41"
 STARTUP_LINE = f"我是 Goal Teams Lead {CURRENT_VERSION}。"
 COMPATIBILITY_MARKER = (
     f"我是 Goal Teams Leader {CURRENT_VERSION}，使用 Goal + Plan 模式帮你完成规划、执行和交付，"
@@ -44,11 +45,14 @@ REQUIRED_FILES = [
     "references/default-AGENTS.md",
     "references/invariants.md",
     "references/compat.md",
+    "references/agent-runtime-capability-contract.md",
+    "references/flow-clarification-protocol.md",
     "references/rules-ui.md",
     "references/rules-testing.md",
     "references/rules-loop.md",
     "references/goal-teams-core-v2.5.md",
     "references/profiles/goal-teams-self-release-v2.40.md",
+    "references/profiles/goal-teams-self-release-v2.41.md",
     "references/profiles/goal-teams-self-release-v2.39.md",
     "references/profiles/goal-teams-self-release-v2.38.md",
     "references/prompt-cache-manifest.json",
@@ -72,6 +76,7 @@ REQUIRED_FILES = [
     "scripts/v23/okf_conformance.py",
     "scripts/benchmark/cache-probe.py",
     "scripts/checks/check-prompt-cache.py",
+    "scripts/checks/check-v241-flow.py",
     "scripts/checks/check-okf.py",
     "scripts/check-prompt-cache.py",
     "scripts/check-okf.py",
@@ -456,7 +461,9 @@ FILE_RULES = {
         "references/rules-testing.md",
         "references/rules-loop.md",
         "references/goal-teams-core-v2.5.md",
-        "references/profiles/goal-teams-self-release-v2.40.md",
+        "references/profiles/goal-teams-self-release-v2.41.md",
+        "references/flow-clarification-protocol.md",
+        "references/agent-runtime-capability-contract.md",
         "references/rules-project-sizing.md",
         "references/rules-specialists.md",
         "规则冲突时",
@@ -514,7 +521,7 @@ FILE_RULES = {
         "`standard`",
         "显式提供时必须与派生值完全一致",
     ),
-    "references/profiles/goal-teams-self-release-v2.40.md": (
+    "references/profiles/goal-teams-self-release-v2.41.md": (
         SELF_RELEASE_POLICY_PROFILE,
         "52",
         "iteration 9",
@@ -740,8 +747,9 @@ def check_skill_frontmatter() -> None:
         version,
         GENERAL_CORE_POLICY_VERSION,
         LEGACY_DATA_SCHEMA_VERSION,
-        "V2.39",  # replay-only self-release Profile retained by V2.40
-        "V2.38",  # replay-only prompt/profile identity retained by V2.40
+        "V2.40",  # replay-only self-release Profile retained by V2.41
+        "V2.39",  # replay-only self-release Profile retained by V2.41
+        "V2.38",  # replay-only prompt/profile identity retained by V2.41
     }
     missing_versions = sorted(allowed_versions - skill_versions)
     if missing_versions:
@@ -763,7 +771,7 @@ def check_skill_frontmatter() -> None:
         "references/rules-testing.md",
         "references/rules-loop.md",
         "references/goal-teams-core-v2.5.md",
-        "references/profiles/goal-teams-self-release-v2.40.md",
+        "references/profiles/goal-teams-self-release-v2.41.md",
         "references/prompt-cache-manifest.json",
         "prompts/lead/core.md",
         "prompts/lead/planning.md",
@@ -896,8 +904,8 @@ def check_v236_version_model() -> None:
         ),
         "README.md": (CURRENT_VERSION, GENERAL_CORE_POLICY_VERSION, LEGACY_DATA_SCHEMA_VERSION),
         "README.en.md": (CURRENT_VERSION, GENERAL_CORE_POLICY_VERSION, LEGACY_DATA_SCHEMA_VERSION),
-        "release/current/README.md": (CURRENT_VERSION,),
-        "release/current/manifest.json": (CURRENT_VERSION, GENERAL_CORE_POLICY_VERSION, LEGACY_DATA_SCHEMA_VERSION),
+        "release/current/README.md": (PUBLISHED_VERSION,),
+        "release/current/manifest.json": (PUBLISHED_VERSION, GENERAL_CORE_POLICY_VERSION, LEGACY_DATA_SCHEMA_VERSION),
     }
     for path, markers in surfaces.items():
         text = read(path)
@@ -943,7 +951,7 @@ def check_key_rules() -> None:
             "references/rules-testing.md",
             "references/rules-loop.md",
             "references/goal-teams-core-v2.5.md",
-            "references/profiles/goal-teams-self-release-v2.40.md",
+            "references/profiles/goal-teams-self-release-v2.41.md",
             "references/profiles/goal-teams-self-release-v2.39.md",
             "references/profiles/goal-teams-self-release-v2.38.md",
             "references/prompt-cache-manifest.json",
@@ -1033,7 +1041,15 @@ def check_key_rules() -> None:
         "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/plan.md",
     ]
     for path in startup_surfaces:
-        if STARTUP_LINE not in read(path):
+        # V2.41 is an in-development source version.  The two public README
+        # files intentionally retain the V2.40 published projection, with an
+        # append-only V2.41 change list at EOF (see check-version-sync.py).
+        expected_startup = (
+            f"我是 Goal Teams Lead {PUBLISHED_VERSION}。"
+            if path in {"README.md", "README.en.md"}
+            else STARTUP_LINE
+        )
+        if expected_startup not in read(path):
             fail(f"Startup line missing from {path}")
         if path not in {"SKILL.md", "prompts/lead/core.md"} and COMPATIBILITY_MARKER in read(path):
             fail(f"Non-user-visible compatibility marker leaked into {path}")

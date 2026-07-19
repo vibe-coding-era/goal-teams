@@ -9,6 +9,10 @@ okf_version: "0.1"
 
 # Team Plan Tables
 
+## 前置条件
+
+创建本表前，需求卡必须已有 `flow_selection=small|medium|large` 和 `flow_confirmation=confirmed`。若仍为 `awaiting_confirmation`，仅展示流程选项与节点差异；若为 `skipped`，不创建 Teams 规划表、不派发成员，并记录用户的跳过理由。
+
 `Teams 规划表` 四列合并展示格式：
 
 | 成员 / Skill(Subagent) | 任务范围 | 交付与标准 | 验证安排 |

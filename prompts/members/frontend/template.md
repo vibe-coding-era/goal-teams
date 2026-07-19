@@ -4,6 +4,7 @@
 成员：<display_name>
 页面/流程：<route_or_flow>
 页面规格卡：<spec/page-spec-card.md or not_applicable_reason>
+环境配置规划：<Architecture Design 内嵌的 Development Configuration Plan + Production Configuration Plan；不含 secret 值或部署授权>
 组件库：<name@version / source / lock_status>
 HTML OKF 元数据：<present/missing/not_applicable>
 viewport：<desktop/mobile>

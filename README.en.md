@@ -271,3 +271,10 @@ This repository does not currently declare an open-source license. The owner sho
 ## V2.3 Contract and Release Boundary
 
 V2.3 adds deterministic machine contracts for closed state enums, a single-writer ledger, strict Evidence/Traceability, capability degradation, Profile routing, typed migration, and release gates. See `references/goal-teams-v2.3-contract.md` and run `./scripts/check.sh` before release. Technical RC and authorized GA distribution are evaluated separately; even with an owner License/internal-sharing decision, the GA gate must remain fail-closed until a trusted external host/signature attestation exists.
+
+## V2.41 Changes
+
+- Startup now presents small, medium, and large iteration flows, nodes, and a Markdown flowchart so the user can confirm the Goal Teams workflow before Plan or member planning begins.
+- Goal Teams is defined as a Portable Core plus runtime capability adapters; Codex remains the complete adapter, while other Agents adopt, degrade, or block only from proven capabilities.
+- Every applicable Architecture Design gains Development and Production Configuration Plans; neither records secrets, and production planning grants no deployment authority.
+- This README preserves its original content; independent audit before full validation and release.

@@ -24,12 +24,12 @@
 - UI 任务必须审查证据是否覆盖页面规格卡中的视觉风险，而不只是证据是否存在。
 - 页面原型和 HTML Prototype MOCK 必须审查组件库信息是否覆盖到 `memory.md`、页面规格卡头部、每个元素和 HTML OKF 元数据。
 - 对视觉锁层、baseline overlay、截图遮挡层、小组件、弹窗、表单、菜单、头像、表格和分页风险，必须检查是否有补偿性 Harness 和独立复核结论。
-- 仅当 `policy_profile=goal-teams-self-release-v2.40`，审查 52 条断言、四文件 bundle/journal、第 9 轮 quarantine、第 11 轮 delivery、四维 4×0.25 rubric、GTLOG/prompt lifecycle、prompt identity、Cache Evidence 四状态轴、OKF gate、CP00–CP18 发行状态机与 moving bottleneck；`goal-teams-self-release-v2.39` 与 `goal-teams-self-release-v2.38` Profile 只用于历史 replay，普通任务不得套用。
+- 仅当 `policy_profile=goal-teams-self-release-v2.41`，审查 52 条断言、四文件 bundle/journal、第 9 轮 quarantine、第 11 轮 delivery、四维 4×0.25 rubric、GTLOG/prompt lifecycle、prompt identity、Cache Evidence 四状态轴、OKF gate、CP00–CP18 发行状态机与 moving bottleneck；`goal-teams-self-release-v2.40`、`goal-teams-self-release-v2.39` 与 `goal-teams-self-release-v2.38` Profile 只用于历史 replay，普通任务不得套用。
 - Self-release 必须确认 release readiness、branch/main fast-forward remote Evidence、local install VERSION/tree/full check 和独立 post-release task 全 accepted 后才运行本 Audit；Audit 位于 required graph 外且没有 artifact/Evidence self-reference。
 - V2.36 代码 Evidence 必须绑定自动覆盖完整 Git 变更集的 protected snapshot receipt；宿主 route receipt 同时绑定实际 target fingerprint/kind 与 snapshot baseline。所有用于独立结论的 Agent identity 必须通过带仓库外持久 challenge state 的宿主 attestation 验证，自报 run ID、无 state 诊断验证或人工 source list 无效。
 - 核对 Audit、Review、Harness 的完整 V2.36 binding 一致，并核对每条 current Evidence 的非循环 core binding 与其 product/route/target/snapshot/identity/base/profile 一致。候选 runtime 只能返回 `E_V236_HOST_ADAPTER_REQUIRED`；仓库外宿主必须在包含 TaskList 和所有引用日志/报告/artifact 的不可变输入快照上复核全部门禁后，才一次性消费 route + identity challenges。
-- Self-release 公开归档只接受 `docs/archive/V2.40/<delivery_id>/` 中已完成/公开/清洗的普通文件；公开面不含 invocation、tool-call、transport handle、绝对路径、raw log 或 private provenance，而本地 ledger/Evidence/review/audit/provenance 必须保留。
-- V2.40 cache 结论绑定 structural/host/live/request-hit 四状态轴、route-static identity、宿主可用时的 ordered runtime manifest、observer parser/identity/coverage 与 raw JSONL hash；Tokens/Cache 命中率缺可信 usage Evidence 时写 `未获取到` / `Unavailable`，无授权 live probe 为 `not_authorized`，不得宣称改善。
+- Self-release 公开归档只接受 `docs/archive/V2.41/<delivery_id>/` 中已完成/公开/清洗的普通文件；公开面不含 invocation、tool-call、transport handle、绝对路径、raw log 或 private provenance，而本地 ledger/Evidence/review/audit/provenance 必须保留。
+- V2.41 cache 结论绑定 structural/host/live/request-hit 四状态轴、route-static identity、宿主可用时的 ordered runtime manifest、observer parser/identity/coverage 与 raw JSONL hash；Tokens/Cache 命中率缺可信 usage Evidence 时写 `未获取到` / `Unavailable`，无授权 live probe 为 `not_authorized`，不得宣称改善。
 
 审计必须输出 V2.3 正交字段：
 

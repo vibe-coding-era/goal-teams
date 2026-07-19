@@ -10,7 +10,10 @@ import sys
 from pathlib import Path
 
 
-DEFAULT_LIMIT = 12_032
+# V2.41 loads the mandatory flow-clarification protocol at startup.  The
+# repository-startup route budget is the source of truth in the prompt-cache
+# manifest; this default keeps the legacy checker aligned with that route.
+DEFAULT_LIMIT = 19_456
 BASE_FILES = ("SKILL.md", "agents/openai.yaml", "RULES.md")
 ROUTED_CORE_FILES = (
     "references/invariants.md",
@@ -116,7 +119,7 @@ def evaluate(root: Path, limit: int) -> dict[str, object]:
         "passed": installed_identity["passed"] and base_total <= limit,
     }
     routing_result = {
-        "definition": "V2.38 conditionally routed core/profile policy files",
+        "definition": "V2.41 conditionally routed core/profile policy files",
         "files": routing,
         "bytes": sum(routing.values()),
         "limits": V235_ROUTING_LIMITS,
@@ -158,7 +161,7 @@ def evaluate(root: Path, limit: int) -> dict[str, object]:
         and all(bool(item["passed"]) for item in specialists.values())
     )
     return {
-        "schema_version": "goal-teams-context-budget-v2.38",
+        "schema_version": "goal-teams-context-budget-v2.41",
         "startup": startup,
         "base": base_result,
         "routed": {

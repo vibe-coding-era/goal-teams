@@ -94,6 +94,7 @@ Task Handoff Record（ledger checkpoint 与 TaskList 投影的同一任务）:
 | `backend_architecture_design` | Backend Architecture Design、后端架构设计 | `goal_backend` | `goal_reviewer` | `gates.architecture=required` 的后端任务写入 | `spec/backend-architecture-design.md`、架构评审、API/数据/权限边界 |
 | `frontend_architecture_design` | Frontend Architecture Design、前端架构设计 | `goal_frontend` | `goal_reviewer` 或 `goal_qa` | `gates.architecture=required` 的前端任务写入 | `spec/frontend-architecture-design.md`、组件库/状态/路由/数据边界 |
 | `architecture_design` | Architecture Design、跨端架构设计 | `goal_backend`、`goal_frontend` 或 `goal_product` | `goal_reviewer` | 涉及架构决策时写入 | `spec/architecture-design.md`、架构评审 |
+| `environment_configuration_plan` | Architecture Design 内的 Development Configuration Plan 与 Production Configuration Plan | 对应 Architecture Design Owner | `goal_reviewer` 或 `goal_qa` | 每份适用 Architecture Design 必须写入；Lite 未创建 Architecture 时记录不适用原因 | 配置来源/引用、依赖、网络/数据、可观测性、验证、差异；不记录 secret 值，生产环境规划不代表部署授权 |
 | `development_environment_check` | Architecture accepted 后的开发环境检查与安全 remediation | 当前 `goal_backend` / `goal_frontend` 实现 Owner | `goal_qa` 或 `goal_reviewer`（必须是不同 run） | Full/Regulated 或 route 要求时写入；Lite 用 preflight | `spec/development-environment-check.md`、Architecture/workspace/tool exact hash、argv/cwd/log、remediation before/after、current `local_verified` Evidence；只有 `ready` 开实现门 |
 | `security_assessment` | 代码、依赖、secret、注入、端口暴露只读安全评估 | `goal_security` | `goal_reviewer`（不同 run，最低 safety） | 路由命中 security 时 | coverage、授权记录、findings、脚本 + 独立语义安全复核 |
 | `performance_benchmark_proposal` | SQL、页面、数据路径 baseline 与优化 proposal | `goal_performance` | `goal_qa` 或 `goal_reviewer` | 路由命中 performance 时 | environment/data scale/argv/cwd/candidate digest/current benchmark Evidence |
@@ -102,8 +103,8 @@ Task Handoff Record（ledger checkpoint 与 TaskList 投影的同一任务）:
 | `sqa_process_archive_proposal` | 过程改进与版本化文档归档 proposal | `goal_sqa` | `goal_reviewer` | 路由命中 sqa 时 | version record、index、classification、version directory、sanitized public/private provenance |
 | `specialist_improvement_proposal` | 四专家共同的分级改进 proposal | 对应 `goal_security|goal_performance|goal_refactor|goal_sqa` | `goal_reviewer` | 专家建议进入 reviewed 前 | L0/L1/L2、scope、AC、proposal hash、lifecycle、Evidence request |
 | `specialist_dispatch_request` | 专家向 Lead 提交的派发请求，不是已派发事实 | 对应只读专家 | Lead 校验 + 独立 `goal_reviewer` | proposal 需实现/测试时 | proposal hash、requested owner/validators、locked/forbidden scope、risk/review class/approval gate |
-| `iteration_state_bundle` | Self-release 四文件 LOOP 状态与 transaction/reconcile receipt | Goal Lead / 唯一 state writer | `goal_qa` 或 `goal_completion_auditor`（不同 run） | 仅当前 `goal-teams-self-release-v2.40` 每个 committed revision 登记；V2.39/V2.38 只读 replay | `feature_list.json`、`progress.md`、`contract.md`、`log.md`、journal/receipt hash、marker-last/CAS/reconcile Evidence |
-| `public_completion_doc` | Self-release 审计完成且清除调用痕迹的公开交付文档 | `goal_docs` 或 Goal Lead | `goal_reviewer` 与最终 `goal_completion_auditor` | 仅 self-release 进入 `docs/archive/V2.40/<delivery_id>/` 前写入 | accepted source hash、sanitizer report、public manifest/tree digest、private provenance receipt；不包含 invocation/tool-call/transport/raw log |
+| `iteration_state_bundle` | Self-release 四文件 LOOP 状态与 transaction/reconcile receipt | Goal Lead / 唯一 state writer | `goal_qa` 或 `goal_completion_auditor`（不同 run） | 仅当前 `goal-teams-self-release-v2.41` 每个 committed revision 登记；V2.40/V2.39/V2.38 只读 replay | `feature_list.json`、`progress.md`、`contract.md`、`log.md`、journal/receipt hash、marker-last/CAS/reconcile Evidence |
+| `public_completion_doc` | Self-release 审计完成且清除调用痕迹的公开交付文档 | `goal_docs` 或 Goal Lead | `goal_reviewer` 与最终 `goal_completion_auditor` | 仅 self-release 进入 `docs/archive/V2.41/<delivery_id>/` 前写入 | accepted source hash、sanitizer report、public manifest/tree digest、private provenance receipt；不包含 invocation/tool-call/transport/raw log |
 | `protected_git_tree_snapshot` | 自动完整 Git 变更集 receipt | runtime / ledger owner | `goal_reviewer` 或 `goal_completion_auditor` | V2.36 代码 Evidence 必需 | baseline ancestor、tracked 修改/删除、non-ignored untracked、isolated tree、HEAD/refs/index/object-store 前后指纹 |
 | `host_attested_identity_registry` | 宿主签发的 Agent identity registry | host adapter | `goal_reviewer` 或 `goal_completion_auditor` | V2.36 独立验证必需 | issuer/run/transport/nonce/time/core hash/signature；trust key 不进入产物 |
 | `v236_execution_contract` | V2.36 自动派生执行门契约 | route runtime | host adapter + `goal_reviewer` | 每个 V2.36 route 必需 | execution profile、required review class、完整 gates、conditional scopes、specialists/rules/reasons 与 canonical digest |
@@ -159,8 +160,9 @@ Full/Regulated Profile 的每个功能切片在版本子目录 `TaskList.md` 中
 | 4 | 某功能的 HTML 原型 | `html_prototype` | `goal_frontend` | `page_spec_card` |
 | 5 | 某功能的前端架构设计 | `frontend_architecture_design` | `goal_frontend` | `prd` |
 | 6 | 某功能的后端架构设计 | `backend_architecture_design` | `goal_backend` | `prd` |
-| 7 | 某功能的开发环境检查 | `development_environment_check` | 当前实现 Owner | applicable Architecture Design accepted |
-| 8 | 某功能的前端开发 | `frontend_implementation` | `goal_frontend` | `frontend_architecture_design`、`development_environment_check=ready`、`html_prototype` |
+| 7 | 某功能的 Architecture 双环境配置规划 | `environment_configuration_plan` | 对应 Architecture Owner | applicable Architecture Design |
+| 8 | 某功能的开发环境检查 | `development_environment_check` | 当前实现 Owner | applicable Architecture Design accepted + `environment_configuration_plan` |
+| 9 | 某功能的前端开发 | `frontend_implementation` | `goal_frontend` | `frontend_architecture_design`、`development_environment_check=ready`、`html_prototype` |
 | 9 | 某功能的后端 TDD | `backend_unit_test_cases` | `goal_unit_test_designer` | `backend_architecture_design`、`development_environment_check=ready` |
 | 10 | 某功能的后端开发 | `backend_implementation` | `goal_backend` | `backend_unit_test_cases`、`development_environment_check=ready` |
 | 11 | 某功能的后端执行 TDD | `backend_unit_test_execution` | `goal_unit_test_runner` | `backend_implementation` |

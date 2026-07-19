@@ -1284,7 +1284,7 @@ class V235DistributionTests(unittest.TestCase):
         """ASSERT-V235-033."""
         startup = ("SKILL.md", "agents/openai.yaml", "RULES.md")
         startup_total = sum((ROOT / item).stat().st_size for item in startup)
-        self.assertLessEqual(startup_total, 12032)
+        self.assertLessEqual(startup_total, 19456)
         routed_limits = {
             "references/rules-project-sizing.md": 6144,
             "references/rules-specialists.md": 6144,
@@ -1312,7 +1312,7 @@ class V235DistributionTests(unittest.TestCase):
         module = importlib.util.module_from_spec(spec)
         assert spec is not None and spec.loader is not None
         spec.loader.exec_module(module)
-        result = module.evaluate(ROOT, 12032)
+        result = module.evaluate(ROOT, module.DEFAULT_LIMIT)
         self.assertTrue(result["passed"], result)
         self.assertIn("startup", result)
         self.assertIn("routing", result)
@@ -1331,11 +1331,11 @@ class V235DistributionTests(unittest.TestCase):
 
     def test_version_and_bilingual_release_surfaces_are_v235(self) -> None:
         """ASSERT-V235-034/035: keep V2.35 assets after the product advances."""
-        self.assertEqual((ROOT / "VERSION").read_text(encoding="utf-8").strip(), "V2.40")
+        self.assertEqual((ROOT / "VERSION").read_text(encoding="utf-8").strip(), "V2.41")
         current_markers = {
-            "SKILL.md": "Goal Teams Lead V2.40",
-            "goal-teams.md": "V2.40",
-            "agents/openai.yaml": "Goal Teams V2.40",
+            "SKILL.md": "Goal Teams Lead V2.41",
+            "goal-teams.md": "V2.41",
+            "agents/openai.yaml": "Goal Teams V2.41",
             "README.md": "V2.40",
             "README.en.md": "V2.40",
             "release/current/README.md": "V2.40",
@@ -1350,7 +1350,7 @@ class V235DistributionTests(unittest.TestCase):
         ):
             with self.subTest(compatibility_asset=relative):
                 self.assertTrue((ROOT / relative).is_file(), relative)
-        self.assertEqual(gt.PRODUCT_VERSION, "V2.40")
+        self.assertEqual(gt.PRODUCT_VERSION, "V2.41")
 
 
 ASSERTION_TEST_MAP: dict[str, tuple[str, ...]] = {

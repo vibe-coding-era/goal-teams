@@ -293,3 +293,10 @@ GoalTeamsWork-<project_version>/
 ## V2.3 契约与发布边界
 
 V2.3 增加确定性机器契约：闭合状态枚举、单写者 ledger、严格 Evidence/Traceability、能力降级、Profile 路由、typed migration 与 release gates。详见 `references/goal-teams-v2.3-contract.md`，发布前运行 `./scripts/check.sh`。技术 RC 与正式 GA 分开判断；只有 owner 的 License/内部共享决定而没有仓库外可信 host/signature attestation 时，GA 门禁仍必须 fail-closed。
+
+## V2.41 版本改动
+
+- 启动先用小、中、大迭代流程、节点说明和 Markdown 流程图澄清用户是否采用 Goal Teams 流程；确认后才进入 Plan 与成员规划。
+- 将 Goal Teams 定义为 Portable Core + runtime capability adapter；Codex 保持完整 adapter，其他 Agent 按已证明能力采用、降级或阻塞。
+- 每份适用 Architecture Design 增加 Development Configuration Plan 与 Production Configuration Plan；不记录密钥，生产规划不授予部署权限。
+- 保持本 README 原有内容不变；完整验证和发行前的独立审计。

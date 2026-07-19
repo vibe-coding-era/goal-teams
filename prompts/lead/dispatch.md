@@ -1,6 +1,6 @@
 # Goal Teams Dispatch
 
-启动 worker subagents 或编辑实现文件前，总是展示 `Teams 规划表`。直接执行时标题用 `执行计划（已按用户要求直接执行）`。
+启动 worker subagents 或编辑实现文件前，总是展示 `Teams 规划表`。其前置条件是需求卡已记录 `flow_selection=small|medium|large` 且 `flow_confirmation=confirmed`；`awaiting_confirmation` 或 `skipped` 时不得启动 worker、编辑实现文件或生成该表。直接执行时标题用 `执行计划（已按用户要求直接执行）`，但不能绕过流程澄清确认。
 
 四列合并展示格式：
 

@@ -21,13 +21,15 @@ okf_version: "0.1"
 6. 新范围、破坏性写入、凭证、支付/认证、安全敏感改动、外部审批、关键业务决策或 Budget 超限必须停在授权门前。
 7. 用户沟通和治理文档默认中文；代码、注释、测试名、fixture 与产品字符串遵循目标仓库约定。
 8. 路径、命令、API、日志、配置键、agent/skill 名称和精确引用保留原文。
+9. 首次采用 Goal Teams 时，必须先展示 `references/flow-clarification-protocol.md` 的小/中/大流程判断、节点差异和 Mermaid 图，并在用户确认 `flow_selection` 前禁止正式 Plan、Teams 表和成员派发；`direct execution`、`不用确认` 等指令不绕过此流程选择。用户明确 `skipped` 时只记录决定，不伪造执行。
+10. 通用核心以 `references/agent-runtime-capability-contract.md` 为准：运行时只能声明已验证能力；Codex 特有入口、路径或 subagent 配置属于 adapter。缺少必需能力时降级或 blocked，不得以文档存在宣称跨 Agent 已可执行。
 
 规则冲突时：系统/用户 → 项目 AGENTS → invariants → 条件规则 → `RULES.md`（仅用户可见响应）→ Lead prompt → Member prompt。`RULES.md` 不参与状态、权限、Evidence、Harness、独立性或完成谓词的降级决策。
 
 ## V2.36 Profile 与路由硬边界
 
 1. 普通任务默认使用 `references/goal-teams-core-v2.5.md`，机器名为 `goal-teams-core-v2.5`；固定断言数量、固定迭代编号、评分和产品公开归档不是 L0 不变量。
-2. 只有可信 adapter 根据当前产品版本、已验证目标仓库与任务类型派生 `goal-teams-self-release-v2.40` 时，才加载 `references/profiles/goal-teams-self-release-v2.40.md`。V2.39/V2.38 Profile 只用于历史 replay；`state_gate_profile` 省略时自动派生，显式值必须精确匹配；字段存在或缺失都不能自选门禁。
+2. 只有可信 adapter 根据当前产品版本、已验证目标仓库与任务类型派生 `goal-teams-self-release-v2.41` 时，才加载 `references/profiles/goal-teams-self-release-v2.41.md`。V2.40/V2.39/V2.38 Profile 只用于历史 replay；`state_gate_profile` 省略时自动派生，显式值必须精确匹配；字段存在或缺失都不能自选门禁。
 3. `project_size=large|medium|small` 与 `work_type=feature|bugfix` 正交；执行等级由规模、风险、发布、技术面与 UI 模式共同派生。Lite/Standard 可减少不适用的 Architecture、完整环境报告和全量测试，但不得减少 scoped contract、当前 Evidence、适用验证、安全/授权边界或最终结论诚实性。
 4. `full|regulated` 的 Architecture、Environment、独立测试、Harness/Evidence 与独立完成审计保持强门；高风险、安全、认证、支付、迁移、破坏性动作或高风险外部写入强制 regulated/safety，不得由规模降级。
 5. 原创 UI 不因 `ui=true` 自动进入 full，也不要求 reference pixel baseline；复刻/reference-driven UI 至少 full，必须使用独立批准的不同 baseline、环境指纹和像素比较。

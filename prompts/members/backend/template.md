@@ -6,6 +6,7 @@
 目标：<goal>
 后端合同：<API/CLI/MCP/schema/migration>
 后端架构设计：<spec/backend-architecture-design.md>
+环境配置规划：<Architecture Design 内嵌的 Development Configuration Plan + Production Configuration Plan；不含 secret 值或部署授权>
 TDD 单元测试用例：<backend_unit_test_cases path/status>
 V2.35 Test-case contracts：<unit/tdd/integration refs + validator status>
 TDD red binding：<test hash / pre-implementation tree / ledger prefix / Evidence>

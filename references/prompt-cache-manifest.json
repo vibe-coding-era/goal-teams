@@ -70,6 +70,9 @@
     "references/profiles/goal-teams-self-release-v2.38.md",
     "references/profiles/goal-teams-self-release-v2.39.md",
     "references/profiles/goal-teams-self-release-v2.40.md",
+    "references/profiles/goal-teams-self-release-v2.41.md",
+    "references/flow-clarification-protocol.md",
+    "references/agent-runtime-capability-contract.md",
     "references/rules-project-sizing.md",
     "references/rules-specialists.md",
     "references/rules-loop.md",
@@ -81,13 +84,13 @@
   ],
   "routes": {
     "installed_startup": {
-      "ordered_refs": ["SKILL.md", "agents/openai.yaml", "RULES.md"],
-      "limit_bytes": 12032,
+      "ordered_refs": ["SKILL.md", "agents/openai.yaml", "RULES.md", "references/flow-clarification-protocol.md"],
+      "limit_bytes": 18432,
       "dynamic_tail_labels": ["user_request"]
     },
     "repository_startup": {
-      "ordered_refs": [".agents/skills/goal-teams/SKILL.md", "SKILL.md", "agents/openai.yaml", "RULES.md"],
-      "limit_bytes": 12032,
+      "ordered_refs": [".agents/skills/goal-teams/SKILL.md", "SKILL.md", "agents/openai.yaml", "RULES.md", "references/flow-clarification-protocol.md"],
+      "limit_bytes": 19456,
       "dynamic_tail_labels": ["workspace_instructions", "user_request"]
     },
     "core_execution_repository": {
@@ -96,7 +99,7 @@
       "dynamic_tail_labels": ["route_facts", "user_request"]
     },
     "self_release_execution_repository": {
-      "ordered_refs": [".agents/skills/goal-teams/SKILL.md", "SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "references/goal-teams-core-v2.5.md", "references/profiles/goal-teams-self-release-v2.40.md", "references/rules-loop.md", "prompts/lead/loop.md"],
+      "ordered_refs": [".agents/skills/goal-teams/SKILL.md", "SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "references/goal-teams-core-v2.5.md", "references/profiles/goal-teams-self-release-v2.41.md", "references/rules-loop.md", "prompts/lead/loop.md"],
       "limit_bytes": 81920,
       "dynamic_tail_labels": ["route_receipt", "iteration_state", "user_request"]
     },
@@ -137,7 +140,7 @@
     },
     "capability": {
       "ordered_refs": ["SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "references/rules-project-sizing.md", "references/runtime/01-v2-36-core-trust.md"],
-      "limit_bytes": 69632,
+      "limit_bytes": 70656,
       "dynamic_tail_labels": ["capability_manifest"]
     },
     "telemetry": {
@@ -147,7 +150,7 @@
     },
     "benchmark": {
       "ordered_refs": ["SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "references/goal-teams-automation-protocol.md", "references/runtime/02-harness-benchmark-loop.md", "references/prompt-cache-protocol.md"],
-      "limit_bytes": 81920,
+      "limit_bytes": 84992,
       "dynamic_tail_labels": ["benchmark_manifest", "scenario_input"]
     },
     "production": {
@@ -157,23 +160,23 @@
     },
     "runtime_loop": {
       "ordered_refs": ["SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "references/rules-loop.md", "references/runtime/03-goal-loop.md"],
-      "limit_bytes": 57344,
+      "limit_bytes": 59392,
       "dynamic_tail_labels": ["loop_state"]
     },
     "backend": {
       "ordered_refs": ["RULES.md", "references/compat.md", "references/invariants.md", "references/rules-testing.md"],
-      "limit_bytes": 36864,
+      "limit_bytes": 40960,
       "dynamic_tail_labels": ["route_facts"]
     },
     "structured_policy": {
-      "ordered_refs": ["RULES.md", "references/compat.md", "references/goal-teams-core-v2.5.md", "references/dual-review-protocol.md", "references/invariants.md", "references/profiles/goal-teams-self-release-v2.36.md", "references/profiles/goal-teams-self-release-v2.38.md", "references/profiles/goal-teams-self-release-v2.39.md", "references/profiles/goal-teams-self-release-v2.40.md", "references/rules-project-sizing.md", "references/rules-specialists.md", "references/rules-loop.md", "references/rules-testing.md", "references/rules-ui.md", "references/test-case-assertion-protocol.md", "references/ui-e2e-pixel-protocol.md", "references/ui-visual-contract-protocol.md"],
+      "ordered_refs": ["RULES.md", "references/compat.md", "references/agent-runtime-capability-contract.md", "references/flow-clarification-protocol.md", "references/goal-teams-core-v2.5.md", "references/dual-review-protocol.md", "references/invariants.md", "references/profiles/goal-teams-self-release-v2.36.md", "references/profiles/goal-teams-self-release-v2.38.md", "references/profiles/goal-teams-self-release-v2.39.md", "references/profiles/goal-teams-self-release-v2.40.md", "references/profiles/goal-teams-self-release-v2.41.md", "references/rules-project-sizing.md", "references/rules-specialists.md", "references/rules-loop.md", "references/rules-testing.md", "references/rules-ui.md", "references/test-case-assertion-protocol.md", "references/ui-e2e-pixel-protocol.md", "references/ui-visual-contract-protocol.md"],
       "limit_bytes": 131072,
       "selection_mode": "ordered_subset_of_policy_rule_set",
       "dynamic_tail_labels": ["normalized_route_facts", "execution_contract", "user_request"]
     },
     "blind_bootstrap": {
       "ordered_refs": ["AGENTS.md", "SKILL.md", "RULES.md"],
-      "limit_bytes": 24576,
+      "limit_bytes": 26624,
       "dynamic_tail_labels": ["scenario_input"]
     }
   }

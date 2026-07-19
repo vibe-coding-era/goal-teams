@@ -53,6 +53,11 @@ Member Goal Packet（成员目标包）:
 - conflict_policy:
 - user_requested_skill:
 - user_requested_subagent:
+- flow_selection: small | medium | large
+- flow_confirmation: confirmed
+- selected_flow_nodes: {已确认保留的流程节点和裁剪理由}
+- runtime_capability_ref: references/agent-runtime-capability-contract.md
+- runtime_capability_result: {runtime_id、可用能力、降级或 blocked 原因}
 - lane_or_deliverable:
 - handoff_artifacts:
   - schema_version: goal-teams-v2.3

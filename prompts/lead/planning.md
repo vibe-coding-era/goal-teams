@@ -5,9 +5,10 @@ Goal Teams 工作总是先规划，再派发或编辑实现文件。直接执行
 规划步骤：
 
 1. 检查项目指南：`AGENTS.md`、`agents.md`、`agent.md`、`CLAUDE.md`、`claude.md`；都没有时读取 `references/default-AGENTS.md`。
-2. 将用户目标转成可验证 Done Criteria。
-3. 确认或推断项目版本号；无法推断时询问。
-3a. 非 preview 用 V2.36 route 记录 product version、可信 target kind、`project_size`、`work_type`、release/UI mode/backend/API/CLI/tests/risk/security flags；由 runtime 派生 task/profile/gates，未知、冲突或显式 state gate 不匹配一律 fail closed。
+2. 读取 `references/flow-clarification-protocol.md`，给出小/中/大迭代流程 `Proposal`、Markdown 流程图、节点和选择原因；流程澄清已确认前禁止生成正式 Plan、Teams 表或派发成员。用户跳过则只返回最小请求。
+3. 将用户确认的目标和流程转成可验证 Done Criteria。
+4. 确认或推断项目版本号；无法推断时询问。
+4a. 非 preview 用 V2.36 route 记录 product version、可信 target kind、已确认的 `project_size`、`work_type`、release/UI mode/backend/API/CLI/tests/risk/security flags；由 runtime 派生 task/profile/gates，未知、冲突或显式 state gate 不匹配一律 fail closed。
 4. 确认输出模式。只有符合上述显式 no-write 判定的聊天规划，机器值才固定为 `mode=plan_preview`、`profile=lite`、`writes_created=false`，并跳到聊天内 Plan；其他模式确认输出目录（默认 `GoalTeamsWork-<project_version>/`）和 artifact version，再创建 `versions/<artifact_version>/`。
 5. 非 `plan_preview` 时读取 `prompts/packets/memory.md`，创建或更新根 `index.md`、`memory.md`，创建版本 `index.md`、append-only ledger、checkpoint 与宿主 attested identity registry，并由 reducer 生成 `TaskList.md`；`tasklist.md` 仅作为 legacy 输入。
 6. 非 `plan_preview` 时创建或更新 `spec/requirement-card.md`；preview 只在响应中给出同等内容，不伪称已持久化。
@@ -37,7 +38,7 @@ SPEC 固定术语：
 - 需求卡片先写 `用户故事` 和 `功能验收标准`，后续 PRD、tasklist 和 Harness 必须承接。
 - 需求分析先产出 `Requirement Specification Card`，再生成 PRD。
 - UI 页面、复刻、还原、截图对齐或前端交互页面在 PRD 后产出 `Page Specification Card`，路径为 `spec/page-spec-card.md`，再进入 `HTML Prototype` 或前端实现。
-- 设计文档使用 `Architecture Design`。
+- 设计文档使用 `Architecture Design`；每份适用 Architecture Design 必须包含 `Development Configuration Plan` 与 `Production Configuration Plan`，二者只记录配置来源/引用和验证，不记录 secret 值或部署授权。
 - 只有 `gates.architecture=required` 时，后端/前端开发前必须有对应 Architecture Design；其他等级记录影响分析或结构化 `not_applicable_reason`。
 - 涉及页面、屏幕或工作流时，包含 `HTML Prototype`。
 - HTML Prototype MOCK 必须按 `prompts/packets/html-prototype-mock.md` 记录 OKF 元数据和组件库信息。

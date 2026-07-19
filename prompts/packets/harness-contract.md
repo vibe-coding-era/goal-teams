@@ -65,7 +65,7 @@ V2.40 telemetry/cache Harness 只在命中时适用，必须分别定义 structu
 
 ## Self-release Harness 扩展
 
-以下字段只在 `policy_profile=goal-teams-self-release-v2.40` 时 required；V2.39/V2.38 Profile 只用于历史 replay，普通项目不得为了满足模板而创建固定轮次、评分或公开归档检查。
+以下字段只在 `policy_profile=goal-teams-self-release-v2.41` 时 required；V2.40/V2.39/V2.38 Profile 只用于历史 replay，普通项目不得为了满足模板而创建固定轮次、评分或公开归档检查。
 
 实现类 Harness 还必须定义：
 

@@ -238,8 +238,15 @@ def validate_release_projection(expected_version: str, product: str) -> None:
     if zh_projection != en_projection:
         fail("README.md and README.en.md controlled release semantics differ")
     for path in ("README.md", "README.en.md"):
-        product_versions = set(CURRENT_PRODUCT_RE.findall(read(path)))
-        if product_versions != {product}:
+        text = read(path)
+        product_versions = set(CURRENT_PRODUCT_RE.findall(text))
+        if product == "V2.41" and expected_version == "V2.40":
+            heading = "## V2.41 版本改动" if path == "README.md" else "## V2.41 Changes"
+            if text.count(heading) != 1 or text.rfind(heading) <= text.rfind("## V2.3"):
+                fail(f"{path} must append exactly one V2.41 change list at EOF")
+            if product_versions != {expected_version}:
+                fail(f"{path} V2.41 development must retain its V2.40 published marker")
+        elif product_versions != {product}:
             fail(
                 f"{path} current product markers must be exactly {product}: "
                 f"{sorted(product_versions)}"
