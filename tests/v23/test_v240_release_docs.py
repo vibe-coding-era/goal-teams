@@ -104,11 +104,11 @@ class V240ReleaseDocumentationTests(unittest.TestCase):
                 CHECKER.validate_release_projection("V2.39", "V2.40")
 
     def test_active_runtime_identity_is_current_and_replay_only(self) -> None:
-        profile, profile_path = CHECKER.validate_runtime_identity("V2.40")
-        self.assertEqual(profile, "goal-teams-self-release-v2.40")
+        profile, profile_path = CHECKER.validate_runtime_identity("V2.41")
+        self.assertEqual(profile, "goal-teams-self-release-v2.41")
         self.assertEqual(
             profile_path,
-            "references/profiles/goal-teams-self-release-v2.40.md",
+            "references/profiles/goal-teams-self-release-v2.41.md",
         )
 
         original_read = CHECKER.read
@@ -117,7 +117,7 @@ class V240ReleaseDocumentationTests(unittest.TestCase):
             text = original_read(path)
             if path == "references/runtime/03-goal-loop.md":
                 return text.replace(
-                    "我是 Goal Teams Lead V2.40。",
+                    "我是 Goal Teams Lead V2.41。",
                     "我是 Goal Teams Lead V2.39。",
                     1,
                 )
@@ -125,7 +125,7 @@ class V240ReleaseDocumentationTests(unittest.TestCase):
 
         with mock.patch.object(CHECKER, "read", side_effect=stale_read):
             with redirect_stdout(io.StringIO()), self.assertRaises(SystemExit):
-                CHECKER.validate_runtime_identity("V2.40")
+                CHECKER.validate_runtime_identity("V2.41")
 
     def test_public_command_set_and_checkpoint_order_are_documented(self) -> None:
         proc = subprocess.run(
@@ -261,16 +261,16 @@ class V240ReleaseDocumentationTests(unittest.TestCase):
             self.assertNotIn('"state_path": "docs/release-state/', text)
 
     def test_cp18_archive_root_is_canonical_everywhere(self) -> None:
-        paths = (
-            PROTOCOL,
-            ROOT / "references" / "profiles" / "goal-teams-self-release-v2.40.md",
-            ROOT / "prompts" / "lead" / "audit.md",
-        )
-        for path in paths:
+        paths = {
+            PROTOCOL: "V2.40",
+            ROOT / "references" / "profiles" / "goal-teams-self-release-v2.41.md": "V2.41",
+            ROOT / "prompts" / "lead" / "audit.md": "V2.41",
+        }
+        for path, version in paths.items():
             text = path.read_text(encoding="utf-8")
             with self.subTest(path=path.relative_to(ROOT).as_posix()):
-                self.assertIn("docs/archive/releases/V2.40/", text)
-                self.assertNotIn("docs/archive/V2.40/", text)
+                self.assertIn(f"docs/archive/releases/{version}/", text)
+                self.assertNotIn(f"docs/archive/{version}/", text)
 
     def test_public_docs_require_an_explicit_python_311_interpreter(self) -> None:
         for path in (PROTOCOL, SCRIPT_README):

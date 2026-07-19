@@ -23,7 +23,7 @@ okf_version: "0.1"
 1. V2.40 的 CP00–CP18 发行状态机、受保护 Git tree snapshot、route receipt、宿主 attestation、Cache Evidence 和公开扫描规则继续适用，V2.41 不得弱化其 fail-closed 语义。
 2. 固定 52 条 `ASSERT-V234-*`、iteration 9 隔离候选、iteration 11 delivery 边界、四维评分与独立审计继续保留；评分与 cache 指标不能覆盖测试、Evidence、Review 或 Audit 失败。
 3. 每份适用 Architecture Design 必须内嵌 Development Configuration Plan 与 Production Configuration Plan；不得记录 secret 值，生产配置规划不代表部署授权。
-4. 公开归档仅接收 sanitizer 后的完成文档；不得出现 invocation、transport handle、绝对路径、raw log、secret 或 private provenance。
+4. CP18 公开归档仅接收 `docs/archive/releases/V2.41/` 下经 sanitizer 处理的完成文档；不得出现 invocation、transport handle、绝对路径、raw log、secret 或 private provenance。
 
 ## 兼容边界
 

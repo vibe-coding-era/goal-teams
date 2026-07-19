@@ -4311,6 +4311,18 @@ def validate_version_sync(repo_root: Path | str, *, expected_version: str) -> di
         "scripts/v23/goalteams_v23.py": (rf"PRODUCT_VERSION\s*=\s*[\"']{re.escape(expected_version)}[\"']",),
         "agents/openai.yaml": (rf"Goal Teams {re.escape(expected_version)}",),
     }
+    # V2.41 is a development projection: the published V2.40 marker in each
+    # README is intentionally preserved, while the V2.41 change list is
+    # appended at EOF.  Do not treat that historical release marker as drift.
+    if expected_version == "V2.41":
+        patterns["README.md"] = (
+            r"当前版本：`V2\.40`",
+            r"(?s)## V2\.41 版本改动.*\Z",
+        )
+        patterns["README.en.md"] = (
+            r"Current version: `V2\.40`",
+            r"(?s)## V2\.41 Changes.*\Z",
+        )
     for relative in checked:
         path = repository / relative
         if not path.is_file() or path.is_symlink():

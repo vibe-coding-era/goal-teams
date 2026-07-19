@@ -951,7 +951,7 @@ class V238PromptCacheContractTests(unittest.TestCase):
 
     def test_context_budget_includes_repo_wrapper_and_route_budgets(self) -> None:
         self.assertIsNotNone(context_budget)
-        result = context_budget.evaluate(ROOT, 12032)
+        result = context_budget.evaluate(ROOT, context_budget.DEFAULT_LIMIT)
         wrapper = ROOT / ".agents" / "skills" / "goal-teams" / "SKILL.md"
         if wrapper.is_file():
             self.assertIn(
@@ -962,7 +962,7 @@ class V238PromptCacheContractTests(unittest.TestCase):
                 ".agents/skills/goal-teams/SKILL.md", result["startup"]["files"]
             )
             self.assertEqual(result["startup"]["ordered_refs"], result["base"]["ordered_refs"])
-        self.assertLessEqual(result["startup"]["bytes"], 12032)
+        self.assertLessEqual(result["startup"]["bytes"], context_budget.DEFAULT_LIMIT)
         required_routes = {
             "runtime",
             "capability",
