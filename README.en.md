@@ -5,27 +5,12 @@
 Author: 肉山@TGO Hangzhou
 
 <!-- goal-teams-release:start -->
-Current release: **V2.40** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.40) · [release/current/README.md](release/current/README.md)
+Current release: **V2.42** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.40) · [release/current/README.md](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-Current version: `V2.40`
+Current version: `V2.42`
 
 Goal Teams is a Codex Skill for coordinated agent work. It turns one goal into a verifiable plan, then lets a Goal Lead coordinate independent subagents running in separate contexts, or user-selected external skills, across requirements, design, implementation, tests, evidence, and completion audit.
-
-Use it when:
-
-- The task should be planned before execution.
-- The task needs multiple roles or parallel work, and those roles should reason and deliver in isolated Subagent contexts.
-- The task should leave SPEC, TaskList, Harness, Evidence, and acceptance records.
-- The task includes backend TDD, API integration tests, frontend E2E, UI recreation, or pixel comparison.
-- The task is long enough to need Lead LOOP state, auto-continuation, and clear stop boundaries.
-- The task should combine external skills, existing project tools, or user-selected subagents.
-
-Do not use it for:
-
-- A simple one-off answer.
-- A tiny single-file edit that does not need team coordination or evidence tracking.
-- Real production approval, CI/CD, or background execution. Goal Teams provides coordination rules and local scripts; it does not replace external systems.
 
 ## Core Mechanisms
 
@@ -60,6 +45,61 @@ The value is that benchmark results make improvement reviewable. The same task c
 Goal Teams does not require every capability to come from a built-in subagent. During Plan, external skills, project scripts, browser tools, test tools, or user-selected subagents can be added to the `Teams 规划表` with locked scope, inputs, outputs, Harness, and validator.
 
 This makes Goal Teams an orchestration layer. It keeps the goal, plan, handoff artifacts, and evidence consistent; concrete capabilities can come from `goal_*` subagents or external skills such as browser verification, document generation, security review, PDF/spreadsheet handling, or project-specific tools. Once an external capability joins the team, it still follows SSOT, Harness, and independent validation rules.
+
+## Project Flow Selection
+
+When Goal Teams is first used, it recommends a flow from the goal, available materials, and risk. Select a flow by number; a formal Plan, Teams table, or member dispatch begins only after confirmation.
+
+```mermaid
+flowchart TD
+    A[User goal] --> B[Initial flow assessment]
+    B --> C{User selection}
+    C -->|1 Small Request/BugFix| S[Requirement or BugFix -> Test data -> Implementation -> Independent check]
+    C -->|2 Medium Project| M[Requirements and impact -> Architecture and two environments -> Integration and tests -> Review]
+    C -->|3 Large System| L[Complete specification -> Architecture and environments -> Independent tests and implementation -> Evidence/LOOP/audit]
+    C -->|4 Custom flow| D[Keep, remove, or adjust nodes]
+    C -->|5 Edit directly| X[Change the requested content -> Lightweight validation]
+```
+
+Choose the next step:
+
+1. Small Request/BugFix
+2. Medium Project
+3. Large System
+4. Customize flow nodes
+5. Edit directly: do not create a formal Plan or Teams table; change the requested content and run applicable lightweight validation
+
+### Small Request/BugFix
+
+Use for a focused, low-risk requirement or BugFix without cross-module, production-release, or security boundaries.
+
+`Requirement/prototype (when UI applies) or BugFix diagnosis → Test cases and data → TDD and implementation → Tests and independent check`
+
+- Project members: typically 1–2.
+- Possible Subagents: 0–1.
+- Typical roles: Goal Lead, implementation/testing, and lightweight independent review.
+
+### Medium Project
+
+Use for multiple modules, API or data boundaries, original UI, or differences between development and production environments.
+
+`Requirement card, PRD, and impact analysis → Architecture Design plus development/production configuration plans → Prototype, tests, and data → TDD, implementation, and integration → Independent tests and Review`
+
+- Project members: typically 3–5.
+- Possible Subagents: 2–4.
+- Typical roles: requirements/product, architecture or development, testing, QA/Reviewer.
+
+### Large System
+
+Use for multi-system work, releases, production changes, security-sensitive work, payments/authentication, or complex UI.
+
+`Flow clarification, requirements specification, and PRD → Page prototype and architecture → Development/production configuration plans → Independent test design, Harness, and implementation → Evidence, Review, LOOP gap closure, and completion audit`
+
+- Project members: typically 6–10.
+- Possible Subagents: 5–8.
+- Typical roles: Goal Lead, requirements/product, architecture, frontend/backend, test design and execution, QA, Reviewer, Auditor, and security or performance specialists when needed.
+
+These are planning ranges. Adjust them to actual scope, risk, and available runtime capabilities. Security, release, or production boundaries keep their required gates even when a small flow is selected.
 
 ## Quickstart
 
@@ -135,7 +175,7 @@ Use $goal-teams。
 Use this identity line on an explicit Goal Teams invocation or when the session first needs to establish identity; do not repeat it when full context already exists:
 
 ```text
-我是 Goal Teams Lead V2.40。
+我是 Goal Teams Lead V2.42。
 ```
 
 Core language rule: user communication and governance documents default to Chinese; code, comments, test names, fixtures, and product strings follow the target repository's conventions; keep identifiers, commands, paths, API names, config keys, subagent IDs, and exact references unchanged.
@@ -258,7 +298,7 @@ GoalTeamsWork-<project_version>/
 
 ## Version Note
 
-The current version is read from `VERSION`. On the V2.3 machine contract and V2.5 core policy, `V2.40` retains contract-first execution, Architecture and Environment Evidence gates, a recoverable `Gather → Reason → Act → Verify → Repeat` LOOP, four-file disk state, a constrained iteration-9 candidate reset, a fail-closed iteration-11 delivery gate, four-dimensional scoring, and divergence/bottleneck records, while adding a recoverable release state machine and public-version identity governance. Detailed contracts are loaded from `references/` by task type. The current public release note is [release/current](release/current/README.md); process ledgers and provenance remain in the non-public workspace.
+The current version is read from `VERSION`. On the V2.3 machine contract and V2.5 core policy, `V2.42` retains contract-first execution, Architecture and Environment Evidence gates, a recoverable `Gather → Reason → Act → Verify → Repeat` LOOP, four-file disk state, a constrained iteration-9 candidate reset, a fail-closed iteration-11 delivery gate, four-dimensional scoring, and divergence/bottleneck records, while adding a recoverable release state machine and public-version identity governance. Detailed contracts are loaded from `references/` by task type. The current public release note is [release/current](release/current/README.md); process ledgers and provenance remain in the non-public workspace.
 
 See the [current release note](release/current/README.md) for the visible package inventory. It does not replace runtime rules, `VERSION`, or installation validation.
 
@@ -271,10 +311,3 @@ This repository does not currently declare an open-source license. The owner sho
 ## V2.3 Contract and Release Boundary
 
 V2.3 adds deterministic machine contracts for closed state enums, a single-writer ledger, strict Evidence/Traceability, capability degradation, Profile routing, typed migration, and release gates. See `references/goal-teams-v2.3-contract.md` and run `./scripts/check.sh` before release. Technical RC and authorized GA distribution are evaluated separately; even with an owner License/internal-sharing decision, the GA gate must remain fail-closed until a trusted external host/signature attestation exists.
-
-## V2.41 Changes
-
-- Startup now presents small, medium, and large iteration flows, nodes, and a Markdown flowchart so the user can confirm the Goal Teams workflow before Plan or member planning begins.
-- Goal Teams is defined as a Portable Core plus runtime capability adapters; Codex remains the complete adapter, while other Agents adopt, degrade, or block only from proven capabilities.
-- Every applicable Architecture Design gains Development and Production Configuration Plans; neither records secrets, and production planning grants no deployment authority.
-- This README preserves its original content; independent audit before full validation and release.

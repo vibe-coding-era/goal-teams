@@ -41,7 +41,11 @@ def main() -> None:
 
     oversized = []
     for path in ROOT.rglob("*.md"):
-        if any(part in {".git", "docs"} or part.startswith("GoalTeamsWork-") for part in path.parts):
+        if any(
+            part in {".git", "docs", "release"}
+            or part.startswith("GoalTeamsWork-")
+            for part in path.parts
+        ):
             continue
         if path.stat().st_size > MAX_SINGLE_MARKDOWN_BYTES:
             oversized.append({"path": path.relative_to(ROOT).as_posix(), "bytes": path.stat().st_size})

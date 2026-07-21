@@ -28,8 +28,8 @@ description: 跨 Agent 运行时的多成员工作流协议。用于 $goal-teams
 
 | 场景 | 读取文件 |
 | --- | --- |
-| 启动响应契约与流程澄清 | 内化 `RULES.md`，读取 `references/flow-clarification-protocol.md`；先用用户可读的澄清项补齐信息，再提出小/中/大迭代流程并等待确认 |
-| 策略路由 | 流程澄清已确认后，先用 `references/rules-project-sizing.md` 判定 route facts；普通任务加载 `references/goal-teams-core-v2.5.md`，仅本仓库当前自发布加载 `references/profiles/goal-teams-self-release-v2.41.md`；V2.40/V2.39/V2.38 Profile 仅用于历史 replay；命中专项才加载 `references/rules-specialists.md` |
+| 启动响应契约与流程澄清 | 内化 `RULES.md`，读取 `references/flow-clarification-protocol.md`；用户需要数字选择流程、成员/ Subagent 编制参考或“直接改”时，再读取 `references/project-flow-selection.md`；先用用户可读的澄清项补齐信息，再提出流程建议并等待确认 |
+| 策略路由 | 流程澄清已确认后，先用 `references/rules-project-sizing.md` 判定 route facts；普通任务加载 `references/goal-teams-core-v2.5.md`，仅本仓库当前自发布加载 `references/profiles/goal-teams-self-release-v2.42.md`；V2.41/V2.40/V2.39/V2.38 Profile 仅用于历史 replay；命中专项才加载 `references/rules-specialists.md` |
 | 进入 Goal + Plan 执行 | `references/invariants.md`、`prompts/lead/core.md`、`prompts/lead/planning.md` |
 | 持久化输出 | `prompts/packets/memory.md`、`references/google-okf-bilingual-spec.md` |
 | 迁移、安装或兼容 | `references/compat.md`、`references/agent-runtime-capability-contract.md`、`references/goal-teams-v2.3-contract.md` |
@@ -54,9 +54,9 @@ description: 跨 Agent 运行时的多成员工作流协议。用于 $goal-teams
 
 ## 版本身份
 
-产品 `V2.41`；核心策略 `V2.5`；legacy schema `V2.3`。显式调用或首次建立身份时使用 `我是 Goal Teams Lead V2.41。`；已有上下文不重复。
+产品 `V2.42`；核心策略 `V2.5`；legacy schema `V2.3`。显式调用或首次建立身份时使用 `我是 Goal Teams Lead V2.42。`；已有上下文不重复。
 
-兼容标记（非启动模板）：`我是 Goal Teams Leader V2.41，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：`
+兼容标记（非启动模板）：`我是 Goal Teams Leader V2.42，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：`
 
 ## 启动澄清（用户可见）
 
@@ -84,7 +84,7 @@ description: 跨 Agent 运行时的多成员工作流协议。用于 $goal-teams
 
 ## 工作流
 
-1. 先按 `references/flow-clarification-protocol.md` 以小/中/大迭代流程提出 `Proposal`；用户确认前不得生成正式 Plan、Teams 表或派发成员。用户跳过时只完成最小请求。
+1. 先按 `references/flow-clarification-protocol.md` 提出 `Proposal`；需要流程选项时读取 `references/project-flow-selection.md`，以 `1=小型需求/BugFix`、`2=中型项目`、`3=大型系统`、`4=自定义流程`、`5=直接改` 展示。用户确认前不得生成正式 Plan、Teams 表或派发成员；选择直接改时只完成指定修改及适用轻量验证。
 2. 确认后将目标转成 Done Criteria；确认版本、交付、风险和验证。仅明确只在聊天返回且不落盘才是 `plan_preview`。
 3. `plan_preview` 不写文件或派发；其他模式更新 index/memory，建版本 ledger，由 reducer 生成 `TaskList.md`。
 4. 非 preview 先生成覆盖故事、验收、边界和风险的 `spec/requirement-card.md`。

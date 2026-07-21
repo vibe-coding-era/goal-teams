@@ -111,7 +111,7 @@ def _bootstrap_json(path: Path) -> dict[str, Any]:
 SCHEMA = _bootstrap_json(SCHEMA_PATH)
 SCHEMA_VERSION = str(SCHEMA["schema_version"])
 ARTIFACT_VERSION = str(SCHEMA["artifact_version"])
-PRODUCT_VERSION = "V2.41"
+PRODUCT_VERSION = "V2.42"
 # Repository-self-release identity is anchored to the accepted V2.35 base,
 # never to mutable VERSION/SKILL bytes in the candidate worktree.
 V236_GOAL_TEAMS_TRUSTED_RELEASE_BASE = "c91e33737cc13c68bb5cb34c572fa05e7849f1e4"
@@ -3764,7 +3764,7 @@ def plan_preview_policy(request: Any) -> dict[str, Any]:
 
 
 def flow_clarification_policy(request: Any) -> dict[str, Any]:
-    """Gate Plan and member dispatch on an explicit V2.41 flow selection.
+    """Gate Plan and member dispatch on an explicit V2.42 flow selection.
 
     This is deliberately a small deterministic adapter.  LLMs may propose a
     size, but only a valid user-confirmed selection opens the existing Plan
@@ -3779,7 +3779,41 @@ def flow_clarification_policy(request: Any) -> dict[str, Any]:
         raise ContractError("E_FLOW_CLARIFICATION_PROPOSAL", ["E_FLOW_CLARIFICATION_PROPOSAL"])
     if not isinstance(confirmed, bool):
         raise ContractError("E_FLOW_CLARIFICATION_CONFIRMATION", ["E_FLOW_CLARIFICATION_CONFIRMATION"])
+    if isinstance(selected, int):
+        selected = str(selected)
+    selection_aliases = {
+        "1": "small",
+        "2": "medium",
+        "3": "large",
+        "4": "custom",
+        "5": "skipped",
+        "direct_edit": "skipped",
+        "直接改": "skipped",
+    }
+    selected = selection_aliases.get(selected, selected)
+    if selected == "custom":
+        return {
+            "schema_version": SCHEMA_VERSION,
+            "state": "awaiting_customization",
+            "proposed_flow": proposed,
+            "selected_flow": "custom",
+            "plan_allowed": False,
+            "teams_allowed": False,
+            "subagent_dispatch_allowed": False,
+            "reason": "custom_flow_nodes_required",
+        }
     if selected == "skipped":
+        if not confirmed:
+            return {
+                "schema_version": SCHEMA_VERSION,
+                "state": "awaiting_confirmation",
+                "proposed_flow": proposed,
+                "selected_flow": "skipped",
+                "plan_allowed": False,
+                "teams_allowed": False,
+                "subagent_dispatch_allowed": False,
+                "reason": "selection_not_confirmed",
+            }
         return {
             "schema_version": SCHEMA_VERSION,
             "state": "skipped",

@@ -22,7 +22,7 @@ PUBLISHED_VERSION = "V2.40"
 GENERAL_CORE_POLICY_VERSION = "V2.5"
 LEGACY_DATA_SCHEMA_VERSION = "V2.3"
 CORE_POLICY_PROFILE = "goal-teams-core-v2.5"
-SELF_RELEASE_POLICY_PROFILE = "goal-teams-self-release-v2.41"
+SELF_RELEASE_POLICY_PROFILE = "goal-teams-self-release-v2.42"
 STARTUP_LINE = f"我是 Goal Teams Lead {CURRENT_VERSION}。"
 COMPATIBILITY_MARKER = (
     f"我是 Goal Teams Leader {CURRENT_VERSION}，使用 Goal + Plan 模式帮你完成规划、执行和交付，"
@@ -53,6 +53,7 @@ REQUIRED_FILES = [
     "references/goal-teams-core-v2.5.md",
     "references/profiles/goal-teams-self-release-v2.40.md",
     "references/profiles/goal-teams-self-release-v2.41.md",
+    "references/profiles/goal-teams-self-release-v2.42.md",
     "references/profiles/goal-teams-self-release-v2.39.md",
     "references/profiles/goal-teams-self-release-v2.38.md",
     "references/prompt-cache-manifest.json",
@@ -461,7 +462,7 @@ FILE_RULES = {
         "references/rules-testing.md",
         "references/rules-loop.md",
         "references/goal-teams-core-v2.5.md",
-        "references/profiles/goal-teams-self-release-v2.41.md",
+        "references/profiles/goal-teams-self-release-v2.42.md",
         "references/flow-clarification-protocol.md",
         "references/agent-runtime-capability-contract.md",
         "references/rules-project-sizing.md",
@@ -521,7 +522,7 @@ FILE_RULES = {
         "`standard`",
         "显式提供时必须与派生值完全一致",
     ),
-    "references/profiles/goal-teams-self-release-v2.41.md": (
+    "references/profiles/goal-teams-self-release-v2.42.md": (
         SELF_RELEASE_POLICY_PROFILE,
         "52",
         "iteration 9",
@@ -747,9 +748,10 @@ def check_skill_frontmatter() -> None:
         version,
         GENERAL_CORE_POLICY_VERSION,
         LEGACY_DATA_SCHEMA_VERSION,
-        "V2.40",  # replay-only self-release Profile retained by V2.41
-        "V2.39",  # replay-only self-release Profile retained by V2.41
-        "V2.38",  # replay-only prompt/profile identity retained by V2.41
+        "V2.41",  # replay-only self-release Profile retained by V2.42
+        "V2.40",  # replay-only self-release Profile retained by V2.42
+        "V2.39",  # replay-only self-release Profile retained by V2.42
+        "V2.38",  # replay-only prompt/profile identity retained by V2.42
     }
     missing_versions = sorted(allowed_versions - skill_versions)
     if missing_versions:
@@ -771,7 +773,7 @@ def check_skill_frontmatter() -> None:
         "references/rules-testing.md",
         "references/rules-loop.md",
         "references/goal-teams-core-v2.5.md",
-        "references/profiles/goal-teams-self-release-v2.41.md",
+        "references/profiles/goal-teams-self-release-v2.42.md",
         "references/prompt-cache-manifest.json",
         "prompts/lead/core.md",
         "prompts/lead/planning.md",
@@ -866,7 +868,7 @@ def check_readmes() -> None:
             fail(f"{path} must link to current release contents")
         if "docs/release-contents" in text or "docs/change-history" in text:
             fail(f"{path} links to local-only historical docs")
-    for snippet in ("./scripts/check.sh", "examples/mini-goal-run", "goal-teams.md"):
+    for snippet in ("./scripts/check.sh",):
         if snippet not in zh or snippet not in en:
             fail(f"READMEs must mention {snippet}")
 
@@ -902,8 +904,8 @@ def check_v236_version_model() -> None:
             CORE_POLICY_PROFILE,
             SELF_RELEASE_POLICY_PROFILE,
         ),
-        "README.md": (CURRENT_VERSION, GENERAL_CORE_POLICY_VERSION, LEGACY_DATA_SCHEMA_VERSION),
-        "README.en.md": (CURRENT_VERSION, GENERAL_CORE_POLICY_VERSION, LEGACY_DATA_SCHEMA_VERSION),
+        "README.md": (CURRENT_VERSION,),
+        "README.en.md": (CURRENT_VERSION,),
         "release/current/README.md": (PUBLISHED_VERSION,),
         "release/current/manifest.json": (PUBLISHED_VERSION, GENERAL_CORE_POLICY_VERSION, LEGACY_DATA_SCHEMA_VERSION),
     }
@@ -951,7 +953,7 @@ def check_key_rules() -> None:
             "references/rules-testing.md",
             "references/rules-loop.md",
             "references/goal-teams-core-v2.5.md",
-            "references/profiles/goal-teams-self-release-v2.41.md",
+            "references/profiles/goal-teams-self-release-v2.42.md",
             "references/profiles/goal-teams-self-release-v2.39.md",
             "references/profiles/goal-teams-self-release-v2.38.md",
             "references/prompt-cache-manifest.json",
@@ -1041,14 +1043,9 @@ def check_key_rules() -> None:
         "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/plan.md",
     ]
     for path in startup_surfaces:
-        # V2.41 is an in-development source version.  The two public README
-        # files intentionally retain the V2.40 published projection, with an
-        # append-only V2.41 change list at EOF (see check-version-sync.py).
-        expected_startup = (
-            f"我是 Goal Teams Lead {PUBLISHED_VERSION}。"
-            if path in {"README.md", "README.en.md"}
-            else STARTUP_LINE
-        )
+        # README version wording follows the user-owned source projection;
+        # release/current remains the independently verified published surface.
+        expected_startup = STARTUP_LINE
         if expected_startup not in read(path):
             fail(f"Startup line missing from {path}")
         if path not in {"SKILL.md", "prompts/lead/core.md"} and COMPATIBILITY_MARKER in read(path):

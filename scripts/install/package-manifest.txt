@@ -1,4 +1,4 @@
-# Goal Teams install package allowlist: product V2.41, core policy V2.5, legacy data schema V2.3.
+# Goal Teams install package allowlist: product V2.42, core policy V2.5, legacy data schema V2.3.
 # `file`/`prefix` select Git-tracked payload; `generated` declares the one
 # required staged asset, which must not exist in the frozen source tree.
 file AGENTS.md

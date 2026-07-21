@@ -37,9 +37,9 @@
 
 进行中的长任务只需简短报告：已验证进展、当前阻塞、正在执行的下一检查。最终回复必须自包含；用户不应依赖已折叠的中间更新理解结果。
 
-## V2.41 流程澄清与运行时兼容
+## V2.42 流程澄清与运行时兼容
 
-1. 启动时先按 `references/flow-clarification-protocol.md` 输出 `Proposal`：小、中、大迭代流程、流程图、节点和选择原因；LLM 初判不是用户确认。
-2. 确认前不得创建正式 Plan、Teams 表或派发 subagent。用户选择跳过时，只说明最小请求的结果，不暗示已走团队流程。
+1. 启动时先按 `references/flow-clarification-protocol.md` 输出 `Proposal`；用户需要流程选项时读取 `references/project-flow-selection.md`，以 `1=小型需求/BugFix`、`2=中型项目`、`3=大型系统`、`4=自定义流程`、`5=直接改` 展示流程图、节点和选择原因；LLM 初判不是用户确认。
+2. 选项 `1`–`3` 确认前不得创建正式 Plan、Teams 表或派发 subagent，只有确认后才可进入团队流程；选项 `4` 必须先补齐自定义节点；选项 `5` 只完成当前最小修改与适用验证，不暗示已走团队流程。
 3. Goal Teams 的 Portable Core 可被不同 Agent 运行时采用；具体执行、独立性、命令和外部写能力只能按 `references/agent-runtime-capability-contract.md` 的实际 capability 报告，不能声称全功能兼容。
 4. Architecture Design 中的开发和生产环境规划属于设计交接物；生产环境规划不等于部署授权、凭证授权或生产写入。

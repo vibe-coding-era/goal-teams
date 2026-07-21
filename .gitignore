@@ -10,3 +10,4 @@ __pycache__/
 /.goalteams-candidates/
 /.goalteams-state/
 /.goalteams-quarantine/
+/.playwright-cli/

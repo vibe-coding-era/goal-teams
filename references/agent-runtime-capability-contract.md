@@ -1,6 +1,6 @@
 ---
 type: Agent Runtime Capability Contract
-title: Goal Teams V2.41 跨 Agent 运行时能力合同
+title: Goal Teams V2.42 跨 Agent 运行时能力合同
 description: 将可移植的 Goal Teams 核心与特定 Agent 平台 adapter 分离。
 tags: [goal-teams, v2.41, agent-runtime, compatibility]
 timestamp: 2026-07-18T00:00:00+08:00

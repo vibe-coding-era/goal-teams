@@ -23,8 +23,8 @@
 - 如使用 runtime 文件，`team-state.json` 反映最终状态。
 - V2.36 route 已记录 `policy_profile`、派生 `state_gate_profile`、task type、project_size/work_type、risk/release/UI mode；Lite/Standard 只闭合适用门，Full/Regulated 的 Architecture、Environment、独立测试、Evidence 与 Completion Audit 全部闭合。
 - 原创 UI 有当前 browser/DOM/可见状态 Evidence 且不要求外部 pixel baseline；replica/reference-driven UI 有独立批准 baseline、环境指纹与像素对比。
-- 仅当 `policy_profile=goal-teams-self-release-v2.41`：52 条断言 current，四文件一致，第 9 轮 reset 只隔离预授权 disposable candidate，第 11 轮才 delivery/achieved，四维评分不覆盖测试，并且 sanitizer 后副本只进入 `docs/archive/V2.41/<delivery_id>/`、私有 provenance 完整保留；`goal-teams-self-release-v2.40`、`goal-teams-self-release-v2.39` 与 `goal-teams-self-release-v2.38` 只用于历史 replay。
-- V2.41 cache 任务分别记录 structural/host/live/request-hit 四状态轴、route-static identity、manifest status/scope、宿主可用时的 runtime digests、observer parser/identity/coverage 与 raw hash；Tokens/Cache 命中率缺可信 usage Evidence 时写 `未获取到` / `Unavailable`，无授权 live probe 为 `not_authorized`，cache 指标不得替代完成 Evidence。
+- 仅当 `policy_profile=goal-teams-self-release-v2.42`：52 条断言 current，四文件一致，第 9 轮 reset 只隔离预授权 disposable candidate，第 11 轮才 delivery/achieved，四维评分不覆盖测试，并且 sanitizer 后副本只进入 `docs/archive/V2.42/<delivery_id>/`、私有 provenance 完整保留；`goal-teams-self-release-v2.41`、`goal-teams-self-release-v2.40`、`goal-teams-self-release-v2.39` 与 `goal-teams-self-release-v2.38` 只用于历史 replay。
+- V2.42 cache 任务分别记录 structural/host/live/request-hit 四状态轴、route-static identity、manifest status/scope、宿主可用时的 runtime digests、observer parser/identity/coverage 与 raw hash；Tokens/Cache 命中率缺可信 usage Evidence 时写 `未获取到` / `Unavailable`，无授权 live probe 为 `not_authorized`，cache 指标不得替代完成 Evidence。
 - V2.36 代码 Evidence 已绑定自动覆盖完整 Git 变更集的 protected snapshot；独立 Agent identity 的宿主 attestation 已验证，trust key 未进入任何产物。
 - V2.35 四专家均保持 read-only/proposal-only/Lead-only dispatch；适用 proposal 有独立 review，verified 有不同 run 的 current regression + holdout。
 - V2.35 七类适用 test-case 均有 input/processing/expected_output/assertions、非 exit/status 业务断言、observed output 与逐 assertion result；TDD red 先于 implementation，green runner 独立。

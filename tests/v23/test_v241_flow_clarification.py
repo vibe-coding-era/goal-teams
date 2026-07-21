@@ -26,6 +26,24 @@ class FlowClarificationPolicyTests(unittest.TestCase):
         self.assertTrue(policy["plan_allowed"])
         self.assertTrue(policy["subagent_dispatch_allowed"])
 
+    def test_numbered_selection_maps_to_confirmed_flow_or_safe_minimal_path(self) -> None:
+        for selected, expected in ((1, "small"), ("2", "medium"), ("3", "large")):
+            with self.subTest(selected=selected):
+                policy = gt.flow_clarification_policy(
+                    {"proposed_flow": "small", "selected_flow": selected, "confirmed": True}
+                )
+                self.assertEqual(policy["state"], "confirmed")
+                self.assertEqual(policy["selected_flow"], expected)
+        direct = gt.flow_clarification_policy(
+            {"proposed_flow": "small", "selected_flow": "5", "confirmed": True}
+        )
+        self.assertEqual(direct["state"], "skipped")
+        custom = gt.flow_clarification_policy(
+            {"proposed_flow": "small", "selected_flow": "4", "confirmed": True}
+        )
+        self.assertEqual(custom["state"], "awaiting_customization")
+        self.assertFalse(custom["plan_allowed"])
+
     def test_skip_never_creates_goal_teams_plan_or_members(self) -> None:
         policy = gt.flow_clarification_policy(
             {"proposed_flow": "large", "selected_flow": "skipped", "confirmed": True}
@@ -50,6 +68,20 @@ class FlowClarificationPolicyTests(unittest.TestCase):
         for marker in ("小迭代流程", "中迭代流程", "大迭代流程", "```mermaid"):
             self.assertIn(marker, text)
 
+    def test_project_flow_reference_exposes_numbered_choices_and_staffing_ranges(self) -> None:
+        text = (ROOT / "references" / "project-flow-selection.md").read_text(encoding="utf-8")
+        for marker in (
+            "小型需求/BugFix",
+            "中型项目",
+            "大型系统",
+            "直接改",
+            "可能的 Subagent：0–1 个。",
+            "可能的 Subagent：2–4 个。",
+            "可能的 Subagent：5–8 个。",
+            "选项 `1`、`2`、`3` 分别规范化为 `small`、`medium`、`large`",
+        ):
+            self.assertIn(marker, text)
+
     def test_skill_turns_internal_rules_into_user_facing_intake_questions(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         for marker in (
@@ -58,5 +90,8 @@ class FlowClarificationPolicyTests(unittest.TestCase):
             "输入/输出格式",
             "规模与大小",
             "为避免误用流程，请确认：",
+            "references/project-flow-selection.md",
+            "1=小型需求/BugFix",
+            "5=直接改",
         ):
             self.assertIn(marker, skill)

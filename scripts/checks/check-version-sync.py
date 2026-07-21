@@ -72,8 +72,10 @@ def profile_identity(product: str) -> tuple[str, str]:
     return profile, f"references/profiles/{profile}.md"
 
 
-def expected_release_block(path: str, version: str) -> str:
-    tag = version.lower()
+def expected_release_block(
+    path: str, displayed_version: str, release_tag_version: str | None = None
+) -> str:
+    tag = (release_tag_version or displayed_version).lower()
     if path == "README.md":
         label = "当前发行："
         github_label = "GitHub 发行页"
@@ -86,31 +88,34 @@ def expected_release_block(path: str, version: str) -> str:
         fail(f"unsupported root README projection: {path}")
     return (
         f"{README_START}\n"
-        f"{label}**{version}** · "
+        f"{label}**{displayed_version}** · "
         f"[{github_label}](https://github.com/vibe-coding-era/goal-teams/releases/tag/{tag}) "
         f"· [{current_label}](release/current/README.md)\n"
         f"{README_END}"
     )
 
 
-def read_release_block(path: str, expected_version: str) -> dict[str, str]:
+def read_release_block(
+    path: str, expected_version: str, displayed_version: str | None = None
+) -> dict[str, str]:
+    displayed = displayed_version or expected_version
     text = read(path)
     if text.count(README_START) != 1 or text.count(README_END) != 1:
         fail(f"{path} must contain exactly one controlled release marker block")
     start = text.index(README_START)
     end = text.index(README_END, start) + len(README_END)
     block = text[start:end]
-    if block != expected_release_block(path, expected_version):
-        fail(f"{path} controlled release block does not match {expected_version}")
+    if block != expected_release_block(path, displayed, expected_version):
+        fail(f"{path} controlled release block does not match the user-owned projection")
     release_versions = set(CURRENT_RELEASE_RE.findall(text))
-    if release_versions != {expected_version}:
+    if release_versions != {displayed}:
         fail(
-            f"{path} current release markers must be exactly {expected_version}: "
+            f"{path} current release markers must be exactly {displayed}: "
             f"{sorted(release_versions)}"
         )
     tag = expected_version.lower()
     return {
-        "version": expected_version,
+        "version": displayed,
         "release_url": (
             "https://github.com/vibe-coding-era/goal-teams/releases/tag/" + tag
         ),
@@ -233,8 +238,12 @@ def validate_package_boundary(product: str) -> None:
 
 
 def validate_release_projection(expected_version: str, product: str) -> None:
-    zh_projection = read_release_block("README.md", expected_version)
-    en_projection = read_release_block("README.en.md", expected_version)
+    # V2.42 is the user-owned README projection: it declares the development
+    # product version while its link remains anchored to the published asset.
+    # Historical replay checks retain the displayed published version.
+    displayed_version = product if product == "V2.42" else expected_version
+    zh_projection = read_release_block("README.md", expected_version, displayed_version)
+    en_projection = read_release_block("README.en.md", expected_version, displayed_version)
     if zh_projection != en_projection:
         fail("README.md and README.en.md controlled release semantics differ")
     for path in ("README.md", "README.en.md"):
