@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.43/engineering-metrics.schema.json",
+  "title": "Goal Teams V2.43 Engineering Metrics Summary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "calculator_version",
+    "algorithm_manifest_sha256",
+    "generated_at",
+    "run",
+    "current",
+    "previous",
+    "recent",
+    "recent_sample_count",
+    "comparison_facts"
+  ],
+  "properties": {
+    "schema_version": {"const": "goal-teams-engineering-metrics-v2.43"},
+    "calculator_version": {"const": "V2.43"},
+    "algorithm_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "run": {"$ref": "#/$defs/run"},
+    "current": {"$ref": "#/$defs/metricSet"},
+    "previous": {"$ref": "#/$defs/metricSet"},
+    "recent": {"$ref": "#/$defs/metricSet"},
+    "recent_sample_count": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["FPAR", "LCC", "HER", "SAR", "CPAC", "DER", "RRR", "CWR", "SDI", "RFR", "ARCR", "MRT"],
+      "properties": {
+        "FPAR": {"type": "integer", "minimum": 0},
+        "LCC": {"type": "integer", "minimum": 0},
+        "HER": {"type": "integer", "minimum": 0},
+        "SAR": {"type": "integer", "minimum": 0},
+        "CPAC": {"type": "integer", "minimum": 0},
+        "DER": {"type": "integer", "minimum": 0},
+        "RRR": {"type": "integer", "minimum": 0},
+        "CWR": {"type": "integer", "minimum": 0},
+        "SDI": {"type": "integer", "minimum": 0},
+        "RFR": {"type": "integer", "minimum": 0},
+        "ARCR": {"type": "integer", "minimum": 0},
+        "MRT": {"type": "integer", "minimum": 0}
+      }
+    },
+    "comparison_facts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["failure_signature_hashes"],
+      "properties": {
+        "failure_signature_hashes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "run": {
+      "type": "object",
+      "required": ["run_id", "completed_at", "project_version", "artifact_version", "goal_teams_version", "cohort", "cohort_digest"],
+      "properties": {
+        "run_id": {"type": "string", "minLength": 1},
+        "completed_at": {"type": "string", "format": "date-time"},
+        "repository_or_project_id": {"type": ["string", "null"]},
+        "project_version": {"type": "string", "minLength": 1},
+        "artifact_version": {"type": "string", "minLength": 1},
+        "goal_teams_version": {"type": "string", "minLength": 1},
+        "cohort": {"type": "object"},
+        "cohort_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "benchmark": {"type": "object"}
+      },
+      "additionalProperties": false
+    },
+    "metricSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["FPAR", "LCC", "HER", "SAR", "CPAC", "DER", "RRR", "CWR", "SDI", "RFR", "ARCR", "MRT"],
+      "properties": {
+        "FPAR": {"$ref": "#/$defs/result"},
+        "LCC": {"$ref": "#/$defs/result"},
+        "HER": {"$ref": "#/$defs/result"},
+        "SAR": {"$ref": "#/$defs/result"},
+        "CPAC": {"$ref": "#/$defs/result"},
+        "DER": {"$ref": "#/$defs/result"},
+        "RRR": {"$ref": "#/$defs/result"},
+        "CWR": {"$ref": "#/$defs/result"},
+        "SDI": {"$ref": "#/$defs/result"},
+        "RFR": {"$ref": "#/$defs/result"},
+        "ARCR": {"$ref": "#/$defs/result"},
+        "MRT": {"$ref": "#/$defs/result"}
+      }
+    },
+    "result": {
+      "type": "object",
+      "required": ["metric_id", "calculator_version", "status", "numerator", "denominator", "value", "unit", "evidence_refs", "event_ids", "coverage", "observation_window", "weight_basis"],
+      "properties": {
+        "metric_id": {"enum": ["FPAR", "LCC", "HER", "SAR", "CPAC", "DER", "RRR", "CWR", "SDI", "RFR", "ARCR", "MRT"]},
+        "calculator_version": {"const": "V2.43"},
+        "status": {"enum": ["final", "provisional", "pending", "unavailable", "not_applicable", "insufficient_sample"]},
+        "numerator": {"type": ["number", "null"], "minimum": 0},
+        "denominator": {"type": ["number", "null"], "minimum": 0},
+        "value": {"type": ["number", "null"], "minimum": 0},
+        "unit": {"type": "string", "minLength": 1},
+        "evidence_refs": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "event_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "coverage": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "currency": {"type": "string", "minLength": 1},
+        "weight_basis": {"enum": ["tokens", "bytes", null]},
+        "observation_window": {
+          "oneOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["days", "closed", "expected_close_at"],
+              "properties": {
+                "days": {"type": "integer", "minimum": 1},
+                "closed": {"type": "boolean"},
+                "expected_close_at": {"type": ["string", "null"], "format": "date-time"}
+              }
+            }
+          ]
+        },
+        "lower_bound": {"type": "integer", "minimum": 0},
+        "censored_count": {"type": "integer", "minimum": 0},
+        "sample_count": {"type": "integer", "minimum": 0},
+        "window_size": {"type": "integer", "minimum": 1},
+        "source_run_id": {"type": "string", "minLength": 1},
+        "source_completed_at": {"type": "string", "format": "date-time"},
+        "unavailable_reason": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -5,10 +5,10 @@
 作者：肉山@TGO 杭州
 
 <!-- goal-teams-release:start -->
-当前发行：**V2.42** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.40) · [发行说明](release/current/README.md)
+当前发行：**V2.40** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.40) · [发行说明](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-当前版本：`V2.42`
+当前版本：`V2.43`
 
 Goal Teams 是一个面向 Codex 的团队协作 Skill。它会以一个 Goal Lead 的身份，把一个目标拆成可验证的计划，再协调多个独立 subagent（不同上下文执行）或用户指定的外部 skill 完成需求、设计、实现、测试、证据记录和收尾审计。过程中会应用到：
 - 应用Goal + Plan + Loop 模式
@@ -180,7 +180,7 @@ Use $goal-teams。
 显式调用 Goal Teams 或当前会话首次需要建立身份时汇报；已有完整上下文时不重复：
 
 ```text
-我是 Goal Teams Lead V2.42。
+我是 Goal Teams Lead V2.43。
 ```
 
 中文核心模型要点提示词：用户沟通和治理文档默认中文；代码、注释、测试名、fixture 和产品字符串遵循目标仓库约定；代码标识、命令、路径、API 名称、配置键、subagent ID 和精确引用保留原文。
@@ -322,3 +322,9 @@ GoalTeamsWork-<project_version>/
 ## License
 
 当前仓库还没有声明开源 License。owner 应先明确选择 License 或内部共享协议；该本地决定仅是 proposal，GA 授权还必须有仓库外可信 host/signature attestation，当前技术交付最多到 RC。
+
+## V2.43 版本改动
+
+- 任务完成与 Benchmark 共用一套确定性工程指标计算器，覆盖 FPAR、LCC、HER、SAR、CPAC、DER、RRR、CWR、SDI、RFR、ARCR 和 MRT。
+- 指标事件、算法 manifest、JSON Schema、历史可比窗口和不可用状态统一定义；未采集、观察未结束、不适用或样本不足不会被写成 `0`。
+- 给用户生成自包含 Google OKF 工程指标报告，包含四列表格、算法、Evidence 和数据覆盖；聊天回复只提供报告链接并提醒查看。

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### V2.43
+
+- Added one manifest-driven calculator for 12 engineering metrics across task completion and Benchmark records: FPAR, LCC, HER, SAR, CPAC, DER, RRR, CWR, SDI, RFR, ARCR, and MRT.
+- Added append-only JSONL metric events, a V2.43 summary schema, comparable-history aggregation, manifest-bytes identity, correction events, and fail-closed availability states so uncollected data is never reported as zero.
+- Added self-contained Google OKF engineering-metrics reports with current, previous, and recent values plus the complete algorithms, Evidence references, coverage, observation windows, and privacy notes.
+- Added Benchmark record/summary integration while keeping `quality_pass_rate` distinct from FPAR, and retained V2.42 as a replay-only self-release Profile.
+
 ### V2.40
 
 - Added a single controlled release-identity block to both root READMEs so the public repository surface points to `v2.40` and `release/current` without replacing the user-authored body.

@@ -31,6 +31,12 @@ from package_selection import (  # noqa: E402
     blind_path_allowed,
     build_blind_package_selection,
 )
+from engineering_metrics import (  # noqa: E402
+    load_history_summaries as load_engineering_metrics_history,
+    load_input_payload as load_engineering_metrics_input,
+    load_manifest as load_engineering_metrics_manifest,
+    write_outputs as write_engineering_metrics_outputs,
+)
 from prompt_cache import aggregate_usage_events, build_prompt_identity  # noqa: E402
 
 V23_TOOL = ROOT / "scripts" / "v23" / "goalteams_v23.py"
@@ -951,6 +957,68 @@ def write_json(path: Path, value: Any) -> None:
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
+def _attach_benchmark_engineering_metrics(
+    record: dict[str, Any],
+    scenario_dir: Path,
+    *,
+    evaluation_id: str,
+    execution_mode: str,
+    rubric_digest: str,
+    model_and_config_identity: str,
+    manifest: dict[str, Any],
+    history: Sequence[Mapping[str, Any]],
+) -> None:
+    """Generate one honest metrics sidecar/summary/OKF report for a scenario.
+
+    Benchmark quality scoring is deliberately not converted into FPAR.  Only
+    explicitly collected metric events can make a metric final.
+    """
+
+    metrics_dir = scenario_dir / "metrics"
+    metrics_dir.mkdir(parents=True, exist_ok=False)
+    run_identity = {
+        "run_id": str(record["subject_run_id"]),
+        "completed_at": str(record["ended_at"]),
+        "repository_or_project_id": "goal-teams-benchmark",
+        "project_version": "V2.43",
+        "artifact_version": evaluation_id,
+        "goal_teams_version": "V2.43",
+        "benchmark": {
+            "scenario_id": str(record["scenario_id"]),
+            "execution_mode": execution_mode,
+            "rubric_digest": rubric_digest,
+            "model_and_config_identity": model_and_config_identity,
+        },
+    }
+    events_path = metrics_dir / "metric-events.jsonl"
+    events_path.write_text(
+        json.dumps({"type": "run_identity", "run": run_identity}, ensure_ascii=False, sort_keys=True)
+        + "\n",
+        encoding="utf-8",
+    )
+    summary_path = metrics_dir / "metric-summary.json"
+    report_path = metrics_dir / "engineering-metrics.md"
+    summary = write_engineering_metrics_outputs(
+        load_engineering_metrics_input(events_path),
+        history,
+        summary_path,
+        report_path,
+        manifest,
+    )
+    relative_events = "metrics/metric-events.jsonl"
+    relative_summary = "metrics/metric-summary.json"
+    relative_report = "metrics/engineering-metrics.md"
+    record["engineering_metrics"] = {
+        **summary,
+        "events_path": relative_events,
+        "events_sha256": digest_path(events_path),
+        "summary_path": relative_summary,
+        "summary_sha256": digest_path(summary_path),
+        "report_path": relative_report,
+        "report_sha256": digest_path(report_path),
+    }
+
+
 def prepare_json_command(command: str, *, trailing: list[str] | None = None):
     def prepare(root: Path, value: Any) -> list[str]:
         write_json(root / "input.json", value)
@@ -1699,6 +1767,7 @@ def execute_blind_agent_eval(
     release_gate: bool,
     selected_scenarios: set[str] | None = None,
     effective_config_trace_proof: dict[str, Any] | None = None,
+    engineering_metrics_history: Sequence[Mapping[str, Any]] = (),
 ) -> dict[str, Any]:
     manifest = _load_blind_manifest(manifest_path)
     adapter = manifest["adapter"]
@@ -1772,6 +1841,7 @@ def execute_blind_agent_eval(
             base_command,
             trace_proof=effective_config_trace_proof,
         )
+        engineering_metrics_manifest = load_engineering_metrics_manifest()
         shutil.copytree(
             staged_root,
             output_dir / "staged-package",
@@ -2008,6 +2078,31 @@ def execute_blind_agent_eval(
                     "evidence_sha256": digest_path(scenario_dir / "score.json"),
                 },
             }
+            model_and_config_identity = (
+                str(cache_identity["identity_sha256"])
+                if isinstance(cache_identity, dict)
+                and isinstance(cache_identity.get("identity_sha256"), str)
+                and cache_identity.get("identity_sha256")
+                else digest_bytes(
+                    canonical_bytes(
+                        {
+                            "provider": provider,
+                            "provider_version": provider_version,
+                            "effective_codex_config": effective_codex_config,
+                        }
+                    )
+                )
+            )
+            _attach_benchmark_engineering_metrics(
+                record,
+                scenario_dir,
+                evaluation_id=str(manifest.get("evaluation_id") or invocation_id),
+                execution_mode=evaluation_class,
+                rubric_digest=score["rubric_sha256"],
+                model_and_config_identity=model_and_config_identity,
+                manifest=engineering_metrics_manifest,
+                history=engineering_metrics_history,
+            )
             record_path = scenario_dir / "record.json"
             write_json(record_path, record)
             record_refs.append(
@@ -2090,6 +2185,27 @@ def execute_blind_agent_eval(
             "uncached_input_tokens_per_passed_scenario"
         ],
         "quality_pass_rate": observer_telemetry["quality_pass_rate"],
+        "engineering_metrics": {
+            "schema_version": engineering_metrics_manifest["metric_schema_version"],
+            "calculator_version": engineering_metrics_manifest["calculator_version"],
+            "algorithm_manifest_sha256": records[0]["engineering_metrics"][
+                "algorithm_manifest_sha256"
+            ],
+            "scenario_count": len(records),
+            "scenarios": [
+                {
+                    "scenario_id": record["scenario_id"],
+                    "run_id": record["engineering_metrics"]["run"]["run_id"],
+                    "summary_path": f"{record['scenario_id']}/metrics/metric-summary.json",
+                    "report_path": f"{record['scenario_id']}/metrics/engineering-metrics.md",
+                    "current": record["engineering_metrics"]["current"],
+                    "previous": record["engineering_metrics"]["previous"],
+                    "recent": record["engineering_metrics"]["recent"],
+                }
+                for record in records
+            ],
+            "note": "quality_pass_rate_is_not_first_pass_acceptance_rate",
+        },
         "records": record_refs,
         "output_dir": str(output_dir.resolve()),
         "release_gate_passed": source_repository_unchanged and required_ids <= release_eligible_ids,
@@ -2112,7 +2228,20 @@ def write_report(rows: list[dict[str, object]], output: Path) -> None:
     if output.suffix.lower() == ".json":
         output.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         return
+    metrics_manifest = load_engineering_metrics_manifest()
     lines = [
+        "---",
+        "type: Benchmark Report",
+        "title: Goal Teams Benchmark Report",
+        "description: Benchmark 结构校验、行为运行结果与 V2.43 工程指标算法说明。",
+        "tags: [goal-teams, benchmark, engineering-metrics, okf]",
+        f"timestamp: {json.dumps(payload['generated_at'])}",
+        'okf_version: "0.1"',
+        'project_version: "V2.43"',
+        f"metric_schema_version: {json.dumps(metrics_manifest['metric_schema_version'])}",
+        "source_ssot: references/engineering-metrics-manifest.json",
+        "---",
+        "",
         "# Goal Teams Benchmark Report",
         "",
         f"- generated_at: {payload['generated_at']}",
@@ -2124,6 +2253,30 @@ def write_report(rows: list[dict[str, object]], output: Path) -> None:
     for row in rows:
         item = row.get("task", row.get("run", "unknown"))
         lines.append(f"| {item} | {row['status']} | {row.get('behavior_run', 'fresh execution')} |")
+    lines.extend(
+        [
+            "",
+            "# V2.43 工程指标算法",
+            "",
+            "以下算法由 Benchmark 与普通任务完成报告共同使用。结构校验或 `quality_pass_rate` 不会被换算成 FPAR；只有显式指标事件才能产生数值。",
+            "",
+        ]
+    )
+    for metric in metrics_manifest["metrics"]:
+        lines.extend(
+            [
+                f"## {metric['metric_id']} — {metric['full_name']} — {metric['chinese_name']}",
+                "",
+                f"- 公式：{metric['formula']}",
+                f"- 分子：{metric['numerator_definition']}",
+                f"- 分母：{metric['denominator_definition']}",
+                f"- 排除项：{metric['exclusions']}",
+                f"- 上一次：{metric['previous_rule']}",
+                f"- 近期聚合：{metric['recent_aggregation_rule']}",
+                f"- 可用性：{metric['availability_rule']}",
+                "",
+            ]
+        )
     output.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
@@ -2135,6 +2288,12 @@ def main() -> None:
     parser.add_argument("--manifest", type=Path)
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--scenario", action="append", default=[])
+    parser.add_argument(
+        "--metrics-history",
+        action="append",
+        default=[],
+        help="prior metric-summary.json file or directory; may be repeated",
+    )
     parser.add_argument("--output", default="benchmarks/runs/latest-report.md")
     args = parser.parse_args()
     try:
@@ -2163,6 +2322,7 @@ def main() -> None:
             args.output_dir.resolve(),
             release_gate=args.release_gate,
             selected_scenarios=set(args.scenario) or None,
+            engineering_metrics_history=load_engineering_metrics_history(args.metrics_history),
         )
         print(json.dumps({"ok": True, "error_code": None, **summary}, ensure_ascii=False, sort_keys=True))
     except BlindEvalError as exc:

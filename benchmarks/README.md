@@ -6,6 +6,7 @@
 
 - 用同一份任务输入比较 `baseline`、`goal-teams` 及任务指定的版本化执行模式。
 - 记录产物质量、范围遵守、独立校验、文档完整度、耗时、tokens、缓存覆盖和费用。
+- 用 V2.43 的十二项工程指标记录本次、上一次和近期平均值，并生成自包含 OKF 用户报告。
 - 让评分者可以仅凭任务文件、运行记录和最终 diff 复盘结论。
 - 为后续版本判断 Goal Teams 规则是否改进提供稳定样本。
 
@@ -66,6 +67,39 @@ benchmarks/runs/
 ```
 
 本仓库当前只要求提交任务模板；运行结果是否入库由 Lead 或维护者决定。
+
+## V2.43 工程指标记录
+
+每个 Benchmark run 使用 `references/engineering-metrics-protocol.md` 和 `references/engineering-metrics-manifest.json` 定义的同一算法。运行目录建议包含：
+
+```text
+<run>/
+  metrics/
+    metric-events.jsonl
+    metric-summary.json
+    engineering-metrics.md
+```
+
+run record 中的 `engineering_metrics` 至少记录：
+
+```json
+{
+  "schema_version": "goal-teams-engineering-metrics-v2.43",
+  "current": {},
+  "previous": {},
+  "recent": {},
+  "recent_sample_count": 0,
+  "report_path": "metrics/engineering-metrics.md"
+}
+```
+
+`summary.json`、Benchmark Markdown report 与 `engineering-metrics.md` 必须读取同一 calculator 输出，不能各自实现公式。可比较样本默认使用 `scenario_id + execution_mode + rubric_digest + model_and_config_identity + metric_schema_version`，近期窗口为当前 run 之前最近 20 个样本；比例使用 pooled numerator/denominator，少于 5 个样本标记 `insufficient_sample`。
+
+blind-agent 运行通过可重复的 `--metrics-history <metric-summary.json-or-directory>` 显式装载此前 summary；calculator 再按上述 cohort key 筛选 previous/recent。没有传入真实历史时保持无历史状态，不得由当前 run 或 `quality_pass_rate` 伪造比较值。
+
+用户报告必须是 OKF Concept Document，四列表格覆盖 FPAR、LCC、HER、SAR、CPAC、DER、RRR、CWR、SDI、RFR、ARCR、MRT，并自包含每项算法、分子/分母、排除项、上一次选择、近期聚合、状态和 Evidence refs。缺可信数据使用 `unavailable`，观察窗未结束使用 `pending`，不适用使用 `not_applicable`，均不得写成零。
+
+十二项指标在 V2.43 第一版只作为观察维度，不自动进入 Benchmark 100 分评分，也不替代 Harness、Evidence 或 Completion Audit。最终用户回复不展开完整指标表，只提供真实生成的 OKF 报告链接并提醒打开查看。
 
 ## 评分原则
 

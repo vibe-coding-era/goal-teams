@@ -29,7 +29,7 @@ description: 跨 Agent 运行时的多成员工作流协议。用于 $goal-teams
 | 场景 | 读取文件 |
 | --- | --- |
 | 启动响应契约与流程澄清 | 内化 `RULES.md`，读取 `references/flow-clarification-protocol.md`；用户需要数字选择流程、成员/ Subagent 编制参考或“直接改”时，再读取 `references/project-flow-selection.md`；先用用户可读的澄清项补齐信息，再提出流程建议并等待确认 |
-| 策略路由 | 流程澄清已确认后，先用 `references/rules-project-sizing.md` 判定 route facts；普通任务加载 `references/goal-teams-core-v2.5.md`，仅本仓库当前自发布加载 `references/profiles/goal-teams-self-release-v2.42.md`；V2.41/V2.40/V2.39/V2.38 Profile 仅用于历史 replay；命中专项才加载 `references/rules-specialists.md` |
+| 策略路由 | 流程澄清已确认后，先用 `references/rules-project-sizing.md` 判定 route facts；普通任务加载 `references/goal-teams-core-v2.5.md`，仅本仓库当前自发布加载 `references/profiles/goal-teams-self-release-v2.43.md`；V2.42/V2.41/V2.40/V2.39/V2.38 Profile 仅用于历史 replay；命中专项才加载 `references/rules-specialists.md` |
 | 进入 Goal + Plan 执行 | `references/invariants.md`、`prompts/lead/core.md`、`prompts/lead/planning.md` |
 | 持久化输出 | `prompts/packets/memory.md`、`references/google-okf-bilingual-spec.md` |
 | 迁移、安装或兼容 | `references/compat.md`、`references/agent-runtime-capability-contract.md`、`references/goal-teams-v2.3-contract.md` |
@@ -46,6 +46,7 @@ description: 跨 Agent 运行时的多成员工作流协议。用于 $goal-teams
 | QA、验收、代码审查或双重复核 | QA/Reviewer `INDEX.md`、Harness packet、`references/dual-review-protocol.md` |
 | 文档、SPEC、README 或 Doc Capsule | Docs `INDEX.md`、Doc Capsule 与 OKF spec |
 | 收尾审计 | completion prompt、Completion Auditor `INDEX.md`、LOOP rules |
+| 工程指标或任务完成报告 | `references/engineering-metrics-protocol.md`、`references/engineering-metrics-manifest.json`、completion prompt 与 Completion Auditor；报告必须是自包含 OKF，聊天只返回链接、状态并提醒查看 |
 | runtime/capability/telemetry | `references/goal-teams-runtime.md`、命中的 runtime 分片、`references/prompt-cache-protocol.md` |
 | Benchmark | automation protocol、`runtime/02-harness-benchmark-loop.md`、prompt-cache protocol |
 | 生产流 | production pipeline、scripted tooling、prompt-cache protocol |
@@ -54,9 +55,9 @@ description: 跨 Agent 运行时的多成员工作流协议。用于 $goal-teams
 
 ## 版本身份
 
-产品 `V2.42`；核心策略 `V2.5`；legacy schema `V2.3`。显式调用或首次建立身份时使用 `我是 Goal Teams Lead V2.42。`；已有上下文不重复。
+产品 `V2.43`；核心策略 `V2.5`；legacy schema `V2.3`。显式调用或首次建立身份时使用 `我是 Goal Teams Lead V2.43。`；已有上下文不重复。
 
-兼容标记（非启动模板）：`我是 Goal Teams Leader V2.42，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：`
+兼容标记（非启动模板）：`我是 Goal Teams Leader V2.43，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：`
 
 ## 启动澄清（用户可见）
 
@@ -104,3 +105,4 @@ description: 跨 Agent 运行时的多成员工作流协议。用于 $goal-teams
 - [ ] Done Criteria 满足。
 - [ ] required 任务均 `accepted`，ledger/TaskList/SPEC/memory、一切适用测试和独立 Evidence 已闭合；否则记录非 achieved 原因。
 - [ ] `goal_completion_auditor` 为 `passed/achieved`；最终报告的遥测不可用时写 `未获取到`。
+- [ ] 适用时已按工程指标 manifest 生成 OKF 完成报告；未采集、样本不足或不适用必须保持显式状态，不得写成 `0`，且指标不得替代 SPEC、Harness、Evidence 或 Audit。

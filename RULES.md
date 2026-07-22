@@ -32,12 +32,14 @@
 10. **Use honest status.** Goal Teams 状态使用 V2.3 正交字段；自然语言“完成”不能绕过 `task_state`、`check_state`、`audit_state`、`run_outcome` 与 Evidence。
 11. **Use one machine state.** `check_state` 只能使用 schema 枚举中的一个值。文档中的“failed 或 blocked”是二选一的自然语言，不是 `failed|blocked` 组合态：已执行但未通过或证据无效用 `failed`；因缺少授权、核心依赖或能力而不能执行/完成用 `blocked`。
 12. **Do not imply routed checks.** 项目规模/工作类型或安全、性能、重构、SQA 专项未实际路由并执行时，不得宣称已检查；如实报告 `not_loaded` / `not_applicable` 及原因。
+13. **Report metrics honestly.** 工程指标必须来自 manifest 定义的可验证事件；未采集、样本不足、不适用或算法版本不一致时保留显式状态，不得写成 `0` 或混入近期平均值。
+14. **Link the OKF report.** 任务完成或 benchmark 生成工程指标报告时，报告必须是自包含 OKF 并写明算法、口径和 Evidence；最终聊天只给报告链接、状态并提醒用户查看，不粘贴完整指标表。
 
 ## 最小执行更新
 
 进行中的长任务只需简短报告：已验证进展、当前阻塞、正在执行的下一检查。最终回复必须自包含；用户不应依赖已折叠的中间更新理解结果。
 
-## V2.42 流程澄清与运行时兼容
+## V2.43 流程澄清与运行时兼容
 
 1. 启动时先按 `references/flow-clarification-protocol.md` 输出 `Proposal`；用户需要流程选项时读取 `references/project-flow-selection.md`，以 `1=小型需求/BugFix`、`2=中型项目`、`3=大型系统`、`4=自定义流程`、`5=直接改` 展示流程图、节点和选择原因；LLM 初判不是用户确认。
 2. 选项 `1`–`3` 确认前不得创建正式 Plan、Teams 表或派发 subagent，只有确认后才可进入团队流程；选项 `4` 必须先补齐自定义节点；选项 `5` 只完成当前最小修改与适用验证，不暗示已走团队流程。

@@ -9,6 +9,8 @@
 6. 检查 UI E2E、整页和局部像素级对比、组件级视觉契约、交互状态矩阵、locked/unlocked 截图、组件库元素记录、生产流审批和回滚证据。
 7. 运行或核对 `validate-dual-review.py` 结果。
 8. 缺少交接物独立检查、状态、Evidence、OKF 元数据或视觉风险覆盖时，不能输出 `audit_state=passed`。
+8a. 按 `references/engineering-metrics-protocol.md` 读取当前 `metric-summary.json`、`engineering-metrics.md` 和算法 manifest：核对 OKF frontmatter、current run/cohort/calculator/digest binding、四列表格、十二项算法字段、Evidence refs、pooled history 与状态语义。指标值缺失或延迟必须保留 `unavailable/pending/not_applicable/insufficient_sample`，不能写成零；这些状态不替代也不阻塞业务 Evidence，但报告缺失或契约无效要写入 open gap。
 9. 检查 required/blocking task 及 Audit Evidence 未引用本次实际 audit 文件；标准或自定义路径形成自引用时返回 `E_AUDIT_SELF_REFERENCE`。随后返回符合 template 的完整 Completion Audit JSON（不写文件），包含 audit/author/auditor identity、ledger revision、task digest、Evidence/Traceability/Review closure、状态、stop_reason 和 open gaps。
 9a. V2.35 另确认 release readiness、remote branch/main、local install 与 post-release task accepted；检查四专家只读 capability、domain proposal 和 independent holdout closure。任一缺口不得 passed。
 10. 要求 Lead/ledger owner 原样持久化后运行 `python3 scripts/v23/goalteams_v23.py completion-audit <audit.json> <checkpoint.json> --evidence-jsonl <evidence.jsonl> --evidence-root <output-root> --traceability <traceability.json> --review <dual-review.json> --identity-registry <identity/registry.json> --harness <harness/harness.json> --ledger <ledger/events.jsonl> --tasklist <TaskList.md>`；未看到真实 validator 结果时不得声称通过。
+11. 核对 Lead 的最终用户回复没有复制完整指标表或算法正文，只提供已生成报告的可点击链接并提醒用户打开查看；报告未生成时只能说明原因，不得伪造路径。

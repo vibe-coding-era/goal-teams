@@ -37,7 +37,7 @@ okf_version: "0.1"
 
 - `policy_profile`、`state_gate_profile`、`task_type`、执行等级与 `gate_profile`（派生 gates 集）必须由可信 adapter 根据产品版本、已验证目标仓库、任务事实、规模和风险生成。
 - `state_gate_profile` 省略时仍由 runtime 自动派生并执行；显式提供时必须与派生值完全一致，否则 fail closed。调用方不能借字段存在或缺失自选门禁。
-- 只有 `goal-teams` 仓库的当前 V2.42 自发布任务才派生 `goal-teams-self-release-v2.42`；其他任务保持本 Profile，历史 V2.36/V2.37/V2.38/V2.39/V2.40/V2.41 数据仍按兼容契约只读 replay。
+- 只有 `goal-teams` 仓库的当前 V2.43 自发布任务才派生 `goal-teams-self-release-v2.43`；其他任务保持本 Profile，历史 V2.36/V2.37/V2.38/V2.39/V2.40/V2.41/V2.42 数据仍按兼容契约只读 replay。
 - 原创 UI 使用真实浏览器/DOM/几何/截图 Evidence，不因 `ui=true` 自动升级 `full`，也不加载 reference-driven pixel baseline 协议。
 - 复刻、临摹或参考驱动 UI 派生 `ui_replica`，至少为 `full` 并加载像素基线协议。
 

@@ -28,6 +28,7 @@ BLIND_PACKAGE_ALLOWLIST = (
     "prompts",
     "references",
     "schemas/v2.3",
+    "schemas/v2.43",
     "scripts/review",
     "scripts/v23",
     "subagents",

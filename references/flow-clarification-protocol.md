@@ -1,13 +1,13 @@
 ---
 type: Goal Teams Flow Clarification Protocol
-title: Goal Teams V2.42 流程澄清协议
+title: Goal Teams V2.43 流程澄清协议
 description: 在 Plan、团队或 subagent 规划之前，让用户确认小、中或大迭代流程及节点。
 tags: [goal-teams, v2.41, flow-clarification, routing]
 timestamp: 2026-07-18T00:00:00+08:00
 okf_version: "0.1"
 ---
 
-# V2.42 流程澄清协议
+# V2.43 流程澄清协议
 
 启动时先依据用户目标、已提供材料和可验证工作区事实给出 `Proposal`；不得把 LLM 推断伪装成用户已经确认的规模或流程。确认前不得创建正式 Plan、Teams 表或派发 subagent。
 

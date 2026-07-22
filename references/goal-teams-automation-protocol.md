@@ -1,8 +1,8 @@
 ---
 type: Automation Protocol
 title: Goal Teams Automation Protocol
-description: 定义 Harness、Evidence 与 Pipeline 的机器可读自动化协议和兼容边界。
-tags: [goal-teams, automation, harness, evidence]
+description: 定义 Harness、Evidence、Pipeline 与 V2.43 工程指标 sidecar 的机器可读自动化协议和兼容边界。
+tags: [goal-teams, automation, harness, evidence, engineering-metrics]
 timestamp: 2026-07-13T00:00:00+08:00
 okf_version: "0.1"
 ---
@@ -29,6 +29,9 @@ okf_version: "0.1"
 | `pipeline-state.json` | 当前研发流水线快照 | `GoalTeamsWork-<project_version>/versions/<artifact_version>/pipeline-state.json` | Lead 整合、门禁变化、收尾审计后更新 |
 | `failure_report` | 失败记录对象 | 嵌入 `evidence.jsonl` 或 `pipeline-state.json` | 检查失败、门禁拒绝、审计阻塞时写入 |
 | `approval_gate` | 人工或策略审批门对象 | 嵌入 `pipeline-state.json` | 涉及风险、外部动作、发布或安全边界时写入 |
+| `metrics/metric-events.jsonl` | V2.43 工程指标原始观察与 correction sidecar | `GoalTeamsWork-<project_version>/versions/<artifact_version>/metrics/metric-events.jsonl` | 可追溯观察发生后只追加写入 |
+| `metrics/metric-summary.json` | 确定性 calculator 对本次、上一次与近期样本的投影 | `GoalTeamsWork-<project_version>/versions/<artifact_version>/metrics/metric-summary.json` | 收尾、Benchmark 聚合或延迟观察刷新时重建 |
+| `metrics/engineering-metrics.md` | 面向用户的自包含 OKF 工程指标报告 | `GoalTeamsWork-<project_version>/versions/<artifact_version>/metrics/engineering-metrics.md` | 最终回复前由同一 summary 与算法 manifest 生成 |
 
 ## 通用字段规则
 
@@ -42,6 +45,7 @@ okf_version: "0.1"
 - `evidence_ref` 指向 `evidence.jsonl` 的 `record_id`。
 - Markdown 产物默认使用 Google OKF，至少包含 YAML frontmatter 和非空 `type`；`memory.md` 的 `author` 固定为 `GoalTeams`，时间线从老到新。
 - 中文说明可以放在 `summary`、`reason`、`notes`、`human_review` 等字段中。
+- V2.43 工程指标 sidecar 使用 `goal-teams-engineering-metrics-v2.43`，算法、稳定 ID 和显示顺序读取 `references/engineering-metrics-manifest.json`；它不扩展 V2.3 core ledger 的闭合 event enum。
 
 推荐状态枚举：
 
@@ -378,6 +382,34 @@ failure_status:
 - 涉及审批的 `approval_gate` 已 `approved` 或明确 `waived`，并记录原因。
 - 文档没有宣称不存在的 runner、CI/CD、生产接入或外部审批能力。
 
+## V2.43 工程指标自动化边界
+
+工程指标采用独立 sidecar，不双写或改写 V2.3 ledger。`metric-events.jsonl` 只追加脱敏观察；迟到的生产缺陷、回滚和漏检通过 correction event 修正。`metric-summary.json` 由确定性 calculator 生成，普通任务、Benchmark `summary.json` 和 OKF 用户报告必须消费同一 summary 与 `references/engineering-metrics-manifest.json`，不得各自实现公式。
+
+单项结果至少包含：
+
+```json
+{
+  "metric_id": "FPAR",
+  "calculator_version": "V2.43",
+  "status": "final",
+  "numerator": 4,
+  "denominator": 5,
+  "value": 0.8,
+  "unit": "ratio",
+  "coverage": 1.0,
+  "observation_window": null,
+  "weight_basis": null,
+  "evidence_refs": ["EVD-..."]
+}
+```
+
+允许状态只有 `final`、`provisional`、`pending`、`unavailable`、`not_applicable` 和 `insufficient_sample`。无可信成本/usage/provenance 时为 `unavailable`，生产观察窗未结束为 `pending`，未部署为 `not_applicable`；不得用零替代。比例类近期值合并分子/分母，不直接平均各 run 百分比。
+
+`engineering-metrics.md` 必须是 OKF Concept Document，并自包含 FPAR、LCC、HER、SAR、CPAC、DER、RRR、CWR、SDI、RFR、ARCR、MRT 的本次值、上一次值、近期值、公式、分子/分母、排除项、聚合方式、状态和 Evidence refs。具体算法与报告字段见 `references/engineering-metrics-protocol.md`。
+
+指标数值只作工程观测，不替代 Harness/Evidence/Completion Audit，也不得成为 Audit 自引用 Evidence。最终用户回复不展开完整指标表，只返回真实生成的 OKF 报告链接并提醒查看；无法写入时必须说明未生成和原因。
+
 ## 与现有 Goal Teams 文件的关系
 
 - Markdown 仍是面向人的主记录，JSON/YAML/JSONL 是机器状态和证据层。
@@ -385,4 +417,5 @@ failure_status:
 - `progress.md` 记录执行摘要和关键证据。
 - `spec/test-plan.md` 记录本版本如何校验协议。
 - `spec/acceptance.md` 记录人工验收和剩余风险。
+- `metrics/metric-events.jsonl`、`metric-summary.json` 和 `engineering-metrics.md` 是 V2.43 指标 sidecar；它们引用 ledger/Evidence，但不改变任务状态 SSOT。
 - 后续如要把本协议写入 `references/goal-teams-runtime.md`、`default-AGENTS.md`、`README` 或 `scripts/validate.py`，应由 Lead 在同步范围中安排，不能由本文直接暗示已经完成。

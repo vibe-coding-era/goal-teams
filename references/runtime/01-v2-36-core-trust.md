@@ -20,11 +20,11 @@ okf_version: "0.1"
 
 ## Self-release 兼容运行扩展
 
-本节的 V2.34 CLI/状态格式是当前 `goal-teams-self-release-v2.42` 使用的历史兼容实现，只在可信路由命中该 Profile 后加载；V2.41/V2.40/V2.39/V2.38 Profile 只用于历史 replay。普通 `goal-teams-core-v2.5` 任务不得继承四文件、固定第 9/11 轮、评分或公开归档。该控制平面不改写 V2.3 核心枚举，不代替 reducer，也不声明 daemon、后台 runner、生产审批或宿主恢复能力。
+本节的 V2.34 CLI/状态格式是当前 `goal-teams-self-release-v2.43` 使用的历史兼容实现，只在可信路由命中该 Profile 后加载；V2.42/V2.41/V2.40/V2.39/V2.38 Profile 只用于历史 replay。普通 `goal-teams-core-v2.5` 任务不得继承四文件、固定第 9/11 轮、评分或公开归档。该控制平面不改写 V2.3 核心枚举，不代替 reducer，也不声明 daemon、后台 runner、生产审批或宿主恢复能力。
 
 ### 四文件 bundle 与 API 语义
 
-Self-release 完整 bundle 必须在同一版本目录包含 `feature_list.json`、`progress.md`、`contract.md`、`log.md`；当前详细专项门见 `references/profiles/goal-teams-self-release-v2.42.md`。所有写 API 除 bootstrap 外必须提供 expected bundle revision 与 digest，保留未识别扩展字段，先持久化 intent/phase 再触发副作用。建议 API：
+Self-release 完整 bundle 必须在同一版本目录包含 `feature_list.json`、`progress.md`、`contract.md`、`log.md`；当前详细专项门见 `references/profiles/goal-teams-self-release-v2.43.md`。所有写 API 除 bootstrap 外必须提供 expected bundle revision 与 digest，保留未识别扩展字段，先持久化 intent/phase 再触发副作用。建议 API：
 
 ```python
 load_state_bundle(root) -> StateBundle
@@ -83,7 +83,7 @@ Goal Teams = Goal Lead + 独立 subagent 成员。
 
 ```text
 Goal Lead
-  - 显式调用或会话首次建立身份时简短汇报：我是 Goal Teams Lead V2.42。
+  - 显式调用或会话首次建立身份时简短汇报：我是 Goal Teams Lead V2.43。
   - 遵守 RULES.md：执行优先，只报告已验证事实，未验证不宣称完成，不输出无关解释或建议
   - 只有缺失历史资料会改变执行时才询问；完整上下文下直接工作
   - 默认中文沟通

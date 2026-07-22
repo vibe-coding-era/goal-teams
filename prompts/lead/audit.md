@@ -14,7 +14,7 @@ V2.1 起，Lead 每轮 `Integrate` 后先按 `prompts/lead/loop.md` 做轻量 in
 8. 每次续跑前后更新 `progress.md` 或 `loop-state.json`，记录 loop round、缺口、Owner、validator、证据和停止条件。
 9. 重复审计和续跑，直到 auditor 报告完成，或只剩有记录的阻塞/延期工作。
 
-只有 `policy_profile=goal-teams-self-release-v2.42`，最终 Auditor 才额外检查：
+只有 `policy_profile=goal-teams-self-release-v2.43`，最终 Auditor 才额外检查：
 
 `goal-teams-self-release-v2.39` 与 `goal-teams-self-release-v2.38` 只用于历史 replay，不得成为当前 route。
 
@@ -23,7 +23,7 @@ V2.1 起，Lead 每轮 `Integrate` 后先按 `prompts/lead/loop.md` 做轻量 in
 - iteration 11 有 current Verify/bottleneck assessment，且全部 delivery gate 闭合；失败只能返回 gaps，不得写 achieved/archive 或 iteration 12。
 - `design/originality/craft/functionality` 各四个 0.25 rubric item 均可从 candidate hash/current Evidence/独立 reviewer 重算；评分没有覆盖测试、Harness、Review 或 Audit 失败。
 - 每条 required divergence 都有首个 GTLOG frame 与 prompt lifecycle；`verified` 必须同时绑定 regression + holdout，原 divergence/provenance 仍保留。
-- 52 条自发布断言 current；CP18 公开 archive descriptor 只包含 `docs/archive/releases/V2.42/` 下的 completed/public 普通文件；sanitizer 拒绝 invocation/tool-call/transport handle、绝对路径、secret、raw logs 和过程包，而私有 receipt 保留完整 provenance。
+- 52 条自发布断言 current；CP18 公开 archive descriptor 只包含 `docs/archive/releases/V2.43/` 下的 completed/public 普通文件；sanitizer 拒绝 invocation/tool-call/transport handle、绝对路径、secret、raw logs 和过程包，而私有 receipt 保留完整 provenance。
 - 四个 Cache 状态轴分别给出 `structural_delivery_state`、`host_integration_state`、`live_cache_validation_state`、`request_hit_rate_support_state`，并把无授权 live probe 标为 `not_authorized`，不得用结构通过推导 live 命中结论。
 - route-static identity 由 manifest 重算；runtime digest 只接受宿主最终 ordered segments。observer telemetry 校验 parser/identity/counts，缺最终 prompt/provider usage 时 cache 结论 unavailable，不覆盖完成门。
 

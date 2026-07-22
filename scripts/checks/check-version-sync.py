@@ -145,13 +145,13 @@ def validate_runtime_identity(product: str) -> tuple[str, str]:
             startup,
             f"当前 `{profile}`",
             profile_path,
-            "V2.39/V2.38 Profile 只用于历史 replay",
+            "V2.42/V2.41/V2.40/V2.39/V2.38 Profile 只用于历史 replay",
         ),
         "references/runtime/03-goal-loop.md": (
             startup,
             f"{product} 继续按 V2.38-compatible prompt-cache manifest",
             f"当前 self-release refs 指向 {product} Profile",
-            "V2.39/V2.38 只读 replay",
+            "V2.42/V2.41/V2.40/V2.39/V2.38 只读 replay",
         ),
     }
     for path, markers in active_runtime_markers.items():
@@ -238,10 +238,9 @@ def validate_package_boundary(product: str) -> None:
 
 
 def validate_release_projection(expected_version: str, product: str) -> None:
-    # V2.42 is the user-owned README projection: it declares the development
-    # product version while its link remains anchored to the published asset.
-    # Historical replay checks retain the displayed published version.
-    displayed_version = product if product == "V2.42" else expected_version
+    # The release block projects the actually published asset. The separate
+    # current-version marker carries the development product identity.
+    displayed_version = expected_version
     zh_projection = read_release_block("README.md", expected_version, displayed_version)
     en_projection = read_release_block("README.en.md", expected_version, displayed_version)
     if zh_projection != en_projection:

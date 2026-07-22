@@ -53,7 +53,11 @@ Auditor 另可返回人类摘要，但它不替代 JSON：
 任务/交接物矩阵：<owner_run_id、validator_run_id、task_state、check_state、harness_refs、evidence_refs>
 脚本与语义复核：<Harness task_type/required_review_class、derived minimum、domain execution、integrity replay、applicable halves、结果>
 结论与续跑建议：<facts and gaps>
+工程指标报告：<`metrics/engineering-metrics.md` 的 OKF valid/invalid、current run binding、manifest digest、12 metrics/algorithm completeness、status handling、report path>
+用户查看提示：<最终回复仅包含可点击报告链接并提醒查看；未生成时列原因>
 ```
+
+工程指标报告检查结果不新增 V2.3 Completion Audit schema 字段，避免破坏既有机器合同：报告缺失、OKF/manifest/current-run binding 无效或十二项算法不完整时，用 `open_gaps` 和 `conclusion_detail` 记录；单项数值为 `pending`、`unavailable`、`not_applicable` 或 `insufficient_sample` 本身不是 gap。Auditor 不得把工程指标报告或本次 Audit artifact 加入 `evidence_refs` 来支撑业务完成。
 
 Lead/ledger owner 在候选收尾时持久化 JSON，并用 checkpoint、identity registry、Harness、Evidence JSONL、Traceability 和实际 Dual Review 文件运行 V2.3 `completion-audit`。failed/blocked 可驱动 LOOP/停止，只有 passed/achieved 要求 required task 全 accepted。本 Audit 是外部门禁，不能作为 required/blocking task 或 Audit Evidence 自证；命中 `E_AUDIT_SELF_REFERENCE` 或命令未通过时该记录不具有完成资格。
 

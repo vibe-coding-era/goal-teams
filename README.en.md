@@ -5,10 +5,10 @@
 Author: 肉山@TGO Hangzhou
 
 <!-- goal-teams-release:start -->
-Current release: **V2.42** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.40) · [release/current/README.md](release/current/README.md)
+Current release: **V2.40** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.40) · [release/current/README.md](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-Current version: `V2.42`
+Current version: `V2.43`
 
 Goal Teams is a Codex Skill for coordinated agent work. It turns one goal into a verifiable plan, then lets a Goal Lead coordinate independent subagents running in separate contexts, or user-selected external skills, across requirements, design, implementation, tests, evidence, and completion audit.
 
@@ -175,7 +175,7 @@ Use $goal-teams。
 Use this identity line on an explicit Goal Teams invocation or when the session first needs to establish identity; do not repeat it when full context already exists:
 
 ```text
-我是 Goal Teams Lead V2.42。
+我是 Goal Teams Lead V2.43。
 ```
 
 Core language rule: user communication and governance documents default to Chinese; code, comments, test names, fixtures, and product strings follow the target repository's conventions; keep identifiers, commands, paths, API names, config keys, subagent IDs, and exact references unchanged.
@@ -298,7 +298,7 @@ GoalTeamsWork-<project_version>/
 
 ## Version Note
 
-The current version is read from `VERSION`. On the V2.3 machine contract and V2.5 core policy, `V2.42` retains contract-first execution, Architecture and Environment Evidence gates, a recoverable `Gather → Reason → Act → Verify → Repeat` LOOP, four-file disk state, a constrained iteration-9 candidate reset, a fail-closed iteration-11 delivery gate, four-dimensional scoring, and divergence/bottleneck records, while adding a recoverable release state machine and public-version identity governance. Detailed contracts are loaded from `references/` by task type. The current public release note is [release/current](release/current/README.md); process ledgers and provenance remain in the non-public workspace.
+The current version is read from `VERSION`. On the V2.3 machine contract and V2.5 core policy, `V2.43` retains contract-first execution, Architecture and Environment Evidence gates, a recoverable `Gather → Reason → Act → Verify → Repeat` LOOP, four-file disk state, a constrained iteration-9 candidate reset, a fail-closed iteration-11 delivery gate, four-dimensional scoring, and divergence/bottleneck records, while adding a recoverable release state machine and public-version identity governance. Detailed contracts are loaded from `references/` by task type. The current public release note is [release/current](release/current/README.md); process ledgers and provenance remain in the non-public workspace.
 
 See the [current release note](release/current/README.md) for the visible package inventory. It does not replace runtime rules, `VERSION`, or installation validation.
 
@@ -311,3 +311,9 @@ This repository does not currently declare an open-source license. The owner sho
 ## V2.3 Contract and Release Boundary
 
 V2.3 adds deterministic machine contracts for closed state enums, a single-writer ledger, strict Evidence/Traceability, capability degradation, Profile routing, typed migration, and release gates. See `references/goal-teams-v2.3-contract.md` and run `./scripts/check.sh` before release. Technical RC and authorized GA distribution are evaluated separately; even with an owner License/internal-sharing decision, the GA gate must remain fail-closed until a trusted external host/signature attestation exists.
+
+## V2.43 Changes
+
+- Task completion and Benchmark runs now share one deterministic calculator for FPAR, LCC, HER, SAR, CPAC, DER, RRR, CWR, SDI, RFR, ARCR, and MRT.
+- Metric events, algorithm manifest, JSON Schema, comparable-history windows, and availability states use one contract; missing collection, open observation windows, not-applicable cases, and insufficient samples are never reported as zero.
+- User-facing engineering-metrics reports are self-contained Google OKF documents with the four-column table, algorithms, Evidence, and coverage. The chat response links to the report and reminds the user to open it.

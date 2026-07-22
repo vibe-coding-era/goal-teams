@@ -922,6 +922,11 @@ prefix tests/v23/
             self.assertEqual(pipeline.returncode, 0, pipeline.stdout + pipeline.stderr)
             summary = json.loads((output / "summary.json").read_text(encoding="utf-8"))
             self.assertEqual(
+                summary["engineering_metrics"]["note"],
+                "quality_pass_rate_is_not_first_pass_acceptance_rate",
+            )
+            self.assertEqual(summary["engineering_metrics"]["scenario_count"], 1)
+            self.assertEqual(
                 gt._validate_blind_stage(
                     output,
                     summary["staged_manifest"],
@@ -931,6 +936,15 @@ prefix tests/v23/
             )
             record_path = output / "pipeline-fixture" / "record.json"
             record = json.loads(record_path.read_text(encoding="utf-8"))
+            engineering_metrics = record["engineering_metrics"]
+            self.assertEqual(
+                engineering_metrics["schema_version"],
+                "goal-teams-engineering-metrics-v2.43",
+            )
+            self.assertEqual(engineering_metrics["current"]["FPAR"]["status"], "unavailable")
+            self.assertIsNone(engineering_metrics["current"]["FPAR"]["value"])
+            self.assertTrue((record_path.parent / engineering_metrics["summary_path"]).is_file())
+            self.assertTrue((record_path.parent / engineering_metrics["report_path"]).is_file())
             self.assertEqual(record["evaluation_class"], "pipeline_fixture")
             self.assertFalse(record["release_eligible"])
             self.assertEqual(

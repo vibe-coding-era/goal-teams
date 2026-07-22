@@ -1,8 +1,8 @@
 ---
 type: Environment Configuration Plan
-title: Goal Teams V2.42 Architecture 环境配置规划模板
+title: Goal Teams V2.43 Architecture 环境配置规划模板
 description: 每份适用 Architecture Design 中的开发和线上正式环境配置规划。
-tags: [goal-teams, v2.42, architecture, environment]
+tags: [goal-teams, v2.43, architecture, environment]
 timestamp: 2026-07-18T00:00:00+08:00
 okf_version: "0.1"
 ---
