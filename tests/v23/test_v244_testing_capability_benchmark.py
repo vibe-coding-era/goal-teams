@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import zipfile
 import zlib
 from pathlib import Path
 
@@ -331,6 +332,53 @@ class TestingCapabilityBenchmarkTests(unittest.TestCase):
             screenshot.write_bytes(black_png())
             binding["size"] = screenshot.stat().st_size
             binding["sha256"] = scorer.sha256_file(screenshot)
+            raw_binding = session["raw_artifact"]
+            raw_path = root / "reference" / raw_binding["path"]
+            raw_payload = json.loads(raw_path.read_text(encoding="utf-8"))
+            raw_payload["observation"] = session["evidence"]
+            raw_path.write_text(
+                json.dumps(raw_payload, ensure_ascii=False, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+            raw_binding["size"] = raw_path.stat().st_size
+            raw_binding["sha256"] = scorer.sha256_file(raw_path)
+            with self.assertRaisesRegex(
+                scorer.ScoreError, "behavior oracle derived failed"
+            ):
+                scorer.score_evidence(evidence, evidence_root=root / "reference")
+
+    def test_scorer_rejects_rebound_trace_with_forged_frame_content(self) -> None:
+        available, _chrome, reason = runner.browser_capability()
+        if not available:
+            self.skipTest(reason)
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            evidence, _score = runner.run_candidate(
+                "reference", root, browser_mode="required"
+            )
+            session = next(
+                item for item in evidence["cases"] if item["case_id"] == "E2E-SESSION-001"
+            )
+            trace_binding = session["evidence"]["browser_trace"]
+            trace_path = root / "reference" / trace_binding["path"]
+            with zipfile.ZipFile(trace_path) as archive:
+                entries = {
+                    info.filename: archive.read(info.filename)
+                    for info in archive.infolist()
+                }
+            frame_name = next(
+                name
+                for name in entries
+                if name.startswith("resources/") and name.endswith(".jpeg")
+            )
+            entries[frame_name] = b"forged"
+            with zipfile.ZipFile(
+                trace_path, mode="w", compression=zipfile.ZIP_DEFLATED
+            ) as archive:
+                for name, content in entries.items():
+                    archive.writestr(name, content)
+            trace_binding["size"] = trace_path.stat().st_size
+            trace_binding["sha256"] = scorer.sha256_file(trace_path)
             raw_binding = session["raw_artifact"]
             raw_path = root / "reference" / raw_binding["path"]
             raw_payload = json.loads(raw_path.read_text(encoding="utf-8"))

@@ -227,12 +227,96 @@ def _verify_raw_observation(
     return observation
 
 
+def _valid_trace_jpeg(data: bytes) -> bool:
+    if len(data) < 1000 or data[:2] != b"\xff\xd8" or data[-2:] != b"\xff\xd9":
+        return False
+    offset = 2
+    dimensions: tuple[int, int] | None = None
+    while offset + 4 <= len(data):
+        if data[offset] != 0xFF:
+            offset += 1
+            continue
+        marker = data[offset + 1]
+        offset += 2
+        if marker in {0xD8, 0xD9} or 0xD0 <= marker <= 0xD7:
+            continue
+        if offset + 2 > len(data):
+            return False
+        length = struct.unpack(">H", data[offset : offset + 2])[0]
+        if length < 2 or offset + length > len(data):
+            return False
+        if marker in {0xC0, 0xC1, 0xC2} and length >= 7:
+            height, width = struct.unpack(">HH", data[offset + 3 : offset + 7])
+            dimensions = (width, height)
+        if marker == 0xDA:
+            break
+        offset += length
+    return (
+        dimensions == (800, 450)
+        and len(set(data)) >= 32
+    )
+
+
+def _paeth(left: int, above: int, upper_left: int) -> int:
+    estimate = left + above - upper_left
+    left_distance = abs(estimate - left)
+    above_distance = abs(estimate - above)
+    upper_distance = abs(estimate - upper_left)
+    if left_distance <= above_distance and left_distance <= upper_distance:
+        return left
+    if above_distance <= upper_distance:
+        return above
+    return upper_left
+
+
+def _png_has_real_ui_content(
+    decoded: bytes, width: int, height: int, channels: int
+) -> bool:
+    stride = width * channels
+    previous = bytearray(stride)
+    colors: set[tuple[int, ...]] = set()
+    dark = 0
+    light = 0
+    offset = 0
+    for _row_index in range(height):
+        filter_type = decoded[offset]
+        raw = decoded[offset + 1 : offset + 1 + stride]
+        offset += stride + 1
+        if filter_type not in {0, 1, 2, 3, 4}:
+            return False
+        current = bytearray(stride)
+        for index, value in enumerate(raw):
+            left = current[index - channels] if index >= channels else 0
+            above = previous[index]
+            upper_left = previous[index - channels] if index >= channels else 0
+            predictor = {
+                0: 0,
+                1: left,
+                2: above,
+                3: (left + above) // 2,
+                4: _paeth(left, above, upper_left),
+            }[filter_type]
+            current[index] = (value + predictor) & 0xFF
+        previous = current
+        for pixel_index in range(0, stride, channels):
+            pixel = tuple(current[pixel_index : pixel_index + min(channels, 3)])
+            if len(colors) < 512:
+                colors.add(pixel)
+            if all(value < 32 for value in pixel):
+                dark += 1
+            if all(value > 240 for value in pixel):
+                light += 1
+    total = width * height
+    return len(colors) >= 16 and dark >= 100 and light >= total // 2
+
+
 def _trace_binds_screenshot(
     evidence: dict[str, Any],
     evidence_root: Path,
     *,
     case_id: str,
     run_id: str,
+    candidate_mode: str,
     screenshot_sha256: str,
 ) -> bool:
     trace_path = _safe_artifact(
@@ -277,6 +361,44 @@ def _trace_binds_screenshot(
                 and isinstance(event.get("text"), str)
                 and event["text"].startswith("GT_BENCH_BROWSER_PROVENANCE ")
             ]
+            frame_payloads = [
+                archive.read(f"resources/{frame['sha1']}")
+                for frame in frames
+                if isinstance(frame.get("sha1"), str)
+                and f"resources/{frame['sha1']}" in names
+            ]
+            expected_html = STATIC_UI.read_text(encoding="utf-8").replace(
+                "__DEFECT_MODE__", candidate_mode
+            ).encode("utf-8")
+            html_payloads = [
+                archive.read(name)
+                for name in names
+                if name.startswith("resources/") and name.endswith(".html")
+            ]
+            trace_text = "\n".join(trace_lines)
+            case_tokens = {
+                "E2E-SESSION-001": (
+                    "locator('#login')",
+                    '"method":"reload"',
+                    "locator('#auth-state')",
+                    "signed in",
+                ),
+                "E2E-DOUBLE-CLICK-001": (
+                    "create-order",
+                    "document.querySelector",
+                    "dataset.pending",
+                ),
+                "E2E-REFRESH-001": (
+                    "create-order",
+                    '"method":"reload"',
+                    "#status",
+                ),
+                "E2E-RECOVERY-001": (
+                    "/api/test/fail-next",
+                    "retry",
+                    "error:",
+                ),
+            }.get(case_id, ())
             if (
                 not isinstance(context, dict)
                 or context.get("browserName") != "chromium"
@@ -290,6 +412,12 @@ def _trace_binds_screenshot(
                     or f"resources/{frame.get('sha1')}" not in names
                     for frame in frames
                 )
+                or len(frame_payloads) != len(frames)
+                or any(not _valid_trace_jpeg(payload) for payload in frame_payloads)
+                or len({hashlib.sha256(payload).digest() for payload in frame_payloads})
+                < 2
+                or expected_html not in html_payloads
+                or any(token not in trace_text for token in case_tokens)
                 or '"type":"resource-snapshot"' not in network
                 or "http://127.0.0.1:" not in network
                 or len(console_events) != 1
@@ -323,6 +451,7 @@ def _screenshot_observed(
     evidence: dict[str, Any],
     evidence_root: Path,
     run_id: str,
+    candidate_mode: str,
 ) -> bool:
     try:
         screenshot_binding = evidence.get("screenshot")
@@ -377,12 +506,14 @@ def _screenshot_observed(
         decoded = zlib.decompress(compressed)
         return (
             len(decoded) == height * (1 + width * channels)
+            and _png_has_real_ui_content(decoded, width, height, channels)
             and isinstance(screenshot_binding, dict)
             and _trace_binds_screenshot(
                 evidence,
                 evidence_root,
                 case_id=case_id,
                 run_id=run_id,
+                candidate_mode=candidate_mode,
                 screenshot_sha256=screenshot_binding.get("sha256", ""),
             )
         )
@@ -395,6 +526,7 @@ def oracle_pass(
     evidence: dict[str, Any],
     evidence_root: Path,
     run_id: str,
+    candidate_mode: str,
 ) -> bool:
     """Recompute outcomes from bound raw observations."""
 
@@ -446,11 +578,13 @@ def oracle_pass(
     if case_id == "E2E-SESSION-001":
         return (
             evidence.get("auth_state_after_reload") == "signed in"
-            and _screenshot_observed(case_id, evidence, evidence_root, run_id)
+            and _screenshot_observed(
+                case_id, evidence, evidence_root, run_id, candidate_mode
+            )
         )
     if case_id == "E2E-DOUBLE-CLICK-001":
         return evidence.get("delta") == 1 and _screenshot_observed(
-            case_id, evidence, evidence_root, run_id
+            case_id, evidence, evidence_root, run_id, candidate_mode
         )
     if case_id == "E2E-REFRESH-001":
         before = evidence.get("count_before_reload")
@@ -460,13 +594,17 @@ def oracle_pass(
             and before > 0
             and _number(after)
             and after == before
-            and _screenshot_observed(case_id, evidence, evidence_root, run_id)
+            and _screenshot_observed(
+                case_id, evidence, evidence_root, run_id, candidate_mode
+            )
         )
     if case_id == "E2E-RECOVERY-001":
         return (
             evidence.get("retry_visible_after_failure") is True
             and evidence.get("delta") == 1
-            and _screenshot_observed(case_id, evidence, evidence_root, run_id)
+            and _screenshot_observed(
+                case_id, evidence, evidence_root, run_id, candidate_mode
+            )
         )
     raise ScoreError(f"oracle is not defined for {case_id}")
 
@@ -565,7 +703,13 @@ def score_evidence(
         if status_value in {"passed", "failed"}:
             derived = (
                 "passed"
-                if oracle_pass(case_id, observation, evidence_root, run_id)
+                if oracle_pass(
+                    case_id,
+                    observation,
+                    evidence_root,
+                    run_id,
+                    evidence["candidate"]["mode"],
+                )
                 else "failed"
             )
             if status_value != derived:
