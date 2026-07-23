@@ -33,6 +33,6 @@ okf_version: "0.1"
 - 新问题分配新 `issue_id`，不得复用或覆盖旧问题。
 - 每个问题必须先有且只有一个 `discovered/open` 事件；后续只允许 `started`、`resolved`、`reopened` 的合法状态转换。
 - `dimension` 与 `summary` 必须和 canonical manifest 中同一 `issue_id` 完全一致；manifest 与账本问题集合必须相等。
-- `resolved` 必须引用修复与独立验证 Evidence；每个 `evidence_refs` 项使用 `{"path":"...","sha256":"..."}`，且文件必须存在、无 symlink、摘要一致。仅提交代码或说明不算解决。
+- `resolved` 必须同时引用问题所属维度的修复 artifact 与本轮独立 Completion Audit receipt；每个 `evidence_refs` 项使用 `{"path":"...","sha256":"..."}`，且文件必须存在、无 symlink、摘要一致。`agent_run_id` 必须等于该独立审计 receipt 的 run ID。多个问题共用同一无关 proof、仅提交代码或仅写说明都不能解决。
 - waiver 不计入满分，也不是 V2.44 满分账本的合法最终状态。
 - 得分器重放全部历史；缺失 discovery、resolved-only 历史、非法转换、无关证据或删除已知问题全部 fail closed。

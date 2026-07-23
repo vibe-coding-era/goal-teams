@@ -261,6 +261,38 @@ class TestingCapabilityBenchmarkTests(unittest.TestCase):
             ):
                 scorer.score_evidence(evidence, evidence_root=root / "reference")
 
+    def test_scorer_rejects_png_magic_only_even_when_rebound(self) -> None:
+        available, _chrome, reason = runner.browser_capability()
+        if not available:
+            self.skipTest(reason)
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            evidence, _score = runner.run_candidate(
+                "reference", root, browser_mode="required"
+            )
+            session = next(
+                item for item in evidence["cases"] if item["case_id"] == "E2E-SESSION-001"
+            )
+            binding = session["evidence"]["screenshot"]
+            screenshot = root / "reference" / binding["path"]
+            screenshot.write_bytes(b"\x89PNG\r\n\x1a\n")
+            binding["size"] = screenshot.stat().st_size
+            binding["sha256"] = scorer.sha256_file(screenshot)
+            raw_binding = session["raw_artifact"]
+            raw_path = root / "reference" / raw_binding["path"]
+            raw_payload = json.loads(raw_path.read_text(encoding="utf-8"))
+            raw_payload["observation"] = session["evidence"]
+            raw_path.write_text(
+                json.dumps(raw_payload, ensure_ascii=False, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+            raw_binding["size"] = raw_path.stat().st_size
+            raw_binding["sha256"] = scorer.sha256_file(raw_path)
+            with self.assertRaisesRegex(
+                scorer.ScoreError, "behavior oracle derived failed"
+            ):
+                scorer.score_evidence(evidence, evidence_root=root / "reference")
+
     def test_scorer_rejects_run_identity_mismatch(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

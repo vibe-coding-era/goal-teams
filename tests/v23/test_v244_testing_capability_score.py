@@ -3,6 +3,8 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import shutil
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -35,7 +37,24 @@ class TestingCapabilityScoreTests(unittest.TestCase):
     def make_bundle(self, root: Path, *, status: str = "passed") -> dict:
         proof = root / "proof.json"
         proof.write_text('{"observed":true}\n', encoding="utf-8")
-        ref = {"path": "proof.json", "sha256": digest(proof)}
+        source_commit = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=True,
+        ).stdout.strip()
+        modes = [
+            ("reference", []),
+            ("api_auth_bypass", ["API-AUTH-001"]),
+            ("api_idempotency_broken", ["API-IDEMPOTENCY-001"]),
+            ("api_concurrency_race", ["API-CONCURRENCY-001"]),
+            ("api_eventual_consistency_stale", ["API-CONSISTENCY-001"]),
+            ("e2e_session_lost", ["E2E-SESSION-001"]),
+            ("e2e_double_click", ["E2E-DOUBLE-CLICK-001"]),
+            ("e2e_refresh_drops_state", ["E2E-REFRESH-001"]),
+            ("e2e_error_no_recovery", ["E2E-RECOVERY-001"]),
+        ]
         benchmark_summary = {
             "schema_version": "goal-teams-testing-capability-self-check-v2.44",
             "status": "passed",
@@ -45,44 +64,102 @@ class TestingCapabilityScoreTests(unittest.TestCase):
             "all_services_terminated": True,
             "candidate_runs": [
                 {
-                    "mode": "reference",
-                    "score": 10.0,
+                    "mode": mode,
+                    "score": 10.0 if mode == "reference" else 9.0,
                     "not_run_count": 0,
                     "service_terminated": True,
-                    "detected": [],
-                    "expected_detected_by": [],
-                },
-                *[
-                    {
-                        "mode": f"defect-{index}",
-                        "score": 9.0,
-                        "not_run_count": 0,
-                        "service_terminated": True,
-                        "detected": [f"DEFECT-{index}"],
-                        "expected_detected_by": [f"DEFECT-{index}"],
-                    }
-                    for index in range(1, 9)
-                ],
+                    "detected": expected,
+                    "expected_detected_by": expected,
+                    "score_ref": f"{mode}/score.json",
+                    "evidence_ref": f"{mode}/evidence.json",
+                }
+                for mode, expected in modes
             ],
         }
+
+        def materialize_suffix(suffix: str) -> dict[str, str]:
+            path = root / suffix
+            path.parent.mkdir(parents=True, exist_ok=True)
+            if suffix.endswith("self-check-summary.json"):
+                path.write_text(
+                    json.dumps(benchmark_summary, sort_keys=True) + "\n",
+                    encoding="utf-8",
+                )
+                for row in benchmark_summary["candidate_runs"]:
+                    score_path = path.parent / row["score_ref"]
+                    score_path.parent.mkdir(parents=True, exist_ok=True)
+                    score_path.write_text(
+                        json.dumps(
+                            {
+                                "provenance_verified": True,
+                                "score": row["score"],
+                                "not_run_count": 0,
+                                "canonical_manifest_sha256": (
+                                    "3ace7d9b01e3ca08daf7eef294a5dbfc1c482805faf2426087e223c17bfb6cfe"
+                                ),
+                            },
+                            sort_keys=True,
+                        )
+                        + "\n",
+                        encoding="utf-8",
+                    )
+                    evidence_path = path.parent / row["evidence_ref"]
+                    evidence_path.write_text("{}\n", encoding="utf-8")
+            elif not path.exists():
+                source = ROOT / suffix
+                if not source.is_file():
+                    raise AssertionError(f"missing canonical test source: {suffix}")
+                shutil.copyfile(source, path)
+            return {"path": suffix, "sha256": digest(path)}
+
         check_refs = {}
         for check_id, suffixes in score_module.CHECK_EVIDENCE_SUFFIXES.items():
-            refs = []
-            for suffix in suffixes:
-                path = root / suffix
-                path.parent.mkdir(parents=True, exist_ok=True)
-                if suffix.endswith("self-check-summary.json"):
-                    path.write_text(
-                        json.dumps(benchmark_summary, sort_keys=True) + "\n",
-                        encoding="utf-8",
-                    )
-                elif not path.exists():
-                    path.write_text(
-                        json.dumps({"check_id": check_id}, sort_keys=True) + "\n",
-                        encoding="utf-8",
-                    )
-                refs.append({"path": suffix, "sha256": digest(path)})
-            check_refs[check_id] = refs
+            check_refs[check_id] = [
+                materialize_suffix(suffix) for suffix in suffixes
+            ]
+
+        full_log = root / score_module.FULL_CHECK_LOG_SUFFIX
+        full_log.parent.mkdir(parents=True, exist_ok=True)
+        full_log.write_text(
+            "Ran 683 tests in 1.0s\nOK (skipped=15)\n"
+            "Installer lifecycle checks passed\n",
+            encoding="utf-8",
+        )
+        schema_log = root / score_module.SCHEMA_LOG_SUFFIX
+        schema_log.write_text(
+            "Ajv strict: 3 schemas and 4 canonical examples PASS\n",
+            encoding="utf-8",
+        )
+        audit_path = root / score_module.COMPLETION_AUDIT_SUFFIX
+        audit_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": (
+                        "goal-teams-testing-capability-completion-audit-v2.44"
+                    ),
+                    "source_commit": source_commit,
+                    "status": "passed",
+                    "member_id": "completion-auditor-v244-test",
+                    "run_id": "completion-audit-test-run",
+                    "findings": [],
+                    "resolved_issue_ids": sorted(score_module.REQUIRED_ISSUE_IDS),
+                },
+                sort_keys=True,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        review_ref = {
+            "path": score_module.COMPLETION_AUDIT_SUFFIX,
+            "sha256": digest(audit_path),
+        }
+        benchmark_refs = [
+            materialize_suffix(
+                "docs/GoalTeamsWork-V2.44/versions/V2.44/evidence/"
+                f"benchmark-final-{index}/self-check-summary.json"
+            )
+            for index in (1, 2)
+        ]
         verification_path = root / score_module.VERIFICATION_SUFFIX
         verification_path.parent.mkdir(parents=True, exist_ok=True)
         verification_path.write_text(
@@ -90,7 +167,7 @@ class TestingCapabilityScoreTests(unittest.TestCase):
                 {
                     "schema_version": "goal-teams-testing-capability-verification-v2.44",
                     "product_version": "V2.44",
-                    "source_commit": "b" * 40,
+                    "source_commit": source_commit,
                     "full_check": {"status": "passed", "failed": 0, "errors": 0},
                     "schema_validation": {"status": "passed"},
                     "benchmark_replay": {
@@ -100,8 +177,20 @@ class TestingCapabilityScoreTests(unittest.TestCase):
                     },
                     "independent_review": {
                         "status": "passed",
-                        "member_id": "independent-reviewer",
-                        "run_id": "review-run-1",
+                        "member_id": "completion-auditor-v244-test",
+                        "run_id": "completion-audit-test-run",
+                    },
+                    "receipts": {
+                        "full_check": {
+                            "path": score_module.FULL_CHECK_LOG_SUFFIX,
+                            "sha256": digest(full_log),
+                        },
+                        "schema_validation": {
+                            "path": score_module.SCHEMA_LOG_SUFFIX,
+                            "sha256": digest(schema_log),
+                        },
+                        "benchmark_runs": benchmark_refs,
+                        "independent_review": review_ref,
                     },
                 },
                 sort_keys=True,
@@ -124,6 +213,9 @@ class TestingCapabilityScoreTests(unittest.TestCase):
         ledger = root / "issues.jsonl"
         events = []
         for index, issue in enumerate(self.manifest["known_issues"], start=1):
+            issue_ref = materialize_suffix(
+                score_module.ISSUE_EVIDENCE_BY_DIMENSION[issue["dimension"]]
+            )
             events.append(
                 {
                     "schema_version": score_module.ISSUE_SCHEMA,
@@ -151,8 +243,8 @@ class TestingCapabilityScoreTests(unittest.TestCase):
                     "severity": "high",
                     "status": "resolved",
                     "artifact_refs": [],
-                    "evidence_refs": [ref],
-                    "agent_run_id": "independent-reviewer",
+                    "evidence_refs": [review_ref, issue_ref],
+                    "agent_run_id": "completion-audit-test-run",
                     "timestamp": "2026-07-23T00:00:01+08:00",
                 }
             )
@@ -163,7 +255,7 @@ class TestingCapabilityScoreTests(unittest.TestCase):
         return {
             "schema_version": score_module.EVIDENCE_SCHEMA,
             "product_version": "V2.44",
-            "source_commit": "b" * 40,
+            "source_commit": source_commit,
             "manifest_sha256": digest(MANIFEST),
             "verification_summary": {
                 "path": score_module.VERIFICATION_SUFFIX,
@@ -242,8 +334,55 @@ class TestingCapabilityScoreTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             evidence = self.make_bundle(root)
-            (root / "proof.json").write_text('{"observed":false}\n', encoding="utf-8")
+            target = root / "schemas/v2.44/integration-test-plan.schema.json"
+            target.write_text('{"observed":false}\n', encoding="utf-8")
             with self.assertRaisesRegex(score_module.ScoreError, "digest drift"):
+                score_module.score(
+                    evidence,
+                    self.manifest,
+                    evidence_root=root,
+                    manifest_digest=digest(MANIFEST),
+                )
+
+    def test_matching_path_with_semantically_empty_content_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            evidence = self.make_bundle(root)
+            target = root / "schemas/v2.44/integration-test-plan.schema.json"
+            target.write_text(
+                '{"check_id":"integration_test_plan_schema"}\n',
+                encoding="utf-8",
+            )
+            ref = evidence["dimensions"]["machine_contracts"]["checks"][
+                "integration_test_plan_schema"
+            ]["evidence_refs"][0]
+            ref["sha256"] = digest(target)
+            with self.assertRaisesRegex(
+                score_module.ScoreError, "schema semantics"
+            ):
+                score_module.score(
+                    evidence,
+                    self.manifest,
+                    evidence_root=root,
+                    manifest_digest=digest(MANIFEST),
+                )
+
+    def test_self_reported_verification_without_receipt_output_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            evidence = self.make_bundle(root)
+            log = root / score_module.FULL_CHECK_LOG_SUFFIX
+            log.write_text("passed\n", encoding="utf-8")
+            verification = root / score_module.VERIFICATION_SUFFIX
+            payload = json.loads(verification.read_text(encoding="utf-8"))
+            payload["receipts"]["full_check"]["sha256"] = digest(log)
+            verification.write_text(
+                json.dumps(payload, sort_keys=True) + "\n", encoding="utf-8"
+            )
+            evidence["verification_summary"]["sha256"] = digest(verification)
+            with self.assertRaisesRegex(
+                score_module.ScoreError, "does not prove|incomplete test count"
+            ):
                 score_module.score(
                     evidence,
                     self.manifest,
@@ -307,7 +446,7 @@ class TestingCapabilityScoreTests(unittest.TestCase):
             )
         self.assertEqual("failed", result["status"])
         self.assertEqual(100, result["score"])
-        self.assertEqual(["GT244-TEST-024"], result["issue_summary"]["unresolved_issue_ids"])
+        self.assertEqual(["GT244-TEST-027"], result["issue_summary"]["unresolved_issue_ids"])
 
     def test_resolved_only_history_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -354,6 +493,43 @@ class TestingCapabilityScoreTests(unittest.TestCase):
             )
             evidence["issue_ledger"]["sha256"] = digest(ledger)
             with self.assertRaisesRegex(score_module.ScoreError, "evidence ref"):
+                score_module.score(
+                    evidence,
+                    self.manifest,
+                    evidence_root=root,
+                    manifest_digest=digest(MANIFEST),
+                )
+
+    def test_resolved_issue_requires_issue_specific_independent_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            evidence = self.make_bundle(root)
+            ledger = root / "issues.jsonl"
+            events = [
+                json.loads(line)
+                for line in ledger.read_text(encoding="utf-8").splitlines()
+            ]
+            last = events[-1]
+            review_ref = last["evidence_refs"][0]
+            unrelated = root / "scripts/checks/score-testing-capability.py"
+            last["evidence_refs"] = [
+                review_ref,
+                {
+                    "path": "scripts/checks/score-testing-capability.py",
+                    "sha256": digest(unrelated),
+                },
+            ]
+            ledger.write_text(
+                "".join(
+                    json.dumps(event, separators=(",", ":")) + "\n"
+                    for event in events
+                ),
+                encoding="utf-8",
+            )
+            evidence["issue_ledger"]["sha256"] = digest(ledger)
+            with self.assertRaisesRegex(
+                score_module.ScoreError, "issue-specific independent"
+            ):
                 score_module.score(
                     evidence,
                     self.manifest,

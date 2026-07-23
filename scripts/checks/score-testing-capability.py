@@ -8,6 +8,7 @@ import hashlib
 import json
 import re
 import stat
+import subprocess
 from pathlib import Path, PurePosixPath
 from typing import Any
 
@@ -94,7 +95,7 @@ CANONICAL_RUBRIC = {
     ),
 }
 REQUIRED_ISSUE_IDS = {
-    f"GT244-TEST-{index:03d}" for index in range(1, 25)
+    f"GT244-TEST-{index:03d}" for index in range(1, 28)
 }
 CHECK_EVIDENCE_SUFFIXES = {
     "independent_test_roles": (
@@ -163,6 +164,26 @@ CHECK_EVIDENCE_SUFFIXES = {
 VERIFICATION_SUFFIX = (
     "docs/GoalTeamsWork-V2.44/versions/V2.44/evidence/verification-summary.json"
 )
+FULL_CHECK_LOG_SUFFIX = (
+    "docs/GoalTeamsWork-V2.44/versions/V2.44/evidence/full-check.log"
+)
+SCHEMA_LOG_SUFFIX = (
+    "docs/GoalTeamsWork-V2.44/versions/V2.44/evidence/schema-validation.log"
+)
+COMPLETION_AUDIT_SUFFIX = (
+    "docs/GoalTeamsWork-V2.44/versions/V2.44/evidence/completion-audit.json"
+)
+ISSUE_EVIDENCE_BY_DIMENSION = {
+    "role_independence": "schemas/v2.44/integration-test-plan.schema.json",
+    "machine_contracts": "scripts/checks/validate-test-case-contract.py",
+    "api_testing": "schemas/v2.44/test-case.schema.json",
+    "e2e_testing": "schemas/v2.44/test-case.schema.json",
+    "run_evidence": "scripts/checks/score-testing-capability.py",
+    "risk_environment_data_coverage": "references/test-case-assertion-protocol.md",
+    "real_behavior_benchmark": (
+        "scripts/benchmark/v244_testing_capability_scorer.py"
+    ),
+}
 
 
 class ScoreError(ValueError):
@@ -303,8 +324,26 @@ def validate_benchmark_summary(path: Path) -> None:
         or len(rows) != 9
     ):
         raise ScoreError("benchmark summary is not a complete passing run")
-    reference = [row for row in rows if isinstance(row, dict) and row.get("mode") == "reference"]
-    defects = [row for row in rows if isinstance(row, dict) and row.get("mode") != "reference"]
+    expected = [
+        ("reference", []),
+        ("api_auth_bypass", ["API-AUTH-001"]),
+        ("api_idempotency_broken", ["API-IDEMPOTENCY-001"]),
+        ("api_concurrency_race", ["API-CONCURRENCY-001"]),
+        ("api_eventual_consistency_stale", ["API-CONSISTENCY-001"]),
+        ("e2e_session_lost", ["E2E-SESSION-001"]),
+        ("e2e_double_click", ["E2E-DOUBLE-CLICK-001"]),
+        ("e2e_refresh_drops_state", ["E2E-REFRESH-001"]),
+        ("e2e_error_no_recovery", ["E2E-RECOVERY-001"]),
+    ]
+    simplified = [
+        (row.get("mode"), row.get("expected_detected_by"))
+        for row in rows
+        if isinstance(row, dict)
+    ]
+    if simplified != expected:
+        raise ScoreError("benchmark summary changed canonical modes or defects")
+    reference = [row for row in rows if row.get("mode") == "reference"]
+    defects = [row for row in rows if row.get("mode") != "reference"]
     if (
         len(reference) != 1
         or reference[0].get("score") != 10.0
@@ -318,15 +357,160 @@ def validate_benchmark_summary(path: Path) -> None:
         )
     ):
         raise ScoreError("benchmark summary does not prove canonical behavior")
+    for row in rows:
+        score_ref = row.get("score_ref")
+        evidence_ref = row.get("evidence_ref")
+        if not isinstance(score_ref, str) or not isinstance(evidence_ref, str):
+            raise ScoreError("benchmark row lacks score/evidence refs")
+        score_path = safe_relative_path(path.parent, score_ref)
+        safe_relative_path(path.parent, evidence_ref)
+        score = load_json(score_path)
+        if (
+            score.get("provenance_verified") is not True
+            or score.get("score") != row.get("score")
+            or score.get("not_run_count") != row.get("not_run_count")
+            or score.get("canonical_manifest_sha256")
+            != "3ace7d9b01e3ca08daf7eef294a5dbfc1c482805faf2426087e223c17bfb6cfe"
+        ):
+            raise ScoreError("benchmark score provenance is invalid")
+
+
+def _require_text_tokens(path: Path, tokens: tuple[str, ...]) -> None:
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        raise ScoreError(f"cannot inspect evidence content: {path}") from exc
+    if any(token not in text for token in tokens):
+        raise ScoreError(f"evidence content does not prove its claim: {path}")
+
+
+def validate_source_artifact(path: Path, suffix: str) -> None:
+    if suffix.endswith("integration-test-plan.schema.json"):
+        schema = load_json(path)
+        required = set(schema.get("required", []))
+        if (
+            schema.get("$schema") != "https://json-schema.org/draft/2020-12/schema"
+            or schema.get("properties", {})
+            .get("schema_version", {})
+            .get("const")
+            != "goal-teams-integration-test-plan-v2.44"
+            or not {
+                "revision",
+                "owner_identity",
+                "validator_identity",
+                "risk_coverage",
+                "api_case_refs",
+                "e2e_case_refs",
+            }
+            <= required
+        ):
+            raise ScoreError("integration test plan schema semantics are invalid")
+    elif suffix.endswith("test-case.schema.json"):
+        schema = load_json(path)
+        required = set(schema.get("required", []))
+        rendered = canonical_bytes(schema)
+        if (
+            schema.get("properties", {})
+            .get("schema_version", {})
+            .get("const")
+            != "goal-teams-test-case-v2.44"
+            or not {"test_file_refs", "assertions", "cleanup"} <= required
+            or any(
+                token not in rendered
+                for token in (
+                    b"risk_scenario",
+                    b"oracle_assertion_ref",
+                    b"concurrency",
+                    b"error_recovery",
+                )
+            )
+        ):
+            raise ScoreError("test case schema semantics are invalid")
+    elif suffix.endswith("test-run-result.schema.json"):
+        schema = load_json(path)
+        required = set(schema.get("required", []))
+        if (
+            schema.get("properties", {})
+            .get("schema_version", {})
+            .get("const")
+            != "goal-teams-test-run-result-v2.44"
+            or not {
+                "source_binding",
+                "runner_identity",
+                "attempts",
+                "retry",
+                "flake",
+                "cleanup",
+                "replay",
+            }
+            <= required
+        ):
+            raise ScoreError("test run result schema semantics are invalid")
+    elif suffix.endswith("prompt-cache-manifest.json"):
+        manifest = load_json(path)
+        routes = manifest.get("routes")
+        if (
+            not isinstance(routes, dict)
+            or "api_integration_testing_repository" not in routes
+            or "e2e_testing_repository" not in routes
+        ):
+            raise ScoreError("specialized prompt routes are missing")
+    elif suffix.endswith("api-integration-test-runner/prompt.md"):
+        _require_text_tokens(
+            path,
+            ("runner identity", "test-run-result", "真实 discovery", "fail→pass"),
+        )
+    elif suffix.endswith("e2e-test-runner/prompt.md"):
+        _require_text_tokens(
+            path,
+            ("runner identity", "test-run-result", "真实 discovery", "fail→pass"),
+        )
+    elif suffix.endswith("prompts/members/qa/prompt.md"):
+        _require_text_tokens(
+            path,
+            ("风险分母", "sha256", "test-run-result", "blocked/not_run"),
+        )
+    elif suffix.endswith("test-case-assertion-protocol.md"):
+        _require_text_tokens(
+            path,
+            (
+                "authorization",
+                "idempotency",
+                "concurrency",
+                "compensation",
+                "error recovery",
+                "oracle",
+            ),
+        )
+    elif suffix.endswith("validate-test-case-contract.py"):
+        _require_text_tokens(
+            path,
+            (
+                "E_V244_TEST_DISCOVERY",
+                "E_V244_RUN_ASSERTION_EVALUATION",
+                "E_V244_ARTIFACT_INTEGRITY",
+                "_evaluate_comparator",
+            ),
+        )
+    elif suffix.endswith("test_v244_test_contracts.py"):
+        _require_text_tokens(
+            path,
+            (
+                "test_each_risk_requires_dedicated_executable_scenario_and_oracle",
+                "test_run_result_recomputes_every_supported_comparator",
+                "test_run_result_checks_every_artifact_group",
+            ),
+        )
 
 
 def validate_verification_summary(
     evidence_root: Path, binding: Any, source_commit: Any
-) -> dict[str, str]:
+) -> tuple[dict[str, str], dict[str, Any]]:
     ref = validate_ref(evidence_root, binding)
     if not ref["path"].endswith(VERIFICATION_SUFFIX):
         raise ScoreError("verification summary path is not canonical")
     summary = load_json(safe_relative_path(evidence_root, ref["path"]))
+    receipts = summary.get("receipts")
     if (
         not isinstance(source_commit, str)
         or re.fullmatch(r"[0-9a-f]{40}", source_commit) is None
@@ -345,6 +529,14 @@ def validate_verification_summary(
             "runs": 2,
             "not_run": 0,
         }
+        or not isinstance(receipts, dict)
+        or set(receipts)
+        != {
+            "full_check",
+            "schema_validation",
+            "benchmark_runs",
+            "independent_review",
+        }
     ):
         raise ScoreError("verification summary is incomplete or mismatched")
     review = summary.get("independent_review")
@@ -358,7 +550,58 @@ def validate_verification_summary(
         or not review["run_id"]
     ):
         raise ScoreError("independent review is missing")
-    return ref
+    head = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if head.returncode != 0 or head.stdout.strip() != source_commit:
+        raise ScoreError("verification source commit is not current HEAD")
+    full_ref = validate_ref(evidence_root, receipts["full_check"])
+    schema_ref = validate_ref(evidence_root, receipts["schema_validation"])
+    review_ref = validate_ref(evidence_root, receipts["independent_review"])
+    benchmark_refs = receipts["benchmark_runs"]
+    if (
+        not full_ref["path"].endswith(FULL_CHECK_LOG_SUFFIX)
+        or not schema_ref["path"].endswith(SCHEMA_LOG_SUFFIX)
+        or not review_ref["path"].endswith(COMPLETION_AUDIT_SUFFIX)
+        or not isinstance(benchmark_refs, list)
+        or len(benchmark_refs) != 2
+    ):
+        raise ScoreError("verification receipt paths are not canonical")
+    full_log = safe_relative_path(evidence_root, full_ref["path"])
+    _require_text_tokens(
+        full_log,
+        ("OK (skipped=15)", "Installer lifecycle checks passed"),
+    )
+    match = re.search(r"Ran ([0-9]+) tests", full_log.read_text(encoding="utf-8"))
+    if match is None or int(match.group(1)) < 683:
+        raise ScoreError("full check receipt has an incomplete test count")
+    _require_text_tokens(
+        safe_relative_path(evidence_root, schema_ref["path"]),
+        ("Ajv strict", "3 schemas", "4 canonical examples", "PASS"),
+    )
+    audit = load_json(safe_relative_path(evidence_root, review_ref["path"]))
+    if (
+        audit.get("schema_version")
+        != "goal-teams-testing-capability-completion-audit-v2.44"
+        or audit.get("source_commit") != source_commit
+        or audit.get("status") != "passed"
+        or audit.get("member_id") != review.get("member_id")
+        or audit.get("run_id") != review.get("run_id")
+        or audit.get("findings") != []
+        or audit.get("resolved_issue_ids") != sorted(REQUIRED_ISSUE_IDS)
+    ):
+        raise ScoreError("independent completion audit receipt is invalid")
+    verified_benchmarks = [validate_ref(evidence_root, item) for item in benchmark_refs]
+    for item in verified_benchmarks:
+        validate_benchmark_summary(safe_relative_path(evidence_root, item["path"]))
+    return ref, {
+        "review_ref": review_ref,
+        "review_run_id": review["run_id"],
+    }
 
 
 def validate_check_evidence(
@@ -376,11 +619,21 @@ def validate_check_evidence(
         if suffix.endswith("self-check-summary.json"):
             for path in matches:
                 validate_benchmark_summary(safe_relative_path(evidence_root, path))
+        else:
+            for path in matches:
+                validate_source_artifact(
+                    safe_relative_path(evidence_root, path), suffix
+                )
     return verified
 
 
 def load_issue_projection(
-    evidence_root: Path, ledger_binding: Any, manifest: dict[str, Any]
+    evidence_root: Path,
+    ledger_binding: Any,
+    manifest: dict[str, Any],
+    *,
+    review_ref: dict[str, str],
+    review_run_id: str,
 ) -> tuple[dict[str, str], dict[str, Any]]:
     if not isinstance(ledger_binding, dict) or set(ledger_binding) != {
         "path",
@@ -481,9 +734,20 @@ def load_issue_projection(
             refs = event.get("evidence_refs")
             if not isinstance(refs, list) or not refs:
                 raise ScoreError(f"resolved issue lacks evidence at line {line_number}")
-            resolved_evidence[issue_id] = [
+            verified_resolution = [
                 validate_ref(evidence_root, item) for item in refs
             ]
+            required_suffix = ISSUE_EVIDENCE_BY_DIMENSION[expected["dimension"]]
+            paths = [item["path"] for item in verified_resolution]
+            if (
+                event["agent_run_id"] != review_run_id
+                or review_ref not in verified_resolution
+                or not any(path.endswith(required_suffix) for path in paths)
+            ):
+                raise ScoreError(
+                    f"resolved issue lacks issue-specific independent evidence at line {line_number}"
+                )
+            resolved_evidence[issue_id] = verified_resolution
         seen_events.add(event_id)
         projection[issue_id] = status
 
@@ -517,7 +781,7 @@ def score(
     validate_canonical_manifest(manifest)
     if evidence.get("schema_version") != EVIDENCE_SCHEMA:
         raise ScoreError("unsupported evidence schema")
-    validate_verification_summary(
+    _verification_ref, verification = validate_verification_summary(
         evidence_root,
         evidence.get("verification_summary"),
         evidence.get("source_commit"),
@@ -594,7 +858,11 @@ def score(
         )
 
     projection, issue_summary = load_issue_projection(
-        evidence_root, evidence.get("issue_ledger"), manifest
+        evidence_root,
+        evidence.get("issue_ledger"),
+        manifest,
+        review_ref=verification["review_ref"],
+        review_run_id=verification["review_run_id"],
     )
     achieved = (
         total == manifest.get("target_score")

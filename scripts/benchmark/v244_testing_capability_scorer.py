@@ -8,7 +8,9 @@ import hashlib
 import json
 import sqlite3
 import stat
+import struct
 import uuid
+import zlib
 from pathlib import Path, PurePosixPath
 from typing import Any
 
@@ -230,8 +232,52 @@ def _screenshot_observed(evidence: dict[str, Any], evidence_root: Path) -> bool:
             evidence.get("screenshot"),
             expected_media_type="image/png",
         )
-        return path.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"
-    except (OSError, ScoreError):
+        data = path.read_bytes()
+        if data[:8] != b"\x89PNG\r\n\x1a\n":
+            return False
+        offset = 8
+        chunks: list[tuple[bytes, bytes]] = []
+        while offset < len(data):
+            if offset + 12 > len(data):
+                return False
+            length = struct.unpack(">I", data[offset : offset + 4])[0]
+            chunk_type = data[offset + 4 : offset + 8]
+            end = offset + 12 + length
+            if end > len(data):
+                return False
+            payload = data[offset + 8 : offset + 8 + length]
+            expected_crc = struct.unpack(">I", data[offset + 8 + length : end])[0]
+            if zlib.crc32(chunk_type + payload) & 0xFFFFFFFF != expected_crc:
+                return False
+            chunks.append((chunk_type, payload))
+            offset = end
+            if chunk_type == b"IEND":
+                break
+        if offset != len(data) or not chunks or chunks[0][0] != b"IHDR":
+            return False
+        ihdr = chunks[0][1]
+        if len(ihdr) != 13:
+            return False
+        width, height, bit_depth, color_type, compression, filtering, interlace = (
+            struct.unpack(">IIBBBBB", ihdr)
+        )
+        channels = {0: 1, 2: 3, 4: 2, 6: 4}.get(color_type)
+        if (
+            (width, height) != (1280, 720)
+            or bit_depth != 8
+            or channels is None
+            or compression != 0
+            or filtering != 0
+            or interlace != 0
+            or chunks[-1] != (b"IEND", b"")
+        ):
+            return False
+        compressed = b"".join(payload for kind, payload in chunks if kind == b"IDAT")
+        if not compressed:
+            return False
+        decoded = zlib.decompress(compressed)
+        return len(decoded) == height * (1 + width * channels)
+    except (OSError, ScoreError, struct.error, zlib.error):
         return False
 
 

@@ -50,7 +50,7 @@ E2E 计划和用例必须按适用性显式处理：
 
 每次测试计划先列出需求、接口、用户旅程、角色权限、状态转移、失败模式和受影响数据的 coverage denominator，再把每个条目映射到用例和 Evidence。未覆盖项必须保留为 open issue 或结构化 waiver。
 
-问题账本 append-only：已发现问题保留稳定 `issue_id`；每个问题先有且只有一个 `discovered/open`，关闭通过新增 `resolved` event 记录摘要绑定、哈希证据和验证 run，不得删除、改写或用 resolved-only 历史替换 discovery。未来发现的新问题必须在本次评分前登记，并关联一个评分维度；manifest 与账本问题集合、dimension、summary 必须完全一致。waiver 不计入满分。
+问题账本 append-only：已发现问题保留稳定 `issue_id`；每个问题先有且只有一个 `discovered/open`，关闭通过新增 `resolved` event 记录摘要绑定、问题所属维度的修复 artifact、独立 Completion Audit 哈希 receipt 与完全相同的审计 run ID，不得删除、改写、复用无关 proof 或用 resolved-only 历史替换 discovery。未来发现的新问题必须在本次评分前登记，并关联一个评分维度；manifest 与账本问题集合、dimension、summary 必须完全一致。waiver 不计入满分。
 
 ## 100 分门禁
 

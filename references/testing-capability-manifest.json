@@ -216,6 +216,21 @@
       "id": "GT244-TEST-024",
       "dimension": "run_evidence",
       "summary": "总能力评分的检查项可绑定与该检查无关的任意哈希文件"
+    },
+    {
+      "id": "GT244-TEST-025",
+      "dimension": "run_evidence",
+      "summary": "总能力评分只校验路径后缀和自报状态，未验证证据内容与执行收据"
+    },
+    {
+      "id": "GT244-TEST-026",
+      "dimension": "run_evidence",
+      "summary": "全部问题可复用同一个无关文件完成 resolved，未绑定问题专属修复和独立验证"
+    },
+    {
+      "id": "GT244-TEST-027",
+      "dimension": "real_behavior_benchmark",
+      "summary": "Benchmark 截图只校验 PNG 文件头，未验证可解码结构、尺寸和浏览器运行来源"
     }
   ]
 }
