@@ -1,0 +1,241 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.44/integration-test-plan.schema.json",
+  "title": "Goal Teams V2.44 API and E2E Integration Test Plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "plan_id",
+    "project_version",
+    "acceptance_refs",
+    "scope",
+    "environments",
+    "data_strategy",
+    "risk_coverage",
+    "api_case_refs",
+    "e2e_case_refs",
+    "execution",
+    "entry_criteria",
+    "exit_criteria",
+    "evidence_refs"
+  ],
+  "properties": {
+    "schema_version": {"const": "goal-teams-integration-test-plan-v2.44"},
+    "plan_id": {"type": "string", "minLength": 1},
+    "project_version": {"type": "string", "pattern": "^V[0-9]+\\.[0-9]+$"},
+    "acceptance_refs": {"$ref": "#/$defs/nonemptyStrings"},
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["services", "user_journeys", "excluded_with_reason"],
+      "properties": {
+        "services": {"$ref": "#/$defs/nonemptyStrings"},
+        "user_journeys": {"$ref": "#/$defs/nonemptyStrings"},
+        "excluded_with_reason": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["scope", "reason"],
+            "properties": {
+              "scope": {"type": "string", "minLength": 1},
+              "reason": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      }
+    },
+    "environments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["environment_id", "base_url", "config_refs", "health_checks"],
+        "properties": {
+          "environment_id": {"type": "string", "minLength": 1},
+          "base_url": {"type": "string", "pattern": "^https?://"},
+          "config_refs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/artifactRef"}},
+          "health_checks": {"$ref": "#/$defs/nonemptyStrings"}
+        }
+      }
+    },
+    "data_strategy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["seed_refs", "isolation", "reset", "sensitive_data"],
+      "properties": {
+        "seed_refs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/artifactRef"}},
+        "isolation": {"type": "string", "minLength": 1},
+        "reset": {"type": "string", "minLength": 1},
+        "sensitive_data": {"enum": ["synthetic_only", "redacted_fixture"]}
+      }
+    },
+    "risk_coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["risks", "summary"],
+      "properties": {
+        "risks": {
+          "type": "array",
+          "minItems": 11,
+          "items": {"$ref": "#/$defs/risk"}
+        },
+        "summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["total", "applicable", "covered", "uncovered", "not_applicable", "coverage_rate"],
+          "properties": {
+            "total": {"type": "integer", "minimum": 1},
+            "applicable": {"type": "integer", "minimum": 0},
+            "covered": {"type": "integer", "minimum": 0},
+            "uncovered": {"type": "integer", "minimum": 0},
+            "not_applicable": {"type": "integer", "minimum": 0},
+            "coverage_rate": {"type": "number", "minimum": 0, "maximum": 1}
+          }
+        }
+      }
+    },
+    "api_case_refs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/artifactRef"}},
+    "e2e_case_refs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/artifactRef"}},
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["api_command", "e2e_command", "ordering", "parallelism", "timeout_seconds"],
+      "properties": {
+        "api_command": {"$ref": "#/$defs/command"},
+        "e2e_command": {"$ref": "#/$defs/command"},
+        "ordering": {"enum": ["api_before_e2e", "independent"]},
+        "parallelism": {"type": "integer", "minimum": 1},
+        "timeout_seconds": {"type": "integer", "minimum": 1}
+      }
+    },
+    "entry_criteria": {"$ref": "#/$defs/nonemptyStrings"},
+    "exit_criteria": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required_pass_rate",
+        "max_failed",
+        "max_flaky",
+        "cleanup_required",
+        "replay_required"
+      ],
+      "properties": {
+        "required_pass_rate": {"const": 1},
+        "max_failed": {"const": 0},
+        "max_flaky": {"const": 0},
+        "cleanup_required": {"const": true},
+        "replay_required": {"const": true}
+      }
+    },
+    "evidence_refs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/artifactRef"}}
+  },
+  "$defs": {
+    "nonemptyStrings": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "artifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "discovery"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "discovery": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "selector"],
+          "properties": {
+            "kind": {"enum": ["pytest_node", "glob", "manifest", "command", "artifact"]},
+            "selector": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    },
+    "command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["argv", "cwd"],
+      "properties": {
+        "argv": {"$ref": "#/$defs/nonemptyStrings"},
+        "cwd": {"type": "string", "minLength": 1}
+      }
+    },
+    "risk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "risk_id",
+        "domain",
+        "category",
+        "source_ref",
+        "severity",
+        "applicability",
+        "case_refs",
+        "coverage_state"
+      ],
+      "properties": {
+        "risk_id": {"type": "string", "minLength": 1},
+        "domain": {"enum": ["api", "e2e"]},
+        "category": {
+          "enum": [
+            "authorization",
+            "idempotency",
+            "retry",
+            "concurrency",
+            "compensation",
+            "final_consistency",
+            "session",
+            "permission",
+            "refresh",
+            "double_click",
+            "error_recovery",
+            "validation",
+            "loading_disabled",
+            "back_navigation",
+            "multi_tab"
+          ]
+        },
+        "source_ref": {"type": "string", "minLength": 1},
+        "severity": {"enum": ["critical", "high", "medium", "low"]},
+        "applicability": {"enum": ["applicable", "not_applicable"]},
+        "case_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "coverage_state": {
+          "enum": ["covered", "uncovered", "blocked", "not_run", "unavailable", "unknown", "flaky", "not_applicable"]
+        },
+        "not_applicable_reason": {"type": "string", "minLength": 1},
+        "review_acceptance_ref": {"type": "string", "minLength": 1}
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "applicability": {"const": "applicable"},
+            "coverage_state": {"not": {"const": "not_applicable"}},
+            "case_refs": {"type": "array", "minItems": 1},
+            "not_applicable_reason": false,
+            "review_acceptance_ref": false
+          }
+        },
+        {
+          "properties": {
+            "applicability": {"const": "not_applicable"},
+            "coverage_state": {"const": "not_applicable"},
+            "case_refs": {"type": "array", "maxItems": 0},
+            "not_applicable_reason": {"type": "string", "minLength": 1},
+            "review_acceptance_ref": {"type": "string", "minLength": 1}
+          },
+          "required": ["not_applicable_reason", "review_acceptance_ref"]
+        }
+      ]
+    }
+  }
+}

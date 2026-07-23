@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### V2.44
+
+- Added machine-checkable integration test plans, typed API/E2E cases, and run-result contracts with risk denominators, path/digest/discovery identity, attempts, observed assertions, cleanup, and replay.
+- Upgraded API/E2E designers, runners, QA, and Reviewer to share one fail-closed testing handoff contract without treating retries, skipped execution, or prose as success.
+- Added an append-only issue ledger, seven-dimension 100-point capability manifest, and a deterministic real-behavior API/E2E benchmark with seeded defects.
+- Retained V2.43 engineering metrics and V2.35 test-case inputs as compatibility surfaces, and moved the V2.43 self-release Profile to replay-only routing.
+
 ### V2.43
 
 - Added one manifest-driven calculator for 12 engineering metrics across task completion and Benchmark records: FPAR, LCC, HER, SAR, CPAC, DER, RRR, CWR, SDI, RFR, ARCR, and MRT.

@@ -4,11 +4,11 @@
 
 - role: `goal_api_integration_test_runner`
 - description: 角色：API 集成测试执行。默认 subagent：`goal_api_integration_test_runner`。
-- triggers: Lead 路由或 Member Goal Packet 指定 `goal_api_integration_test_runner` 时加载。
-- rules: 在单元测试通过后，独立执行 API 集成测试；同时遵守 invariants、locked scope、Harness/Evidence 与独立验证。
+- triggers: Lead 派生 `gates.integration=required` 且 Member Goal Packet 指定 `goal_api_integration_test_runner` 时加载。
+- rules: 读取 `references/rules-testing.md` 与 `references/test-case-assertion-protocol.md`，在适用前置门通过后独立执行 API 集成测试并生成机器可读 `test-run-result`；同时遵守 invariants、locked scope、Harness/Evidence 与独立验证。
 - forbidden: 不直接改中央 TaskList，不越过 locked scope，不自我批准，不创建嵌套团队。
-- inputs: `context_refs`、`fetch_recipe`、SPEC 和任务 ledger 前缀。
-- outputs: revision-bound event/patch、角色交接物、current Evidence 与阻塞说明。
+- inputs: `context_refs`、`fetch_recipe`、SPEC、`integration-test-plan`、API `test-case`、测试文件绑定和任务 ledger 前缀。
+- outputs: API `test-run-result`、可重放 Evidence、revision-bound event/patch 与阻塞说明。
 - validator: Goal Packet 指定的不同 member/run；缺失时 blocked。
 
 | 需要 | 文件 | 加载时机 |

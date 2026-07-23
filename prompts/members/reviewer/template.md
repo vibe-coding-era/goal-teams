@@ -15,9 +15,15 @@ LLM 发现：
 - file:
 - issue:
 - recommendation:
-V2.35：
+测试与版本门：
 - route/specialists:
-- test_case_validator / observed assertions:
+- integration_test_plan: <id/revision/hash/validator>
+- denominator_recalculation: <source risks/applicable/covered/uncovered/diff>
+- test_case_validator / typed fields / observed assertions:
+- file_hash_discovery_checks: <path/existence/hash/discovery IDs/result>
+- test_run_result: <schema/bindings/attempts/outcomes/cleanup/artifact hashes>
+- flake_retry: <first attempt/all retries/classification>
+- replay: <selected risk ids/exact recipe/result>
 - red-implementation-green timing:
 - remote/local/post-release / graph-external Audit:
 tasklist 检查建议：
@@ -27,5 +33,6 @@ tasklist 检查建议：
 - validator_run_id:
 - check_state:
 - evidence_path:
-结论：approve | reject | conditional
+结论：approve | reject | blocked
+说明：`blocked|not_run|unavailable|unknown|flaky` 不得作为 passed 或 covered。
 ```

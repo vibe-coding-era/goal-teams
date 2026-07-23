@@ -73,6 +73,7 @@
     "references/profiles/goal-teams-self-release-v2.41.md",
     "references/profiles/goal-teams-self-release-v2.42.md",
     "references/profiles/goal-teams-self-release-v2.43.md",
+    "references/profiles/goal-teams-self-release-v2.44.md",
     "references/flow-clarification-protocol.md",
     "references/agent-runtime-capability-contract.md",
     "references/rules-project-sizing.md",
@@ -87,7 +88,7 @@
   "routes": {
     "installed_startup": {
       "ordered_refs": ["SKILL.md", "agents/openai.yaml", "RULES.md", "references/flow-clarification-protocol.md"],
-      "limit_bytes": 20480,
+      "limit_bytes": 21504,
       "dynamic_tail_labels": ["user_request"]
     },
     "repository_startup": {
@@ -101,7 +102,7 @@
       "dynamic_tail_labels": ["route_facts", "user_request"]
     },
     "self_release_execution_repository": {
-      "ordered_refs": [".agents/skills/goal-teams/SKILL.md", "SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "references/goal-teams-core-v2.5.md", "references/profiles/goal-teams-self-release-v2.43.md", "references/rules-loop.md", "prompts/lead/loop.md"],
+      "ordered_refs": [".agents/skills/goal-teams/SKILL.md", "SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "references/goal-teams-core-v2.5.md", "references/profiles/goal-teams-self-release-v2.44.md", "references/rules-loop.md", "prompts/lead/loop.md"],
       "limit_bytes": 81920,
       "dynamic_tail_labels": ["route_receipt", "iteration_state", "user_request"]
     },
@@ -125,8 +126,18 @@
       "limit_bytes": 81920,
       "dynamic_tail_labels": ["test_case_contract", "member_assignment"]
     },
+    "api_integration_testing_repository": {
+      "ordered_refs": [".agents/skills/goal-teams/SKILL.md", "SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "references/rules-testing.md", "references/test-case-assertion-protocol.md", "references/testing-capability-protocol.md", "references/testing-capability-manifest.json", "prompts/members/api-integration-test-designer/INDEX.md", "prompts/members/api-integration-test-designer/prompt.md", "prompts/members/api-integration-test-runner/INDEX.md", "prompts/members/api-integration-test-runner/prompt.md"],
+      "limit_bytes": 98304,
+      "dynamic_tail_labels": ["integration_test_plan", "api_test_case_contract", "member_assignment"]
+    },
+    "e2e_testing_repository": {
+      "ordered_refs": [".agents/skills/goal-teams/SKILL.md", "SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "references/rules-testing.md", "references/test-case-assertion-protocol.md", "references/testing-capability-protocol.md", "references/testing-capability-manifest.json", "prompts/members/e2e-test-designer/INDEX.md", "prompts/members/e2e-test-designer/prompt.md", "prompts/members/e2e-test-runner/INDEX.md", "prompts/members/e2e-test-runner/prompt.md"],
+      "limit_bytes": 98304,
+      "dynamic_tail_labels": ["integration_test_plan", "e2e_test_case_contract", "browser_capabilities", "member_assignment"]
+    },
     "review_repository": {
-      "ordered_refs": [".agents/skills/goal-teams/SKILL.md", "SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "references/dual-review-protocol.md", "prompts/lead/audit.md", "prompts/members/reviewer/INDEX.md", "prompts/members/reviewer/prompt.md"],
+      "ordered_refs": [".agents/skills/goal-teams/SKILL.md", "SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "references/dual-review-protocol.md", "references/testing-capability-protocol.md", "references/testing-capability-manifest.json", "prompts/lead/audit.md", "prompts/members/reviewer/INDEX.md", "prompts/members/reviewer/prompt.md"],
       "limit_bytes": 98304,
       "dynamic_tail_labels": ["artifact_identity", "evidence_refs"]
     },
@@ -151,13 +162,13 @@
       "dynamic_tail_labels": ["usage_events", "sample_boundary"]
     },
     "benchmark": {
-      "ordered_refs": ["SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "references/goal-teams-automation-protocol.md", "references/runtime/02-harness-benchmark-loop.md", "references/prompt-cache-protocol.md", "references/engineering-metrics-protocol.md", "references/engineering-metrics-manifest.json"],
-      "limit_bytes": 122880,
+      "ordered_refs": ["SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "references/goal-teams-automation-protocol.md", "references/runtime/02-harness-benchmark-loop.md", "references/testing-capability-protocol.md", "references/testing-capability-manifest.json", "references/prompt-cache-protocol.md", "references/engineering-metrics-protocol.md", "references/engineering-metrics-manifest.json"],
+      "limit_bytes": 131072,
       "dynamic_tail_labels": ["benchmark_manifest", "scenario_input"]
     },
     "production": {
       "ordered_refs": ["SKILL.md", "agents/openai.yaml", "RULES.md", "references/invariants.md", "references/goal-teams-production-pipeline.md", "references/goal-teams-scripted-tooling.md", "references/prompt-cache-protocol.md"],
-      "limit_bytes": 57344,
+      "limit_bytes": 58368,
       "dynamic_tail_labels": ["pipeline_state", "approval_receipt"]
     },
     "runtime_loop": {
@@ -167,12 +178,12 @@
     },
     "backend": {
       "ordered_refs": ["RULES.md", "references/compat.md", "references/invariants.md", "references/rules-testing.md"],
-      "limit_bytes": 40960,
+      "limit_bytes": 45056,
       "dynamic_tail_labels": ["route_facts"]
     },
     "structured_policy": {
-      "ordered_refs": ["RULES.md", "references/compat.md", "references/agent-runtime-capability-contract.md", "references/flow-clarification-protocol.md", "references/goal-teams-core-v2.5.md", "references/dual-review-protocol.md", "references/invariants.md", "references/profiles/goal-teams-self-release-v2.36.md", "references/profiles/goal-teams-self-release-v2.38.md", "references/profiles/goal-teams-self-release-v2.39.md", "references/profiles/goal-teams-self-release-v2.40.md", "references/profiles/goal-teams-self-release-v2.41.md", "references/profiles/goal-teams-self-release-v2.42.md", "references/profiles/goal-teams-self-release-v2.43.md", "references/rules-project-sizing.md", "references/rules-specialists.md", "references/rules-loop.md", "references/rules-testing.md", "references/rules-ui.md", "references/test-case-assertion-protocol.md", "references/ui-e2e-pixel-protocol.md", "references/ui-visual-contract-protocol.md"],
-      "limit_bytes": 139264,
+      "ordered_refs": ["RULES.md", "references/compat.md", "references/agent-runtime-capability-contract.md", "references/flow-clarification-protocol.md", "references/goal-teams-core-v2.5.md", "references/dual-review-protocol.md", "references/invariants.md", "references/profiles/goal-teams-self-release-v2.36.md", "references/profiles/goal-teams-self-release-v2.38.md", "references/profiles/goal-teams-self-release-v2.39.md", "references/profiles/goal-teams-self-release-v2.40.md", "references/profiles/goal-teams-self-release-v2.41.md", "references/profiles/goal-teams-self-release-v2.42.md", "references/profiles/goal-teams-self-release-v2.43.md", "references/profiles/goal-teams-self-release-v2.44.md", "references/rules-project-sizing.md", "references/rules-specialists.md", "references/rules-loop.md", "references/rules-testing.md", "references/rules-ui.md", "references/test-case-assertion-protocol.md", "references/testing-capability-protocol.md", "references/ui-e2e-pixel-protocol.md", "references/ui-visual-contract-protocol.md"],
+      "limit_bytes": 155648,
       "selection_mode": "ordered_subset_of_policy_rule_set",
       "dynamic_tail_labels": ["normalized_route_facts", "execution_contract", "user_request"]
     },

@@ -22,7 +22,7 @@ PUBLISHED_VERSION = "V2.40"
 GENERAL_CORE_POLICY_VERSION = "V2.5"
 LEGACY_DATA_SCHEMA_VERSION = "V2.3"
 CORE_POLICY_PROFILE = "goal-teams-core-v2.5"
-SELF_RELEASE_POLICY_PROFILE = "goal-teams-self-release-v2.43"
+SELF_RELEASE_POLICY_PROFILE = "goal-teams-self-release-v2.44"
 STARTUP_LINE = f"我是 Goal Teams Lead {CURRENT_VERSION}。"
 COMPATIBILITY_MARKER = (
     f"我是 Goal Teams Leader {CURRENT_VERSION}，使用 Goal + Plan 模式帮你完成规划、执行和交付，"
@@ -55,6 +55,7 @@ REQUIRED_FILES = [
     "references/profiles/goal-teams-self-release-v2.41.md",
     "references/profiles/goal-teams-self-release-v2.42.md",
     "references/profiles/goal-teams-self-release-v2.43.md",
+    "references/profiles/goal-teams-self-release-v2.44.md",
     "references/profiles/goal-teams-self-release-v2.39.md",
     "references/profiles/goal-teams-self-release-v2.38.md",
     "references/prompt-cache-manifest.json",
@@ -66,6 +67,8 @@ REQUIRED_FILES = [
     "references/rules-project-sizing.md",
     "references/rules-specialists.md",
     "references/test-case-assertion-protocol.md",
+    "references/testing-capability-protocol.md",
+    "references/testing-capability-manifest.json",
     "references/goal-teams-automation-protocol.md",
     "references/goal-teams-production-pipeline.md",
     "references/goal-teams-scripted-tooling.md",
@@ -120,6 +123,7 @@ REQUIRED_FILES = [
     "prompts/packets/requirement-card.md",
     "prompts/packets/doc-capsule.md",
     "prompts/packets/harness-contract.md",
+    "prompts/packets/testing-capability-issue-ledger.md",
     "prompts/packets/team-plan-table.md",
     "prompts/packets/dual-review-record.md",
     "scripts/check.sh",
@@ -140,12 +144,15 @@ REQUIRED_FILES = [
     "scripts/checks/check-agent-names.py",
     "scripts/checks/check-member-layout.py",
     "scripts/checks/validate-test-case-contract.py",
+    "scripts/checks/score-testing-capability.py",
     "scripts/v23/v236_security.py",
     "scripts/v23/v236_trust.py",
     "scripts/v23/v236_acceptance.py",
     "scripts/harness/validate-harness.py",
     "scripts/harness/pixel-diff.py",
     "scripts/benchmark/benchmark-runner.py",
+    "scripts/benchmark/v244_testing_capability_runner.py",
+    "scripts/benchmark/v244_testing_capability_scorer.py",
     "scripts/review/compare-artifacts.py",
     "scripts/review/validate-dual-review.py",
     "scripts/install/install-local.sh",
@@ -154,6 +161,9 @@ REQUIRED_FILES = [
     "scripts/release/github_adapter.py",
     "scripts/release/public_scan.py",
     "schemas/v2.43/engineering-metrics.schema.json",
+    "schemas/v2.44/integration-test-plan.schema.json",
+    "schemas/v2.44/test-case.schema.json",
+    "schemas/v2.44/test-run-result.schema.json",
     "tests/v23/test_v243_engineering_metrics.py",
     "scripts/release/build-release.py",
     "scripts/release/validate-release.py",
@@ -188,6 +198,13 @@ REQUIRED_FILES = [
     "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/spec/test-plan.md",
     "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/spec/acceptance.md",
     "benchmarks/README.md",
+    "benchmarks/tasks/GT-BENCH-005/task.md",
+    "benchmarks/tasks/GT-BENCH-005/harness.md",
+    "benchmarks/tasks/GT-BENCH-005/scoring.md",
+    "benchmarks/tasks/GT-BENCH-005/expected-artifacts.md",
+    "tests/v23/test_v244_test_contracts.py",
+    "tests/v23/test_v244_testing_capability_benchmark.py",
+    "tests/v23/test_v244_testing_capability_score.py",
     "benchmarks/tasks/GT-BENCH-001/task.md",
     "benchmarks/tasks/GT-BENCH-001/harness.md",
     "benchmarks/tasks/GT-BENCH-001/scoring.md",
@@ -469,7 +486,7 @@ FILE_RULES = {
         "references/rules-testing.md",
         "references/rules-loop.md",
         "references/goal-teams-core-v2.5.md",
-        "references/profiles/goal-teams-self-release-v2.43.md",
+        "references/profiles/goal-teams-self-release-v2.44.md",
         "references/flow-clarification-protocol.md",
         "references/agent-runtime-capability-contract.md",
         "references/rules-project-sizing.md",
@@ -529,7 +546,7 @@ FILE_RULES = {
         "`standard`",
         "显式提供时必须与派生值完全一致",
     ),
-    "references/profiles/goal-teams-self-release-v2.43.md": (
+    "references/profiles/goal-teams-self-release-v2.44.md": (
         SELF_RELEASE_POLICY_PROFILE,
         "52",
         "iteration 9",
@@ -755,11 +772,12 @@ def check_skill_frontmatter() -> None:
         version,
         GENERAL_CORE_POLICY_VERSION,
         LEGACY_DATA_SCHEMA_VERSION,
-        "V2.42",  # replay-only self-release Profile retained by V2.43
-        "V2.41",  # replay-only self-release Profile retained by V2.43
-        "V2.40",  # replay-only self-release Profile retained by V2.43
-        "V2.39",  # replay-only self-release Profile retained by V2.43
-        "V2.38",  # replay-only prompt/profile identity retained by V2.43
+        "V2.43",  # replay-only self-release Profile retained by V2.44
+        "V2.42",  # replay-only self-release Profile retained by V2.44
+        "V2.41",  # replay-only self-release Profile retained by V2.44
+        "V2.40",  # replay-only self-release Profile retained by V2.44
+        "V2.39",  # replay-only self-release Profile retained by V2.44
+        "V2.38",  # replay-only prompt/profile identity retained by V2.44
     }
     missing_versions = sorted(allowed_versions - skill_versions)
     if missing_versions:
@@ -781,7 +799,7 @@ def check_skill_frontmatter() -> None:
         "references/rules-testing.md",
         "references/rules-loop.md",
         "references/goal-teams-core-v2.5.md",
-        "references/profiles/goal-teams-self-release-v2.43.md",
+        "references/profiles/goal-teams-self-release-v2.44.md",
         "references/prompt-cache-manifest.json",
         "prompts/lead/core.md",
         "prompts/lead/planning.md",
@@ -961,6 +979,7 @@ def check_key_rules() -> None:
             "references/rules-testing.md",
             "references/rules-loop.md",
             "references/goal-teams-core-v2.5.md",
+            "references/profiles/goal-teams-self-release-v2.44.md",
             "references/profiles/goal-teams-self-release-v2.43.md",
             "references/profiles/goal-teams-self-release-v2.39.md",
             "references/profiles/goal-teams-self-release-v2.38.md",

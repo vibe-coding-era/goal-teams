@@ -1,0 +1,370 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.44/test-case.schema.json",
+  "title": "Goal Teams V2.44 Typed API and E2E Test Case",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "case_id",
+    "test_kind",
+    "acceptance_refs",
+    "test_file_refs",
+    "setup",
+    "assertions",
+    "cleanup"
+  ],
+  "properties": {
+    "schema_version": {"const": "goal-teams-test-case-v2.44"},
+    "case_id": {"type": "string", "minLength": 1},
+    "test_kind": {"enum": ["api", "e2e"]},
+    "acceptance_refs": {"$ref": "#/$defs/nonemptyStrings"},
+    "test_file_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/artifactRef"}
+    },
+    "setup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["preconditions", "data_refs"],
+      "properties": {
+        "preconditions": {"$ref": "#/$defs/nonemptyStrings"},
+        "data_refs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/artifactRef"}}
+      }
+    },
+    "api": {"$ref": "#/$defs/apiCase"},
+    "e2e": {"$ref": "#/$defs/e2eCase"},
+    "assertions": {
+      "type": "array",
+      "minItems": 2,
+      "items": {"$ref": "#/$defs/assertion"}
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "steps", "verification_assertion_refs"],
+      "properties": {
+        "required": {"const": true},
+        "steps": {"$ref": "#/$defs/nonemptyStrings"},
+        "verification_assertion_refs": {"$ref": "#/$defs/nonemptyStrings"}
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "test_kind": {"const": "api"},
+        "api": {"$ref": "#/$defs/apiCase"},
+        "e2e": false
+      },
+      "required": ["api"]
+    },
+    {
+      "properties": {
+        "test_kind": {"const": "e2e"},
+        "api": false,
+        "e2e": {"$ref": "#/$defs/e2eCase"}
+      },
+      "required": ["e2e"]
+    }
+  ],
+  "$defs": {
+    "nonemptyStrings": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "artifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "discovery"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "discovery": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "selector"],
+          "properties": {
+            "kind": {"enum": ["pytest_node", "glob", "manifest", "command", "artifact"]},
+            "selector": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    },
+    "riskControl": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": {"enum": ["covered", "not_applicable"]},
+        "assertion_refs": {"$ref": "#/$defs/nonemptyStrings"},
+        "rationale": {"type": "string", "minLength": 1}
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "status": {"const": "covered"},
+            "assertion_refs": {"$ref": "#/$defs/nonemptyStrings"},
+            "rationale": false
+          },
+          "required": ["assertion_refs"]
+        },
+        {
+          "properties": {
+            "status": {"const": "not_applicable"},
+            "assertion_refs": false,
+            "rationale": {"type": "string", "minLength": 1}
+          },
+          "required": ["rationale"]
+        }
+      ]
+    },
+    "assertion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assertion_id", "actual_ref", "comparator"],
+      "properties": {
+        "assertion_id": {"type": "string", "minLength": 1},
+        "actual_ref": {"type": "string", "minLength": 1},
+        "comparator": {
+          "enum": [
+            "equals",
+            "not_equals",
+            "contains",
+            "member_of",
+            "less_than",
+            "less_than_or_equal",
+            "greater_than",
+            "greater_than_or_equal",
+            "json_subset",
+            "sequence_equals",
+            "sha256_equals",
+            "status_code_equals",
+            "visible",
+            "not_visible"
+          ]
+        },
+        "expected_ref": {"type": "string", "minLength": 1},
+        "expected_value": true
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "expected_ref": {"type": "string", "minLength": 1},
+            "expected_value": false
+          },
+          "required": ["expected_ref"]
+        },
+        {
+          "properties": {
+            "expected_ref": false,
+            "expected_value": true
+          },
+          "required": ["expected_value"]
+        }
+      ]
+    },
+    "apiCase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "path",
+        "auth",
+        "request",
+        "pre_state",
+        "processing",
+        "expected",
+        "risk_coverage"
+      ],
+      "properties": {
+        "method": {"enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]},
+        "path": {"type": "string", "pattern": "^/"},
+        "auth": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "persona"],
+          "properties": {
+            "mode": {"enum": ["none", "bearer", "basic", "api_key", "cookie", "mTLS"]},
+            "persona": {"type": "string", "minLength": 1},
+            "credential_ref": {"type": "string", "minLength": 1}
+          }
+        },
+        "request": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["headers", "path_params", "query", "body"],
+          "properties": {
+            "headers": {"type": "object"},
+            "path_params": {"type": "object"},
+            "query": {"type": "object"},
+            "body": {}
+          }
+        },
+        "pre_state": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state_refs", "values"],
+          "properties": {
+            "state_refs": {"$ref": "#/$defs/nonemptyStrings"},
+            "values": {"type": "object", "minProperties": 1}
+          }
+        },
+        "processing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["target", "consumed_input_refs"],
+          "properties": {
+            "target": {"type": "string", "minLength": 1},
+            "consumed_input_refs": {"$ref": "#/$defs/nonemptyStrings"}
+          }
+        },
+        "expected": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "headers", "body", "post_state", "side_effects"],
+          "properties": {
+            "status": {"type": "integer", "minimum": 100, "maximum": 599},
+            "headers": {"type": "object"},
+            "body": {},
+            "post_state": {"type": "object", "minProperties": 1},
+            "side_effects": {"$ref": "#/$defs/nonemptyStrings"}
+          }
+        },
+        "risk_coverage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["authorization", "idempotency", "retry", "concurrency", "compensation", "final_consistency"],
+          "properties": {
+            "authorization": {"$ref": "#/$defs/riskControl"},
+            "idempotency": {"$ref": "#/$defs/riskControl"},
+            "retry": {"$ref": "#/$defs/riskControl"},
+            "concurrency": {"$ref": "#/$defs/riskControl"},
+            "compensation": {"$ref": "#/$defs/riskControl"},
+            "final_consistency": {"$ref": "#/$defs/riskControl"}
+          }
+        }
+      }
+    },
+    "e2eCase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "persona",
+        "session",
+        "initial_state",
+        "browser",
+        "actions",
+        "checkpoints",
+        "final_state",
+        "risk_coverage"
+      ],
+      "properties": {
+        "persona": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["role", "permissions"],
+          "properties": {
+            "role": {"type": "string", "minLength": 1},
+            "permissions": {"$ref": "#/$defs/nonemptyStrings"}
+          }
+        },
+        "session": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "auth_ref", "refresh_policy"],
+          "properties": {
+            "state": {"enum": ["anonymous", "authenticated", "expired"]},
+            "auth_ref": {"type": "string", "minLength": 1},
+            "refresh_policy": {"type": "string", "minLength": 1}
+          }
+        },
+        "initial_state": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["route", "pre_state", "data_refs"],
+          "properties": {
+            "route": {"type": "string", "minLength": 1},
+            "pre_state": {"type": "object", "minProperties": 1},
+            "data_refs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/artifactRef"}}
+          }
+        },
+        "browser": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version", "viewport"],
+          "properties": {
+            "name": {"type": "string", "minLength": 1},
+            "version": {"type": "string", "minLength": 1},
+            "viewport": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["width", "height"],
+              "properties": {
+                "width": {"type": "integer", "minimum": 1},
+                "height": {"type": "integer", "minimum": 1}
+              }
+            }
+          }
+        },
+        "actions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["step_id", "type", "target"],
+            "properties": {
+              "step_id": {"type": "string", "minLength": 1},
+              "type": {"enum": ["goto", "click", "double_click", "fill", "select", "submit", "refresh", "wait"]},
+              "target": {"type": "string", "minLength": 1},
+              "value_ref": {"type": "string", "minLength": 1}
+            }
+          }
+        },
+        "checkpoints": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["checkpoint_id", "after_step_ref", "assertion_refs"],
+            "properties": {
+              "checkpoint_id": {"type": "string", "minLength": 1},
+              "after_step_ref": {"type": "string", "minLength": 1},
+              "assertion_refs": {"$ref": "#/$defs/nonemptyStrings"}
+            }
+          }
+        },
+        "final_state": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["url", "dom", "visible", "interaction", "business", "side_effects"],
+          "properties": {
+            "url": {"type": "string", "minLength": 1},
+            "dom": {"type": "object", "minProperties": 1},
+            "visible": {"type": "object", "minProperties": 1},
+            "interaction": {"type": "object", "minProperties": 1},
+            "business": {"type": "object", "minProperties": 1},
+            "side_effects": {"$ref": "#/$defs/nonemptyStrings"}
+          }
+        },
+        "risk_coverage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["session", "permission", "refresh", "double_click", "error_recovery"],
+          "properties": {
+            "session": {"$ref": "#/$defs/riskControl"},
+            "permission": {"$ref": "#/$defs/riskControl"},
+            "refresh": {"$ref": "#/$defs/riskControl"},
+            "double_click": {"$ref": "#/$defs/riskControl"},
+            "error_recovery": {"$ref": "#/$defs/riskControl"}
+          }
+        }
+      }
+    }
+  }
+}

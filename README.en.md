@@ -8,7 +8,7 @@ Author: 肉山@TGO Hangzhou
 Current release: **V2.40** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.40) · [release/current/README.md](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-Current version: `V2.43`
+Current version: `V2.44`
 
 Goal Teams is a Codex Skill for coordinated agent work. It turns one goal into a verifiable plan, then lets a Goal Lead coordinate independent subagents running in separate contexts, or user-selected external skills, across requirements, design, implementation, tests, evidence, and completion audit.
 
@@ -38,7 +38,7 @@ Together, these mechanisms make the Skill produce more than a plan. They create 
 
 Goal Teams includes `benchmarks/` task packages for comparing workflow, prompt, or skill-version behavior. Benchmark is not a default output for ordinary tasks; it is used when the user asks for it, the plan confirms it, or a Skill Improvement task needs repeatable comparison.
 
-The value is that benchmark results make improvement reviewable. The same task can compare baseline and Goal Teams behavior across output completeness, evidence quality, UI verification, production-gate judgment, Loop state recovery, and cost. This repository includes `GT-BENCH-001` through `GT-BENCH-004`, covering typical dimensions from basic output quality to Lead LOOP recovery.
+The value is that benchmark results make improvement reviewable. The same task can compare baseline and Goal Teams behavior across output completeness, evidence quality, UI verification, production-gate judgment, Loop state recovery, and cost. This repository includes `GT-BENCH-001` through `GT-BENCH-005`, covering typical dimensions from basic output quality and Lead LOOP recovery to real API/E2E defect detection.
 
 ### Openness and External Skills
 
@@ -175,7 +175,7 @@ Use $goal-teams。
 Use this identity line on an explicit Goal Teams invocation or when the session first needs to establish identity; do not repeat it when full context already exists:
 
 ```text
-我是 Goal Teams Lead V2.43。
+我是 Goal Teams Lead V2.44。
 ```
 
 Core language rule: user communication and governance documents default to Chinese; code, comments, test names, fixtures, and product strings follow the target repository's conventions; keep identifiers, commands, paths, API names, config keys, subagent IDs, and exact references unchanged.
@@ -292,13 +292,13 @@ GoalTeamsWork-<project_version>/
 
 `examples/mini-goal-run` provides a minimal output tree for checking index files, SPEC, TaskList, Teams planning, Harness, Evidence, independent validation, and completion audit.
 
-`benchmarks/` provides `GT-BENCH-001`, `GT-BENCH-002`, `GT-BENCH-003`, and `GT-BENCH-004` templates for comparing baseline and Goal Teams behavior across output quality, evidence completeness, production gate judgment, UI evidence handling, Lead LOOP state recovery, and cost.
+`benchmarks/` provides `GT-BENCH-001` through `GT-BENCH-005` for comparing baseline and Goal Teams behavior across output quality, evidence completeness, production gate judgment, UI evidence handling, Lead LOOP state recovery, real API/E2E defect detection, and cost.
 
 `goal-teams.md` records long-term user requirements and is the upstream source for maintaining runtime rules.
 
 ## Version Note
 
-The current version is read from `VERSION`. On the V2.3 machine contract and V2.5 core policy, `V2.43` retains contract-first execution, Architecture and Environment Evidence gates, a recoverable `Gather → Reason → Act → Verify → Repeat` LOOP, four-file disk state, a constrained iteration-9 candidate reset, a fail-closed iteration-11 delivery gate, four-dimensional scoring, and divergence/bottleneck records, while adding a recoverable release state machine and public-version identity governance. Detailed contracts are loaded from `references/` by task type. The current public release note is [release/current](release/current/README.md); process ledgers and provenance remain in the non-public workspace.
+The current version is read from `VERSION`. On the V2.3 machine contract and V2.5 core policy, `V2.44` retains contract-first execution, Architecture and Environment Evidence gates, a recoverable `Gather → Reason → Act → Verify → Repeat` LOOP, four-file disk state, a constrained iteration-9 candidate reset, a fail-closed iteration-11 delivery gate, four-dimensional scoring, and divergence/bottleneck records, while adding machine-checkable API/E2E testing capability and real-behavior benchmarking. Detailed contracts are loaded from `references/` by task type. The current public release note is [release/current](release/current/README.md); process ledgers and provenance remain in the non-public workspace.
 
 See the [current release note](release/current/README.md) for the visible package inventory. It does not replace runtime rules, `VERSION`, or installation validation.
 
@@ -311,6 +311,12 @@ This repository does not currently declare an open-source license. The owner sho
 ## V2.3 Contract and Release Boundary
 
 V2.3 adds deterministic machine contracts for closed state enums, a single-writer ledger, strict Evidence/Traceability, capability degradation, Profile routing, typed migration, and release gates. See `references/goal-teams-v2.3-contract.md` and run `./scripts/check.sh` before release. Technical RC and authorized GA distribution are evaluated separately; even with an owner License/internal-sharing decision, the GA gate must remain fail-closed until a trusted external host/signature attestation exists.
+
+## V2.44 Changes
+
+- Added machine contracts for `integration-test-plan`, typed V2.44 `test-case`, and `test-run-result`, including risk denominators, file identity, attempts, business oracles, cleanup, and replay.
+- Aligned API/E2E designers, runners, QA, and Reviewer around typed protocol fields, real file discovery, failure-preserving retries, and independent run identities.
+- Added a seven-dimension 100-point capability gate, 12 stable issue IDs, an append-only issue ledger, and a real API/E2E benchmark; `blocked`, `not_run`, and `unavailable` never earn points.
 
 ## V2.43 Changes
 

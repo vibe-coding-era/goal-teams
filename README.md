@@ -8,7 +8,7 @@
 当前发行：**V2.40** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.40) · [发行说明](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-当前版本：`V2.43`
+当前版本：`V2.44`
 
 Goal Teams 是一个面向 Codex 的团队协作 Skill。它会以一个 Goal Lead 的身份，把一个目标拆成可验证的计划，再协调多个独立 subagent（不同上下文执行）或用户指定的外部 skill 完成需求、设计、实现、测试、证据记录和收尾审计。过程中会应用到：
 - 应用Goal + Plan + Loop 模式
@@ -43,7 +43,7 @@ Goal Teams 用 `SPEC -> Harness -> Evidence -> Audit` 做验证链，并用 SSOT
 
 Goal Teams 内置 `benchmarks/` 任务包，用来比较不同工作流、prompt 或 skill 版本的表现。Benchmark 不用于普通任务的默认输出，而是在用户要求、计划确认或 Skill Improvement 场景中启用。
 
-Benchmark 的价值是把“感觉变好了”变成可复盘的比较：同一任务可以对比 baseline 和 Goal Teams 在产物完整度、证据质量、UI 验证、生产门禁判断、Loop 状态恢复和成本上的差异。当前仓库提供 `GT-BENCH-001` 到 `GT-BENCH-004`，覆盖从基础产物质量到 Lead LOOP 恢复的几个典型维度。
+Benchmark 的价值是把“感觉变好了”变成可复盘的比较：同一任务可以对比 baseline 和 Goal Teams 在产物完整度、证据质量、UI 验证、生产门禁判断、Loop 状态恢复和成本上的差异。当前仓库提供 `GT-BENCH-001` 到 `GT-BENCH-005`，覆盖从基础产物质量、Lead LOOP 恢复到 API/E2E 真实行为缺陷检出的典型维度。
 
 ### 开放性和外部 Skill
 
@@ -180,7 +180,7 @@ Use $goal-teams。
 显式调用 Goal Teams 或当前会话首次需要建立身份时汇报；已有完整上下文时不重复：
 
 ```text
-我是 Goal Teams Lead V2.43。
+我是 Goal Teams Lead V2.44。
 ```
 
 中文核心模型要点提示词：用户沟通和治理文档默认中文；代码、注释、测试名、fixture 和产品字符串遵循目标仓库约定；代码标识、命令、路径、API 名称、配置键、subagent ID 和精确引用保留原文。
@@ -322,6 +322,12 @@ GoalTeamsWork-<project_version>/
 ## License
 
 当前仓库还没有声明开源 License。owner 应先明确选择 License 或内部共享协议；该本地决定仅是 proposal，GA 授权还必须有仓库外可信 host/signature attestation，当前技术交付最多到 RC。
+
+## V2.44 版本改动
+
+- 新增 `integration-test-plan`、V2.44 typed `test-case` 和 `test-run-result` 三类机器合同，绑定风险分母、文件 identity、执行 attempts、业务 oracle、cleanup 与 replay。
+- API/E2E 设计、执行、QA 与 Reviewer 成员包统一要求 typed protocol fields、真实文件 discovery、失败不洗绿和独立 run identity。
+- 新增七维 100 分测试能力门禁、12 个稳定问题 ID、append-only 问题账本和真实 API/E2E Benchmark；`blocked|not_run|unavailable` 不计分。
 
 ## V2.43 版本改动
 

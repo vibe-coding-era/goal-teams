@@ -145,13 +145,13 @@ def validate_runtime_identity(product: str) -> tuple[str, str]:
             startup,
             f"当前 `{profile}`",
             profile_path,
-            "V2.42/V2.41/V2.40/V2.39/V2.38 Profile 只用于历史 replay",
+            "V2.43/V2.42/V2.41/V2.40/V2.39/V2.38 Profile 只用于历史 replay",
         ),
         "references/runtime/03-goal-loop.md": (
             startup,
             f"{product} 继续按 V2.38-compatible prompt-cache manifest",
             f"当前 self-release refs 指向 {product} Profile",
-            "V2.42/V2.41/V2.40/V2.39/V2.38 只读 replay",
+            "V2.43/V2.42/V2.41/V2.40/V2.39/V2.38 只读 replay",
         ),
     }
     for path, markers in active_runtime_markers.items():

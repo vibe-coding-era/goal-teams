@@ -104,11 +104,11 @@ class V240ReleaseDocumentationTests(unittest.TestCase):
                 CHECKER.validate_release_projection("V2.39", "V2.40")
 
     def test_active_runtime_identity_is_current_and_replay_only(self) -> None:
-        profile, profile_path = CHECKER.validate_runtime_identity("V2.43")
-        self.assertEqual(profile, "goal-teams-self-release-v2.43")
+        profile, profile_path = CHECKER.validate_runtime_identity("V2.44")
+        self.assertEqual(profile, "goal-teams-self-release-v2.44")
         self.assertEqual(
             profile_path,
-            "references/profiles/goal-teams-self-release-v2.43.md",
+            "references/profiles/goal-teams-self-release-v2.44.md",
         )
 
         original_read = CHECKER.read
@@ -117,7 +117,7 @@ class V240ReleaseDocumentationTests(unittest.TestCase):
             text = original_read(path)
             if path == "references/runtime/03-goal-loop.md":
                 return text.replace(
-                    "我是 Goal Teams Lead V2.43。",
+                    "我是 Goal Teams Lead V2.44。",
                     "我是 Goal Teams Lead V2.39。",
                     1,
                 )
@@ -125,7 +125,7 @@ class V240ReleaseDocumentationTests(unittest.TestCase):
 
         with mock.patch.object(CHECKER, "read", side_effect=stale_read):
             with redirect_stdout(io.StringIO()), self.assertRaises(SystemExit):
-                CHECKER.validate_runtime_identity("V2.43")
+                CHECKER.validate_runtime_identity("V2.44")
 
     def test_public_command_set_and_checkpoint_order_are_documented(self) -> None:
         proc = subprocess.run(
@@ -264,7 +264,8 @@ class V240ReleaseDocumentationTests(unittest.TestCase):
         paths = {
             PROTOCOL: "V2.40",
             ROOT / "references" / "profiles" / "goal-teams-self-release-v2.43.md": "V2.43",
-            ROOT / "prompts" / "lead" / "audit.md": "V2.43",
+            ROOT / "references" / "profiles" / "goal-teams-self-release-v2.44.md": "V2.44",
+            ROOT / "prompts" / "lead" / "audit.md": "V2.44",
         }
         for path, version in paths.items():
             text = path.read_text(encoding="utf-8")

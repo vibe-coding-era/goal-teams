@@ -1,0 +1,166 @@
+{
+  "schema_version": "goal-teams-testing-capability-v2.44",
+  "product_version": "V2.44",
+  "target_score": 100,
+  "score_statuses": [
+    "not_run",
+    "failed",
+    "partial",
+    "passed"
+  ],
+  "anti_gaming": {
+    "blocked_counts_as_passed": false,
+    "not_run_counts_as_passed": false,
+    "unavailable_counts_as_passed": false,
+    "retry_pass_hides_initial_failure": false,
+    "missing_denominator_allowed": false,
+    "prose_or_exit_code_is_behavior_oracle": false,
+    "issue_deletion_allowed": false
+  },
+  "dimensions": [
+    {
+      "id": "role_independence",
+      "name_zh": "角色与独立性",
+      "weight": 15,
+      "required_checks": [
+        "independent_test_roles",
+        "specialized_prompt_routes"
+      ]
+    },
+    {
+      "id": "machine_contracts",
+      "name_zh": "机器合同与语义校验",
+      "weight": 20,
+      "required_checks": [
+        "integration_test_plan_schema",
+        "typed_test_case_schema",
+        "test_run_result_schema",
+        "semantic_positive_negative",
+        "file_identity_validation"
+      ]
+    },
+    {
+      "id": "api_testing",
+      "name_zh": "API 集成测试能力",
+      "weight": 15,
+      "required_checks": [
+        "api_typed_fields",
+        "api_risk_model",
+        "api_reference_behavior",
+        "api_seeded_defects"
+      ]
+    },
+    {
+      "id": "e2e_testing",
+      "name_zh": "E2E 测试能力",
+      "weight": 15,
+      "required_checks": [
+        "e2e_typed_fields",
+        "e2e_resilience_model",
+        "e2e_reference_behavior",
+        "e2e_seeded_defects"
+      ]
+    },
+    {
+      "id": "run_evidence",
+      "name_zh": "执行与证据",
+      "weight": 15,
+      "required_checks": [
+        "runner_source_identity",
+        "attempt_history",
+        "observed_assertions",
+        "retry_flake_preservation",
+        "cleanup_replay"
+      ]
+    },
+    {
+      "id": "risk_environment_data_coverage",
+      "name_zh": "风险、环境、数据与覆盖分母",
+      "weight": 10,
+      "required_checks": [
+        "risk_denominator",
+        "environment_data_binding",
+        "case_coverage_mapping",
+        "qa_reviewer_denominator"
+      ]
+    },
+    {
+      "id": "real_behavior_benchmark",
+      "name_zh": "真实行为 Benchmark",
+      "weight": 10,
+      "required_checks": [
+        "reference_ten_of_ten",
+        "seeded_defect_detection",
+        "reference_repeatability",
+        "benchmark_cleanup"
+      ]
+    }
+  ],
+  "known_issues": [
+    {
+      "id": "GT244-TEST-001",
+      "dimension": "machine_contracts",
+      "summary": "缺少机器可校验的集成测试计划合同"
+    },
+    {
+      "id": "GT244-TEST-002",
+      "dimension": "api_testing",
+      "summary": "API 用例缺少 method、auth、request、state 与 side effects 类型字段"
+    },
+    {
+      "id": "GT244-TEST-003",
+      "dimension": "e2e_testing",
+      "summary": "E2E 用例缺少 persona、initial state、actions 与 checkpoints 类型字段"
+    },
+    {
+      "id": "GT244-TEST-004",
+      "dimension": "machine_contracts",
+      "summary": "测试文件引用未绑定 existence、sha256 与 discovery"
+    },
+    {
+      "id": "GT244-TEST-005",
+      "dimension": "run_evidence",
+      "summary": "缺少 API 和 E2E 执行结果机器合同及语义校验"
+    },
+    {
+      "id": "GT244-TEST-006",
+      "dimension": "real_behavior_benchmark",
+      "summary": "缺少真实服务与浏览器行为 Benchmark"
+    },
+    {
+      "id": "GT244-TEST-007",
+      "dimension": "api_testing",
+      "summary": "缺少幂等、重试、并发、补偿与最终一致性风险模型"
+    },
+    {
+      "id": "GT244-TEST-008",
+      "dimension": "e2e_testing",
+      "summary": "缺少会话、权限、刷新、双击与错误恢复 E2E 模型"
+    },
+    {
+      "id": "GT244-TEST-009",
+      "dimension": "risk_environment_data_coverage",
+      "summary": "QA 与 Reviewer 缺少风险覆盖分母"
+    },
+    {
+      "id": "GT244-TEST-010",
+      "dimension": "role_independence",
+      "summary": "专项测试成员路由与上下文加载不够明确"
+    },
+    {
+      "id": "GT244-TEST-011",
+      "dimension": "run_evidence",
+      "summary": "缺少 flake、retry、cleanup 与 replay 合同"
+    },
+    {
+      "id": "GT244-TEST-012",
+      "dimension": "real_behavior_benchmark",
+      "summary": "现有 fixtures 只证明结构合同，不能证明成员真实行为"
+    },
+    {
+      "id": "GT244-TEST-013",
+      "dimension": "real_behavior_benchmark",
+      "summary": "E2E 错误恢复用例在页面计数未同步时产生重复运行 flake"
+    }
+  ]
+}

@@ -4,11 +4,11 @@
 
 - role: `goal_e2e_test_runner`
 - description: 角色：E2E 执行。默认 subagent：`goal_e2e_test_runner`。
-- triggers: Lead 路由或 Member Goal Packet 指定 `goal_e2e_test_runner` 时加载。
-- rules: 独立执行 E2E 测试用例，不编写用例，不修改前端实现；同时遵守 invariants、locked scope、Harness/Evidence 与独立验证。
+- triggers: Lead 派生 `gates.e2e=required` 且 Member Goal Packet 指定 `goal_e2e_test_runner` 时加载。
+- rules: 读取 `references/rules-testing.md`、`references/test-case-assertion-protocol.md` 与适用 UI 规则，独立执行 E2E 用例并生成机器可读 `test-run-result`；不编写用例，不修改实现。
 - forbidden: 不直接改中央 TaskList，不越过 locked scope，不自我批准，不创建嵌套团队。
-- inputs: `context_refs`、`fetch_recipe`、SPEC 和任务 ledger 前缀。
-- outputs: revision-bound event/patch、角色交接物、current Evidence 与阻塞说明。
+- inputs: `context_refs`、`fetch_recipe`、SPEC、E2E plan/case、测试文件绑定和任务 ledger 前缀。
+- outputs: E2E `test-run-result`、可重放浏览器 Evidence、revision-bound event/patch 与阻塞说明。
 - validator: Goal Packet 指定的不同 member/run；缺失时 blocked。
 
 | 需要 | 文件 | 加载时机 |

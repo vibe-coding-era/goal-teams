@@ -1,0 +1,93 @@
+{
+  "schema_version": "goal-teams-testing-capability-benchmark-v2.44",
+  "benchmark_id": "GT-BENCH-005",
+  "maximum_score": 10.0,
+  "cases": [
+    {
+      "case_id": "API-AUTH-001",
+      "layer": "api",
+      "title": "未认证创建订单必须被拒绝",
+      "weight": 1.5
+    },
+    {
+      "case_id": "API-IDEMPOTENCY-001",
+      "layer": "api",
+      "title": "相同幂等键重复提交只创建一笔订单",
+      "weight": 1.5
+    },
+    {
+      "case_id": "API-CONCURRENCY-001",
+      "layer": "api",
+      "title": "相同幂等键并发提交只创建一笔订单",
+      "weight": 1.5
+    },
+    {
+      "case_id": "API-CONSISTENCY-001",
+      "layer": "api",
+      "title": "成功响应后的订单可在读取模型中观测",
+      "weight": 1.5
+    },
+    {
+      "case_id": "E2E-SESSION-001",
+      "layer": "e2e",
+      "title": "登录会话在页面刷新后保持",
+      "weight": 1.0
+    },
+    {
+      "case_id": "E2E-DOUBLE-CLICK-001",
+      "layer": "e2e",
+      "title": "双击提交只创建一笔订单",
+      "weight": 1.0
+    },
+    {
+      "case_id": "E2E-REFRESH-001",
+      "layer": "e2e",
+      "title": "页面刷新后恢复服务端订单状态",
+      "weight": 1.0
+    },
+    {
+      "case_id": "E2E-RECOVERY-001",
+      "layer": "e2e",
+      "title": "瞬时失败后可用同一操作恢复",
+      "weight": 1.0
+    }
+  ],
+  "candidate_modes": [
+    {
+      "mode": "reference",
+      "expected_detected_by": []
+    },
+    {
+      "mode": "api_auth_bypass",
+      "expected_detected_by": ["API-AUTH-001"]
+    },
+    {
+      "mode": "api_idempotency_broken",
+      "expected_detected_by": ["API-IDEMPOTENCY-001"]
+    },
+    {
+      "mode": "api_concurrency_race",
+      "expected_detected_by": ["API-CONCURRENCY-001"]
+    },
+    {
+      "mode": "api_eventual_consistency_stale",
+      "expected_detected_by": ["API-CONSISTENCY-001"]
+    },
+    {
+      "mode": "e2e_session_lost",
+      "expected_detected_by": ["E2E-SESSION-001"]
+    },
+    {
+      "mode": "e2e_double_click",
+      "expected_detected_by": ["E2E-DOUBLE-CLICK-001"]
+    },
+    {
+      "mode": "e2e_refresh_drops_state",
+      "expected_detected_by": ["E2E-REFRESH-001"]
+    },
+    {
+      "mode": "e2e_error_no_recovery",
+      "expected_detected_by": ["E2E-RECOVERY-001"]
+    }
+  ]
+}
