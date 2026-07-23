@@ -1,0 +1,73 @@
+{
+  "schema_version": "goal-teams-test-case-v2.44",
+  "case_id": "TC-V244-API-001",
+  "test_kind": "api",
+  "acceptance_refs": ["AC-V244-API-001"],
+  "test_file_refs": [{
+    "path": "tests/v23/fixtures/v244/artifacts/test_scenarios.py",
+    "sha256": "e06e7d0e86eeffbbcd27b5b37a004a056a1a2823e95819cd1c35b70ba3ab2975",
+    "discovery": {"kind": "pytest_node", "selector": "tests/v23/fixtures/v244/artifacts/test_scenarios.py::test_api_contract_scenario"}
+  }],
+  "setup": {
+    "preconditions": ["synthetic order store is empty"],
+    "data_refs": [{
+      "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+      "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447",
+      "discovery": {"kind": "artifact", "selector": "seed"}
+    }]
+  },
+  "api": {
+    "method": "POST",
+    "path": "/api/orders",
+    "auth": {"mode": "bearer", "persona": "buyer", "credential_ref": "environment.auth.buyer_token"},
+    "request": {
+      "headers": {"Idempotency-Key": "REQ-244-001"},
+      "path_params": {},
+      "query": {},
+      "body": {"sku": "SKU-1", "quantity": 1}
+    },
+    "pre_state": {"state_refs": ["setup.synthetic_order_store"], "values": {"order_count": 0}},
+    "processing": {
+      "target": "order-api.POST./api/orders",
+      "consumed_input_refs": ["api.request.headers.Idempotency-Key", "api.request.body"],
+      "risk_scenarios": [
+        {"scenario_id": "SC-API-AUTH", "action": "authorization_probe", "target": "/api/orders", "input_refs": ["api.auth.persona"]},
+        {"scenario_id": "SC-API-IDEMP", "action": "repeat_request", "target": "/api/orders", "input_refs": ["api.request.headers.Idempotency-Key"]},
+        {"scenario_id": "SC-API-RETRY", "action": "retry_after_transient_failure", "target": "/api/orders", "input_refs": ["setup.transient_failure"]},
+        {"scenario_id": "SC-API-CONCUR", "action": "concurrent_request_batch", "target": "/api/orders", "input_refs": ["setup.concurrent_workers"]},
+        {"scenario_id": "SC-API-COMP", "action": "inject_partial_failure_and_compensate", "target": "/api/orders", "input_refs": ["setup.partial_failure"]},
+        {"scenario_id": "SC-API-FINAL", "action": "poll_until_consistent", "target": "/api/orders/ORDER-1", "input_refs": ["expected.api.consistency_window"]}
+      ]
+    },
+    "expected": {
+      "status": 201,
+      "headers": {"content-type": "application/json"},
+      "body": {"state": "created"},
+      "post_state": {"order_count": 1, "order_state": "created"},
+      "side_effects": ["one durable order exists after replay"]
+    },
+    "risk_coverage": {
+      "authorization": {"status": "covered", "scenario_ref": "SC-API-AUTH", "oracle_assertion_ref": "A-API-AUTH"},
+      "idempotency": {"status": "covered", "scenario_ref": "SC-API-IDEMP", "oracle_assertion_ref": "A-API-IDEMP"},
+      "retry": {"status": "covered", "scenario_ref": "SC-API-RETRY", "oracle_assertion_ref": "A-API-RETRY"},
+      "concurrency": {"status": "covered", "scenario_ref": "SC-API-CONCUR", "oracle_assertion_ref": "A-API-CONCUR"},
+      "compensation": {"status": "covered", "scenario_ref": "SC-API-COMP", "oracle_assertion_ref": "A-API-COMP"},
+      "final_consistency": {"status": "covered", "scenario_ref": "SC-API-FINAL", "oracle_assertion_ref": "A-API-FINAL"}
+    }
+  },
+  "assertions": [
+    {"assertion_id": "A-API-STATUS", "actual_ref": "execution.status_code", "comparator": "status_code_equals", "expected_value": 201},
+    {"assertion_id": "A-API-AUTH", "actual_ref": "observed_output.authorization.denied", "comparator": "equals", "expected_value": true},
+    {"assertion_id": "A-API-IDEMP", "actual_ref": "observed_output.idempotency.order_count", "comparator": "equals", "expected_value": 1},
+    {"assertion_id": "A-API-RETRY", "actual_ref": "observed_output.retry.state", "comparator": "equals", "expected_value": "created"},
+    {"assertion_id": "A-API-CONCUR", "actual_ref": "observed_output.concurrency.order_count", "comparator": "equals", "expected_value": 1},
+    {"assertion_id": "A-API-COMP", "actual_ref": "observed_output.compensation.orphans", "comparator": "equals", "expected_value": 0},
+    {"assertion_id": "A-API-FINAL", "actual_ref": "observed_output.consistency.state", "comparator": "equals", "expected_value": "created"},
+    {"assertion_id": "A-API-CLEANUP", "actual_ref": "observed_output.cleanup.order_count", "comparator": "equals", "expected_value": 0}
+  ],
+  "cleanup": {
+    "required": true,
+    "steps": ["delete synthetic orders by run id"],
+    "verification_assertion_refs": ["A-API-CLEANUP"]
+  }
+}

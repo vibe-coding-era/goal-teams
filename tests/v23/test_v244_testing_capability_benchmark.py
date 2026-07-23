@@ -1,6 +1,11 @@
 from __future__ import annotations
 
 import importlib.util
+import json
+import os
+import shutil
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -29,7 +34,7 @@ scorer = load_module("v244_testing_capability_scorer_test", SCORER_PATH)
 class TestingCapabilityBenchmarkTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.manifest = runner.load_json(MANIFEST_PATH)
+        cls.manifest = scorer.load_canonical_manifest()
 
     def test_manifest_reserves_exactly_ten_behavior_points(self) -> None:
         cases = self.manifest["cases"]
@@ -43,17 +48,56 @@ class TestingCapabilityBenchmarkTests(unittest.TestCase):
             },
         )
 
-    def test_scorer_rejects_prose_or_exit_code_without_case_behavior(self) -> None:
-        fake = {
-            "schema_version": scorer.EVIDENCE_SCHEMA,
+    def test_scorer_rejects_shrunken_ten_point_manifest(self) -> None:
+        shrunken = {
+            "schema_version": "goal-teams-testing-capability-benchmark-v2.44",
             "benchmark_id": "GT-BENCH-005",
-            "candidate": {"mode": "fake"},
-            "exit_code": 0,
-            "summary": "all tests passed",
-            "cases": [],
+            "maximum_score": 10.0,
+            "cases": [
+                {
+                    "case_id": "API-AUTH-001",
+                    "layer": "api",
+                    "title": "self reported",
+                    "weight": 10.0,
+                }
+            ],
+            "candidate_modes": [],
         }
-        with self.assertRaisesRegex(scorer.ScoreError, "missing evidence cases"):
-            scorer.score_evidence(fake, self.manifest)
+        with self.assertRaises(scorer.ScoreError):
+            scorer.validate_canonical_manifest(shrunken)
+
+    def test_scorer_cli_rejects_manifest_override(self) -> None:
+        process = subprocess.run(
+            [
+                sys.executable,
+                str(SCORER_PATH),
+                "missing-evidence.json",
+                "--manifest",
+                str(MANIFEST_PATH),
+            ],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        self.assertNotEqual(0, process.returncode)
+        self.assertIn("unrecognized arguments: --manifest", process.stderr)
+
+    def test_scorer_rejects_prose_or_exit_code_without_case_behavior(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            evidence, _score = runner.run_candidate(
+                "reference",
+                Path(temporary),
+                browser_mode="off",
+            )
+            evidence["exit_code"] = 0
+            evidence["summary"] = "all tests passed"
+            evidence["cases"] = []
+            with self.assertRaisesRegex(scorer.ScoreError, "missing evidence cases"):
+                scorer.score_evidence(
+                    evidence,
+                    evidence_root=Path(temporary) / "reference",
+                )
 
     def test_scorer_recomputes_declared_status_from_raw_observation(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -61,16 +105,16 @@ class TestingCapabilityBenchmarkTests(unittest.TestCase):
                 "reference",
                 Path(temporary),
                 browser_mode="off",
-                manifest=self.manifest,
             )
             auth_case = next(
                 item for item in evidence["cases"] if item["case_id"] == "API-AUTH-001"
             )
             auth_case["evidence"]["unauthenticated_status"] = 200
-            with self.assertRaisesRegex(
-                scorer.ScoreError, "behavior oracle derived failed"
-            ):
-                scorer.score_evidence(evidence, self.manifest)
+            with self.assertRaisesRegex(scorer.ScoreError, "bound raw artifact"):
+                scorer.score_evidence(
+                    evidence,
+                    evidence_root=Path(temporary) / "reference",
+                )
 
     def test_not_run_browser_cases_receive_zero_points(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -78,7 +122,6 @@ class TestingCapabilityBenchmarkTests(unittest.TestCase):
                 "reference",
                 Path(temporary),
                 browser_mode="off",
-                manifest=self.manifest,
             )
         self.assertEqual("not_run", evidence["browser"]["status"])
         self.assertEqual(4, score["not_run_count"])
@@ -99,7 +142,6 @@ class TestingCapabilityBenchmarkTests(unittest.TestCase):
                         mode,
                         Path(temporary),
                         browser_mode="off",
-                        manifest=self.manifest,
                     )
                     outcomes = {
                         item["case_id"]: item["status"] for item in evidence["cases"]
@@ -115,7 +157,6 @@ class TestingCapabilityBenchmarkTests(unittest.TestCase):
                 "reference",
                 Path(temporary),
                 browser_mode="required",
-                manifest=self.manifest,
             )
         self.assertEqual("executed", evidence["browser"]["status"])
         self.assertEqual(10.0, score["score"])
@@ -130,7 +171,6 @@ class TestingCapabilityBenchmarkTests(unittest.TestCase):
                 "reference",
                 Path(temporary),
                 browser_mode="required",
-                manifest=self.manifest,
                 browser_read_delay_ms=500,
             )
         recovery = next(
@@ -140,6 +180,96 @@ class TestingCapabilityBenchmarkTests(unittest.TestCase):
         self.assertEqual(1, recovery["evidence"]["delta"])
         self.assertGreater(recovery["evidence"]["count_before"], 0)
         self.assertEqual(10.0, score["score"])
+
+    def test_scorer_rejects_missing_or_forged_run_provenance(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            evidence, _score = runner.run_candidate(
+                "reference", root, browser_mode="off"
+            )
+            missing = json.loads(json.dumps(evidence))
+            missing.pop("run")
+            with self.assertRaisesRegex(scorer.ScoreError, "run provenance"):
+                scorer.score_evidence(missing, evidence_root=root / "reference")
+
+            wrong_manifest = json.loads(json.dumps(evidence))
+            wrong_manifest["run"]["manifest_sha256"] = "0" * 64
+            with self.assertRaisesRegex(scorer.ScoreError, "canonical manifest"):
+                scorer.score_evidence(
+                    wrong_manifest, evidence_root=root / "reference"
+                )
+
+            wrong_source = json.loads(json.dumps(evidence))
+            wrong_source["run"]["source_digests"]["runner"] = "0" * 64
+            with self.assertRaisesRegex(scorer.ScoreError, "source provenance"):
+                scorer.score_evidence(wrong_source, evidence_root=root / "reference")
+
+    def test_scorer_rejects_tampered_raw_observation_artifact(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            evidence, _score = runner.run_candidate(
+                "reference", root, browser_mode="off"
+            )
+            binding = evidence["cases"][0]["raw_artifact"]
+            raw = root / "reference" / binding["path"]
+            raw.write_text(raw.read_text(encoding="utf-8") + " ", encoding="utf-8")
+            with self.assertRaisesRegex(scorer.ScoreError, "artifact size mismatch"):
+                scorer.score_evidence(evidence, evidence_root=root / "reference")
+
+    def test_scorer_rejects_raw_artifact_ancestor_symlink(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            evidence, _score = runner.run_candidate(
+                "reference", root, browser_mode="off"
+            )
+            run_dir = root / "reference"
+            raw = run_dir / "raw"
+            real_raw = run_dir / "raw-real"
+            raw.rename(real_raw)
+            os.symlink(real_raw.name, raw)
+            with self.assertRaisesRegex(scorer.ScoreError, "ancestor"):
+                scorer.score_evidence(evidence, evidence_root=run_dir)
+
+    def test_scorer_rejects_tampered_or_symlinked_screenshot(self) -> None:
+        available, _chrome, reason = runner.browser_capability()
+        if not available:
+            self.skipTest(reason)
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            evidence, _score = runner.run_candidate(
+                "reference", root, browser_mode="required"
+            )
+            session = next(
+                item for item in evidence["cases"] if item["case_id"] == "E2E-SESSION-001"
+            )
+            binding = session["evidence"]["screenshot"]
+            screenshot = root / "reference" / binding["path"]
+            original = screenshot.read_bytes()
+            screenshot.write_bytes(original + b"tamper")
+            with self.assertRaisesRegex(
+                scorer.ScoreError, "behavior oracle derived failed"
+            ):
+                scorer.score_evidence(evidence, evidence_root=root / "reference")
+            screenshot.write_bytes(original)
+
+            backup = screenshot.with_name("real-session.png")
+            shutil.copyfile(screenshot, backup)
+            screenshot.unlink()
+            os.symlink(backup.name, screenshot)
+            with self.assertRaisesRegex(
+                scorer.ScoreError, "behavior oracle derived failed"
+            ):
+                scorer.score_evidence(evidence, evidence_root=root / "reference")
+
+    def test_scorer_rejects_run_identity_mismatch(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            evidence, _score = runner.run_candidate(
+                "reference", root, browser_mode="off"
+            )
+            evidence["run"]["run_id"] = "00000000-0000-4000-8000-000000000000"
+            with self.assertRaises(scorer.ScoreError):
+                scorer.score_evidence(evidence, evidence_root=root / "reference")
 
 
 if __name__ == "__main__":

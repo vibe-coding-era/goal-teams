@@ -30,7 +30,9 @@ VALID_DEFECTS = {
 
 
 class OrderApplication:
-    def __init__(self, db_path: Path, defect: str, browser_read_delay_ms: int):
+    def __init__(
+        self, db_path: Path, defect: str, browser_read_delay_ms: int, run_id: str
+    ):
         self.db_path = db_path
         self.defect = defect
         self.browser_read_delay_seconds = browser_read_delay_ms / 1000
@@ -46,6 +48,19 @@ class OrderApplication:
                     quantity INTEGER NOT NULL
                 )
                 """
+            )
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS benchmark_run (
+                    singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
+                    run_id TEXT NOT NULL,
+                    candidate_mode TEXT NOT NULL
+                )
+                """
+            )
+            connection.execute(
+                "INSERT OR REPLACE INTO benchmark_run (singleton, run_id, candidate_mode) VALUES (1, ?, ?)",
+                (run_id, defect),
             )
 
     def connect(self) -> sqlite3.Connection:
@@ -208,11 +223,14 @@ def main() -> int:
     parser.add_argument("--db", type=Path, required=True)
     parser.add_argument("--defect", choices=sorted(VALID_DEFECTS), default="reference")
     parser.add_argument("--browser-read-delay-ms", type=int, default=0)
+    parser.add_argument("--run-id", required=True)
     args = parser.parse_args()
     if args.browser_read_delay_ms < 0 or args.browser_read_delay_ms > 5000:
         parser.error("--browser-read-delay-ms must be between 0 and 5000")
     args.db.parent.mkdir(parents=True, exist_ok=True)
-    application = OrderApplication(args.db, args.defect, args.browser_read_delay_ms)
+    application = OrderApplication(
+        args.db, args.defect, args.browser_read_delay_ms, args.run_id
+    )
     server = ThreadingHTTPServer((args.host, args.port), handler_factory(application))
     server.serve_forever()
     return 0

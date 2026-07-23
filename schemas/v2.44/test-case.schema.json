@@ -100,22 +100,25 @@
       "required": ["status"],
       "properties": {
         "status": {"enum": ["covered", "not_applicable"]},
-        "assertion_refs": {"$ref": "#/$defs/nonemptyStrings"},
+        "scenario_ref": {"type": "string", "minLength": 1},
+        "oracle_assertion_ref": {"type": "string", "minLength": 1},
         "rationale": {"type": "string", "minLength": 1}
       },
       "oneOf": [
         {
           "properties": {
             "status": {"const": "covered"},
-            "assertion_refs": {"$ref": "#/$defs/nonemptyStrings"},
+            "scenario_ref": {"type": "string", "minLength": 1},
+            "oracle_assertion_ref": {"type": "string", "minLength": 1},
             "rationale": false
           },
-          "required": ["assertion_refs"]
+          "required": ["scenario_ref", "oracle_assertion_ref"]
         },
         {
           "properties": {
             "status": {"const": "not_applicable"},
-            "assertion_refs": false,
+            "scenario_ref": false,
+            "oracle_assertion_ref": false,
             "rationale": {"type": "string", "minLength": 1}
           },
           "required": ["rationale"]
@@ -216,10 +219,15 @@
         "processing": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["target", "consumed_input_refs"],
+          "required": ["target", "consumed_input_refs", "risk_scenarios"],
           "properties": {
             "target": {"type": "string", "minLength": 1},
-            "consumed_input_refs": {"$ref": "#/$defs/nonemptyStrings"}
+            "consumed_input_refs": {"$ref": "#/$defs/nonemptyStrings"},
+            "risk_scenarios": {
+              "type": "array",
+              "minItems": 6,
+              "items": {"$ref": "#/$defs/apiRiskScenario"}
+            }
           }
         },
         "expected": {
@@ -319,7 +327,21 @@
             "required": ["step_id", "type", "target"],
             "properties": {
               "step_id": {"type": "string", "minLength": 1},
-              "type": {"enum": ["goto", "click", "double_click", "fill", "select", "submit", "refresh", "wait"]},
+              "type": {
+                "enum": [
+                  "goto",
+                  "click",
+                  "double_click",
+                  "fill",
+                  "select",
+                  "submit",
+                  "refresh",
+                  "wait",
+                  "expire_session",
+                  "permission_probe",
+                  "inject_network_error"
+                ]
+              },
               "target": {"type": "string", "minLength": 1},
               "value_ref": {"type": "string", "minLength": 1}
             }
@@ -364,6 +386,26 @@
             "error_recovery": {"$ref": "#/$defs/riskControl"}
           }
         }
+      }
+    },
+    "apiRiskScenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenario_id", "action", "target", "input_refs"],
+      "properties": {
+        "scenario_id": {"type": "string", "minLength": 1},
+        "action": {
+          "enum": [
+            "authorization_probe",
+            "repeat_request",
+            "retry_after_transient_failure",
+            "concurrent_request_batch",
+            "inject_partial_failure_and_compensate",
+            "poll_until_consistent"
+          ]
+        },
+        "target": {"type": "string", "minLength": 1},
+        "input_refs": {"$ref": "#/$defs/nonemptyStrings"}
       }
     }
   }

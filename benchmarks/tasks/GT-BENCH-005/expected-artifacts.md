@@ -23,6 +23,15 @@
   service.log
   evidence.json
   score.json
+  raw/
+    API-AUTH-001.json
+    API-IDEMPOTENCY-001.json
+    API-CONCURRENCY-001.json
+    API-CONSISTENCY-001.json
+    E2E-SESSION-001.json
+    E2E-DOUBLE-CLICK-001.json
+    E2E-REFRESH-001.json
+    E2E-RECOVERY-001.json
   screenshots/
     E2E-SESSION-001.png
     E2E-DOUBLE-CLICK-001.png
@@ -31,6 +40,11 @@
 ```
 
 关闭或无法执行浏览器时可以没有截图，但对应四个 case 必须是 `not_run`，且 `score.json` 的 E2E earned 为 0。
+
+`evidence.json` 的 `run` 必须含 canonical manifest sha256、UUID run ID、
+candidate mode、六个 source digests、SQLite binding 和 service-log binding。
+每个 case 必须含 raw JSON binding；E2E pass/fail observation 必须含 PNG binding。
+binding 统一包含 evidence-root 相对路径、media type、size 和 sha256。
 
 ## 自检输出
 
@@ -63,6 +77,10 @@
 - [ ] E2E 四项通过 Playwright Chromium 执行并保留截图。
 - [ ] browser unavailable 不计成功。
 - [ ] scorer 拒绝 prose、exit code 和无行为 evidence。
+- [ ] scorer 无 `--manifest` 覆盖入口，并校验固定 manifest digest、完整 case/风险集合及 6/4 分层。
+- [ ] raw、PNG、SQLite 和 log 均为无 symlink 的常规文件，祖先目录无 symlink，并通过 size/sha256 复核。
+- [ ] UUID run identity 同时出现在 evidence、browser runtime、raw observations 与 SQLite。
+- [ ] source digests 与当前 runner、scorer、reference app、browser runner、static UI 和 manifest 一致。
 - [ ] reference 10/10；八个 defect 均被绑定 case 检出。
 - [ ] reference 重复运行 outcome 一致。
 - [ ] runner 在所有路径终止服务，运行文件只落显式输出目录。

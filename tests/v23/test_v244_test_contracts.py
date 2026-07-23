@@ -4,6 +4,7 @@ import copy
 import hashlib
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -17,6 +18,11 @@ VALIDATOR_PATH = ROOT / "scripts" / "checks" / "validate-test-case-contract.py"
 V235_FIXTURE = ROOT / "tests" / "v23" / "fixtures" / "v235" / "test-cases.json"
 SCHEMA_ROOT = ROOT / "schemas" / "v2.44"
 SHA = "a" * 64
+ARTIFACT_ROOT = ROOT / "tests" / "v23" / "fixtures" / "v244" / "artifacts"
+GENERIC_ARTIFACT = "tests/v23/fixtures/v244/artifacts/evidence.json"
+API_CASE_ARTIFACT = "tests/v23/fixtures/v244/artifacts/api-case.json"
+E2E_CASE_ARTIFACT = "tests/v23/fixtures/v244/artifacts/e2e-case.json"
+PLAN_ARTIFACT = "tests/v23/fixtures/v244/artifacts/integration-test-plan.json"
 
 
 def load_validator() -> Any:
@@ -32,20 +38,33 @@ def load_validator() -> Any:
 
 
 def artifact_ref(
-    path: str = "evidence/v2.44/result.json",
+    path: str = GENERIC_ARTIFACT,
     *,
     sha256: str = SHA,
     kind: str = "artifact",
     selector: str = "run.artifacts",
 ) -> dict[str, Any]:
+    aliases = {
+        "contracts/v2.44/api-cases.json": API_CASE_ARTIFACT,
+        "contracts/v2.44/e2e-cases.json": E2E_CASE_ARTIFACT,
+        "contracts/v2.44/integration-test-plan.json": PLAN_ARTIFACT,
+    }
+    requested_path = path
+    path = aliases.get(path, path)
+    if not (ROOT / path).is_file():
+        path = GENERIC_ARTIFACT
+    sha256 = hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
     return {
         "path": path,
         "sha256": sha256,
-        "discovery": {"kind": kind, "selector": selector},
+        "discovery": {
+            "kind": kind,
+            "selector": selector if requested_path == path else requested_path,
+        },
     }
 
 
-def test_file_ref() -> dict[str, Any]:
+def _test_file_ref() -> dict[str, Any]:
     path = "tests/v23/test_v244_test_contracts.py"
     sha256 = hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
     return artifact_ref(
@@ -81,7 +100,7 @@ def valid_api_case() -> dict[str, Any]:
         "case_id": "TC-V244-API-001",
         "test_kind": "api",
         "acceptance_refs": ["AC-V244-API-001"],
-        "test_file_refs": [test_file_ref()],
+        "test_file_refs": [_test_file_ref()],
         "setup": {
             "preconditions": ["synthetic order store is empty"],
             "data_refs": [artifact_ref("fixtures/v2.44/orders.json")],
@@ -161,7 +180,7 @@ def valid_e2e_case() -> dict[str, Any]:
         "case_id": "TC-V244-E2E-001",
         "test_kind": "e2e",
         "acceptance_refs": ["AC-V244-E2E-001"],
-        "test_file_refs": [test_file_ref()],
+        "test_file_refs": [_test_file_ref()],
         "setup": {
             "preconditions": ["buyer session fixture is available"],
             "data_refs": [artifact_ref("fixtures/v2.44/browser-state.json")],
@@ -325,7 +344,9 @@ def valid_run_result() -> dict[str, Any]:
             "protected_snapshot_ref": artifact_ref(
                 "evidence/v2.44/protected-snapshot.json"
             ),
-            "snapshot_sha256": SHA,
+            "snapshot_sha256": artifact_ref(
+                "evidence/v2.44/protected-snapshot.json"
+            )["sha256"],
         },
         "runner_identity": {
             "agent_type": "goal_api_integration_test_runner",
@@ -340,7 +361,9 @@ def valid_run_result() -> dict[str, Any]:
         "plan_binding": {
             "plan_id": "PLAN-V244-API-E2E",
             "revision": 1,
-            "sha256": SHA,
+            "sha256": artifact_ref(
+                "contracts/v2.44/integration-test-plan.json"
+            )["sha256"],
             "artifact_ref": artifact_ref(
                 "contracts/v2.44/integration-test-plan.json"
             ),
@@ -394,10 +417,59 @@ def valid_run_result() -> dict[str, Any]:
                         },
                         "assertion_results": [
                             {
-                                "assertion_id": "A-V244-API-BUSINESS",
+                                "assertion_id": "A-API-STATUS",
+                                "comparator": "status_code_equals",
+                                "actual": 201,
+                                "expected": 201,
+                                "passed": True,
+                            },
+                            {
+                                "assertion_id": "A-API-AUTH",
+                                "comparator": "equals",
+                                "actual": True,
+                                "expected": True,
+                                "passed": True,
+                            },
+                            {
+                                "assertion_id": "A-API-IDEMP",
+                                "comparator": "equals",
+                                "actual": 1,
+                                "expected": 1,
+                                "passed": True,
+                            },
+                            {
+                                "assertion_id": "A-API-RETRY",
                                 "comparator": "equals",
                                 "actual": "created",
                                 "expected": "created",
+                                "passed": True,
+                            },
+                            {
+                                "assertion_id": "A-API-CONCUR",
+                                "comparator": "equals",
+                                "actual": 1,
+                                "expected": 1,
+                                "passed": True,
+                            },
+                            {
+                                "assertion_id": "A-API-COMP",
+                                "comparator": "equals",
+                                "actual": 0,
+                                "expected": 0,
+                                "passed": True,
+                            },
+                            {
+                                "assertion_id": "A-API-FINAL",
+                                "comparator": "equals",
+                                "actual": "created",
+                                "expected": "created",
+                                "passed": True,
+                            },
+                            {
+                                "assertion_id": "A-API-CLEANUP",
+                                "comparator": "equals",
+                                "actual": 0,
+                                "expected": 0,
                                 "passed": True,
                             }
                         ],
@@ -479,16 +551,67 @@ def valid_e2e_run_result() -> dict[str, Any]:
             },
             "assertion_results": [
                 {
-                    "assertion_id": "A-V244-E2E-ORDER",
+                    "assertion_id": "A-E2E-SESSION",
+                    "comparator": "equals",
+                    "actual": True,
+                    "expected": True,
+                    "passed": True,
+                },
+                {
+                    "assertion_id": "A-E2E-PERM",
+                    "comparator": "equals",
+                    "actual": True,
+                    "expected": True,
+                    "passed": True,
+                },
+                {
+                    "assertion_id": "A-E2E-REFRESH",
+                    "comparator": "equals",
+                    "actual": True,
+                    "expected": True,
+                    "passed": True,
+                },
+                {
+                    "assertion_id": "A-E2E-DOUBLE",
                     "comparator": "equals",
                     "actual": 1,
                     "expected": 1,
+                    "passed": True,
+                },
+                {
+                    "assertion_id": "A-E2E-RECOVERY",
+                    "comparator": "equals",
+                    "actual": True,
+                    "expected": True,
+                    "passed": True,
+                },
+                {
+                    "assertion_id": "A-E2E-CLEANUP",
+                    "comparator": "equals",
+                    "actual": 0,
+                    "expected": 0,
                     "passed": True,
                 }
             ],
         }
     ]
     return result
+
+
+def _load_static_contract(filename: str) -> dict[str, Any]:
+    return json.loads((ARTIFACT_ROOT / filename).read_text(encoding="utf-8"))
+
+
+def valid_api_case() -> dict[str, Any]:
+    return _load_static_contract("api-case.json")
+
+
+def valid_e2e_case() -> dict[str, Any]:
+    return _load_static_contract("e2e-case.json")
+
+
+def valid_plan() -> dict[str, Any]:
+    return _load_static_contract("integration-test-plan.json")
 
 
 class V244TestContractTests(unittest.TestCase):
@@ -563,7 +686,33 @@ class V244TestContractTests(unittest.TestCase):
         undiscoverable["test_file_refs"][0]["discovery"]["selector"] = (
             "tests/v23/other.py::test_other"
         )
-        self.assert_rejected(undiscoverable, "E_V244_ARTIFACT_REF")
+        self.assert_rejected(undiscoverable, "E_V244_TEST_DISCOVERY")
+        missing_node = valid_api_case()
+        missing_node["test_file_refs"][0]["discovery"]["selector"] = (
+            "tests/v23/test_v244_test_contracts.py::DOES_NOT_EXIST"
+        )
+        self.assert_rejected(missing_node, "E_V244_TEST_DISCOVERY")
+        unverifiable_kind = valid_api_case()
+        unverifiable_kind["test_file_refs"][0]["discovery"] = {
+            "kind": "artifact",
+            "selector": "self-reported",
+        }
+        self.assert_rejected(unverifiable_kind, "E_V244_TEST_DISCOVERY")
+        glob_case = valid_api_case()
+        glob_case["test_file_refs"][0]["discovery"] = {
+            "kind": "glob",
+            "selector": "tests/v23/fixtures/v244/artifacts/test_*.py",
+        }
+        accepted = self.validator.validate_document(
+            self.validator._load_policy(), glob_case
+        )
+        self.assertTrue(accepted["ok"], accepted)
+        empty_glob = valid_api_case()
+        empty_glob["test_file_refs"][0]["discovery"] = {
+            "kind": "glob",
+            "selector": "tests/v23/fixtures/v244/artifacts/missing-*.py",
+        }
+        self.assert_rejected(empty_glob, "E_V244_TEST_DISCOVERY")
 
     def test_api_requires_auth_oracle_and_all_risk_dimensions(self) -> None:
         missing_credential = valid_api_case()
@@ -576,10 +725,10 @@ class V244TestContractTests(unittest.TestCase):
         missing_risk["api"]["risk_coverage"].pop("concurrency")
         self.assert_rejected(missing_risk, "E_V244_API_RISK_COVERAGE")
         foreign_assertion = valid_api_case()
-        foreign_assertion["api"]["risk_coverage"]["retry"]["assertion_refs"] = [
-            "A-FOREIGN"
-        ]
-        self.assert_rejected(foreign_assertion, "E_V244_API_RISK_COVERAGE")
+        foreign_assertion["api"]["risk_coverage"]["retry"][
+            "oracle_assertion_ref"
+        ] = "A-FOREIGN"
+        self.assert_rejected(foreign_assertion, "E_V244_API_RISK_SCENARIO")
         missing_pre_state = valid_api_case()
         missing_pre_state["api"].pop("pre_state")
         self.assert_rejected(missing_pre_state, "E_V244_API_SHAPE")
@@ -594,7 +743,12 @@ class V244TestContractTests(unittest.TestCase):
             for action in missing_refresh["e2e"]["actions"]
             if action["type"] != "refresh"
         ]
-        self.assert_rejected(missing_refresh, "E_V244_E2E_RISK_ACTION")
+        missing_refresh["e2e"]["checkpoints"] = [
+            checkpoint
+            for checkpoint in missing_refresh["e2e"]["checkpoints"]
+            if checkpoint["after_step_ref"] != "S3"
+        ]
+        self.assert_rejected(missing_refresh, "E_V244_E2E_RISK_SCENARIO")
         unknown_step = valid_e2e_case()
         unknown_step["e2e"]["checkpoints"][0]["after_step_ref"] = "S404"
         self.assert_rejected(unknown_step, "E_V244_E2E_CHECKPOINT")
@@ -667,6 +821,54 @@ class V244TestContractTests(unittest.TestCase):
         )
         self.assert_rejected(duplicate_environment, "E_V244_PLAN_ENVIRONMENT")
 
+    def test_plan_requires_independent_identity_and_case_chain(self) -> None:
+        plan = valid_plan()
+        plan.update(
+            {
+                "revision": 1,
+                "owner_identity": {
+                    "agent_type": "goal_api_integration_test_designer",
+                    "member_id": "member-plan-owner",
+                    "run_id": "RUN-V244-PLAN-OWNER",
+                },
+                "validator_identity": {
+                    "agent_type": "goal_reviewer",
+                    "member_id": "member-plan-reviewer",
+                    "run_id": "RUN-V244-PLAN-REVIEW",
+                },
+            }
+        )
+        accepted = self.validator.validate_document(
+            self.validator._load_policy(), plan
+        )
+        self.assertTrue(accepted["ok"], accepted)
+        self_review = copy.deepcopy(plan)
+        self_review["validator_identity"]["member_id"] = self_review[
+            "owner_identity"
+        ]["member_id"]
+        self.assert_rejected(self_review, "E_V244_PLAN_IDENTITY")
+        foreign_case = copy.deepcopy(plan)
+        foreign_case["risk_coverage"]["risks"][0]["case_refs"] = [
+            "TC-V244-API-DOES-NOT-EXIST"
+        ]
+        self.assert_rejected(foreign_case, "E_V244_PLAN_CASE_BINDING")
+
+    def test_each_risk_requires_dedicated_executable_scenario_and_oracle(self) -> None:
+        shared_api_oracle = valid_api_case()
+        for control in shared_api_oracle["api"]["risk_coverage"].values():
+            control["scenario_ref"] = "SC-API-AUTH"
+            control["oracle_assertion_ref"] = "A-API-AUTH"
+        self.assert_rejected(
+            shared_api_oracle, "E_V244_API_RISK_SCENARIO"
+        )
+        shared_e2e_oracle = valid_e2e_case()
+        for control in shared_e2e_oracle["e2e"]["risk_coverage"].values():
+            control["scenario_ref"] = "S1"
+            control["oracle_assertion_ref"] = "A-E2E-SESSION"
+        self.assert_rejected(
+            shared_e2e_oracle, "E_V244_E2E_RISK_SCENARIO"
+        )
+
     def test_run_result_binds_counts_exit_retry_flake_cleanup_and_replay(self) -> None:
         bad_summary = valid_run_result()
         bad_summary["summary"]["passed"] = 0
@@ -716,7 +918,101 @@ class V244TestContractTests(unittest.TestCase):
         assertion_wash["attempts"][0]["case_results"][0]["assertion_results"][0][
             "passed"
         ] = False
-        self.assert_rejected(assertion_wash, "E_V244_RUN_ASSERTION_RESULT")
+        self.assert_rejected(assertion_wash, "E_V244_RUN_ASSERTION_EVALUATION")
+        forged_comparator = valid_run_result()
+        assertion = forged_comparator["attempts"][0]["case_results"][0][
+            "assertion_results"
+        ][0]
+        assertion.update({"actual": "wrong", "expected": "created", "passed": True})
+        self.assert_rejected(
+            forged_comparator, "E_V244_RUN_ASSERTION_EVALUATION"
+        )
+        missing_artifact = valid_run_result()
+        missing_artifact["artifacts"][0]["path"] = (
+            "evidence/v2.44/does-not-exist.xml"
+        )
+        self.assert_rejected(missing_artifact, "E_V244_ARTIFACT_INTEGRITY")
+        fixture_root = ROOT / "tests" / "v23" / "fixtures" / "v244"
+        with tempfile.TemporaryDirectory(dir=fixture_root) as directory:
+            temporary = Path(directory)
+            real_dir = temporary / "real"
+            real_dir.mkdir()
+            real_file = real_dir / "evidence.json"
+            real_file.write_text('{"status":"verified"}\n', encoding="utf-8")
+            alias = temporary / "alias"
+            os.symlink(real_dir, alias)
+            symlinked = valid_run_result()
+            relative = (alias / "evidence.json").relative_to(ROOT).as_posix()
+            symlinked["artifacts"][0] = artifact_ref(
+                relative,
+                sha256=hashlib.sha256(real_file.read_bytes()).hexdigest(),
+            )
+            symlinked["artifacts"][0]["path"] = relative
+            symlinked["artifacts"][0]["sha256"] = hashlib.sha256(
+                real_file.read_bytes()
+            ).hexdigest()
+            self.assert_rejected(
+                symlinked, "E_V244_ARTIFACT_INTEGRITY"
+            )
+        foreign_case = valid_run_result()
+        foreign_case["case_ids"] = ["TC-V244-API-DOES-NOT-EXIST"]
+        foreign_case["attempts"][0]["case_results"][0]["case_id"] = (
+            "TC-V244-API-DOES-NOT-EXIST"
+        )
+        self.assert_rejected(foreign_case, "E_V244_RUN_CASE_BINDING")
+
+    def test_run_result_recomputes_every_supported_comparator(self) -> None:
+        valid_pairs = {
+            "equals": (1, 1, 2),
+            "not_equals": (1, 2, 1),
+            "contains": (["a", "b"], "a", "z"),
+            "member_of": ("a", ["a", "b"], ["z"]),
+            "less_than": (1, 2, 0),
+            "less_than_or_equal": (2, 2, 1),
+            "greater_than": (2, 1, 3),
+            "greater_than_or_equal": (2, 2, 3),
+            "json_subset": ({"a": 1, "b": 2}, {"a": 1}, {"a": 2}),
+            "sequence_equals": ([1, 2], [1, 2], [2, 1]),
+            "sha256_equals": ("a" * 64, "a" * 64, "b" * 64),
+            "status_code_equals": (201, 201, 500),
+            "visible": (True, True, False),
+            "not_visible": (False, False, True),
+        }
+        for comparator, (actual, expected, invalid_expected) in valid_pairs.items():
+            with self.subTest(comparator=comparator):
+                self.assertTrue(
+                    self.validator._evaluate_comparator(
+                        comparator, actual, expected
+                    )
+                )
+                self.assertFalse(
+                    self.validator._evaluate_comparator(
+                        comparator, actual, invalid_expected
+                    )
+                )
+
+    def test_run_result_checks_every_artifact_group(self) -> None:
+        selectors = {
+            "snapshot": lambda d: d["source_binding"]["protected_snapshot_ref"],
+            "attestation": lambda d: d["runner_identity"]["host_attestation_ref"],
+            "plan": lambda d: d["plan_binding"]["artifact_ref"],
+            "case": lambda d: d["test_case_refs"][0],
+            "config": lambda d: d["environment"]["config_refs"][0],
+            "data": lambda d: d["data_refs"][0],
+            "attempt": lambda d: d["attempts"][0]["artifact_refs"][0],
+            "top-level": lambda d: d["artifacts"][0],
+            "cleanup": lambda d: d["cleanup"]["evidence_refs"][0],
+            "replay-environment": lambda d: d["replay"]["environment_refs"][0],
+            "replay-seed": lambda d: d["replay"]["seed_refs"][0],
+            "replay-evidence": lambda d: d["replay"]["evidence_refs"][0],
+        }
+        for name, select in selectors.items():
+            with self.subTest(group=name):
+                document = valid_run_result()
+                select(document)["sha256"] = "0" * 64
+                self.assert_rejected(
+                    document, "E_V244_ARTIFACT_INTEGRITY"
+                )
 
     def test_fail_to_pass_is_retained_as_flaky_not_clean_pass(self) -> None:
         flaky = valid_run_result()
@@ -744,7 +1040,7 @@ class V244TestContractTests(unittest.TestCase):
         )
         failed_case = first_attempt["case_results"][0]
         failed_case["outcome"] = "failed"
-        failed_assertion = failed_case["assertion_results"][0]
+        failed_assertion = failed_case["assertion_results"][3]
         failed_assertion["actual"] = "missing"
         failed_assertion["passed"] = False
         first_attempt["case_results"] = [failed_case]
@@ -760,7 +1056,7 @@ class V244TestContractTests(unittest.TestCase):
             {
                 "attempt_id": "ATTEMPT-V244-001",
                 "case_id": "TC-V244-API-001",
-                "assertion_id": "A-V244-API-BUSINESS",
+                "assertion_id": "A-API-RETRY",
                 "message": "initial attempt did not observe the order",
                 "evidence_refs": [artifact_ref("evidence/v2.44/failure.json")],
             }

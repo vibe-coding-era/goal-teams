@@ -161,6 +161,61 @@
       "id": "GT244-TEST-013",
       "dimension": "real_behavior_benchmark",
       "summary": "E2E 错误恢复用例在页面计数未同步时产生重复运行 flake"
+    },
+    {
+      "id": "GT244-TEST-014",
+      "dimension": "machine_contracts",
+      "summary": "能力评分器允许替换权重清单并弱化 100 分固定门槛"
+    },
+    {
+      "id": "GT244-TEST-015",
+      "dimension": "run_evidence",
+      "summary": "问题账本未验证发现到解决时序、维度绑定与解决证据摘要"
+    },
+    {
+      "id": "GT244-TEST-016",
+      "dimension": "machine_contracts",
+      "summary": "测试文件 discovery 未确认 pytest node 或 glob 真实存在"
+    },
+    {
+      "id": "GT244-TEST-017",
+      "dimension": "run_evidence",
+      "summary": "运行结果信任 assertion passed 自报值而未重算 comparator"
+    },
+    {
+      "id": "GT244-TEST-018",
+      "dimension": "run_evidence",
+      "summary": "运行结果中的来源、身份、计划、用例、清理与重放引用可指向不存在文件"
+    },
+    {
+      "id": "GT244-TEST-019",
+      "dimension": "real_behavior_benchmark",
+      "summary": "Benchmark scorer 允许替换 case manifest 并把单条自报观测计为 10 分"
+    },
+    {
+      "id": "GT244-TEST-020",
+      "dimension": "real_behavior_benchmark",
+      "summary": "Benchmark 原始观测与截图缺少来源摘要和文件哈希绑定"
+    },
+    {
+      "id": "GT244-TEST-021",
+      "dimension": "machine_contracts",
+      "summary": "测试计划、测试用例与运行结果未交叉验证 case id、类型和文件哈希"
+    },
+    {
+      "id": "GT244-TEST-022",
+      "dimension": "role_independence",
+      "summary": "集成测试计划机器合同缺少 revision、Owner 与独立 Validator 身份"
+    },
+    {
+      "id": "GT244-TEST-023",
+      "dimension": "risk_environment_data_coverage",
+      "summary": "API 与 E2E 风险覆盖只绑定普通断言，未要求可执行风险动作和专用 oracle"
+    },
+    {
+      "id": "GT244-TEST-024",
+      "dimension": "run_evidence",
+      "summary": "总能力评分的检查项可绑定与该检查无关的任意哈希文件"
     }
   ]
 }

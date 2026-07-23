@@ -7,10 +7,11 @@ const { chromium } = require("playwright");
 
 const baseUrl = process.argv[2];
 const evidenceDir = process.argv[3];
-const chromePath = process.argv[4] || undefined;
+const runId = process.argv[4];
+const chromePath = process.argv[5] || undefined;
 
-if (!baseUrl || !evidenceDir) {
-  process.stderr.write("usage: browser.cjs <base-url> <evidence-dir> [chrome-path]\n");
+if (!baseUrl || !evidenceDir || !runId) {
+  process.stderr.write("usage: browser.cjs <base-url> <evidence-dir> <run-id> [chrome-path]\n");
   process.exit(2);
 }
 fs.mkdirSync(evidenceDir, { recursive: true });
@@ -208,7 +209,7 @@ async function recoveryCase(browser) {
       }
     }
     process.stdout.write(JSON.stringify({
-      runtime: { status: "executed", engine: "playwright-chromium" },
+      runtime: { status: "executed", engine: "playwright-chromium", run_id: runId },
       cases
     }));
   } finally {

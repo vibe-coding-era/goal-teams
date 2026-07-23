@@ -15,8 +15,8 @@ okf_version: "0.1"
 
 API/E2E 必须连续绑定：
 
-1. `integration-test-plan`：从 acceptance、API operation、persona/permission、状态机、依赖/failure mode、critical journey 和环境矩阵建立稳定风险分母。
-2. `test-case`：把 applicable risk 映射到 typed input、processing、expected output、assertions、test file hash 与 discovery ID。
+1. `integration-test-plan`：记录 revision、Owner 和不同 member/run 的 QA/Reviewer identity；从 acceptance、API、persona/state、dependency/failure mode、journey 和环境建立风险分母。
+2. `test-case`：把 applicable risk 映射到 typed input/processing/output、专用 scenario/action+oracle、test file hash 与 discovery ID；plan validator 必须加载 case artifact，校验 hash、case ID、API/E2E 类型和 risk refs。
 3. `test-run-result`：由独立 runner 绑定当前 source/plan/case/identity，记录 attempts、observations、cleanup、artifact hashes 和 replay recipe。
 
 Goal Packet/Harness 注入 exact paths、schema revision 和 validator argv；不得自选旧 validator或用 prose 替代机器 artifact。
@@ -52,7 +52,7 @@ API case 机器声明：
 - expected status、response schema/business values、post-state、side effects、cleanup；
 - 异步场景的观察窗、最终一致性与补偿 observable。
 
-高风险面覆盖 authorization、idempotency、retry、concurrency、partial failure/compensation、eventual consistency，或逐项提交可审查 N/A。status-only 不满足业务断言；`consumed_input_refs` 与 `input_bindings` 必须证明输入映射到业务 observable。
+高风险面覆盖 authorization、idempotency、retry、concurrency、fault injection/compensation、eventual consistency，或逐项提交可审查 N/A。每个 covered risk 绑定唯一可执行 scenario 和唯一 oracle assertion；一个普通请求/断言不得冒充全部风险。status-only 不满足业务断言。
 
 ## E2E typed contract
 
@@ -63,11 +63,11 @@ E2E case 机器声明：
 - final DOM、URL、visible/interaction/business state、side effects、cleanup；
 - 适用的 session refresh、permission denied、validation、double-click、loading/disabled、network/service failure、retry/recovery、refresh/back/multi-tab。
 
-截图/trace/video 是辅助 Evidence，不能替代 checkpoint 或业务 assertion。CLI 比较 stdout/stderr/file/state/hash；fixture 比较加载值、结构或 sha256。
+session/permission/refresh/double-click/error recovery 各自绑定专用 action、checkpoint 和唯一 oracle，不得共用普通断言。截图/trace/video 不能替代 checkpoint 或业务 assertion。
 
 ## 文件、哈希与发现
 
-每个 `test_file_ref` 是 protected Git tree 内相对路径并绑定当前 sha256。designer/runner 分别执行真实 discovery，记录 exact argv/cwd 与 IDs。路径越界、hash drift、零发现、case 未映射或执行未绑定测试均 fail closed。
+每个 `test_file_ref` 是 protected tree 内相对路径并绑定 sha256；只接受可真实验证的 pytest node/glob，必须执行 collect 并证明 node 存在，其他 discovery kind 禁止。run-result 的 snapshot、attestation、plan/case、config/data、attempt/failure、cleanup/replay 等 artifact refs 都必须存在、是普通文件、无 symlink 祖先且 hash 相等。
 
 ## Test Run Result
 
@@ -76,11 +76,11 @@ E2E case 机器声明：
 - result ID/schema、source commit/tree、plan ID/revision/hash、case IDs/hashes；
 - runner member/run identity，且与 designer/implementation owner 独立；
 - exact argv/cwd、runtime/dependency/config fingerprints、起止时间；
-- 首次 attempt 与全部 retries、case/step outcomes、consumed inputs、observed outputs/states、逐 assertion results；
+- 首次 attempt 与全部 retries、case/step outcomes、consumed inputs、observed outputs/states、逐 assertion results；validator 按 comparator 重算，拒绝自报 `passed`；
 - API response/post-state/side effects 或 E2E DOM/URL/visible/business state/console/network；
 - cleanup command/result、artifact 相对 paths+sha256、脱敏 replay recipe。
 
-`blocked|not_run|unavailable|unknown|flaky` 均不是 passed/covered。执行后断言或证据失败为 failed，无法执行为 blocked。retry 上限/理由必须预先声明；`fail→pass` 仍是 flaky，保留首次失败。只有根因关闭且独立 runner 无重试复验才可新建 clean pass。cleanup failed 使 run failed/blocked。
+run validator 加载 plan/case artifacts，校验 plan ID/revision/hash、case IDs/类型/hash 和全部断言。`blocked|not_run|unavailable|unknown|flaky` 均不是 passed/covered；`fail→pass` 仍是 flaky并保留首次失败。cleanup failed 使 run failed/blocked。
 
 ## 可重放 Evidence 与独立评审
 

@@ -20,7 +20,7 @@ okf_version: "0.1"
 
 ## V2.44 API 与 E2E 测试能力
 
-1. `references/testing-capability-manifest.json` 是七个评分维度、100 分权重、12 个已知问题和反游戏规则的机器 SSOT。
+1. `references/testing-capability-manifest.json` 是七个评分维度、固定 100 分权重、append-only 已知问题集合和反游戏规则的机器 SSOT；问题数量随 LOOP 发现追加，不得把静态计数当成验收口径。
 2. `references/testing-capability-protocol.md` 定义 `integration-test-plan`、V2.44 `test-case` 和 `test-run-result` 三类交接物，以及 API/E2E 风险分母、问题账本、真实行为 Benchmark 和完成边界。
 3. V2.44 的测试文件引用必须绑定 path、SHA-256 和 discovery；缺文件、digest drift、`not_run`、`blocked`、`unavailable`、只返回退出码或只提供 prose 均不得计入满分。
 4. 测试设计、执行、Review 和 Completion Audit 使用不同 run identity；retry 通过不能隐藏首次失败，flake、cleanup 和 replay 必须保留。

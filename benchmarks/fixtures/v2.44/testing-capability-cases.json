@@ -55,38 +55,47 @@
   "candidate_modes": [
     {
       "mode": "reference",
+      "risk": "positive_baseline",
       "expected_detected_by": []
     },
     {
       "mode": "api_auth_bypass",
+      "risk": "authorization",
       "expected_detected_by": ["API-AUTH-001"]
     },
     {
       "mode": "api_idempotency_broken",
+      "risk": "idempotency",
       "expected_detected_by": ["API-IDEMPOTENCY-001"]
     },
     {
       "mode": "api_concurrency_race",
+      "risk": "concurrency",
       "expected_detected_by": ["API-CONCURRENCY-001"]
     },
     {
       "mode": "api_eventual_consistency_stale",
+      "risk": "eventual_consistency",
       "expected_detected_by": ["API-CONSISTENCY-001"]
     },
     {
       "mode": "e2e_session_lost",
+      "risk": "session",
       "expected_detected_by": ["E2E-SESSION-001"]
     },
     {
       "mode": "e2e_double_click",
+      "risk": "duplicate_submission",
       "expected_detected_by": ["E2E-DOUBLE-CLICK-001"]
     },
     {
       "mode": "e2e_refresh_drops_state",
+      "risk": "state_recovery",
       "expected_detected_by": ["E2E-REFRESH-001"]
     },
     {
       "mode": "e2e_error_no_recovery",
+      "risk": "error_recovery",
       "expected_detected_by": ["E2E-RECOVERY-001"]
     }
   ]

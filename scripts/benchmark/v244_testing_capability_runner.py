@@ -12,8 +12,8 @@ import shutil
 import socket
 import subprocess
 import sys
-import tempfile
 import time
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -25,11 +25,10 @@ ROOT = Path(__file__).resolve().parents[2]
 TASK_DIR = ROOT / "benchmarks" / "tasks" / "GT-BENCH-005"
 REFERENCE_APP = TASK_DIR / "reference_app.py"
 BROWSER_RUNNER = ROOT / "scripts" / "benchmark" / "v244_testing_capability_browser.cjs"
-MANIFEST_PATH = (
-    ROOT / "benchmarks" / "fixtures" / "v2.44" / "testing-capability-cases.json"
-)
 SCORER_PATH = ROOT / "scripts" / "benchmark" / "v244_testing_capability_scorer.py"
 EVIDENCE_SCHEMA = "goal-teams-testing-capability-evidence-v2.44"
+RAW_SCHEMA = "goal-teams-testing-capability-raw-observation-v2.44"
+RUN_SCHEMA = "goal-teams-testing-capability-run-v2.44"
 SUMMARY_SCHEMA = "goal-teams-testing-capability-self-check-v2.44"
 E2E_CASE_IDS = (
     "E2E-SESSION-001",
@@ -43,19 +42,69 @@ def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def load_json(path: Path) -> dict[str, Any]:
-    value = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(value, dict):
-        raise ValueError(f"{path} must contain a JSON object")
-    return value
-
-
 def write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
+
+
+def artifact_binding(
+    evidence_root: Path, path: Path, *, media_type: str
+) -> dict[str, Any]:
+    root = evidence_root.absolute()
+    candidate = path.absolute()
+    relative = candidate.relative_to(root).as_posix()
+    if candidate.is_symlink() or not candidate.is_file():
+        raise RuntimeError(f"artifact must be a regular non-symlink file: {relative}")
+    current = root
+    for component in Path(relative).parts[:-1]:
+        current = current / component
+        if current.is_symlink() or not current.is_dir():
+            raise RuntimeError(f"artifact ancestor must be a real directory: {relative}")
+    return {
+        "path": relative,
+        "sha256": hashlib.sha256(candidate.read_bytes()).hexdigest(),
+        "size": candidate.stat().st_size,
+        "media_type": media_type,
+    }
+
+
+def bind_case_artifacts(
+    cases: list[dict[str, Any]], run_dir: Path, run_id: str
+) -> list[dict[str, Any]]:
+    raw_dir = run_dir / "raw"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    bound: list[dict[str, Any]] = []
+    for case in cases:
+        item = dict(case)
+        observation = dict(item["evidence"])
+        screenshot = observation.get("screenshot")
+        if isinstance(screenshot, str):
+            observation["screenshot"] = artifact_binding(
+                run_dir,
+                Path(screenshot),
+                media_type="image/png",
+            )
+        raw_path = raw_dir / f"{item['case_id']}.json"
+        write_json(
+            raw_path,
+            {
+                "schema_version": RAW_SCHEMA,
+                "run_id": run_id,
+                "case_id": item["case_id"],
+                "observation": observation,
+            },
+        )
+        item["evidence"] = observation
+        item["raw_artifact"] = artifact_binding(
+            run_dir,
+            raw_path,
+            media_type="application/json",
+        )
+        bound.append(item)
+    return bound
 
 
 def load_scorer() -> Any:
@@ -285,17 +334,18 @@ def not_run_e2e(reason: str) -> list[dict[str, Any]]:
 
 
 def browser_cases(
-    base_url: str, evidence_dir: Path, browser_mode: str
+    base_url: str, evidence_dir: Path, browser_mode: str, run_id: str
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     if browser_mode == "off":
         return not_run_e2e("browser_execution_explicitly_disabled"), {
             "status": "not_run",
             "reason": "browser_execution_explicitly_disabled",
+            "run_id": run_id,
         }
     available, chrome_path, reason = browser_capability()
     if not available:
-        return not_run_e2e(reason), {"status": "not_run", "reason": reason}
-    command = ["node", str(BROWSER_RUNNER), base_url, str(evidence_dir)]
+        return not_run_e2e(reason), {"status": "not_run", "reason": reason, "run_id": run_id}
+    command = ["node", str(BROWSER_RUNNER), base_url, str(evidence_dir), run_id]
     if chrome_path:
         command.append(chrome_path)
     process = subprocess.run(
@@ -308,6 +358,7 @@ def browser_cases(
             "reason": "browser_runner_failed",
             "exit_code": process.returncode,
             "stderr": detail,
+            "run_id": run_id,
         }
     try:
         payload = json.loads(process.stdout)
@@ -315,17 +366,20 @@ def browser_cases(
         return not_run_e2e(f"browser_output_invalid_json:{exc}"), {
             "status": "not_run",
             "reason": "browser_output_invalid_json",
+            "run_id": run_id,
         }
     cases = payload.get("cases")
     if not isinstance(cases, list):
         return not_run_e2e("browser_cases_missing"), {
             "status": "not_run",
             "reason": "browser_cases_missing",
+            "run_id": run_id,
         }
     return cases, {
         "status": "executed",
         "engine": payload.get("runtime", {}).get("engine"),
         "chrome_path": chrome_path,
+        "run_id": payload.get("runtime", {}).get("run_id"),
     }
 
 
@@ -353,12 +407,14 @@ def run_candidate(
     output_dir: Path,
     *,
     browser_mode: str,
-    manifest: dict[str, Any],
     browser_read_delay_ms: int = 0,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
+    scorer = load_scorer()
+    manifest = scorer.load_canonical_manifest()
     run_dir = output_dir / mode
     run_dir.mkdir(parents=True, exist_ok=True)
     started_at = utc_now()
+    run_id = str(uuid.uuid4())
     port = free_port()
     base_url = f"http://127.0.0.1:{port}"
     db_path = run_dir / "orders.sqlite3"
@@ -378,6 +434,8 @@ def run_candidate(
             mode,
             "--browser-read-delay-ms",
             str(browser_read_delay_ms),
+            "--run-id",
+            run_id,
         ],
         cwd=ROOT,
         text=True,
@@ -388,7 +446,9 @@ def run_candidate(
     try:
         wait_ready(base_url, process)
         observed_api = api_cases(base_url)
-        observed_e2e, browser = browser_cases(base_url, run_dir / "screenshots", browser_mode)
+        observed_e2e, browser = browser_cases(
+            base_url, run_dir / "screenshots", browser_mode, run_id
+        )
         evidence = {
             "schema_version": EVIDENCE_SCHEMA,
             "benchmark_id": manifest["benchmark_id"],
@@ -398,7 +458,7 @@ def run_candidate(
             },
             "started_at": started_at,
             "completed_at": utc_now(),
-            "cases": observed_api + observed_e2e,
+            "cases": [],
             "browser": browser,
             "runtime": {
                 "service": "python_threading_http_server",
@@ -419,14 +479,31 @@ def run_candidate(
         cleanup["service_terminated"] = process.poll() is not None
         log_handle.close()
 
-    scorer = load_scorer()
-    score = scorer.score_evidence(evidence, manifest)
+    evidence["cases"] = bind_case_artifacts(
+        observed_api + observed_e2e, run_dir, run_id
+    )
+    evidence["run"] = {
+        "schema_version": RUN_SCHEMA,
+        "run_id": run_id,
+        "candidate_mode": mode,
+        "manifest_sha256": scorer.CANONICAL_MANIFEST_SHA256,
+        "source_digests": scorer.expected_source_digests(),
+        "database_artifact": artifact_binding(
+            run_dir, db_path, media_type="application/vnd.sqlite3"
+        ),
+        "service_log_artifact": artifact_binding(
+            run_dir, service_log, media_type="text/plain"
+        ),
+    }
+    score = scorer.score_evidence(evidence, evidence_root=run_dir)
     write_json(run_dir / "evidence.json", evidence)
     write_json(run_dir / "score.json", score)
     return evidence, score
 
 
-def self_check(output_dir: Path, manifest: dict[str, Any]) -> dict[str, Any]:
+def self_check(output_dir: Path) -> dict[str, Any]:
+    scorer = load_scorer()
+    manifest = scorer.load_canonical_manifest()
     rows: list[dict[str, Any]] = []
     modes = manifest["candidate_modes"]
     reference_outcomes: list[list[tuple[str, str]]] = []
@@ -434,7 +511,7 @@ def self_check(output_dir: Path, manifest: dict[str, Any]) -> dict[str, Any]:
     for candidate in modes:
         mode = candidate["mode"]
         evidence, score = run_candidate(
-            mode, output_dir, browser_mode="required", manifest=manifest
+            mode, output_dir, browser_mode="required"
         )
         outcomes = dict(canonical_case_outcomes(evidence))
         expected = candidate["expected_detected_by"]
@@ -464,7 +541,7 @@ def self_check(output_dir: Path, manifest: dict[str, Any]) -> dict[str, Any]:
         )
 
     repeat_evidence, repeat_score = run_candidate(
-        "reference", output_dir / "repeat", browser_mode="required", manifest=manifest
+        "reference", output_dir / "repeat", browser_mode="required"
     )
     reference_outcomes.append(canonical_case_outcomes(repeat_evidence))
     if reference_outcomes[0] != reference_outcomes[1] or repeat_score["score"] != 10.0:
@@ -501,20 +578,20 @@ def self_check(output_dir: Path, manifest: dict[str, Any]) -> dict[str, Any]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--manifest", type=Path, default=MANIFEST_PATH)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--candidate-mode", default="reference")
     parser.add_argument("--browser", choices=("auto", "required", "off"), default="auto")
     parser.add_argument("--self-check", action="store_true")
     args = parser.parse_args()
-    manifest = load_json(args.manifest)
+    scorer = load_scorer()
+    manifest = scorer.load_canonical_manifest()
     valid_modes = {item["mode"] for item in manifest["candidate_modes"]}
     if args.candidate_mode not in valid_modes:
         print(f"unknown candidate mode: {args.candidate_mode}", file=sys.stderr)
         return 2
 
     if args.self_check:
-        result = self_check(args.output_dir, manifest)
+        result = self_check(args.output_dir)
         print(json.dumps(result, ensure_ascii=False, sort_keys=True))
         return 0 if result["status"] == "passed" else 1
 
@@ -522,7 +599,6 @@ def main() -> int:
         args.candidate_mode,
         args.output_dir,
         browser_mode=args.browser,
-        manifest=manifest,
     )
     if args.browser == "required" and evidence["browser"]["status"] != "executed":
         print(json.dumps(score, ensure_ascii=False, sort_keys=True))

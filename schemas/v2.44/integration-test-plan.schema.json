@@ -7,7 +7,10 @@
   "required": [
     "schema_version",
     "plan_id",
+    "revision",
     "project_version",
+    "owner_identity",
+    "validator_identity",
     "acceptance_refs",
     "scope",
     "environments",
@@ -23,7 +26,10 @@
   "properties": {
     "schema_version": {"const": "goal-teams-integration-test-plan-v2.44"},
     "plan_id": {"type": "string", "minLength": 1},
+    "revision": {"type": "integer", "minimum": 1},
     "project_version": {"type": "string", "pattern": "^V[0-9]+\\.[0-9]+$"},
+    "owner_identity": {"$ref": "#/$defs/ownerIdentity"},
+    "validator_identity": {"$ref": "#/$defs/validatorIdentity"},
     "acceptance_refs": {"$ref": "#/$defs/nonemptyStrings"},
     "scope": {
       "type": "object",
@@ -133,6 +139,26 @@
     "evidence_refs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/artifactRef"}}
   },
   "$defs": {
+    "ownerIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["agent_type", "member_id", "run_id"],
+      "properties": {
+        "agent_type": {"const": "goal_api_integration_test_designer"},
+        "member_id": {"type": "string", "minLength": 1},
+        "run_id": {"type": "string", "minLength": 1}
+      }
+    },
+    "validatorIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["agent_type", "member_id", "run_id"],
+      "properties": {
+        "agent_type": {"enum": ["goal_qa", "goal_reviewer"]},
+        "member_id": {"type": "string", "minLength": 1},
+        "run_id": {"type": "string", "minLength": 1}
+      }
+    },
     "nonemptyStrings": {
       "type": "array",
       "minItems": 1,

@@ -31,6 +31,12 @@
 - pass/fail 没有行为观测。
 - evidence 不是结构化对象。
 - manifest 权重之和不是 10。
+- 调用方尝试指定 manifest，或 canonical manifest path/digest、8 case、API 6/E2E 4、风险/期望缺陷集合发生漂移。
+- UUID run identity 未同时绑定 browser runtime、raw observations 与 SQLite `benchmark_run`。
+- runner/reference app/browser/static UI/scorer 的 source digest 不匹配当前受评分源码。
+- raw JSON、SQLite、service log 或 PNG 的大小/sha256 不匹配。
+- artifact 本身或 evidence root 内任一祖先目录是 symlink，或路径绝对化、含 `..`。
+- embedded observation 与绑定 raw JSON 内容不同，或 PNG header 无效。
 
 ## Seeded defect oracle
 
@@ -45,7 +51,7 @@
 | `e2e_refresh_drops_state` | `E2E-REFRESH-001` |
 | `e2e_error_no_recovery` | `E2E-RECOVERY-001` |
 
-额外失败可以揭示故障传播，但不能掩盖绑定 case 未检出。reference 必须 10/10 且 `not_run_count=0`，否则 benchmark 自检失败。
+额外失败可以揭示故障传播，但不能掩盖绑定 case 未检出。reference 必须 10/10 且 `not_run_count=0`，否则 benchmark 自检失败。表中的 risk 与 expected defect binding 是 canonical manifest 的固定集合，不能通过自选 manifest 缩减。
 
 ## 与 100 分能力评分的关系
 

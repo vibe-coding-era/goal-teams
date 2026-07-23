@@ -9,6 +9,9 @@ import hashlib
 import importlib.util
 import json
 import re
+import shutil
+import stat
+import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -68,6 +71,23 @@ _UNCOVERED_STATES = frozenset(
 _DISCOVERY_KINDS = frozenset(
     {"pytest_node", "glob", "manifest", "command", "artifact"}
 )
+_TEST_DISCOVERY_KINDS = frozenset({"pytest_node", "glob"})
+_DISCOVERY_CACHE: dict[tuple[str, str, str], bool] = {}
+_API_RISK_ACTIONS = {
+    "authorization": "authorization_probe",
+    "idempotency": "repeat_request",
+    "retry": "retry_after_transient_failure",
+    "concurrency": "concurrent_request_batch",
+    "compensation": "inject_partial_failure_and_compensate",
+    "final_consistency": "poll_until_consistent",
+}
+_E2E_RISK_ACTIONS = {
+    "session": "expire_session",
+    "permission": "permission_probe",
+    "refresh": "refresh",
+    "double_click": "double_click",
+    "error_recovery": "inject_network_error",
+}
 
 
 def _load_policy() -> Any:
@@ -183,34 +203,140 @@ def _artifact_refs(value: Any, *, allow_empty: bool = False) -> bool:
     )
 
 
-def _bound_test_file_refs(value: Any) -> bool:
-    if not _artifact_refs(value):
-        return False
-    workspace_root = Path.cwd().resolve()
-    for item in value:
-        path = workspace_root / item["path"]
+def _bound_regular_file(value: Any) -> Path | None:
+    if not _artifact_ref(value):
+        return None
+    candidate = ROOT
+    for part in PurePosixPath(value["path"]).parts:
+        candidate = candidate / part
         try:
-            resolved = path.resolve(strict=True)
-            resolved.relative_to(workspace_root)
-        except (FileNotFoundError, RuntimeError, ValueError):
-            return False
-        if not resolved.is_file():
-            return False
+            mode = candidate.lstat().st_mode
+        except (FileNotFoundError, OSError):
+            return None
+        if stat.S_ISLNK(mode):
+            return None
+    try:
+        resolved = candidate.resolve(strict=True)
+        resolved.relative_to(ROOT)
+    except (FileNotFoundError, RuntimeError, ValueError):
+        return None
+    if not stat.S_ISREG(resolved.lstat().st_mode):
+        return None
+    try:
         observed_sha256 = hashlib.sha256(resolved.read_bytes()).hexdigest()
-        if observed_sha256 != item["sha256"]:
-            return False
+    except OSError:
+        return None
+    return resolved if observed_sha256 == value["sha256"] else None
+
+
+def _bound_artifact_refs(value: Any, *, allow_empty: bool = False) -> bool:
+    return (
+        _artifact_refs(value, allow_empty=allow_empty)
+        and all(_bound_regular_file(item) is not None for item in value)
+    )
+
+
+def _pytest_collect(selector: str, expected_prefix: str) -> bool:
+    cache_key = ("pytest", selector, expected_prefix)
+    if cache_key in _DISCOVERY_CACHE:
+        return _DISCOVERY_CACHE[cache_key]
+    pytest_bin = shutil.which("pytest")
+    if pytest_bin is None:
+        _DISCOVERY_CACHE[cache_key] = False
+        return False
+    try:
+        proc = subprocess.run(
+            [pytest_bin, "--collect-only", "-q", selector],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            timeout=30,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        _DISCOVERY_CACHE[cache_key] = False
+        return False
+    collected = any(
+        line.strip() == expected_prefix
+        or line.strip().startswith(expected_prefix + "::")
+        for line in proc.stdout.splitlines()
+    )
+    passed = proc.returncode == 0 and collected
+    _DISCOVERY_CACHE[cache_key] = passed
+    return passed
+
+
+def _bound_test_file_refs(value: Any) -> tuple[bool, str | None]:
+    if not _artifact_refs(value):
+        return False, "E_V244_ARTIFACT_REF"
+    for item in value:
+        if _bound_regular_file(item) is None:
+            return False, "E_V244_ARTIFACT_REF"
         discovery = item["discovery"]
-        if discovery["kind"] == "pytest_node" and not (
-            discovery["selector"] == item["path"]
-            or discovery["selector"].startswith(item["path"] + "::")
-        ):
-            return False
-        if (
-            discovery["kind"] == "command"
-            and item["path"] not in discovery["selector"]
-        ):
-            return False
-    return True
+        kind = discovery["kind"]
+        selector = discovery["selector"]
+        if kind not in _TEST_DISCOVERY_KINDS:
+            return False, "E_V244_TEST_DISCOVERY"
+        if kind == "pytest_node":
+            if not (
+                selector == item["path"]
+                or selector.startswith(item["path"] + "::")
+            ) or not _pytest_collect(selector, selector):
+                return False, "E_V244_TEST_DISCOVERY"
+        else:
+            try:
+                matches = {
+                    path.resolve()
+                    for path in ROOT.glob(selector)
+                    if path.is_file()
+                }
+            except (OSError, ValueError):
+                return False, "E_V244_TEST_DISCOVERY"
+            target = (ROOT / item["path"]).resolve()
+            if target not in matches or not _pytest_collect(item["path"], item["path"]):
+                return False, "E_V244_TEST_DISCOVERY"
+    return True, None
+
+
+def _strict_json_file(path: Path) -> Any:
+    def no_duplicates(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+        value: dict[str, Any] = {}
+        for key, item in pairs:
+            if key in value:
+                raise ValueError("duplicate key")
+            value[key] = item
+        return value
+
+    return json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=no_duplicates)
+
+
+def _load_bound_case_artifacts(
+    refs: Any, expected_kind: str
+) -> dict[str, dict[str, Any]] | None:
+    if not _bound_artifact_refs(refs):
+        return None
+    cases: dict[str, dict[str, Any]] = {}
+    for ref in refs:
+        path = _bound_regular_file(ref)
+        if path is None:
+            return None
+        try:
+            document = _strict_json_file(path)
+        except (OSError, UnicodeError, json.JSONDecodeError, ValueError):
+            return None
+        documents = document if isinstance(document, list) else [document]
+        for case in documents:
+            validated = validate_v244_test_case(case)
+            case_id = case.get("case_id") if isinstance(case, dict) else None
+            if (
+                not validated.get("ok")
+                or case.get("test_kind") != expected_kind
+                or not _text(case_id)
+                or case_id in cases
+            ):
+                return None
+            cases[case_id] = case
+    return cases
 
 
 def _command(value: Any) -> bool:
@@ -260,21 +386,40 @@ def _assertions(value: Any) -> tuple[bool, set[str]]:
 
 
 def _risk_coverage(
-    value: Any, required_risks: frozenset[str], assertion_ids: set[str]
+    value: Any,
+    required_risks: frozenset[str],
+    assertion_ids: set[str],
+    scenario_actions: dict[str, str],
 ) -> bool:
     if not isinstance(value, dict) or set(value) != required_risks:
         return False
-    for control in value.values():
+    expected_actions = (
+        _API_RISK_ACTIONS if required_risks == _API_RISKS else _E2E_RISK_ACTIONS
+    )
+    used_scenarios: set[str] = set()
+    used_oracles: set[str] = set()
+    for risk_name, control in value.items():
         if not isinstance(control, dict):
             return False
         status = control.get("status")
         if status == "covered":
+            scenario_ref = control.get("scenario_ref")
+            oracle_ref = control.get("oracle_assertion_ref")
             if (
-                not _exact_keys(control, {"status", "assertion_refs"})
-                or not _strings(control.get("assertion_refs"))
-                or not set(control["assertion_refs"]) <= assertion_ids
+                not _exact_keys(
+                    control,
+                    {"status", "scenario_ref", "oracle_assertion_ref"},
+                )
+                or not _text(scenario_ref)
+                or scenario_ref in used_scenarios
+                or scenario_actions.get(scenario_ref) != expected_actions[risk_name]
+                or not _text(oracle_ref)
+                or oracle_ref not in assertion_ids
+                or oracle_ref in used_oracles
             ):
                 return False
+            used_scenarios.add(scenario_ref)
+            used_oracles.add(oracle_ref)
         elif status == "not_applicable":
             if not _exact_keys(control, {"status", "rationale"}) or not _text(
                 control.get("rationale")
@@ -419,8 +564,9 @@ def validate_v244_test_case(case: Any) -> dict[str, Any]:
         or not _strings(case.get("acceptance_refs"))
     ):
         return _reject("E_V244_TEST_CASE_REQUIRED")
-    if not _bound_test_file_refs(case.get("test_file_refs")):
-        return _reject("E_V244_ARTIFACT_REF")
+    test_refs_ok, test_ref_error = _bound_test_file_refs(case.get("test_file_refs"))
+    if not test_refs_ok:
+        return _reject(test_ref_error or "E_V244_ARTIFACT_REF")
     setup = case.get("setup")
     if (
         not _exact_keys(setup, {"preconditions", "data_refs"})
@@ -506,7 +652,9 @@ def validate_v244_test_case(case: Any) -> dict[str, Any]:
             or not _strings(pre_state.get("state_refs"))
             or not isinstance(pre_state.get("values"), dict)
             or not pre_state["values"]
-            or not _exact_keys(processing, {"target", "consumed_input_refs"})
+            or not _exact_keys(
+                processing, {"target", "consumed_input_refs", "risk_scenarios"}
+            )
             or not _text(processing.get("target"))
             or not _strings(processing.get("consumed_input_refs"))
             or not _exact_keys(
@@ -522,8 +670,32 @@ def validate_v244_test_case(case: Any) -> dict[str, Any]:
             or not _strings(expected.get("side_effects"))
         ):
             return _reject("E_V244_API_ORACLE")
-        if not _risk_coverage(api.get("risk_coverage"), _API_RISKS, assertion_ids):
+        risk_scenarios = processing.get("risk_scenarios")
+        scenario_actions: dict[str, str] = {}
+        if not isinstance(risk_scenarios, list):
+            return _reject("E_V244_API_RISK_SCENARIO")
+        for scenario in risk_scenarios:
+            if (
+                not _exact_keys(
+                    scenario, {"scenario_id", "action", "target", "input_refs"}
+                )
+                or not _text(scenario.get("scenario_id"))
+                or scenario["scenario_id"] in scenario_actions
+                or scenario.get("action") not in set(_API_RISK_ACTIONS.values())
+                or not _text(scenario.get("target"))
+                or not _strings(scenario.get("input_refs"))
+            ):
+                return _reject("E_V244_API_RISK_SCENARIO")
+            scenario_actions[scenario["scenario_id"]] = scenario["action"]
+        if set(scenario_actions.values()) != set(_API_RISK_ACTIONS.values()):
+            return _reject("E_V244_API_RISK_SCENARIO")
+        api_risks = api.get("risk_coverage")
+        if not isinstance(api_risks, dict) or set(api_risks) != _API_RISKS:
             return _reject("E_V244_API_RISK_COVERAGE")
+        if not _risk_coverage(
+            api_risks, _API_RISKS, assertion_ids, scenario_actions
+        ):
+            return _reject("E_V244_API_RISK_SCENARIO")
     else:
         if "api" in case or "e2e" not in case:
             return _reject("E_V244_TEST_KIND_BINDING")
@@ -576,7 +748,7 @@ def validate_v244_test_case(case: Any) -> dict[str, Any]:
         if not isinstance(actions, list) or not actions:
             return _reject("E_V244_E2E_ACTION")
         step_ids: set[str] = set()
-        action_types: set[str] = set()
+        scenario_actions: dict[str, str] = {}
         for action in actions:
             if not _required_optional_keys(
                 action, {"step_id", "type", "target"}, {"value_ref"}
@@ -595,13 +767,16 @@ def validate_v244_test_case(case: Any) -> dict[str, Any]:
                     "submit",
                     "refresh",
                     "wait",
+                    "expire_session",
+                    "permission_probe",
+                    "inject_network_error",
                 }
                 or not _text(action.get("target"))
                 or ("value_ref" in action and not _text(action.get("value_ref")))
             ):
                 return _reject("E_V244_E2E_ACTION")
             step_ids.add(action["step_id"])
-            action_types.add(action["type"])
+            scenario_actions[action["step_id"]] = action["type"]
         checkpoints = e2e.get("checkpoints")
         if not isinstance(checkpoints, list) or not checkpoints:
             return _reject("E_V244_E2E_CHECKPOINT")
@@ -636,15 +811,12 @@ def validate_v244_test_case(case: Any) -> dict[str, Any]:
         ):
             return _reject("E_V244_E2E_FINAL_STATE")
         risks = e2e.get("risk_coverage")
-        if not _risk_coverage(risks, _E2E_RISKS, assertion_ids):
+        if not isinstance(risks, dict) or set(risks) != _E2E_RISKS:
             return _reject("E_V244_E2E_RISK_COVERAGE")
-        if risks["refresh"]["status"] == "covered" and "refresh" not in action_types:
-            return _reject("E_V244_E2E_RISK_ACTION")
-        if (
-            risks["double_click"]["status"] == "covered"
-            and "double_click" not in action_types
+        if not _risk_coverage(
+            risks, _E2E_RISKS, assertion_ids, scenario_actions
         ):
-            return _reject("E_V244_E2E_RISK_ACTION")
+            return _reject("E_V244_E2E_RISK_SCENARIO")
     return _ok(
         contract_kind="test_case",
         case_id=case["case_id"],
@@ -657,7 +829,10 @@ def validate_v244_plan(plan: Any) -> dict[str, Any]:
     required = {
         "schema_version",
         "plan_id",
+        "revision",
         "project_version",
+        "owner_identity",
+        "validator_identity",
         "acceptance_refs",
         "scope",
         "environments",
@@ -675,12 +850,30 @@ def validate_v244_plan(plan: Any) -> dict[str, Any]:
     if (
         plan.get("schema_version") != V244_PLAN_SCHEMA
         or not _text(plan.get("plan_id"))
+        or not isinstance(plan.get("revision"), int)
+        or isinstance(plan.get("revision"), bool)
+        or plan["revision"] < 1
         or not isinstance(plan.get("project_version"), str)
         or not _VERSION.fullmatch(plan["project_version"])
         or plan["project_version"] != "V2.44"
         or not _strings(plan.get("acceptance_refs"))
     ):
         return _reject("E_V244_PLAN_REQUIRED")
+    owner = plan.get("owner_identity")
+    validator = plan.get("validator_identity")
+    if (
+        not _exact_keys(owner, {"agent_type", "member_id", "run_id"})
+        or owner.get("agent_type") != "goal_api_integration_test_designer"
+        or not _text(owner.get("member_id"))
+        or not _text(owner.get("run_id"))
+        or not _exact_keys(validator, {"agent_type", "member_id", "run_id"})
+        or validator.get("agent_type") not in {"goal_qa", "goal_reviewer"}
+        or not _text(validator.get("member_id"))
+        or not _text(validator.get("run_id"))
+        or owner["member_id"] == validator["member_id"]
+        or owner["run_id"] == validator["run_id"]
+    ):
+        return _reject("E_V244_PLAN_IDENTITY")
     scope = plan.get("scope")
     if (
         not _exact_keys(scope, {"services", "user_journeys", "excluded_with_reason"})
@@ -709,7 +902,7 @@ def validate_v244_plan(plan: Any) -> dict[str, Any]:
             or environment["environment_id"] in environment_ids
             or not _text(environment.get("base_url"))
             or not environment["base_url"].startswith(("http://", "https://"))
-            or not _artifact_refs(environment.get("config_refs"))
+            or not _bound_artifact_refs(environment.get("config_refs"))
             or not _strings(environment.get("health_checks"))
         ):
             return _reject("E_V244_PLAN_ENVIRONMENT")
@@ -717,7 +910,7 @@ def validate_v244_plan(plan: Any) -> dict[str, Any]:
     data = plan.get("data_strategy")
     if (
         not _exact_keys(data, {"seed_refs", "isolation", "reset", "sensitive_data"})
-        or not _artifact_refs(data.get("seed_refs"))
+        or not _bound_artifact_refs(data.get("seed_refs"))
         or not _text(data.get("isolation"))
         or not _text(data.get("reset"))
         or data.get("sensitive_data") not in {"synthetic_only", "redacted_fixture"}
@@ -728,11 +921,29 @@ def validate_v244_plan(plan: Any) -> dict[str, Any]:
     if not risks_ok:
         return _reject("E_V244_PLAN_RISK_COVERAGE")
     if (
-        not _artifact_refs(plan.get("api_case_refs"))
-        or not _artifact_refs(plan.get("e2e_case_refs"))
-        or not _artifact_refs(plan.get("evidence_refs"))
+        not _bound_artifact_refs(plan.get("api_case_refs"))
+        or not _bound_artifact_refs(plan.get("e2e_case_refs"))
+        or not _bound_artifact_refs(plan.get("evidence_refs"))
     ):
-        return _reject("E_V244_ARTIFACT_REF")
+        return _reject("E_V244_ARTIFACT_INTEGRITY")
+    api_cases = _load_bound_case_artifacts(plan["api_case_refs"], "api")
+    e2e_cases = _load_bound_case_artifacts(plan["e2e_case_refs"], "e2e")
+    if not api_cases or not e2e_cases:
+        return _reject("E_V244_PLAN_CASE_BINDING")
+    all_cases = {**api_cases, **e2e_cases}
+    if len(all_cases) != len(api_cases) + len(e2e_cases):
+        return _reject("E_V244_PLAN_CASE_BINDING")
+    for risk in risks["risks"]:
+        if risk["applicability"] != "applicable":
+            continue
+        for case_id in risk["case_refs"]:
+            case = all_cases.get(case_id)
+            if case is None or case.get("test_kind") != risk["domain"]:
+                return _reject("E_V244_PLAN_CASE_BINDING")
+            controls = case[risk["domain"]]["risk_coverage"]
+            control = controls.get(risk["category"])
+            if control is None or control.get("status") != "covered":
+                return _reject("E_V244_PLAN_CASE_BINDING")
     execution = plan.get("execution")
     if (
         not _exact_keys(
@@ -769,6 +980,7 @@ def validate_v244_plan(plan: Any) -> dict[str, Any]:
     return _ok(
         contract_kind="integration_test_plan",
         plan_id=plan["plan_id"],
+        revision=plan["revision"],
         environment_ids=sorted(environment_ids),
         risk_summary=risk_summary,
     )
@@ -781,6 +993,97 @@ def _parse_datetime(value: Any) -> datetime | None:
         return datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError:
         return None
+
+
+def _json_subset(actual: Any, expected: Any) -> bool:
+    if isinstance(expected, dict):
+        return isinstance(actual, dict) and all(
+            key in actual and _json_subset(actual[key], value)
+            for key, value in expected.items()
+        )
+    if isinstance(expected, list):
+        return isinstance(actual, list) and all(
+            any(_json_subset(item, expected_item) for item in actual)
+            for expected_item in expected
+        )
+    return actual == expected
+
+
+def _evaluate_comparator(comparator: str, actual: Any, expected: Any) -> bool:
+    try:
+        if comparator == "equals":
+            return actual == expected
+        if comparator == "not_equals":
+            return actual != expected
+        if comparator == "contains":
+            return expected in actual
+        if comparator == "member_of":
+            return actual in expected
+        if comparator == "less_than":
+            return actual < expected
+        if comparator == "less_than_or_equal":
+            return actual <= expected
+        if comparator == "greater_than":
+            return actual > expected
+        if comparator == "greater_than_or_equal":
+            return actual >= expected
+        if comparator == "json_subset":
+            return _json_subset(actual, expected)
+        if comparator == "sequence_equals":
+            return (
+                isinstance(actual, list)
+                and isinstance(expected, list)
+                and actual == expected
+            )
+        if comparator == "sha256_equals":
+            return (
+                isinstance(actual, str)
+                and isinstance(expected, str)
+                and _HEX64.fullmatch(actual) is not None
+                and actual == expected
+            )
+        if comparator == "status_code_equals":
+            return (
+                isinstance(actual, int)
+                and not isinstance(actual, bool)
+                and isinstance(expected, int)
+                and not isinstance(expected, bool)
+                and actual == expected
+            )
+        if comparator == "visible":
+            return actual is True and expected is True
+        if comparator == "not_visible":
+            return actual is False and expected is False
+    except (TypeError, ValueError):
+        return False
+    return False
+
+
+def _all_run_artifact_refs(result: dict[str, Any]) -> list[dict[str, Any]] | None:
+    refs: list[dict[str, Any]] = []
+    try:
+        refs.extend(
+            [
+                result["source_binding"]["protected_snapshot_ref"],
+                result["runner_identity"]["host_attestation_ref"],
+                result["plan_binding"]["artifact_ref"],
+            ]
+        )
+        refs.extend(result["test_case_refs"])
+        refs.extend(result["environment"]["config_refs"])
+        refs.extend(result["data_refs"])
+        refs.extend(result["artifacts"])
+        for attempt in result["attempts"]:
+            refs.extend(attempt["artifact_refs"])
+        for failure in result["failures"]:
+            refs.extend(failure["evidence_refs"])
+        refs.extend(result["cleanup"]["evidence_refs"])
+        refs.extend(result["replay"]["environment_refs"])
+        refs.extend(result["replay"]["seed_refs"])
+        refs.extend(result["replay"]["evidence_refs"])
+    except (KeyError, TypeError):
+        return None
+    return refs
 
 
 def validate_v244_run_result(result: Any) -> dict[str, Any]:
@@ -825,6 +1128,9 @@ def validate_v244_run_result(result: Any) -> dict[str, Any]:
         or not _artifact_refs(result.get("artifacts"))
     ):
         return _reject("E_V244_RUN_REQUIRED")
+    important_refs = _all_run_artifact_refs(result)
+    if important_refs is None or not _bound_artifact_refs(important_refs):
+        return _reject("E_V244_ARTIFACT_INTEGRITY")
     source = result.get("source_binding")
     if (
         not _exact_keys(
@@ -898,6 +1204,44 @@ def validate_v244_run_result(result: Any) -> dict[str, Any]:
         or plan["sha256"] != plan["artifact_ref"]["sha256"]
     ):
         return _reject("E_V244_RUN_PLAN_BINDING")
+    plan_path = _bound_regular_file(plan["artifact_ref"])
+    try:
+        bound_plan = (
+            _strict_json_file(plan_path) if plan_path is not None else None
+        )
+    except (OSError, UnicodeError, json.JSONDecodeError, ValueError):
+        bound_plan = None
+    validated_plan = validate_v244_plan(bound_plan)
+    if (
+        not validated_plan.get("ok")
+        or bound_plan.get("plan_id") != plan["plan_id"]
+        or bound_plan.get("revision") != plan["revision"]
+        or plan["sha256"] != plan["artifact_ref"]["sha256"]
+    ):
+        return _reject("E_V244_RUN_PLAN_BINDING")
+    bound_cases = _load_bound_case_artifacts(
+        result["test_case_refs"], result["run_kind"]
+    )
+    if not bound_cases or set(bound_cases) != set(result["case_ids"]):
+        return _reject("E_V244_RUN_CASE_BINDING")
+    plan_case_refs = (
+        bound_plan["api_case_refs"]
+        if result["run_kind"] == "api"
+        else bound_plan["e2e_case_refs"]
+    )
+    plan_cases = _load_bound_case_artifacts(plan_case_refs, result["run_kind"])
+    plan_ref_bindings = {
+        (item["path"], item["sha256"]) for item in plan_case_refs
+    }
+    run_ref_bindings = {
+        (item["path"], item["sha256"]) for item in result["test_case_refs"]
+    }
+    if (
+        not plan_cases
+        or not set(bound_cases) <= set(plan_cases)
+        or not run_ref_bindings <= plan_ref_bindings
+    ):
+        return _reject("E_V244_RUN_CASE_BINDING")
     environment = result.get("environment")
     if (
         not _exact_keys(
@@ -1074,6 +1418,10 @@ def validate_v244_run_result(result: Any) -> dict[str, Any]:
             case_history[case_id].append(case_outcome)
             assertion_ids: set[str] = set()
             assertion_passes: list[bool] = []
+            expected_assertions = {
+                item["assertion_id"]: item
+                for item in bound_cases[case_id]["assertions"]
+            }
             for assertion in assertion_results:
                 if (
                     not _exact_keys(
@@ -1092,12 +1440,26 @@ def validate_v244_run_result(result: Any) -> dict[str, Any]:
                     or not isinstance(assertion.get("passed"), bool)
                 ):
                     return _reject("E_V244_RUN_ASSERTION_RESULT")
+                expected_contract = expected_assertions.get(assertion["assertion_id"])
+                if (
+                    expected_contract is None
+                    or expected_contract["comparator"] != assertion["comparator"]
+                    or _evaluate_comparator(
+                        assertion["comparator"],
+                        assertion["actual"],
+                        assertion["expected"],
+                    )
+                    is not assertion["passed"]
+                ):
+                    return _reject("E_V244_RUN_ASSERTION_EVALUATION")
                 assertion_ids.add(assertion["assertion_id"])
                 assertion_passes.append(assertion["passed"])
                 if not assertion["passed"]:
                     false_assertions.add(
                         (attempt_id, case_id, assertion["assertion_id"])
                     )
+            if assertion_ids != set(expected_assertions):
+                return _reject("E_V244_RUN_ASSERTION_RESULT")
             if (
                 (case_outcome == "passed" and not all(assertion_passes))
                 or (case_outcome == "failed" and all(assertion_passes))
@@ -1303,18 +1665,23 @@ def validate_document(policy: Any, document: Any) -> dict[str, Any]:
     if schema_version == V244_RUN_SCHEMA:
         return validate_v244_run_result(document)
     if schema_version == V244_FIXTURE_SCHEMA:
-        documents = document.get("valid_documents")
+        valid_refs = document.get("valid_artifact_refs")
         invalid_documents = document.get("invalid_documents")
         if (
-            set(document) != {"schema_version", "valid_documents", "invalid_documents"}
-            or not isinstance(documents, list)
-            or not documents
+            set(document)
+            != {"schema_version", "valid_artifact_refs", "invalid_documents"}
+            or not _bound_artifact_refs(valid_refs)
             or not isinstance(invalid_documents, list)
             or not invalid_documents
         ):
             return _reject("E_V244_FIXTURE_SHAPE")
         identifiers: list[str] = []
-        for item in documents:
+        for ref in valid_refs:
+            path = _bound_regular_file(ref)
+            try:
+                item = _strict_json_file(path) if path is not None else None
+            except (OSError, UnicodeError, json.JSONDecodeError, ValueError):
+                return _reject("E_V244_FIXTURE_SHAPE")
             validated = validate_document(policy, item)
             if not validated.get("ok"):
                 return validated
@@ -1382,7 +1749,7 @@ def _self_test(policy: Any) -> dict[str, Any]:
     if V244_FIXTURE_PATH.is_file():
         v244_fixtures = _read_strict(policy, V244_FIXTURE_PATH)
         v244_valid = validate_document(policy, v244_fixtures)
-        v244_valid_count = len(v244_fixtures.get("valid_documents", []))
+        v244_valid_count = len(v244_fixtures.get("valid_artifact_refs", []))
         for spec in v244_fixtures.get("invalid_documents", []):
             validated = validate_document(policy, spec.get("document"))
             code = validated.get("error_code")

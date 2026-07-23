@@ -37,7 +37,7 @@
 
 `reference` 是正向 baseline。其余 candidate 分别注入认证绕过、幂等破坏、并发竞争、永久陈旧读取、会话丢失、双击重复创建、刷新丢状态和错误无恢复入口。机器 SSOT 位于 `benchmarks/fixtures/v2.44/testing-capability-cases.json`。
 
-候选输出不是一段“通过”文字，而是 `goal-teams-testing-capability-evidence-v2.44` JSON：每个 Case ID 必须有 `passed`、`failed` 或 `not_run`、`behavior_observed` 和结构化 `evidence`。scorer 会拒绝缺项、重复项、未知项和没有行为证据的 pass/fail。
+候选输出不是一段“通过”文字，而是 `goal-teams-testing-capability-evidence-v2.44` JSON：每个 Case ID 必须有 `passed`、`failed` 或 `not_run`、`behavior_observed`、结构化 `evidence` 和绑定 raw JSON artifact。run provenance 必须把 canonical manifest digest、runner/source digest、UUID run identity、SQLite identity、service log、raw observations 与 PNG screenshots 串成同一次运行。scorer 会拒绝缺项、重复项、未知项、没有行为证据的 pass/fail、manifest 替换、hash 漂移、run identity 漂移及文件或祖先目录 symlink。
 
 ## 允许范围
 
@@ -60,4 +60,5 @@
 - reference 重复运行的 case outcome 一致。
 - API 使用真实 HTTP 和 SQLite；E2E 使用真实浏览器。
 - 浏览器不可用时 E2E 明确 `not_run` 并得 0/4。
-- 服务进程始终终止；运行 evidence、score、截图与数据库可复盘。
+- 服务进程始终终止；运行 evidence、score、raw observations、截图、数据库及其 sha256 binding 可复盘。
+- scorer 只能使用固定路径且固定 digest 的 8-case canonical manifest；API/E2E 固定为 6/4，reference + 八类风险/期望缺陷集合不可由调用方替换。
