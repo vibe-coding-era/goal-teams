@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import re
 import stat
@@ -15,6 +16,9 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_MANIFEST = ROOT / "references" / "testing-capability-manifest.json"
+BENCHMARK_SCORER = (
+    ROOT / "scripts" / "benchmark" / "v244_testing_capability_scorer.py"
+)
 EVIDENCE_SCHEMA = "goal-teams-testing-capability-evidence-v2.44"
 SCORE_SCHEMA = "goal-teams-testing-capability-score-v2.44"
 ISSUE_SCHEMA = "goal-teams-testing-issue-event-v2.44"
@@ -173,15 +177,100 @@ SCHEMA_LOG_SUFFIX = (
 COMPLETION_AUDIT_SUFFIX = (
     "docs/GoalTeamsWork-V2.44/versions/V2.44/evidence/completion-audit.json"
 )
-ISSUE_EVIDENCE_BY_DIMENSION = {
-    "role_independence": "schemas/v2.44/integration-test-plan.schema.json",
-    "machine_contracts": "scripts/checks/validate-test-case-contract.py",
-    "api_testing": "schemas/v2.44/test-case.schema.json",
-    "e2e_testing": "schemas/v2.44/test-case.schema.json",
-    "run_evidence": "scripts/checks/score-testing-capability.py",
-    "risk_environment_data_coverage": "references/test-case-assertion-protocol.md",
-    "real_behavior_benchmark": (
-        "scripts/benchmark/v244_testing_capability_scorer.py"
+ISSUE_EVIDENCE_BY_ID = {
+    "GT244-TEST-001": ("schemas/v2.44/integration-test-plan.schema.json",),
+    "GT244-TEST-002": ("schemas/v2.44/test-case.schema.json",),
+    "GT244-TEST-003": ("schemas/v2.44/test-case.schema.json",),
+    "GT244-TEST-004": ("scripts/checks/validate-test-case-contract.py",),
+    "GT244-TEST-005": (
+        "schemas/v2.44/test-run-result.schema.json",
+        "scripts/checks/validate-test-case-contract.py",
+    ),
+    "GT244-TEST-006": (
+        "scripts/benchmark/v244_testing_capability_runner.py",
+        "scripts/benchmark/v244_testing_capability_scorer.py",
+    ),
+    "GT244-TEST-007": ("references/test-case-assertion-protocol.md",),
+    "GT244-TEST-008": ("references/test-case-assertion-protocol.md",),
+    "GT244-TEST-009": (
+        "prompts/members/qa/prompt.md",
+        "prompts/members/reviewer/prompt.md",
+    ),
+    "GT244-TEST-010": ("references/prompt-cache-manifest.json",),
+    "GT244-TEST-011": ("schemas/v2.44/test-run-result.schema.json",),
+    "GT244-TEST-012": (
+        "scripts/benchmark/v244_testing_capability_runner.py",
+        "tests/v23/test_v244_testing_capability_benchmark.py",
+    ),
+    "GT244-TEST-013": (
+        "scripts/benchmark/v244_testing_capability_browser.cjs",
+        "tests/v23/test_v244_testing_capability_benchmark.py",
+    ),
+    "GT244-TEST-014": (
+        "scripts/checks/score-testing-capability.py",
+        "tests/v23/test_v244_testing_capability_score.py",
+    ),
+    "GT244-TEST-015": (
+        "scripts/checks/score-testing-capability.py",
+        "prompts/packets/testing-capability-issue-ledger.md",
+    ),
+    "GT244-TEST-016": (
+        "scripts/checks/validate-test-case-contract.py",
+        "tests/v23/test_v244_test_contracts.py",
+    ),
+    "GT244-TEST-017": (
+        "scripts/checks/validate-test-case-contract.py",
+        "tests/v23/test_v244_test_contracts.py",
+    ),
+    "GT244-TEST-018": (
+        "scripts/checks/validate-test-case-contract.py",
+        "tests/v23/test_v244_test_contracts.py",
+    ),
+    "GT244-TEST-019": (
+        "scripts/benchmark/v244_testing_capability_scorer.py",
+        "tests/v23/test_v244_testing_capability_benchmark.py",
+    ),
+    "GT244-TEST-020": (
+        "scripts/benchmark/v244_testing_capability_runner.py",
+        "scripts/benchmark/v244_testing_capability_scorer.py",
+        "tests/v23/test_v244_testing_capability_benchmark.py",
+    ),
+    "GT244-TEST-021": (
+        "schemas/v2.44/integration-test-plan.schema.json",
+        "schemas/v2.44/test-run-result.schema.json",
+        "scripts/checks/validate-test-case-contract.py",
+        "tests/v23/test_v244_test_contracts.py",
+    ),
+    "GT244-TEST-022": (
+        "schemas/v2.44/integration-test-plan.schema.json",
+        "scripts/checks/validate-test-case-contract.py",
+        "tests/v23/test_v244_test_contracts.py",
+    ),
+    "GT244-TEST-023": (
+        "schemas/v2.44/test-case.schema.json",
+        "scripts/checks/validate-test-case-contract.py",
+        "tests/v23/test_v244_test_contracts.py",
+    ),
+    "GT244-TEST-024": (
+        "scripts/checks/score-testing-capability.py",
+        "tests/v23/test_v244_testing_capability_score.py",
+    ),
+    "GT244-TEST-025": (
+        "scripts/checks/score-testing-capability.py",
+        "tests/v23/test_v244_testing_capability_score.py",
+    ),
+    "GT244-TEST-026": (
+        "scripts/checks/score-testing-capability.py",
+        "tests/v23/test_v244_testing_capability_score.py",
+    ),
+    "GT244-TEST-027": (
+        "scripts/benchmark/v244_testing_capability_browser.cjs",
+        "scripts/benchmark/v244_testing_capability_scorer.py",
+        "tests/v23/test_v244_testing_capability_benchmark.py",
+    ),
+    "GT244-TEST-028": (
+        "scripts/checks/score-testing-capability.py",
+        "tests/v23/test_v244_testing_capability_score.py",
     ),
 }
 
@@ -363,7 +452,7 @@ def validate_benchmark_summary(path: Path) -> None:
         if not isinstance(score_ref, str) or not isinstance(evidence_ref, str):
             raise ScoreError("benchmark row lacks score/evidence refs")
         score_path = safe_relative_path(path.parent, score_ref)
-        safe_relative_path(path.parent, evidence_ref)
+        evidence_path = safe_relative_path(path.parent, evidence_ref)
         score = load_json(score_path)
         if (
             score.get("provenance_verified") is not True
@@ -373,6 +462,29 @@ def validate_benchmark_summary(path: Path) -> None:
             != "3ace7d9b01e3ca08daf7eef294a5dbfc1c482805faf2426087e223c17bfb6cfe"
         ):
             raise ScoreError("benchmark score provenance is invalid")
+        spec = importlib.util.spec_from_file_location(
+            "v244_testing_capability_scorer_for_overall_score",
+            BENCHMARK_SCORER,
+        )
+        if spec is None or spec.loader is None:
+            raise ScoreError("benchmark scorer cannot be loaded")
+        benchmark_scorer = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(benchmark_scorer)
+        try:
+            recomputed = benchmark_scorer.score_evidence(
+                benchmark_scorer.load_object(evidence_path),
+                evidence_root=evidence_path.parent,
+            )
+        except benchmark_scorer.ScoreError as exc:
+            raise ScoreError("benchmark raw evidence cannot be recomputed") from exc
+        if (
+            recomputed.get("run_id") != score.get("run_id")
+            or recomputed.get("score") != score.get("score")
+            or recomputed.get("status") != score.get("status")
+            or recomputed.get("not_run_count") != score.get("not_run_count")
+            or recomputed.get("provenance_verified") is not True
+        ):
+            raise ScoreError("benchmark score differs from recomputed raw evidence")
 
 
 def _require_text_tokens(path: Path, tokens: tuple[str, ...]) -> None:
@@ -382,6 +494,33 @@ def _require_text_tokens(path: Path, tokens: tuple[str, ...]) -> None:
         raise ScoreError(f"cannot inspect evidence content: {path}") from exc
     if any(token not in text for token in tokens):
         raise ScoreError(f"evidence content does not prove its claim: {path}")
+
+
+def validate_full_check_log(path: Path, source_commit: str) -> None:
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        raise ScoreError("full check receipt cannot be read") from exc
+    required = (
+        f"Goal Teams source commit: {source_commit}",
+        "test_missing_source_git_identity_fails_closed",
+        "test_scorer_rejects_valid_black_png_not_bound_to_browser_trace",
+        "test_resolved_issue_requires_issue_specific_independent_evidence",
+        "OK (skipped=15)",
+        "V2.3 unittest and canonical mutation release gates passed.",
+        "Deterministic contract validation passed for 5 packages and 9 fixture scenarios",
+        "Installer lifecycle checks passed: dirty/dry-run/install/update/failure/rollback/uninstall.",
+    )
+    match = re.search(r"^Ran ([0-9]+) tests in ", text, re.MULTILINE)
+    if (
+        len(text.splitlines()) < 800
+        or any(token not in text for token in required)
+        or match is None
+        or int(match.group(1)) < 689
+        or re.search(r"^FAILED \(", text, re.MULTILINE)
+        or re.search(r"^ERROR: ", text, re.MULTILINE)
+    ):
+        raise ScoreError("full check receipt is incomplete or contains failures")
 
 
 def validate_source_artifact(path: Path, suffix: str) -> None:
@@ -580,13 +719,7 @@ def validate_verification_summary(
     ):
         raise ScoreError("verification receipt paths are not canonical")
     full_log = safe_relative_path(evidence_root, full_ref["path"])
-    _require_text_tokens(
-        full_log,
-        ("OK (skipped=15)", "Installer lifecycle checks passed"),
-    )
-    match = re.search(r"Ran ([0-9]+) tests", full_log.read_text(encoding="utf-8"))
-    if match is None or int(match.group(1)) < 683:
-        raise ScoreError("full check receipt has an incomplete test count")
+    validate_full_check_log(full_log, source_commit)
     _require_text_tokens(
         safe_relative_path(evidence_root, schema_ref["path"]),
         ("Ajv strict", "3 schemas", "4 canonical examples", "PASS"),
@@ -745,12 +878,16 @@ def load_issue_projection(
             verified_resolution = [
                 validate_ref(evidence_root, item) for item in refs
             ]
-            required_suffix = ISSUE_EVIDENCE_BY_DIMENSION[expected["dimension"]]
+            required_suffixes = ISSUE_EVIDENCE_BY_ID.get(issue_id)
             paths = [item["path"] for item in verified_resolution]
             if (
-                event["agent_run_id"] != review_run_id
+                not required_suffixes
+                or event["agent_run_id"] != review_run_id
                 or review_ref not in verified_resolution
-                or not any(path.endswith(required_suffix) for path in paths)
+                or any(
+                    not any(path.endswith(suffix) for path in paths)
+                    for suffix in required_suffixes
+                )
             ):
                 raise ScoreError(
                     f"resolved issue lacks issue-specific independent evidence at line {line_number}"

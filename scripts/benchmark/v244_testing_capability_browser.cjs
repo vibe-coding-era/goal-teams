@@ -2,6 +2,7 @@
 "use strict";
 
 const fs = require("fs");
+const crypto = require("crypto");
 const path = require("path");
 const { chromium } = require("playwright");
 
@@ -16,8 +17,14 @@ if (!baseUrl || !evidenceDir || !runId) {
 }
 fs.mkdirSync(evidenceDir, { recursive: true });
 
-async function openPage(browser) {
-  const context = await browser.newContext();
+async function openPage(browser, caseId) {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+  await context.tracing.start({
+    screenshots: true,
+    snapshots: true,
+    sources: false,
+    title: `GT-BENCH-005:${runId}:${caseId}`
+  });
   const page = await context.newPage();
   await page.goto(baseUrl, { waitUntil: "networkidle" });
   return { context, page };
@@ -56,26 +63,44 @@ async function count(page) {
   return Number(await page.textContent("#order-count"));
 }
 
-async function screenshot(page, name) {
+async function screenshot(page, context, name) {
   const target = path.join(evidenceDir, `${name}.png`);
+  const trace = path.join(evidenceDir, `${name}.trace.zip`);
   await page.screenshot({ path: target, fullPage: true });
-  return target;
+  const screenshotSha256 = crypto
+    .createHash("sha256")
+    .update(fs.readFileSync(target))
+    .digest("hex");
+  const marker = {
+    schema_version: "goal-teams-browser-trace-marker-v2.44",
+    run_id: runId,
+    case_id: name,
+    screenshot_sha256: screenshotSha256,
+    page_url: page.url()
+  };
+  await page.evaluate(
+    (value) => console.info(`GT_BENCH_BROWSER_PROVENANCE ${JSON.stringify(value)}`),
+    marker
+  );
+  await context.tracing.stop({ path: trace });
+  return { screenshot: target, browser_trace: trace };
 }
 
 async function sessionCase(browser) {
-  const { context, page } = await openPage(browser);
+  const caseId = "E2E-SESSION-001";
+  const { context, page } = await openPage(browser, caseId);
   try {
     await login(page);
     await page.reload({ waitUntil: "networkidle" });
     await waitForOrderSync(page);
     const authState = await page.textContent("#auth-state");
-    const image = await screenshot(page, "E2E-SESSION-001");
+    const artifacts = await screenshot(page, context, caseId);
     return {
-      case_id: "E2E-SESSION-001",
+      case_id: caseId,
       layer: "e2e",
       status: authState === "signed in" ? "passed" : "failed",
       behavior_observed: true,
-      evidence: { auth_state_after_reload: authState, screenshot: image }
+      evidence: { auth_state_after_reload: authState, ...artifacts }
     };
   } finally {
     await context.close();
@@ -83,7 +108,8 @@ async function sessionCase(browser) {
 }
 
 async function doubleClickCase(browser) {
-  const { context, page } = await openPage(browser);
+  const caseId = "E2E-DOUBLE-CLICK-001";
+  const { context, page } = await openPage(browser, caseId);
   try {
     await login(page);
     const before = await count(page);
@@ -93,13 +119,13 @@ async function doubleClickCase(browser) {
     });
     await waitForCreateIdle(page);
     const after = await count(page);
-    const image = await screenshot(page, "E2E-DOUBLE-CLICK-001");
+    const artifacts = await screenshot(page, context, caseId);
     return {
-      case_id: "E2E-DOUBLE-CLICK-001",
+      case_id: caseId,
       layer: "e2e",
       status: after - before === 1 ? "passed" : "failed",
       behavior_observed: true,
-      evidence: { count_before: before, count_after: after, delta: after - before, screenshot: image }
+      evidence: { count_before: before, count_after: after, delta: after - before, ...artifacts }
     };
   } finally {
     await context.close();
@@ -107,7 +133,8 @@ async function doubleClickCase(browser) {
 }
 
 async function refreshCase(browser) {
-  const { context, page } = await openPage(browser);
+  const caseId = "E2E-REFRESH-001";
+  const { context, page } = await openPage(browser, caseId);
   try {
     await login(page);
     await page.click("#create-order");
@@ -122,13 +149,13 @@ async function refreshCase(browser) {
     await waitForOrderSync(page);
     await page.waitForTimeout(150);
     const afterReload = await count(page);
-    const image = await screenshot(page, "E2E-REFRESH-001");
+    const artifacts = await screenshot(page, context, caseId);
     return {
-      case_id: "E2E-REFRESH-001",
+      case_id: caseId,
       layer: "e2e",
       status: beforeReload > 0 && afterReload === beforeReload ? "passed" : "failed",
       behavior_observed: true,
-      evidence: { count_before_reload: beforeReload, count_after_reload: afterReload, screenshot: image }
+      evidence: { count_before_reload: beforeReload, count_after_reload: afterReload, ...artifacts }
     };
   } finally {
     await context.close();
@@ -136,7 +163,8 @@ async function refreshCase(browser) {
 }
 
 async function recoveryCase(browser) {
-  const { context, page } = await openPage(browser);
+  const caseId = "E2E-RECOVERY-001";
+  const { context, page } = await openPage(browser, caseId);
   try {
     await login(page);
     const before = await count(page);
@@ -165,9 +193,9 @@ async function recoveryCase(browser) {
     }
     await page.waitForTimeout(100);
     const after = await count(page);
-    const image = await screenshot(page, "E2E-RECOVERY-001");
+    const artifacts = await screenshot(page, context, caseId);
     return {
-      case_id: "E2E-RECOVERY-001",
+      case_id: caseId,
       layer: "e2e",
       status: retryVisible && after - before === 1 ? "passed" : "failed",
       behavior_observed: true,
@@ -176,7 +204,7 @@ async function recoveryCase(browser) {
         count_before: before,
         count_after: after,
         delta: after - before,
-        screenshot: image
+        ...artifacts
       }
     };
   } finally {

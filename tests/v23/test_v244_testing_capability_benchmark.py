@@ -4,10 +4,12 @@ import importlib.util
 import json
 import os
 import shutil
+import struct
 import subprocess
 import sys
 import tempfile
 import unittest
+import zlib
 from pathlib import Path
 
 
@@ -29,6 +31,25 @@ def load_module(name: str, path: Path):
 
 runner = load_module("v244_testing_capability_runner_test", RUNNER_PATH)
 scorer = load_module("v244_testing_capability_scorer_test", SCORER_PATH)
+
+
+def black_png(width: int = 1280, height: int = 720) -> bytes:
+    def chunk(kind: bytes, payload: bytes) -> bytes:
+        return (
+            struct.pack(">I", len(payload))
+            + kind
+            + payload
+            + struct.pack(">I", zlib.crc32(kind + payload) & 0xFFFFFFFF)
+        )
+
+    ihdr = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
+    scanlines = b"".join(b"\x00" + (b"\x00" * (width * 3)) for _ in range(height))
+    return (
+        b"\x89PNG\r\n\x1a\n"
+        + chunk(b"IHDR", ihdr)
+        + chunk(b"IDAT", zlib.compress(scanlines))
+        + chunk(b"IEND", b"")
+    )
 
 
 class TestingCapabilityBenchmarkTests(unittest.TestCase):
@@ -276,6 +297,38 @@ class TestingCapabilityBenchmarkTests(unittest.TestCase):
             binding = session["evidence"]["screenshot"]
             screenshot = root / "reference" / binding["path"]
             screenshot.write_bytes(b"\x89PNG\r\n\x1a\n")
+            binding["size"] = screenshot.stat().st_size
+            binding["sha256"] = scorer.sha256_file(screenshot)
+            raw_binding = session["raw_artifact"]
+            raw_path = root / "reference" / raw_binding["path"]
+            raw_payload = json.loads(raw_path.read_text(encoding="utf-8"))
+            raw_payload["observation"] = session["evidence"]
+            raw_path.write_text(
+                json.dumps(raw_payload, ensure_ascii=False, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+            raw_binding["size"] = raw_path.stat().st_size
+            raw_binding["sha256"] = scorer.sha256_file(raw_path)
+            with self.assertRaisesRegex(
+                scorer.ScoreError, "behavior oracle derived failed"
+            ):
+                scorer.score_evidence(evidence, evidence_root=root / "reference")
+
+    def test_scorer_rejects_valid_black_png_not_bound_to_browser_trace(self) -> None:
+        available, _chrome, reason = runner.browser_capability()
+        if not available:
+            self.skipTest(reason)
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            evidence, _score = runner.run_candidate(
+                "reference", root, browser_mode="required"
+            )
+            session = next(
+                item for item in evidence["cases"] if item["case_id"] == "E2E-SESSION-001"
+            )
+            binding = session["evidence"]["screenshot"]
+            screenshot = root / "reference" / binding["path"]
+            screenshot.write_bytes(black_png())
             binding["size"] = screenshot.stat().st_size
             binding["sha256"] = scorer.sha256_file(screenshot)
             raw_binding = session["raw_artifact"]

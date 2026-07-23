@@ -87,6 +87,13 @@ def bind_case_artifacts(
                 Path(screenshot),
                 media_type="image/png",
             )
+        browser_trace = observation.get("browser_trace")
+        if isinstance(browser_trace, str):
+            observation["browser_trace"] = artifact_binding(
+                run_dir,
+                Path(browser_trace),
+                media_type="application/zip",
+            )
         raw_path = raw_dir / f"{item['case_id']}.json"
         write_json(
             raw_path,

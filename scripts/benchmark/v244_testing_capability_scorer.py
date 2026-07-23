@@ -6,10 +6,12 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import sqlite3
 import stat
 import struct
 import uuid
+import zipfile
 import zlib
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -225,11 +227,108 @@ def _verify_raw_observation(
     return observation
 
 
-def _screenshot_observed(evidence: dict[str, Any], evidence_root: Path) -> bool:
+def _trace_binds_screenshot(
+    evidence: dict[str, Any],
+    evidence_root: Path,
+    *,
+    case_id: str,
+    run_id: str,
+    screenshot_sha256: str,
+) -> bool:
+    trace_path = _safe_artifact(
+        evidence_root,
+        evidence.get("browser_trace"),
+        expected_media_type="application/zip",
+    )
     try:
+        with zipfile.ZipFile(trace_path) as archive:
+            infos = archive.infolist()
+            names = [info.filename for info in infos]
+            if (
+                len(infos) < 4
+                or len(names) != len(set(names))
+                or "trace.trace" not in names
+                or "trace.network" not in names
+                or not any(name.startswith("resources/") for name in names)
+                or sum(info.file_size for info in infos) > 100 * 1024 * 1024
+                or any(
+                    info.filename.startswith("/")
+                    or ".." in PurePosixPath(info.filename).parts
+                    or stat.S_ISLNK(info.external_attr >> 16)
+                    for info in infos
+                )
+            ):
+                return False
+            trace_lines = archive.read("trace.trace").decode("utf-8").splitlines()
+            network = archive.read("trace.network").decode("utf-8")
+            events = [json.loads(line) for line in trace_lines if line.strip()]
+            context = next(
+                (event for event in events if event.get("type") == "context-options"),
+                None,
+            )
+            frames = [
+                event for event in events if event.get("type") == "screencast-frame"
+            ]
+            console_events = [
+                event
+                for event in events
+                if event.get("type") == "console"
+                and event.get("messageType") == "info"
+                and isinstance(event.get("text"), str)
+                and event["text"].startswith("GT_BENCH_BROWSER_PROVENANCE ")
+            ]
+            if (
+                not isinstance(context, dict)
+                or context.get("browserName") != "chromium"
+                or context.get("title") != f"GT-BENCH-005:{run_id}:{case_id}"
+                or context.get("options", {}).get("viewport")
+                != {"width": 1280, "height": 720}
+                or len(frames) < 2
+                or any(
+                    frame.get("width") != 1280
+                    or frame.get("height") != 720
+                    or f"resources/{frame.get('sha1')}" not in names
+                    for frame in frames
+                )
+                or '"type":"resource-snapshot"' not in network
+                or "http://127.0.0.1:" not in network
+                or len(console_events) != 1
+            ):
+                return False
+            marker = json.loads(
+                console_events[0]["text"].split(" ", 1)[1]
+            )
+            return marker == {
+                "schema_version": "goal-teams-browser-trace-marker-v2.44",
+                "run_id": run_id,
+                "case_id": case_id,
+                "screenshot_sha256": screenshot_sha256,
+                "page_url": marker.get("page_url"),
+            } and re.fullmatch(
+                r"http://127\.0\.0\.1:[0-9]+/", marker.get("page_url", "")
+            ) is not None
+    except (
+        OSError,
+        ScoreError,
+        UnicodeDecodeError,
+        json.JSONDecodeError,
+        zipfile.BadZipFile,
+        KeyError,
+    ):
+        return False
+
+
+def _screenshot_observed(
+    case_id: str,
+    evidence: dict[str, Any],
+    evidence_root: Path,
+    run_id: str,
+) -> bool:
+    try:
+        screenshot_binding = evidence.get("screenshot")
         path = _safe_artifact(
             evidence_root,
-            evidence.get("screenshot"),
+            screenshot_binding,
             expected_media_type="image/png",
         )
         data = path.read_bytes()
@@ -276,13 +375,26 @@ def _screenshot_observed(evidence: dict[str, Any], evidence_root: Path) -> bool:
         if not compressed:
             return False
         decoded = zlib.decompress(compressed)
-        return len(decoded) == height * (1 + width * channels)
+        return (
+            len(decoded) == height * (1 + width * channels)
+            and isinstance(screenshot_binding, dict)
+            and _trace_binds_screenshot(
+                evidence,
+                evidence_root,
+                case_id=case_id,
+                run_id=run_id,
+                screenshot_sha256=screenshot_binding.get("sha256", ""),
+            )
+        )
     except (OSError, ScoreError, struct.error, zlib.error):
         return False
 
 
 def oracle_pass(
-    case_id: str, evidence: dict[str, Any], evidence_root: Path
+    case_id: str,
+    evidence: dict[str, Any],
+    evidence_root: Path,
+    run_id: str,
 ) -> bool:
     """Recompute outcomes from bound raw observations."""
 
@@ -334,10 +446,12 @@ def oracle_pass(
     if case_id == "E2E-SESSION-001":
         return (
             evidence.get("auth_state_after_reload") == "signed in"
-            and _screenshot_observed(evidence, evidence_root)
+            and _screenshot_observed(case_id, evidence, evidence_root, run_id)
         )
     if case_id == "E2E-DOUBLE-CLICK-001":
-        return evidence.get("delta") == 1 and _screenshot_observed(evidence, evidence_root)
+        return evidence.get("delta") == 1 and _screenshot_observed(
+            case_id, evidence, evidence_root, run_id
+        )
     if case_id == "E2E-REFRESH-001":
         before = evidence.get("count_before_reload")
         after = evidence.get("count_after_reload")
@@ -346,13 +460,13 @@ def oracle_pass(
             and before > 0
             and _number(after)
             and after == before
-            and _screenshot_observed(evidence, evidence_root)
+            and _screenshot_observed(case_id, evidence, evidence_root, run_id)
         )
     if case_id == "E2E-RECOVERY-001":
         return (
             evidence.get("retry_visible_after_failure") is True
             and evidence.get("delta") == 1
-            and _screenshot_observed(evidence, evidence_root)
+            and _screenshot_observed(case_id, evidence, evidence_root, run_id)
         )
     raise ScoreError(f"oracle is not defined for {case_id}")
 
@@ -451,7 +565,7 @@ def score_evidence(
         if status_value in {"passed", "failed"}:
             derived = (
                 "passed"
-                if oracle_pass(case_id, observation, evidence_root)
+                if oracle_pass(case_id, observation, evidence_root, run_id)
                 else "failed"
             )
             if status_value != derived:

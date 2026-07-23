@@ -42,6 +42,18 @@ class TestingCapabilityScoreTests(unittest.TestCase):
         )
         self.commit_patch.start()
         self.addCleanup(self.commit_patch.stop)
+        self.real_full_check_validator = score_module.validate_full_check_log
+        self.real_benchmark_validator = score_module.validate_benchmark_summary
+        self.full_check_patch = mock.patch.object(
+            score_module, "validate_full_check_log", return_value=None
+        )
+        self.benchmark_patch = mock.patch.object(
+            score_module, "validate_benchmark_summary", return_value=None
+        )
+        self.full_check_patch.start()
+        self.benchmark_patch.start()
+        self.addCleanup(self.full_check_patch.stop)
+        self.addCleanup(self.benchmark_patch.stop)
 
     def make_bundle(self, root: Path, *, status: str = "passed") -> dict:
         proof = root / "proof.json"
@@ -95,7 +107,9 @@ class TestingCapabilityScoreTests(unittest.TestCase):
                         json.dumps(
                             {
                                 "provenance_verified": True,
+                                "run_id": "00000000-0000-4000-8000-000000000000",
                                 "score": row["score"],
+                                "status": "complete",
                                 "not_run_count": 0,
                                 "canonical_manifest_sha256": (
                                     "3ace7d9b01e3ca08daf7eef294a5dbfc1c482805faf2426087e223c17bfb6cfe"
@@ -216,9 +230,10 @@ class TestingCapabilityScoreTests(unittest.TestCase):
         ledger = root / "issues.jsonl"
         events = []
         for index, issue in enumerate(self.manifest["known_issues"], start=1):
-            issue_ref = materialize_suffix(
-                score_module.ISSUE_EVIDENCE_BY_DIMENSION[issue["dimension"]]
-            )
+            issue_refs = [
+                materialize_suffix(suffix)
+                for suffix in score_module.ISSUE_EVIDENCE_BY_ID[issue["id"]]
+            ]
             events.append(
                 {
                     "schema_version": score_module.ISSUE_SCHEMA,
@@ -246,7 +261,7 @@ class TestingCapabilityScoreTests(unittest.TestCase):
                     "severity": "high",
                     "status": "resolved",
                     "artifact_refs": [],
-                    "evidence_refs": [review_ref, issue_ref],
+                    "evidence_refs": [review_ref, *issue_refs],
                     "agent_run_id": "completion-audit-test-run",
                     "timestamp": "2026-07-23T00:00:01+08:00",
                 }
@@ -268,7 +283,7 @@ class TestingCapabilityScoreTests(unittest.TestCase):
             "dimensions": dimensions,
         }
 
-    def test_all_checks_and_resolved_issues_achieve_100(self) -> None:
+    def test_all_validated_checks_and_resolved_issues_project_to_100(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             evidence = self.make_bundle(root)
@@ -393,22 +408,24 @@ class TestingCapabilityScoreTests(unittest.TestCase):
             evidence = self.make_bundle(root)
             log = root / score_module.FULL_CHECK_LOG_SUFFIX
             log.write_text("passed\n", encoding="utf-8")
-            verification = root / score_module.VERIFICATION_SUFFIX
-            payload = json.loads(verification.read_text(encoding="utf-8"))
-            payload["receipts"]["full_check"]["sha256"] = digest(log)
-            verification.write_text(
-                json.dumps(payload, sort_keys=True) + "\n", encoding="utf-8"
-            )
-            evidence["verification_summary"]["sha256"] = digest(verification)
             with self.assertRaisesRegex(
-                score_module.ScoreError, "does not prove|incomplete test count"
+                score_module.ScoreError, "incomplete or contains failures"
             ):
-                score_module.score(
-                    evidence,
-                    self.manifest,
-                    evidence_root=root,
-                    manifest_digest=digest(MANIFEST),
-                )
+                self.real_full_check_validator(log, evidence["source_commit"])
+
+    def test_empty_benchmark_evidence_cannot_prove_execution(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            self.make_bundle(root)
+            summary = (
+                root
+                / "docs/GoalTeamsWork-V2.44/versions/V2.44/evidence/"
+                "benchmark-final-1/self-check-summary.json"
+            )
+            with self.assertRaisesRegex(
+                score_module.ScoreError, "raw evidence cannot be recomputed"
+            ):
+                self.real_benchmark_validator(summary)
 
     def test_unrelated_file_cannot_prove_a_check(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

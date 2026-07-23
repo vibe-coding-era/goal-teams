@@ -6,6 +6,12 @@ export PYTHONDONTWRITEBYTECODE=1
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 
+if SOURCE_COMMIT="$(git rev-parse HEAD 2>/dev/null)"; then
+  echo "Goal Teams source commit: $SOURCE_COMMIT"
+else
+  echo "Goal Teams source commit: unavailable"
+fi
+
 PYTHON_CANDIDATES=()
 if [[ -n "${PYTHON:-}" ]]; then
   PYTHON_CANDIDATES+=("$PYTHON")
