@@ -4,10 +4,10 @@ import hashlib
 import importlib.util
 import json
 import shutil
-import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -33,17 +33,20 @@ def digest(path: Path) -> str:
 class TestingCapabilityScoreTests(unittest.TestCase):
     def setUp(self) -> None:
         self.manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+        discovered_commit = score_module.current_source_commit()
+        self.source_commit = discovered_commit or ("0" * 40)
+        self.commit_patch = mock.patch.object(
+            score_module,
+            "current_source_commit",
+            return_value=self.source_commit,
+        )
+        self.commit_patch.start()
+        self.addCleanup(self.commit_patch.stop)
 
     def make_bundle(self, root: Path, *, status: str = "passed") -> dict:
         proof = root / "proof.json"
         proof.write_text('{"observed":true}\n', encoding="utf-8")
-        source_commit = subprocess.run(
-            ["git", "rev-parse", "HEAD"],
-            cwd=ROOT,
-            text=True,
-            capture_output=True,
-            check=True,
-        ).stdout.strip()
+        source_commit = self.source_commit
         modes = [
             ("reference", []),
             ("api_auth_bypass", ["API-AUTH-001"]),
@@ -278,6 +281,23 @@ class TestingCapabilityScoreTests(unittest.TestCase):
         self.assertEqual("achieved", result["status"])
         self.assertEqual(100, result["score"])
 
+    def test_missing_source_git_identity_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            evidence = self.make_bundle(root)
+            with mock.patch.object(
+                score_module, "current_source_commit", return_value=None
+            ):
+                with self.assertRaisesRegex(
+                    score_module.ScoreError, "not current HEAD"
+                ):
+                    score_module.score(
+                        evidence,
+                        self.manifest,
+                        evidence_root=root,
+                        manifest_digest=digest(MANIFEST),
+                    )
+
     def test_not_run_check_earns_zero_for_the_whole_dimension(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -446,7 +466,7 @@ class TestingCapabilityScoreTests(unittest.TestCase):
             )
         self.assertEqual("failed", result["status"])
         self.assertEqual(100, result["score"])
-        self.assertEqual(["GT244-TEST-027"], result["issue_summary"]["unresolved_issue_ids"])
+        self.assertEqual(["GT244-TEST-028"], result["issue_summary"]["unresolved_issue_ids"])
 
     def test_resolved_only_history_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -509,10 +529,15 @@ class TestingCapabilityScoreTests(unittest.TestCase):
                 json.loads(line)
                 for line in ledger.read_text(encoding="utf-8").splitlines()
             ]
-            last = events[-1]
-            review_ref = last["evidence_refs"][0]
+            target = next(
+                event
+                for event in events
+                if event["issue_id"] == "GT244-TEST-027"
+                and event["event_type"] == "resolved"
+            )
+            review_ref = target["evidence_refs"][0]
             unrelated = root / "scripts/checks/score-testing-capability.py"
-            last["evidence_refs"] = [
+            target["evidence_refs"] = [
                 review_ref,
                 {
                     "path": "scripts/checks/score-testing-capability.py",

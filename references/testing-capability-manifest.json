@@ -231,6 +231,11 @@
       "id": "GT244-TEST-027",
       "dimension": "real_behavior_benchmark",
       "summary": "Benchmark 截图只校验 PNG 文件头，未验证可解码结构、尺寸和浏览器运行来源"
+    },
+    {
+      "id": "GT244-TEST-028",
+      "dimension": "run_evidence",
+      "summary": "评分测试直接依赖源码 Git HEAD，导致无 .git 的安装暂存包自测不可执行"
     }
   ]
 }

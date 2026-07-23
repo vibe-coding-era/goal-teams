@@ -95,7 +95,7 @@ CANONICAL_RUBRIC = {
     ),
 }
 REQUIRED_ISSUE_IDS = {
-    f"GT244-TEST-{index:03d}" for index in range(1, 28)
+    f"GT244-TEST-{index:03d}" for index in range(1, 29)
 }
 CHECK_EVIDENCE_SUFFIXES = {
     "independent_test_roles": (
@@ -503,6 +503,21 @@ def validate_source_artifact(path: Path, suffix: str) -> None:
         )
 
 
+def current_source_commit() -> str | None:
+    """Return the trusted source checkout HEAD, or None outside a Git checkout."""
+    head = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if head.returncode != 0:
+        return None
+    value = head.stdout.strip()
+    return value if re.fullmatch(r"[0-9a-f]{40}", value) else None
+
+
 def validate_verification_summary(
     evidence_root: Path, binding: Any, source_commit: Any
 ) -> tuple[dict[str, str], dict[str, Any]]:
@@ -550,14 +565,7 @@ def validate_verification_summary(
         or not review["run_id"]
     ):
         raise ScoreError("independent review is missing")
-    head = subprocess.run(
-        ["git", "rev-parse", "HEAD"],
-        cwd=ROOT,
-        text=True,
-        capture_output=True,
-        check=False,
-    )
-    if head.returncode != 0 or head.stdout.strip() != source_commit:
+    if current_source_commit() != source_commit:
         raise ScoreError("verification source commit is not current HEAD")
     full_ref = validate_ref(evidence_root, receipts["full_check"])
     schema_ref = validate_ref(evidence_root, receipts["schema_validation"])
