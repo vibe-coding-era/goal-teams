@@ -873,6 +873,19 @@ prefix tests/v23/
         self.assertIn("deterministic contract", proc.stdout.lower())
         self.assertIn("does not satisfy behavior gate", proc.stdout.lower())
 
+    def test_contract_timestamps_resist_wall_clock_rollback(self) -> None:
+        module = self.load_runner_module("goalteams_benchmark_clock_rollback")
+        observed = iter(
+            (
+                "2026-07-23T12:00:02+00:00",
+                "2026-07-23T12:00:01+00:00",
+            )
+        )
+        module.utc_now = lambda: next(observed)
+        with tempfile.TemporaryDirectory() as td:
+            result = module.execute_scenario(module.scenarios()[0], Path(td))
+        self.assertEqual("executed_validated", result["status"])
+
     def test_contract_or_fixture_runner_cannot_pass_release_gate(self) -> None:
         contract = self.run_benchmark("--mode", "contract", "--release-gate")
         self.assertNotEqual(contract.returncode, 0)

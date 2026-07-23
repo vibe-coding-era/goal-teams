@@ -236,6 +236,11 @@
       "id": "GT244-TEST-028",
       "dimension": "run_evidence",
       "summary": "评分测试直接依赖源码 Git HEAD，导致无 .git 的安装暂存包自测不可执行"
+    },
+    {
+      "id": "GT244-TEST-029",
+      "dimension": "run_evidence",
+      "summary": "安装生命周期变长时墙钟回拨可使行为记录 generated_at 早于 ended_at"
     }
   ]
 }

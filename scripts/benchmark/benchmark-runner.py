@@ -74,6 +74,13 @@ def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def not_before(reference: str, candidate: str) -> str:
+    """Keep record timestamps monotonic when the host wall clock steps backward."""
+    reference_time = datetime.fromisoformat(reference)
+    candidate_time = datetime.fromisoformat(candidate)
+    return candidate if candidate_time >= reference_time else reference
+
+
 def _nonnegative_int(value: Any) -> int:
     return (
         value
@@ -1257,7 +1264,7 @@ def execute_scenario(scenario: Scenario, root: Path) -> dict[str, Any]:
         capture_output=True,
         check=False,
     )
-    ended_at = utc_now()
+    ended_at = not_before(started_at, utc_now())
     log_path = scenario_root / "subject-run.log"
     log_path.write_text(proc.stdout + proc.stderr, encoding="utf-8")
     try:
@@ -1311,7 +1318,7 @@ def execute_scenario(scenario: Scenario, root: Path) -> dict[str, Any]:
             "runner_id": "goal-teams-benchmark-runner",
             "runner_version": "V2.3",
             "run_nonce": f"CONTRACT-{uuid.uuid4().hex}",
-            "generated_at": utc_now(),
+            "generated_at": ended_at,
             "expected_exit_code": scenario.expected_returncode,
             "input_sha256": digest_bytes(canonical_bytes(scenario.input_value)),
             "output_sha256": digest_bytes(canonical_bytes(output)),

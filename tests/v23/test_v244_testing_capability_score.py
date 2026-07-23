@@ -483,7 +483,7 @@ class TestingCapabilityScoreTests(unittest.TestCase):
             )
         self.assertEqual("failed", result["status"])
         self.assertEqual(100, result["score"])
-        self.assertEqual(["GT244-TEST-028"], result["issue_summary"]["unresolved_issue_ids"])
+        self.assertEqual(["GT244-TEST-029"], result["issue_summary"]["unresolved_issue_ids"])
 
     def test_resolved_only_history_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
