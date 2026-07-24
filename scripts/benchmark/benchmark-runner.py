@@ -74,6 +74,13 @@ def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def not_before(reference: str, candidate: str) -> str:
+    """Keep record timestamps monotonic when the host wall clock steps backward."""
+    reference_time = datetime.fromisoformat(reference)
+    candidate_time = datetime.fromisoformat(candidate)
+    return candidate if candidate_time >= reference_time else reference
+
+
 def _nonnegative_int(value: Any) -> int:
     return (
         value
@@ -980,9 +987,9 @@ def _attach_benchmark_engineering_metrics(
         "run_id": str(record["subject_run_id"]),
         "completed_at": str(record["ended_at"]),
         "repository_or_project_id": "goal-teams-benchmark",
-        "project_version": "V2.43",
+        "project_version": "V2.44",
         "artifact_version": evaluation_id,
-        "goal_teams_version": "V2.43",
+        "goal_teams_version": "V2.44",
         "benchmark": {
             "scenario_id": str(record["scenario_id"]),
             "execution_mode": execution_mode,
@@ -1257,7 +1264,7 @@ def execute_scenario(scenario: Scenario, root: Path) -> dict[str, Any]:
         capture_output=True,
         check=False,
     )
-    ended_at = utc_now()
+    ended_at = not_before(started_at, utc_now())
     log_path = scenario_root / "subject-run.log"
     log_path.write_text(proc.stdout + proc.stderr, encoding="utf-8")
     try:
@@ -1311,7 +1318,7 @@ def execute_scenario(scenario: Scenario, root: Path) -> dict[str, Any]:
             "runner_id": "goal-teams-benchmark-runner",
             "runner_version": "V2.3",
             "run_nonce": f"CONTRACT-{uuid.uuid4().hex}",
-            "generated_at": utc_now(),
+            "generated_at": ended_at,
             "expected_exit_code": scenario.expected_returncode,
             "input_sha256": digest_bytes(canonical_bytes(scenario.input_value)),
             "output_sha256": digest_bytes(canonical_bytes(output)),
@@ -2233,11 +2240,11 @@ def write_report(rows: list[dict[str, object]], output: Path) -> None:
         "---",
         "type: Benchmark Report",
         "title: Goal Teams Benchmark Report",
-        "description: Benchmark 结构校验、行为运行结果与 V2.43 工程指标算法说明。",
+        "description: Benchmark 结构校验、行为运行结果与 V2.43 兼容工程指标算法说明。",
         "tags: [goal-teams, benchmark, engineering-metrics, okf]",
         f"timestamp: {json.dumps(payload['generated_at'])}",
         'okf_version: "0.1"',
-        'project_version: "V2.43"',
+        'project_version: "V2.44"',
         f"metric_schema_version: {json.dumps(metrics_manifest['metric_schema_version'])}",
         "source_ssot: references/engineering-metrics-manifest.json",
         "---",
@@ -2256,7 +2263,7 @@ def write_report(rows: list[dict[str, object]], output: Path) -> None:
     lines.extend(
         [
             "",
-            "# V2.43 工程指标算法",
+            "# V2.44 工程指标报告（V2.43 兼容算法）",
             "",
             "以下算法由 Benchmark 与普通任务完成报告共同使用。结构校验或 `quality_pass_rate` 不会被换算成 FPAR；只有显式指标事件才能产生数值。",
             "",

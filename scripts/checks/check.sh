@@ -6,6 +6,22 @@ export PYTHONDONTWRITEBYTECODE=1
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 
+CHECK_MODE="full"
+if [[ "${1:-}" == "--installed-package" ]]; then
+  CHECK_MODE="installed-package"
+  shift
+fi
+if [[ "$#" -ne 0 ]]; then
+  echo "Usage: scripts/check.sh [--installed-package]" >&2
+  exit 2
+fi
+
+if SOURCE_COMMIT="$(git rev-parse HEAD 2>/dev/null)"; then
+  echo "Goal Teams source commit: $SOURCE_COMMIT"
+else
+  echo "Goal Teams source commit: unavailable"
+fi
+
 PYTHON_CANDIDATES=()
 if [[ -n "${PYTHON:-}" ]]; then
   PYTHON_CANDIDATES+=("$PYTHON")
@@ -28,7 +44,7 @@ if [[ -z "$PYTHON_BIN" ]]; then
 fi
 
 "$PYTHON_BIN" scripts/checks/validate.py
-"$PYTHON_BIN" scripts/checks/check-version-sync.py --mode development --published-version V2.40
+"$PYTHON_BIN" scripts/checks/check-version-sync.py --mode candidate
 "$PYTHON_BIN" scripts/checks/check-v241-flow.py
 "$PYTHON_BIN" scripts/checks/check-workspace-boundaries.py
 "$PYTHON_BIN" scripts/checks/check-routing-fixtures.py
@@ -54,8 +70,8 @@ fi
 "$PYTHON_BIN" scripts/harness/pixel-diff.py --self-test
 "$PYTHON_BIN" scripts/review/compare-artifacts.py --self-test
 "$PYTHON_BIN" scripts/review/validate-dual-review.py --self-test
-GOAL_TEAMS_INSTALL_VALIDATION=1 "$PYTHON_BIN" scripts/checks/check-v23.py
-"$PYTHON_BIN" scripts/benchmark/benchmark-runner.py --check-only
-if [[ "${GOAL_TEAMS_INSTALL_VALIDATION:-0}" != "1" ]]; then
+if [[ "$CHECK_MODE" == "full" ]]; then
+  GOAL_TEAMS_INSTALL_VALIDATION=1 "$PYTHON_BIN" scripts/checks/check-v23.py
+  "$PYTHON_BIN" scripts/benchmark/benchmark-runner.py --check-only
   "$PYTHON_BIN" scripts/checks/check-install-lifecycle.py
 fi

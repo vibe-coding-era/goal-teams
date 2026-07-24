@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>GT-BENCH-005 Order Console</title>
+  </head>
+  <body>
+    <main>
+      <h1>Order Console</h1>
+      <p id="defect-mode" hidden>__DEFECT_MODE__</p>
+      <p>会话：<strong id="auth-state">signed out</strong></p>
+      <p>订单数：<strong id="order-count">0</strong></p>
+      <p id="status" role="status">ready</p>
+      <button id="login" type="button">Login</button>
+      <button id="create-order" type="button">Create order</button>
+      <button id="retry" type="button" hidden>Retry</button>
+    </main>
+    <script>
+      const defect = document.querySelector("#defect-mode").textContent;
+      const authState = document.querySelector("#auth-state");
+      const count = document.querySelector("#order-count");
+      const status = document.querySelector("#status");
+      const loginButton = document.querySelector("#login");
+      const createButton = document.querySelector("#create-order");
+      const retryButton = document.querySelector("#retry");
+      let token = defect === "e2e_session_lost" ? null : localStorage.getItem("gt-session");
+      let inFlight = false;
+      let activeRequests = 0;
+      let pendingKey = null;
+      createButton.dataset.pending = "0";
+
+      function showAuth() {
+        authState.textContent = token ? "signed in" : "signed out";
+      }
+
+      async function refreshOrders() {
+        count.dataset.synced = "false";
+        if (!token) {
+          count.textContent = "0";
+          count.dataset.synced = "true";
+          return;
+        }
+        if (defect === "e2e_refresh_drops_state" && performance.getEntriesByType("navigation")[0]?.type === "reload") {
+          count.textContent = "0";
+          count.dataset.synced = "true";
+          return;
+        }
+        const response = await fetch("/api/orders", {
+          headers: {Authorization: `Bearer ${token}`}
+        });
+        const payload = await response.json();
+        count.textContent = String(payload.count ?? 0);
+        count.dataset.synced = "true";
+      }
+
+      loginButton.addEventListener("click", async () => {
+        const response = await fetch("/api/login", {method: "POST"});
+        const payload = await response.json();
+        token = payload.token;
+        if (defect !== "e2e_session_lost") {
+          localStorage.setItem("gt-session", token);
+        }
+        showAuth();
+        status.textContent = "signed in";
+        await refreshOrders();
+      });
+
+      async function createOrder() {
+        if (!token) {
+          status.textContent = "unauthorized";
+          return;
+        }
+        if (inFlight && defect !== "e2e_double_click") {
+          return;
+        }
+        inFlight = true;
+        activeRequests += 1;
+        createButton.dataset.pending = String(activeRequests);
+        createButton.disabled = defect !== "e2e_double_click";
+        pendingKey = pendingKey || `ui-${Date.now()}-${Math.random()}`;
+        const requestKey = defect === "e2e_double_click"
+          ? `ui-${Date.now()}-${Math.random()}`
+          : pendingKey;
+        try {
+          const response = await fetch("/api/orders", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json",
+              "Idempotency-Key": requestKey
+            },
+            body: JSON.stringify({sku: "UI-SKU", quantity: 1})
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+          await response.json();
+          pendingKey = null;
+          retryButton.hidden = true;
+          status.textContent = "created";
+          await refreshOrders();
+        } catch (error) {
+          status.textContent = `error: ${error.message}`;
+          retryButton.hidden = defect === "e2e_error_no_recovery";
+        } finally {
+          activeRequests -= 1;
+          createButton.dataset.pending = String(activeRequests);
+          inFlight = false;
+          createButton.disabled = false;
+        }
+      }
+
+      createButton.addEventListener("click", createOrder);
+      retryButton.addEventListener("click", createOrder);
+      showAuth();
+      refreshOrders();
+    </script>
+  </body>
+</html>

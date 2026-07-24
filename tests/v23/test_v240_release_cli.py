@@ -1026,7 +1026,21 @@ class V240ReleaseCliSecurityTests(unittest.TestCase):
                 "isImmutable": True,
             }
             releases = iter((draft, draft, published))
-            actions: list[str] = []
+            commands: list[tuple[str, ...]] = []
+            bundles: list[bool] = []
+
+            def persist_bundle(release, *, expected_draft):
+                bundles.append(expected_draft)
+                return {
+                    "asset_set_sha256": asset_set_sha256,
+                    "assets": [],
+                    "bundle_path": "/ignored/release-bundle",
+                }
+
+            def run_command(argv, *, cwd, env=None):
+                commands.append(tuple(argv))
+                return subprocess.CompletedProcess(argv, 0, "", "")
+
             with mock.patch.object(adapter, "_release_json", side_effect=lambda: next(releases)), mock.patch.object(
                 adapter, "_latest_release", return_value={"id": 240, "tag_name": "v2.40"}
             ), mock.patch.object(
@@ -1042,13 +1056,9 @@ class V240ReleaseCliSecurityTests(unittest.TestCase):
             ), mock.patch.object(
                 adapter,
                 "_persist_verified_bundle",
-                return_value={
-                    "asset_set_sha256": asset_set_sha256,
-                    "assets": [],
-                    "bundle_path": "/ignored/published-bundle",
-                },
+                side_effect=persist_bundle,
             ), mock.patch.object(adapter, "_require_write_authority"), mock.patch.object(
-                adapter, "_run_release_adapter", side_effect=lambda action: actions.append(action)
+                adapter_module, "_run", side_effect=run_command
             ):
                 receipt = adapter.execute(
                     operation_id="CP17.release_publish",
@@ -1065,7 +1075,17 @@ class V240ReleaseCliSecurityTests(unittest.TestCase):
                     },
                     parameters={},
                 )
-            self.assertEqual(actions, ["download", "publish"])
+            self.assertEqual(bundles, [True, False])
+            self.assertEqual(
+                commands,
+                [
+                    (
+                        "gh", "release", "edit", "v2.40",
+                        "--repo", "github.com/vibe-coding-era/goal-teams",
+                        "--draft=false", "--latest",
+                    )
+                ],
+            )
             self.assertEqual(receipt["classification"], "exact")
 
     def test_release_publish_marker_loss_adopts_only_full_exact_identity(self) -> None:
@@ -1128,8 +1148,8 @@ class V240ReleaseCliSecurityTests(unittest.TestCase):
                     "bundle_path": "/ignored/published-bundle",
                 },
             ), mock.patch.object(adapter, "_require_write_authority"), mock.patch.object(
-                adapter, "_run_release_adapter"
-            ) as release_adapter:
+                adapter_module, "_run"
+            ) as mutate:
                 receipt = adapter.execute(
                     operation_id="CP17.release_publish",
                     action="release_publish",
@@ -1140,7 +1160,7 @@ class V240ReleaseCliSecurityTests(unittest.TestCase):
             self.assertTrue(receipt["adopted_existing"])
             self.assertTrue(receipt["adopted_after_marker_loss"])
             self.assertEqual(receipt["external_side_effect_count"], 0)
-            release_adapter.assert_not_called()
+            mutate.assert_not_called()
 
     def test_release_publish_identity_drift_is_conflict(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

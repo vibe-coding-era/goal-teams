@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""Goal Teams V2.40 release-policy engine and single release entry.
+"""Goal Teams release-policy engine and single CP00-CP18 release entry.
 
 The public functions in this module are deterministic policy boundaries.  Live
 Git/filesystem/GitHub observations are collected by fixed read-only adapters;
 caller JSON supplies expected scope and explicit write authorization, never
 success facts.  External mutation belongs to a separately authenticated adapter.
+
+V2.40 remains the protocol/error-code family for historical replay.  Closed
+release identities are loaded from ``release_config.py``; callers cannot invent
+candidate paths, branches, public text, or process-bundle locations.
 """
 
 from __future__ import annotations
@@ -60,6 +64,36 @@ RELEASE_ROOT = Path(__file__).resolve().parents[2]
 PROMOTION_SCHEMA_PATH = (
     RELEASE_ROOT / "schemas" / "release-promotion-state.schema.json"
 )
+RELEASE_CONFIG_PATH = Path(__file__).resolve().with_name("release_config.py")
+ED25519_VERIFY_PATH = Path(__file__).resolve().with_name("ed25519_verify.py")
+
+
+def _load_release_config_module() -> Any:
+    spec = importlib.util.spec_from_file_location(
+        "goal_teams_release_engine_config", RELEASE_CONFIG_PATH
+    )
+    if spec is None or spec.loader is None:
+        raise RuntimeError("release engine configuration cannot be loaded")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+_RELEASE_CONFIG_MODULE = _load_release_config_module()
+
+
+def _load_ed25519_verify_module() -> Any:
+    spec = importlib.util.spec_from_file_location(
+        "goal_teams_release_ed25519_verify", ED25519_VERIFY_PATH
+    )
+    if spec is None or spec.loader is None:
+        raise RuntimeError("release Ed25519 verifier cannot be loaded")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+_ED25519_VERIFY_MODULE = _load_ed25519_verify_module()
 
 TAR_LIMITS = {
     "member_count": 2048,
@@ -85,6 +119,79 @@ PUBLIC_SCAN_DETECTOR_RELATIVE = "scripts/v23/v236_security.py"
 PUBLIC_SCAN_BASELINE_RELATIVE = (
     "references/public-release-scan-baseline-v2.40.json"
 )
+
+
+def _release_cfg(version: Any) -> dict[str, Any]:
+    if not isinstance(version, str):
+        _fail("E_V240_RELEASE_SOURCE_IDENTITY", "release version is missing")
+    try:
+        return _RELEASE_CONFIG_MODULE.release_config(version)
+    except ValueError:
+        _fail(
+            "E_V240_RELEASE_SOURCE_IDENTITY",
+            f"release version is not configured: {version}",
+        )
+
+
+def _release_cfg_for_state(state: Mapping[str, Any]) -> dict[str, Any]:
+    return _release_cfg(state.get("version"))
+
+
+def _candidate_path(workspace: Path, version: Any) -> Path:
+    cfg = _release_cfg(version)
+    return (workspace / str(cfg["candidate_location"])).resolve()
+
+
+def _goal_teams_work_root(
+    workspace: Path, source_root: Path, version: Any
+) -> Path:
+    cfg = _release_cfg(version)
+    if cfg["goal_teams_work_location"] == "workspace_docs":
+        return (workspace / "docs" / str(cfg["goal_teams_work"])).resolve()
+    return (source_root / str(cfg["goal_teams_work"])).resolve()
+
+
+def _release_text(version: Any) -> tuple[str, str, str]:
+    cfg = _release_cfg(version)
+    return (
+        str(cfg["release_title"]),
+        str(cfg["release_body"]),
+        str(cfg["tag_message"]),
+    )
+
+
+def _release_engine_profile_binding(
+    candidate_commit: str, cfg: Mapping[str, Any]
+) -> dict[str, str]:
+    paths = {
+        "path": str(cfg["config_path"]),
+        "loader_path": "scripts/release/release_config.py",
+        "schema_path": "schemas/release-engine-profile.schema.json",
+    }
+    blobs = {
+        key: _git_blob_bytes(candidate_commit, path)
+        for key, path in paths.items()
+    }
+    for key, relative in paths.items():
+        live = RELEASE_ROOT / relative
+        if not live.is_file() or live.is_symlink() or live.read_bytes() != blobs[key]:
+            _fail(
+                "E_V240_RELEASE_SOURCE_IDENTITY",
+                f"release engine profile binding drift: {relative}",
+            )
+    if hashlib.sha256(blobs["path"]).hexdigest() != cfg["config_sha256"]:
+        _fail(
+            "E_V240_RELEASE_SOURCE_IDENTITY",
+            "loaded release profile differs from frozen profile blob",
+        )
+    return {
+        "path": paths["path"],
+        "sha256": hashlib.sha256(blobs["path"]).hexdigest(),
+        "loader_path": paths["loader_path"],
+        "loader_sha256": hashlib.sha256(blobs["loader_path"]).hexdigest(),
+        "schema_path": paths["schema_path"],
+        "schema_sha256": hashlib.sha256(blobs["schema_path"]).hexdigest(),
+    }
 
 
 class PolicyError(RuntimeError):
@@ -268,6 +375,7 @@ def _validate_release_intent_metadata(
     expected_before: Mapping[str, Any],
     candidate_commit: Any,
     *,
+    version: Any = "V2.40",
     require_release_id: bool,
 ) -> None:
     """Require canonical Release metadata in the persisted operation intent."""
@@ -275,10 +383,11 @@ def _validate_release_intent_metadata(
     candidate = _require_sha40(
         candidate_commit, "E_V240_RELEASE_SOURCE_IDENTITY"
     )
+    release_title, release_body, _tag_message = _release_text(version)
     if (
         expected_before.get("targetCommitish") != candidate
-        or expected_before.get("name") != CANONICAL_RELEASE_TITLE
-        or expected_before.get("body") != CANONICAL_RELEASE_BODY
+        or expected_before.get("name") != release_title
+        or expected_before.get("body") != release_body
     ):
         _fail(
             "E_V240_STATE_EXPECTED_BEFORE",
@@ -428,20 +537,26 @@ def validate_frozen_release_record(
 def validate_workspace_facts(facts: Mapping[str, Any]) -> dict[str, Any]:
     """Fail closed on topology facts collected by the workspace doctor."""
 
+    cfg = _release_cfg(facts.get("version", "V2.40"))
+    candidate_location = str(cfg["candidate_location"])
+    candidate_branch = str(cfg["candidate_branch"])
     if bool(facts.get("canonical_dirty")):
         _fail("E_V240_WORKTREE_DIRTY", "canonical root is dirty")
     if bool(facts.get("dirty")):
         _fail("E_V240_WORKTREE_DIRTY", "candidate worktree is dirty")
-    if facts.get("candidate_location") != "develops/v2.40":
+    if facts.get("candidate_location") != candidate_location:
         _fail(
             "E_V240_WORKTREE_LOCATION",
-            "candidate must live at develops/v2.40",
+            f"candidate must live at {candidate_location}",
         )
     if (
         facts.get("candidate_branch") != facts.get("expected_candidate_branch")
-        or facts.get("candidate_branch") != "codex/v2.40"
+        or facts.get("candidate_branch") != candidate_branch
     ):
-        _fail("E_V240_WORKTREE_BRANCH", "candidate branch is not codex/v2.40")
+        _fail(
+            "E_V240_WORKTREE_BRANCH",
+            f"candidate branch is not {candidate_branch}",
+        )
     if not bool(facts.get("candidate_descends_from_remote_main")):
         _fail(
             "E_V240_CANDIDATE_ANCESTRY",
@@ -1235,6 +1350,24 @@ def validate_promotion_state(
 
     if not isinstance(state, Mapping):
         _fail("E_V240_STATE_SCHEMA", "promotion state must be an object")
+    cfg = _release_cfg(state.get("version"))
+    if cfg["status"] == "active":
+        candidate_for_profile = _require_sha40(
+            state.get("candidate_commit"), "E_V240_STATE_FORGED"
+        )
+        expected_profile = _release_engine_profile_binding(
+            candidate_for_profile, cfg
+        )
+        if state.get("release_engine_profile") != expected_profile:
+            _fail(
+                "E_V240_STATE_FORGED",
+                "active release state profile binding drift",
+            )
+    elif state.get("release_engine_profile") is not None:
+        _fail(
+            "E_V240_STATE_FORGED",
+            "historical replay state cannot adopt an active profile binding",
+        )
     schema = _load_promotion_schema()
     semantic = schema.get("x-semantic-validator")
     if not isinstance(semantic, Mapping):
@@ -1409,6 +1542,227 @@ def validate_promotion_state(
                     "E_V240_STATE_RECEIPT_CHAIN",
                     f"{checkpoint_id} checkpoint receipt drift",
                 )
+    cp05_record = checkpoints.get("CP05")
+    if (
+        state.get("version") == "V2.44"
+        and isinstance(cp05_record, Mapping)
+        and cp05_record.get("status") == "passed"
+    ):
+        cp05_operations = cp05_record.get("operations")
+        workflow_operation = (
+            cp05_operations[1]
+            if isinstance(cp05_operations, list) and len(cp05_operations) == 2
+            else None
+        )
+        workflow_details = (
+            workflow_operation.get("readback", {}).get("details")
+            if isinstance(workflow_operation, Mapping)
+            else None
+        )
+        approval = (
+            workflow_details.get("ci_approval")
+            if isinstance(workflow_details, Mapping)
+            else None
+        )
+        acceptance = (
+            approval.get("host_acceptance")
+            if isinstance(approval, Mapping)
+            else None
+        )
+        required_acceptance_fields = {
+            "schema_version",
+            "algorithm",
+            "key_id",
+            "issuer",
+            "issued_at",
+            "expires_at",
+            "transaction_id",
+            "repository",
+            "version",
+            "checkpoint_id",
+            "transition_map_version",
+            "promotion_schema_sha256",
+            "candidate_commit",
+            "candidate_tree",
+            "base_main_commit",
+            "pre_state_sha256",
+            "cp05_intent_sha256",
+            "ci_approval_core_sha256",
+            "workflow_blob_sha",
+            "checker_surface_sha256",
+            "public_scan_bindings_sha256",
+            "repository_fingerprint",
+            "runtime_observation_sha256",
+            "review_decision_sha256",
+            "reviewer_request_sha256",
+            "reviewer_output_sha256",
+            "reviewer_transport_sha256",
+            "attested_identity_registry_sha256",
+            "route_receipt_sha256",
+            "route_authority_receipt_sha256",
+            "route_authority_canonical_sha256",
+            "route_policy_profile",
+            "route_candidate_commit",
+            "challenge_state_generation",
+            "challenge_sha256",
+            "challenges_sha256",
+            "trusted_config_sha256",
+            "trust_pins_sha256",
+            "transaction_context_sha256",
+            "acceptance_eligible",
+            "signature",
+        }
+        release_cfg = _release_cfg_for_state(state)
+        host_identity = release_cfg.get("host_acceptance")
+        if (
+            not isinstance(workflow_details, Mapping)
+            or not isinstance(approval, Mapping)
+            or not isinstance(acceptance, Mapping)
+            or not isinstance(host_identity, Mapping)
+            or set(acceptance) != required_acceptance_fields
+            or acceptance.get("schema_version")
+            != host_identity.get("schema_version")
+            or acceptance.get("algorithm") != "Ed25519"
+            or acceptance.get("algorithm") != host_identity.get("algorithm")
+            or acceptance.get("issuer") != host_identity.get("issuer")
+            or acceptance.get("key_id") != host_identity.get("key_id")
+            or acceptance.get("acceptance_eligible") is not True
+            or acceptance.get("repository") != state.get("repository")
+            or acceptance.get("version") != state.get("version")
+            or acceptance.get("checkpoint_id") != "CP05"
+            or acceptance.get("transition_map_version")
+            != state.get("transition_map_version")
+            or acceptance.get("promotion_schema_sha256")
+            != _sha256_file(PROMOTION_SCHEMA_PATH)
+            or acceptance.get("candidate_commit") != candidate
+            or acceptance.get("candidate_tree") != state.get("candidate_tree")
+            or acceptance.get("base_main_commit")
+            != state.get("base_main_commit")
+            or SHA256_RE.fullmatch(
+                str(acceptance.get("pre_state_sha256", ""))
+            )
+            is None
+            or re.fullmatch(r"[0-9a-f]{128}", str(acceptance.get("signature", "")))
+            is None
+            or SHA256_RE.fullmatch(
+                str(acceptance.get("route_authority_receipt_sha256", ""))
+            )
+            is None
+            or SHA256_RE.fullmatch(
+                str(acceptance.get("route_authority_canonical_sha256", ""))
+            )
+            is None
+            or any(
+                SHA256_RE.fullmatch(str(acceptance.get(field, ""))) is None
+                for field in (
+                    "reviewer_request_sha256",
+                    "reviewer_output_sha256",
+                    "reviewer_transport_sha256",
+                )
+            )
+            or acceptance.get("route_policy_profile")
+            != "goal-teams-self-release-v2.44"
+            or acceptance.get("route_candidate_commit") != candidate
+            or not isinstance(acceptance.get("challenge_state_generation"), int)
+            or acceptance.get("challenge_state_generation", 0) < 1
+            or not isinstance(acceptance.get("challenge_sha256"), list)
+            or len(acceptance["challenge_sha256"]) != 2
+            or any(
+                SHA256_RE.fullmatch(str(value)) is None
+                for value in acceptance["challenge_sha256"]
+            )
+            or len(set(acceptance["challenge_sha256"])) != 2
+            or SHA256_RE.fullmatch(
+                str(acceptance.get("challenges_sha256", ""))
+            )
+            is None
+            or acceptance.get("challenges_sha256")
+            != _canonical_json_sha256(acceptance["challenge_sha256"])
+            or workflow_details.get("host_acceptance_sha256")
+            != _canonical_json_sha256(acceptance)
+        ):
+            _fail(
+                "E_V244_HOST_ACCEPTANCE_BINDING",
+                "passed CP05 lacks an exact external-host acceptance chain",
+            )
+        unsigned_acceptance = copy.deepcopy(dict(acceptance))
+        signature_hex = str(unsigned_acceptance.pop("signature"))
+        try:
+            signature_valid = _ED25519_VERIFY_MODULE.verify(
+                bytes.fromhex(str(host_identity["public_key_hex"])),
+                (
+                    str(host_identity["signature_domain"]).encode("utf-8")
+                    + b"\x00"
+                    + _canonical_json_bytes(unsigned_acceptance)
+                ),
+                bytes.fromhex(signature_hex),
+            )
+        except (KeyError, TypeError, ValueError):
+            signature_valid = False
+        if not signature_valid:
+            _fail(
+                "E_V244_HOST_ACCEPTANCE_SIGNATURE",
+                "external-host acceptance Ed25519 signature is invalid",
+            )
+        issued_at = _parse_utc(
+            acceptance.get("issued_at"), "E_V244_HOST_ACCEPTANCE_BINDING"
+        )
+        expires_at = _parse_utc(
+            acceptance.get("expires_at"), "E_V244_HOST_ACCEPTANCE_BINDING"
+        )
+        if expires_at <= issued_at:
+            _fail(
+                "E_V244_HOST_ACCEPTANCE_BINDING",
+                "external-host acceptance validity window is invalid",
+            )
+        approval_core = copy.deepcopy(dict(approval))
+        approval_core.pop("host_acceptance", None)
+        reviewer_binding = approval_core.get("reviewer")
+        expected_intents = {
+            operation["operation_id"]: _canonical_json_sha256(
+                operation["intent"]
+            )
+            for operation in cp05_operations
+        }
+        checker_surface = _checker_surface_digest(candidate)
+        expected_workflow_blob = _run_fixed(
+            (
+                "git",
+                "rev-parse",
+                f"{candidate}:.github/workflows/release-gate.yml",
+            ),
+            cwd=RELEASE_ROOT,
+        ).stdout.strip()
+        if (
+            acceptance.get("cp05_intent_sha256") != expected_intents
+            or acceptance.get("ci_approval_core_sha256")
+            != _canonical_json_sha256(approval_core)
+            or acceptance.get("workflow_blob_sha") != expected_workflow_blob
+            or acceptance.get("checker_surface_sha256")
+            != _canonical_json_sha256(checker_surface)
+            or acceptance.get("public_scan_bindings_sha256")
+            != _canonical_json_sha256(_public_scan_trust_bindings(state))
+            or not isinstance(reviewer_binding, Mapping)
+            or acceptance.get("reviewer_request_sha256")
+            != reviewer_binding.get("request_sha256")
+            or acceptance.get("reviewer_output_sha256")
+            != reviewer_binding.get("output_sha256")
+            or acceptance.get("reviewer_transport_sha256")
+            != reviewer_binding.get("transport_sha256")
+            or acceptance.get("review_decision_sha256")
+            != reviewer_binding.get("decision_sha256")
+            or approval.get("workflow_blob_sha") != expected_workflow_blob
+            or approval.get("checker_tree_sha256")
+            != checker_surface["checker_tree_sha256"]
+            or approval.get("checker_file_count")
+            != checker_surface["checker_file_count"]
+            or approval.get("public_scan_bindings")
+            != _public_scan_trust_bindings(state)
+        ):
+            _fail(
+                "E_V244_HOST_ACCEPTANCE_BINDING",
+                "external-host acceptance transaction binding drift",
+            )
     computed_current = (
         first_non_passed
         if first_non_passed is not None
@@ -1951,6 +2305,10 @@ def _new_checkpoint_record(
             "operation_id": operation_id,
             "action": action,
         }
+        if isinstance(identity.get("release_engine_profile"), Mapping):
+            binding["release_engine_profile"] = copy.deepcopy(
+                dict(identity["release_engine_profile"])
+            )
         if isinstance(expected_before, Mapping):
             binding["expected_before"] = copy.deepcopy(dict(expected_before))
         intent = {
@@ -2011,10 +2369,12 @@ def _validate_scope_receipt(
     candidate: str,
 ) -> dict[str, Any]:
     workspace = _workspace_root()
-    candidate_root = (workspace / "develops" / "v2.40").resolve()
+    cfg = _release_cfg(version)
+    candidate_root = _candidate_path(workspace, version)
     if RELEASE_ROOT.resolve() != candidate_root:
         _fail("E_V240_SCOPE_FREEZE", "scope must be frozen from canonical candidate worktree")
-    spec_root = RELEASE_ROOT / "GoalTeamsWork-V2.40" / "versions" / "V2.40" / "spec"
+    work_root = _goal_teams_work_root(workspace, RELEASE_ROOT, version)
+    spec_root = work_root / "versions" / version / "spec"
     spec_names = (
         "PRD.md",
         "acceptance.md",
@@ -2037,6 +2397,11 @@ def _validate_scope_receipt(
     target = route.get("target") if isinstance(route, Mapping) else None
     locked_scope = route.get("locked_scope") if isinstance(route, Mapping) else None
     route_sha = _sha256_file(route_path)
+    release_engine_profile = (
+        _release_engine_profile_binding(candidate, cfg)
+        if cfg["status"] == "active"
+        else None
+    )
     if (
         route.get("status") != "current"
         or route.get("target_product_version") != version
@@ -2044,19 +2409,30 @@ def _validate_scope_receipt(
         or not isinstance(target, Mapping)
         or target.get("repository") != repository
         or target.get("base_main_commit") != base
-        or target.get("candidate_branch") != "codex/v2.40"
+        or target.get("candidate_branch") != cfg["candidate_branch"]
         or not isinstance(locked_scope, list)
         or not locked_scope
+        or (
+            cfg["status"] == "active"
+            and route.get("release_engine_profile") != release_engine_profile
+        )
     ):
-        _fail("E_V240_SCOPE_FREEZE", "current route does not bind the V2.40 release")
+        _fail(
+            "E_V240_SCOPE_FREEZE",
+            f"current route does not bind the {version} release",
+        )
     if (
         scope.get("repository") != repository
         or scope.get("version") != version
         or scope.get("candidate_commit") != candidate
-        or scope.get("owner_run_id") != "RUN-V240-LEAD"
+        or scope.get("owner_run_id") != cfg["owner_run_id"]
         or scope.get("locked_scope") != locked_scope
         or scope.get("route_receipt_sha256") != route_sha
         or scope.get("spec_sha256") != spec_sha
+        or (
+            cfg["status"] == "active"
+            and scope.get("release_engine_profile") != release_engine_profile
+        )
         or not isinstance(scope.get("done_criteria"), list)
         or not scope.get("done_criteria")
     ):
@@ -2066,8 +2442,13 @@ def _validate_scope_receipt(
         "spec_sha256": spec_sha,
         "spec_rows": spec_rows,
         "route_receipt_sha256": route_sha,
-        "owner_run_id": "RUN-V240-LEAD",
+        "owner_run_id": cfg["owner_run_id"],
         "locked_scope_sha256": _canonical_json_sha256(locked_scope),
+        **(
+            {"release_engine_profile": release_engine_profile}
+            if release_engine_profile is not None
+            else {}
+        ),
     }
 
 
@@ -2087,12 +2468,16 @@ def start_release(config: Mapping[str, Any]) -> dict[str, Any]:
     candidate_tree = _require_sha40(
         config.get("candidate_tree"), "E_V240_RELEASE_SOURCE_IDENTITY"
     )
-    if repository != "vibe-coding-era/goal-teams" or version != "V2.40":
-        _fail("E_V240_RELEASE_SOURCE_IDENTITY", "start is scoped to Goal Teams V2.40")
+    cfg = _release_cfg(version)
+    if repository != "vibe-coding-era/goal-teams":
+        _fail(
+            "E_V240_RELEASE_SOURCE_IDENTITY",
+            "start is scoped to the Goal Teams repository",
+        )
     scope = config.get("scope")
     if not isinstance(scope, Mapping):
         _fail("E_V240_SCOPE_FREEZE", "start requires a scope receipt")
-    _validate_scope_receipt(
+    scope_receipt = _validate_scope_receipt(
         scope,
         repository=str(repository),
         version=str(version),
@@ -2104,7 +2489,7 @@ def start_release(config: Mapping[str, Any]) -> dict[str, Any]:
         "schema_version": "goal-teams-release-promotion-v2.40",
         "repository": repository,
         "version": version,
-        "tag": "v2.40",
+        "tag": cfg["tag"],
         "base_main_commit": base,
         "candidate_commit": candidate,
         "candidate_tree": candidate_tree,
@@ -2117,6 +2502,10 @@ def start_release(config: Mapping[str, Any]) -> dict[str, Any]:
         "created_at": now,
         "updated_at": now,
     }
+    if "release_engine_profile" in scope_receipt:
+        state["release_engine_profile"] = scope_receipt[
+            "release_engine_profile"
+        ]
     state["checkpoints"]["CP00"] = _new_checkpoint_record(state, "CP00")
     _verify_frozen_git_identity(state)
     validate_promotion_state(state)
@@ -2217,11 +2606,13 @@ def _require_clean_candidate_checkout(state: Mapping[str, Any]) -> dict[str, Any
     """Bind working-tree checkers to the immutable candidate checkout."""
 
     workspace = _workspace_root()
-    candidate_path = (workspace / "develops" / "v2.40").resolve()
+    cfg = _release_cfg_for_state(state)
+    candidate_path = _candidate_path(workspace, state.get("version"))
     if RELEASE_ROOT.resolve() != candidate_path or not candidate_path.is_dir():
         _fail(
             "E_V240_WORKTREE_LOCATION",
-            "candidate check must execute from canonical develops/v2.40",
+            "candidate check must execute from canonical "
+            + str(cfg["candidate_location"]),
         )
     head = _run_fixed(("git", "rev-parse", "HEAD"), cwd=candidate_path).stdout.strip()
     branch = _run_fixed(
@@ -2230,7 +2621,7 @@ def _require_clean_candidate_checkout(state: Mapping[str, Any]) -> dict[str, Any
     status = _git_status_porcelain(candidate_path)
     if head != state.get("candidate_commit"):
         _fail("E_V240_RC_IDENTITY", "candidate checkout HEAD drift")
-    if branch != "codex/v2.40":
+    if branch != cfg["candidate_branch"]:
         _fail("E_V240_WORKTREE_BRANCH", "candidate checkout branch drift")
     if status:
         _fail(
@@ -2314,14 +2705,16 @@ def _github_resource(path: str, *, not_found_ok: bool = False) -> Any:
         _fail("E_V240_TOOL_UNAVAILABLE", "GitHub live topology readback is not JSON")
 
 
-_DOCTOR_EXPECTED_SCOPE = {
-    "repository": "vibe-coding-era/goal-teams",
-    "version": "V2.40",
-    "tag": "v2.40",
-    "canonical_branch": "main",
-    "candidate_location": "develops/v2.40",
-    "candidate_branch": "codex/v2.40",
-}
+def _doctor_expected_scope(version: Any) -> dict[str, Any]:
+    cfg = _release_cfg(version)
+    return {
+        "repository": "vibe-coding-era/goal-teams",
+        "version": cfg["version"],
+        "tag": cfg["tag"],
+        "canonical_branch": "main",
+        "candidate_location": cfg["candidate_location"],
+        "candidate_branch": cfg["candidate_branch"],
+    }
 
 
 def collect_workspace_facts(
@@ -2329,18 +2722,26 @@ def collect_workspace_facts(
 ) -> dict[str, Any]:
     """Collect CP02 topology from Git/filesystem/GitHub, never caller facts."""
 
+    fixed_scope = _doctor_expected_scope(state.get("version"))
     scope = dict(expected_scope or {})
-    if set(scope) - set(_DOCTOR_EXPECTED_SCOPE):
+    if set(scope) - set(fixed_scope):
         _fail("E_V240_WORKTREE_LOCATION", "workspace expected scope has unknown fields")
-    effective_scope = dict(_DOCTOR_EXPECTED_SCOPE)
+    effective_scope = dict(fixed_scope)
     effective_scope.update(scope)
-    if effective_scope != _DOCTOR_EXPECTED_SCOPE:
-        _fail("E_V240_WORKTREE_LOCATION", "workspace expected scope weakens V2.40 topology")
-    if any(state.get(key) != _DOCTOR_EXPECTED_SCOPE[key] for key in ("repository", "version", "tag")):
+    if effective_scope != fixed_scope:
+        _fail(
+            "E_V240_WORKTREE_LOCATION",
+            f"workspace expected scope weakens {state.get('version')} topology",
+        )
+    if any(
+        state.get(key) != fixed_scope[key]
+        for key in ("repository", "version", "tag")
+    ):
         _fail("E_V240_RELEASE_SOURCE_IDENTITY", "state differs from fixed doctor scope")
 
     workspace = _workspace_root()
-    candidate_path = (workspace / "develops" / "v2.40").resolve()
+    cfg = _release_cfg_for_state(state)
+    candidate_path = _candidate_path(workspace, state.get("version"))
     candidate_checkout = _require_clean_candidate_checkout(state)
     root_branch = _run_fixed(
         ("git", "rev-parse", "--abbrev-ref", "HEAD"), cwd=workspace
@@ -2361,7 +2762,7 @@ def collect_workspace_facts(
         else:
             if not _path_is_within(path, workspace / "develops"):
                 _fail("E_V240_WORKTREE_LOCATION", "worktree exists outside canonical develops/")
-            if record.get("branch") in {"main", "codex/v2.40"}:
+            if record.get("branch") in {"main", cfg["candidate_branch"]}:
                 _fail("E_V240_WORKTREE_LOCATION", "legacy worktree uses an active release branch")
             role = "archived_non_active"
             active = False
@@ -2437,10 +2838,11 @@ def collect_workspace_facts(
         "canonical_head": root_head,
         "canonical_dirty": bool(root_status),
         "canonical_status_sha256": hashlib.sha256(root_status.encode()).hexdigest(),
-        "candidate_location": "develops/v2.40",
+        "version": state["version"],
+        "candidate_location": cfg["candidate_location"],
         "candidate_path": str(candidate_path),
         "candidate_branch": candidate_checkout["branch"],
-        "expected_candidate_branch": "codex/v2.40",
+        "expected_candidate_branch": cfg["candidate_branch"],
         "dirty": candidate_checkout["clean"] is not True,
         "candidate_commit": candidate_checkout["head"],
         "remote_main_commit": remote_main_commit,
@@ -2522,6 +2924,10 @@ def _verify_frozen_git_identity(state: Mapping[str, Any]) -> dict[str, str]:
 
 def _checker_surface_digest(commit: str) -> dict[str, Any]:
     commit = _require_sha40(commit, "E_V240_CI_TRUST_BINDING")
+    source_version = _run_fixed(
+        ("git", "show", f"{commit}:VERSION"), cwd=RELEASE_ROOT
+    ).stdout.strip()
+    cfg = _release_cfg(source_version)
     result = _run_fixed(
         ("git", "ls-tree", "-r", "-z", commit), cwd=RELEASE_ROOT
     )
@@ -2547,6 +2953,8 @@ def _checker_surface_digest(commit: str) -> dict[str, Any]:
         "scripts/release/build-release.py",
         "scripts/release/validate-release.py",
         "scripts/release/release.py",
+        "scripts/release/release_config.py",
+        "scripts/release/ed25519_verify.py",
         "scripts/release/github_adapter.py",
         PUBLIC_SCAN_RELATIVE,
         "scripts/install/install-local.sh",
@@ -2554,10 +2962,12 @@ def _checker_surface_digest(commit: str) -> dict[str, Any]:
         "scripts/v23/v236_security.py",
         ".github/workflows/release-gate.yml",
         "schemas/release-promotion-state.schema.json",
+        "schemas/release-engine-profile.schema.json",
         "AGENTS.md",
         "references/release-packaging-protocol.md",
-        "references/profiles/goal-teams-self-release-v2.40.md",
-        PUBLIC_SCAN_BASELINE_RELATIVE,
+        str(cfg["profile_path"]),
+        str(cfg["config_path"]),
+        str(cfg["public_scan_baseline"]),
     }
     observed = {row["path"] for row in rows}
     missing = sorted(required - observed)
@@ -2778,10 +3188,13 @@ def _public_scan_trust_bindings(state: Mapping[str, Any]) -> dict[str, Any]:
     candidate = _require_sha40(
         state.get("candidate_commit"), "E_V240_PUBLIC_SCAN"
     )
+    cfg = _release_cfg_for_state(state)
+    baseline_relative = str(cfg["public_scan_baseline"])
     paths = (
         PUBLIC_SCAN_RELATIVE,
         PUBLIC_SCAN_DETECTOR_RELATIVE,
-        PUBLIC_SCAN_BASELINE_RELATIVE,
+        str(cfg["config_path"]),
+        baseline_relative,
     )
     blobs: dict[str, bytes] = {
         relative: _git_blob_bytes(candidate, relative) for relative in paths
@@ -2796,7 +3209,7 @@ def _public_scan_trust_bindings(state: Mapping[str, Any]) -> dict[str, Any]:
     module = _load_public_scan_module()
     try:
         normalized = module.validate_baseline(
-            module.load_baseline(blobs[PUBLIC_SCAN_BASELINE_RELATIVE]),
+            module.load_baseline(blobs[baseline_relative]),
             version=str(state["version"]),
         )
     except Exception as exc:
@@ -2820,9 +3233,13 @@ def _public_scan_trust_bindings(state: Mapping[str, Any]) -> dict[str, Any]:
         "detector_blob_sha256": hashlib.sha256(
             blobs[PUBLIC_SCAN_DETECTOR_RELATIVE]
         ).hexdigest(),
-        "baseline_path": PUBLIC_SCAN_BASELINE_RELATIVE,
+        "release_config_path": cfg["config_path"],
+        "release_config_blob_sha256": hashlib.sha256(
+            blobs[str(cfg["config_path"])]
+        ).hexdigest(),
+        "baseline_path": baseline_relative,
         "baseline_blob_sha256": hashlib.sha256(
-            blobs[PUBLIC_SCAN_BASELINE_RELATIVE]
+            blobs[baseline_relative]
         ).hexdigest(),
         "baseline_assertion_count": len(assertions),
         "baseline_assertions_sha256": _canonical_json_sha256(assertions),
@@ -2848,8 +3265,11 @@ def _run_public_release_scan(
         }.items()
     }
     module = _load_public_scan_module()
+    cfg = _release_cfg_for_state(state)
+    baseline_relative = str(cfg["public_scan_baseline"])
+    release_title, release_body, tag_message = _release_text(state.get("version"))
     baseline_bytes = _git_blob_bytes(
-        str(state["candidate_commit"]), PUBLIC_SCAN_BASELINE_RELATIVE
+        str(state["candidate_commit"]), baseline_relative
     )
     try:
         receipt = module.scan_surfaces(
@@ -2860,9 +3280,9 @@ def _run_public_release_scan(
             version=str(state["version"]),
             snapshot_root=snapshot_root,
             asset_paths=assets,
-            tag_message=CANONICAL_TAG_MESSAGE,
-            release_title=CANONICAL_RELEASE_TITLE,
-            release_body=CANONICAL_RELEASE_BODY,
+            tag_message=tag_message,
+            release_title=release_title,
+            release_body=release_body,
             checker_digest=bindings["scanner_blob_sha256"],
             expected_detector_digest=bindings["detector_blob_sha256"],
             baseline_bytes=baseline_bytes,
@@ -3247,7 +3667,14 @@ def collect_live_audit_observation(state: Mapping[str, Any]) -> dict[str, Any]:
                 and (
                     ci_receipt.get("release_intent") != expected_release_intent
                     or ci_receipt.get("display_title")
-                    != f"Goal Teams V2.40 release {expected_release_intent}"
+                    != (
+                        str(
+                            _release_cfg_for_state(state)[
+                                "workflow_display_prefix"
+                            ]
+                        )
+                        + str(expected_release_intent)
+                    )
                 )
             )
         ):
@@ -3555,7 +3982,9 @@ def _requires_v236_completion_host_boundary(workspace: Path) -> bool:
 def _validate_archived_goal_teams_ssot(
     archive_root: Path, state: Mapping[str, Any]
 ) -> dict[str, Any]:
-    ssot = archive_root / "GoalTeamsWork-V2.40" / "versions" / "V2.40"
+    cfg = _release_cfg_for_state(state)
+    work_name = str(cfg["goal_teams_work"])
+    ssot = archive_root / work_name / "versions" / str(state["version"])
     required = {
         "TaskList.md": ssot / "TaskList.md",
         "ledger_checkpoint": ssot / "ledger" / "checkpoint.json",
@@ -3615,7 +4044,7 @@ def _validate_archived_goal_teams_ssot(
         _fail("E_V240_CLOSE_SSOT", "archived evidence registry is empty")
 
     referenced_artifacts: list[dict[str, Any]] = []
-    work_root = archive_root / "GoalTeamsWork-V2.40"
+    work_root = archive_root / work_name
     workspace = _workspace_root()
 
     def resolve_ref(ref: str, task_id: str, field: str) -> Path:
@@ -3929,7 +4358,7 @@ def _validate_archived_goal_teams_ssot(
         "referenced_artifacts_sha256": _canonical_json_sha256(referenced_artifacts),
         "required_harness_bindings_sha256": _canonical_json_sha256(harness_bindings),
         "archived_goal_teams_work": _directory_tree_receipt(
-            archive_root / "GoalTeamsWork-V2.40"
+            archive_root / work_name
         ),
         "formal_validators": {
             "reduce_ledger": reduce_result,
@@ -3963,6 +4392,8 @@ def _scan_close_evidence(
     manifest_files: Sequence[Path],
     state: Mapping[str, Any],
 ) -> dict[str, Any]:
+    release_cfg = _release_cfg_for_state(state)
+    version = str(release_cfg["version"])
     release_evidence = archive_root / "release-evidence"
     if not release_evidence.is_dir() or not any(
         path.is_file() for path in release_evidence.rglob("*")
@@ -3990,9 +4421,9 @@ def _scan_close_evidence(
     assets = _revalidate_canonical_release(state)
     canonical = _canonical_snapshot(state)
     public_paths = {
-        "release/goal-teams-V2.40.tar.gz": canonical
+        f"release/goal-teams-{version}.tar.gz": canonical
         / "_artifacts"
-        / "goal-teams-V2.40.tar.gz",
+        / f"goal-teams-{version}.tar.gz",
         "release/SHA256SUMS": canonical / "_artifacts" / "SHA256SUMS",
         "release/_release.json": canonical / "_release.json",
         "release/_files.sha256": canonical / "_files.sha256",
@@ -4021,7 +4452,7 @@ def _scan_close_evidence(
         Path(__file__).resolve(),
         workspace / PUBLIC_SCAN_RELATIVE,
         workspace / "scripts" / "v23" / "v236_security.py",
-        workspace / PUBLIC_SCAN_BASELINE_RELATIVE,
+        workspace / str(release_cfg["public_scan_baseline"]),
     ]
     checker_rows = [
         {
@@ -4099,10 +4530,12 @@ def _validate_close_local_boundary(
         _fail("E_V240_CLOSE_ARCHIVE", "close archive index is required")
     archive_path = Path(archive_value).expanduser().absolute()
     archive_root = workspace / "docs" / "archive" / "releases" / str(state["version"])
+    cfg = _release_cfg_for_state(state)
     if archive_path.parent != archive_root:
         _fail(
             "E_V240_CLOSE_ARCHIVE",
-            "close index must be directly under docs/archive/releases/V2.40",
+            "close index must be directly under docs/archive/releases/"
+            + str(state["version"]),
         )
     validate_safe_ancestors(archive_path, archive_root)
     if not archive_path.is_file() or archive_path.is_symlink():
@@ -4111,7 +4544,7 @@ def _validate_close_local_boundary(
     audit_sha = _canonical_json_sha256(audit_receipt)
     if (
         not isinstance(archive, Mapping)
-        or archive.get("schema_version") != "goal-teams-release-close-v2.40"
+        or archive.get("schema_version") != cfg["close_schema_version"]
         or archive.get("version") != state.get("version")
         or archive.get("source_commit") != state.get("candidate_commit")
         or archive.get("audit_receipt_sha256") != audit_sha
@@ -4142,13 +4575,13 @@ def _validate_close_local_boundary(
         manifest_paths.append(file_path)
 
     root_facts = _git_worktree_facts(workspace)
-    candidate_path = (workspace / "develops" / "v2.40").resolve()
+    candidate_path = _candidate_path(workspace, state.get("version"))
     worktrees = _parse_worktree_inventory(workspace)
     candidate_entries = [
         record
         for record in worktrees
         if Path(str(record["path"])).resolve() == candidate_path
-        or record.get("branch") == "codex/v2.40"
+        or record.get("branch") == cfg["candidate_branch"]
     ]
     if (
         root_facts.get("branch") == "main"
@@ -4162,7 +4595,7 @@ def _validate_close_local_boundary(
     if candidate_path.exists() or candidate_path.is_symlink() or candidate_entries:
         _fail(
             "E_V240_CLOSE_WORKTREE",
-            "develops/v2.40 still exists or remains registered",
+            str(cfg["candidate_location"]) + " still exists or remains registered",
         )
     ssot_receipt = _validate_archived_goal_teams_ssot(archive_root, state)
     if ssot_receipt.get("archived_goal_teams_work") != audit_receipt.get(
@@ -4337,6 +4770,78 @@ def _execute_local_operation(
             _fail(
                 "E_V240_RECOVERY_BUNDLE",
                 "CP01 uses the fixed pre-v2.40 recovery trust root, not caller files",
+            )
+        cfg = _release_cfg_for_state(state)
+        if cfg["legacy_recovery_required"] is not True:
+            base = _require_sha40(
+                state.get("base_main_commit"), "E_V240_REMOTE_MAIN_LEASE"
+            )
+            candidate = _require_sha40(
+                state.get("candidate_commit"), "E_V240_FROZEN_COMMIT"
+            )
+            ancestry = _run_git_unchecked(
+                ("git", "merge-base", "--is-ancestor", base, candidate),
+                cwd=RELEASE_ROOT,
+            )
+            if ancestry.returncode != 0:
+                _fail(
+                    "E_V240_CANDIDATE_ANCESTRY",
+                    "configured release candidate does not descend from prior main",
+                )
+            try:
+                prior_manifest_bytes = _git_blob_bytes(
+                    base, "release/current/manifest.json"
+                )
+                candidate_manifest_bytes = _git_blob_bytes(
+                    candidate, "release/current/manifest.json"
+                )
+                prior_manifest = json.loads(prior_manifest_bytes)
+                candidate_manifest = json.loads(candidate_manifest_bytes)
+            except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+                _fail(
+                    "E_V240_RELEASE_SOURCE_IDENTITY",
+                    f"release continuity manifest is invalid: {type(exc).__name__}",
+                )
+            candidate_version = _run_fixed(
+                ("git", "show", f"{candidate}:VERSION"), cwd=RELEASE_ROOT
+            ).stdout.strip()
+            config_blob = _git_blob_bytes(
+                candidate, "scripts/release/release_config.py"
+            )
+            if (
+                prior_manifest.get("status") != "release"
+                or prior_manifest.get("product_version")
+                != cfg["published_before"]
+                or candidate_manifest.get("status") != "release"
+                or candidate_manifest.get("product_version")
+                != state.get("version")
+                or candidate_version != state.get("version")
+                or config_blob != RELEASE_CONFIG_PATH.read_bytes()
+            ):
+                _fail(
+                    "E_V240_RELEASE_SOURCE_IDENTITY",
+                    "prior-main/current-release continuity binding drift",
+                )
+            return _exact_readback(
+                "local_filesystem",
+                {
+                    "continuity_mode": "prior_main_release_current",
+                    "base_main_commit": base,
+                    "candidate_commit": candidate,
+                    "prior_release_version": prior_manifest["product_version"],
+                    "candidate_release_version": candidate_manifest[
+                        "product_version"
+                    ],
+                    "prior_manifest_sha256": hashlib.sha256(
+                        prior_manifest_bytes
+                    ).hexdigest(),
+                    "candidate_manifest_sha256": hashlib.sha256(
+                        candidate_manifest_bytes
+                    ).hexdigest(),
+                    "release_config_sha256": hashlib.sha256(
+                        config_blob
+                    ).hexdigest(),
+                },
             )
         recovery_root = workspace / "docs" / "recovery" / "pre-v2.40"
         validate_safe_ancestors(recovery_root, workspace / "docs")
@@ -4570,10 +5075,16 @@ def _execute_local_operation(
             },
         )
     if operation_id == "CP05.workflow_approve":
+        if state.get("version") == "V2.44":
+            _fail(
+                "E_V244_HOST_CP05_REQUIRED",
+                "V2.44 workflow approval readback is produced only by the external trusted host",
+            )
         checkout = _require_clean_candidate_checkout(state)
         approval = parameters.get("ci_approval")
         if not isinstance(approval, Mapping):
             _fail("E_V240_CI_TRUST_BINDING", "CI approval receipt is required")
+        release_owner_run_id = str(_release_cfg_for_state(state)["owner_run_id"])
         reviewer = approval.get("reviewer")
         if (
             not isinstance(reviewer, Mapping)
@@ -4581,7 +5092,7 @@ def _execute_local_operation(
             or not isinstance(reviewer.get("member_id"), str)
             or not reviewer.get("member_id")
             or not isinstance(reviewer.get("run_id"), str)
-            or reviewer.get("run_id") in {"", "RUN-V240-LEAD"}
+            or reviewer.get("run_id") in {"", release_owner_run_id}
             or reviewer.get("independent") is not True
             or reviewer.get("decision") != "accepted"
             or reviewer.get("source_commit") != state.get("candidate_commit")
@@ -5018,7 +5529,11 @@ def _execute_local_operation(
     if operation_id == "CP17.independent_audit":
         observation = collect_live_audit_observation(state)
         receipt = _run_independent_audit(observation)
-        work_tree = _directory_tree_receipt(RELEASE_ROOT / "GoalTeamsWork-V2.40")
+        work_tree = _directory_tree_receipt(
+            _goal_teams_work_root(
+                workspace, RELEASE_ROOT, state.get("version")
+            )
+        )
         receipt["goal_teams_work_tree"] = work_tree
         receipt.pop("receipt_sha256", None)
         receipt["receipt_sha256"] = _canonical_json_sha256(receipt)
@@ -5085,6 +5600,13 @@ def _execute_local_operation(
 def _github_adapter_for_state(
     state: Mapping[str, Any], config: Mapping[str, Any]
 ) -> Any:
+    release_cfg = _release_cfg_for_state(state)
+    execute_external_writes = config.get("execute_external_writes") is True
+    if execute_external_writes and release_cfg["external_writes_allowed"] is not True:
+        _fail(
+            "E_V240_EXTERNAL_WRITE_NOT_AUTHORIZED",
+            "historical replay release profile cannot perform external writes",
+        )
     authority = state.get("github_authority")
     if not isinstance(authority, Mapping) and state.get("current_checkpoint") not in {
         "CP02",
@@ -5113,7 +5635,7 @@ def _github_adapter_for_state(
         candidate_commit=str(state["candidate_commit"]),
         base_main_commit=str(state["base_main_commit"]),
         authority=authority,
-        execute_external_writes=config.get("execute_external_writes") is True,
+        execute_external_writes=execute_external_writes,
     )
 
 
@@ -5263,6 +5785,9 @@ def _operation_details(
 def _derive_remote_identity(
     state: Mapping[str, Any], *, published: bool
 ) -> dict[str, Any]:
+    release_title, release_body, _tag_message = _release_text(
+        state.get("version")
+    )
     download_id = (
         "CP17.published_asset_download" if published else "CP16.asset_download_verify"
     )
@@ -5292,8 +5817,8 @@ def _derive_remote_identity(
             or release.get("databaseId") != download.get("release_id")
             or release.get("tagName") != state.get("tag")
             or release.get("resolvedTargetCommit") != state.get("candidate_commit")
-            or release.get("name") != CANONICAL_RELEASE_TITLE
-            or release.get("body") != CANONICAL_RELEASE_BODY
+            or release.get("name") != release_title
+            or release.get("body") != release_body
             or release.get("peeledCommit") != state.get("candidate_commit")
             or release.get("tagObject") in {None, state.get("candidate_commit")}
             or release.get("asset_set_sha256")
@@ -5308,8 +5833,8 @@ def _derive_remote_identity(
             or release.get("databaseId") != download.get("release_id")
             or release.get("tagName") != state.get("tag")
             or release.get("resolvedTargetCommit") != state.get("candidate_commit")
-            or release.get("name") != CANONICAL_RELEASE_TITLE
-            or release.get("body") != CANONICAL_RELEASE_BODY
+            or release.get("name") != release_title
+            or release.get("body") != release_body
         ):
             _fail("E_V240_STATE_DERIVATION", "Draft Release readbacks disagree")
     return {
@@ -5471,6 +5996,17 @@ def execute_current_checkpoint(
     path, state, digest = _load_state_cas(state_path, expected_digest)
     _verify_frozen_git_identity(state)
     checkpoint_id = str(state.get("current_checkpoint"))
+    if checkpoint_id == "CP05" and state.get("version") == "V2.44":
+        # V2.44 independent approval is a repository-external host
+        # transaction.  Caller JSON, files, argv/environment tokens, and
+        # hash-only receipts are not capabilities and must never advance
+        # CP05 through this public API.  The trusted host validates the real
+        # reviewer observation and persistent challenges, then performs the
+        # checkpoint CAS itself.
+        _fail(
+            "E_V244_HOST_CP05_REQUIRED",
+            "V2.44 CP05 can only be advanced by the repository-external trusted host",
+        )
     if checkpoint_id == "CP18" and _close_capability is not _CLOSE_CAPABILITY:
         _fail(
             "E_V240_CLOSE_REQUIRED",
@@ -5636,6 +6172,7 @@ def execute_current_checkpoint(
                 _validate_release_intent_metadata(
                     expected_before,
                     state.get("candidate_commit"),
+                    version=state.get("version"),
                     require_release_id=action == "release_publish",
                 )
             sealed_assets: dict[str, Any] | None = None
@@ -5756,7 +6293,14 @@ def execute_current_checkpoint(
                 _fail("E_V240_CI_TRUST_BINDING", "CI event/actor/run identity drift")
             if action == "post_release_ci":
                 release_intent = intent.get("idempotency_key")
-                expected_display_title = f"Goal Teams V2.40 release {release_intent}"
+                expected_display_title = (
+                    str(
+                        _release_cfg_for_state(state)[
+                            "workflow_display_prefix"
+                        ]
+                    )
+                    + str(release_intent)
+                )
                 if (
                     ci_receipt.get("release_intent") != release_intent
                     or ci_receipt.get("display_title") != expected_display_title
@@ -6058,7 +6602,7 @@ def close_release(config: Mapping[str, Any]) -> dict[str, Any]:
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Goal Teams V2.40 single release entry. Policy commands never "
+            "Goal Teams configured single release entry. Policy commands never "
             "infer or fabricate external GitHub success."
         )
     )

@@ -181,6 +181,9 @@ WORKSPACE_ROOT = workspace_root()
 RELEASE_ROOT = WORKSPACE_ROOT / "release" / "versions"
 META = {"_release.json", "_files.sha256", "_artifacts/SHA256SUMS"}
 OKF_GENERATED_PATH = "references/okf-conformance-manifest.json"
+OKF_RELEASE_VERSIONS = {"V2.39", "V2.40", "V2.44"}
+STRICT_SNAPSHOT_SCHEMA = "goal-teams-release-snapshot-v2.40"
+STRICT_SNAPSHOT_VERSIONS = {"V2.40", "V2.44"}
 MAX_TAR_MEMBERS = 2048
 MAX_TAR_PATH_BYTES = 240
 MAX_TAR_SINGLE_FILE_BYTES = 16 * 1024 * 1024
@@ -374,7 +377,7 @@ def independently_materialize_release(
 
     trusted, generated, manifest_sha = trusted_release_files(commit)
     source_version = trusted.get("VERSION", ("", b""))[1].decode("utf-8").strip()
-    if source_version in {"V2.39", "V2.40"} and generated != {OKF_GENERATED_PATH}:
+    if source_version in OKF_RELEASE_VERSIONS and generated != {OKF_GENERATED_PATH}:
         raise RuntimeError(
             f"{source_version} source does not require the canonical generated manifest"
         )
@@ -461,6 +464,9 @@ def main() -> None:
             errors.append(f"{version}: release metadata missing")
             continue
         record = json.loads(record_path.read_text(encoding="utf-8"))
+        strict_snapshot = version in STRICT_SNAPSHOT_VERSIONS
+        if strict_snapshot and record.get("schema_version") != STRICT_SNAPSHOT_SCHEMA:
+            errors.append(f"{version}: strict snapshot schema mismatch")
         if record.get("version") != version or (root / "VERSION").read_text(encoding="utf-8").strip() != version:
             errors.append(f"{version}: version mismatch")
         current_manifest = root / "release" / "current" / "manifest.json"
@@ -483,7 +489,7 @@ def main() -> None:
             )
         if not commit_ok:
             errors.append(f"{version}: source_commit is not an immutable commit object")
-        if version == "V2.40" and (
+        if strict_snapshot and (
             record.get("identity_authority") != "source_commit"
             or record.get("sealed") is not True
         ):
@@ -492,7 +498,7 @@ def main() -> None:
         listed: dict[str, dict[str, object]] = {}
         checksum_content = checksum_path.read_text(encoding="utf-8")
         manifest_lines: list[str]
-        if version == "V2.40":
+        if strict_snapshot:
             try:
                 parsed_v240 = parse_v240_files_manifest(checksum_content)
             except V240FilesManifestError as exc:
@@ -535,7 +541,7 @@ def main() -> None:
                 errors.append(f"{version}: invalid file manifest mode {relative}")
             if expected_size is not None and expected_size < 0:
                 errors.append(f"{version}: invalid file manifest size {relative}")
-            if version == "V2.40" and (expected_mode is None or expected_size is None):
+            if strict_snapshot and (expected_mode is None or expected_size is None):
                 errors.append(f"{version}: extended mode/size file manifest is required")
             if relative in listed:
                 errors.append(f"{version}: duplicate checksum path {relative}")

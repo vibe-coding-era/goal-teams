@@ -167,8 +167,8 @@ class OrderedPromptManifestTests(unittest.TestCase):
             prompt_cache.build_ordered_prompt_identity(nested_raw)
 
         for index, source_ref in (
-            (1, "sk-live-secret-value"),
-            (2, "redacted:sk-live-secret-value"),
+            (1, "sk-EXAMPLE-secret-value"),
+            (2, "redacted:sk-EXAMPLE-secret-value"),
             (2, "raw-user-request"),
         ):
             unsafe_ref = _manifest()

@@ -71,6 +71,9 @@ class V240PublicScanReleaseGateTests(unittest.TestCase):
                 release.PUBLIC_SCAN_RELATIVE: b"scanner\n",
                 release.PUBLIC_SCAN_DETECTOR_RELATIVE: b"detector\n",
                 release.PUBLIC_SCAN_BASELINE_RELATIVE: b"baseline\n",
+                "references/release-profiles/v2.40.json": (
+                    ROOT / "references/release-profiles/v2.40.json"
+                ).read_bytes(),
             }
             for relative, data in blobs.items():
                 path = root / relative

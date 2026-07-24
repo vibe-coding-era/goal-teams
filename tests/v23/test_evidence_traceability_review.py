@@ -349,7 +349,7 @@ class EvidenceValidatorTests(EvidenceFixture):
         doc = clone(self.good)
         original_execution = self.root / doc["command"]["execution_record_path"]
         execution = json.loads(original_execution.read_text(encoding="utf-8"))
-        execution["extra_claim"] = "sk-proj-1234567890abcdefghijklmnopqrstuv"
+        execution["extra_claim"] = "sk-proj-EXAMPLE000000000000000000000000"
         execution_path = self.root / "execution-extra-secret.json"
         execution_path.write_text(
             json.dumps(execution, ensure_ascii=False, sort_keys=True), encoding="utf-8"

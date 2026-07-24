@@ -1,0 +1,82 @@
+{
+  "schema_version": "goal-teams-integration-test-plan-v2.44",
+  "plan_id": "PLAN-V244-API-E2E",
+  "revision": 1,
+  "project_version": "V2.44",
+  "owner_identity": {
+    "agent_type": "goal_api_integration_test_designer",
+    "member_id": "member-plan-owner",
+    "run_id": "RUN-V244-PLAN-OWNER"
+  },
+  "validator_identity": {
+    "agent_type": "goal_reviewer",
+    "member_id": "member-plan-reviewer",
+    "run_id": "RUN-V244-PLAN-REVIEW"
+  },
+  "acceptance_refs": ["AC-V244-API-001", "AC-V244-E2E-001"],
+  "scope": {
+    "services": ["order-api", "order-web"],
+    "user_journeys": ["buyer creates exactly one order"],
+    "excluded_with_reason": []
+  },
+  "environments": [{
+    "environment_id": "local-v244",
+    "base_url": "http://127.0.0.1:8244",
+    "config_refs": [{
+      "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+      "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447",
+      "discovery": {"kind": "artifact", "selector": "config"}
+    }],
+    "health_checks": ["GET /health returns 200 and ready=true"]
+  }],
+  "data_strategy": {
+    "seed_refs": [{
+      "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+      "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447",
+      "discovery": {"kind": "artifact", "selector": "seed"}
+    }],
+    "isolation": "one database namespace per run id",
+    "reset": "delete namespace and verify zero rows",
+    "sensitive_data": "synthetic_only"
+  },
+  "risk_coverage": {
+    "risks": [
+      {"risk_id": "API-AUTH", "domain": "api", "category": "authorization", "source_ref": "acceptance.AC-V244-API-AUTH", "severity": "high", "applicability": "applicable", "case_refs": ["TC-V244-API-001"], "coverage_state": "covered"},
+      {"risk_id": "API-IDEMP", "domain": "api", "category": "idempotency", "source_ref": "acceptance.AC-V244-API-IDEMP", "severity": "high", "applicability": "applicable", "case_refs": ["TC-V244-API-001"], "coverage_state": "covered"},
+      {"risk_id": "API-RETRY", "domain": "api", "category": "retry", "source_ref": "acceptance.AC-V244-API-RETRY", "severity": "high", "applicability": "applicable", "case_refs": ["TC-V244-API-001"], "coverage_state": "covered"},
+      {"risk_id": "API-CONCUR", "domain": "api", "category": "concurrency", "source_ref": "acceptance.AC-V244-API-CONCUR", "severity": "high", "applicability": "applicable", "case_refs": ["TC-V244-API-001"], "coverage_state": "covered"},
+      {"risk_id": "API-COMP", "domain": "api", "category": "compensation", "source_ref": "acceptance.AC-V244-API-COMP", "severity": "high", "applicability": "applicable", "case_refs": ["TC-V244-API-001"], "coverage_state": "covered"},
+      {"risk_id": "API-FINAL", "domain": "api", "category": "final_consistency", "source_ref": "acceptance.AC-V244-API-FINAL", "severity": "high", "applicability": "applicable", "case_refs": ["TC-V244-API-001"], "coverage_state": "covered"},
+      {"risk_id": "E2E-SESSION", "domain": "e2e", "category": "session", "source_ref": "acceptance.AC-V244-E2E-SESSION", "severity": "high", "applicability": "applicable", "case_refs": ["TC-V244-E2E-001"], "coverage_state": "covered"},
+      {"risk_id": "E2E-PERM", "domain": "e2e", "category": "permission", "source_ref": "acceptance.AC-V244-E2E-PERM", "severity": "high", "applicability": "applicable", "case_refs": ["TC-V244-E2E-001"], "coverage_state": "covered"},
+      {"risk_id": "E2E-REFRESH", "domain": "e2e", "category": "refresh", "source_ref": "acceptance.AC-V244-E2E-REFRESH", "severity": "high", "applicability": "applicable", "case_refs": ["TC-V244-E2E-001"], "coverage_state": "covered"},
+      {"risk_id": "E2E-DBL", "domain": "e2e", "category": "double_click", "source_ref": "acceptance.AC-V244-E2E-DBL", "severity": "high", "applicability": "applicable", "case_refs": ["TC-V244-E2E-001"], "coverage_state": "covered"},
+      {"risk_id": "E2E-RECOVER", "domain": "e2e", "category": "error_recovery", "source_ref": "acceptance.AC-V244-E2E-RECOVER", "severity": "high", "applicability": "applicable", "case_refs": ["TC-V244-E2E-001"], "coverage_state": "covered"}
+    ],
+    "summary": {"total": 11, "applicable": 11, "covered": 11, "uncovered": 0, "not_applicable": 0, "coverage_rate": 1}
+  },
+  "api_case_refs": [{
+    "path": "tests/v23/fixtures/v244/artifacts/api-case.json",
+    "sha256": "17e21884b7e8ba749b61d386a2aa334b91af0bedd0abf9166ffe29adccfefefa",
+    "discovery": {"kind": "artifact", "selector": "TC-V244-API-001"}
+  }],
+  "e2e_case_refs": [{
+    "path": "tests/v23/fixtures/v244/artifacts/e2e-case.json",
+    "sha256": "7694e37732f0fa2ef7837843234a8d293c1997792af8a4d12d715cd9d2271334",
+    "discovery": {"kind": "artifact", "selector": "TC-V244-E2E-001"}
+  }],
+  "execution": {
+    "api_command": {"argv": ["python3", "-m", "pytest", "tests/api"], "cwd": "."},
+    "e2e_command": {"argv": ["npx", "playwright", "test", "tests/e2e"], "cwd": "."},
+    "ordering": "api_before_e2e",
+    "parallelism": 2,
+    "timeout_seconds": 300
+  },
+  "entry_criteria": ["health check passed", "synthetic seed hash verified"],
+  "exit_criteria": {"required_pass_rate": 1, "max_failed": 0, "max_flaky": 0, "cleanup_required": true, "replay_required": true},
+  "evidence_refs": [{
+    "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+    "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447",
+    "discovery": {"kind": "artifact", "selector": "evidence"}
+  }]
+}

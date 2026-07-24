@@ -29,6 +29,7 @@ BLIND_PACKAGE_ALLOWLIST = (
     "references",
     "schemas/v2.3",
     "schemas/v2.43",
+    "schemas/v2.44",
     "scripts/review",
     "scripts/v23",
     "subagents",

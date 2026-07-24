@@ -1,0 +1,189 @@
+#!/usr/bin/env python3
+"""Load closed, Git-tracked release identities for the CP00-CP18 engine."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import re
+from copy import deepcopy
+from pathlib import Path
+from typing import Any
+
+
+SCHEMA_VERSION = "goal-teams-release-engine-profile-v1"
+PROTOCOL_VERSION = "V2.40"
+ACTIVE_VERSION = "V2.44"
+ROOT = Path(__file__).resolve().parents[2]
+PROFILE_BY_VERSION = {
+    "V2.40": ROOT / "references" / "release-profiles" / "v2.40.json",
+    "V2.44": ROOT / "references" / "release-profiles" / "v2.44.json",
+}
+REQUIRED_FIELDS = {
+    "schema_version",
+    "protocol_version",
+    "version",
+    "status",
+    "external_writes_allowed",
+    "published_before",
+    "tag",
+    "candidate_location",
+    "candidate_branch",
+    "goal_teams_work",
+    "goal_teams_work_location",
+    "owner_run_id",
+    "profile_path",
+    "release_title",
+    "release_body",
+    "tag_message",
+    "workflow_display_prefix",
+    "legacy_recovery_required",
+    "snapshot_schema_version",
+    "files_manifest_format",
+    "public_scan_baseline",
+    "close_schema_version",
+    "host_acceptance",
+}
+VERSION_RE = re.compile(r"^V[0-9]+\.[0-9]+$")
+CANDIDATE_RE = re.compile(r"^develops/[a-z0-9][a-z0-9._-]*$")
+BRANCH_RE = re.compile(r"^codex/[A-Za-z0-9._/-]+$")
+
+
+def _canonical_bytes(value: Any) -> bytes:
+    return json.dumps(
+        value, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+
+
+def _load_profile(version: str) -> dict[str, Any]:
+    path = PROFILE_BY_VERSION.get(version)
+    if path is None:
+        raise ValueError(f"unsupported release version: {version}")
+    if not path.is_file() or path.is_symlink():
+        raise ValueError(f"release profile is missing or unsafe: {version}")
+    try:
+        raw = path.read_bytes()
+        value = json.loads(raw)
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError(f"release profile is unreadable: {version}") from exc
+    if not isinstance(value, dict) or set(value) != REQUIRED_FIELDS:
+        raise ValueError(f"release profile fields drift: {version}")
+    if (
+        value["schema_version"] != SCHEMA_VERSION
+        or value["protocol_version"] != PROTOCOL_VERSION
+        or value["version"] != version
+        or VERSION_RE.fullmatch(version) is None
+        or value["tag"] != f"v{version[1:]}"
+        or value["goal_teams_work"] != f"GoalTeamsWork-{version}"
+        or value["release_title"] != f"Goal Teams {version}"
+        or value["tag_message"] != f"Goal Teams {version}"
+        or value["workflow_display_prefix"]
+        != f"Goal Teams {version} release "
+        or value["release_body"]
+        != (
+            f"Goal Teams {version}. "
+            "See release/current/README.md in the tagged source."
+        )
+        or value["snapshot_schema_version"]
+        != "goal-teams-release-snapshot-v2.40"
+        or value["files_manifest_format"] != "sha256-mode-size-path-v1"
+        or value["status"] not in {"active", "historical_replay"}
+        or value["goal_teams_work_location"]
+        not in {"candidate", "workspace_docs"}
+        or CANDIDATE_RE.fullmatch(str(value["candidate_location"])) is None
+        or BRANCH_RE.fullmatch(str(value["candidate_branch"])) is None
+        or ".." in str(value["candidate_branch"]).split("/")
+        or value["owner_run_id"]
+        != f"RUN-{version.replace('.', '')}-LEAD"
+        or value["profile_path"]
+        != f"references/profiles/goal-teams-self-release-{version.lower()}.md"
+        or value["public_scan_baseline"]
+        != f"references/public-release-scan-baseline-{version.lower()}.json"
+        or value["close_schema_version"]
+        != f"goal-teams-release-close-{version.lower()}"
+        or not isinstance(value["external_writes_allowed"], bool)
+        or not isinstance(value["legacy_recovery_required"], bool)
+    ):
+        raise ValueError(f"release profile identity drift: {version}")
+    if (
+        value["status"] == "active"
+        and (
+            value["external_writes_allowed"] is not True
+            or version != ACTIVE_VERSION
+            or value["legacy_recovery_required"] is not False
+            or value["published_before"] != "V2.40"
+            or not isinstance(value["host_acceptance"], dict)
+            or set(value["host_acceptance"])
+            != {
+                "schema_version",
+                "algorithm",
+                "signature_domain",
+                "issuer",
+                "public_key_hex",
+                "key_id",
+            }
+            or value["host_acceptance"]["schema_version"]
+            != "goal-teams-external-host-acceptance-v2"
+            or value["host_acceptance"]["algorithm"] != "Ed25519"
+            or value["host_acceptance"]["signature_domain"]
+            != (
+                f"goal-teams/{version.lower()}/cp05/"
+                "host-acceptance/ed25519/v1"
+            )
+            or value["host_acceptance"]["issuer"]
+            != "goal-teams-trusted-host"
+            or re.fullmatch(
+                r"[0-9a-f]{64}",
+                str(value["host_acceptance"]["public_key_hex"]),
+            )
+            is None
+            or re.fullmatch(
+                r"[0-9a-f]{64}",
+                str(value["host_acceptance"]["key_id"]),
+            )
+            is None
+            or hashlib.sha256(
+                bytes.fromhex(value["host_acceptance"]["public_key_hex"])
+            ).hexdigest()
+            != value["host_acceptance"]["key_id"]
+        )
+    ):
+        raise ValueError(f"active release profile is inconsistent: {version}")
+    if (
+        value["status"] == "historical_replay"
+        and (
+            value["external_writes_allowed"] is not False
+            or value["legacy_recovery_required"] is not True
+            or value["published_before"] is not None
+            or value["host_acceptance"] is not None
+        )
+    ):
+        raise ValueError(f"historical release profile enables writes: {version}")
+    for relative in (value["profile_path"], value["public_scan_baseline"]):
+        target = (ROOT / relative).resolve()
+        try:
+            target.relative_to(ROOT)
+        except ValueError as exc:
+            raise ValueError(f"release profile path escapes root: {version}") from exc
+        if not target.is_file() or target.is_symlink():
+            raise ValueError(f"release profile dependency is unsafe: {relative}")
+    return {
+        **value,
+        "config_path": path.relative_to(ROOT).as_posix(),
+        "config_sha256": hashlib.sha256(raw).hexdigest(),
+        "config_canonical_sha256": hashlib.sha256(
+            _canonical_bytes(value)
+        ).hexdigest(),
+    }
+
+
+def supported_versions() -> tuple[str, ...]:
+    return tuple(PROFILE_BY_VERSION)
+
+
+def release_config(version: str) -> dict[str, Any]:
+    return deepcopy(_load_profile(version))
+
+
+def active_release_config() -> dict[str, Any]:
+    return release_config(ACTIVE_VERSION)

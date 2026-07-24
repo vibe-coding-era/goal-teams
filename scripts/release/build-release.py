@@ -191,8 +191,11 @@ KNOWN_RELEASES = {
     "V2.38": "codex/v2.38",
     "V2.39": "codex/v2.39",
     "V2.40": "codex/v2.40",
+    "V2.44": "codex/v2.44-testing-capability",
 }
 OKF_GENERATED_PATH = "references/okf-conformance-manifest.json"
+OKF_RELEASE_VERSIONS = {"V2.39", "V2.40", "V2.44"}
+STRICT_SNAPSHOT_VERSIONS = {"V2.40", "V2.44"}
 FROZEN_COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 
 
@@ -486,7 +489,7 @@ def build(
     if forbidden_source:
         raise RuntimeError(f"source tree contains nonrelease paths: {forbidden_source}")
     files, prefixes, generated, manifest_sha = manifest_rules(commit)
-    if version in {"V2.39", "V2.40"} and generated != {OKF_GENERATED_PATH}:
+    if version in OKF_RELEASE_VERSIONS and generated != {OKF_GENERATED_PATH}:
         raise RuntimeError(
             f"{version} requires exactly one generated OKF conformance manifest"
         )
@@ -567,7 +570,7 @@ def build(
         (stage / "_release.json").write_text(
             json.dumps(record, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
         )
-        if version == "V2.40":
+        if version in STRICT_SNAPSHOT_VERSIONS:
             file_manifest = format_v240_files_manifest(rows)
         else:
             file_manifest = "".join(

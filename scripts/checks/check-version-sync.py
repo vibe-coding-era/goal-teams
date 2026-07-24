@@ -145,13 +145,13 @@ def validate_runtime_identity(product: str) -> tuple[str, str]:
             startup,
             f"当前 `{profile}`",
             profile_path,
-            "V2.42/V2.41/V2.40/V2.39/V2.38 Profile 只用于历史 replay",
+            "V2.43/V2.42/V2.41/V2.40/V2.39/V2.38 Profile 只用于历史 replay",
         ),
         "references/runtime/03-goal-loop.md": (
             startup,
             f"{product} 继续按 V2.38-compatible prompt-cache manifest",
             f"当前 self-release refs 指向 {product} Profile",
-            "V2.42/V2.41/V2.40/V2.39/V2.38 只读 replay",
+            "V2.43/V2.42/V2.41/V2.40/V2.39/V2.38 只读 replay",
         ),
     }
     for path, markers in active_runtime_markers.items():
@@ -282,7 +282,12 @@ def validate_release_projection(expected_version: str, product: str) -> None:
     }
     if release.get("cache_evidence") != expected_cache_state:
         fail("release/current manifest cache evidence mismatch")
-    if release.get("claim_scope") != "structural_governance":
+    expected_claim_scope = (
+        "structural_governance_and_test_contracts"
+        if tuple(map(int, expected_version[1:].split("."))) >= (2, 44)
+        else "structural_governance"
+    )
+    if release.get("claim_scope") != expected_claim_scope:
         fail("release/current manifest claim scope mismatch")
     telemetry = release.get("completion_telemetry", {})
     for field in ("tokens_consumed", "cache_hit_rate"):

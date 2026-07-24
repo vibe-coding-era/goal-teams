@@ -11,7 +11,7 @@ okf_version: "0.1"
 
 ## V2.34 Self-release Extensions (V2.3 Schema Compatible)
 
-以下历史扩展在当前 V2.43 只由 `goal-teams-self-release-v2.43` Profile 加载；V2.42/V2.41/V2.40/V2.39/V2.38 Profile 只用于历史 replay。它们保持 V2.3 schema compatibility，不是 `goal-teams-core-v2.5` 的通用完成条件。
+以下历史扩展在当前 V2.44 只由 `goal-teams-self-release-v2.44` Profile 加载；V2.43/V2.42/V2.41/V2.40/V2.39/V2.38 Profile 只用于历史 replay。它们保持 V2.3 schema compatibility，不是 `goal-teams-core-v2.5` 的通用完成条件。
 
 - V2.34 增加四文件可恢复控制平面与扩展 gate，不改变 V2.3 `task_state` / `check_state` / `run_outcome` / `loop_decision` / `audit_state` 枚举，也不让 `feature_list.json` 成为 acceptance SSOT。
 - 实现顺序为 immutable contract 及独立 review、Architecture accepted、`development_environment_check=ready` 及 current independent Evidence、独立测试用例、implementation；任一 exact-hash/identity/ledger prefix 漂移即重验。

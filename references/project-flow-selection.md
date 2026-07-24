@@ -2,7 +2,7 @@
 type: Goal Teams Project Flow Selection
 title: Goal Teams 项目流程选择
 description: 用户可见的项目类型、数字选择、流程节点、编制参考与直接修改边界。
-tags: [goal-teams, v2.43, flow-selection, project-sizing]
+tags: [goal-teams, v2.44, flow-selection, project-sizing]
 timestamp: 2026-07-21T00:00:00+08:00
 okf_version: "0.1"
 ---

@@ -490,7 +490,7 @@ class V234ArchiveTests(unittest.TestCase):
             process.parent.mkdir(parents=True)
             process.write_text("{}\n", encoding="utf-8")
             secret = repo / "docs" / "archive" / "V2.34" / "DELIVERY" / "secret.txt"
-            secret.write_text("api_key=sk-abcdefghijklmnop1234\n", encoding="utf-8")
+            secret.write_text("api_key=sk-EXAMPLE000000000000000000\n", encoding="utf-8")
             git(repo, "add", "docs/archive/V2.34/DELIVERY/manifest.json")
             clean = v234.publish_guard(repo, mode="index")
             self.assertTrue(clean["ok"], clean)

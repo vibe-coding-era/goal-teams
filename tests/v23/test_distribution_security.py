@@ -6,6 +6,7 @@ import importlib.util
 import json
 import os
 import re
+import signal
 import shutil
 import subprocess
 import sys
@@ -31,6 +32,97 @@ def load_script(name: str, relative: str):
 context_budget = load_script("goalteams_context_budget_test", "scripts/checks/check-context-budget.py")
 pixel_diff = load_script("goalteams_pixel_diff_test", "scripts/harness/pixel-diff.py")
 install_lifecycle = load_script("goalteams_install_lifecycle_test", "scripts/checks/check-install-lifecycle.py")
+
+
+def process_group_exists(process_group_id: int) -> bool:
+    try:
+        os.killpg(process_group_id, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
+def wait_for_process_group_exit(process_group_id: int, timeout: float) -> bool:
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if not process_group_exists(process_group_id):
+            return True
+        time.sleep(0.05)
+    return not process_group_exists(process_group_id)
+
+
+def terminate_process_group(process: subprocess.Popen[str]) -> tuple[str, str]:
+    process_group_id = process.pid
+    try:
+        os.killpg(process_group_id, signal.SIGTERM)
+    except ProcessLookupError:
+        pass
+    try:
+        process.wait(timeout=1)
+    except subprocess.TimeoutExpired:
+        pass
+    if not wait_for_process_group_exit(process_group_id, 1):
+        try:
+            os.killpg(process_group_id, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired as exc:
+            raise RuntimeError(
+                f"process group leader {process_group_id} survived SIGKILL"
+            ) from exc
+    if not wait_for_process_group_exit(process_group_id, 5):
+        raise RuntimeError(f"process group {process_group_id} survived SIGKILL")
+    try:
+        return process.communicate(timeout=5)
+    except subprocess.TimeoutExpired as exc:
+        for pipe in (process.stdout, process.stderr):
+            if pipe is not None:
+                pipe.close()
+        raise RuntimeError(
+            f"process group {process_group_id} exited but captured pipes remained open"
+        ) from exc
+
+
+def communicate_bounded(
+    process: subprocess.Popen[str],
+    command: list[str],
+    *,
+    timeout: float,
+) -> tuple[str, str]:
+    try:
+        return process.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired as exc:
+        stdout, stderr = terminate_process_group(process)
+        raise subprocess.TimeoutExpired(
+            command,
+            timeout,
+            output=stdout,
+            stderr=stderr,
+        ) from exc
+
+
+def run_bounded_process(
+    command: list[str],
+    *,
+    cwd: Path,
+    env: dict[str, str] | None = None,
+    timeout: float,
+) -> subprocess.CompletedProcess[str]:
+    process = subprocess.Popen(
+        command,
+        cwd=cwd,
+        env=env,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        start_new_session=True,
+    )
+    stdout, stderr = communicate_bounded(process, command, timeout=timeout)
+    return subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
 
 
 class ContextAndCapabilityTests(unittest.TestCase):
@@ -323,6 +415,119 @@ class SecurityTests(unittest.TestCase):
 
 
 class InstallerLifecycleTests(unittest.TestCase):
+    def test_bounded_runner_terminates_its_descendant_process_group(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            child_pid_path = Path(td) / "child.pid"
+            parent_pid_path = Path(td) / "parent.pid"
+            child_program = (
+                "import pathlib,signal,sys,time;"
+                "signal.signal(signal.SIGTERM,signal.SIG_IGN);"
+                "pathlib.Path(sys.argv[1]).write_text(str(__import__('os').getpid()),encoding='utf-8');"
+                "time.sleep(60)"
+            )
+            parent_program = (
+                "import os,pathlib,signal,subprocess,sys,time\n"
+                "signal.signal(signal.SIGTERM,signal.SIG_IGN)\n"
+                "pathlib.Path(sys.argv[1]).write_text(str(os.getpid()),encoding='utf-8')\n"
+                "subprocess.Popen("
+                "[sys.executable,'-c',sys.argv[3],sys.argv[2]],"
+                "stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)\n"
+                "deadline=time.monotonic()+5\n"
+                "while not pathlib.Path(sys.argv[2]).exists() and time.monotonic()<deadline:\n"
+                "    time.sleep(0.01)\n"
+                "time.sleep(60)\n"
+            )
+            command = [
+                sys.executable,
+                "-c",
+                parent_program,
+                str(parent_pid_path),
+                str(child_pid_path),
+                child_program,
+            ]
+            with self.assertRaises(subprocess.TimeoutExpired):
+                run_bounded_process(command, cwd=ROOT, timeout=1)
+            self.assertTrue(parent_pid_path.is_file(), "parent process was not started")
+            self.assertTrue(child_pid_path.is_file(), "descendant process was not started")
+            process_group_id = int(parent_pid_path.read_text(encoding="utf-8"))
+            child_pid = int(child_pid_path.read_text(encoding="utf-8"))
+            self.assertFalse(process_group_exists(process_group_id))
+            deadline = time.monotonic() + 2
+            while time.monotonic() < deadline:
+                try:
+                    os.kill(child_pid, 0)
+                except ProcessLookupError:
+                    break
+                time.sleep(0.05)
+            else:
+                self.fail(f"descendant process {child_pid} survived bounded-runner cleanup")
+
+    def test_installer_uses_the_explicit_installed_package_gate(self) -> None:
+        checker = (ROOT / "scripts/checks/check.sh").read_text(encoding="utf-8")
+        installer = (ROOT / "scripts/install/install-local.sh").read_text(encoding="utf-8")
+        self.assertIn('CHECK_MODE="installed-package"', checker)
+        self.assertIn('"--installed-package"', installer)
+        self.assertIn('"scripts/check.sh --installed-package"', installer)
+
+    def test_only_the_explicit_argument_can_select_installed_package_mode(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            fake_python = root / "fake-python"
+            command_log = root / "commands.log"
+            fake_python.write_text(
+                "#!/usr/bin/env bash\n"
+                "printf '%s\\n' \"$*\" >> \"$GOAL_TEAMS_TEST_COMMAND_LOG\"\n",
+                encoding="utf-8",
+            )
+            os.chmod(fake_python, 0o755)
+            environment = dict(os.environ)
+            environment.update(
+                {
+                    "GOAL_TEAMS_INSTALL_VALIDATION": "1",
+                    "GOAL_TEAMS_TEST_COMMAND_LOG": str(command_log),
+                    "PYTHON": str(fake_python),
+                }
+            )
+            checker = ROOT / "scripts/check.sh"
+            full = subprocess.run(
+                [str(checker)],
+                cwd=ROOT,
+                env=environment,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(full.returncode, 0, full.stdout + full.stderr)
+            full_commands = command_log.read_text(encoding="utf-8")
+            self.assertIn("scripts/checks/check-v23.py", full_commands)
+            self.assertIn("scripts/benchmark/benchmark-runner.py --check-only", full_commands)
+            self.assertIn("scripts/checks/check-install-lifecycle.py", full_commands)
+
+            command_log.unlink()
+            package = subprocess.run(
+                [str(checker), "--installed-package"],
+                cwd=ROOT,
+                env=environment,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(package.returncode, 0, package.stdout + package.stderr)
+            package_commands = command_log.read_text(encoding="utf-8")
+            self.assertNotIn("scripts/checks/check-v23.py", package_commands)
+            self.assertNotIn("scripts/benchmark/benchmark-runner.py", package_commands)
+            self.assertNotIn("scripts/checks/check-install-lifecycle.py", package_commands)
+
+            unknown = subprocess.run(
+                [str(checker), "--unknown-mode"],
+                cwd=ROOT,
+                env=environment,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(unknown.returncode, 2, unknown.stdout + unknown.stderr)
+
     @unittest.skipIf(
         os.environ.get("GOAL_TEAMS_INSTALL_VALIDATION") == "1",
         "cross-Python installer check is not recursively executed inside staging validation",
@@ -367,13 +572,11 @@ class InstallerLifecycleTests(unittest.TestCase):
                     "PYTHONDONTWRITEBYTECODE": "1",
                 }
             )
-            proc = subprocess.run(
-                [str(source / "scripts/install/install-local.sh"), "--dry-run"],
+            command = [str(source / "scripts/install/install-local.sh"), "--dry-run"]
+            proc = run_bounded_process(
+                command,
                 cwd=source,
                 env=environment,
-                text=True,
-                capture_output=True,
-                check=False,
                 timeout=240,
             )
 
@@ -382,9 +585,32 @@ class InstallerLifecycleTests(unittest.TestCase):
             self.assertEqual(payload["status"], "dry_run")
             self.assertEqual(payload["dependencies"]["python"]["version"], version(installer_python))
             self.assertNotEqual(payload["dependencies"]["python"]["version"], validation_version)
+            validation = payload["validation"]
             self.assertEqual(
-                [item["status"] for item in payload["validation"]],
-                ["passed", "passed", "passed", "passed"],
+                [item["phase"] for item in validation],
+                [
+                    "source",
+                    "prompt_identity_source",
+                    "package_identity_copy",
+                    "package_identity_generated_manifest",
+                    "okf_package_tree_staging",
+                    "staging",
+                    "prompt_identity_staging",
+                    "package_identity_post_staging_validation",
+                ],
+                payload,
+            )
+            self.assertTrue(all(item["status"] == "passed" for item in validation), payload)
+            self.assertEqual(
+                [
+                    item["command"]
+                    for item in validation
+                    if item["phase"] in {"source", "staging"}
+                ],
+                [
+                    "scripts/check.sh --installed-package",
+                    "scripts/check.sh --installed-package",
+                ],
                 payload,
             )
 
@@ -394,12 +620,10 @@ class InstallerLifecycleTests(unittest.TestCase):
     )
     def test_atomic_install_update_failure_rollback_and_uninstall(self) -> None:
         checker = ROOT / "scripts/checks/check-install-lifecycle.py"
-        proc = subprocess.run(
-            [sys.executable, str(checker)],
+        command = [sys.executable, str(checker)]
+        proc = run_bounded_process(
+            command,
             cwd=ROOT,
-            text=True,
-            capture_output=True,
-            check=False,
             timeout=900,
         )
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
@@ -489,18 +713,27 @@ class InstallerLifecycleTests(unittest.TestCase):
                 text=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
+                start_new_session=True,
             )
-            deadline = time.monotonic() + 5
-            while process.poll() is None and not marker.exists() and time.monotonic() < deadline:
-                time.sleep(0.005)
-            self.assertTrue(marker.exists(), "installer never entered source validation")
-            payload_path.write_bytes(payload_path.read_bytes() + b"\n# concurrent source drift\n")
-            stdout, stderr = process.communicate(timeout=300)
-            self.assertNotEqual(process.returncode, 0, stdout + stderr)
-            payload = json.loads(report.read_text(encoding="utf-8"))
-            self.assertEqual(payload["status"], "failed")
-            self.assertIn("E_PACKAGE_SOURCE_CHANGED", str(payload.get("error_code")))
-            self.assertFalse((home / "skills/goal-teams").exists())
+            try:
+                deadline = time.monotonic() + 5
+                while process.poll() is None and not marker.exists() and time.monotonic() < deadline:
+                    time.sleep(0.005)
+                self.assertTrue(marker.exists(), "installer never entered source validation")
+                payload_path.write_bytes(payload_path.read_bytes() + b"\n# concurrent source drift\n")
+                stdout, stderr = communicate_bounded(
+                    process,
+                    [str(source / "scripts/install/install-local.sh"), "--dry-run"],
+                    timeout=300,
+                )
+                self.assertNotEqual(process.returncode, 0, stdout + stderr)
+                payload = json.loads(report.read_text(encoding="utf-8"))
+                self.assertEqual(payload["status"], "failed")
+                self.assertIn("E_PACKAGE_SOURCE_CHANGED", str(payload.get("error_code")))
+                self.assertFalse((home / "skills/goal-teams").exists())
+            finally:
+                if process.poll() is None or process_group_exists(process.pid):
+                    terminate_process_group(process)
 
 
 if __name__ == "__main__":

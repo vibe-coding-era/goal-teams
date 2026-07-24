@@ -30,8 +30,8 @@ SCRIPT_README = ROOT / "scripts" / "release" / "README.md"
 RELEASE_ENTRY = ROOT / "scripts" / "release" / "release.py"
 COMMANDS = ("start", "doctor", "prepare", "promote", "status", "recover", "close")
 EXECUTABLE_CHAIN = (
-    "start(CP00) → promote(CP01) → 根恢复并切换到 clean main → "
-    "doctor(CP02 前必须通过) → promote(CP02–CP08) → prepare(CP09–CP10) "
+    "start(CP00) → promote(CP01) → doctor(CP02 前必须通过) → "
+    "promote(CP02–CP08) → prepare(CP09–CP10) "
     "→ promote(CP11–CP17) → close(CP18)"
 )
 IMPOSSIBLE_LEGACY_CHAIN = (
@@ -44,14 +44,14 @@ class V240ReleaseDocumentationTests(unittest.TestCase):
     def test_root_release_blocks_are_localized_and_semantically_equal(self) -> None:
         zh_text = (ROOT / "README.md").read_text(encoding="utf-8")
         en_text = (ROOT / "README.en.md").read_text(encoding="utf-8")
-        self.assertIn("当前发行：**V2.40**", zh_text)
+        self.assertIn("当前发行：**V2.44**", zh_text)
         self.assertIn("[GitHub 发行页]", zh_text)
         self.assertIn("[发行说明](release/current/README.md)", zh_text)
-        self.assertIn("Current release: **V2.40**", en_text)
+        self.assertIn("Current release: **V2.44**", en_text)
         self.assertNotIn("Current release: **V2.40**", zh_text)
         self.assertEqual(
-            CHECKER.read_release_block("README.md", "V2.40", "V2.40"),
-            CHECKER.read_release_block("README.en.md", "V2.40", "V2.40"),
+            CHECKER.read_release_block("README.md", "V2.44", "V2.44"),
+            CHECKER.read_release_block("README.en.md", "V2.44", "V2.44"),
         )
 
     def test_development_projection_separates_published_and_product_versions(self) -> None:
@@ -104,11 +104,11 @@ class V240ReleaseDocumentationTests(unittest.TestCase):
                 CHECKER.validate_release_projection("V2.39", "V2.40")
 
     def test_active_runtime_identity_is_current_and_replay_only(self) -> None:
-        profile, profile_path = CHECKER.validate_runtime_identity("V2.43")
-        self.assertEqual(profile, "goal-teams-self-release-v2.43")
+        profile, profile_path = CHECKER.validate_runtime_identity("V2.44")
+        self.assertEqual(profile, "goal-teams-self-release-v2.44")
         self.assertEqual(
             profile_path,
-            "references/profiles/goal-teams-self-release-v2.43.md",
+            "references/profiles/goal-teams-self-release-v2.44.md",
         )
 
         original_read = CHECKER.read
@@ -117,7 +117,7 @@ class V240ReleaseDocumentationTests(unittest.TestCase):
             text = original_read(path)
             if path == "references/runtime/03-goal-loop.md":
                 return text.replace(
-                    "我是 Goal Teams Lead V2.43。",
+                    "我是 Goal Teams Lead V2.44。",
                     "我是 Goal Teams Lead V2.39。",
                     1,
                 )
@@ -125,7 +125,7 @@ class V240ReleaseDocumentationTests(unittest.TestCase):
 
         with mock.patch.object(CHECKER, "read", side_effect=stale_read):
             with redirect_stdout(io.StringIO()), self.assertRaises(SystemExit):
-                CHECKER.validate_runtime_identity("V2.43")
+                CHECKER.validate_runtime_identity("V2.44")
 
     def test_public_command_set_and_checkpoint_order_are_documented(self) -> None:
         proc = subprocess.run(
@@ -151,8 +151,8 @@ class V240ReleaseDocumentationTests(unittest.TestCase):
         self.assertIn(EXECUTABLE_CHAIN, script_readme)
         self.assertNotIn(IMPOSSIBLE_LEGACY_CHAIN, protocol)
         self.assertNotIn(IMPOSSIBLE_LEGACY_CHAIN, script_readme)
-        self.assertIn("CP01 前的 canonical root 已知为 dirty/non-main", protocol)
-        self.assertIn("真正的 topology gate 位于 CP01 后、CP02 前", protocol)
+        self.assertIn("prior-main/current-release continuity", protocol)
+        self.assertIn("V2.40 历史回放", protocol)
         for number in range(19):
             self.assertIn(f"| CP{number:02d} |", protocol)
         self.assertIn("`status` 是任意非终态阶段的只读观测", protocol)
@@ -264,7 +264,8 @@ class V240ReleaseDocumentationTests(unittest.TestCase):
         paths = {
             PROTOCOL: "V2.40",
             ROOT / "references" / "profiles" / "goal-teams-self-release-v2.43.md": "V2.43",
-            ROOT / "prompts" / "lead" / "audit.md": "V2.43",
+            ROOT / "references" / "profiles" / "goal-teams-self-release-v2.44.md": "V2.44",
+            ROOT / "prompts" / "lead" / "audit.md": "V2.44",
         }
         for path, version in paths.items():
             text = path.read_text(encoding="utf-8")
@@ -292,9 +293,9 @@ class V240ReleaseDocumentationTests(unittest.TestCase):
 
     def test_release_adoption_contract_freezes_public_metadata_and_assets(self) -> None:
         text = PROTOCOL.read_text(encoding="utf-8")
-        self.assertIn("Goal Teams V2.40", text)
+        self.assertIn("Goal Teams V2.44", text)
         self.assertIn(
-            "Goal Teams V2.40. See release/current/README.md in the tagged source.",
+            "Goal Teams V2.44. See release/current/README.md in the tagged source.",
             text,
         )
         self.assertIn("persisted release ID", text)

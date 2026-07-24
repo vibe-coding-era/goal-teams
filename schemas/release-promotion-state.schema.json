@@ -31,6 +31,26 @@
     "base_main_commit": {"$ref": "#/$defs/git_sha"},
     "candidate_commit": {"$ref": "#/$defs/git_sha"},
     "candidate_tree": {"$ref": "#/$defs/git_sha"},
+    "release_engine_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256",
+        "loader_path",
+        "loader_sha256",
+        "schema_path",
+        "schema_sha256"
+      ],
+      "properties": {
+        "path": {"type": "string", "pattern": "^references/release-profiles/v[0-9]+\\.[0-9]+\\.json$"},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "loader_path": {"const": "scripts/release/release_config.py"},
+        "loader_sha256": {"$ref": "#/$defs/sha256"},
+        "schema_path": {"const": "schemas/release-engine-profile.schema.json"},
+        "schema_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
     "phase": {
       "enum": [
         "DRIFTED",

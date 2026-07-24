@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Authenticated, fail-closed GitHub adapter for the V2.40 release engine.
+"""Authenticated, fail-closed GitHub adapter for the configured release engine.
 
 This module is internal.  ``release.py`` is the only public entry and is
 responsible for persisting an operation intent before calling this adapter.
@@ -11,6 +11,7 @@ record plus the frozen release identity.
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import os
 import re
@@ -70,6 +71,24 @@ CANONICAL_RELEASE_BODY = (
     "Goal Teams V2.40. See release/current/README.md in the tagged source."
 )
 CANONICAL_TAG_MESSAGE = "Goal Teams V2.40"
+
+
+def _release_config(version: str) -> dict[str, Any]:
+    path = Path(__file__).resolve().with_name("release_config.py")
+    spec = importlib.util.spec_from_file_location(
+        "_goalteams_github_release_config", path
+    )
+    if spec is None or spec.loader is None:
+        _fail("E_V240_RELEASE_PROFILE", "release profile loader is unavailable")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    try:
+        value = module.release_config(version)
+    except ValueError as exc:
+        _fail("E_V240_RELEASE_PROFILE", str(exc))
+    if not isinstance(value, dict):
+        _fail("E_V240_RELEASE_PROFILE", "release profile loader returned invalid data")
+    return value
 
 
 def _git_environment() -> dict[str, str]:
@@ -356,12 +375,24 @@ class GitHubAdapter:
             base_main_commit
         ) is None:
             _fail("E_V240_ADAPTER_IDENTITY", "invalid frozen Git identity")
+        release_cfg = _release_config(version)
+        if execute_external_writes and release_cfg["external_writes_allowed"] is not True:
+            _fail(
+                "E_V240_HISTORICAL_WRITE_FORBIDDEN",
+                f"{version} is replay-only and cannot mutate GitHub",
+            )
         self.source_root = source_root.resolve()
         self.workspace_root = workspace_root.resolve()
         self.repository = repository
         self.host_repository = f"{GITHUB_HOST}/{repository}"
         self.version = version
-        self.tag = f"v{version[1:]}"
+        self.tag = str(release_cfg["tag"])
+        self.candidate_branch = str(release_cfg["candidate_branch"])
+        self.candidate_ref = f"refs/heads/{self.candidate_branch}"
+        self.release_title = str(release_cfg["release_title"])
+        self.release_body = str(release_cfg["release_body"])
+        self.tag_message = str(release_cfg["tag_message"])
+        self.workflow_display_prefix = str(release_cfg["workflow_display_prefix"])
         self.candidate_commit = candidate_commit
         self.base_main_commit = base_main_commit
         self.authority = dict(authority)
@@ -595,8 +626,8 @@ class GitHubAdapter:
 
         if (
             expected_before.get("targetCommitish") != self.candidate_commit
-            or expected_before.get("name") != CANONICAL_RELEASE_TITLE
-            or expected_before.get("body") != CANONICAL_RELEASE_BODY
+            or expected_before.get("name") != self.release_title
+            or expected_before.get("body") != self.release_body
         ):
             _fail(
                 "E_V240_ADAPTER_EXPECTED_BEFORE",
@@ -852,14 +883,6 @@ class GitHubAdapter:
             if str(temp) not in {"", "."}:
                 shutil.rmtree(temp, ignore_errors=True)
 
-    def _run_release_adapter(self, action: str) -> subprocess.CompletedProcess[str]:
-        script = self.source_root / "scripts" / "release" / "publish-github-release.sh"
-        return _run(
-            (str(script), self.version, self.candidate_commit, action),
-            cwd=self.source_root,
-            env={"GOAL_TEAMS_RELEASE_ORCHESTRATOR": "1"},
-        )
-
     def _ruleset_by_name(self, name: str) -> Mapping[str, Any] | None:
         values = self._gh_api(
             f"repos/{self.repository}/rulesets", "--paginate", "--slurp"
@@ -1069,14 +1092,14 @@ class GitHubAdapter:
         """Read live state and classify it without mutation."""
 
         if action == "candidate_push":
-            value = self._remote_ref("refs/heads/codex/v2.40")
+            value = self._remote_ref(self.candidate_ref)
             expected_after = self.candidate_commit
             classification = "exact" if value == expected_after else (
                 "absent" if value is None else "conflict"
             )
             return self._readback(
                 "git_ls_remote",
-                {"classification": classification, "remote_commit": value, "ref": "refs/heads/codex/v2.40"},
+                {"classification": classification, "remote_commit": value, "ref": self.candidate_ref},
             )
         if action == "tag_push":
             tag_identity = self._remote_tag_identity(self.tag)
@@ -1086,7 +1109,7 @@ class GitHubAdapter:
             classification = "exact" if (
                 value == self.candidate_commit
                 and tag_object is not None
-                and message == CANONICAL_TAG_MESSAGE
+                and message == self.tag_message
             ) else (
                 "absent" if tag_identity is None else "conflict"
             )
@@ -1147,8 +1170,8 @@ class GitHubAdapter:
                 canonical_metadata = (
                     release.get("tagName") == self.tag
                     and resolved_target == self.candidate_commit
-                    and release.get("name") == CANONICAL_RELEASE_TITLE
-                    and release.get("body") == CANONICAL_RELEASE_BODY
+                    and release.get("name") == self.release_title
+                    and release.get("body") == self.release_body
                 )
                 if action == "release_publish" and is_draft:
                     classification = (
@@ -1191,7 +1214,7 @@ class GitHubAdapter:
                         isinstance(tag_object, str)
                         and tag_object != self.candidate_commit
                         and peeled_commit == self.candidate_commit
-                        and tag_identity.get("message") == CANONICAL_TAG_MESSAGE
+                        and tag_identity.get("message") == self.tag_message
                     )
                     if (
                         details["latest"] is not True
@@ -1347,7 +1370,7 @@ class GitHubAdapter:
             if action == "post_release_ci":
                 if not isinstance(release_intent, str) or re.fullmatch(r"[0-9a-f]{64}", release_intent) is None:
                     _fail("E_V240_CI_INTENT", "post-release CI requires its persisted operation idempotency key")
-                display_title = f"Goal Teams V2.40 release {release_intent}"
+                display_title = f"{self.workflow_display_prefix}{release_intent}"
                 if run_id is None:
                     approval = expected_before.get("ci_approval")
                     approved_actor_id = (
@@ -1580,12 +1603,18 @@ class GitHubAdapter:
             )
 
         if action == "immutable_release_enable":
-            self._gh_api(
-                f"repos/{self.repository}/immutable-releases",
-                "--method",
-                "PUT",
-                "-F",
-                "enabled=true",
+            _run(
+                (
+                    "gh",
+                    "api",
+                    f"repos/{self.repository}/immutable-releases",
+                    "--hostname",
+                    GITHUB_HOST,
+                    "--method",
+                    "PUT",
+                ),
+                cwd=self.source_root,
+                env={"GH_HOST": GITHUB_HOST},
             )
         elif action in {"promotion_lock_create", "tag_ruleset_create"}:
             payload = parameters.get("ruleset_payload")
@@ -1638,7 +1667,7 @@ class GitHubAdapter:
             if expected not in {None, self.candidate_commit}:
                 _fail("E_V240_ADAPTER_EXPECTED_BEFORE", "candidate ref expected-before drift")
             _run(
-                ("git", "push", "origin", f"{self.candidate_commit}:refs/heads/codex/v2.40"),
+                ("git", "push", "origin", f"{self.candidate_commit}:{self.candidate_ref}"),
                 cwd=self.source_root,
             )
         elif action == "tag_push":
@@ -1664,7 +1693,7 @@ class GitHubAdapter:
                         self.tag,
                         self.candidate_commit,
                         "-m",
-                        CANONICAL_TAG_MESSAGE,
+                        self.tag_message,
                     ),
                     cwd=self.source_root,
                 )
@@ -1688,8 +1717,8 @@ class GitHubAdapter:
                 (
                     "gh", "release", "create", self.tag, "--repo", self.host_repository,
                     "--verify-tag", "--draft", "--target", self.candidate_commit,
-                    "--title", CANONICAL_RELEASE_TITLE,
-                    "--notes", CANONICAL_RELEASE_BODY,
+                    "--title", self.release_title,
+                    "--notes", self.release_body,
                 ),
                 cwd=self.source_root,
             )
@@ -1717,11 +1746,27 @@ class GitHubAdapter:
                 or live_draft.get("databaseId") != expected_before.get("release_id")
             ):
                 _fail("E_V240_REMOTE_RESOURCE_CONFLICT", "publish Draft release-id CAS failed")
-            # Publish-last: immediately re-download and byte-compare the Draft
-            # before changing its state.  The shell's post-publish verification
-            # remains a postcondition and is not used as this gate.
-            self._run_release_adapter("download")
-            self._run_release_adapter("publish")
+            # Publish-last: persist an identity-bound, byte-compared Draft
+            # bundle immediately before the fixed immutable transition.  The
+            # post-mutation observer independently downloads the published
+            # assets again and verifies exact identity.
+            draft_bundle = self._persist_verified_bundle(
+                live_draft, expected_draft=True
+            )
+            if draft_bundle.get("asset_set_sha256") != expected_assets_sha:
+                _fail(
+                    "E_V240_DRAFT_ASSET_IDENTITY",
+                    "downloaded Draft bundle is not the authorized four-asset set",
+                )
+            _run(
+                (
+                    "gh", "release", "edit", self.tag,
+                    "--repo", self.host_repository,
+                    "--draft=false", "--latest",
+                ),
+                cwd=self.source_root,
+                env={"GH_HOST": GITHUB_HOST},
+            )
         elif action == "post_release_ci":
             workflow = parameters.get("workflow")
             if workflow != ".github/workflows/release-gate.yml":

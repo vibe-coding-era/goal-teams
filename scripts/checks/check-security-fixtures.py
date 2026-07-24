@@ -78,7 +78,7 @@ def check_redaction() -> None:
         fail("redact output must be text")
     forbidden = (
         "header-token-value", "cookie-secret-value", "query-token-value",
-        "json-password-value", "json-api-key-value", "private-key-material-value",
+        "json-password-value", "json-api-key-value", "dummy-private-key-material-value",
         "/Users/alice/private-project", "/home/bob/company", "C:\\Users\\Carol\\private-project",
     )
     leaked = [value for value in forbidden if value in redacted]

@@ -6,9 +6,11 @@ import importlib.util
 import io
 import json
 import os
+import re
 import subprocess
 import tarfile
 import tempfile
+import types
 import unittest
 from unittest import mock
 from pathlib import Path
@@ -20,7 +22,7 @@ SCANNER_PATH = ROOT / "scripts" / "release" / "public_scan.py"
 VERSION = "V2.40"
 TAR_NAME = f"goal-teams-{VERSION}.tar.gz"
 OKF_PATH = "references/okf-conformance-manifest.json"
-PROVIDER_SAMPLE = "ghp_" + "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+PROVIDER_SAMPLE = "ghp_" + "EXAMPLEABCDEFGHIJKLMNOPQRSTUVWXYZ123456"
 PEM_SAMPLE = (
     b"-----BEGIN " + b"PRIVATE KEY-----\n"
     b"fixture-private-key-material\n"
@@ -413,6 +415,125 @@ class V240PublicScanTests(unittest.TestCase):
             changed["errors"],
         )
 
+    def test_reviewed_implementation_vocabulary_is_exact_but_provider_tokens_stay_hard(
+        self,
+    ) -> None:
+        fixture = PublicScanFixture(self)
+        relative = "scripts/release/release.py"
+        vocabulary = b"token = runtime_value\n"
+        fixture.write_snapshot(relative, vocabulary)
+        fixture.rebuild_tar()
+
+        receipt = fixture.scan()
+        candidates = [
+            row
+            for row in receipt["baseline_candidate_rows"]
+            if row["sha256"] == _sha256(vocabulary)
+        ]
+        self.assertEqual(
+            {row["path"] for row in candidates},
+            {f"snapshot/{relative}", f"tar/{relative}"},
+        )
+        self.assertTrue(
+            all(
+                "implementation_vocabulary" in row["allowed_reasons"]
+                and row["waivable"]
+                for row in candidates
+            )
+        )
+        reviewed = _baseline(
+            [
+                {
+                    "path": row["path"],
+                    "sha256": row["sha256"],
+                    "finding_kinds": row["finding_kinds"],
+                    "reason": "implementation_vocabulary",
+                }
+                for row in candidates
+            ]
+        )
+        self.assertTrue(fixture.scan(baseline_bytes=reviewed)["passed"])
+
+        provider = f"token = {PROVIDER_SAMPLE}\n".encode()
+        fixture.write_snapshot(relative, provider)
+        fixture.rebuild_tar()
+        provider_receipt = fixture.scan()
+        provider_rows = [
+            row
+            for row in provider_receipt["unwaived_findings"]
+            if row["sha256"] == _sha256(provider)
+        ]
+        self.assertTrue(provider_rows)
+        self.assertTrue(
+            all(
+                "provider_token" in row["non_waivable_reasons"]
+                for row in provider_rows
+            )
+        )
+
+        private_home = b'workspace = "/Users/alice/private"\n'
+        fixture.write_snapshot(relative, private_home)
+        fixture.rebuild_tar()
+        private_home_receipt = fixture.scan()
+        private_home_rows = [
+            row
+            for row in private_home_receipt["unwaived_findings"]
+            if row["sha256"] == _sha256(private_home)
+        ]
+        self.assertTrue(private_home_rows)
+        self.assertTrue(
+            all(
+                row["non_waivable"]
+                and "private_home" in row["non_waivable_reasons"]
+                for row in private_home_rows
+            )
+        )
+        attempted_private_home_baseline = _baseline(
+            [
+                {
+                    "path": row["path"],
+                    "sha256": row["sha256"],
+                    "finding_kinds": row["finding_kinds"],
+                    "reason": "implementation_vocabulary",
+                }
+                for row in private_home_rows
+            ]
+        )
+        self.assertFalse(
+            fixture.scan(
+                baseline_bytes=attempted_private_home_baseline
+            )["passed"]
+        )
+
+    def test_fixed_detector_literal_surfaces_can_review_provider_and_private_key_samples(
+        self,
+    ) -> None:
+        fixture = PublicScanFixture(self)
+        relative = "tests/v23/test_v236_security_redaction.py"
+        detector_samples = (
+            f'PROVIDER = "{PROVIDER_SAMPLE}"\n'.encode() + PEM_SAMPLE
+        )
+        fixture.write_snapshot(relative, detector_samples)
+        fixture.rebuild_tar()
+
+        receipt = fixture.scan()
+        rows = [
+            row
+            for row in receipt["baseline_candidate_rows"]
+            if row["sha256"] == _sha256(detector_samples)
+        ]
+        self.assertEqual(
+            {row["path"] for row in rows},
+            {f"snapshot/{relative}", f"tar/{relative}"},
+        )
+        self.assertTrue(
+            all(
+                row["waivable"]
+                and "detector_literal" in row["allowed_reasons"]
+                for row in rows
+            )
+        )
+
     def test_tar_generated_okf_is_scanned_independently_from_snapshot(self) -> None:
         fixture = PublicScanFixture(self)
         fixture.rebuild_tar(
@@ -434,7 +555,7 @@ class V240PublicScanTests(unittest.TestCase):
             release_body=(
                 PEM_SAMPLE.decode("utf-8")
                 + "workspace=/"
-                + "Users/Rou/private\n"
+                + "Users/alice/private\n"
             ),
         )
 
@@ -700,7 +821,7 @@ class V240PublicScanTests(unittest.TestCase):
         )
         self.assertTrue(fixture.scan(baseline_bytes=reviewed)["passed"])
 
-        private = b"workspace=/" + b"Users/Rou/private\n"
+        private = b"workspace=/" + b"Users/alice/private\n"
         fixture.write_snapshot(relative, private)
         fixture.rebuild_tar()
         private_receipt = fixture.scan()
@@ -770,6 +891,36 @@ class V240PublicScanTests(unittest.TestCase):
             with self.assertRaises(scanner.PublicScanError) as changed:
                 fixture.scan()
         self.assertEqual(changed.exception.code, "E_PUBLIC_SCAN_SNAPSHOT_CHANGED")
+
+    def test_nested_release_archive_is_identity_scanned_not_decoded_as_text(
+        self,
+    ) -> None:
+        fixture = PublicScanFixture(self)
+        nested = fixture.snapshot / "_artifacts" / TAR_NAME
+        nested.parent.mkdir(parents=True, exist_ok=True)
+        nested.write_bytes(b"credential=random-compressed-byte-pattern")
+        security = types.SimpleNamespace(
+            contains_secret=lambda text: "credential=" in text,
+            HOME_PATH_RE=re.compile(r"(?!x)x"),
+            PRIVATE_KEY_RE=re.compile(r"(?!x)x"),
+            COMMON_TOKEN_RE=re.compile(r"(?!x)x"),
+        )
+
+        surfaces, findings, paths, package_entries = scanner._scan_snapshot(
+            fixture.snapshot, VERSION, security
+        )
+
+        record = next(
+            row
+            for row in surfaces
+            if row["path"] == f"snapshot/_artifacts/{TAR_NAME}"
+        )
+        self.assertEqual(record["source_kind"], "package_snapshot_archive")
+        self.assertFalse(
+            any(row["path"] == record["path"] for row in findings)
+        )
+        self.assertIn(f"_artifacts/{TAR_NAME}", paths)
+        self.assertNotIn(f"_artifacts/{TAR_NAME}", package_entries)
 
     def test_tar_and_gzip_metadata_must_be_canonical(self) -> None:
         metadata = PublicScanFixture(self)

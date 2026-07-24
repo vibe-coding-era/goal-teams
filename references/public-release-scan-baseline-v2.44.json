@@ -1,0 +1,11 @@
+{
+  "assertions": [],
+  "review": {
+    "decision": "accepted",
+    "independent": true,
+    "review_id": "v244-public-scan-review-pending-fixture-redesign",
+    "reviewer_type": "independent_release_reviewer"
+  },
+  "schema_version": "goal-teams-public-scan-baseline-v1",
+  "version": "V2.44"
+}

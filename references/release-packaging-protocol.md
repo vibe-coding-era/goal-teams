@@ -13,6 +13,15 @@ okf_version: "0.1"
 
 任何 GitHub Release 都必须先在本地 `release/versions/<VERSION>/` 形成完整、可复现、已校验的发行目录；未经本地门禁通过，不得创建 tag 或上传发行资产。
 
+V2.44 起，发行身份不再散落为脚本中的版本常量，而由
+`references/release-profiles/<version>.json` 与
+`schemas/release-engine-profile.schema.json` 组成的闭合集合控制。profile 必须绑定
+版本、candidate、tag、Release title/body、严格 snapshot 格式、public scan
+baseline 与 close schema，并在 CP00、每个 operation intent、CP05 审批、CP10 seal
+中绑定其 Git blob。未知版本、工作区未提交配置、配置漂移均 fail closed。
+`V2.44` 是唯一 active profile；`V2.40` 保留协议与错误码兼容，但属于
+`historical_replay`，GitHub adapter 必须拒绝其任何 external write。
+
 ## Key Results
 
 1. 冻结唯一 `VERSION`、Git ref 与 commit，发行内容只从该 commit 和 `scripts/install/package-manifest.txt` 生成。`file`/`prefix` 只选择 Git-tracked payload；`generated references/okf-conformance-manifest.json` 是唯一 builder-generated required asset，源 Git 禁止跟踪占位文件。
@@ -37,12 +46,12 @@ PYTHON_BIN="${PYTHON:?请先将 PYTHON 设为 Python 3.11+ 可执行文件的绝
 
 | Checkpoint | 固定语义 | 公开命令 |
 | --- | --- | --- |
-| CP00 | scope/SPEC/route/owner/locked-scope 冻结；必须从 `develops/v2.40` candidate worktree 执行 | `start` |
-| CP01 | 校验固定的 pre-V2.40 legacy recovery bundle；不替操作者修改 canonical root | `promote` |
+| CP00 | scope/SPEC/route/owner/locked-scope/release-engine profile 冻结；从 active profile 指定的 candidate worktree 执行 | `start` |
+| CP01 | active profile 校验 prior-main/current-release continuity；V2.40 历史回放才校验 pre-V2.40 recovery bundle | `promote` |
 | CP02 | canonical/candidate/topology 验证 | `promote` |
 | CP03 | GitHub authority readback → immutable release enable → ruleset capability verify | `promote` |
 | CP04 | development identity | `promote` |
-| CP05 | promotion contract 验证 → workflow approval | `promote` |
+| CP05 | promotion contract 验证 → 外部可信宿主 workflow approval；V2.44 public `promote/recover` 永久 fail closed | repository-external host |
 | CP06 | static gates | `promote` |
 | CP07 | quality gates | `promote` |
 | CP08 | candidate identity → RC commit freeze | `promote` |
@@ -69,11 +78,34 @@ post-release CI 与最终 live audit 都必须同时回读 Actions run 的
 CP05 的同一份独立 approval 还必须完整绑定 `public_scan_bindings`：冻结的
 base/candidate/tree、`scripts/release/public_scan.py`、
 `scripts/v23/v236_security.py` 与
-`references/public-release-scan-baseline-v2.40.json` 的 blob SHA-256、baseline
+active profile 指定的 `public_scan_baseline` blob SHA-256、baseline
 assertion count/digest 和 review digest。baseline 只能由
 `independent_release_reviewer` 逐项接受；发行入口不得自动生成或更新豁免。
 provider token、private key、真实 credential、真实 home、README、tag message、
 Release title/body 永远不可豁免。
+
+V2.44 CP05 的 `host_acceptance` 使用发行 Profile 冻结的 Ed25519 公钥验证。
+`key_id` 必须等于 32-byte 原始公钥的 SHA-256；`signature` 是固定版本域
+`goal-teams/v2.44/cp05/host-acceptance/ed25519/v1`、一个 NUL byte 和移除自身
+字段后 acceptance 对象的 canonical JSON bytes 的 64-byte Ed25519 签名。候选公共验证器
+必须实际验签，不能只检查签名长度或摘要格式。HMAC 仅用于宿主私有 challenge
+state 的完整性与防重放，不能作为公开验收签名。
+
+V2.44 的 CP05 不能接收 caller JSON、布尔值、摘要、文件路径、argv/env token
+或 module-level object 作为 capability。公开 `release.py promote/recover`
+必须在首次状态写入前返回 `E_V244_HOST_CP05_REQUIRED`；私有
+`CP05.workflow_approve` helper 同样不得为 V2.44 生成 caller-forged exact
+readback。仓库外宿主必须在 Reviewer 退出后重验 candidate/state/trust pins，
+从 Keychain 读取不落盘 HMAC key，验证 TTL 与 MAC-protected persistent
+challenge state，绑定 pre-state byte SHA、两项 CP05 intent、candidate/tree/base、
+workflow/checker/public-scan、真实 Codex observation 和最终 approval core，
+V2.44 `current-route-receipt.json` 的原始字节摘要、self-release policy 与冻结
+candidate/base。Reviewer 必须从仓库外空工作目录启动，候选树的 `AGENTS.md`
+仅作为被审数据；宿主 Git、Node 与 Codex provenance 必须固定，
+再在同一宿主事务中消费 challenge 并以单次 CAS 将 CP05 推进到 CP06。完整
+signed host acceptance 的 digest 必须进入 workflow readback → operation receipt →
+checkpoint receipt 链；仅 hash receipt 不构成授权。宿主必须保留可恢复的 prepared
+transaction 与 committed receipt，candidate runtime 永远不得读取 Keychain key。
 
 CP10 的固定顺序是：确认 canonical snapshot 与 CP09 两次隔离构建逐字节一致 →
 运行 canonical release validator → 扫描完整候选 Git 树、base..candidate 历史
@@ -88,16 +120,17 @@ deterministic receipt，并与 CP10 完整收据相等。
 危险 `GIT_*` 重定向。任一命中统一按 `E_V240_GIT_OBJECT_GRAPH` fail closed；
 不得在 builder、validator、GitHub adapter 或发布 shell 中使用不同的 Git 语义。
 
-CP15 的 annotated tag message 固定为 `Goal Teams V2.40`。CP16 Draft 与
-CP17 Published Release 的 canonical title 固定为 `Goal Teams V2.40`，body
-固定为 `Goal Teams V2.40. See release/current/README.md in the tagged source.`，
+CP15 的 annotated tag message、CP16 Draft 与 CP17 Published Release 的
+canonical title/body 均由 frozen release-engine profile 唯一派生；V2.44 分别是
+`Goal Teams V2.44`、`Goal Teams V2.44` 与
+`Goal Teams V2.44. See release/current/README.md in the tagged source.`，
 `targetCommitish` 必须解析到冻结 candidate。Draft create/readback 必须绑定这三项；
 Published marker-loss adoption 还必须精确匹配 persisted release ID、annotated
 tag 的 peeled candidate、immutable/Latest 状态，并重新下载固定四资产验证
 `asset_set_sha256`。release ID、`targetCommitish`、title/body、tag 或资产任一漂移都只能
 分类为 `conflict`，不得直接采纳或重放 publish。
 
-本次 legacy-root 迁移的可执行主链是 `start(CP00) → promote(CP01) → 根恢复并切换到 clean main → doctor(CP02 前必须通过) → promote(CP02–CP08) → prepare(CP09–CP10) → promote(CP11–CP17) → close(CP18)`。CP01 只验证已经冻结的 recovery bundle；随后由操作者按该凭证完成 canonical root 的 stash/恢复与 `main` 切换。由于本次 CP01 前的 canonical root 已知为 dirty/non-main，提前调用 `doctor` 只能得到 fail-closed 诊断，不能作为已通过门禁；真正的 topology gate 位于 CP01 后、CP02 前，且必须返回通过。`status` 是任意非终态阶段的只读观测，不写 state、不触发外部动作。`recover` 只处理当前已持久化 intent：重读或采纳 exact readback；若必须重放外部写入，还必须提供 `resume_external_writes=true`、原 operation authorization 和 `GOAL_TEAMS_RELEASE_WRITE=1`。
+V2.44 active profile 的可执行主链是 `start(CP00) → promote(CP01) → doctor(CP02 前必须通过) → promote(CP02–CP08) → prepare(CP09–CP10) → promote(CP11–CP17) → close(CP18)`。CP01 校验 base main 上 V2.40 已发布投影与 candidate 上 V2.44 投影的连续性，并绑定 frozen release-engine profile；不再要求 legacy-root 恢复。V2.40 历史回放仍保留原 recovery 验证，但不能触发外部写入。`status` 是任意非终态阶段的只读观测，不写 state、不触发外部动作。`recover` 只处理当前已持久化 intent：重读或采纳 exact readback；若必须重放外部写入，还必须提供 `resume_external_writes=true`、原 operation authorization 和 `GOAL_TEAMS_RELEASE_WRITE=1`。
 
 CP18 的正式归档验证同时保留 V2.36 trust boundary：外层 release host 独立重放 ledger、TaskList、Evidence、Harness、Review 与 Audit，并要求候选侧 `completion-audit` 精确 fail closed 为 `E_V236_HOST_ADAPTER_REQUIRED`。此 expected rejection 只证明候选不能自我签发 Completion；最终关闭权限来自 CP17 独立 live audit 与 CP18 外层状态机，不得把该拒绝伪装成内层 `exit_code=0`。
 
@@ -107,25 +140,28 @@ CP18 的正式归档验证同时保留 V2.36 trust boundary：外层 release hos
 ./scripts/check.sh
 CANONICAL_ROOT="/absolute/path/to/goal-teams"  # 使用前替换为本机 canonical root 绝对路径
 
-cd "$CANONICAL_ROOT/develops/v2.40"
-"$PYTHON_BIN" scripts/release/release.py start --input "$CANONICAL_ROOT/docs/release-state/V2.40/start.json"
-"$PYTHON_BIN" scripts/release/release.py promote --input "$CANONICAL_ROOT/docs/release-state/V2.40/promote-cp01.json"
-# 按 CP01 已验证凭证恢复 canonical root，并将其切换为 clean main 后：
-"$PYTHON_BIN" scripts/release/release.py doctor --input "$CANONICAL_ROOT/docs/release-state/V2.40/doctor.json"
-"$PYTHON_BIN" scripts/release/release.py promote --input "$CANONICAL_ROOT/docs/release-state/V2.40/promote-current-checkpoint.json"
-"$PYTHON_BIN" scripts/release/release.py prepare --input "$CANONICAL_ROOT/docs/release-state/V2.40/prepare.json"
-"$PYTHON_BIN" scripts/release/release.py status --input "$CANONICAL_ROOT/docs/release-state/V2.40/status.json"
-"$PYTHON_BIN" scripts/release/release.py recover --input "$CANONICAL_ROOT/docs/release-state/V2.40/recover.json"
+cd "$CANONICAL_ROOT/develops/v2.44"
+"$PYTHON_BIN" scripts/release/release.py start --input "$CANONICAL_ROOT/docs/release-state/V2.44/start.json"
+"$PYTHON_BIN" scripts/release/release.py promote --input "$CANONICAL_ROOT/docs/release-state/V2.44/promote-cp01.json"
+"$PYTHON_BIN" scripts/release/release.py doctor --input "$CANONICAL_ROOT/docs/release-state/V2.44/doctor.json"
+"$PYTHON_BIN" scripts/release/release.py promote --input "$CANONICAL_ROOT/docs/release-state/V2.44/promote-current-checkpoint.json"
+"$PYTHON_BIN" scripts/release/release.py prepare --input "$CANONICAL_ROOT/docs/release-state/V2.44/prepare.json"
+"$PYTHON_BIN" scripts/release/release.py status --input "$CANONICAL_ROOT/docs/release-state/V2.44/status.json"
+"$PYTHON_BIN" scripts/release/release.py recover --input "$CANONICAL_ROOT/docs/release-state/V2.44/recover.json"
 
 cd "$CANONICAL_ROOT"
-"$PYTHON_BIN" scripts/release/release.py close --input "$CANONICAL_ROOT/docs/release-state/V2.40/close.json"
+"$PYTHON_BIN" scripts/release/release.py close --input "$CANONICAL_ROOT/docs/release-state/V2.44/close.json"
 ```
 
-所有 JSON envelope 的 `state_path` 必须是 canonical root 下 `docs/release-state/V2.40/promotion-state.json` 的绝对路径；不得使用会从 candidate cwd 解析到 `develops/v2.40/docs/` 的相对路径，也不得在实际 JSON 中保留 `<canonical-root>` 一类未解析占位值。`start` 从 candidate worktree 执行，但一开始就把 state 写进 canonical root `docs/`，以便移除 candidate 后由 canonical root 上的 `close` 继续读取同一 state。
+所有 active JSON envelope 的 `state_path` 必须是 canonical root 下 `docs/release-state/V2.44/promotion-state.json` 的绝对路径；不得使用会从 candidate cwd 解析到 `develops/v2.44/docs/` 的相对路径，也不得在实际 JSON 中保留 `<canonical-root>` 一类未解析占位值。`start` 从 candidate worktree 执行，但一开始就把 state 写进 canonical root `docs/`，以便移除 candidate 后由 canonical root 上的 `close` 继续读取同一 state。
 
 `promote` 每次只推进当前 checkpoint，不得跳步；远端写入还必须同时满足输入中的 `execute_external_writes=true`、per-operation authorization 与 `GOAL_TEAMS_RELEASE_WRITE=1`。GitHub 只接收已经在本地 `release/versions/<VERSION>/` 验证通过的同一份资产。published 后 actual install 另需 operation parameters 中的 `execute_actual_install=true` 与 `GOAL_TEAMS_RELEASE_INSTALL=1`，GitHub 元数据、安装日志和 post-release 凭证保存在根 `docs/archive/releases/<VERSION>/release-evidence/`，不放进发行包。若上传阶段失败但 tag 已推送，只允许在确认 tag 仍指向 `_release.json.source_commit` 后由 `recover` 重读并恢复同一 Draft；不得移动或覆盖 tag。
 
-## JSON envelope 约定
+## V2.40 历史回放 JSON envelope
+
+下列固定 JSON 块只用于验证 V2.40 状态兼容与恢复语义，不能授权 GitHub 写入。
+V2.44 active envelope 必须从当前 state 中提取 intent/CAS，并额外携带 frozen
+`release_engine_profile` binding；不得把这些历史样例改写成 active 授权。
 
 下列 JSON 是字段和类型正确的脱敏模板，不是可直接使用的授权。所有 commit/tree 必须换成 40 位 lowercase Git SHA，所有 digest 必须换成 64 位 lowercase SHA-256；`intent_sha256` 和 `expected_before` 必须从当前 state 中同一 operation 的已持久化 intent 精确派生，不得自报成功事实。
 

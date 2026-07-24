@@ -47,6 +47,7 @@ FINDING_KINDS = frozenset({"secret", "absolute_home", "private_provenance"})
 BASELINE_REASONS = frozenset(
     {
         "detector_literal",
+        "implementation_vocabulary",
         "protocol_vocabulary",
         "synthetic_fixture",
         "placeholder_home",
@@ -55,9 +56,111 @@ BASELINE_REASONS = frozenset(
 DETECTOR_LITERAL_PATHS = frozenset(
     {
         "scripts/release/public_scan.py",
+        "scripts/checks/check-security-fixtures.py",
         "scripts/v23/v236_security.py",
+        "tests/v23/fixtures/security/redaction-input.txt",
+        "tests/v23/fixtures/v240/release-lifecycle-contracts.json",
+        "tests/v23/test_evidence_traceability_review.py",
+        "tests/v23/test_v234_release_archive.py",
         "tests/v23/test_v236_security_redaction.py",
+        "tests/v23/test_v238_ordered_manifest.py",
+        "tests/v23/test_v239_cache_evidence.py",
         "tests/v23/test_v240_public_scan.py",
+    }
+)
+IMPLEMENTATION_VOCABULARY_PATHS = frozenset(
+    {
+        "CHANGELOG.md",
+        "benchmarks/tasks/GT-BENCH-005/reference_app.py",
+        "benchmarks/tasks/GT-BENCH-005/static/index.html",
+        "examples/canonical-v23/versions/V2.3/evidence/recovery.log",
+        "examples/canonical-v23/versions/V2.3/evidence/run.log",
+        "examples/canonical-v23/versions/V2.3/identity/registry.json",
+        "goal-teams.md",
+        "prompts/lead/core.md",
+        "prompts/members/reviewer/prompt.md",
+        "prompts/members/shared.md",
+        "prompts/packets/harness-contract.md",
+        "prompts/packets/member-goal-packet.md",
+        "references/compat.md",
+        "references/goal-teams-scripted-tooling.md",
+        "references/goal-teams-v2.3-contract.md",
+        "references/invariants.md",
+        "references/rules-project-sizing.md",
+        "references/runtime/01-v2-36-core-trust.md",
+        "references/runtime/02-harness-benchmark-loop.md",
+        "references/runtime/03-goal-loop.md",
+        "references/subagent-dispatch-protocol.md",
+        "schemas/v2.3/goal-teams.schema.json",
+        "schemas/v2.35/project-route.schema.json",
+        "schemas/v2.36/agent-host-attestation.schema.json",
+        "schemas/v2.36/attested-identity-registry.schema.json",
+        "schemas/v2.36/host-route-receipt.schema.json",
+        "schemas/v2.36/project-route.schema.json",
+        "schemas/v2.44/test-case.schema.json",
+        "scripts/benchmark/benchmark-runner.py",
+        "scripts/benchmark/v244_testing_capability_browser.cjs",
+        "scripts/benchmark/v244_testing_capability_runner.py",
+        "scripts/benchmark/v244_testing_capability_scorer.py",
+        "scripts/checks/check-security-fixtures.py",
+        "scripts/checks/validate-test-case-contract.py",
+        "scripts/checks/validate.py",
+        "scripts/release/public_scan.py",
+        "scripts/release/release.py",
+        "scripts/v23/goalteams_v23.py",
+        "scripts/v23/prompt_cache.py",
+        "scripts/v23/v234_closure.py",
+        "scripts/v23/v234_state.py",
+        "scripts/v23/v235_policy.py",
+        "scripts/v23/v236_security.py",
+        "scripts/v23/v236_trust.py",
+        "subagents/common-developer-instructions.txt",
+        "subagents/goal-api-integration-test-designer.toml",
+        "subagents/goal-api-integration-test-runner.toml",
+        "subagents/goal-backend.toml",
+        "subagents/goal-completion-auditor.toml",
+        "subagents/goal-docs.toml",
+        "subagents/goal-e2e-test-designer.toml",
+        "subagents/goal-e2e-test-runner.toml",
+        "subagents/goal-frontend.toml",
+        "subagents/goal-performance.toml",
+        "subagents/goal-product.toml",
+        "subagents/goal-qa.toml",
+        "subagents/goal-refactor.toml",
+        "subagents/goal-requirements-analyst.toml",
+        "subagents/goal-reviewer.toml",
+        "subagents/goal-security.toml",
+        "subagents/goal-sqa.toml",
+        "subagents/goal-unit-test-designer.toml",
+        "subagents/goal-unit-test-runner.toml",
+        "tests/v23/build_canonical.py",
+        "tests/v23/fixtures/security/redaction-input.txt",
+        "tests/v23/fixtures/v235/routing.json",
+        "tests/v23/fixtures/v235/test-cases.json",
+        "tests/v23/fixtures/v236/routing.json",
+        "tests/v23/fixtures/v240/release-lifecycle-contracts.json",
+        "tests/v23/fixtures/v244/artifacts/api-case.json",
+        "tests/v23/test_canonical_mutations.py",
+        "tests/v23/test_distribution_security.py",
+        "tests/v23/test_evidence_traceability_review.py",
+        "tests/v23/test_governance_release.py",
+        "tests/v23/test_v234_release_archive.py",
+        "tests/v23/test_v234_reset_delivery.py",
+        "tests/v23/test_v235_normalized_binding_security.py",
+        "tests/v23/test_v235_protocol.py",
+        "tests/v23/test_v236_acceptance.py",
+        "tests/v23/test_v236_profiles.py",
+        "tests/v23/test_v236_security_redaction.py",
+        "tests/v23/test_v236_snapshot_attestation.py",
+        "tests/v23/test_v238_ordered_manifest.py",
+        "tests/v23/test_v238_prompt_cache.py",
+        "tests/v23/test_v239_cache_evidence.py",
+        "tests/v23/test_v240_close_ssot_reachability.py",
+        "tests/v23/test_v240_public_scan.py",
+        "tests/v23/test_v240_release_lifecycle.py",
+        "tests/v23/test_v243_engineering_metrics.py",
+        "tests/v23/test_v244_ed25519_verify.py",
+        "tests/v23/test_v244_test_contracts.py",
     }
 )
 SNAPSHOT_OUTER_PATHS = frozenset(
@@ -308,6 +411,13 @@ def validate_baseline(
             _fail(
                 "E_PUBLIC_SCAN_BASELINE_REASON",
                 "protocol_vocabulary requires private_provenance",
+            )
+        if reason == "implementation_vocabulary" and not _implementation_vocabulary_paths(
+            [repository_path] if repository_path is not None else []
+        ):
+            _fail(
+                "E_PUBLIC_SCAN_BASELINE_REASON",
+                "implementation_vocabulary is limited to reviewed source surfaces",
             )
         identity = (path, digest, tuple(kinds))
         if identity in identities:
@@ -620,6 +730,23 @@ def _protocol_vocabulary_context(
     )
 
 
+def _implementation_vocabulary_paths(repository_paths: list[str]) -> bool:
+    """Restrict exact reviewed vocabulary waivers to versioned source surfaces."""
+
+    if not repository_paths:
+        return False
+    for item in repository_paths:
+        parts = PurePosixPath(item).parts
+        if not parts:
+            return False
+        if (
+            item not in IMPLEMENTATION_VOCABULARY_PATHS
+            or any(part in {".env", ".git", ".netrc"} for part in parts)
+        ):
+            return False
+    return True
+
+
 def _placeholder_home_context(security: Any, text: str) -> bool:
     matches = [match.group(0) for match in security.HOME_PATH_RE.finditer(text)]
     if not matches:
@@ -684,6 +811,9 @@ def _detect(
         path, appearances, text, security
     )
     detector_literal = _detector_literal_context(path, appearances)
+    implementation_vocabulary = _implementation_vocabulary_paths(
+        repository_paths
+    )
     protocol_vocabulary = _protocol_vocabulary_context(
         path, appearances, text, security
     )
@@ -691,6 +821,8 @@ def _detect(
     allowed_reasons: list[str] = []
     if detector_literal:
         allowed_reasons.append("detector_literal")
+    if implementation_vocabulary:
+        allowed_reasons.append("implementation_vocabulary")
     if synthetic:
         allowed_reasons.append("synthetic_fixture")
     if "private_provenance" in kinds and protocol_vocabulary:
@@ -700,12 +832,13 @@ def _detect(
     hard_reasons: list[str] = []
     if _is_unwaivable_surface(path):
         hard_reasons.append("unwaivable_surface")
-    if private_key:
+    if private_key and not detector_literal:
         hard_reasons.append("private_key")
-    if provider_token:
+    if provider_token and not detector_literal:
         hard_reasons.append("provider_token")
     if "secret" in kinds and not {
         "detector_literal",
+        "implementation_vocabulary",
         "synthetic_fixture",
         "protocol_vocabulary",
     }.intersection(allowed_reasons):
@@ -1011,12 +1144,28 @@ def _scan_snapshot(
             _fail("E_PUBLIC_SCAN_SNAPSHOT_LIMIT", "snapshot exceeds total limit")
         mode = _snapshot_mode(int(metadata_mode))
         paths.add(relative)
-        record, finding = _surface_record(
-            security=security,
-            path=f"snapshot/{relative}",
-            data=data,
-            source_kind="package_snapshot_file",
+        nested_archive = relative == (
+            f"_artifacts/goal-teams-{version}.tar.gz"
         )
+        if nested_archive:
+            # The same canonical gzip is scanned as an outer asset and every
+            # decompressed member is scanned by _scan_tar.  Treating compressed
+            # bytes as surrogate-escaped text creates content-dependent false
+            # positives without adding coverage.
+            record = {
+                "path": f"snapshot/{relative}",
+                "source_kind": "package_snapshot_archive",
+                "sha256": _sha256(data),
+                "size": len(data),
+            }
+            finding = None
+        else:
+            record, finding = _surface_record(
+                security=security,
+                path=f"snapshot/{relative}",
+                data=data,
+                source_kind="package_snapshot_file",
+            )
         record["mode"] = mode
         surfaces.append(record)
         if _snapshot_package_path(relative, version):

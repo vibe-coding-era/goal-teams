@@ -1,17 +1,17 @@
-name: Goal Teams V2.40 release gate
+name: Goal Teams V2.44 release gate
 run-name: >-
   ${{ github.event_name == 'workflow_dispatch'
-      && format('Goal Teams V2.40 release {0}', inputs.release_intent)
-      || format('Goal Teams V2.40 release {0}', github.sha) }}
+      && format('Goal Teams V2.44 release {0}', inputs.release_intent)
+      || format('Goal Teams V2.44 release {0}', github.sha) }}
 
 on:
   push:
-    branches: [main, codex/v2.40]
+    branches: [main, codex/v2.44-testing-capability]
   pull_request:
   workflow_dispatch:
     inputs:
       release_intent:
-        description: Persisted V2.40 operation idempotency key
+        description: Persisted V2.44 operation idempotency key
         required: true
         type: string
 
@@ -19,7 +19,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: goal-teams-v240-release-${{ github.ref }}
+  group: goal-teams-v244-release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -68,20 +68,20 @@ jobs:
         env:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
-          python3 scripts/release/build-release.py --version V2.40 --commit "${GITHUB_SHA}" --source-ref "${GITHUB_REF}" --output-root "${RUNNER_TEMP}/release-a"
-          python3 scripts/release/build-release.py --version V2.40 --commit "${GITHUB_SHA}" --source-ref "${GITHUB_REF}" --output-root "${RUNNER_TEMP}/release-b"
-          diff -rq "${RUNNER_TEMP}/release-a/V2.40" "${RUNNER_TEMP}/release-b/V2.40"
+          python3 scripts/release/build-release.py --version V2.44 --commit "${GITHUB_SHA}" --source-ref "${GITHUB_REF}" --output-root "${RUNNER_TEMP}/release-a"
+          python3 scripts/release/build-release.py --version V2.44 --commit "${GITHUB_SHA}" --source-ref "${GITHUB_REF}" --output-root "${RUNNER_TEMP}/release-b"
+          diff -rq "${RUNNER_TEMP}/release-a/V2.44" "${RUNNER_TEMP}/release-b/V2.44"
       - name: Independently validate both isolated release trees
         env:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
-          python3 scripts/release/validate-release.py --version V2.40 --release-root "${RUNNER_TEMP}/release-a" --isolated-no-docs-archive
-          python3 scripts/release/validate-release.py --version V2.40 --release-root "${RUNNER_TEMP}/release-b" --isolated-no-docs-archive
+          python3 scripts/release/validate-release.py --version V2.44 --release-root "${RUNNER_TEMP}/release-a" --isolated-no-docs-archive
+          python3 scripts/release/validate-release.py --version V2.44 --release-root "${RUNNER_TEMP}/release-b" --isolated-no-docs-archive
       - name: Verify fixed four-asset identity
         run: |
-          test -f "${RUNNER_TEMP}/release-a/V2.40/_artifacts/goal-teams-V2.40.tar.gz"
-          test -f "${RUNNER_TEMP}/release-a/V2.40/_artifacts/SHA256SUMS"
-          test -f "${RUNNER_TEMP}/release-a/V2.40/_release.json"
-          test -f "${RUNNER_TEMP}/release-a/V2.40/_files.sha256"
-          cd "${RUNNER_TEMP}/release-a/V2.40/_artifacts"
+          test -f "${RUNNER_TEMP}/release-a/V2.44/_artifacts/goal-teams-V2.44.tar.gz"
+          test -f "${RUNNER_TEMP}/release-a/V2.44/_artifacts/SHA256SUMS"
+          test -f "${RUNNER_TEMP}/release-a/V2.44/_release.json"
+          test -f "${RUNNER_TEMP}/release-a/V2.44/_files.sha256"
+          cd "${RUNNER_TEMP}/release-a/V2.44/_artifacts"
           sha256sum -c SHA256SUMS

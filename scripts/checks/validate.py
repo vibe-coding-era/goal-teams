@@ -18,11 +18,11 @@ except ModuleNotFoundError:  # pragma: no cover
 
 ROOT = Path(__file__).resolve().parents[2]
 CURRENT_VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
-PUBLISHED_VERSION = "V2.40"
+PUBLISHED_VERSION = "V2.44"
 GENERAL_CORE_POLICY_VERSION = "V2.5"
 LEGACY_DATA_SCHEMA_VERSION = "V2.3"
 CORE_POLICY_PROFILE = "goal-teams-core-v2.5"
-SELF_RELEASE_POLICY_PROFILE = "goal-teams-self-release-v2.43"
+SELF_RELEASE_POLICY_PROFILE = "goal-teams-self-release-v2.44"
 STARTUP_LINE = f"我是 Goal Teams Lead {CURRENT_VERSION}。"
 COMPATIBILITY_MARKER = (
     f"我是 Goal Teams Leader {CURRENT_VERSION}，使用 Goal + Plan 模式帮你完成规划、执行和交付，"
@@ -55,6 +55,7 @@ REQUIRED_FILES = [
     "references/profiles/goal-teams-self-release-v2.41.md",
     "references/profiles/goal-teams-self-release-v2.42.md",
     "references/profiles/goal-teams-self-release-v2.43.md",
+    "references/profiles/goal-teams-self-release-v2.44.md",
     "references/profiles/goal-teams-self-release-v2.39.md",
     "references/profiles/goal-teams-self-release-v2.38.md",
     "references/prompt-cache-manifest.json",
@@ -66,6 +67,8 @@ REQUIRED_FILES = [
     "references/rules-project-sizing.md",
     "references/rules-specialists.md",
     "references/test-case-assertion-protocol.md",
+    "references/testing-capability-protocol.md",
+    "references/testing-capability-manifest.json",
     "references/goal-teams-automation-protocol.md",
     "references/goal-teams-production-pipeline.md",
     "references/goal-teams-scripted-tooling.md",
@@ -120,6 +123,7 @@ REQUIRED_FILES = [
     "prompts/packets/requirement-card.md",
     "prompts/packets/doc-capsule.md",
     "prompts/packets/harness-contract.md",
+    "prompts/packets/testing-capability-issue-ledger.md",
     "prompts/packets/team-plan-table.md",
     "prompts/packets/dual-review-record.md",
     "scripts/check.sh",
@@ -140,26 +144,37 @@ REQUIRED_FILES = [
     "scripts/checks/check-agent-names.py",
     "scripts/checks/check-member-layout.py",
     "scripts/checks/validate-test-case-contract.py",
+    "scripts/checks/score-testing-capability.py",
     "scripts/v23/v236_security.py",
     "scripts/v23/v236_trust.py",
     "scripts/v23/v236_acceptance.py",
     "scripts/harness/validate-harness.py",
     "scripts/harness/pixel-diff.py",
     "scripts/benchmark/benchmark-runner.py",
+    "scripts/benchmark/v244_testing_capability_runner.py",
+    "scripts/benchmark/v244_testing_capability_scorer.py",
     "scripts/review/compare-artifacts.py",
     "scripts/review/validate-dual-review.py",
     "scripts/install/install-local.sh",
     "scripts/release/release.py",
+    "scripts/release/release_config.py",
+    "scripts/release/ed25519_verify.py",
     "scripts/release/audit-release.py",
     "scripts/release/github_adapter.py",
     "scripts/release/public_scan.py",
     "schemas/v2.43/engineering-metrics.schema.json",
+    "schemas/v2.44/integration-test-plan.schema.json",
+    "schemas/v2.44/test-case.schema.json",
+    "schemas/v2.44/test-run-result.schema.json",
     "tests/v23/test_v243_engineering_metrics.py",
     "scripts/release/build-release.py",
     "scripts/release/validate-release.py",
     "scripts/release/publish-github-release.sh",
     "scripts/release/README.md",
     "references/public-release-scan-baseline-v2.40.json",
+    "references/public-release-scan-baseline-v2.44.json",
+    "references/release-profiles/v2.40.json",
+    "references/release-profiles/v2.44.json",
     "scripts/check-member-layout.py",
     "scripts/validate-test-case-contract.py",
     "scripts/compare-artifacts.py",
@@ -188,6 +203,13 @@ REQUIRED_FILES = [
     "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/spec/test-plan.md",
     "examples/mini-goal-run/.codex/goal-teams/versions/V0.1/spec/acceptance.md",
     "benchmarks/README.md",
+    "benchmarks/tasks/GT-BENCH-005/task.md",
+    "benchmarks/tasks/GT-BENCH-005/harness.md",
+    "benchmarks/tasks/GT-BENCH-005/scoring.md",
+    "benchmarks/tasks/GT-BENCH-005/expected-artifacts.md",
+    "tests/v23/test_v244_test_contracts.py",
+    "tests/v23/test_v244_testing_capability_benchmark.py",
+    "tests/v23/test_v244_testing_capability_score.py",
     "benchmarks/tasks/GT-BENCH-001/task.md",
     "benchmarks/tasks/GT-BENCH-001/harness.md",
     "benchmarks/tasks/GT-BENCH-001/scoring.md",
@@ -216,6 +238,8 @@ REQUIRED_FILES = [
     "schemas/v2.36/acceptance-core-binding.schema.json",
     "schemas/v2.36/acceptance-input-snapshot.schema.json",
     "schemas/release-promotion-state.schema.json",
+    "schemas/release-engine-profile.schema.json",
+    "tests/v23/test_v244_release_engine.py",
 ]
 
 REPOSITORY_REQUIRED_FILES = [
@@ -469,7 +493,7 @@ FILE_RULES = {
         "references/rules-testing.md",
         "references/rules-loop.md",
         "references/goal-teams-core-v2.5.md",
-        "references/profiles/goal-teams-self-release-v2.43.md",
+        "references/profiles/goal-teams-self-release-v2.44.md",
         "references/flow-clarification-protocol.md",
         "references/agent-runtime-capability-contract.md",
         "references/rules-project-sizing.md",
@@ -529,7 +553,7 @@ FILE_RULES = {
         "`standard`",
         "显式提供时必须与派生值完全一致",
     ),
-    "references/profiles/goal-teams-self-release-v2.43.md": (
+    "references/profiles/goal-teams-self-release-v2.44.md": (
         SELF_RELEASE_POLICY_PROFILE,
         "52",
         "iteration 9",
@@ -755,11 +779,12 @@ def check_skill_frontmatter() -> None:
         version,
         GENERAL_CORE_POLICY_VERSION,
         LEGACY_DATA_SCHEMA_VERSION,
-        "V2.42",  # replay-only self-release Profile retained by V2.43
-        "V2.41",  # replay-only self-release Profile retained by V2.43
-        "V2.40",  # replay-only self-release Profile retained by V2.43
-        "V2.39",  # replay-only self-release Profile retained by V2.43
-        "V2.38",  # replay-only prompt/profile identity retained by V2.43
+        "V2.43",  # replay-only self-release Profile retained by V2.44
+        "V2.42",  # replay-only self-release Profile retained by V2.44
+        "V2.41",  # replay-only self-release Profile retained by V2.44
+        "V2.40",  # replay-only self-release Profile retained by V2.44
+        "V2.39",  # replay-only self-release Profile retained by V2.44
+        "V2.38",  # replay-only prompt/profile identity retained by V2.44
     }
     missing_versions = sorted(allowed_versions - skill_versions)
     if missing_versions:
@@ -781,7 +806,7 @@ def check_skill_frontmatter() -> None:
         "references/rules-testing.md",
         "references/rules-loop.md",
         "references/goal-teams-core-v2.5.md",
-        "references/profiles/goal-teams-self-release-v2.43.md",
+        "references/profiles/goal-teams-self-release-v2.44.md",
         "references/prompt-cache-manifest.json",
         "prompts/lead/core.md",
         "prompts/lead/planning.md",
@@ -934,6 +959,91 @@ def check_v236_version_model() -> None:
             fail(f"Package manifest missing {path}")
 
 
+def check_release_workflow_projection(
+    profile: dict[str, object], workflow: str
+) -> None:
+    version = str(profile["version"])
+    branch = str(profile["candidate_branch"])
+    title = str(profile["release_title"])
+    display_prefix = str(profile["workflow_display_prefix"])
+    normalized = version.lower().replace(".", "")
+    exact_lines = (
+        f"name: {title} release gate",
+        f"    branches: [main, {branch}]",
+        f"        description: Persisted {version} operation idempotency key",
+        f"  group: goal-teams-{normalized}-release-${{{{ github.ref }}}}",
+    )
+    for line in exact_lines:
+        if workflow.count(line) != 1:
+            fail(f"release workflow projection drift: {line}")
+    format_marker = f"format('{display_prefix}{{0}}'"
+    if workflow.count(format_marker) != 2:
+        fail("release workflow run-name does not exactly project workflow_display_prefix")
+    build_marker = (
+        f"scripts/release/build-release.py --version {version} "
+        '--commit "${GITHUB_SHA}" --source-ref "${GITHUB_REF}"'
+    )
+    validate_marker = (
+        f"scripts/release/validate-release.py --version {version} "
+        '--release-root "${RUNNER_TEMP}/release-'
+    )
+    if workflow.count(build_marker) != 2 or workflow.count(validate_marker) != 2:
+        fail("release workflow build/validate version projection drift")
+    required_assets = (
+        f"/{version}/_artifacts/goal-teams-{version}.tar.gz",
+        f"/{version}/_artifacts/SHA256SUMS",
+        f"/{version}/_release.json",
+        f"/{version}/_files.sha256",
+    )
+    for marker in required_assets:
+        if workflow.count(marker) != 1:
+            fail(f"release workflow fixed asset projection drift: {marker}")
+    versions = set(re.findall(r"\bV\d+\.\d+\b", workflow))
+    branches = set(re.findall(r"\bcodex/v\d+\.\d+[-a-z0-9]*\b", workflow))
+    if versions != {version} or branches != {branch}:
+        fail("release workflow contains conflicting release identity")
+
+
+def check_release_engine_profiles() -> None:
+    profiles = {
+        "V2.40": json.loads(read("references/release-profiles/v2.40.json")),
+        "V2.44": json.loads(read("references/release-profiles/v2.44.json")),
+    }
+    active = profiles["V2.44"]
+    historical = profiles["V2.40"]
+    if (
+        active.get("status") != "active"
+        or active.get("external_writes_allowed") is not True
+        or active.get("candidate_branch") != "codex/v2.44-testing-capability"
+        or active.get("tag") != "v2.44"
+        or active.get("public_scan_baseline")
+        != "references/public-release-scan-baseline-v2.44.json"
+    ):
+        fail("V2.44 active release-engine profile is inconsistent")
+    if (
+        historical.get("status") != "historical_replay"
+        or historical.get("external_writes_allowed") is not False
+    ):
+        fail("V2.40 historical release-engine profile must reject external writes")
+    for version, profile in profiles.items():
+        if (
+            profile.get("schema_version")
+            != "goal-teams-release-engine-profile-v1"
+            or profile.get("protocol_version") != "V2.40"
+            or profile.get("version") != version
+            or profile.get("snapshot_schema_version")
+            != "goal-teams-release-snapshot-v2.40"
+            or profile.get("files_manifest_format")
+            != "sha256-mode-size-path-v1"
+        ):
+            fail(f"{version} release-engine profile identity is inconsistent")
+    workflow_path = ROOT / ".github/workflows/release-gate.yml"
+    if workflow_path.is_file():
+        check_release_workflow_projection(
+            active, workflow_path.read_text(encoding="utf-8")
+        )
+
+
 def check_file_rule_sets() -> None:
     for path, snippets in FILE_RULES.items():
         text = read(path)
@@ -961,6 +1071,7 @@ def check_key_rules() -> None:
             "references/rules-testing.md",
             "references/rules-loop.md",
             "references/goal-teams-core-v2.5.md",
+            "references/profiles/goal-teams-self-release-v2.44.md",
             "references/profiles/goal-teams-self-release-v2.43.md",
             "references/profiles/goal-teams-self-release-v2.39.md",
             "references/profiles/goal-teams-self-release-v2.38.md",
@@ -1236,6 +1347,7 @@ def main() -> None:
     check_readmes()
     check_v234_compatibility_assets()
     check_v236_version_model()
+    check_release_engine_profiles()
     check_key_rules()
     check_chinese_surface()
     check_example()

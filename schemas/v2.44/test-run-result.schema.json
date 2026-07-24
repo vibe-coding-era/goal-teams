@@ -1,0 +1,287 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.44/test-run-result.schema.json",
+  "title": "Goal Teams V2.44 API and E2E Test Run Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "run_kind",
+    "outcome",
+    "source_binding",
+    "runner_identity",
+    "plan_binding",
+    "test_case_refs",
+    "case_ids",
+    "command",
+    "environment",
+    "data_refs",
+    "started_at",
+    "ended_at",
+    "duration_ms",
+    "exit_code",
+    "summary",
+    "attempts",
+    "failures",
+    "artifacts",
+    "retry",
+    "flake",
+    "cleanup",
+    "replay"
+  ],
+  "properties": {
+    "schema_version": {"const": "goal-teams-test-run-result-v2.44"},
+    "run_id": {"type": "string", "minLength": 1},
+    "run_kind": {"enum": ["api", "e2e"]},
+    "outcome": {"enum": ["passed", "failed", "blocked", "flaky", "not_run"]},
+    "source_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit", "tree", "protected_snapshot_ref", "snapshot_sha256"],
+      "properties": {
+        "commit": {"type": "string", "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"},
+        "tree": {"type": "string", "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"},
+        "protected_snapshot_ref": {"$ref": "#/$defs/artifactRef"},
+        "snapshot_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "runner_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "agent_type",
+        "member_id",
+        "run_id",
+        "host_attestation_ref",
+        "designer_member_id",
+        "implementation_owner_member_id"
+      ],
+      "properties": {
+        "agent_type": {"enum": ["goal_api_integration_test_runner", "goal_e2e_test_runner"]},
+        "member_id": {"type": "string", "minLength": 1},
+        "run_id": {"type": "string", "minLength": 1},
+        "host_attestation_ref": {"$ref": "#/$defs/artifactRef"},
+        "designer_member_id": {"type": "string", "minLength": 1},
+        "implementation_owner_member_id": {"type": "string", "minLength": 1}
+      }
+    },
+    "plan_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["plan_id", "revision", "sha256", "artifact_ref"],
+      "properties": {
+        "plan_id": {"type": "string", "minLength": 1},
+        "revision": {"type": "integer", "minimum": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "artifact_ref": {"$ref": "#/$defs/artifactRef"}
+      }
+    },
+    "test_case_refs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/artifactRef"}},
+    "case_ids": {"$ref": "#/$defs/nonemptyStrings"},
+    "command": {"$ref": "#/$defs/command"},
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["environment_id", "base_url", "runtime_fingerprint", "dependency_fingerprint", "config_refs"],
+      "properties": {
+        "environment_id": {"type": "string", "minLength": 1},
+        "base_url": {"type": "string", "pattern": "^https?://"},
+        "runtime_fingerprint": {"type": "string", "minLength": 1},
+        "dependency_fingerprint": {"type": "string", "minLength": 1},
+        "config_refs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/artifactRef"}}
+      }
+    },
+    "data_refs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/artifactRef"}},
+    "started_at": {"type": "string", "format": "date-time"},
+    "ended_at": {"type": "string", "format": "date-time"},
+    "duration_ms": {"type": "integer", "minimum": 0},
+    "exit_code": {"type": "integer"},
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["collected", "passed", "failed", "skipped", "flaky"],
+      "properties": {
+        "collected": {"type": "integer", "minimum": 1},
+        "passed": {"type": "integer", "minimum": 0},
+        "failed": {"type": "integer", "minimum": 0},
+        "skipped": {"type": "integer", "minimum": 0},
+        "flaky": {"type": "integer", "minimum": 0}
+      }
+    },
+    "attempts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/attempt"}
+    },
+    "failures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["attempt_id", "case_id", "assertion_id", "message", "evidence_refs"],
+        "properties": {
+          "attempt_id": {"type": "string", "minLength": 1},
+          "case_id": {"type": "string", "minLength": 1},
+          "assertion_id": {"type": "string", "minLength": 1},
+          "message": {"type": "string", "minLength": 1},
+          "evidence_refs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/artifactRef"}}
+        }
+      }
+    },
+    "artifacts": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/artifactRef"}},
+    "retry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authorized", "attempted", "max_attempts", "reason_refs", "case_ids"],
+      "properties": {
+        "authorized": {"type": "boolean"},
+        "attempted": {"type": "boolean"},
+        "max_attempts": {"type": "integer", "minimum": 1},
+        "reason_refs": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "case_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "flake": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["detected", "case_ids", "classification"],
+      "properties": {
+        "detected": {"type": "boolean"},
+        "case_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "classification": {"enum": ["none", "suspected", "confirmed"]}
+      }
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command", "status", "observed", "evidence_refs"],
+      "properties": {
+        "command": {"$ref": "#/$defs/command"},
+        "status": {"enum": ["verified", "failed", "blocked"]},
+        "observed": {"type": "object", "minProperties": 1},
+        "evidence_refs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/artifactRef"}}
+      }
+    },
+    "replay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command", "environment_refs", "seed_refs", "deterministic", "evidence_refs"],
+      "properties": {
+        "command": {"$ref": "#/$defs/command"},
+        "environment_refs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/artifactRef"}},
+        "seed_refs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/artifactRef"}},
+        "deterministic": {"type": "boolean"},
+        "evidence_refs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/artifactRef"}}
+      }
+    }
+  },
+  "$defs": {
+    "nonemptyStrings": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "artifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "discovery"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "discovery": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "selector"],
+          "properties": {
+            "kind": {"enum": ["pytest_node", "glob", "manifest", "command", "artifact"]},
+            "selector": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    },
+    "command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["argv", "cwd"],
+      "properties": {
+        "argv": {"$ref": "#/$defs/nonemptyStrings"},
+        "cwd": {"type": "string", "minLength": 1}
+      }
+    },
+    "assertionResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assertion_id", "comparator", "actual", "expected", "passed"],
+      "properties": {
+        "assertion_id": {"type": "string", "minLength": 1},
+        "comparator": {
+          "enum": [
+            "equals",
+            "not_equals",
+            "contains",
+            "member_of",
+            "less_than",
+            "less_than_or_equal",
+            "greater_than",
+            "greater_than_or_equal",
+            "json_subset",
+            "sequence_equals",
+            "sha256_equals",
+            "status_code_equals",
+            "visible",
+            "not_visible"
+          ]
+        },
+        "actual": {},
+        "expected": {},
+        "passed": {"type": "boolean"}
+      }
+    },
+    "caseResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case_id", "outcome", "consumed_inputs", "observed", "assertion_results"],
+      "properties": {
+        "case_id": {"type": "string", "minLength": 1},
+        "outcome": {"enum": ["passed", "failed", "blocked", "not_run"]},
+        "consumed_inputs": {"type": "object", "minProperties": 1},
+        "observed": {"type": "object", "minProperties": 1},
+        "assertion_results": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/assertionResult"}
+        }
+      }
+    },
+    "attempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "attempt_id",
+        "ordinal",
+        "reason",
+        "started_at",
+        "ended_at",
+        "duration_ms",
+        "exit_code",
+        "outcome",
+        "case_results",
+        "artifact_refs"
+      ],
+      "properties": {
+        "attempt_id": {"type": "string", "minLength": 1},
+        "ordinal": {"type": "integer", "minimum": 1},
+        "reason": {"enum": ["initial", "diagnostic_retry", "clean_revalidation"]},
+        "started_at": {"type": "string", "format": "date-time"},
+        "ended_at": {"type": "string", "format": "date-time"},
+        "duration_ms": {"type": "integer", "minimum": 0},
+        "exit_code": {"type": "integer"},
+        "outcome": {"enum": ["passed", "failed", "blocked", "not_run"]},
+        "case_results": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/caseResult"}},
+        "artifact_refs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/artifactRef"}}
+      }
+    }
+  }
+}

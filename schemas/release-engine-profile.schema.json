@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/vibe-coding-era/goal-teams/schemas/release-engine-profile.schema.json",
+  "title": "Goal Teams release engine profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "protocol_version",
+    "version",
+    "status",
+    "external_writes_allowed",
+    "published_before",
+    "tag",
+    "candidate_location",
+    "candidate_branch",
+    "goal_teams_work",
+    "goal_teams_work_location",
+    "owner_run_id",
+    "profile_path",
+    "release_title",
+    "release_body",
+    "tag_message",
+    "workflow_display_prefix",
+    "legacy_recovery_required",
+    "snapshot_schema_version",
+    "files_manifest_format",
+    "public_scan_baseline",
+    "close_schema_version",
+    "host_acceptance"
+  ],
+  "properties": {
+    "schema_version": {"const": "goal-teams-release-engine-profile-v1"},
+    "protocol_version": {"const": "V2.40"},
+    "version": {"type": "string", "pattern": "^V[0-9]+\\.[0-9]+$"},
+    "status": {"enum": ["active", "historical_replay"]},
+    "external_writes_allowed": {"type": "boolean"},
+    "published_before": {
+      "anyOf": [
+        {"type": "null"},
+        {"type": "string", "pattern": "^V[0-9]+\\.[0-9]+$"}
+      ]
+    },
+    "tag": {"type": "string", "pattern": "^v[0-9]+\\.[0-9]+$"},
+    "candidate_location": {
+      "type": "string",
+      "pattern": "^develops/[a-z0-9][a-z0-9._-]*$"
+    },
+    "candidate_branch": {
+      "type": "string",
+      "pattern": "^codex/[A-Za-z0-9._/-]+$"
+    },
+    "goal_teams_work": {
+      "type": "string",
+      "pattern": "^GoalTeamsWork-V[0-9]+\\.[0-9]+$"
+    },
+    "goal_teams_work_location": {
+      "enum": ["candidate", "workspace_docs"]
+    },
+    "owner_run_id": {
+      "type": "string",
+      "pattern": "^RUN-V[0-9]+-LEAD$"
+    },
+    "profile_path": {
+      "type": "string",
+      "pattern": "^references/profiles/goal-teams-self-release-v[0-9]+\\.[0-9]+\\.md$"
+    },
+    "release_title": {"type": "string", "minLength": 1},
+    "release_body": {"type": "string", "minLength": 1},
+    "tag_message": {"type": "string", "minLength": 1},
+    "workflow_display_prefix": {"type": "string", "minLength": 1},
+    "legacy_recovery_required": {"type": "boolean"},
+    "snapshot_schema_version": {
+      "const": "goal-teams-release-snapshot-v2.40"
+    },
+    "files_manifest_format": {
+      "const": "sha256-mode-size-path-v1"
+    },
+    "public_scan_baseline": {
+      "type": "string",
+      "pattern": "^references/public-release-scan-baseline-v[0-9]+\\.[0-9]+\\.json$"
+    },
+    "close_schema_version": {
+      "type": "string",
+      "pattern": "^goal-teams-release-close-v[0-9]+\\.[0-9]+$"
+    },
+    "host_acceptance": {
+      "anyOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema_version",
+            "algorithm",
+            "signature_domain",
+            "issuer",
+            "public_key_hex",
+            "key_id"
+          ],
+          "properties": {
+            "schema_version": {
+              "const": "goal-teams-external-host-acceptance-v2"
+            },
+            "algorithm": {"const": "Ed25519"},
+            "signature_domain": {
+              "type": "string",
+              "pattern": "^goal-teams/v[0-9]+\\.[0-9]+/cp05/host-acceptance/ed25519/v1$"
+            },
+            "issuer": {"const": "goal-teams-trusted-host"},
+            "public_key_hex": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "key_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

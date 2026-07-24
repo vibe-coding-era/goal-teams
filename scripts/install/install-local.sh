@@ -548,7 +548,7 @@ def parse_release_file_manifest(data: bytes, version: str) -> dict[str, dict[str
             if size < 0:
                 raise InstallError(f"E_RELEASE_FILES_SIZE:{number}")
         else:
-            if version == "V2.40" or "  " not in line:
+            if version in {"V2.40", "V2.44"} or "  " not in line:
                 raise InstallError(f"E_RELEASE_FILES_EXTENDED_REQUIRED:{number}")
             digest, raw_path = line.split("  ", 1)
             git_mode = "100644"
@@ -1350,11 +1350,15 @@ def validate_skill(root: Path, phase: str) -> None:
     checker = root / "scripts" / "check.sh"
     if not checker.is_file():
         raise InstallError(f"E_VALIDATION_ENTRY:{phase}")
-    result = run([str(checker)], cwd=root, env=validation_environment())
+    result = run(
+        [str(checker), "--installed-package"],
+        cwd=root,
+        env=validation_environment(),
+    )
     combined = (result.stdout + result.stderr).encode("utf-8", errors="replace")
     validation_results.append({
         "phase": phase,
-        "command": "scripts/check.sh",
+        "command": "scripts/check.sh --installed-package",
         "exit_code": result.returncode,
         "output_sha256": sha256_bytes(combined),
         "status": "passed" if result.returncode == 0 else "failed",

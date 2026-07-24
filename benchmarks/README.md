@@ -6,7 +6,7 @@
 
 - 用同一份任务输入比较 `baseline`、`goal-teams` 及任务指定的版本化执行模式。
 - 记录产物质量、范围遵守、独立校验、文档完整度、耗时、tokens、缓存覆盖和费用。
-- 用 V2.43 的十二项工程指标记录本次、上一次和近期平均值，并生成自包含 OKF 用户报告。
+- V2.44 继续用 V2.43 兼容的十二项工程指标记录本次、上一次和近期平均值，并生成自包含 OKF 用户报告。
 - 让评分者可以仅凭任务文件、运行记录和最终 diff 复盘结论。
 - 为后续版本判断 Goal Teams 规则是否改进提供稳定样本。
 
@@ -100,6 +100,10 @@ blind-agent 运行通过可重复的 `--metrics-history <metric-summary.json-or-
 用户报告必须是 OKF Concept Document，四列表格覆盖 FPAR、LCC、HER、SAR、CPAC、DER、RRR、CWR、SDI、RFR、ARCR、MRT，并自包含每项算法、分子/分母、排除项、上一次选择、近期聚合、状态和 Evidence refs。缺可信数据使用 `unavailable`，观察窗未结束使用 `pending`，不适用使用 `not_applicable`，均不得写成零。
 
 十二项指标在 V2.43 第一版只作为观察维度，不自动进入 Benchmark 100 分评分，也不替代 Harness、Evidence 或 Completion Audit。最终用户回复不展开完整指标表，只提供真实生成的 OKF 报告链接并提醒打开查看。
+
+## V2.44 API/E2E 测试能力
+
+`GT-BENCH-005` 使用本地可复现的订单 API、SQLite、静态 Web UI、真实浏览器和 seeded defects，验证权限、幂等/并发/一致性、会话、双击、刷新和错误恢复。其七维 100 分评分读取 `references/testing-capability-manifest.json`；任何 required behavior `blocked|not_run|unavailable|failed` 时不得宣称满分。
 
 ## 评分原则
 

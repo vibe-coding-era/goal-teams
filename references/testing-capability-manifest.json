@@ -1,0 +1,276 @@
+{
+  "schema_version": "goal-teams-testing-capability-v2.44",
+  "product_version": "V2.44",
+  "target_score": 100,
+  "score_statuses": [
+    "not_run",
+    "failed",
+    "partial",
+    "passed"
+  ],
+  "anti_gaming": {
+    "blocked_counts_as_passed": false,
+    "not_run_counts_as_passed": false,
+    "unavailable_counts_as_passed": false,
+    "retry_pass_hides_initial_failure": false,
+    "missing_denominator_allowed": false,
+    "prose_or_exit_code_is_behavior_oracle": false,
+    "issue_deletion_allowed": false
+  },
+  "dimensions": [
+    {
+      "id": "role_independence",
+      "name_zh": "角色与独立性",
+      "weight": 15,
+      "required_checks": [
+        "independent_test_roles",
+        "specialized_prompt_routes"
+      ]
+    },
+    {
+      "id": "machine_contracts",
+      "name_zh": "机器合同与语义校验",
+      "weight": 20,
+      "required_checks": [
+        "integration_test_plan_schema",
+        "typed_test_case_schema",
+        "test_run_result_schema",
+        "semantic_positive_negative",
+        "file_identity_validation"
+      ]
+    },
+    {
+      "id": "api_testing",
+      "name_zh": "API 集成测试能力",
+      "weight": 15,
+      "required_checks": [
+        "api_typed_fields",
+        "api_risk_model",
+        "api_reference_behavior",
+        "api_seeded_defects"
+      ]
+    },
+    {
+      "id": "e2e_testing",
+      "name_zh": "E2E 测试能力",
+      "weight": 15,
+      "required_checks": [
+        "e2e_typed_fields",
+        "e2e_resilience_model",
+        "e2e_reference_behavior",
+        "e2e_seeded_defects"
+      ]
+    },
+    {
+      "id": "run_evidence",
+      "name_zh": "执行与证据",
+      "weight": 15,
+      "required_checks": [
+        "runner_source_identity",
+        "attempt_history",
+        "observed_assertions",
+        "retry_flake_preservation",
+        "cleanup_replay"
+      ]
+    },
+    {
+      "id": "risk_environment_data_coverage",
+      "name_zh": "风险、环境、数据与覆盖分母",
+      "weight": 10,
+      "required_checks": [
+        "risk_denominator",
+        "environment_data_binding",
+        "case_coverage_mapping",
+        "qa_reviewer_denominator"
+      ]
+    },
+    {
+      "id": "real_behavior_benchmark",
+      "name_zh": "真实行为 Benchmark",
+      "weight": 10,
+      "required_checks": [
+        "reference_ten_of_ten",
+        "seeded_defect_detection",
+        "reference_repeatability",
+        "benchmark_cleanup"
+      ]
+    }
+  ],
+  "known_issues": [
+    {
+      "id": "GT244-TEST-001",
+      "dimension": "machine_contracts",
+      "summary": "缺少机器可校验的集成测试计划合同"
+    },
+    {
+      "id": "GT244-TEST-002",
+      "dimension": "api_testing",
+      "summary": "API 用例缺少 method、auth、request、state 与 side effects 类型字段"
+    },
+    {
+      "id": "GT244-TEST-003",
+      "dimension": "e2e_testing",
+      "summary": "E2E 用例缺少 persona、initial state、actions 与 checkpoints 类型字段"
+    },
+    {
+      "id": "GT244-TEST-004",
+      "dimension": "machine_contracts",
+      "summary": "测试文件引用未绑定 existence、sha256 与 discovery"
+    },
+    {
+      "id": "GT244-TEST-005",
+      "dimension": "run_evidence",
+      "summary": "缺少 API 和 E2E 执行结果机器合同及语义校验"
+    },
+    {
+      "id": "GT244-TEST-006",
+      "dimension": "real_behavior_benchmark",
+      "summary": "缺少真实服务与浏览器行为 Benchmark"
+    },
+    {
+      "id": "GT244-TEST-007",
+      "dimension": "api_testing",
+      "summary": "缺少幂等、重试、并发、补偿与最终一致性风险模型"
+    },
+    {
+      "id": "GT244-TEST-008",
+      "dimension": "e2e_testing",
+      "summary": "缺少会话、权限、刷新、双击与错误恢复 E2E 模型"
+    },
+    {
+      "id": "GT244-TEST-009",
+      "dimension": "risk_environment_data_coverage",
+      "summary": "QA 与 Reviewer 缺少风险覆盖分母"
+    },
+    {
+      "id": "GT244-TEST-010",
+      "dimension": "role_independence",
+      "summary": "专项测试成员路由与上下文加载不够明确"
+    },
+    {
+      "id": "GT244-TEST-011",
+      "dimension": "run_evidence",
+      "summary": "缺少 flake、retry、cleanup 与 replay 合同"
+    },
+    {
+      "id": "GT244-TEST-012",
+      "dimension": "real_behavior_benchmark",
+      "summary": "现有 fixtures 只证明结构合同，不能证明成员真实行为"
+    },
+    {
+      "id": "GT244-TEST-013",
+      "dimension": "real_behavior_benchmark",
+      "summary": "E2E 错误恢复用例在页面计数未同步时产生重复运行 flake"
+    },
+    {
+      "id": "GT244-TEST-014",
+      "dimension": "machine_contracts",
+      "summary": "能力评分器允许替换权重清单并弱化 100 分固定门槛"
+    },
+    {
+      "id": "GT244-TEST-015",
+      "dimension": "run_evidence",
+      "summary": "问题账本未验证发现到解决时序、维度绑定与解决证据摘要"
+    },
+    {
+      "id": "GT244-TEST-016",
+      "dimension": "machine_contracts",
+      "summary": "测试文件 discovery 未确认 pytest node 或 glob 真实存在"
+    },
+    {
+      "id": "GT244-TEST-017",
+      "dimension": "run_evidence",
+      "summary": "运行结果信任 assertion passed 自报值而未重算 comparator"
+    },
+    {
+      "id": "GT244-TEST-018",
+      "dimension": "run_evidence",
+      "summary": "运行结果中的来源、身份、计划、用例、清理与重放引用可指向不存在文件"
+    },
+    {
+      "id": "GT244-TEST-019",
+      "dimension": "real_behavior_benchmark",
+      "summary": "Benchmark scorer 允许替换 case manifest 并把单条自报观测计为 10 分"
+    },
+    {
+      "id": "GT244-TEST-020",
+      "dimension": "real_behavior_benchmark",
+      "summary": "Benchmark 原始观测与截图缺少来源摘要和文件哈希绑定"
+    },
+    {
+      "id": "GT244-TEST-021",
+      "dimension": "machine_contracts",
+      "summary": "测试计划、测试用例与运行结果未交叉验证 case id、类型和文件哈希"
+    },
+    {
+      "id": "GT244-TEST-022",
+      "dimension": "role_independence",
+      "summary": "集成测试计划机器合同缺少 revision、Owner 与独立 Validator 身份"
+    },
+    {
+      "id": "GT244-TEST-023",
+      "dimension": "risk_environment_data_coverage",
+      "summary": "API 与 E2E 风险覆盖只绑定普通断言，未要求可执行风险动作和专用 oracle"
+    },
+    {
+      "id": "GT244-TEST-024",
+      "dimension": "run_evidence",
+      "summary": "总能力评分的检查项可绑定与该检查无关的任意哈希文件"
+    },
+    {
+      "id": "GT244-TEST-025",
+      "dimension": "run_evidence",
+      "summary": "总能力评分只校验路径后缀和自报状态，未验证证据内容与执行收据"
+    },
+    {
+      "id": "GT244-TEST-026",
+      "dimension": "run_evidence",
+      "summary": "全部问题可复用同一个无关文件完成 resolved，未绑定问题专属修复和独立验证"
+    },
+    {
+      "id": "GT244-TEST-027",
+      "dimension": "real_behavior_benchmark",
+      "summary": "Benchmark 截图只校验 PNG 文件头，未验证可解码结构、尺寸和浏览器运行来源"
+    },
+    {
+      "id": "GT244-TEST-028",
+      "dimension": "run_evidence",
+      "summary": "评分测试直接依赖源码 Git HEAD，导致无 .git 的安装暂存包自测不可执行"
+    },
+    {
+      "id": "GT244-TEST-029",
+      "dimension": "run_evidence",
+      "summary": "安装生命周期变长时墙钟回拨可使行为记录 generated_at 早于 ended_at"
+    },
+    {
+      "id": "GT244-TEST-030",
+      "dimension": "machine_contracts",
+      "summary": "测试文件 discovery 隐式依赖未声明的宿主 pytest，导致干净 CI 与安装包验证失败"
+    },
+    {
+      "id": "GT244-TEST-031",
+      "dimension": "real_behavior_benchmark",
+      "summary": "Benchmark 服务仅等待 5 秒即判失败，无法容忍 macOS 干净 CI 的冷启动开销"
+    },
+    {
+      "id": "GT244-TEST-032",
+      "dimension": "real_behavior_benchmark",
+      "summary": "macOS 回环健康检查继承系统代理，服务已启动时仍无法命中 127.0.0.1"
+    },
+    {
+      "id": "GT244-TEST-033",
+      "dimension": "real_behavior_benchmark",
+      "summary": "macOS 多线程测试父进程退回 fork/exec，参考服务子 Python 在进入应用主函数前挂起"
+    },
+    {
+      "id": "GT244-TEST-034",
+      "dimension": "real_behavior_benchmark",
+      "summary": "标准 ThreadingHTTPServer 绑定回环地址时执行反向 DNS，导致 GitHub macOS runner 持续阻塞"
+    },
+    {
+      "id": "GT244-TEST-035",
+      "dimension": "real_behavior_benchmark",
+      "summary": "参考服务把 SQLite 事务上下文误当作连接关闭机制，高频 Benchmark 泄漏数据库连接"
+    }
+  ]
+}

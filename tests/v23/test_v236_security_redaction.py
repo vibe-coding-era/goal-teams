@@ -29,11 +29,11 @@ security = load_security()
 # Assemble provider-shaped negative fixtures at runtime.  Keeping the complete
 # token bytes out of Git history lets GitHub push protection distinguish these
 # synthetic detector tests from accidentally committed live credentials.
-_SLACK_TOKEN_FIXTURE = "xox" + "b-123456789012-123456789012-abcdefghijklmnopqrstuvwx"
-_STRIPE_KEY_FIXTURE = "sk_" + "live_ABCDEFGHIJKLMNOPQRSTUVWXYZ123456"
+_SLACK_TOKEN_FIXTURE = "xox" + "b-123456789012-123456789012-EXAMPLEabcdefghijklmnop"
+_STRIPE_KEY_FIXTURE = "sk_" + "live_EXAMPLEABCDEFGHIJKLMNOPQRSTUVWXYZ"
 _SENDGRID_KEY_FIXTURE = (
-    "S" + "G.abcdefghijklmnopqrstuv."
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopq"
+    "S" + "G.EXAMPLEabcdefghijklmnop."
+    "EXAMPLEABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij"
 )
 
 
@@ -48,12 +48,12 @@ class SharedSecretRedactionTests(unittest.TestCase):
             ["dXNlcjpiYXNpYy1zZWNyZXQ="],
         ),
         "github_pat": (
-            "token=ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890\n",
-            ["ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"],
+            "token=ghp_EXAMPLEABCDEFGHIJKLMNOPQRSTUVWXYZ123456\n",
+            ["ghp_EXAMPLEABCDEFGHIJKLMNOPQRSTUVWXYZ123456"],
         ),
         "gitlab_pat": (
-            "glpat-ABCDEFGHIJKLMNOPQRSTUVWXYZ123456\n",
-            ["glpat-ABCDEFGHIJKLMNOPQRSTUVWXYZ123456"],
+            "glpat-EXAMPLEABCDEFGHIJKLMNOPQRSTUVWXYZ\n",
+            ["glpat-EXAMPLEABCDEFGHIJKLMNOPQRSTUVWXYZ"],
         ),
         "slack_token": (
             f"{_SLACK_TOKEN_FIXTURE}\n",
@@ -69,29 +69,27 @@ class SharedSecretRedactionTests(unittest.TestCase):
             ["AKIAIOSFODNN7EXAMPLE", "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"],
         ),
         "google_api_key": (
-            "AIzaSyABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890\n",
-            ["AIzaSyABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"],
+            "AIzaSyEXAMPLEABCDEFGHIJKLMNOPQRSTUVWXYZ1234\n",
+            ["AIzaSyEXAMPLEABCDEFGHIJKLMNOPQRSTUVWXYZ1234"],
         ),
         "stripe_live_key": (
             f"{_STRIPE_KEY_FIXTURE}\n",
             [_STRIPE_KEY_FIXTURE],
         ),
         "npm_auth_token": (
-            "//registry.npmjs.org/:_authToken=npm_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890\n",
-            ["npm_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"],
+            "//registry.npmjs.org/:_authToken=npm_EXAMPLEABCDEFGHIJKLMNOPQRSTUVWXYZ1234\n",
+            ["npm_EXAMPLEABCDEFGHIJKLMNOPQRSTUVWXYZ1234"],
         ),
         "jwt": (
-            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0."
-            "SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\n",
+            "eyJEXAMPLE0000.EXAMPLEPAYLOAD0.EXAMPLESIGNATURE0\n",
             [
-                "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0."
-                "SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+                "eyJEXAMPLE0000.EXAMPLEPAYLOAD0.EXAMPLESIGNATURE0"
             ],
         ),
         "private_key": (
-            "-----BEGIN PRIVATE KEY-----\nraw-private-key-material\n"
+            "-----BEGIN PRIVATE KEY-----\ndummy-private-key-material\n"
             "-----END PRIVATE KEY-----\n",
-            ["raw-private-key-material"],
+            ["dummy-private-key-material"],
         ),
         "sensitive_url": (
             "https://user:password-value@example.test/path?token=url-secret-token&safe=visible\n",
@@ -189,9 +187,9 @@ class SharedSecretRedactionTests(unittest.TestCase):
             [_SENDGRID_KEY_FIXTURE],
         ),
         "pypi_api_token": (
-            "pypi-AgEIcHlwaS5vcmcCJDUxMjM0NTY3ODkwYWJjZGVmZ2hpamtsbW5vcA\n",
+            "pypi-EXAMPLE000000000000000000000000000000000000000000000000\n",
             [
-                "pypi-AgEIcHlwaS5vcmcCJDUxMjM0NTY3ODkwYWJjZGVmZ2hpamtsbW5vcA"
+                "pypi-EXAMPLE000000000000000000000000000000000000000000000000"
             ],
         ),
         "token_url_username": (
@@ -201,9 +199,9 @@ class SharedSecretRedactionTests(unittest.TestCase):
         "pgp_private_key": (
             "-----BEGIN PGP PRIVATE KEY BLOCK-----\n"
             "Version: test-only\n\n"
-            "pgp-private-key-material\n"
+            "dummy-pgp-private-key-material\n"
             "-----END PGP PRIVATE KEY BLOCK-----\n",
-            ["pgp-private-key-material"],
+            ["dummy-pgp-private-key-material"],
         ),
     }
 

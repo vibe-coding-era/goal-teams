@@ -1,0 +1,75 @@
+{
+  "schema_version": "goal-teams-test-case-v2.44",
+  "case_id": "TC-V244-E2E-001",
+  "test_kind": "e2e",
+  "acceptance_refs": ["AC-V244-E2E-001"],
+  "test_file_refs": [{
+    "path": "tests/v23/fixtures/v244/artifacts/test_scenarios.py",
+    "sha256": "e06e7d0e86eeffbbcd27b5b37a004a056a1a2823e95819cd1c35b70ba3ab2975",
+    "discovery": {"kind": "pytest_node", "selector": "tests/v23/fixtures/v244/artifacts/test_scenarios.py::test_e2e_contract_scenario"}
+  }],
+  "setup": {
+    "preconditions": ["buyer session fixture is available"],
+    "data_refs": [{
+      "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+      "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447",
+      "discovery": {"kind": "artifact", "selector": "browser-state"}
+    }]
+  },
+  "e2e": {
+    "persona": {"role": "buyer", "permissions": ["order:create"]},
+    "session": {"state": "authenticated", "auth_ref": "environment.auth.buyer_session", "refresh_policy": "refresh once on 401 then surface login"},
+    "initial_state": {
+      "route": "/orders/new",
+      "pre_state": {"order_count": 0, "submit_enabled": true},
+      "data_refs": [{
+        "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+        "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447",
+        "discovery": {"kind": "artifact", "selector": "browser-state"}
+      }]
+    },
+    "browser": {"name": "chromium", "version": "pinned-by-lockfile", "viewport": {"width": 1280, "height": 720}},
+    "actions": [
+      {"step_id": "S1", "type": "expire_session", "target": "browser-session"},
+      {"step_id": "S2", "type": "permission_probe", "target": "[data-testid='admin-action']"},
+      {"step_id": "S3", "type": "refresh", "target": "page"},
+      {"step_id": "S4", "type": "double_click", "target": "[data-testid='submit-order']"},
+      {"step_id": "S5", "type": "inject_network_error", "target": "/api/orders"}
+    ],
+    "checkpoints": [
+      {"checkpoint_id": "CP1", "after_step_ref": "S1", "assertion_refs": ["A-E2E-SESSION"]},
+      {"checkpoint_id": "CP2", "after_step_ref": "S2", "assertion_refs": ["A-E2E-PERM"]},
+      {"checkpoint_id": "CP3", "after_step_ref": "S3", "assertion_refs": ["A-E2E-REFRESH"]},
+      {"checkpoint_id": "CP4", "after_step_ref": "S4", "assertion_refs": ["A-E2E-DOUBLE"]},
+      {"checkpoint_id": "CP5", "after_step_ref": "S5", "assertion_refs": ["A-E2E-RECOVERY"]}
+    ],
+    "final_state": {
+      "url": "/orders/ORDER-1",
+      "dom": {"order_status": "created"},
+      "visible": {"confirmation": true},
+      "interaction": {"submit_enabled": true},
+      "business": {"order_count": 1},
+      "side_effects": ["one durable order exists"]
+    },
+    "risk_coverage": {
+      "session": {"status": "covered", "scenario_ref": "S1", "oracle_assertion_ref": "A-E2E-SESSION"},
+      "permission": {"status": "covered", "scenario_ref": "S2", "oracle_assertion_ref": "A-E2E-PERM"},
+      "refresh": {"status": "covered", "scenario_ref": "S3", "oracle_assertion_ref": "A-E2E-REFRESH"},
+      "double_click": {"status": "covered", "scenario_ref": "S4", "oracle_assertion_ref": "A-E2E-DOUBLE"},
+      "error_recovery": {"status": "covered", "scenario_ref": "S5", "oracle_assertion_ref": "A-E2E-RECOVERY"}
+    }
+  },
+  "assertions": [
+    {"assertion_id": "A-E2E-SESSION", "actual_ref": "observed_output.session.refreshed", "comparator": "equals", "expected_value": true},
+    {"assertion_id": "A-E2E-PERM", "actual_ref": "observed_output.permission.denied", "comparator": "equals", "expected_value": true},
+    {"assertion_id": "A-E2E-REFRESH", "actual_ref": "observed_output.refresh.state_preserved", "comparator": "equals", "expected_value": true},
+    {"assertion_id": "A-E2E-DOUBLE", "actual_ref": "observed_output.double_click.order_count", "comparator": "equals", "expected_value": 1},
+    {"assertion_id": "A-E2E-RECOVERY", "actual_ref": "observed_output.error_recovery.completed", "comparator": "equals", "expected_value": true},
+    {"assertion_id": "A-E2E-CLEANUP", "actual_ref": "observed_output.cleanup.order_count", "comparator": "equals", "expected_value": 0}
+  ],
+  "cleanup": {
+    "required": true,
+    "steps": ["delete browser-created order"],
+    "verification_assertion_refs": ["A-E2E-CLEANUP"]
+  }
+}

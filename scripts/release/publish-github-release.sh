@@ -2,8 +2,8 @@
 set -euo pipefail
 export PYTHONDONTWRITEBYTECODE=1
 
-# Internal GitHub adapter.  V2.40 callers must enter through release.py so the
-# operation intent, exact lease and live readback are persisted before marker.
+# Read-only compatibility adapter.  All GitHub mutations are implemented by
+# github_adapter.py behind release.py operation intents and exact readback.
 [[ "${GOAL_TEAMS_RELEASE_ORCHESTRATOR:-0}" == "1" ]] || {
   echo "internal adapter: use scripts/release/release.py" >&2
   exit 2
@@ -238,32 +238,12 @@ PY
 }
 
 case "$ACTION" in
-  create-draft)
-    "$PYTHON_BIN" "$SOURCE_ROOT/scripts/release/validate-release.py" --version "$VERSION"
-    if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
-      IS_DRAFT="$(gh release view "$TAG" --repo "$REPO" --json isDraft -q .isDraft)"
-      [[ "$IS_DRAFT" == "true" ]] || { echo "existing release is already published" >&2; exit 1; }
-    else
-      gh release create "$TAG" \
-        "$ASSET_TAR" "$ASSET_SUMS" "$ASSET_RELEASE" "$ASSET_FILES" \
-        --repo "$REPO" --verify-tag --target "$COMMIT" --draft \
-        --title "Goal Teams $VERSION" \
-        --notes "Goal Teams $VERSION. See release/current/README.md in the tagged source."
-    fi
-    download_and_verify draft
-    ;;
-  publish)
-    IS_DRAFT="$(gh release view "$TAG" --repo "$REPO" --json isDraft -q .isDraft)"
-    if [[ "$IS_DRAFT" == "true" ]]; then
-      # Publish-last: the Draft must already have the fixed exact asset set and
-      # byte-identical local assets before the immutable transition.
-      download_and_verify draft
-      gh release edit "$TAG" --repo "$REPO" --draft=false --latest
-    fi
-    download_and_verify published
-    ;;
   download)
     download_and_verify
+    ;;
+  create-draft|publish)
+    echo "E_V240_INTERNAL_ADAPTER_WRITE_FORBIDDEN: use release.py operation intents" >&2
+    exit 2
     ;;
 esac
 
