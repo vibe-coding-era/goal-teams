@@ -4,14 +4,13 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import copy
 import hashlib
 import importlib.util
 import json
 import re
-import shutil
 import stat
-import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -72,7 +71,7 @@ _DISCOVERY_KINDS = frozenset(
     {"pytest_node", "glob", "manifest", "command", "artifact"}
 )
 _TEST_DISCOVERY_KINDS = frozenset({"pytest_node", "glob"})
-_DISCOVERY_CACHE: dict[tuple[str, str, str], bool] = {}
+_DISCOVERY_CACHE: dict[tuple[str, str], bool] = {}
 _API_RISK_ACTIONS = {
     "authorization": "authorization_probe",
     "idempotency": "repeat_request",
@@ -236,32 +235,62 @@ def _bound_artifact_refs(value: Any, *, allow_empty: bool = False) -> bool:
     )
 
 
-def _pytest_collect(selector: str, expected_prefix: str) -> bool:
-    cache_key = ("pytest", selector, expected_prefix)
+def _pytest_collect(selector: str, expected_path: str) -> bool:
+    """Validate pytest-style nodes without requiring a host pytest install.
+
+    Goal Teams is distributed as a dependency-free Skill. Discovery therefore
+    parses the bound Python source and proves that the selected test function,
+    class, or class method exists. Dynamic/plugin-generated nodes fail closed.
+    """
+
+    cache_key = (selector, expected_path)
     if cache_key in _DISCOVERY_CACHE:
         return _DISCOVERY_CACHE[cache_key]
-    pytest_bin = shutil.which("pytest")
-    if pytest_bin is None:
+
+    parts = selector.split("::")
+    if not parts or parts[0] != expected_path or any(not part for part in parts):
         _DISCOVERY_CACHE[cache_key] = False
         return False
+    target = ROOT / expected_path
     try:
-        proc = subprocess.run(
-            [pytest_bin, "--collect-only", "-q", selector],
-            cwd=ROOT,
-            text=True,
-            capture_output=True,
-            timeout=30,
-            check=False,
-        )
-    except (OSError, subprocess.TimeoutExpired):
+        target.resolve(strict=True).relative_to(ROOT)
+        tree = ast.parse(target.read_text(encoding="utf-8"), filename=expected_path)
+    except (FileNotFoundError, OSError, SyntaxError, UnicodeError, ValueError):
         _DISCOVERY_CACHE[cache_key] = False
         return False
-    collected = any(
-        line.strip() == expected_prefix
-        or line.strip().startswith(expected_prefix + "::")
-        for line in proc.stdout.splitlines()
-    )
-    passed = proc.returncode == 0 and collected
+
+    def definitions(body: list[ast.stmt]) -> dict[str, ast.AST]:
+        return {
+            item.name: item
+            for item in body
+            if isinstance(item, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
+        }
+
+    def is_test_node(node: ast.AST) -> bool:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            return node.name.startswith("test_")
+        if isinstance(node, ast.ClassDef):
+            return any(
+                isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef))
+                and item.name.startswith("test_")
+                for item in node.body
+            )
+        return False
+
+    selected: ast.AST | None = None
+    body = tree.body
+    for raw_name in parts[1:]:
+        name = raw_name.split("[", 1)[0]
+        selected = definitions(body).get(name)
+        if selected is None:
+            _DISCOVERY_CACHE[cache_key] = False
+            return False
+        body = selected.body if isinstance(selected, ast.ClassDef) else []
+
+    if selected is None:
+        passed = any(is_test_node(node) for node in definitions(tree.body).values())
+    else:
+        passed = is_test_node(selected)
     _DISCOVERY_CACHE[cache_key] = passed
     return passed
 
@@ -281,7 +310,7 @@ def _bound_test_file_refs(value: Any) -> tuple[bool, str | None]:
             if not (
                 selector == item["path"]
                 or selector.startswith(item["path"] + "::")
-            ) or not _pytest_collect(selector, selector):
+            ) or not _pytest_collect(selector, item["path"]):
                 return False, "E_V244_TEST_DISCOVERY"
         else:
             try:

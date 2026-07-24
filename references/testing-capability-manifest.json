@@ -241,6 +241,11 @@
       "id": "GT244-TEST-029",
       "dimension": "run_evidence",
       "summary": "安装生命周期变长时墙钟回拨可使行为记录 generated_at 早于 ended_at"
+    },
+    {
+      "id": "GT244-TEST-030",
+      "dimension": "machine_contracts",
+      "summary": "测试文件 discovery 隐式依赖未声明的宿主 pytest，导致干净 CI 与安装包验证失败"
     }
   ]
 }

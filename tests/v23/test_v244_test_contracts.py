@@ -663,6 +663,22 @@ class V244TestContractTests(unittest.TestCase):
                 self.assertTrue(result["ok"], result)
                 self.assertEqual(result["contract_kind"], kind, result)
 
+    def test_validator_self_test_is_portable_without_pytest_executable(self) -> None:
+        environment = os.environ.copy()
+        environment["PATH"] = ""
+        result = subprocess.run(
+            [sys.executable, str(VALIDATOR_PATH), "--self-test"],
+            cwd=ROOT,
+            env=environment,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertTrue(payload["passed"], payload)
+        self.assertEqual(2, payload["v244_valid_contracts_executed"], payload)
+
     def test_v235_document_remains_compatible(self) -> None:
         policy = self.validator._load_policy()
         document = policy.strict_json_loads(V235_FIXTURE.read_text(encoding="utf-8"))
