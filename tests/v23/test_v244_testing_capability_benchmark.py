@@ -188,6 +188,27 @@ class TestingCapabilityBenchmarkTests(unittest.TestCase):
             finally:
                 server.server_close()
 
+    def test_reference_database_connection_always_closes(self) -> None:
+        application = object.__new__(reference_app.OrderApplication)
+        for raises in (False, True):
+            connection = mock.MagicMock()
+            with (
+                self.subTest(raises=raises),
+                mock.patch.object(
+                    application,
+                    "connect",
+                    return_value=connection,
+                ),
+            ):
+                if raises:
+                    with self.assertRaisesRegex(RuntimeError, "probe"):
+                        with application.managed_connection():
+                            raise RuntimeError("probe")
+                else:
+                    with application.managed_connection() as managed:
+                        self.assertIs(connection, managed)
+                connection.close.assert_called_once_with()
+
     def test_scorer_rejects_shrunken_ten_point_manifest(self) -> None:
         shrunken = {
             "schema_version": "goal-teams-testing-capability-benchmark-v2.44",

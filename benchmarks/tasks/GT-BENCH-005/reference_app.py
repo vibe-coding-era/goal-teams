@@ -8,11 +8,12 @@ import json
 import sqlite3
 import threading
 import time
+from contextlib import contextmanager
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from socketserver import TCPServer
-from typing import Any
+from typing import Any, Iterator
 from urllib.parse import urlparse
 
 
@@ -49,7 +50,7 @@ class OrderApplication:
         self.browser_read_delay_seconds = browser_read_delay_ms / 1000
         self.lock = threading.Lock()
         self.fail_next = False
-        with self.connect() as connection:
+        with self.managed_connection() as connection:
             connection.execute(
                 """
                 CREATE TABLE IF NOT EXISTS orders (
@@ -79,6 +80,15 @@ class OrderApplication:
         connection.row_factory = sqlite3.Row
         return connection
 
+    @contextmanager
+    def managed_connection(self) -> Iterator[sqlite3.Connection]:
+        connection = self.connect()
+        try:
+            with connection:
+                yield connection
+        finally:
+            connection.close()
+
     def create_order(
         self, idempotency_key: str, sku: str, quantity: int, *, concurrency_probe: bool
     ) -> tuple[int, dict[str, Any], bool]:
@@ -93,7 +103,7 @@ class OrderApplication:
             elif self.defect == "api_concurrency_race" and concurrency_probe:
                 stored_key = f"{idempotency_key}:race:{self.count_orders()}"
 
-            with self.connect() as connection:
+            with self.managed_connection() as connection:
                 existing = connection.execute(
                     "SELECT id, idempotency_key, sku, quantity FROM orders WHERE idempotency_key = ?",
                     (stored_key,),
@@ -113,14 +123,14 @@ class OrderApplication:
     def list_orders(self) -> list[dict[str, Any]]:
         if self.defect == "api_eventual_consistency_stale":
             return []
-        with self.connect() as connection:
+        with self.managed_connection() as connection:
             rows = connection.execute(
                 "SELECT id, idempotency_key, sku, quantity FROM orders ORDER BY id"
             ).fetchall()
         return [dict(row) for row in rows]
 
     def count_orders(self) -> int:
-        with self.connect() as connection:
+        with self.managed_connection() as connection:
             return int(connection.execute("SELECT COUNT(*) FROM orders").fetchone()[0])
 
 

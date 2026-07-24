@@ -266,6 +266,11 @@
       "id": "GT244-TEST-034",
       "dimension": "real_behavior_benchmark",
       "summary": "标准 ThreadingHTTPServer 绑定回环地址时执行反向 DNS，导致 GitHub macOS runner 持续阻塞"
+    },
+    {
+      "id": "GT244-TEST-035",
+      "dimension": "real_behavior_benchmark",
+      "summary": "参考服务把 SQLite 事务上下文误当作连接关闭机制，高频 Benchmark 泄漏数据库连接"
     }
   ]
 }
