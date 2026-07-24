@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+from urllib.request import ProxyHandler, Request, build_opener
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -36,6 +36,7 @@ E2E_CASE_IDS = (
     "E2E-REFRESH-001",
     "E2E-RECOVERY-001",
 )
+LOOPBACK_OPENER = build_opener(ProxyHandler({}))
 
 
 def utc_now() -> str:
@@ -144,7 +145,7 @@ def http_json(
         request_headers["Content-Type"] = "application/json"
     request = Request(url, data=body, headers=request_headers, method=method)
     try:
-        with urlopen(request, timeout=timeout) as response:
+        with LOOPBACK_OPENER.open(request, timeout=timeout) as response:
             raw = response.read()
             return {
                 "status": response.status,
@@ -395,6 +396,7 @@ def wait_ready(
     process: subprocess.Popen[str],
     *,
     timeout_seconds: float = 20.0,
+    service_log: Path | None = None,
 ) -> None:
     deadline = time.monotonic() + timeout_seconds
     while time.monotonic() < deadline:
@@ -407,7 +409,18 @@ def wait_ready(
         except (URLError, TimeoutError):
             pass
         time.sleep(0.05)
-    raise RuntimeError("reference app did not become ready")
+    diagnostic = ""
+    if service_log is not None:
+        try:
+            diagnostic = service_log.read_text(
+                encoding="utf-8", errors="replace"
+            )[-2000:]
+        except OSError as exc:
+            diagnostic = f"<unreadable:{exc}>"
+    raise RuntimeError(
+        "reference app did not become ready"
+        + (f"; service_log_tail={diagnostic!r}" if service_log is not None else "")
+    )
 
 
 def canonical_case_outcomes(evidence: dict[str, Any]) -> list[tuple[str, str]]:
@@ -456,7 +469,7 @@ def run_candidate(
     )
     cleanup = {"service_terminated": False, "database_retained_for_evidence": True}
     try:
-        wait_ready(base_url, process)
+        wait_ready(base_url, process, service_log=service_log)
         observed_api = api_cases(base_url)
         observed_e2e, browser = browser_cases(
             base_url, run_dir / "screenshots", browser_mode, run_id

@@ -251,6 +251,11 @@
       "id": "GT244-TEST-031",
       "dimension": "real_behavior_benchmark",
       "summary": "Benchmark 服务仅等待 5 秒即判失败，无法容忍 macOS 干净 CI 的冷启动开销"
+    },
+    {
+      "id": "GT244-TEST-032",
+      "dimension": "real_behavior_benchmark",
+      "summary": "macOS 回环健康检查继承系统代理，服务已启动时仍无法命中 127.0.0.1"
     }
   ]
 }

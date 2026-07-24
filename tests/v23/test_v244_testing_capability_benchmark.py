@@ -13,6 +13,7 @@ import zipfile
 import zlib
 from pathlib import Path
 from unittest import mock
+from urllib.request import ProxyHandler, build_opener
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -91,6 +92,50 @@ class TestingCapabilityBenchmarkTests(unittest.TestCase):
             ),
         ):
             runner.wait_ready("http://127.0.0.1:1", process)
+
+    def test_loopback_http_client_ignores_environment_proxies(self) -> None:
+        with mock.patch.dict(
+            os.environ,
+            {"http_proxy": "http://127.0.0.1:9"},
+            clear=False,
+        ):
+            default_opener = build_opener()
+        self.assertTrue(
+            any(isinstance(handler, ProxyHandler) for handler in default_opener.handlers)
+        )
+        self.assertFalse(
+            any(
+                isinstance(handler, ProxyHandler)
+                for handler in runner.LOOPBACK_OPENER.handlers
+            )
+        )
+
+    def test_readiness_failure_includes_service_diagnostic(self) -> None:
+        process = mock.Mock()
+        process.poll.return_value = None
+        with tempfile.TemporaryDirectory() as temporary:
+            service_log = Path(temporary) / "service.log"
+            service_log.write_text("bind diagnostic\n", encoding="utf-8")
+            with (
+                mock.patch.object(
+                    runner.time,
+                    "monotonic",
+                    side_effect=[0.0, 1.0],
+                ),
+                mock.patch.object(runner.time, "sleep"),
+                mock.patch.object(
+                    runner,
+                    "http_json",
+                    side_effect=runner.URLError("not ready"),
+                ),
+                self.assertRaisesRegex(RuntimeError, "bind diagnostic"),
+            ):
+                runner.wait_ready(
+                    "http://127.0.0.1:1",
+                    process,
+                    timeout_seconds=0.5,
+                    service_log=service_log,
+                )
 
     def test_scorer_rejects_shrunken_ten_point_manifest(self) -> None:
         shrunken = {
