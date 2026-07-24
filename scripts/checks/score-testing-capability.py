@@ -99,7 +99,7 @@ CANONICAL_RUBRIC = {
     ),
 }
 REQUIRED_ISSUE_IDS = {
-    f"GT244-TEST-{index:03d}" for index in range(1, 34)
+    f"GT244-TEST-{index:03d}" for index in range(1, 35)
 }
 CHECK_EVIDENCE_SUFFIXES = {
     "independent_test_roles": (
@@ -291,6 +291,10 @@ ISSUE_EVIDENCE_BY_ID = {
     "GT244-TEST-033": (
         "benchmarks/tasks/GT-BENCH-005/reference_app.py",
         "scripts/benchmark/v244_testing_capability_runner.py",
+        "tests/v23/test_v244_testing_capability_benchmark.py",
+    ),
+    "GT244-TEST-034": (
+        "benchmarks/tasks/GT-BENCH-005/reference_app.py",
         "tests/v23/test_v244_testing_capability_benchmark.py",
     ),
 }

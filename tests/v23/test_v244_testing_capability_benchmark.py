@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import http.server
 import json
 import os
 import shutil
@@ -19,6 +20,9 @@ from urllib.request import ProxyHandler, build_opener
 ROOT = Path(__file__).resolve().parents[2]
 RUNNER_PATH = ROOT / "scripts" / "benchmark" / "v244_testing_capability_runner.py"
 SCORER_PATH = ROOT / "scripts" / "benchmark" / "v244_testing_capability_scorer.py"
+REFERENCE_APP_PATH = (
+    ROOT / "benchmarks" / "tasks" / "GT-BENCH-005" / "reference_app.py"
+)
 MANIFEST_PATH = (
     ROOT / "benchmarks" / "fixtures" / "v2.44" / "testing-capability-cases.json"
 )
@@ -34,6 +38,7 @@ def load_module(name: str, path: Path):
 
 runner = load_module("v244_testing_capability_runner_test", RUNNER_PATH)
 scorer = load_module("v244_testing_capability_scorer_test", SCORER_PATH)
+reference_app = load_module("v244_testing_capability_reference_app_test", REFERENCE_APP_PATH)
 
 
 def black_png(width: int = 1280, height: int = 720) -> bytes:
@@ -159,6 +164,29 @@ class TestingCapabilityBenchmarkTests(unittest.TestCase):
         _args, kwargs = popen.call_args
         self.assertNotIn("cwd", kwargs)
         self.assertIs(False, kwargs["close_fds"])
+
+    def test_loopback_server_bind_never_uses_reverse_dns(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            application = reference_app.OrderApplication(
+                Path(temporary) / "orders.sqlite3",
+                "reference",
+                0,
+                "run-id",
+            )
+            with mock.patch.object(
+                http.server.socket,
+                "getfqdn",
+                side_effect=AssertionError("reverse DNS must not run"),
+            ):
+                server = reference_app.LoopbackThreadingHTTPServer(
+                    ("127.0.0.1", 0),
+                    reference_app.handler_factory(application),
+                )
+            try:
+                self.assertEqual("127.0.0.1", server.server_name)
+                self.assertGreater(server.server_port, 0)
+            finally:
+                server.server_close()
 
     def test_scorer_rejects_shrunken_ten_point_manifest(self) -> None:
         shrunken = {

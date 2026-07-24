@@ -261,6 +261,11 @@
       "id": "GT244-TEST-033",
       "dimension": "real_behavior_benchmark",
       "summary": "macOS 多线程测试父进程退回 fork/exec，参考服务子 Python 在进入应用主函数前挂起"
+    },
+    {
+      "id": "GT244-TEST-034",
+      "dimension": "real_behavior_benchmark",
+      "summary": "标准 ThreadingHTTPServer 绑定回环地址时执行反向 DNS，导致 GitHub macOS runner 持续阻塞"
     }
   ]
 }

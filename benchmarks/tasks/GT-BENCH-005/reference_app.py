@@ -11,6 +11,7 @@ import time
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from socketserver import TCPServer
 from typing import Any
 from urllib.parse import urlparse
 
@@ -27,6 +28,16 @@ VALID_DEFECTS = {
     "e2e_refresh_drops_state",
     "e2e_error_no_recovery",
 }
+
+
+class LoopbackThreadingHTTPServer(ThreadingHTTPServer):
+    """Bind a numeric loopback address without reverse-DNS lookup."""
+
+    def server_bind(self) -> None:
+        TCPServer.server_bind(self)
+        host, port = self.server_address[:2]
+        self.server_name = str(host)
+        self.server_port = int(port)
 
 
 class OrderApplication:
@@ -242,7 +253,9 @@ def main() -> int:
         json.dumps({"event": "database_ready", "run_id": args.run_id}, sort_keys=True),
         flush=True,
     )
-    server = ThreadingHTTPServer((args.host, args.port), handler_factory(application))
+    server = LoopbackThreadingHTTPServer(
+        (args.host, args.port), handler_factory(application)
+    )
     print(
         json.dumps(
             {
