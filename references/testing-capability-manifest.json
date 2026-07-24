@@ -256,6 +256,11 @@
       "id": "GT244-TEST-032",
       "dimension": "real_behavior_benchmark",
       "summary": "macOS 回环健康检查继承系统代理，服务已启动时仍无法命中 127.0.0.1"
+    },
+    {
+      "id": "GT244-TEST-033",
+      "dimension": "real_behavior_benchmark",
+      "summary": "macOS 多线程测试父进程退回 fork/exec，参考服务子 Python 在进入应用主函数前挂起"
     }
   ]
 }

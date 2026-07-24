@@ -423,6 +423,37 @@ def wait_ready(
     )
 
 
+def start_reference_process(
+    *,
+    port: int,
+    db_path: Path,
+    mode: str,
+    browser_read_delay_ms: int,
+    run_id: str,
+    log_handle: Any,
+) -> subprocess.Popen[str]:
+    return subprocess.Popen(
+        [
+            sys.executable,
+            str(REFERENCE_APP),
+            "--port",
+            str(port),
+            "--db",
+            str(db_path),
+            "--defect",
+            mode,
+            "--browser-read-delay-ms",
+            str(browser_read_delay_ms),
+            "--run-id",
+            run_id,
+        ],
+        text=True,
+        stdout=log_handle,
+        stderr=subprocess.STDOUT,
+        close_fds=False,
+    )
+
+
 def canonical_case_outcomes(evidence: dict[str, Any]) -> list[tuple[str, str]]:
     return sorted((item["case_id"], item["status"]) for item in evidence["cases"])
 
@@ -447,25 +478,13 @@ def run_candidate(
     if db_path.exists():
         db_path.unlink()
     log_handle = service_log.open("w", encoding="utf-8")
-    process = subprocess.Popen(
-        [
-            sys.executable,
-            str(REFERENCE_APP),
-            "--port",
-            str(port),
-            "--db",
-            str(db_path),
-            "--defect",
-            mode,
-            "--browser-read-delay-ms",
-            str(browser_read_delay_ms),
-            "--run-id",
-            run_id,
-        ],
-        cwd=ROOT,
-        text=True,
-        stdout=log_handle,
-        stderr=subprocess.STDOUT,
+    process = start_reference_process(
+        port=port,
+        db_path=db_path,
+        mode=mode,
+        browser_read_delay_ms=browser_read_delay_ms,
+        run_id=run_id,
+        log_handle=log_handle,
     )
     cleanup = {"service_terminated": False, "database_retained_for_evidence": True}
     try:

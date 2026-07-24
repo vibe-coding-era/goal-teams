@@ -137,6 +137,29 @@ class TestingCapabilityBenchmarkTests(unittest.TestCase):
                     service_log=service_log,
                 )
 
+    def test_reference_process_uses_macos_safe_spawn_conditions(self) -> None:
+        with (
+            tempfile.TemporaryDirectory() as temporary,
+            (Path(temporary) / "service.log").open("w", encoding="utf-8") as log_handle,
+            mock.patch.object(
+                runner.subprocess,
+                "Popen",
+                return_value=mock.sentinel.process,
+            ) as popen,
+        ):
+            process = runner.start_reference_process(
+                port=12345,
+                db_path=Path(temporary) / "orders.sqlite3",
+                mode="reference",
+                browser_read_delay_ms=0,
+                run_id="run-id",
+                log_handle=log_handle,
+            )
+        self.assertIs(mock.sentinel.process, process)
+        _args, kwargs = popen.call_args
+        self.assertNotIn("cwd", kwargs)
+        self.assertIs(False, kwargs["close_fds"])
+
     def test_scorer_rejects_shrunken_ten_point_manifest(self) -> None:
         shrunken = {
             "schema_version": "goal-teams-testing-capability-benchmark-v2.44",
@@ -232,6 +255,11 @@ class TestingCapabilityBenchmarkTests(unittest.TestCase):
                         Path(temporary),
                         browser_mode="off",
                     )
+                    service_log = (
+                        Path(temporary) / mode / "service.log"
+                    ).read_text(encoding="utf-8")
+                    self.assertIn('"event": "starting"', service_log)
+                    self.assertIn('"event": "ready"', service_log)
                     outcomes = {
                         item["case_id"]: item["status"] for item in evidence["cases"]
                     }

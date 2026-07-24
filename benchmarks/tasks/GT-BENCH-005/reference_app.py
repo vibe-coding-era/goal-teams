@@ -225,13 +225,36 @@ def main() -> int:
     parser.add_argument("--browser-read-delay-ms", type=int, default=0)
     parser.add_argument("--run-id", required=True)
     args = parser.parse_args()
+    print(
+        json.dumps(
+            {"event": "starting", "run_id": args.run_id, "defect": args.defect},
+            sort_keys=True,
+        ),
+        flush=True,
+    )
     if args.browser_read_delay_ms < 0 or args.browser_read_delay_ms > 5000:
         parser.error("--browser-read-delay-ms must be between 0 and 5000")
     args.db.parent.mkdir(parents=True, exist_ok=True)
     application = OrderApplication(
         args.db, args.defect, args.browser_read_delay_ms, args.run_id
     )
+    print(
+        json.dumps({"event": "database_ready", "run_id": args.run_id}, sort_keys=True),
+        flush=True,
+    )
     server = ThreadingHTTPServer((args.host, args.port), handler_factory(application))
+    print(
+        json.dumps(
+            {
+                "event": "ready",
+                "run_id": args.run_id,
+                "host": args.host,
+                "port": args.port,
+            },
+            sort_keys=True,
+        ),
+        flush=True,
+    )
     server.serve_forever()
     return 0
 

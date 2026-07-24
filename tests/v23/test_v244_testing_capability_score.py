@@ -484,7 +484,7 @@ class TestingCapabilityScoreTests(unittest.TestCase):
         self.assertEqual("failed", result["status"])
         self.assertEqual(100, result["score"])
         self.assertEqual(
-            ["GT244-TEST-032"],
+            ["GT244-TEST-033"],
             result["issue_summary"]["unresolved_issue_ids"],
         )
 
