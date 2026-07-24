@@ -126,6 +126,10 @@ class V240ReleaseCanonicalHomeTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertNotIn("Path.home() / \".codex\"", source)
+        self.assertNotIn(
+            'report = codex_home.parent / "install-report.json"', source
+        )
+        self.assertIn('report = codex_home / "install-report.json"', source)
         self.assertGreaterEqual(source.count("_canonical_codex_home()"), 3)
 
 

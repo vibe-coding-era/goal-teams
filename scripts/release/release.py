@@ -5371,7 +5371,7 @@ def _execute_local_operation(
                     encoding="utf-8",
                 )
         codex_home = scratch / ("rehearsal-local" if operation_id.startswith("CP11") else "rehearsal-remote") / "codex-home"
-        report = codex_home.parent / "install-report.json"
+        report = codex_home / "install-report.json"
         result = _run_fixed(
             (
                 str(RELEASE_ROOT / "scripts" / "install" / "install-local.sh"),
