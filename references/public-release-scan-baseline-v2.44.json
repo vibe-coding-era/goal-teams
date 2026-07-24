@@ -298,7 +298,7 @@
       ],
       "path": "git/final/scripts/release/release.py",
       "reason": "implementation_vocabulary",
-      "sha256": "e688f028ed1aeb73374078c24ad9ef8765d89e61295ba972de8a11a3ccf7ef8f"
+      "sha256": "fe407daafb94c8cbc5e55b44625fda39740b8687239342e9b246ddda9fae9d57"
     },
     {
       "finding_kinds": [
@@ -831,6 +831,15 @@
     },
     {
       "finding_kinds": [
+        "private_provenance",
+        "secret"
+      ],
+      "path": "git/history/blobs/2f11428eb804098ad6245d6a9bb07a828895c1e6/scripts/release/release.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "fe407daafb94c8cbc5e55b44625fda39740b8687239342e9b246ddda9fae9d57"
+    },
+    {
+      "finding_kinds": [
         "private_provenance"
       ],
       "path": "git/history/blobs/312d247d05dd42801828b7264bf2cce2a0ed9d54/prompts/members/reviewer/prompt.md",
@@ -1356,7 +1365,7 @@
       ],
       "path": "snapshot/scripts/release/release.py",
       "reason": "implementation_vocabulary",
-      "sha256": "e688f028ed1aeb73374078c24ad9ef8765d89e61295ba972de8a11a3ccf7ef8f"
+      "sha256": "fe407daafb94c8cbc5e55b44625fda39740b8687239342e9b246ddda9fae9d57"
     },
     {
       "finding_kinds": [
@@ -2101,7 +2110,7 @@
       ],
       "path": "tar/scripts/release/release.py",
       "reason": "implementation_vocabulary",
-      "sha256": "e688f028ed1aeb73374078c24ad9ef8765d89e61295ba972de8a11a3ccf7ef8f"
+      "sha256": "fe407daafb94c8cbc5e55b44625fda39740b8687239342e9b246ddda9fae9d57"
     },
     {
       "finding_kinds": [
@@ -2560,7 +2569,7 @@
   "review": {
     "decision": "accepted",
     "independent": true,
-    "review_id": "v244-public-scan-review-e063d92-6778fb32",
+    "review_id": "v244-public-scan-review-a8f6294-819ebb4f",
     "reviewer_type": "independent_release_reviewer"
   },
   "schema_version": "goal-teams-public-scan-baseline-v1",
