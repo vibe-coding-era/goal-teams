@@ -246,6 +246,11 @@
       "id": "GT244-TEST-030",
       "dimension": "machine_contracts",
       "summary": "测试文件 discovery 隐式依赖未声明的宿主 pytest，导致干净 CI 与安装包验证失败"
+    },
+    {
+      "id": "GT244-TEST-031",
+      "dimension": "real_behavior_benchmark",
+      "summary": "Benchmark 服务仅等待 5 秒即判失败，无法容忍 macOS 干净 CI 的冷启动开销"
     }
   ]
 }

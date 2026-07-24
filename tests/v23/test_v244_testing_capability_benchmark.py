@@ -12,6 +12,7 @@ import unittest
 import zipfile
 import zlib
 from pathlib import Path
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -69,6 +70,27 @@ class TestingCapabilityBenchmarkTests(unittest.TestCase):
                 for layer in ("api", "e2e")
             },
         )
+
+    def test_reference_app_readiness_allows_slow_ci_startup(self) -> None:
+        process = mock.Mock()
+        process.poll.return_value = None
+        with (
+            mock.patch.object(
+                runner.time,
+                "monotonic",
+                side_effect=[0.0, 0.0, 6.0],
+            ),
+            mock.patch.object(runner.time, "sleep"),
+            mock.patch.object(
+                runner,
+                "http_json",
+                side_effect=[
+                    runner.URLError("warming up"),
+                    {"status": 200},
+                ],
+            ),
+        ):
+            runner.wait_ready("http://127.0.0.1:1", process)
 
     def test_scorer_rejects_shrunken_ten_point_manifest(self) -> None:
         shrunken = {

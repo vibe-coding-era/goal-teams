@@ -99,7 +99,7 @@ CANONICAL_RUBRIC = {
     ),
 }
 REQUIRED_ISSUE_IDS = {
-    f"GT244-TEST-{index:03d}" for index in range(1, 31)
+    f"GT244-TEST-{index:03d}" for index in range(1, 32)
 }
 CHECK_EVIDENCE_SUFFIXES = {
     "independent_test_roles": (
@@ -279,6 +279,10 @@ ISSUE_EVIDENCE_BY_ID = {
     "GT244-TEST-030": (
         "scripts/checks/validate-test-case-contract.py",
         "tests/v23/test_v244_test_contracts.py",
+    ),
+    "GT244-TEST-031": (
+        "scripts/benchmark/v244_testing_capability_runner.py",
+        "tests/v23/test_v244_testing_capability_benchmark.py",
     ),
 }
 

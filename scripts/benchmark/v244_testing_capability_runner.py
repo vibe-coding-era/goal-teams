@@ -390,8 +390,13 @@ def browser_cases(
     }
 
 
-def wait_ready(base_url: str, process: subprocess.Popen[str]) -> None:
-    deadline = time.monotonic() + 5
+def wait_ready(
+    base_url: str,
+    process: subprocess.Popen[str],
+    *,
+    timeout_seconds: float = 20.0,
+) -> None:
+    deadline = time.monotonic() + timeout_seconds
     while time.monotonic() < deadline:
         if process.poll() is not None:
             raise RuntimeError(f"reference app exited early with {process.returncode}")
