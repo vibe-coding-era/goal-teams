@@ -1374,6 +1374,33 @@ class V240ReleaseCliSecurityTests(unittest.TestCase):
         adapter = _adapter(ROOT)
         payload = {
             "id": 240,
+            "draft": False,
+            "immutable": True,
+            "tag_name": "v2.40",
+            "target_commitish": COMMIT,
+            "name": adapter_module.CANONICAL_RELEASE_TITLE,
+            "body": adapter_module.CANONICAL_RELEASE_BODY,
+            "published_at": "2026-07-25T00:00:00Z",
+            "assets": [],
+            "html_url": "https://example.invalid/release/v2.40",
+        }
+        completed = subprocess.CompletedProcess(
+            ["gh"], 0, json.dumps(payload), ""
+        )
+        collection = subprocess.CompletedProcess(
+            ["gh"], 0, json.dumps([[payload]]), ""
+        )
+        with mock.patch.object(
+            subprocess, "run", side_effect=[completed, collection]
+        ):
+            observed = adapter._release_json()
+        self.assertEqual(observed["name"], adapter_module.CANONICAL_RELEASE_TITLE)
+        self.assertEqual(observed["body"], adapter_module.CANONICAL_RELEASE_BODY)
+
+    def test_release_rest_readback_recovers_draft_from_paginated_collection(self) -> None:
+        adapter = _adapter(ROOT)
+        payload = {
+            "id": 240,
             "draft": True,
             "immutable": False,
             "tag_name": "v2.40",
@@ -1384,13 +1411,143 @@ class V240ReleaseCliSecurityTests(unittest.TestCase):
             "assets": [],
             "html_url": "https://example.invalid/release/v2.40",
         }
-        completed = subprocess.CompletedProcess(
-            ["gh"], 0, json.dumps(payload), ""
+        tag_miss = subprocess.CompletedProcess(
+            ["gh"], 1, "", "HTTP 404: Not Found"
         )
-        with mock.patch.object(subprocess, "run", return_value=completed):
+        unrelated = {**payload, "id": 239, "tag_name": "v2.39"}
+        collection = subprocess.CompletedProcess(
+            ["gh"], 0, json.dumps([[unrelated], [payload]]), ""
+        )
+        with mock.patch.object(
+            subprocess, "run", side_effect=[tag_miss, collection]
+        ) as run:
             observed = adapter._release_json()
-        self.assertEqual(observed["name"], adapter_module.CANONICAL_RELEASE_TITLE)
-        self.assertEqual(observed["body"], adapter_module.CANONICAL_RELEASE_BODY)
+        self.assertTrue(observed["isDraft"])
+        self.assertEqual(observed["databaseId"], 240)
+        self.assertIn("--paginate", run.call_args_list[1].args[0])
+        self.assertIn("--slurp", run.call_args_list[1].args[0])
+
+    def test_release_rest_readback_rejects_duplicate_draft_tags(self) -> None:
+        adapter = _adapter(ROOT)
+        duplicate = {
+            "id": 240,
+            "draft": True,
+            "immutable": False,
+            "tag_name": "v2.40",
+            "target_commitish": COMMIT,
+            "name": adapter_module.CANONICAL_RELEASE_TITLE,
+            "body": adapter_module.CANONICAL_RELEASE_BODY,
+            "published_at": None,
+            "assets": [],
+            "html_url": "https://example.invalid/release/v2.40",
+        }
+        tag_miss = subprocess.CompletedProcess(
+            ["gh"], 1, "", "HTTP 404: Not Found"
+        )
+        collection = subprocess.CompletedProcess(
+            ["gh"], 0, json.dumps([[duplicate], [{**duplicate, "id": 241}]]), ""
+        )
+        with mock.patch.object(
+            subprocess, "run", side_effect=[tag_miss, collection]
+        ), self.assertRaises(adapter_module.AdapterError) as caught:
+            adapter._release_json()
+        self.assertEqual(
+            caught.exception.receipt["error_code"],
+            "E_V240_REMOTE_RESOURCE_CONFLICT",
+        )
+
+    def test_release_rest_readback_rejects_same_id_metadata_drift(self) -> None:
+        adapter = _adapter(ROOT)
+        direct = {
+            "id": 240,
+            "draft": False,
+            "immutable": True,
+            "tag_name": "v2.40",
+            "target_commitish": COMMIT,
+            "name": adapter_module.CANONICAL_RELEASE_TITLE,
+            "body": adapter_module.CANONICAL_RELEASE_BODY,
+            "published_at": "2026-07-25T00:00:00Z",
+            "assets": [],
+            "html_url": "https://example.invalid/release/v2.40",
+        }
+        for drift in (
+            {"body": "drift"},
+            {"target_commitish": BASE},
+            {"assets": [{"id": 1, "name": "unexpected", "size": 1}]},
+        ):
+            with self.subTest(drift=drift), mock.patch.object(
+                subprocess,
+                "run",
+                side_effect=[
+                    subprocess.CompletedProcess(
+                        ["gh"], 0, json.dumps(direct), ""
+                    ),
+                    subprocess.CompletedProcess(
+                        ["gh"], 0, json.dumps([[{**direct, **drift}]]), ""
+                    ),
+                ],
+            ), self.assertRaises(adapter_module.AdapterError) as caught:
+                adapter._release_json()
+            self.assertEqual(
+                caught.exception.receipt["error_code"],
+                "E_V240_REMOTE_RESOURCE_CONFLICT",
+            )
+
+    def test_release_rest_readback_rejects_malformed_paginated_collection(
+        self,
+    ) -> None:
+        adapter = _adapter(ROOT)
+        tag_miss = subprocess.CompletedProcess(
+            ["gh"], 1, "", "HTTP 404: Not Found"
+        )
+        malformed = [
+            "{}",
+            json.dumps([{}]),
+            json.dumps([[42]]),
+        ]
+        for body in malformed:
+            with self.subTest(body=body), mock.patch.object(
+                subprocess,
+                "run",
+                side_effect=[
+                    tag_miss,
+                    subprocess.CompletedProcess(["gh"], 0, body, ""),
+                ],
+            ), self.assertRaises(adapter_module.AdapterError) as caught:
+                adapter._release_json()
+            self.assertEqual(
+                caught.exception.receipt["error_code"],
+                "E_V240_ADAPTER_READBACK",
+            )
+
+    def test_release_rest_readback_rejects_endpoint_disagreement(self) -> None:
+        adapter = _adapter(ROOT)
+        payload = {
+            "id": 240,
+            "draft": False,
+            "immutable": True,
+            "tag_name": "v2.40",
+            "target_commitish": COMMIT,
+            "name": adapter_module.CANONICAL_RELEASE_TITLE,
+            "body": adapter_module.CANONICAL_RELEASE_BODY,
+            "published_at": "2026-07-25T00:00:00Z",
+            "assets": [],
+            "html_url": "https://example.invalid/release/v2.40",
+        }
+        tag_miss = subprocess.CompletedProcess(
+            ["gh"], 1, "", "HTTP 404: Not Found"
+        )
+        collection = subprocess.CompletedProcess(
+            ["gh"], 0, json.dumps([[payload]]), ""
+        )
+        with mock.patch.object(
+            subprocess, "run", side_effect=[tag_miss, collection]
+        ), self.assertRaises(adapter_module.AdapterError) as caught:
+            adapter._release_json()
+        self.assertEqual(
+            caught.exception.receipt["error_code"],
+            "E_V240_REMOTE_RESOURCE_CONFLICT",
+        )
 
     def test_tag_creation_uses_canonical_annotated_message(self) -> None:
         adapter = _adapter(ROOT)

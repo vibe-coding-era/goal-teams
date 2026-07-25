@@ -580,49 +580,156 @@ class GitHubAdapter:
             capture_output=True,
             check=False,
         )
+        direct_value: Mapping[str, Any] | None = None
         if result.returncode != 0:
             combined = (result.stdout + result.stderr).lower()
-            if "not found" in combined or "release not found" in combined or "404" in combined:
-                return None
+            if not (
+                "not found" in combined
+                or "release not found" in combined
+                or "404" in combined
+            ):
+                _fail(
+                    "E_V240_ADAPTER_READBACK",
+                    "cannot read GitHub Release",
+                    stderr=result.stderr[-2000:],
+                )
+        else:
+            try:
+                parsed = json.loads(result.stdout)
+            except json.JSONDecodeError as exc:
+                _fail("E_V240_ADAPTER_READBACK", f"invalid Release JSON: {exc}")
+            if not isinstance(parsed, Mapping):
+                _fail(
+                    "E_V240_ADAPTER_READBACK",
+                    "Release response is not an object",
+                )
+            direct_value = parsed
+
+        # GitHub's tag endpoint does not return draft releases.  Always
+        # reconcile it with the complete authenticated collection so a Draft
+        # can be recovered and duplicate tag identities cannot be hidden by
+        # either endpoint.
+        collection_result = subprocess.run(
+            [
+                "gh",
+                "api",
+                f"repos/{self.repository}/releases?per_page=100",
+                "--hostname",
+                GITHUB_HOST,
+                "--paginate",
+                "--slurp",
+            ],
+            cwd=self.source_root,
+            env={**os.environ, "GH_HOST": GITHUB_HOST},
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if collection_result.returncode != 0:
             _fail(
                 "E_V240_ADAPTER_READBACK",
-                "cannot read GitHub Release",
-                stderr=result.stderr[-2000:],
+                "cannot list GitHub Releases",
+                stderr=collection_result.stderr[-2000:],
             )
         try:
-            value = json.loads(result.stdout)
+            pages = json.loads(collection_result.stdout)
         except json.JSONDecodeError as exc:
-            _fail("E_V240_ADAPTER_READBACK", f"invalid Release JSON: {exc}")
-        if not isinstance(value, Mapping):
-            _fail("E_V240_ADAPTER_READBACK", "Release response is not an object")
-        assets = value.get("assets")
-        if not isinstance(assets, list):
-            _fail("E_V240_ADAPTER_READBACK", "REST Release assets are not an array")
-        normalized_assets: list[dict[str, Any]] = []
-        for asset in assets:
-            if not isinstance(asset, Mapping):
-                _fail("E_V240_ADAPTER_READBACK", "REST Release asset is malformed")
-            normalized_assets.append(
-                {
-                    "id": asset.get("id"),
-                    "name": asset.get("name"),
-                    "size": asset.get("size"),
-                    "digest": asset.get("digest"),
-                    "url": asset.get("url"),
-                }
+            _fail(
+                "E_V240_ADAPTER_READBACK",
+                f"invalid paginated Release JSON: {exc}",
             )
-        return {
-            "databaseId": value.get("id"),
-            "isDraft": value.get("draft"),
-            "isImmutable": value.get("immutable"),
-            "tagName": value.get("tag_name"),
-            "targetCommitish": value.get("target_commitish"),
-            "name": value.get("name"),
-            "body": value.get("body"),
-            "publishedAt": value.get("published_at"),
-            "assets": normalized_assets,
-            "url": value.get("html_url"),
-        }
+        if not isinstance(pages, list):
+            _fail(
+                "E_V240_ADAPTER_READBACK",
+                "paginated Release response is not an array",
+            )
+        values: list[Mapping[str, Any]] = []
+        for page in pages:
+            if not isinstance(page, list):
+                _fail(
+                    "E_V240_ADAPTER_READBACK",
+                    "paginated Release page is not an array",
+                )
+            for item in page:
+                if not isinstance(item, Mapping):
+                    _fail(
+                        "E_V240_ADAPTER_READBACK",
+                        "paginated Release item is malformed",
+                    )
+                values.append(item)
+        matches = [item for item in values if item.get("tag_name") == self.tag]
+        if len(matches) > 1:
+            _fail(
+                "E_V240_REMOTE_RESOURCE_CONFLICT",
+                f"duplicate Release tag: {self.tag}",
+            )
+        collection_value = matches[0] if matches else None
+
+        def normalize_release(raw: Mapping[str, Any]) -> dict[str, Any]:
+            assets = raw.get("assets")
+            if not isinstance(assets, list):
+                _fail(
+                    "E_V240_ADAPTER_READBACK",
+                    "REST Release assets are not an array",
+                )
+            normalized_assets: list[dict[str, Any]] = []
+            for asset in assets:
+                if not isinstance(asset, Mapping):
+                    _fail(
+                        "E_V240_ADAPTER_READBACK",
+                        "REST Release asset is malformed",
+                    )
+                normalized_assets.append(
+                    {
+                        "id": asset.get("id"),
+                        "name": asset.get("name"),
+                        "size": asset.get("size"),
+                        "digest": asset.get("digest"),
+                        "url": asset.get("url"),
+                    }
+                )
+            return {
+                "databaseId": raw.get("id"),
+                "isDraft": raw.get("draft"),
+                "isImmutable": raw.get("immutable"),
+                "tagName": raw.get("tag_name"),
+                "targetCommitish": raw.get("target_commitish"),
+                "name": raw.get("name"),
+                "body": raw.get("body"),
+                "publishedAt": raw.get("published_at"),
+                "assets": normalized_assets,
+                "url": raw.get("html_url"),
+            }
+
+        if direct_value is None:
+            if collection_value is None:
+                return None
+            if collection_value.get("draft") is not True:
+                _fail(
+                    "E_V240_REMOTE_RESOURCE_CONFLICT",
+                    "tag endpoint missed a non-draft Release",
+                )
+            value = collection_value
+        else:
+            if direct_value.get("draft") is not False:
+                _fail(
+                    "E_V240_ADAPTER_READBACK",
+                    "tag endpoint returned a draft Release",
+                )
+            if collection_value is None:
+                _fail(
+                    "E_V240_REMOTE_RESOURCE_CONFLICT",
+                    "Release tag endpoints disagree",
+                )
+            direct_projection = normalize_release(direct_value)
+            collection_projection = normalize_release(collection_value)
+            if direct_projection != collection_projection:
+                _fail(
+                    "E_V240_REMOTE_RESOURCE_CONFLICT",
+                    "Release tag endpoints disagree",
+                )
+            value = direct_value
+        return normalize_release(value)
 
     def _resolve_target_commitish(self, value: Any) -> str | None:
         """Resolve a Release target through live refs to one commit identity."""
