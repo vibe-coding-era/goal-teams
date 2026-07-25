@@ -336,6 +336,59 @@ class V244ReleaseEngineTests(unittest.TestCase):
         )
         self.assertEqual(result["classification"], "exact")
 
+    def test_candidate_push_uses_exact_remote_lease_for_existing_branch(
+        self,
+    ) -> None:
+        candidate = "b" * 40
+        previous = "c" * 40
+        instance = adapter.GitHubAdapter(
+            source_root=ROOT,
+            workspace_root=ROOT,
+            repository="vibe-coding-era/goal-teams",
+            version="V2.44",
+            candidate_commit=candidate,
+            base_main_commit="a" * 40,
+            authority={},
+            execute_external_writes=True,
+        )
+        with mock.patch.object(
+            instance, "_remote_ref", return_value=previous
+        ):
+            observed = instance.observe(
+                operation_id="CP12.candidate_push",
+                action="candidate_push",
+                expected_before={"remote_candidate_commit": previous},
+                parameters={},
+            )
+        self.assertEqual(observed["classification"], "before")
+
+        before = {"classification": "before", "details": {}}
+        exact = {"classification": "exact", "details": {}}
+        with mock.patch.object(
+            instance, "observe", side_effect=(before, exact)
+        ), mock.patch.object(
+            instance, "_require_write_authority"
+        ), mock.patch.object(
+            adapter, "_run"
+        ) as run:
+            result = instance.execute(
+                operation_id="CP12.candidate_push",
+                action="candidate_push",
+                expected_before={"remote_candidate_commit": previous},
+                parameters={},
+            )
+        run.assert_called_once_with(
+            (
+                "git",
+                "push",
+                f"--force-with-lease={instance.candidate_ref}:{previous}",
+                "origin",
+                f"{candidate}:{instance.candidate_ref}",
+            ),
+            cwd=ROOT,
+        )
+        self.assertEqual(result["classification"], "exact")
+
 
 if __name__ == "__main__":
     unittest.main()

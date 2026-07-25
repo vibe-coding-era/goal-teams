@@ -1094,8 +1094,17 @@ class GitHubAdapter:
         if action == "candidate_push":
             value = self._remote_ref(self.candidate_ref)
             expected_after = self.candidate_commit
-            classification = "exact" if value == expected_after else (
-                "absent" if value is None else "conflict"
+            expected_before_commit = expected_before.get(
+                "remote_candidate_commit"
+            )
+            classification = (
+                "exact"
+                if value == expected_after
+                else "before"
+                if value == expected_before_commit
+                else "absent"
+                if value is None and expected_before_commit is None
+                else "conflict"
             )
             return self._readback(
                 "git_ls_remote",
@@ -1664,10 +1673,23 @@ class GitHubAdapter:
                 payload_path.unlink(missing_ok=True)
         elif action == "candidate_push":
             expected = expected_before.get("remote_candidate_commit")
-            if expected not in {None, self.candidate_commit}:
-                _fail("E_V240_ADAPTER_EXPECTED_BEFORE", "candidate ref expected-before drift")
+            if expected is not None and (
+                not isinstance(expected, str)
+                or SHA40_RE.fullmatch(expected) is None
+            ):
+                _fail(
+                    "E_V240_ADAPTER_EXPECTED_BEFORE",
+                    "candidate ref expected-before is malformed",
+                )
+            lease = f"--force-with-lease={self.candidate_ref}:{expected or ''}"
             _run(
-                ("git", "push", "origin", f"{self.candidate_commit}:{self.candidate_ref}"),
+                (
+                    "git",
+                    "push",
+                    lease,
+                    "origin",
+                    f"{self.candidate_commit}:{self.candidate_ref}",
+                ),
                 cwd=self.source_root,
             )
         elif action == "tag_push":
