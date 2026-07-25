@@ -389,6 +389,141 @@ class V244ReleaseEngineTests(unittest.TestCase):
         )
         self.assertEqual(result["classification"], "exact")
 
+    def test_candidate_push_handles_absent_exact_and_prewrite_conflict(
+        self,
+    ) -> None:
+        candidate = "b" * 40
+        previous = "c" * 40
+        concurrent = "d" * 40
+        instance = adapter.GitHubAdapter(
+            source_root=ROOT,
+            workspace_root=ROOT,
+            repository="vibe-coding-era/goal-teams",
+            version="V2.44",
+            candidate_commit=candidate,
+            base_main_commit="a" * 40,
+            authority={},
+            execute_external_writes=True,
+        )
+        for remote, expected, classification in (
+            (None, None, "absent"),
+            (candidate, previous, "exact"),
+            (concurrent, previous, "conflict"),
+        ):
+            with self.subTest(classification=classification), mock.patch.object(
+                instance, "_remote_ref", return_value=remote
+            ):
+                observed = instance.observe(
+                    operation_id="CP12.candidate_push",
+                    action="candidate_push",
+                    expected_before={"remote_candidate_commit": expected},
+                    parameters={},
+                )
+            self.assertEqual(observed["classification"], classification)
+
+        with mock.patch.object(
+            instance,
+            "observe",
+            return_value={"classification": "exact", "details": {}},
+        ), mock.patch.object(
+            instance, "_require_write_authority"
+        ), mock.patch.object(
+            adapter, "_run"
+        ) as run:
+            adopted = instance.execute(
+                operation_id="CP12.candidate_push",
+                action="candidate_push",
+                expected_before={"remote_candidate_commit": previous},
+                parameters={},
+            )
+        self.assertTrue(adopted["adopted_existing"])
+        self.assertEqual(adopted["external_side_effect_count"], 0)
+        run.assert_not_called()
+
+        with mock.patch.object(
+            instance,
+            "observe",
+            return_value={"classification": "conflict", "details": {}},
+        ), mock.patch.object(
+            instance, "_require_write_authority"
+        ), mock.patch.object(
+            adapter, "_run"
+        ) as run:
+            with self.assertRaises(adapter.AdapterError) as caught:
+                instance.execute(
+                    operation_id="CP12.candidate_push",
+                    action="candidate_push",
+                    expected_before={"remote_candidate_commit": previous},
+                    parameters={},
+                )
+        self.assertEqual(
+            caught.exception.receipt["error_code"],
+            "E_V240_REMOTE_RESOURCE_CONFLICT",
+        )
+        self.assertEqual(
+            caught.exception.receipt["external_side_effect_count"], 0
+        )
+        run.assert_not_called()
+
+    def test_candidate_push_maps_post_observation_lease_race_to_conflict(
+        self,
+    ) -> None:
+        previous = "c" * 40
+        instance = adapter.GitHubAdapter(
+            source_root=ROOT,
+            workspace_root=ROOT,
+            repository="vibe-coding-era/goal-teams",
+            version="V2.44",
+            candidate_commit="b" * 40,
+            base_main_commit="a" * 40,
+            authority={},
+            execute_external_writes=True,
+        )
+        before = {"classification": "before", "details": {}}
+        conflict = {"classification": "conflict", "details": {}}
+        command_failure = adapter.AdapterError(
+            "E_V240_ADAPTER_COMMAND", "lease rejected"
+        )
+        with mock.patch.object(
+            instance, "observe", side_effect=(before, conflict)
+        ), mock.patch.object(
+            instance, "_require_write_authority"
+        ), mock.patch.object(
+            adapter, "_run", side_effect=command_failure
+        ):
+            with self.assertRaises(adapter.AdapterError) as caught:
+                instance.execute(
+                    operation_id="CP12.candidate_push",
+                    action="candidate_push",
+                    expected_before={"remote_candidate_commit": previous},
+                    parameters={},
+                )
+        self.assertEqual(
+            caught.exception.receipt["error_code"],
+            "E_V240_REMOTE_RESOURCE_CONFLICT",
+        )
+        self.assertEqual(
+            caught.exception.receipt["external_side_effect_count"], 0
+        )
+
+        with mock.patch.object(
+            instance, "observe"
+        ) as observe, mock.patch.object(
+            instance, "_require_write_authority"
+        ):
+            with self.assertRaises(adapter.AdapterError) as malformed:
+                instance.execute(
+                    operation_id="CP12.candidate_push",
+                    action="candidate_push",
+                    expected_before={"remote_candidate_commit": "bad"},
+                    parameters={},
+                )
+        self.assertEqual(
+            malformed.exception.receipt["error_code"],
+            "E_V240_ADAPTER_EXPECTED_BEFORE",
+        )
+        observe.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1100,10 +1100,13 @@ class GitHubAdapter:
             classification = (
                 "exact"
                 if value == expected_after
-                else "before"
-                if value == expected_before_commit
                 else "absent"
                 if value is None and expected_before_commit is None
+                else "before"
+                if (
+                    expected_before_commit is not None
+                    and value == expected_before_commit
+                )
                 else "conflict"
             )
             return self._readback(
@@ -1556,6 +1559,18 @@ class GitHubAdapter:
         if not isinstance(expected_before, Mapping):
             _fail("E_V240_ADAPTER_EXPECTED_BEFORE", "expected-before is required")
         self._require_write_authority(action)
+        if action == "candidate_push":
+            expected_candidate = expected_before.get(
+                "remote_candidate_commit"
+            )
+            if expected_candidate is not None and (
+                not isinstance(expected_candidate, str)
+                or SHA40_RE.fullmatch(expected_candidate) is None
+            ):
+                _fail(
+                    "E_V240_ADAPTER_EXPECTED_BEFORE",
+                    "candidate ref expected-before is malformed",
+                )
         before = self.observe(
             operation_id=operation_id,
             action=action,
@@ -1673,25 +1688,31 @@ class GitHubAdapter:
                 payload_path.unlink(missing_ok=True)
         elif action == "candidate_push":
             expected = expected_before.get("remote_candidate_commit")
-            if expected is not None and (
-                not isinstance(expected, str)
-                or SHA40_RE.fullmatch(expected) is None
-            ):
-                _fail(
-                    "E_V240_ADAPTER_EXPECTED_BEFORE",
-                    "candidate ref expected-before is malformed",
-                )
             lease = f"--force-with-lease={self.candidate_ref}:{expected or ''}"
-            _run(
-                (
-                    "git",
-                    "push",
-                    lease,
-                    "origin",
-                    f"{self.candidate_commit}:{self.candidate_ref}",
-                ),
-                cwd=self.source_root,
-            )
+            try:
+                _run(
+                    (
+                        "git",
+                        "push",
+                        lease,
+                        "origin",
+                        f"{self.candidate_commit}:{self.candidate_ref}",
+                    ),
+                    cwd=self.source_root,
+                )
+            except AdapterError as exc:
+                fresh = self.observe(
+                    operation_id=operation_id,
+                    action=action,
+                    expected_before=expected_before,
+                    parameters=parameters,
+                )
+                if fresh.get("classification") == "conflict":
+                    _fail(
+                        "E_V240_REMOTE_RESOURCE_CONFLICT",
+                        "candidate ref changed after the bound pre-write observation",
+                    )
+                raise exc
         elif action == "tag_push":
             if expected_before.get("remote_tag_commit") is not None:
                 _fail("E_V240_ADAPTER_EXPECTED_BEFORE", "tag creation requires absent expected-before")
