@@ -138,6 +138,47 @@ def _final_main_ruleset_payload() -> dict[str, object]:
 
 
 class V240ReleaseCliSecurityTests(unittest.TestCase):
+    def test_authenticated_push_is_fixed_https_and_resets_inherited_auth(self) -> None:
+        command = adapter_module._authenticated_git_push_argv(
+            "vibe-coding-era/goal-teams",
+            options=("--force-with-lease=refs/heads/main:" + BASE,),
+            refspecs=(COMMIT + ":refs/heads/main",),
+        )
+        self.assertEqual(
+            command,
+            (
+                "git",
+                "-c",
+                "credential.helper=",
+                "-c",
+                "credential.https://github.com.helper=!gh auth git-credential",
+                "-c",
+                "http.extraHeader=",
+                "-c",
+                "http.https://github.com/.extraHeader=",
+                "push",
+                "--force-with-lease=refs/heads/main:" + BASE,
+                "https://github.com/vibe-coding-era/goal-teams.git",
+                COMMIT + ":refs/heads/main",
+            ),
+        )
+        self.assertNotIn("origin", command)
+        self.assertFalse(
+            any(
+                "authorization" in value.lower() or "token" in value.lower()
+                for value in command
+            )
+        )
+        with self.assertRaises(adapter_module.AdapterError) as caught:
+            adapter_module._authenticated_git_push_argv(
+                "someone/goal-teams",
+                refspecs=(COMMIT + ":refs/heads/main",),
+            )
+        self.assertEqual(
+            caught.exception.receipt["error_code"],
+            "E_V240_GITHUB_TRANSPORT_BINDING",
+        )
+
     def test_github_transport_is_fixed_and_rejects_forks_rewrites_and_enterprise_host(self) -> None:
         canonical = "git@github.com:vibe-coding-era/goal-teams.git"
 
@@ -1389,6 +1430,48 @@ class V240ReleaseCliSecurityTests(unittest.TestCase):
         self.assertEqual(
             tag_command[tag_command.index("-m") + 1],
             adapter_module.CANONICAL_TAG_MESSAGE,
+        )
+        push_command = next(
+            command for command in commands if "push" in command
+        )
+        self.assertEqual(
+            push_command,
+            adapter_module._authenticated_git_push_argv(
+                "vibe-coding-era/goal-teams",
+                refspecs=("refs/tags/v2.40",),
+            ),
+        )
+
+    def test_main_promotion_uses_authenticated_fixed_https_push(self) -> None:
+        adapter = _adapter(ROOT)
+        with mock.patch.object(
+            adapter,
+            "observe",
+            side_effect=(
+                {"classification": "before", "details": {}},
+                {"classification": "exact", "details": {}},
+            ),
+        ), mock.patch.object(
+            adapter, "_require_write_authority"
+        ), mock.patch.object(
+            adapter_module, "_run"
+        ) as run:
+            receipt = adapter.execute(
+                operation_id="CP17.main_promote",
+                action="main_promote",
+                expected_before={"remote_main_commit": BASE},
+                parameters={},
+            )
+        self.assertEqual(receipt["classification"], "exact")
+        run.assert_called_once_with(
+            adapter_module._authenticated_git_push_argv(
+                "vibe-coding-era/goal-teams",
+                options=(
+                    "--force-with-lease=refs/heads/main:" + BASE,
+                ),
+                refspecs=(COMMIT + ":refs/heads/main",),
+            ),
+            cwd=ROOT,
         )
 
     def test_state_compare_and_swap_allows_only_one_concurrent_writer(self) -> None:

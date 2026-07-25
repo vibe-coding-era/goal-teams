@@ -109,6 +109,38 @@ def _git_argv(argv: Sequence[str]) -> list[str]:
     return values
 
 
+def _authenticated_git_push_argv(
+    repository: str,
+    *,
+    options: Sequence[str] = (),
+    refspecs: Sequence[str],
+) -> tuple[str, ...]:
+    """Build a fixed-HTTPS push using only the already verified gh identity."""
+
+    if repository != FIXED_REPOSITORY or REPOSITORY_RE.fullmatch(repository) is None:
+        _fail(
+            "E_V240_GITHUB_TRANSPORT_BINDING",
+            "authenticated push repository is not the fixed GitHub repository",
+        )
+    repository_url = f"https://{GITHUB_HOST}/{repository}.git"
+
+    return (
+        "git",
+        "-c",
+        "credential.helper=",
+        "-c",
+        f"credential.https://{GITHUB_HOST}.helper=!gh auth git-credential",
+        "-c",
+        "http.extraHeader=",
+        "-c",
+        f"http.https://{GITHUB_HOST}/.extraHeader=",
+        "push",
+        *options,
+        repository_url,
+        *refspecs,
+    )
+
+
 def _require_github_dot_com_host() -> None:
     configured = os.environ.get("GH_HOST")
     if configured not in {None, "", GITHUB_HOST}:
@@ -1691,12 +1723,12 @@ class GitHubAdapter:
             lease = f"--force-with-lease={self.candidate_ref}:{expected or ''}"
             try:
                 _run(
-                    (
-                        "git",
-                        "push",
-                        lease,
-                        "origin",
-                        f"{self.candidate_commit}:{self.candidate_ref}",
+                    _authenticated_git_push_argv(
+                        self.repository,
+                        options=(lease,),
+                        refspecs=(
+                            f"{self.candidate_commit}:{self.candidate_ref}",
+                        ),
                     ),
                     cwd=self.source_root,
                 )
@@ -1740,18 +1772,26 @@ class GitHubAdapter:
                     ),
                     cwd=self.source_root,
                 )
-            _run(("git", "push", "origin", f"refs/tags/{self.tag}"), cwd=self.source_root)
+            _run(
+                _authenticated_git_push_argv(
+                    self.repository,
+                    refspecs=(f"refs/tags/{self.tag}",),
+                ),
+                cwd=self.source_root,
+            )
         elif action == "main_promote":
             expected = expected_before.get("remote_main_commit")
             if expected != self.base_main_commit:
                 _fail("E_V240_REMOTE_MAIN_LEASE", "main expected-before is not frozen base")
             _run(
-                (
-                    "git",
-                    "push",
-                    f"--force-with-lease=refs/heads/main:{self.base_main_commit}",
-                    "origin",
-                    f"{self.candidate_commit}:refs/heads/main",
+                _authenticated_git_push_argv(
+                    self.repository,
+                    options=(
+                        f"--force-with-lease=refs/heads/main:{self.base_main_commit}",
+                    ),
+                    refspecs=(
+                        f"{self.candidate_commit}:refs/heads/main",
+                    ),
                 ),
                 cwd=self.source_root,
             )

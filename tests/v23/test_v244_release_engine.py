@@ -378,12 +378,12 @@ class V244ReleaseEngineTests(unittest.TestCase):
                 parameters={},
             )
         run.assert_called_once_with(
-            (
-                "git",
-                "push",
-                f"--force-with-lease={instance.candidate_ref}:{previous}",
-                "origin",
-                f"{candidate}:{instance.candidate_ref}",
+            adapter._authenticated_git_push_argv(
+                "vibe-coding-era/goal-teams",
+                options=(
+                    f"--force-with-lease={instance.candidate_ref}:{previous}",
+                ),
+                refspecs=(f"{candidate}:{instance.candidate_ref}",),
             ),
             cwd=ROOT,
         )
