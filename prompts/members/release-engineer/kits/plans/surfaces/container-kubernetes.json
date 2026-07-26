@@ -1,0 +1,1 @@
+{"schema_version":"release-surface-plan-v1","surface":"container-kubernetes","states":["oci_ready","rollout_started","rollout_complete","business_verified","observing"],"required_readback":["oci_index_digest","platform_image_digests","namespace","workload","business_probe"],"rollback_scope":["pod_template","traffic"],"data_rollback":"human_only"}

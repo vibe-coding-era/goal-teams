@@ -1544,7 +1544,7 @@ def validate_promotion_state(
                 )
     cp05_record = checkpoints.get("CP05")
     if (
-        state.get("version") == "V2.44"
+        isinstance(_release_cfg_for_state(state).get("host_acceptance"), Mapping)
         and isinstance(cp05_record, Mapping)
         and cp05_record.get("status") == "passed"
     ):
@@ -1661,7 +1661,7 @@ def validate_promotion_state(
                 )
             )
             or acceptance.get("route_policy_profile")
-            != "goal-teams-self-release-v2.44"
+            != f"goal-teams-self-release-{str(state.get('version')).lower()}"
             or acceptance.get("route_candidate_commit") != candidate
             or not isinstance(acceptance.get("challenge_state_generation"), int)
             or acceptance.get("challenge_state_generation", 0) < 1
@@ -5075,10 +5075,10 @@ def _execute_local_operation(
             },
         )
     if operation_id == "CP05.workflow_approve":
-        if state.get("version") == "V2.44":
+        if isinstance(_release_cfg_for_state(state).get("host_acceptance"), Mapping):
             _fail(
                 "E_V244_HOST_CP05_REQUIRED",
-                "V2.44 workflow approval readback is produced only by the external trusted host",
+                "workflow approval readback is produced only by the external trusted host",
             )
         checkout = _require_clean_candidate_checkout(state)
         approval = parameters.get("ci_approval")
@@ -5996,8 +5996,10 @@ def execute_current_checkpoint(
     path, state, digest = _load_state_cas(state_path, expected_digest)
     _verify_frozen_git_identity(state)
     checkpoint_id = str(state.get("current_checkpoint"))
-    if checkpoint_id == "CP05" and state.get("version") == "V2.44":
-        # V2.44 independent approval is a repository-external host
+    if checkpoint_id == "CP05" and isinstance(
+        _release_cfg_for_state(state).get("host_acceptance"), Mapping
+    ):
+        # Independent approval is a repository-external host
         # transaction.  Caller JSON, files, argv/environment tokens, and
         # hash-only receipts are not capabilities and must never advance
         # CP05 through this public API.  The trusted host validates the real
@@ -6005,7 +6007,7 @@ def execute_current_checkpoint(
         # checkpoint CAS itself.
         _fail(
             "E_V244_HOST_CP05_REQUIRED",
-            "V2.44 CP05 can only be advanced by the repository-external trusted host",
+            "CP05 can only be advanced by the repository-external trusted host",
         )
     if checkpoint_id == "CP18" and _close_capability is not _CLOSE_CAPABILITY:
         _fail(

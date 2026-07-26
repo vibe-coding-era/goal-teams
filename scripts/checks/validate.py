@@ -18,11 +18,11 @@ except ModuleNotFoundError:  # pragma: no cover
 
 ROOT = Path(__file__).resolve().parents[2]
 CURRENT_VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
-PUBLISHED_VERSION = "V2.44"
+PUBLISHED_VERSION = "V2.45"
 GENERAL_CORE_POLICY_VERSION = "V2.5"
 LEGACY_DATA_SCHEMA_VERSION = "V2.3"
 CORE_POLICY_PROFILE = "goal-teams-core-v2.5"
-SELF_RELEASE_POLICY_PROFILE = "goal-teams-self-release-v2.44"
+SELF_RELEASE_POLICY_PROFILE = "goal-teams-self-release-v2.45"
 STARTUP_LINE = f"我是 Goal Teams Lead {CURRENT_VERSION}。"
 COMPATIBILITY_MARKER = (
     f"我是 Goal Teams Leader {CURRENT_VERSION}，使用 Goal + Plan 模式帮你完成规划、执行和交付，"
@@ -56,6 +56,7 @@ REQUIRED_FILES = [
     "references/profiles/goal-teams-self-release-v2.42.md",
     "references/profiles/goal-teams-self-release-v2.43.md",
     "references/profiles/goal-teams-self-release-v2.44.md",
+    "references/profiles/goal-teams-self-release-v2.45.md",
     "references/profiles/goal-teams-self-release-v2.39.md",
     "references/profiles/goal-teams-self-release-v2.38.md",
     "references/prompt-cache-manifest.json",
@@ -173,8 +174,10 @@ REQUIRED_FILES = [
     "scripts/release/README.md",
     "references/public-release-scan-baseline-v2.40.json",
     "references/public-release-scan-baseline-v2.44.json",
+    "references/public-release-scan-baseline-v2.45.json",
     "references/release-profiles/v2.40.json",
     "references/release-profiles/v2.44.json",
+    "references/release-profiles/v2.45.json",
     "scripts/check-member-layout.py",
     "scripts/validate-test-case-contract.py",
     "scripts/compare-artifacts.py",
@@ -493,7 +496,7 @@ FILE_RULES = {
         "references/rules-testing.md",
         "references/rules-loop.md",
         "references/goal-teams-core-v2.5.md",
-        "references/profiles/goal-teams-self-release-v2.44.md",
+        "references/profiles/goal-teams-self-release-v2.45.md",
         "references/flow-clarification-protocol.md",
         "references/agent-runtime-capability-contract.md",
         "references/rules-project-sizing.md",
@@ -553,7 +556,7 @@ FILE_RULES = {
         "`standard`",
         "显式提供时必须与派生值完全一致",
     ),
-    "references/profiles/goal-teams-self-release-v2.44.md": (
+    "references/profiles/goal-teams-self-release-v2.45.md": (
         SELF_RELEASE_POLICY_PROFILE,
         "52",
         "iteration 9",
@@ -779,6 +782,7 @@ def check_skill_frontmatter() -> None:
         version,
         GENERAL_CORE_POLICY_VERSION,
         LEGACY_DATA_SCHEMA_VERSION,
+        "V2.44",  # replay-only self-release and testing contract retained by V2.45
         "V2.43",  # replay-only self-release Profile retained by V2.44
         "V2.42",  # replay-only self-release Profile retained by V2.44
         "V2.41",  # replay-only self-release Profile retained by V2.44
@@ -806,7 +810,7 @@ def check_skill_frontmatter() -> None:
         "references/rules-testing.md",
         "references/rules-loop.md",
         "references/goal-teams-core-v2.5.md",
-        "references/profiles/goal-teams-self-release-v2.44.md",
+        "references/profiles/goal-teams-self-release-v2.45.md",
         "references/prompt-cache-manifest.json",
         "prompts/lead/core.md",
         "prompts/lead/planning.md",
@@ -1008,23 +1012,31 @@ def check_release_engine_profiles() -> None:
     profiles = {
         "V2.40": json.loads(read("references/release-profiles/v2.40.json")),
         "V2.44": json.loads(read("references/release-profiles/v2.44.json")),
+        "V2.45": json.loads(read("references/release-profiles/v2.45.json")),
     }
-    active = profiles["V2.44"]
+    active = profiles["V2.45"]
     historical = profiles["V2.40"]
     if (
         active.get("status") != "active"
         or active.get("external_writes_allowed") is not True
-        or active.get("candidate_branch") != "codex/v2.44-testing-capability"
-        or active.get("tag") != "v2.44"
+        or active.get("candidate_branch") != "codex/v2.45-release-engineer"
+        or active.get("tag") != "v2.45"
         or active.get("public_scan_baseline")
-        != "references/public-release-scan-baseline-v2.44.json"
+        != "references/public-release-scan-baseline-v2.45.json"
     ):
-        fail("V2.44 active release-engine profile is inconsistent")
+        fail("V2.45 active release-engine profile is inconsistent")
     if (
         historical.get("status") != "historical_replay"
         or historical.get("external_writes_allowed") is not False
     ):
         fail("V2.40 historical release-engine profile must reject external writes")
+    if (
+        profiles["V2.44"].get("status") != "historical_replay"
+        or profiles["V2.44"].get("external_writes_allowed") is not False
+        or profiles["V2.44"].get("published_before") != "V2.40"
+        or not isinstance(profiles["V2.44"].get("host_acceptance"), dict)
+    ):
+        fail("V2.44 replay profile must retain predecessor and host verification")
     for version, profile in profiles.items():
         if (
             profile.get("schema_version")
@@ -1071,6 +1083,7 @@ def check_key_rules() -> None:
             "references/rules-testing.md",
             "references/rules-loop.md",
             "references/goal-teams-core-v2.5.md",
+            "references/profiles/goal-teams-self-release-v2.45.md",
             "references/profiles/goal-teams-self-release-v2.44.md",
             "references/profiles/goal-teams-self-release-v2.43.md",
             "references/profiles/goal-teams-self-release-v2.39.md",

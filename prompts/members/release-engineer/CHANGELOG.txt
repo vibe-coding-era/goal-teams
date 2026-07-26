@@ -1,0 +1,16 @@
+Release Engineer V2.45
+
+## V2.45
+
+- 建立独立、未接入主 `SKILL.md` 的 Release Engineer 成员包。
+- 默认只读复核最终发布 Evidence，明确禁止重跑全量测试。
+- 建立计划批准与执行批准两道人工 Gate，绑定候选、环境、Kit、脚本、权限和有效期。
+- 建立 Java、Rust、Go、Python、Node 的 10 个内置构建工具 Kit，覆盖五类环境与四类发布面。
+- 20 个预取/离线构建 action 由版本化 manifest 定义，仅允许经 root-owned、摘要与 provenance 固定的工具链宿主执行；非构建环境拒绝该权限。
+- 架构开始时的五份独立环境文档成为计划与执行硬门。
+- 增加本地历史脚本发现、版本/digest 展示和用户选择 Gate。
+- 增加依赖预取、构建后产物身份、备份/恢复演练、Benchmark、surface readback、发布后独立复核和有界 LOOP。
+- `/bin/bash` 身份冻结兼容 Linux 标准 merged-`/usr` 布局，同时拒绝非标准别名、非 root 所有权和解析目标漂移。
+- 数据库删除库、删除表、删除数据及等价高危操作不可由批准放宽，只能阻塞并转人类手动处理。
+
+本版本只提供独立显式加载的成员包和 package-local runtime；没有注册命名 subagent、没有并入主路由、没有实现每轮自动询问。

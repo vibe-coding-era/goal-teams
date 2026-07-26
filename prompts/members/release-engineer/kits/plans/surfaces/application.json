@@ -1,0 +1,1 @@
+{"schema_version":"release-surface-plan-v1","surface":"application","states":["artifact_ready","deployed","identity_readback","observing","verified"],"required_readback":["artifact_digest","configuration_identity","external_health","business_invariants"],"rollback_scope":["traffic","application","configuration"],"data_rollback":"human_only"}

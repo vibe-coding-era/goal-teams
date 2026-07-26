@@ -1,34 +1,34 @@
-# Goal Teams V2.44 Release
+# Goal Teams V2.45 Release
 
-V2.44 adds machine-checkable API integration and E2E test planning, case quality, execution-evidence, and capability-scoring contracts. It also upgrades the self-release engine from a V2.40-only implementation to a closed, Git-tracked release profile so the active V2.44 identity is explicit while V2.40 remains replay-only.
+V2.45 adds a standalone, progressively loaded Release Engineer member for governed environment preparation, packaging, application/container/WeChat Mini Program/GitHub Skill delivery, rollback, benchmark baselines, and post-release readback. The member ships in the package but is not connected to the main Skill route or normal member dispatch.
 
 ## Release governance
 
-- Both root READMEs contain exactly one controlled release marker that points to `v2.44` and this `release/current` note; the surrounding user-authored README body remains intact.
-- `goal-teams-self-release-v2.44` is the current repository self-release Profile. V2.40 and earlier Profiles remain historical replay material and cannot authorize external writes.
-- The release-engine profile binds the version, candidate branch, tag, Release metadata, strict snapshot format, public-scan baseline, and close schema. Unknown versions and profile drift fail closed.
-- The CP00–CP18 lifecycle binds every non-idempotent operation to intent, expected-before state, live readback, and marker-last recovery.
-- Promotion holds an active remote main lock, advances main only through an exact compare-and-swap lease, and publishes the already verified Draft last. Tag and published Release identities are immutable.
-- Draft assets are verified and rehearsed only in a temporary `CODEX_HOME`; the actual local installation consumes the published four-asset release and records its commit, tag, Release ID, asset IDs, and digests.
-- Current version checks derive the product identity from `VERSION`. `development` and `candidate` are deterministic local projections; `stable` is decided only by the independent live release audit.
+- `goal-teams-self-release-v2.45` is the active repository self-release Profile. V2.44 retains predecessor and external-host verification semantics for replay, but cannot authorize new external writes.
+- The release-engine profile binds V2.45, `codex/v2.45-release-engineer`, `v2.45`, Release metadata, strict snapshot format, public-scan baseline, and close schema.
+- CP05 is external-host-only for every profile that freezes `host_acceptance`; caller JSON, files, paths, argv, environment tokens, and self-reported reviewer identity cannot advance it.
+- The CP00–CP18 lifecycle, exact-SHA CI, remote lock, immutable tag/Release, four fixed assets, published-asset re-download, temporary installation audit, actual local installation, and independent live audit remain mandatory.
 
-## Test capability and evidence boundary
+## Standalone Release Engineer
 
-- API and E2E plans must trace requirements to executable assertions, negative paths, state changes, cleanup, and reproducible Evidence.
-- Test-member capability scoring distinguishes document quality, executable coverage, behavior evidence, and independent acceptance. A structural pass never becomes a behavior pass.
-- Unknown, unavailable, blocked, and not-run results remain explicit and never become zero or success.
+- Normal invocation performs only final release Evidence checks and never runs the full test suite.
+- Java, Rust, Go, Python, Node.js, five environments, and four release surfaces are selected from an approved versioned kit catalog.
+- Script generation requires a trusted-host-signed human plan approval; live execution requires a second trusted-host-signed human approval with one-time challenge, least-privilege, and database-safety attestations.
+- The fixed Evidence denominator includes unit, API, E2E, Review, Completion Audit, artifact, package, SBOM, provenance, and signature evidence. Callers may add kinds but cannot remove them.
+- Database destructive operations and unclosed indirect helper/database scripts fail closed. Production requires backup, restore proof, rollback, benchmark baseline, and post-release verification.
+- Receipts reuse the repository-wide V2.36 secret redaction boundary for credentials, Cookie, database URIs, `.netrc`, cloud secrets, and collaboration tokens.
 
-## Cache compatibility and claim boundary
+## Compatibility and evidence boundary
 
-- The V2.38-compatible prompt-cache manifest remains the route-static order and budget SSOT; V2.43/V2.40 and earlier schemas and fixtures retain their historical meaning.
-- Cache Evidence keeps structural, host, live-validation, and request-hit-rate states separate. Structural governance cannot be promoted into a live provider or request-hit-rate claim.
-- Goal Teams cannot force, clear, or guarantee a provider prompt cache.
+- V2.44 API/E2E schemas, fixtures, benchmark, and the fixed 100-point capability denominator remain historical machine contracts and are not renamed.
+- The V2.43 engineering-metrics sidecar remains compatible; unavailable or insufficient observations are never reported as zero.
+- Structural validation, test exit codes, cache telemetry, and benchmark scores do not replace real Evidence, independent Review, trusted-host acceptance, or release readback.
 
 ## Release telemetry
 
 - Tokens consumed / Tokens 消耗：**Unavailable / 未获取到**.
 - Cache hit rate / Cache 命中率：**Unavailable / 未获取到**.
 
-No trusted host usage artifact was available to this release note. These values are intentionally unavailable; they are not estimated, inferred, or reported as zero.
+No trusted host usage artifact was available while authoring this release note. Values are not estimated or reported as zero.
 
 Requirements: Python 3.11+ for the complete validated toolchain. The installer fails fast when a compatible Python with `tomllib` is unavailable.

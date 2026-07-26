@@ -1331,14 +1331,14 @@ class V235DistributionTests(unittest.TestCase):
 
     def test_version_and_bilingual_release_surfaces_are_v235(self) -> None:
         """ASSERT-V235-034/035: keep V2.35 assets after the product advances."""
-        self.assertEqual((ROOT / "VERSION").read_text(encoding="utf-8").strip(), "V2.44")
+        self.assertEqual((ROOT / "VERSION").read_text(encoding="utf-8").strip(), "V2.45")
         current_markers = {
-            "SKILL.md": "Goal Teams Lead V2.44",
-            "goal-teams.md": "V2.44",
-            "agents/openai.yaml": "Goal Teams V2.44",
-            "README.md": "V2.44",
-            "README.en.md": "V2.44",
-            "release/current/README.md": "V2.40",
+            "SKILL.md": "Goal Teams Lead V2.45",
+            "goal-teams.md": "V2.45",
+            "agents/openai.yaml": "Goal Teams V2.45",
+            "README.md": "V2.45",
+            "README.en.md": "V2.45",
+            "release/current/README.md": "V2.45",
         }
         for relative, marker in current_markers.items():
             with self.subTest(relative=relative):
@@ -1350,7 +1350,7 @@ class V235DistributionTests(unittest.TestCase):
         ):
             with self.subTest(compatibility_asset=relative):
                 self.assertTrue((ROOT / relative).is_file(), relative)
-        self.assertEqual(gt.PRODUCT_VERSION, "V2.44")
+        self.assertEqual(gt.PRODUCT_VERSION, "V2.45")
 
 
 ASSERTION_TEST_MAP: dict[str, tuple[str, ...]] = {

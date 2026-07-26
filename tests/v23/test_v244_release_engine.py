@@ -49,13 +49,13 @@ release = _load(
 class V244ReleaseEngineTests(unittest.TestCase):
     def test_active_profile_closes_every_public_release_identity(self) -> None:
         profile = release_config.active_release_config()
-        self.assertEqual(profile["version"], "V2.44")
+        self.assertEqual(profile["version"], "V2.45")
         self.assertEqual(profile["status"], "active")
         self.assertTrue(profile["external_writes_allowed"])
-        self.assertEqual(profile["candidate_branch"], "codex/v2.44-testing-capability")
-        self.assertEqual(profile["tag"], "v2.44")
-        self.assertEqual(profile["release_title"], "Goal Teams V2.44")
-        self.assertEqual(profile["tag_message"], "Goal Teams V2.44")
+        self.assertEqual(profile["candidate_branch"], "codex/v2.45-release-engineer")
+        self.assertEqual(profile["tag"], "v2.45")
+        self.assertEqual(profile["release_title"], "Goal Teams V2.45")
+        self.assertEqual(profile["tag_message"], "Goal Teams V2.45")
         self.assertEqual(
             profile["host_acceptance"]["schema_version"],
             "goal-teams-external-host-acceptance-v2",
@@ -63,7 +63,7 @@ class V244ReleaseEngineTests(unittest.TestCase):
         self.assertEqual(profile["host_acceptance"]["algorithm"], "Ed25519")
         self.assertEqual(
             profile["host_acceptance"]["signature_domain"],
-            "goal-teams/v2.44/cp05/host-acceptance/ed25519/v1",
+            "goal-teams/v2.45/cp05/host-acceptance/ed25519/v1",
         )
         self.assertEqual(
             hashlib.sha256(
@@ -80,22 +80,22 @@ class V244ReleaseEngineTests(unittest.TestCase):
 
     def test_unknown_profile_and_profile_field_drift_fail_closed(self) -> None:
         with self.assertRaisesRegex(ValueError, "unsupported release version"):
-            release_config.release_config("V2.45")
-        original = release_config.PROFILE_BY_VERSION["V2.44"]
+            release_config.release_config("V2.46")
+        original = release_config.PROFILE_BY_VERSION["V2.45"]
         try:
-            release_config.PROFILE_BY_VERSION["V2.44"] = (
+            release_config.PROFILE_BY_VERSION["V2.45"] = (
                 ROOT / "references" / "release-profiles" / "v2.40.json"
             )
             with self.assertRaisesRegex(ValueError, "fields drift|identity drift"):
-                release_config.release_config("V2.44")
+                release_config.release_config("V2.45")
         finally:
-            release_config.PROFILE_BY_VERSION["V2.44"] = original
+            release_config.PROFILE_BY_VERSION["V2.45"] = original
 
     def test_v244_keeps_v240_strict_snapshot_contract(self) -> None:
-        self.assertIn("V2.44", builder.KNOWN_RELEASES)
-        self.assertIn("V2.44", builder.OKF_RELEASE_VERSIONS)
-        self.assertIn("V2.44", builder.STRICT_SNAPSHOT_VERSIONS)
-        self.assertIn("V2.44", validator.STRICT_SNAPSHOT_VERSIONS)
+        self.assertIn("V2.45", builder.KNOWN_RELEASES)
+        self.assertIn("V2.45", builder.OKF_RELEASE_VERSIONS)
+        self.assertIn("V2.45", builder.STRICT_SNAPSHOT_VERSIONS)
+        self.assertIn("V2.45", validator.STRICT_SNAPSHOT_VERSIONS)
         rows = [
             {
                 "sha256": "a" * 64,
@@ -111,22 +111,30 @@ class V244ReleaseEngineTests(unittest.TestCase):
         installer = (ROOT / "scripts/install/install-local.sh").read_text(
             encoding="utf-8"
         )
-        self.assertIn('version in {"V2.40", "V2.44"}', installer)
+        self.assertIn('"V2.45"', installer)
+
+    def test_v244_is_replay_verifiable_but_cannot_write(self) -> None:
+        profile = release_config.release_config("V2.44")
+        self.assertEqual(profile["status"], "historical_replay")
+        self.assertFalse(profile["external_writes_allowed"])
+        self.assertEqual(profile["published_before"], "V2.40")
+        self.assertFalse(profile["legacy_recovery_required"])
+        self.assertIsInstance(profile["host_acceptance"], dict)
 
     def test_github_adapter_projects_v244_and_denies_v240_writes(self) -> None:
         instance = adapter.GitHubAdapter(
             source_root=ROOT,
             workspace_root=ROOT,
             repository="vibe-coding-era/goal-teams",
-            version="V2.44",
+            version="V2.45",
             candidate_commit="b" * 40,
             base_main_commit="a" * 40,
             authority={},
             execute_external_writes=False,
         )
-        self.assertEqual(instance.candidate_ref, "refs/heads/codex/v2.44-testing-capability")
-        self.assertEqual(instance.tag, "v2.44")
-        self.assertEqual(instance.release_title, "Goal Teams V2.44")
+        self.assertEqual(instance.candidate_ref, "refs/heads/codex/v2.45-release-engineer")
+        self.assertEqual(instance.tag, "v2.45")
+        self.assertEqual(instance.release_title, "Goal Teams V2.45")
         with self.assertRaises(adapter.AdapterError) as caught:
             adapter.GitHubAdapter(
                 source_root=ROOT,
@@ -154,9 +162,9 @@ class V244ReleaseEngineTests(unittest.TestCase):
         manifest = json.loads(
             (ROOT / "release/current/manifest.json").read_text(encoding="utf-8")
         )
-        self.assertEqual(manifest["product_version"], "V2.44")
+        self.assertEqual(manifest["product_version"], "V2.45")
         self.assertEqual(manifest["status"], "release")
-        self.assertIn("V2.44", (ROOT / "release/current/README.md").read_text())
+        self.assertIn("V2.45", (ROOT / "release/current/README.md").read_text())
 
     def test_workflow_projection_rejects_each_release_identity_drift(self) -> None:
         workflow_path = ROOT / ".github/workflows/release-gate.yml"
@@ -166,18 +174,18 @@ class V244ReleaseEngineTests(unittest.TestCase):
         profile = release_config.active_release_config()
         mutations = (
             workflow.replace(
-                "branches: [main, codex/v2.44-testing-capability]",
+                "branches: [main, codex/v2.45-release-engineer]",
                 "branches: [main, codex/v2.40]",
                 1,
             ),
-            workflow.replace("--version V2.44", "--version V2.40", 1),
+            workflow.replace("--version V2.45", "--version V2.40", 1),
             workflow.replace(
-                "Goal Teams V2.44 release {0}",
+                "Goal Teams V2.45 release {0}",
                 "Goal Teams V2.40 release {0}",
                 1,
             ),
             workflow.replace(
-                "/V2.44/_files.sha256",
+                "/V2.45/_files.sha256",
                 "/V2.40/_files.sha256",
                 1,
             ),
@@ -194,7 +202,7 @@ class V244ReleaseEngineTests(unittest.TestCase):
             workspace = Path(directory)
             (workspace / "docs").mkdir()
             state = {
-                "version": "V2.44",
+                "version": "V2.45",
                 "candidate_commit": "b" * 40,
             }
             approval = {
@@ -234,7 +242,7 @@ class V244ReleaseEngineTests(unittest.TestCase):
             state_path.write_text('{"sentinel":"unchanged"}\n', encoding="utf-8")
             before = hashlib.sha256(state_path.read_bytes()).hexdigest()
             state = {
-                "version": "V2.44",
+                "version": "V2.45",
                 "current_checkpoint": "CP05",
             }
             forged_variants = (
@@ -294,7 +302,7 @@ class V244ReleaseEngineTests(unittest.TestCase):
             source_root=ROOT,
             workspace_root=ROOT,
             repository="vibe-coding-era/goal-teams",
-            version="V2.44",
+            version="V2.45",
             candidate_commit="b" * 40,
             base_main_commit="a" * 40,
             authority={},
@@ -345,7 +353,7 @@ class V244ReleaseEngineTests(unittest.TestCase):
             source_root=ROOT,
             workspace_root=ROOT,
             repository="vibe-coding-era/goal-teams",
-            version="V2.44",
+            version="V2.45",
             candidate_commit=candidate,
             base_main_commit="a" * 40,
             authority={},
@@ -399,7 +407,7 @@ class V244ReleaseEngineTests(unittest.TestCase):
             source_root=ROOT,
             workspace_root=ROOT,
             repository="vibe-coding-era/goal-teams",
-            version="V2.44",
+            version="V2.45",
             candidate_commit=candidate,
             base_main_commit="a" * 40,
             authority={},
@@ -473,7 +481,7 @@ class V244ReleaseEngineTests(unittest.TestCase):
             source_root=ROOT,
             workspace_root=ROOT,
             repository="vibe-coding-era/goal-teams",
-            version="V2.44",
+            version="V2.45",
             candidate_commit="b" * 40,
             base_main_commit="a" * 40,
             authority={},

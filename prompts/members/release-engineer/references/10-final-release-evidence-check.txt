@@ -1,0 +1,22 @@
+最终发布证据检查
+
+默认入口只验证已有 Evidence 的真实性、时效、候选绑定和完整性，不重跑全量测试。
+
+最低检查项：
+
+- source commit/tree 与 artifact digest；
+- 架构开始时形成的 local、development、test、staging、production 五份独立 environment document path/digest 及集合 digest；
+- unit、API integration、E2E、review、completion audit；
+- package、SBOM、provenance、signature；
+- backup readiness、restore strategy、benchmark profile、rollback plan；
+- 每份 Evidence 的路径、sha256、状态、observed_at、candidate binding。
+
+允许动作：读取文件、计算 sha256、校验 JSON/manifest、签名验证器的 check-only 模式、平台只读 readback。
+
+禁止动作：启动全量测试、修改测试或产品、把 `not_run|blocked|unavailable|stale` 转成 passed。
+
+任一环境文档缺失、被临时合并或集合/目标 digest 不一致时，返回 `E_V245_RE_ENVIRONMENT_DOCUMENT_REQUIRED` 或 `not_ready`。本成员不得代替 Architecture Owner 补写这些上游文档。
+
+显式用户提示词可免重复的启用澄清，但不能替代尚未生成的 plan/script digest 批准。
+
+本次 Release 的实际 backup receipt、restore verification 和 Benchmark baseline 是后续发布阶段的新 Evidence，不要求在最终研发 Evidence 检查时已经存在；它们必须在生产 deploy Gate 前形成并通过。

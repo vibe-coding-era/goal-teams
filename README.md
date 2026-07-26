@@ -5,10 +5,10 @@
 作者：肉山@TGO 杭州
 
 <!-- goal-teams-release:start -->
-当前发行：**V2.44** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.44) · [发行说明](release/current/README.md)
+当前发行：**V2.45** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.45) · [发行说明](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-当前版本：`V2.44`
+当前版本：`V2.45`
 
 Goal Teams 是一个面向 Codex 的团队协作 Skill。它会以一个 Goal Lead 的身份，把一个目标拆成可验证的计划，再协调多个独立 subagent（不同上下文执行）或用户指定的外部 skill 完成需求、设计、实现、测试、证据记录和收尾审计。过程中会应用到：
 - 应用Goal + Plan + Loop 模式
@@ -180,7 +180,7 @@ Use $goal-teams。
 显式调用 Goal Teams 或当前会话首次需要建立身份时汇报；已有完整上下文时不重复：
 
 ```text
-我是 Goal Teams Lead V2.44。
+我是 Goal Teams Lead V2.45。
 ```
 
 中文核心模型要点提示词：用户沟通和治理文档默认中文；代码、注释、测试名、fixture 和产品字符串遵循目标仓库约定；代码标识、命令、路径、API 名称、配置键、subagent ID 和精确引用保留原文。
@@ -328,6 +328,12 @@ GoalTeamsWork-<project_version>/
 - 新增 `integration-test-plan`、V2.44 typed `test-case` 和 `test-run-result` 三类机器合同，绑定风险分母、文件 identity、执行 attempts、业务 oracle、cleanup 与 replay。
 - API/E2E 设计、执行、QA 与 Reviewer 成员包统一要求 typed protocol fields、真实文件 discovery、失败不洗绿和独立 run identity。
 - 新增七维 100 分测试能力门禁、12 个稳定问题 ID、append-only 问题账本和真实 API/E2E Benchmark；`blocked|not_run|unavailable` 不计分。
+
+## V2.45 版本改动
+
+- 新增独立、渐进加载的 Release Engineer 成员，覆盖 Java、Rust、Go、Python、Node.js、五类环境与应用、容器、微信小程序、GitHub Skill 发布面；它随包发布但不接入主 Skill 路由。
+- 固定最终 Evidence 分母，并以仓库外 trusted-host 签名绑定两次人类确认、最小权限与数据库安全 attestation；普通 JSON 或自报 approver 不能授权生成脚本或线上执行。
+- 生产发布强制备份、restore proof、rollback、Benchmark 基线和发布后回读；数据库破坏性操作、间接数据库客户端与未闭合辅助脚本 fail closed。
 
 ## V2.43 版本改动
 

@@ -13,12 +13,19 @@ from typing import Any
 
 SCHEMA_VERSION = "goal-teams-release-engine-profile-v1"
 PROTOCOL_VERSION = "V2.40"
-ACTIVE_VERSION = "V2.44"
+ACTIVE_VERSION = "V2.45"
 ROOT = Path(__file__).resolve().parents[2]
 PROFILE_BY_VERSION = {
     "V2.40": ROOT / "references" / "release-profiles" / "v2.40.json",
     "V2.44": ROOT / "references" / "release-profiles" / "v2.44.json",
+    "V2.45": ROOT / "references" / "release-profiles" / "v2.45.json",
 }
+PREDECESSOR_BY_VERSION = {
+    "V2.40": None,
+    "V2.44": "V2.40",
+    "V2.45": "V2.44",
+}
+HOST_ACCEPTANCE_VERSIONS = {"V2.44", "V2.45"}
 REQUIRED_FIELDS = {
     "schema_version",
     "protocol_version",
@@ -105,14 +112,20 @@ def _load_profile(version: str) -> dict[str, Any]:
         or not isinstance(value["legacy_recovery_required"], bool)
     ):
         raise ValueError(f"release profile identity drift: {version}")
+    expected_status = "active" if version == ACTIVE_VERSION else "historical_replay"
+    expected_predecessor = PREDECESSOR_BY_VERSION.get(version)
+    host_required = version in HOST_ACCEPTANCE_VERSIONS
     if (
-        value["status"] == "active"
+        value["status"] != expected_status
+        or value["external_writes_allowed"] is not (version == ACTIVE_VERSION)
+        or value["published_before"] != expected_predecessor
+        or value["legacy_recovery_required"] is not (version == "V2.40")
+    ):
+        raise ValueError(f"release profile lifecycle is inconsistent: {version}")
+    if (
+        host_required
         and (
-            value["external_writes_allowed"] is not True
-            or version != ACTIVE_VERSION
-            or value["legacy_recovery_required"] is not False
-            or value["published_before"] != "V2.40"
-            or not isinstance(value["host_acceptance"], dict)
+            not isinstance(value["host_acceptance"], dict)
             or set(value["host_acceptance"])
             != {
                 "schema_version",
@@ -148,17 +161,12 @@ def _load_profile(version: str) -> dict[str, Any]:
             != value["host_acceptance"]["key_id"]
         )
     ):
-        raise ValueError(f"active release profile is inconsistent: {version}")
+        raise ValueError(f"release host profile is inconsistent: {version}")
     if (
-        value["status"] == "historical_replay"
-        and (
-            value["external_writes_allowed"] is not False
-            or value["legacy_recovery_required"] is not True
-            or value["published_before"] is not None
-            or value["host_acceptance"] is not None
-        )
+        not host_required
+        and value["host_acceptance"] is not None
     ):
-        raise ValueError(f"historical release profile enables writes: {version}")
+        raise ValueError(f"release host profile is inconsistent: {version}")
     for relative in (value["profile_path"], value["public_scan_baseline"]):
         target = (ROOT / relative).resolve()
         try:

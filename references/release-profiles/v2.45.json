@@ -1,0 +1,32 @@
+{
+  "schema_version": "goal-teams-release-engine-profile-v1",
+  "protocol_version": "V2.40",
+  "version": "V2.45",
+  "status": "active",
+  "external_writes_allowed": true,
+  "published_before": "V2.44",
+  "tag": "v2.45",
+  "candidate_location": "develops/v2.45-release-engineer",
+  "candidate_branch": "codex/v2.45-release-engineer",
+  "goal_teams_work": "GoalTeamsWork-V2.45",
+  "goal_teams_work_location": "workspace_docs",
+  "owner_run_id": "RUN-V245-LEAD",
+  "profile_path": "references/profiles/goal-teams-self-release-v2.45.md",
+  "release_title": "Goal Teams V2.45",
+  "release_body": "Goal Teams V2.45. See release/current/README.md in the tagged source.",
+  "tag_message": "Goal Teams V2.45",
+  "workflow_display_prefix": "Goal Teams V2.45 release ",
+  "legacy_recovery_required": false,
+  "snapshot_schema_version": "goal-teams-release-snapshot-v2.40",
+  "files_manifest_format": "sha256-mode-size-path-v1",
+  "public_scan_baseline": "references/public-release-scan-baseline-v2.45.json",
+  "close_schema_version": "goal-teams-release-close-v2.45",
+  "host_acceptance": {
+    "schema_version": "goal-teams-external-host-acceptance-v2",
+    "algorithm": "Ed25519",
+    "signature_domain": "goal-teams/v2.45/cp05/host-acceptance/ed25519/v1",
+    "issuer": "goal-teams-trusted-host",
+    "public_key_hex": "f719e979bb59b9bdc3c026e737ef78a08bdb9fd5fe763f2e7e64e260f68e3e4b",
+    "key_id": "e36b2ef9ca03d9b0d713c36560141a3cab7baeab0af2f9235680c4f532634c3d"
+  }
+}

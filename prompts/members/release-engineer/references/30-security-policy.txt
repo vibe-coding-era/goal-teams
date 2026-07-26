@@ -1,0 +1,15 @@
+权限、数据库与供应链安全
+
+- 获取、构建、备份、部署、回滚和线上复核使用不同最小权限身份。
+- 生产身份为 JIT、限时、限目标；复核身份优先只读。
+- 数据库自动身份不得拥有 owner/DBA/admin、DROP、TRUNCATE、DELETE、所有权或等价能力。
+- 静态扫描必须拦截显式和间接危险操作；权限模型是最终硬边界。
+- 项目 adapter 只允许可静态闭合的 Bash 子集；变量赋值、动态命令、`command`/`env` 包装、控制流、函数、命令替换、相邻引号拼接和行续接均 fail closed，需改用受审 host-mediated adapter。
+- 除 closed-schema 的 `exit`/`true`/`false` 外，command 只能是 catalog identity `goal-teams-release-host-v245`；`host_commands` 冻结绝对路径、SHA-256、adapter capability/action_id、root owner 与不可 group/world-write 权限，参数只允许与 adapter role 相同的单一 action_id。compose 和 execute 都重新验证；通用 `env`/`find`/`ssh` trampoline、项目 helper 或当前用户可替换 helper 永远拒绝。
+- adapter 与生成脚本只接受 `#!/bin/bash`；plan 冻结 root-owned `/bin/bash` 调用路径、解析路径、layout、digest、owner 与 mode，runtime 显式以该解释器执行。Linux merged-`/usr` 仅允许 root-owned `/bin -> usr/bin`（或 `/usr/bin`），解析目标必须精确为 `/usr/bin/bash`，且真实解释器及其父链仍须 root-owned、非 symlink、不可 group/world-write；其他路径别名失败关闭。scrubbed PATH 仅保留 root 系统目录，不包含 Homebrew 或其他当前用户可写目录。
+- local/development 的 prefetch/build 不依赖 PATH 查找工具链，只能调用 catalog identity `goal-teams-release-toolchain-host-v245` 的 kit-specific action。宿主必须 canonical、root-owned、不可 group/world-write，且从 filesystem anchor 到 executable parent 的每级目录都必须 root-owned、非 symlink、不可 group/world-write，拒绝 user-owned directory 中的 root-owned hardlink/原子替换；同一祖先规则也适用于 release host 和 `/bin/bash` 的解析后真实路径（标准 merged-`/usr` 的 `/bin` 锚点别名按上一条封闭处理）。plan 冻结 executable digest、source、version、manifest digest、可信 signer 与真实 trusted-host Ed25519 provenance attestation，compose/execute 均复验。每个 action 的 tuple、输入、网络策略、零全量测试与 receipt 字段必须匹配内置 manifest；prefetch/build receipt 由 trusted host 签名并绑定 plan、execution、host、manifest、dependency bundle 与 artifact digest。test/staging/production 携带该权限即 fail closed。
+- 发现危险数据库动作后终止 execution，生成 DBA 人工变更要求；人工完成后重新计划和批准。
+- 禁止 `curl | sh`、动态 `eval`、未校验下载、明文 secret、同版本脚本漂移和从 template source 直接执行。
+- toolchain、dependency bundle 和 artifact 分别冻结来源、版本、digest、签名与 provenance。
+- 备份身份不得删除或缩短备份保留；只有隔离 restore proof 才可标记 restorable。
+- production restore proof 必须绑定环境文档、备份范围 digest、恢复点、验证时间和最大时效；本次 backup receipt 的范围必须被该恢复演练覆盖。

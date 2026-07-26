@@ -1,0 +1,31 @@
+Release Kit 选择与组合
+
+Kit 由四类模块组成：
+
+```text
+common stages
++ language/build-tool adapter
++ environment policy
++ release surface recipe
+= generated local script bundle
+```
+
+选择键：
+
+- language: java | rust | go | python | node
+- build_tool: maven | gradle | cargo | go-modules | pip | uv | poetry | npm | pnpm | yarn
+- environment: local | development | test | staging | production
+- surface: application | container-kubernetes | wechat-miniprogram | github-skill
+- platform: OS/arch/runtime matrix
+
+只有 catalog 中 lifecycle 为 `approved`、兼容范围匹配且 digest 通过的模块可进入计划。没有精确匹配时 fail closed；本版本不生成或执行 `custom_unverified`。
+
+local/development 的 language adapter 不直接依赖调用进程的 PATH。10 个 kit 映射到 `kits/plans/toolchain-actions-v1.json` 的 20 个 prefetch/build action，并通过 root-owned `goal-teams-release-toolchain-host-v245` 执行。宿主 provenance 必须由 trusted host 对 executable/manifest/source/version/action 绑定签名；项目根、批准 plan、依赖 bundle、requirements 与 artifact 路径通过生成脚本中的闭集环境传入。manifest 对每个 action 精确冻结 language/build_tool/phase、required inputs、network policy、零全量测试和 required receipt fields。prefetch receipt 冻结 dependency bundle digest；build 必须 offline、复核该 digest 并回执批准 artifact digest。两个 receipt 都必须由 trusted host 签名。test/staging/production 不接受工具链宿主权限。
+
+组合结果必须先写入用户本地 release root，生成新的 plan、index 和 machine manifest；不得原地修改 Kit。
+
+本地已有 bundle 时先运行只读发现：展示 `script_bundle_version`、`script_bundle_digest`、环境、发布面和 lifecycle；散落旧脚本、损坏 manifest 或旧格式 bundle 也必须列为 unmanaged/invalid，不得静默当成不存在。再由用户选择执行同一已批准 run、基于它派生新版本、人工迁移检查或忽略。不同 plan、artifact、环境或权限不得把旧批准迁移到新 bundle。
+
+local/development 的固定顺序是：依赖预取 → 离线构建 → 重新校验批准的 artifact digest → Benchmark → deploy。构建后身份不一致必须重新计划和批准。
+
+发布面不是说明性标签。post-release receipt 必须包含对应 surface 的机器状态与全部 required readback：微信 `review_pending` 不能完成；GitHub Skill 必须完成 Release asset 重下载 digest 和 installed identity；通用 application/container 也必须回读实际制品与业务探针。

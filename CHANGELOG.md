@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### V2.45
+
+- Added a standalone, progressively loaded Release Engineer for Java, Rust, Go, Python, Node.js, five environment classes, applications, containers, WeChat Mini Programs, and GitHub Skill publication without adding it to the main Goal Teams route.
+- Added fixed typed release-evidence requirements, repository-external Ed25519 plan/execution approvals, least-privilege and database-safety attestations, script-closure checks, and fail-closed rejection of destructive database operations.
+- Added versioned script bundles, exact digest confirmation for reuse, backup/restore/rollback, benchmark baselines, post-release verification, and shared V2.36 secret redaction.
+- Promoted the release-engine profile to V2.45 while retaining V2.44 testing contracts and V2.44/V2.40 release profiles as replay-only compatibility surfaces.
+
 ### V2.44
 
 - Added machine-checkable integration test plans, typed API/E2E cases, and run-result contracts with risk denominators, path/digest/discovery identity, attempts, observed assertions, cleanup, and replay.

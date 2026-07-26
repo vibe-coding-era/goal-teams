@@ -1,0 +1,177 @@
+{
+  "schema_version": "goal-teams-release-kit-catalog-v2.45",
+  "catalog_version": "1.0.0",
+  "common_templates": {
+    "preflight": "templates/common/00-preflight.sh.tpl",
+    "artifact_identity": "templates/common/30-artifact-identity.sh.tpl",
+    "backup": "templates/common/50-backup.sh.tpl",
+    "benchmark": "templates/common/60-benchmark.sh.tpl",
+    "deploy": "templates/common/70-deploy.sh.tpl",
+    "verify": "templates/common/80-verify.sh.tpl",
+    "rollback": "templates/common/90-rollback.sh.tpl"
+  },
+  "host_command": {
+    "identity": "goal-teams-release-host-v245",
+    "invocation_schema": "absolute_path action_id",
+    "action_ids": [
+      "backup",
+      "benchmark",
+      "deploy",
+      "verify",
+      "rollback"
+    ]
+  },
+  "toolchain_host_command": {
+    "identity": "goal-teams-release-toolchain-host-v245",
+    "invocation_schema": "absolute_path action_id",
+    "provenance_schema": "goal-teams-toolchain-provenance-v2.45",
+    "action_manifest": "plans/toolchain-actions-v1.json",
+    "action_ids": [
+      "prefetch-java-maven-v1",
+      "build-java-maven-v1",
+      "prefetch-java-gradle-v1",
+      "build-java-gradle-v1",
+      "prefetch-rust-cargo-v1",
+      "build-rust-cargo-v1",
+      "prefetch-go-modules-v1",
+      "build-go-modules-v1",
+      "prefetch-python-pip-v1",
+      "build-python-pip-v1",
+      "prefetch-python-uv-v1",
+      "build-python-uv-v1",
+      "prefetch-python-poetry-v1",
+      "build-python-poetry-v1",
+      "prefetch-node-npm-v1",
+      "build-node-npm-v1",
+      "prefetch-node-pnpm-v1",
+      "build-node-pnpm-v1",
+      "prefetch-node-yarn-v1",
+      "build-node-yarn-v1"
+    ]
+  },
+  "language_adapters": [
+    {
+      "id": "java-maven-v1",
+      "language": "java",
+      "build_tool": "maven",
+      "lifecycle": "approved",
+      "required_files": ["pom.xml"],
+      "prefetch_template": "templates/common/20-toolchain-prefetch.sh.tpl",
+      "build_template": "templates/common/40-toolchain-build.sh.tpl",
+      "prefetch_action": "prefetch-java-maven-v1",
+      "build_action": "build-java-maven-v1"
+    },
+    {
+      "id": "java-gradle-v1",
+      "language": "java",
+      "build_tool": "gradle",
+      "lifecycle": "approved",
+      "required_files_any": ["gradlew", "build.gradle", "build.gradle.kts"],
+      "prefetch_template": "templates/common/20-toolchain-prefetch.sh.tpl",
+      "build_template": "templates/common/40-toolchain-build.sh.tpl",
+      "prefetch_action": "prefetch-java-gradle-v1",
+      "build_action": "build-java-gradle-v1"
+    },
+    {
+      "id": "rust-cargo-v1",
+      "language": "rust",
+      "build_tool": "cargo",
+      "lifecycle": "approved",
+      "required_files": ["Cargo.toml", "Cargo.lock"],
+      "prefetch_template": "templates/common/20-toolchain-prefetch.sh.tpl",
+      "build_template": "templates/common/40-toolchain-build.sh.tpl",
+      "prefetch_action": "prefetch-rust-cargo-v1",
+      "build_action": "build-rust-cargo-v1"
+    },
+    {
+      "id": "go-modules-v1",
+      "language": "go",
+      "build_tool": "go-modules",
+      "lifecycle": "approved",
+      "required_files": ["go.mod", "go.sum"],
+      "prefetch_template": "templates/common/20-toolchain-prefetch.sh.tpl",
+      "build_template": "templates/common/40-toolchain-build.sh.tpl",
+      "prefetch_action": "prefetch-go-modules-v1",
+      "build_action": "build-go-modules-v1"
+    },
+    {
+      "id": "python-pip-v1",
+      "language": "python",
+      "build_tool": "pip",
+      "lifecycle": "approved",
+      "required_files": ["requirements.txt"],
+      "prefetch_template": "templates/common/20-toolchain-prefetch.sh.tpl",
+      "build_template": "templates/common/40-toolchain-build.sh.tpl",
+      "prefetch_action": "prefetch-python-pip-v1",
+      "build_action": "build-python-pip-v1"
+    },
+    {
+      "id": "python-uv-v1",
+      "language": "python",
+      "build_tool": "uv",
+      "lifecycle": "approved",
+      "required_files": ["pyproject.toml", "uv.lock"],
+      "prefetch_template": "templates/common/20-toolchain-prefetch.sh.tpl",
+      "build_template": "templates/common/40-toolchain-build.sh.tpl",
+      "prefetch_action": "prefetch-python-uv-v1",
+      "build_action": "build-python-uv-v1"
+    },
+    {
+      "id": "python-poetry-v1",
+      "language": "python",
+      "build_tool": "poetry",
+      "lifecycle": "approved",
+      "required_files": ["pyproject.toml", "poetry.lock"],
+      "prefetch_template": "templates/common/20-toolchain-prefetch.sh.tpl",
+      "build_template": "templates/common/40-toolchain-build.sh.tpl",
+      "prefetch_action": "prefetch-python-poetry-v1",
+      "build_action": "build-python-poetry-v1"
+    },
+    {
+      "id": "node-npm-v1",
+      "language": "node",
+      "build_tool": "npm",
+      "lifecycle": "approved",
+      "required_files": ["package.json", "package-lock.json"],
+      "prefetch_template": "templates/common/20-toolchain-prefetch.sh.tpl",
+      "build_template": "templates/common/40-toolchain-build.sh.tpl",
+      "prefetch_action": "prefetch-node-npm-v1",
+      "build_action": "build-node-npm-v1"
+    },
+    {
+      "id": "node-pnpm-v1",
+      "language": "node",
+      "build_tool": "pnpm",
+      "lifecycle": "approved",
+      "required_files": ["package.json", "pnpm-lock.yaml"],
+      "prefetch_template": "templates/common/20-toolchain-prefetch.sh.tpl",
+      "build_template": "templates/common/40-toolchain-build.sh.tpl",
+      "prefetch_action": "prefetch-node-pnpm-v1",
+      "build_action": "build-node-pnpm-v1"
+    },
+    {
+      "id": "node-yarn-v1",
+      "language": "node",
+      "build_tool": "yarn",
+      "lifecycle": "approved",
+      "required_files": ["package.json", "yarn.lock"],
+      "prefetch_template": "templates/common/20-toolchain-prefetch.sh.tpl",
+      "build_template": "templates/common/40-toolchain-build.sh.tpl",
+      "prefetch_action": "prefetch-node-yarn-v1",
+      "build_action": "build-node-yarn-v1"
+    }
+  ],
+  "environments": [
+    {"id": "local-v1", "name": "local", "risk": "low", "backup_required": false, "benchmark_required": true, "external_write": false, "plan": "plans/environments/local.json"},
+    {"id": "development-v1", "name": "development", "risk": "low", "backup_required": false, "benchmark_required": true, "external_write": false, "plan": "plans/environments/development.json"},
+    {"id": "test-v1", "name": "test", "risk": "medium", "backup_required": false, "benchmark_required": true, "external_write": true, "plan": "plans/environments/test.json"},
+    {"id": "staging-v1", "name": "staging", "risk": "high", "backup_required": true, "benchmark_required": true, "external_write": true, "plan": "plans/environments/staging.json"},
+    {"id": "production-v1", "name": "production", "risk": "critical", "backup_required": true, "restore_proof_required": true, "benchmark_required": true, "external_write": true, "plan": "plans/environments/production.json"}
+  ],
+  "surfaces": [
+    {"id": "application-v1", "name": "application", "lifecycle": "approved", "async_external": false, "deploy_adapter_required": true, "plan": "plans/surfaces/application.json"},
+    {"id": "container-kubernetes-v1", "name": "container-kubernetes", "lifecycle": "approved", "async_external": false, "deploy_adapter_required": true, "plan": "plans/surfaces/container-kubernetes.json"},
+    {"id": "wechat-miniprogram-v1", "name": "wechat-miniprogram", "lifecycle": "approved", "async_external": true, "deploy_adapter_required": true, "plan": "plans/surfaces/wechat-miniprogram.json"},
+    {"id": "github-skill-v1", "name": "github-skill", "lifecycle": "approved", "async_external": false, "deploy_adapter_required": true, "plan": "plans/surfaces/github-skill.json"}
+  ]
+}

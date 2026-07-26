@@ -9,6 +9,8 @@ okf_version: "0.1"
 
 # Goal Teams Self Release V2.44
 
+> V2.45 起本 Profile 仅用于历史 replay；任何 external write 都必须 fail closed。
+
 机器名：`goal-teams-self-release-v2.44`。本 Profile 只适用于可信 adapter 已验证目标为 Goal Teams 仓库、产品版本为 `V2.44` 且任务类型为 `goal_teams_self_release` 的任务。V2.43/V2.42/V2.41/V2.40/V2.39/V2.38 Profile 仅用于历史 replay。
 
 ## 身份、流程与版本投影
@@ -35,7 +37,7 @@ okf_version: "0.1"
 ## 发行与完成边界
 
 1. V2.40 的 CP00–CP18 发行状态机、受保护 Git tree snapshot、route receipt、宿主 attestation、Cache Evidence 和公开扫描规则继续适用，V2.44 不得弱化其 fail-closed 语义。
-2. V2.44 active 发行身份由 `scripts/release/release_config.py` 和 `references/release-profiles/v2.44.json` 的已提交 blob 冻结，并流入 scope、每个 operation intent、CP05 approval 与 CP10 seal；调用者不能自选版本、candidate、tag、Release 文本、baseline 或 close schema。V2.40 profile 只允许 replay，external write 必须在 orchestrator 与 GitHub adapter 双边拒绝。
+2. V2.44 历史发行身份由 `scripts/release/release_config.py` 和 `references/release-profiles/v2.44.json` 的已提交 blob 冻结，并流入 replay scope、每个 operation intent、CP05 approval 与 CP10 seal；调用者不能自选版本、candidate、tag、Release 文本、baseline 或 close schema。V2.44/V2.40 profile 都只允许 replay，external write 必须在 orchestrator 与 GitHub adapter 双边拒绝。
 3. V2.44 snapshot 继续使用 sealed source-commit authority、唯一 generated OKF 和严格四列 `_files.sha256`；产品版本变化不得触发两列 legacy 格式或缺失 mode/size。
 4. 固定 52 条 `ASSERT-V234-*`、iteration 9 隔离候选、iteration 11 delivery 边界、四维评分与独立审计继续保留；评分、cache 与工程指标不能覆盖测试、Evidence、Review 或 Audit 失败。
 5. 每份适用 Architecture Design 必须内嵌 Development Configuration Plan 与 Production Configuration Plan；不得记录 secret 值，生产配置规划不代表部署授权。

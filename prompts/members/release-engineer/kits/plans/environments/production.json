@@ -1,0 +1,1 @@
+{"schema_version":"release-environment-plan-v1","environment":"production","build_allowed":false,"dependency_resolution":"forbidden","external_write":true,"backup_gate":"restore_proof_required","benchmark_gate":"required","rollback_gate":"required","observation_gate":"independent_readback_required","promotion_rule":"promote_staging_digest"}

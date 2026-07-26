@@ -1,0 +1,21 @@
+有界 LOOP 与恢复
+
+可自动 LOOP：
+
+- allowlist 内的瞬时下载失败；
+- cache 损坏和安全重新预取；
+- 非破坏性格式、路径、manifest 或脚本错误；
+- approved Kit 之间的兼容替换；
+- 只读平台查询和异步状态回读；
+- 标记为 idempotent 且无外部写的步骤。
+
+必须停止：
+
+- 新增或扩大权限、凭证、目标或 scope；
+- 数据库高危操作、数据/schema 不兼容；
+- 外部审批、人类 DBA 或关键业务决策；
+- plan/script/artifact/environment digest 漂移；
+- 最大轮次、时间或预算耗尽；
+- 无法证明幂等、可恢复或可回滚。
+
+LOOP 改变任何批准对象后，旧批准自动失效。每轮写入 failure signature、attempt、action、Evidence、decision 和 next step。

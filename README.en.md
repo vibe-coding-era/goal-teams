@@ -5,10 +5,10 @@
 Author: 肉山@TGO Hangzhou
 
 <!-- goal-teams-release:start -->
-Current release: **V2.44** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.44) · [release/current/README.md](release/current/README.md)
+Current release: **V2.45** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.45) · [release/current/README.md](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-Current version: `V2.44`
+Current version: `V2.45`
 
 Goal Teams is a Codex Skill for coordinated agent work. It turns one goal into a verifiable plan, then lets a Goal Lead coordinate independent subagents running in separate contexts, or user-selected external skills, across requirements, design, implementation, tests, evidence, and completion audit.
 
@@ -175,7 +175,7 @@ Use $goal-teams。
 Use this identity line on an explicit Goal Teams invocation or when the session first needs to establish identity; do not repeat it when full context already exists:
 
 ```text
-我是 Goal Teams Lead V2.44。
+我是 Goal Teams Lead V2.45。
 ```
 
 Core language rule: user communication and governance documents default to Chinese; code, comments, test names, fixtures, and product strings follow the target repository's conventions; keep identifiers, commands, paths, API names, config keys, subagent IDs, and exact references unchanged.
@@ -298,7 +298,7 @@ GoalTeamsWork-<project_version>/
 
 ## Version Note
 
-The current version is read from `VERSION`. On the V2.3 machine contract and V2.5 core policy, `V2.44` retains contract-first execution, Architecture and Environment Evidence gates, a recoverable `Gather → Reason → Act → Verify → Repeat` LOOP, four-file disk state, a constrained iteration-9 candidate reset, a fail-closed iteration-11 delivery gate, four-dimensional scoring, and divergence/bottleneck records, while adding machine-checkable API/E2E testing capability and real-behavior benchmarking. Detailed contracts are loaded from `references/` by task type. The current public release note is [release/current](release/current/README.md); process ledgers and provenance remain in the non-public workspace.
+The current version is read from `VERSION`. On the V2.3 machine contract and V2.5 core policy, `V2.45` retains contract-first execution, Architecture and Environment Evidence gates, a recoverable `Gather → Reason → Act → Verify → Repeat` LOOP, four-file disk state, a constrained iteration-9 candidate reset, a fail-closed iteration-11 delivery gate, four-dimensional scoring, V2.44 machine-checkable API/E2E testing contracts, and real-behavior benchmarking. Detailed contracts are loaded from `references/` by task type. The current public release note is [release/current](release/current/README.md); process ledgers and provenance remain in the non-public workspace.
 
 See the [current release note](release/current/README.md) for the visible package inventory. It does not replace runtime rules, `VERSION`, or installation validation.
 
@@ -317,6 +317,12 @@ V2.3 adds deterministic machine contracts for closed state enums, a single-write
 - Added machine contracts for `integration-test-plan`, typed V2.44 `test-case`, and `test-run-result`, including risk denominators, file identity, attempts, business oracles, cleanup, and replay.
 - Aligned API/E2E designers, runners, QA, and Reviewer around typed protocol fields, real file discovery, failure-preserving retries, and independent run identities.
 - Added a seven-dimension 100-point capability gate, 12 stable issue IDs, an append-only issue ledger, and a real API/E2E benchmark; `blocked`, `not_run`, and `unavailable` never earn points.
+
+## V2.45 Changes
+
+- Added a standalone, progressively loaded Release Engineer covering Java, Rust, Go, Python, Node.js, five environments, and application, container, WeChat Mini Program, and GitHub Skill releases. It ships in the package without joining the main Skill route.
+- Fixed the minimum final-Evidence denominator and bound both human approvals, least privilege, and database-safety attestations to an external trusted-host signature; plain JSON and self-reported approvers cannot authorize script generation or live execution.
+- Production releases require backup, restore proof, rollback, benchmark baseline, and post-release readback. Destructive database operations, indirect database clients, and unclosed helper scripts fail closed.
 
 ## V2.43 Changes
 

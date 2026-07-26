@@ -29,7 +29,7 @@ V2.3 从 `harness_contract.task_type`、`required_review_class` 与风险推导�
 
 ## Self-release 确定性边界
 
-下表仅在当前 `policy_profile=goal-teams-self-release-v2.44` 时适用；V2.43/V2.42/V2.41/V2.40/V2.39/V2.38 Profile 只用于历史 replay，普通 Core V2.5 任务不创建固定第 9/11 轮、评分或归档事务。
+下表仅在当前 `policy_profile=goal-teams-self-release-v2.45` 时适用；V2.44/V2.43/V2.42/V2.41/V2.40/V2.39/V2.38 Profile 只用于历史 replay，普通 Core V2.5 任务不创建固定第 9/11 轮、评分或归档事务。
 
 | 工作 | 必须由脚本判定 | 不可由 prompt 代替 |
 | --- | --- | --- |
