@@ -26,11 +26,11 @@ API/E2E 路由还必须把本文件、`references/test-case-assertion-protocol.m
 
 测试合同、Grill me、对抗测试、Evidence 适用性与状态转换以 `references/verification-governance-protocol.md` 及其机器文件为 SSOT。
 
-- required 测试追踪 AC、case、Harness、Evidence、风险与审批。变化先逐项分析：未受影响保留，受影响 `stale + retest_required`，新增 `not_run`；仅证据不可信为 `invalid`，实际失败为 `failed`。关键项执行 Grill me，对抗风险进入分母；新增语义或门禁须先更新 SPEC/Harness 并确认，否则 blocked。
+- required 追踪 AC/case/Harness/Evidence/风险/审批。逐项分类：未受影响保留；受影响 `stale + retest_required`；新增 `not_run`；不可信才 `invalid`；执行失败为 `failed`。关键项 Grill me，对抗风险进分母；新增语义/门禁更新 SPEC/Harness 并确认，否则 blocked。
 
 ## V2.46 Rust/Tauri 桌面工程
 
-桌面路由以 `references/desktop-engineering-protocol.md` 为 SSOT：Rust→L1、Tauri→L2/L3、package→L4、replica→四维、跨平台→required tuple；未命中不建空任务。macOS real-app 使用 embedded WDIO 或批准的原生 harness；直接 `tauri-driver` 无效。层级不可互代，非 passed 阻断 achieved。`achieved` 必须额外接收 Harness/trusted-host 冻结的 candidate commit/tree 与 environment registry，Evidence 自洽不能替代外部 SSOT；required native risk 不得改成 optional/N/A。
+桌面路由按 `references/desktop-engineering-protocol.md`：Rust→L1、Tauri→L2/L3、package→L4、replica→四维、跨平台→required tuple；未命中不建任务。macOS real-app 用 embedded WDIO 或批准的原生 harness，直接 `tauri-driver` 无效。层级不互代，非 passed 阻断 achieved。`achieved` 须接收 Harness/trusted-host 冻结的 candidate commit/tree 与 environment registry；Evidence 自洽不替代 SSOT，required native risk 不得降为 optional/N/A。
 
 ## 适用颗粒度
 
