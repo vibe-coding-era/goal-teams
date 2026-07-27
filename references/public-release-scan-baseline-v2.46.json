@@ -1,9 +1,2384 @@
 {
-  "assertions": [],
+  "assertions": [
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/CHANGELOG.md",
+      "reason": "implementation_vocabulary",
+      "sha256": "558f66af272704f31aa4010059d9df10f008d9889e05c441a62177b37351af86"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/benchmarks/tasks/GT-BENCH-005/reference_app.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "3586d728c1d90878df705957ef14e47b58637db57e51bc9d4f9ff7cbb8d223f4"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/benchmarks/tasks/GT-BENCH-005/static/index.html",
+      "reason": "implementation_vocabulary",
+      "sha256": "87d7228ba797711c633172464b0c06226fee0f70d239e2deec387cce7c704e38"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/examples/canonical-v23/versions/V2.3/evidence/recovery.log",
+      "reason": "implementation_vocabulary",
+      "sha256": "c516dd8157f5dd44cc0adee48df2482f11acdc0f392897e8d5528ba8f09f7836"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/examples/canonical-v23/versions/V2.3/evidence/run.log",
+      "reason": "implementation_vocabulary",
+      "sha256": "c516dd8157f5dd44cc0adee48df2482f11acdc0f392897e8d5528ba8f09f7836"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/examples/canonical-v23/versions/V2.3/identity/registry.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "1949fa8babbe4c08f57e24fe460b129627d94387d35f1ac19f7b91c776aa98ab"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/goal-teams.md",
+      "reason": "implementation_vocabulary",
+      "sha256": "5abb799e8839f0ebbbb93db09419470a4063b885c22a41d50abcd5587e3d4454"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/prompts/lead/core.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "9ca91ce81ce4dd534acbdb1902f708349efd17ba1dbf106b3ca8198fe6208b57"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/prompts/members/reviewer/prompt.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "ae059a83eb64c7aaa224440d22fcd7e1d1ac26543bf7eb52131ca52550b3ca37"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/prompts/members/shared.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "8b6be04b2fd6ce39b4e856895b6d7aee4b79cf2352c894adfd21993d862cb617"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/prompts/packets/harness-contract.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "b5bda5b03c914965b03c63b6a218ea5dd44defee863f6a6dbe31673b432f75d6"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/prompts/packets/member-goal-packet.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "588c4d4eb540b0c2f7c362cb9a1b643ffab9ad90a54e7f99ff9023721c5760d0"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/references/compat.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "d1bb1d0d4b532da766c13edce605361d0468f328f90dd114400ca5c15b652235"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/references/goal-teams-scripted-tooling.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "409aa1028b16f5d5efe19e6ec29ea16aca4eb8b850794263524bcac8cb7e4b40"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/references/goal-teams-v2.3-contract.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "84d5f1e489f5efe98fcc9eaca21db2e1cd1627f97aa5f949361254f62bfc24f3"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/references/invariants.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "c4b6611ebc5143f53f91329987ecc5e589fbc95a12c54cf9ec9a2ee3ee8b7be7"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/references/rules-project-sizing.md",
+      "reason": "implementation_vocabulary",
+      "sha256": "e67942660ca6a07882922ac61f879af570f44d03e995ff01390ee085aac46417"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/references/runtime/01-v2-36-core-trust.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "36bf8c29b64f76108304f2d5242858ad2d676860739e1f2ced4972c67c734578"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/references/runtime/02-harness-benchmark-loop.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "a34007d71429e540a2707c4419a521e50083b3dfb33e10bc2243e09fb37ec55d"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/references/runtime/03-goal-loop.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "c6b00acbeae1644b879b167f663e7b4ce1970de43808d82143ea02557d753dd6"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/references/subagent-dispatch-protocol.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "6884ee8e47162163341ddeaac69742a85091d10c7d69a912490b42e111b3ba57"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/schemas/v2.3/goal-teams.schema.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "a5bd1a09eaac56481519de119c609d95dcfe15a83afd5e12054f91f58774fef4"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/schemas/v2.35/project-route.schema.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "a60da97bc4775d4f9ea6bcb72cfb821958a02bf15f84ef9b5d7db83305ccbe0b"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance",
+        "secret"
+      ],
+      "path": "git/final/schemas/v2.36/agent-host-attestation.schema.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "06dccb7eec7c99f9cf7c5b8a2c267341d08793675407aed04a576c2ef57fb837"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/schemas/v2.36/attested-identity-registry.schema.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "b2c262c0b045c41cc6a46f59bf3b02ca0109361ad2b900ee80d611ad4e53608e"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/schemas/v2.36/host-route-receipt.schema.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "8795c747837bc90ec91bf7ca78fb205660d9bd00168055c1e102b9e5178b62c9"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/schemas/v2.36/project-route.schema.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "f5f250e7f6f4862c9e342b2081c44e45d76580a9a2cfdd1d1955aff6c7fa02b9"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/schemas/v2.44/test-case.schema.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "217256d9884893fe4661d2fb4b28d089eb509d5689f275ec9104bc253d20dd12"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/scripts/benchmark/benchmark-runner.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "15dfa1a0ae4ddce57ce637cd0ddc44cb1a9f1f853308327ef77318e152dddd6a"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/scripts/benchmark/v244_testing_capability_browser.cjs",
+      "reason": "implementation_vocabulary",
+      "sha256": "f79526f512d4e2171900d0c2193e82942ba826794197b5e09dc46c403e73b5db"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/scripts/benchmark/v244_testing_capability_runner.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "b412f174c1f3f396e210d660aaf47e6bc434c3e25ee5fe6886097ae8f7b64253"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/scripts/benchmark/v244_testing_capability_scorer.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "ed0b9e9be91f11f3de36ab1cb3c53cc97da5bb66df7ae8e969098886b92fb235"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home"
+      ],
+      "path": "git/final/scripts/checks/check-security-fixtures.py",
+      "reason": "detector_literal",
+      "sha256": "a0a6c3e0ab765ff3e33baed70d0059c6b6f6fa24000812f63ddf931b100b6cfd"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/scripts/checks/validate-test-case-contract.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "62f14e99f04e967f50efe0fc3df27018ccb191cc503e88e9064a7418a2654907"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/scripts/checks/validate.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "35315022331e6934d3f81a219c97203ea0366148fd537c9a93fdc3330000545b"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home",
+        "private_provenance",
+        "secret"
+      ],
+      "path": "git/final/scripts/release/public_scan.py",
+      "reason": "detector_literal",
+      "sha256": "26610a236256636a04dfd9ecadcbe0d4ed7d99c85096e36895e74a37a655082c"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance",
+        "secret"
+      ],
+      "path": "git/final/scripts/release/release.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "fbec1ca71d336dfc2e19660b4cff9308de44eb7c8b20ea17495a4bcb129bb27d"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance",
+        "secret"
+      ],
+      "path": "git/final/scripts/v23/goalteams_v23.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "62a3618cd1dff15b7ee938093239184455423f0143547562b0d7bf642351ea9e"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/scripts/v23/prompt_cache.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "a5a5e9ae2c5da44a24fb95bce590db2a12c389a8d810a1eb82aef7bb0ea30901"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/scripts/v23/v234_closure.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "44c8a51f9e3e6bb30bac328d064e3d390f65f3df45f366be0fcccc17169a0f92"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance",
+        "secret"
+      ],
+      "path": "git/final/scripts/v23/v234_state.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "3128495c398d35ad3c7ed25c5e3fd17f1154e99262e281ea13b6df474f44cc4b"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/scripts/v23/v235_policy.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "5d548ea664b34723d63f0bb2c1a1020ab2701b801346a97fc4f509148cb0d306"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home",
+        "secret"
+      ],
+      "path": "git/final/scripts/v23/v236_security.py",
+      "reason": "detector_literal",
+      "sha256": "708fa667cfba7ae9e66744b18110d8618d85d0feee199715a21b810195944508"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance",
+        "secret"
+      ],
+      "path": "git/final/scripts/v23/v236_trust.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "7243205e8c472715ba3728eded8c395f58e75cad1826d3ce924012976730276e"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/subagents/common-developer-instructions.txt",
+      "reason": "implementation_vocabulary",
+      "sha256": "e422fdb025d206c728da7024152973173c6df3d6ffa93367d6eebe6c440adbb0"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/subagents/goal-api-integration-test-designer.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "1c359585689206b3411a52aac23975f1256fcf9552c4415f01fa9978d430eb69"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/subagents/goal-api-integration-test-runner.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "9f5b697d8b563f9fd241dc487d73ab593d2e25c099b15de47302627901822123"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/subagents/goal-backend.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "85e2f13335afd487682a9d317c8f8d9c633200698dd8fa176afe743671b7cae6"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/subagents/goal-completion-auditor.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "64e3226418e9e047fdd852a679836f92306d6e04efa4e090096a7744ed03bed3"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/subagents/goal-docs.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "50e116481ad9739a4179ddf7a3e64e71e7314fe9138c2cb844e23dc7d8609128"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/subagents/goal-e2e-test-designer.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "8464539b96931c51fbae070e02057db6d995bc661fd1f941737278c9e80e8c31"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/subagents/goal-e2e-test-runner.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "710037e3f3e26b943cb639517a200f802b54a879c63a31a84ee305c77ac5299b"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/subagents/goal-frontend.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "ff31dc69eb929bc01161817e1a1549f00e2c3952e147349a357f2193f9be588c"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/subagents/goal-performance.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "95d29770aa2a26fc134f3bd0b14f9f07e07852508cb3df0fbbd94514610e92a0"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/subagents/goal-product.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "ca7b64a553256f8c8aedc84d6663c684ab5b89788070d5a29e9118ca30db004e"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/subagents/goal-qa.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "67b08300b4107059a0b162b4088f2084fc2e3f2f09498d2ca65612284aea3373"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/subagents/goal-refactor.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "93bef0aaf5763849724b4acdfaab3b90d5ee843c7a01824d083bb1eef526a6ed"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/subagents/goal-requirements-analyst.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "15b721cd540826759521019ebf6f02d49e35a56af3375e11cd8e0dbdf3f194f4"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/subagents/goal-reviewer.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "16c7eb02fc7bae86816f3f756efc72987617c0e3ab63305b53d8c9dbd2bbc183"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/subagents/goal-security.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "1c9e302a101586c60e6c7ecb98e19ba5698c02533c43cbbca91a535d0704a660"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/subagents/goal-sqa.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "f33c1914ff77b2b417ccf321adf477e11312e61593ac2cf72437baadb6238d57"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/subagents/goal-unit-test-designer.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "144923accce49d104fa7a06556a22f231493e9fced8c89d5f7956499a7ee25b1"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/subagents/goal-unit-test-runner.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "ef7195f8b0c3b1f193359d88075fb824ed93cc4709b7921fd1e8f7e4059f511d"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/tests/v23/build_canonical.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "ef056bd4cfa8fc784c6b7afe39d0d2f77ec6b73960b67edad33b0042d92e562c"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home",
+        "secret"
+      ],
+      "path": "git/final/tests/v23/fixtures/security/redaction-input.txt",
+      "reason": "detector_literal",
+      "sha256": "b6cc69d36e3a2728fa80cb3c50d00e7ef17823a3779212fafdba9d8ed699fcad"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/tests/v23/fixtures/security/secret-log.txt",
+      "reason": "synthetic_fixture",
+      "sha256": "1d7cc0d91869976ce55abd787d8be90dc98cdbc6df0a2e1d34400c71160d12eb"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/tests/v23/fixtures/v235/routing.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "31338b51a42ee4085a9f16dcefc385cb5c9d36deeac0e795f0b113886a3bf01d"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/tests/v23/fixtures/v235/test-cases.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "162af59ecb2ba1fb757a9ad22c5cbbb6f608aed360262656a33c7e596fa34632"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/tests/v23/fixtures/v236/routing.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "dca87e0e7b6ac101ba584107bb8b1f96e31bcb8cbe997c896f603f7fe619417b"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home",
+        "secret"
+      ],
+      "path": "git/final/tests/v23/fixtures/v240/release-lifecycle-contracts.json",
+      "reason": "synthetic_fixture",
+      "sha256": "ce39a4f6060d2330374ac27ccaefe9514f9ddd5998d1d76269652c0e7a001791"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/tests/v23/fixtures/v244/artifacts/api-case.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "17e21884b7e8ba749b61d386a2aa334b91af0bedd0abf9166ffe29adccfefefa"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/tests/v23/test_canonical_mutations.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "c4a6c42260197cb1dcf4698b42a5269d3c73b61f93c6525172a590b52a68f944"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/tests/v23/test_distribution_security.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "8c218bbfe2449e0b5fa4f8e6b9d294f3d3d40dea3fe7682e455f644db1a55bca"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/tests/v23/test_evidence_traceability_review.py",
+      "reason": "detector_literal",
+      "sha256": "365a9b0aa6295e0d394a9c792576f7627dbd71d212a026ff760e6f73fc37fa33"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/tests/v23/test_governance_release.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "8817814ff79080a265a4caea4117233a6a77020397ed9183ff5393d8bdf845f2"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home",
+        "private_provenance",
+        "secret"
+      ],
+      "path": "git/final/tests/v23/test_v234_release_archive.py",
+      "reason": "detector_literal",
+      "sha256": "912b5dcf2eeb08f8c944ea14563c6543408ff57f4aa8444f6b181205614bd799"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/tests/v23/test_v234_reset_delivery.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "aaba0b354de0628e31f70f18048b5c95617996a5d6ae4934e94c95648832b842"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/tests/v23/test_v235_normalized_binding_security.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "a98714fb15c545e2221cbda228eaed83c2736d5d57a139ed1d681ebbd512c6fd"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/tests/v23/test_v235_protocol.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "07457f000d0a504c64a2c4c92c3bd80ab5af3fbfeb23dcaa860d2b87352dbdac"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/final/tests/v23/test_v236_acceptance.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "07f41bb5113b31b6d75253c31d96570f65970950a21c49d498fbdc3c08ada08a"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/tests/v23/test_v236_profiles.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "f0a8de7fe346824879f24459ab4ceee521326e81049cf31a6008c4374e6ceb82"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/tests/v23/test_v236_security_redaction.py",
+      "reason": "detector_literal",
+      "sha256": "5381d54feb78d897f87ec8e76a9e3fc5fc0f5d75b0175e0ca2338e1eadfe0628"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance",
+        "secret"
+      ],
+      "path": "git/final/tests/v23/test_v236_snapshot_attestation.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "958c67e62aba5ff8ce345031714d2c65a09b99f8f9227003ba06f2c60f03957b"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/tests/v23/test_v238_ordered_manifest.py",
+      "reason": "detector_literal",
+      "sha256": "8c3f7710ee8333e18036456f749946694cf32caa15cbcb26149811d636d58067"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/tests/v23/test_v238_prompt_cache.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "380a61a926088b2521e8302fa0d8921569056b1a2ca6a134031799238c1cdee4"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home",
+        "secret"
+      ],
+      "path": "git/final/tests/v23/test_v239_cache_evidence.py",
+      "reason": "detector_literal",
+      "sha256": "d69605eccb5845ba234e185a95436172a46dec45aa9b32f19430f32bcde7232e"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home",
+        "private_provenance"
+      ],
+      "path": "git/final/tests/v23/test_v240_close_ssot_reachability.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "e39b3f32eecbe0a633f481143dc900057744fa27e23ddd7d73da60406fb88807"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home",
+        "private_provenance",
+        "secret"
+      ],
+      "path": "git/final/tests/v23/test_v240_public_scan.py",
+      "reason": "detector_literal",
+      "sha256": "2fc50514ee469477b57f9c123250687071a7eeb319b5b118835cdd24a733ffd7"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/tests/v23/test_v240_release_lifecycle.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "a001ee744e92e069c55a15f0d2cd60fb31c41484a6895b43342ef89bb5c338f4"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/tests/v23/test_v243_engineering_metrics.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "bf5a5964597692148fe6d5af7ecd10c29743fbf587bfc8b713f385f0ee938887"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/tests/v23/test_v244_ed25519_verify.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "52fc7414c632f2b97da89264372422f6c13b3cf956c584c5f7f4983182a79152"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/final/tests/v23/test_v244_test_contracts.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "3bc3d379499e61e8f5fc840705ab0888e6c2fa2b5fcea8d7d6068af86e8e616c"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/history/blobs/2a358bcbda729ed173d04c05f326f414cfac4b81/goal-teams.md",
+      "reason": "implementation_vocabulary",
+      "sha256": "5abb799e8839f0ebbbb93db09419470a4063b885c22a41d50abcd5587e3d4454"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/history/blobs/3bf8f97419f96245cc3baff7231f385bc23d61d5/prompts/lead/core.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "9ca91ce81ce4dd534acbdb1902f708349efd17ba1dbf106b3ca8198fe6208b57"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/history/blobs/3ec979fee0e34328f714f03789ae0f97c98f29f2/references/runtime/03-goal-loop.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "c6b00acbeae1644b879b167f663e7b4ce1970de43808d82143ea02557d753dd6"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/history/blobs/4ad1983b15e0f5a7c131a01443ad6c9f6c8a2e91/references/runtime/01-v2-36-core-trust.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "36bf8c29b64f76108304f2d5242858ad2d676860739e1f2ced4972c67c734578"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/history/blobs/6588c749dd95133c557622cee30b69b92875396e/scripts/checks/validate.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "35315022331e6934d3f81a219c97203ea0366148fd537c9a93fdc3330000545b"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/history/blobs/829fb02363f28a6b5bb4617cbfc56222f55c9626/tests/v23/test_v236_profiles.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "f0a8de7fe346824879f24459ab4ceee521326e81049cf31a6008c4374e6ceb82"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home",
+        "private_provenance"
+      ],
+      "path": "git/history/blobs/839de5f02b22913dd323578e8c3133f5fc7fd26d/tests/v23/test_v240_close_ssot_reachability.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "e39b3f32eecbe0a633f481143dc900057744fa27e23ddd7d73da60406fb88807"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/history/blobs/8461dfcc41084610e1066ea92c2c5ea6f7f8ea52/references/compat.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "d1bb1d0d4b532da766c13edce605361d0468f328f90dd114400ca5c15b652235"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/history/blobs/a1f69f126969386fadbfe0503dbeeb777ba56845/tests/v23/test_v235_protocol.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "07457f000d0a504c64a2c4c92c3bd80ab5af3fbfeb23dcaa860d2b87352dbdac"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance",
+        "secret"
+      ],
+      "path": "git/history/blobs/a5dddd18cb5ad63d7456a03c571c30f98be9baaf/scripts/release/release.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "fbec1ca71d336dfc2e19660b4cff9308de44eb7c8b20ea17495a4bcb129bb27d"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/history/blobs/b2ec2663942f0370034a9c204f2c568aa253afcb/references/invariants.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "c4b6611ebc5143f53f91329987ecc5e589fbc95a12c54cf9ec9a2ee3ee8b7be7"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/history/blobs/d36860cc4170fbf26b03a76b1156ce88a69e68d7/prompts/packets/harness-contract.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "b5bda5b03c914965b03c63b6a218ea5dd44defee863f6a6dbe31673b432f75d6"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/history/blobs/da8d520b68a728cbf9c901e097ba1a011701ffde/prompts/members/reviewer/prompt.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "ae059a83eb64c7aaa224440d22fcd7e1d1ac26543bf7eb52131ca52550b3ca37"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance",
+        "secret"
+      ],
+      "path": "git/history/blobs/e2d73e5e4f995d28273a4f7fb55300f8fe570194/scripts/v23/goalteams_v23.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "62a3618cd1dff15b7ee938093239184455423f0143547562b0d7bf642351ea9e"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "git/history/blobs/e84c415f541d9186fc4cc530f7902c5822ce7f36/prompts/members/shared.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "8b6be04b2fd6ce39b4e856895b6d7aee4b79cf2352c894adfd21993d862cb617"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "git/history/blobs/eae95234a1a3cf47af951fe31bea9a1af1b484c3/references/rules-project-sizing.md",
+      "reason": "implementation_vocabulary",
+      "sha256": "e67942660ca6a07882922ac61f879af570f44d03e995ff01390ee085aac46417"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/benchmarks/tasks/GT-BENCH-005/reference_app.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "3586d728c1d90878df705957ef14e47b58637db57e51bc9d4f9ff7cbb8d223f4"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/benchmarks/tasks/GT-BENCH-005/static/index.html",
+      "reason": "implementation_vocabulary",
+      "sha256": "87d7228ba797711c633172464b0c06226fee0f70d239e2deec387cce7c704e38"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/examples/canonical-v23/versions/V2.3/evidence/recovery.log",
+      "reason": "implementation_vocabulary",
+      "sha256": "c516dd8157f5dd44cc0adee48df2482f11acdc0f392897e8d5528ba8f09f7836"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/examples/canonical-v23/versions/V2.3/evidence/run.log",
+      "reason": "implementation_vocabulary",
+      "sha256": "c516dd8157f5dd44cc0adee48df2482f11acdc0f392897e8d5528ba8f09f7836"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/examples/canonical-v23/versions/V2.3/identity/registry.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "1949fa8babbe4c08f57e24fe460b129627d94387d35f1ac19f7b91c776aa98ab"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/goal-teams.md",
+      "reason": "implementation_vocabulary",
+      "sha256": "5abb799e8839f0ebbbb93db09419470a4063b885c22a41d50abcd5587e3d4454"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/prompts/lead/core.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "9ca91ce81ce4dd534acbdb1902f708349efd17ba1dbf106b3ca8198fe6208b57"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/prompts/members/reviewer/prompt.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "ae059a83eb64c7aaa224440d22fcd7e1d1ac26543bf7eb52131ca52550b3ca37"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/prompts/members/shared.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "8b6be04b2fd6ce39b4e856895b6d7aee4b79cf2352c894adfd21993d862cb617"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/prompts/packets/harness-contract.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "b5bda5b03c914965b03c63b6a218ea5dd44defee863f6a6dbe31673b432f75d6"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/prompts/packets/member-goal-packet.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "588c4d4eb540b0c2f7c362cb9a1b643ffab9ad90a54e7f99ff9023721c5760d0"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/references/compat.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "d1bb1d0d4b532da766c13edce605361d0468f328f90dd114400ca5c15b652235"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/references/goal-teams-scripted-tooling.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "409aa1028b16f5d5efe19e6ec29ea16aca4eb8b850794263524bcac8cb7e4b40"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/references/goal-teams-v2.3-contract.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "84d5f1e489f5efe98fcc9eaca21db2e1cd1627f97aa5f949361254f62bfc24f3"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/references/invariants.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "c4b6611ebc5143f53f91329987ecc5e589fbc95a12c54cf9ec9a2ee3ee8b7be7"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/references/rules-project-sizing.md",
+      "reason": "implementation_vocabulary",
+      "sha256": "e67942660ca6a07882922ac61f879af570f44d03e995ff01390ee085aac46417"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/references/runtime/01-v2-36-core-trust.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "36bf8c29b64f76108304f2d5242858ad2d676860739e1f2ced4972c67c734578"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/references/runtime/02-harness-benchmark-loop.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "a34007d71429e540a2707c4419a521e50083b3dfb33e10bc2243e09fb37ec55d"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/references/runtime/03-goal-loop.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "c6b00acbeae1644b879b167f663e7b4ce1970de43808d82143ea02557d753dd6"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/references/subagent-dispatch-protocol.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "6884ee8e47162163341ddeaac69742a85091d10c7d69a912490b42e111b3ba57"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/schemas/v2.3/goal-teams.schema.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "a5bd1a09eaac56481519de119c609d95dcfe15a83afd5e12054f91f58774fef4"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/schemas/v2.35/project-route.schema.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "a60da97bc4775d4f9ea6bcb72cfb821958a02bf15f84ef9b5d7db83305ccbe0b"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance",
+        "secret"
+      ],
+      "path": "snapshot/schemas/v2.36/agent-host-attestation.schema.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "06dccb7eec7c99f9cf7c5b8a2c267341d08793675407aed04a576c2ef57fb837"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/schemas/v2.36/attested-identity-registry.schema.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "b2c262c0b045c41cc6a46f59bf3b02ca0109361ad2b900ee80d611ad4e53608e"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/schemas/v2.36/host-route-receipt.schema.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "8795c747837bc90ec91bf7ca78fb205660d9bd00168055c1e102b9e5178b62c9"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/schemas/v2.36/project-route.schema.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "f5f250e7f6f4862c9e342b2081c44e45d76580a9a2cfdd1d1955aff6c7fa02b9"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/schemas/v2.44/test-case.schema.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "217256d9884893fe4661d2fb4b28d089eb509d5689f275ec9104bc253d20dd12"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/scripts/benchmark/benchmark-runner.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "15dfa1a0ae4ddce57ce637cd0ddc44cb1a9f1f853308327ef77318e152dddd6a"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/scripts/benchmark/v244_testing_capability_browser.cjs",
+      "reason": "implementation_vocabulary",
+      "sha256": "f79526f512d4e2171900d0c2193e82942ba826794197b5e09dc46c403e73b5db"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/scripts/benchmark/v244_testing_capability_runner.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "b412f174c1f3f396e210d660aaf47e6bc434c3e25ee5fe6886097ae8f7b64253"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/scripts/benchmark/v244_testing_capability_scorer.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "ed0b9e9be91f11f3de36ab1cb3c53cc97da5bb66df7ae8e969098886b92fb235"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home"
+      ],
+      "path": "snapshot/scripts/checks/check-security-fixtures.py",
+      "reason": "detector_literal",
+      "sha256": "a0a6c3e0ab765ff3e33baed70d0059c6b6f6fa24000812f63ddf931b100b6cfd"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/scripts/checks/validate-test-case-contract.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "62f14e99f04e967f50efe0fc3df27018ccb191cc503e88e9064a7418a2654907"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/scripts/checks/validate.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "35315022331e6934d3f81a219c97203ea0366148fd537c9a93fdc3330000545b"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home",
+        "private_provenance",
+        "secret"
+      ],
+      "path": "snapshot/scripts/release/public_scan.py",
+      "reason": "detector_literal",
+      "sha256": "26610a236256636a04dfd9ecadcbe0d4ed7d99c85096e36895e74a37a655082c"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance",
+        "secret"
+      ],
+      "path": "snapshot/scripts/release/release.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "fbec1ca71d336dfc2e19660b4cff9308de44eb7c8b20ea17495a4bcb129bb27d"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance",
+        "secret"
+      ],
+      "path": "snapshot/scripts/v23/goalteams_v23.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "62a3618cd1dff15b7ee938093239184455423f0143547562b0d7bf642351ea9e"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/scripts/v23/prompt_cache.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "a5a5e9ae2c5da44a24fb95bce590db2a12c389a8d810a1eb82aef7bb0ea30901"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/scripts/v23/v234_closure.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "44c8a51f9e3e6bb30bac328d064e3d390f65f3df45f366be0fcccc17169a0f92"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance",
+        "secret"
+      ],
+      "path": "snapshot/scripts/v23/v234_state.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "3128495c398d35ad3c7ed25c5e3fd17f1154e99262e281ea13b6df474f44cc4b"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/scripts/v23/v235_policy.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "5d548ea664b34723d63f0bb2c1a1020ab2701b801346a97fc4f509148cb0d306"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home",
+        "secret"
+      ],
+      "path": "snapshot/scripts/v23/v236_security.py",
+      "reason": "detector_literal",
+      "sha256": "708fa667cfba7ae9e66744b18110d8618d85d0feee199715a21b810195944508"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance",
+        "secret"
+      ],
+      "path": "snapshot/scripts/v23/v236_trust.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "7243205e8c472715ba3728eded8c395f58e75cad1826d3ce924012976730276e"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/subagents/common-developer-instructions.txt",
+      "reason": "implementation_vocabulary",
+      "sha256": "e422fdb025d206c728da7024152973173c6df3d6ffa93367d6eebe6c440adbb0"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/subagents/goal-api-integration-test-designer.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "1c359585689206b3411a52aac23975f1256fcf9552c4415f01fa9978d430eb69"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/subagents/goal-api-integration-test-runner.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "9f5b697d8b563f9fd241dc487d73ab593d2e25c099b15de47302627901822123"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/subagents/goal-backend.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "85e2f13335afd487682a9d317c8f8d9c633200698dd8fa176afe743671b7cae6"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/subagents/goal-completion-auditor.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "64e3226418e9e047fdd852a679836f92306d6e04efa4e090096a7744ed03bed3"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/subagents/goal-docs.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "50e116481ad9739a4179ddf7a3e64e71e7314fe9138c2cb844e23dc7d8609128"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/subagents/goal-e2e-test-designer.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "8464539b96931c51fbae070e02057db6d995bc661fd1f941737278c9e80e8c31"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/subagents/goal-e2e-test-runner.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "710037e3f3e26b943cb639517a200f802b54a879c63a31a84ee305c77ac5299b"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/subagents/goal-frontend.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "ff31dc69eb929bc01161817e1a1549f00e2c3952e147349a357f2193f9be588c"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/subagents/goal-performance.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "95d29770aa2a26fc134f3bd0b14f9f07e07852508cb3df0fbbd94514610e92a0"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/subagents/goal-product.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "ca7b64a553256f8c8aedc84d6663c684ab5b89788070d5a29e9118ca30db004e"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/subagents/goal-qa.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "67b08300b4107059a0b162b4088f2084fc2e3f2f09498d2ca65612284aea3373"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/subagents/goal-refactor.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "93bef0aaf5763849724b4acdfaab3b90d5ee843c7a01824d083bb1eef526a6ed"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/subagents/goal-requirements-analyst.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "15b721cd540826759521019ebf6f02d49e35a56af3375e11cd8e0dbdf3f194f4"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/subagents/goal-reviewer.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "16c7eb02fc7bae86816f3f756efc72987617c0e3ab63305b53d8c9dbd2bbc183"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/subagents/goal-security.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "1c9e302a101586c60e6c7ecb98e19ba5698c02533c43cbbca91a535d0704a660"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/subagents/goal-sqa.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "f33c1914ff77b2b417ccf321adf477e11312e61593ac2cf72437baadb6238d57"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/subagents/goal-unit-test-designer.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "144923accce49d104fa7a06556a22f231493e9fced8c89d5f7956499a7ee25b1"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/subagents/goal-unit-test-runner.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "ef7195f8b0c3b1f193359d88075fb824ed93cc4709b7921fd1e8f7e4059f511d"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/tests/v23/build_canonical.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "ef056bd4cfa8fc784c6b7afe39d0d2f77ec6b73960b67edad33b0042d92e562c"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home",
+        "secret"
+      ],
+      "path": "snapshot/tests/v23/fixtures/security/redaction-input.txt",
+      "reason": "detector_literal",
+      "sha256": "b6cc69d36e3a2728fa80cb3c50d00e7ef17823a3779212fafdba9d8ed699fcad"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/tests/v23/fixtures/security/secret-log.txt",
+      "reason": "synthetic_fixture",
+      "sha256": "1d7cc0d91869976ce55abd787d8be90dc98cdbc6df0a2e1d34400c71160d12eb"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/tests/v23/fixtures/v235/routing.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "31338b51a42ee4085a9f16dcefc385cb5c9d36deeac0e795f0b113886a3bf01d"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/tests/v23/fixtures/v235/test-cases.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "162af59ecb2ba1fb757a9ad22c5cbbb6f608aed360262656a33c7e596fa34632"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/tests/v23/fixtures/v236/routing.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "dca87e0e7b6ac101ba584107bb8b1f96e31bcb8cbe997c896f603f7fe619417b"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home",
+        "secret"
+      ],
+      "path": "snapshot/tests/v23/fixtures/v240/release-lifecycle-contracts.json",
+      "reason": "synthetic_fixture",
+      "sha256": "ce39a4f6060d2330374ac27ccaefe9514f9ddd5998d1d76269652c0e7a001791"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/tests/v23/fixtures/v244/artifacts/api-case.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "17e21884b7e8ba749b61d386a2aa334b91af0bedd0abf9166ffe29adccfefefa"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/tests/v23/test_canonical_mutations.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "c4a6c42260197cb1dcf4698b42a5269d3c73b61f93c6525172a590b52a68f944"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/tests/v23/test_distribution_security.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "8c218bbfe2449e0b5fa4f8e6b9d294f3d3d40dea3fe7682e455f644db1a55bca"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/tests/v23/test_evidence_traceability_review.py",
+      "reason": "detector_literal",
+      "sha256": "365a9b0aa6295e0d394a9c792576f7627dbd71d212a026ff760e6f73fc37fa33"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/tests/v23/test_governance_release.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "8817814ff79080a265a4caea4117233a6a77020397ed9183ff5393d8bdf845f2"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home",
+        "private_provenance",
+        "secret"
+      ],
+      "path": "snapshot/tests/v23/test_v234_release_archive.py",
+      "reason": "detector_literal",
+      "sha256": "912b5dcf2eeb08f8c944ea14563c6543408ff57f4aa8444f6b181205614bd799"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/tests/v23/test_v234_reset_delivery.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "aaba0b354de0628e31f70f18048b5c95617996a5d6ae4934e94c95648832b842"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/tests/v23/test_v235_normalized_binding_security.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "a98714fb15c545e2221cbda228eaed83c2736d5d57a139ed1d681ebbd512c6fd"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/tests/v23/test_v235_protocol.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "07457f000d0a504c64a2c4c92c3bd80ab5af3fbfeb23dcaa860d2b87352dbdac"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "snapshot/tests/v23/test_v236_acceptance.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "07f41bb5113b31b6d75253c31d96570f65970950a21c49d498fbdc3c08ada08a"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/tests/v23/test_v236_profiles.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "f0a8de7fe346824879f24459ab4ceee521326e81049cf31a6008c4374e6ceb82"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/tests/v23/test_v236_security_redaction.py",
+      "reason": "detector_literal",
+      "sha256": "5381d54feb78d897f87ec8e76a9e3fc5fc0f5d75b0175e0ca2338e1eadfe0628"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance",
+        "secret"
+      ],
+      "path": "snapshot/tests/v23/test_v236_snapshot_attestation.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "958c67e62aba5ff8ce345031714d2c65a09b99f8f9227003ba06f2c60f03957b"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/tests/v23/test_v238_ordered_manifest.py",
+      "reason": "detector_literal",
+      "sha256": "8c3f7710ee8333e18036456f749946694cf32caa15cbcb26149811d636d58067"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/tests/v23/test_v238_prompt_cache.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "380a61a926088b2521e8302fa0d8921569056b1a2ca6a134031799238c1cdee4"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home",
+        "secret"
+      ],
+      "path": "snapshot/tests/v23/test_v239_cache_evidence.py",
+      "reason": "detector_literal",
+      "sha256": "d69605eccb5845ba234e185a95436172a46dec45aa9b32f19430f32bcde7232e"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home",
+        "private_provenance"
+      ],
+      "path": "snapshot/tests/v23/test_v240_close_ssot_reachability.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "e39b3f32eecbe0a633f481143dc900057744fa27e23ddd7d73da60406fb88807"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home",
+        "private_provenance",
+        "secret"
+      ],
+      "path": "snapshot/tests/v23/test_v240_public_scan.py",
+      "reason": "detector_literal",
+      "sha256": "2fc50514ee469477b57f9c123250687071a7eeb319b5b118835cdd24a733ffd7"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/tests/v23/test_v240_release_lifecycle.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "a001ee744e92e069c55a15f0d2cd60fb31c41484a6895b43342ef89bb5c338f4"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/tests/v23/test_v243_engineering_metrics.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "bf5a5964597692148fe6d5af7ecd10c29743fbf587bfc8b713f385f0ee938887"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/tests/v23/test_v244_ed25519_verify.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "52fc7414c632f2b97da89264372422f6c13b3cf956c584c5f7f4983182a79152"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "snapshot/tests/v23/test_v244_test_contracts.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "3bc3d379499e61e8f5fc840705ab0888e6c2fa2b5fcea8d7d6068af86e8e616c"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/benchmarks/tasks/GT-BENCH-005/reference_app.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "3586d728c1d90878df705957ef14e47b58637db57e51bc9d4f9ff7cbb8d223f4"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/benchmarks/tasks/GT-BENCH-005/static/index.html",
+      "reason": "implementation_vocabulary",
+      "sha256": "87d7228ba797711c633172464b0c06226fee0f70d239e2deec387cce7c704e38"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/examples/canonical-v23/versions/V2.3/evidence/recovery.log",
+      "reason": "implementation_vocabulary",
+      "sha256": "c516dd8157f5dd44cc0adee48df2482f11acdc0f392897e8d5528ba8f09f7836"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/examples/canonical-v23/versions/V2.3/evidence/run.log",
+      "reason": "implementation_vocabulary",
+      "sha256": "c516dd8157f5dd44cc0adee48df2482f11acdc0f392897e8d5528ba8f09f7836"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/examples/canonical-v23/versions/V2.3/identity/registry.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "1949fa8babbe4c08f57e24fe460b129627d94387d35f1ac19f7b91c776aa98ab"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/goal-teams.md",
+      "reason": "implementation_vocabulary",
+      "sha256": "5abb799e8839f0ebbbb93db09419470a4063b885c22a41d50abcd5587e3d4454"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/prompts/lead/core.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "9ca91ce81ce4dd534acbdb1902f708349efd17ba1dbf106b3ca8198fe6208b57"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/prompts/members/reviewer/prompt.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "ae059a83eb64c7aaa224440d22fcd7e1d1ac26543bf7eb52131ca52550b3ca37"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/prompts/members/shared.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "8b6be04b2fd6ce39b4e856895b6d7aee4b79cf2352c894adfd21993d862cb617"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/prompts/packets/harness-contract.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "b5bda5b03c914965b03c63b6a218ea5dd44defee863f6a6dbe31673b432f75d6"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/prompts/packets/member-goal-packet.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "588c4d4eb540b0c2f7c362cb9a1b643ffab9ad90a54e7f99ff9023721c5760d0"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/references/compat.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "d1bb1d0d4b532da766c13edce605361d0468f328f90dd114400ca5c15b652235"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/references/goal-teams-scripted-tooling.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "409aa1028b16f5d5efe19e6ec29ea16aca4eb8b850794263524bcac8cb7e4b40"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/references/goal-teams-v2.3-contract.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "84d5f1e489f5efe98fcc9eaca21db2e1cd1627f97aa5f949361254f62bfc24f3"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/references/invariants.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "c4b6611ebc5143f53f91329987ecc5e589fbc95a12c54cf9ec9a2ee3ee8b7be7"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/references/rules-project-sizing.md",
+      "reason": "implementation_vocabulary",
+      "sha256": "e67942660ca6a07882922ac61f879af570f44d03e995ff01390ee085aac46417"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/references/runtime/01-v2-36-core-trust.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "36bf8c29b64f76108304f2d5242858ad2d676860739e1f2ced4972c67c734578"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/references/runtime/02-harness-benchmark-loop.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "a34007d71429e540a2707c4419a521e50083b3dfb33e10bc2243e09fb37ec55d"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/references/runtime/03-goal-loop.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "c6b00acbeae1644b879b167f663e7b4ce1970de43808d82143ea02557d753dd6"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/references/subagent-dispatch-protocol.md",
+      "reason": "protocol_vocabulary",
+      "sha256": "6884ee8e47162163341ddeaac69742a85091d10c7d69a912490b42e111b3ba57"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/schemas/v2.3/goal-teams.schema.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "a5bd1a09eaac56481519de119c609d95dcfe15a83afd5e12054f91f58774fef4"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/schemas/v2.35/project-route.schema.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "a60da97bc4775d4f9ea6bcb72cfb821958a02bf15f84ef9b5d7db83305ccbe0b"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance",
+        "secret"
+      ],
+      "path": "tar/schemas/v2.36/agent-host-attestation.schema.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "06dccb7eec7c99f9cf7c5b8a2c267341d08793675407aed04a576c2ef57fb837"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/schemas/v2.36/attested-identity-registry.schema.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "b2c262c0b045c41cc6a46f59bf3b02ca0109361ad2b900ee80d611ad4e53608e"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/schemas/v2.36/host-route-receipt.schema.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "8795c747837bc90ec91bf7ca78fb205660d9bd00168055c1e102b9e5178b62c9"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/schemas/v2.36/project-route.schema.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "f5f250e7f6f4862c9e342b2081c44e45d76580a9a2cfdd1d1955aff6c7fa02b9"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/schemas/v2.44/test-case.schema.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "217256d9884893fe4661d2fb4b28d089eb509d5689f275ec9104bc253d20dd12"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/scripts/benchmark/benchmark-runner.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "15dfa1a0ae4ddce57ce637cd0ddc44cb1a9f1f853308327ef77318e152dddd6a"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/scripts/benchmark/v244_testing_capability_browser.cjs",
+      "reason": "implementation_vocabulary",
+      "sha256": "f79526f512d4e2171900d0c2193e82942ba826794197b5e09dc46c403e73b5db"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/scripts/benchmark/v244_testing_capability_runner.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "b412f174c1f3f396e210d660aaf47e6bc434c3e25ee5fe6886097ae8f7b64253"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/scripts/benchmark/v244_testing_capability_scorer.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "ed0b9e9be91f11f3de36ab1cb3c53cc97da5bb66df7ae8e969098886b92fb235"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home"
+      ],
+      "path": "tar/scripts/checks/check-security-fixtures.py",
+      "reason": "detector_literal",
+      "sha256": "a0a6c3e0ab765ff3e33baed70d0059c6b6f6fa24000812f63ddf931b100b6cfd"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/scripts/checks/validate-test-case-contract.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "62f14e99f04e967f50efe0fc3df27018ccb191cc503e88e9064a7418a2654907"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/scripts/checks/validate.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "35315022331e6934d3f81a219c97203ea0366148fd537c9a93fdc3330000545b"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home",
+        "private_provenance",
+        "secret"
+      ],
+      "path": "tar/scripts/release/public_scan.py",
+      "reason": "detector_literal",
+      "sha256": "26610a236256636a04dfd9ecadcbe0d4ed7d99c85096e36895e74a37a655082c"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance",
+        "secret"
+      ],
+      "path": "tar/scripts/release/release.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "fbec1ca71d336dfc2e19660b4cff9308de44eb7c8b20ea17495a4bcb129bb27d"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance",
+        "secret"
+      ],
+      "path": "tar/scripts/v23/goalteams_v23.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "62a3618cd1dff15b7ee938093239184455423f0143547562b0d7bf642351ea9e"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/scripts/v23/prompt_cache.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "a5a5e9ae2c5da44a24fb95bce590db2a12c389a8d810a1eb82aef7bb0ea30901"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/scripts/v23/v234_closure.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "44c8a51f9e3e6bb30bac328d064e3d390f65f3df45f366be0fcccc17169a0f92"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance",
+        "secret"
+      ],
+      "path": "tar/scripts/v23/v234_state.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "3128495c398d35ad3c7ed25c5e3fd17f1154e99262e281ea13b6df474f44cc4b"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/scripts/v23/v235_policy.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "5d548ea664b34723d63f0bb2c1a1020ab2701b801346a97fc4f509148cb0d306"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home",
+        "secret"
+      ],
+      "path": "tar/scripts/v23/v236_security.py",
+      "reason": "detector_literal",
+      "sha256": "708fa667cfba7ae9e66744b18110d8618d85d0feee199715a21b810195944508"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance",
+        "secret"
+      ],
+      "path": "tar/scripts/v23/v236_trust.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "7243205e8c472715ba3728eded8c395f58e75cad1826d3ce924012976730276e"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/subagents/common-developer-instructions.txt",
+      "reason": "implementation_vocabulary",
+      "sha256": "e422fdb025d206c728da7024152973173c6df3d6ffa93367d6eebe6c440adbb0"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/subagents/goal-api-integration-test-designer.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "1c359585689206b3411a52aac23975f1256fcf9552c4415f01fa9978d430eb69"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/subagents/goal-api-integration-test-runner.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "9f5b697d8b563f9fd241dc487d73ab593d2e25c099b15de47302627901822123"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/subagents/goal-backend.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "85e2f13335afd487682a9d317c8f8d9c633200698dd8fa176afe743671b7cae6"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/subagents/goal-completion-auditor.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "64e3226418e9e047fdd852a679836f92306d6e04efa4e090096a7744ed03bed3"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/subagents/goal-docs.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "50e116481ad9739a4179ddf7a3e64e71e7314fe9138c2cb844e23dc7d8609128"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/subagents/goal-e2e-test-designer.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "8464539b96931c51fbae070e02057db6d995bc661fd1f941737278c9e80e8c31"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/subagents/goal-e2e-test-runner.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "710037e3f3e26b943cb639517a200f802b54a879c63a31a84ee305c77ac5299b"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/subagents/goal-frontend.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "ff31dc69eb929bc01161817e1a1549f00e2c3952e147349a357f2193f9be588c"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/subagents/goal-performance.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "95d29770aa2a26fc134f3bd0b14f9f07e07852508cb3df0fbbd94514610e92a0"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/subagents/goal-product.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "ca7b64a553256f8c8aedc84d6663c684ab5b89788070d5a29e9118ca30db004e"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/subagents/goal-qa.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "67b08300b4107059a0b162b4088f2084fc2e3f2f09498d2ca65612284aea3373"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/subagents/goal-refactor.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "93bef0aaf5763849724b4acdfaab3b90d5ee843c7a01824d083bb1eef526a6ed"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/subagents/goal-requirements-analyst.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "15b721cd540826759521019ebf6f02d49e35a56af3375e11cd8e0dbdf3f194f4"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/subagents/goal-reviewer.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "16c7eb02fc7bae86816f3f756efc72987617c0e3ab63305b53d8c9dbd2bbc183"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/subagents/goal-security.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "1c9e302a101586c60e6c7ecb98e19ba5698c02533c43cbbca91a535d0704a660"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/subagents/goal-sqa.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "f33c1914ff77b2b417ccf321adf477e11312e61593ac2cf72437baadb6238d57"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/subagents/goal-unit-test-designer.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "144923accce49d104fa7a06556a22f231493e9fced8c89d5f7956499a7ee25b1"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/subagents/goal-unit-test-runner.toml",
+      "reason": "implementation_vocabulary",
+      "sha256": "ef7195f8b0c3b1f193359d88075fb824ed93cc4709b7921fd1e8f7e4059f511d"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/tests/v23/build_canonical.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "ef056bd4cfa8fc784c6b7afe39d0d2f77ec6b73960b67edad33b0042d92e562c"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home",
+        "secret"
+      ],
+      "path": "tar/tests/v23/fixtures/security/redaction-input.txt",
+      "reason": "detector_literal",
+      "sha256": "b6cc69d36e3a2728fa80cb3c50d00e7ef17823a3779212fafdba9d8ed699fcad"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/tests/v23/fixtures/security/secret-log.txt",
+      "reason": "synthetic_fixture",
+      "sha256": "1d7cc0d91869976ce55abd787d8be90dc98cdbc6df0a2e1d34400c71160d12eb"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/tests/v23/fixtures/v235/routing.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "31338b51a42ee4085a9f16dcefc385cb5c9d36deeac0e795f0b113886a3bf01d"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/tests/v23/fixtures/v235/test-cases.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "162af59ecb2ba1fb757a9ad22c5cbbb6f608aed360262656a33c7e596fa34632"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/tests/v23/fixtures/v236/routing.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "dca87e0e7b6ac101ba584107bb8b1f96e31bcb8cbe997c896f603f7fe619417b"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home",
+        "secret"
+      ],
+      "path": "tar/tests/v23/fixtures/v240/release-lifecycle-contracts.json",
+      "reason": "synthetic_fixture",
+      "sha256": "ce39a4f6060d2330374ac27ccaefe9514f9ddd5998d1d76269652c0e7a001791"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/tests/v23/fixtures/v244/artifacts/api-case.json",
+      "reason": "implementation_vocabulary",
+      "sha256": "17e21884b7e8ba749b61d386a2aa334b91af0bedd0abf9166ffe29adccfefefa"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/tests/v23/test_canonical_mutations.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "c4a6c42260197cb1dcf4698b42a5269d3c73b61f93c6525172a590b52a68f944"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/tests/v23/test_distribution_security.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "8c218bbfe2449e0b5fa4f8e6b9d294f3d3d40dea3fe7682e455f644db1a55bca"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/tests/v23/test_evidence_traceability_review.py",
+      "reason": "detector_literal",
+      "sha256": "365a9b0aa6295e0d394a9c792576f7627dbd71d212a026ff760e6f73fc37fa33"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/tests/v23/test_governance_release.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "8817814ff79080a265a4caea4117233a6a77020397ed9183ff5393d8bdf845f2"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home",
+        "private_provenance",
+        "secret"
+      ],
+      "path": "tar/tests/v23/test_v234_release_archive.py",
+      "reason": "detector_literal",
+      "sha256": "912b5dcf2eeb08f8c944ea14563c6543408ff57f4aa8444f6b181205614bd799"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/tests/v23/test_v234_reset_delivery.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "aaba0b354de0628e31f70f18048b5c95617996a5d6ae4934e94c95648832b842"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/tests/v23/test_v235_normalized_binding_security.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "a98714fb15c545e2221cbda228eaed83c2736d5d57a139ed1d681ebbd512c6fd"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/tests/v23/test_v235_protocol.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "07457f000d0a504c64a2c4c92c3bd80ab5af3fbfeb23dcaa860d2b87352dbdac"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance"
+      ],
+      "path": "tar/tests/v23/test_v236_acceptance.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "07f41bb5113b31b6d75253c31d96570f65970950a21c49d498fbdc3c08ada08a"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/tests/v23/test_v236_profiles.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "f0a8de7fe346824879f24459ab4ceee521326e81049cf31a6008c4374e6ceb82"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/tests/v23/test_v236_security_redaction.py",
+      "reason": "detector_literal",
+      "sha256": "5381d54feb78d897f87ec8e76a9e3fc5fc0f5d75b0175e0ca2338e1eadfe0628"
+    },
+    {
+      "finding_kinds": [
+        "private_provenance",
+        "secret"
+      ],
+      "path": "tar/tests/v23/test_v236_snapshot_attestation.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "958c67e62aba5ff8ce345031714d2c65a09b99f8f9227003ba06f2c60f03957b"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/tests/v23/test_v238_ordered_manifest.py",
+      "reason": "detector_literal",
+      "sha256": "8c3f7710ee8333e18036456f749946694cf32caa15cbcb26149811d636d58067"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/tests/v23/test_v238_prompt_cache.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "380a61a926088b2521e8302fa0d8921569056b1a2ca6a134031799238c1cdee4"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home",
+        "secret"
+      ],
+      "path": "tar/tests/v23/test_v239_cache_evidence.py",
+      "reason": "detector_literal",
+      "sha256": "d69605eccb5845ba234e185a95436172a46dec45aa9b32f19430f32bcde7232e"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home",
+        "private_provenance"
+      ],
+      "path": "tar/tests/v23/test_v240_close_ssot_reachability.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "e39b3f32eecbe0a633f481143dc900057744fa27e23ddd7d73da60406fb88807"
+    },
+    {
+      "finding_kinds": [
+        "absolute_home",
+        "private_provenance",
+        "secret"
+      ],
+      "path": "tar/tests/v23/test_v240_public_scan.py",
+      "reason": "detector_literal",
+      "sha256": "2fc50514ee469477b57f9c123250687071a7eeb319b5b118835cdd24a733ffd7"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/tests/v23/test_v240_release_lifecycle.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "a001ee744e92e069c55a15f0d2cd60fb31c41484a6895b43342ef89bb5c338f4"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/tests/v23/test_v243_engineering_metrics.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "bf5a5964597692148fe6d5af7ecd10c29743fbf587bfc8b713f385f0ee938887"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/tests/v23/test_v244_ed25519_verify.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "52fc7414c632f2b97da89264372422f6c13b3cf956c584c5f7f4983182a79152"
+    },
+    {
+      "finding_kinds": [
+        "secret"
+      ],
+      "path": "tar/tests/v23/test_v244_test_contracts.py",
+      "reason": "implementation_vocabulary",
+      "sha256": "3bc3d379499e61e8f5fc840705ab0888e6c2fa2b5fcea8d7d6068af86e8e616c"
+    }
+  ],
   "review": {
-    "decision": "pending",
-    "independent": false,
-    "review_id": "RUN-V246-PUBLIC-SCAN-REVIEW-PENDING",
+    "decision": "accepted",
+    "independent": true,
+    "review_id": "RUN-V246-PUBLIC-SCAN-REVIEW-20260727-A",
     "reviewer_type": "independent_release_reviewer"
   },
   "schema_version": "goal-teams-public-scan-baseline-v1",
