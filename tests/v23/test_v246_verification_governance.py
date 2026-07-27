@@ -12,6 +12,7 @@ import unittest
 from collections import deque
 from pathlib import Path
 from typing import Any
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[2]
 VALIDATOR_PATH = (
@@ -411,6 +412,35 @@ class V246VerificationGovernanceTests(unittest.TestCase):
         result = self._validate(self._materialize(case))
         self.assertFalse(result["ok"], result)
         self.assertEqual(result["error_code"], "E_V246_GRILL_EVIDENCE")
+
+    def test_achieved_grill_and_risk_reject_stale_evidence(self) -> None:
+        case = self._valid_case(
+            "V246-AFFECTED-RETEST-NEW-EVIDENCE-CURRENT"
+        )
+        for target, expected_error in (
+            ("grill", "E_V246_GRILL_EVIDENCE"),
+            ("risk", "E_V246_RISK_EVIDENCE"),
+        ):
+            with self.subTest(target=target):
+                document = self._materialize(case)
+                document["verification_contracts"][0]["traceability"][0][
+                    "evidence_ids"
+                ].append("EV-HISTORICAL-PASS-1")
+                if target == "grill":
+                    document["grill_reviews"][0]["evidence_refs"] = [
+                        "EV-HISTORICAL-PASS-1"
+                    ]
+                else:
+                    document["adversarial_risks"][0]["evidence_refs"] = [
+                        "EV-HISTORICAL-PASS-1"
+                    ]
+                result = self._validate(document)
+                self.assertFalse(result["ok"], result)
+                self.assertEqual(
+                    result["error_code"],
+                    expected_error,
+                    result,
+                )
 
     def test_risk_grill_and_transition_orphan_evidence_is_rejected(
         self,
@@ -1279,6 +1309,22 @@ class V246VerificationGovernanceTests(unittest.TestCase):
         state = {
             "recovery_state": "none",
             "checkpoints": {
+                "CP12": {
+                    "operations": [
+                        {
+                            "operation_id": "CP12.candidate_push",
+                            "readback": {"classification": "exact"},
+                        }
+                    ]
+                },
+                "CP15": {
+                    "operations": [
+                        {
+                            "operation_id": "CP15.tag_push",
+                            "readback": {"classification": "exact"},
+                        }
+                    ]
+                },
                 "CP16": {
                     "operations": [
                         {
@@ -1308,6 +1354,86 @@ class V246VerificationGovernanceTests(unittest.TestCase):
         self.assertEqual(
             self.release._derived_external_surface_phase(state),
             "conflict",
+        )
+
+    def test_external_surface_projection_sequence_is_executable(self) -> None:
+        state = {
+            "recovery_state": "none",
+            "checkpoints": {
+                "CP12": {
+                    "operations": [
+                        {
+                            "operation_id": "CP12.candidate_push",
+                            "readback": {"classification": "exact"},
+                        }
+                    ]
+                },
+                "CP15": {
+                    "operations": [
+                        {
+                            "operation_id": "CP15.tag_push",
+                            "readback": {"classification": "exact"},
+                        }
+                    ]
+                },
+                "CP16": {
+                    "operations": [
+                        {
+                            "operation_id": "CP16.draft_create",
+                            "readback": {"classification": "exact"},
+                        },
+                        {
+                            "operation_id": "CP16.asset_download_verify",
+                            "readback": {"classification": "exact"},
+                        },
+                    ]
+                },
+                "CP17": {
+                    "operations": [
+                        {
+                            "operation_id": "CP17.main_promote",
+                            "readback": {"classification": "exact"},
+                        },
+                        {
+                            "operation_id": "CP17.release_publish",
+                            "readback": {"classification": "exact"},
+                        },
+                        {
+                            "operation_id": "CP17.published_asset_download",
+                            "readback": {"classification": "exact"},
+                        },
+                        {
+                            "operation_id": "CP17.actual_install",
+                            "readback": {"classification": "exact"},
+                        },
+                    ]
+                },
+            },
+        }
+        self.assertEqual(
+            self.release._derived_external_surface_phase(state),
+            "installed_verified",
+        )
+
+        manifest = copy.deepcopy(self.manifest)
+        manifest["state_machines"]["external_surface"]["transitions"][
+            "main_promoted"
+        ].remove("release_published")
+        bad_manifest_path = self.receipt_root / "bad-surface-manifest.json"
+        bad_manifest_path.write_text(
+            json.dumps(manifest, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        with mock.patch.object(
+            self.release,
+            "VERIFICATION_GOVERNANCE_MANIFEST_PATH",
+            bad_manifest_path,
+        ):
+            with self.assertRaises(self.release.PolicyError) as caught:
+                self.release._derived_external_surface_phase(state)
+        self.assertEqual(
+            caught.exception.receipt["error_code"],
+            "E_V246_RELEASE_STATE_ORTHOGONAL",
         )
 
     def test_v244_contract_replay_remains_executable(self) -> None:

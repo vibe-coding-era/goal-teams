@@ -48,6 +48,13 @@ class V246DesktopEngineeringTests(unittest.TestCase):
         cls.artifact_directory = tempfile.TemporaryDirectory(dir=ROOT / "docs")
         cls.artifact_root = Path(cls.artifact_directory.name)
         cls._hydrate_typed_artifacts(cls.fixtures["base_document"])
+        cls.trusted_subject_binding = cls._build_subject_binding(
+            cls.fixtures["base_document"]
+        )
+        cls._bind_completion_receipts(
+            cls.fixtures["base_document"],
+            cls.trusted_subject_binding,
+        )
 
     @classmethod
     def tearDownClass(cls) -> None:
@@ -227,12 +234,11 @@ class V246DesktopEngineeringTests(unittest.TestCase):
             reviewer_run_id=reviewer,
             assertion_ids=["ASSERT-PRODUCTION-ISOLATION"],
         )
-        cls._bind_completion_receipts(document)
-
     @classmethod
     def _bind_completion_receipts(
         cls,
         document: dict[str, Any],
+        subject_binding: dict[str, Any] | None = None,
     ) -> None:
         if document["profile"] not in {"full", "regulated"}:
             document["decision"]["qa_review_ref"] = None
@@ -256,6 +262,14 @@ class V246DesktopEngineeringTests(unittest.TestCase):
                     collect(nested)
 
         collect(document)
+        evidence_binding_sha256 = cls.validator._evidence_binding_sha256(
+            list(cls.validator._evidence_refs(document))
+        )
+        if subject_binding is None:
+            subject_binding = cls._build_subject_binding(document)
+        subject_binding_sha256 = cls.validator._canonical_json_sha256(
+            subject_binding
+        )
         for field, receipt_type, actor in (
             ("qa_review_ref", "qa_review", document["roles"]["qa_run_id"]),
             (
@@ -271,6 +285,8 @@ class V246DesktopEngineeringTests(unittest.TestCase):
                 "bundle_revision": document["revision"],
                 "actor_run_id": actor,
                 "evidence_ids": sorted(evidence_ids),
+                "evidence_binding_sha256": evidence_binding_sha256,
+                "subject_binding_sha256": subject_binding_sha256,
                 "completion_predicates": contract["completion_predicates"],
                 "conclusion": contract["passing_conclusion"],
             }
@@ -283,6 +299,50 @@ class V246DesktopEngineeringTests(unittest.TestCase):
                 + ".json",
                 payload,
             )
+
+    @classmethod
+    def _build_subject_binding(
+        cls,
+        document: dict[str, Any],
+    ) -> dict[str, Any]:
+        evidence_rows = list(cls.validator._evidence_refs(document))
+        revisions = {row["code_revision"] for row in evidence_rows}
+        if len(revisions) != 1:
+            raise AssertionError("fixture must bind one code revision")
+        environment_tuples: dict[str, set[str]] = {}
+        for row in evidence_rows:
+            tuple_ids = environment_tuples.setdefault(
+                row["environment_id"], set()
+            )
+            if row["tuple_id"] is not None:
+                tuple_ids.add(row["tuple_id"])
+        environments: list[dict[str, Any]] = []
+        for environment_id, tuple_ids in sorted(
+            environment_tuples.items()
+        ):
+            if len(tuple_ids) > 1:
+                raise AssertionError(
+                    "fixture environment maps to multiple tuples"
+                )
+            environments.append(
+                {
+                    "environment_id": environment_id,
+                    "tuple_id": next(iter(tuple_ids), None),
+                    "toolchain_fingerprint_sha256": hashlib.sha256(
+                        environment_id.encode("utf-8")
+                    ).hexdigest(),
+                }
+            )
+        return {
+            "schema_version": "goal-teams-desktop-subject-binding-v1",
+            "bundle_id": document["bundle_id"],
+            "project_id": document["project_id"],
+            "candidate_commit": "d" * 40,
+            "candidate_tree": "c" * 40,
+            "code_revision": next(iter(revisions)),
+            "contract_revision": document["revision"],
+            "environments": environments,
+        }
 
     @classmethod
     def _bind_rust_na_approvals(
@@ -342,8 +402,34 @@ class V246DesktopEngineeringTests(unittest.TestCase):
         receipt_mutation: tuple[str, Any] | None = None,
     ) -> dict[str, Any]:
         document = copy.deepcopy(cls.fixtures["base_document"])
-        case = document["desktop_test_contract"]["cases"][0]
-        run = document["desktop_test_contract"]["runs"][0]
+        contract = document["desktop_test_contract"]
+        proof_ref = {
+            "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+            "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447",
+        }
+        case = {
+            "case_id": "CASE-OPTIONAL-WINDOW-DRAG",
+            "risk_id": "optional_window_drag",
+            "capability": "CAPABILITY-WINDOW-DRAG",
+            "required": False,
+            "minimum_evidence_level": "L3",
+            "input": {"event": "drag"},
+            "processing": ["dispatch native drag"],
+            "expected_output": {"window_moved": True},
+            "assertions": ["ASSERT-WINDOW-MOVED"],
+            "na_approval": None,
+        }
+        run = {
+            "run_id": "RUN-OPTIONAL-WINDOW-DRAG",
+            "case_id": case["case_id"],
+            "tuple_id": contract["platform_denominator"][0]["tuple_id"],
+            "driver": "@wdio/tauri-service:embedded",
+            "evidence_level": "L3",
+            "status": "not_applicable",
+            "evidence": None,
+            "runner_run_id": document["roles"]["test_runner_run_id"],
+            "reviewer_run_id": document["roles"]["reviewer_run_id"],
+        }
         payload = {
             "schema_version": "goal-teams-desktop-approval-v1",
             "approval_type": "na",
@@ -351,11 +437,11 @@ class V246DesktopEngineeringTests(unittest.TestCase):
             "bundle_revision": document["revision"],
             "case_id": case["case_id"],
             "approver_run_id": approver_run_id,
+            "impact_proof_ref": proof_ref,
             "decision": "approved",
         }
         if receipt_mutation is not None:
             payload[receipt_mutation[0]] = receipt_mutation[1]
-        case["required"] = False
         case["na_approval"] = {
             "reason": "Capability is absent under the approved product contract.",
             "artifact": cls._write_artifact(
@@ -367,9 +453,10 @@ class V246DesktopEngineeringTests(unittest.TestCase):
                 payload,
             ),
             "approver_run_id": approver_run_id,
+            "impact_proof_ref": proof_ref,
         }
-        run["status"] = "not_applicable"
-        run["evidence"] = None
+        contract["cases"].append(case)
+        contract["runs"].append(run)
         cls._bind_completion_receipts(document)
         return document
 
@@ -408,9 +495,14 @@ class V246DesktopEngineeringTests(unittest.TestCase):
         *,
         fixture_root: Path | None = ROOT,
     ) -> dict[str, Any]:
+        binding = copy.deepcopy(self.trusted_subject_binding)
+        binding["bundle_id"] = document["bundle_id"]
+        binding["project_id"] = document["project_id"]
+        binding["contract_revision"] = document["revision"]
         result = self.validator.validate_document(
             document,
             fixture_root=fixture_root,
+            trusted_subject_binding=binding,
         )
         self.assertIsInstance(result, dict)
         self.assertLessEqual(
@@ -624,6 +716,17 @@ class V246DesktopEngineeringTests(unittest.TestCase):
             "evidence_ids": sorted(
                 evidence["evidence_id"]
                 for evidence in self.validator._evidence_refs(document)
+            ),
+            "evidence_binding_sha256": self.validator._evidence_binding_sha256(
+                list(self.validator._evidence_refs(document))
+            ),
+            "subject_binding_sha256": self.validator._canonical_json_sha256(
+                {
+                    **self.trusted_subject_binding,
+                    "bundle_id": document["bundle_id"],
+                    "project_id": document["project_id"],
+                    "contract_revision": document["revision"],
+                }
             ),
             "completion_predicates": contract["completion_predicates"],
             "conclusion": contract["passing_conclusion"],
@@ -840,6 +943,111 @@ class V246DesktopEngineeringTests(unittest.TestCase):
         self.assertTrue(result["ok"], result)
         self.assertTrue(result["summary"]["contract_achieved"])
 
+    def test_required_native_risk_cannot_be_downgraded_to_na(self) -> None:
+        document = self._materialize(
+            self._case(
+                "V246-DESKTOP-FULL-MACOS-TAURI-REPLICA",
+                valid=True,
+            )
+        )
+        document["desktop_test_contract"]["cases"][0]["required"] = False
+        result = self._validate(document)
+        self.assertFalse(result["ok"], result)
+        self.assertEqual(
+            result["error_code"],
+            "E_V246_DESKTOP_DENOMINATOR",
+            result,
+        )
+
+    def test_trusted_subject_binding_rejects_revision_and_environment_drift(
+        self,
+    ) -> None:
+        for field, value in (
+            ("code_revision", "b" * 64),
+            ("environment_id", "ENV-ARBITRARY"),
+        ):
+            with self.subTest(field=field):
+                document = self._materialize(
+                    self._case(
+                        "V246-DESKTOP-FULL-MACOS-TAURI-REPLICA",
+                        valid=True,
+                    )
+                )
+                evidence = document["rust_backend_contract"]["gates"][0][
+                    "evidence"
+                ]
+                evidence[field] = value
+                self._refresh_evidence_artifact(
+                    evidence,
+                    f"subject-drift-{field}.json",
+                )
+                result = self._validate(document)
+                self.assertFalse(result["ok"], result)
+                self.assertEqual(
+                    result["error_code"],
+                    "E_V246_DESKTOP_SUBJECT_BINDING",
+                    result,
+                )
+
+    def test_duplicate_evidence_id_is_rejected(self) -> None:
+        document = self._materialize(
+            self._case(
+                "V246-DESKTOP-FULL-MACOS-TAURI-REPLICA",
+                valid=True,
+            )
+        )
+        first = document["rust_backend_contract"]["gates"][0]["evidence"]
+        second = document["rust_backend_contract"]["gates"][1]["evidence"]
+        second["evidence_id"] = first["evidence_id"]
+        self._refresh_evidence_artifact(second, "duplicate-evidence-id.json")
+        result = self._validate(document)
+        self.assertFalse(result["ok"], result)
+        self.assertEqual(
+            result["error_code"],
+            "E_V246_DESKTOP_EVIDENCE_LEVEL",
+            result,
+        )
+
+    def test_completion_receipts_bind_full_evidence_identity(self) -> None:
+        document = self._materialize(
+            self._case(
+                "V246-DESKTOP-FULL-MACOS-TAURI-REPLICA",
+                valid=True,
+            )
+        )
+        evidence = document["rust_backend_contract"]["gates"][0]["evidence"]
+        evidence["assertion_ids"].append("ASSERT-NEW-UNREVIEWED")
+        self._refresh_evidence_artifact(
+            evidence,
+            "evidence-binding-drift.json",
+        )
+        result = self._validate(document)
+        self.assertFalse(result["ok"], result)
+        self.assertEqual(
+            result["error_code"],
+            "E_V246_DESKTOP_COMPLETION",
+            result,
+        )
+
+    def test_achieved_requires_external_subject_binding(self) -> None:
+        document = self._materialize(
+            self._case(
+                "V246-DESKTOP-FULL-MACOS-TAURI-REPLICA",
+                valid=True,
+            )
+        )
+        result = self.validator.validate_document(
+            document,
+            fixture_root=ROOT,
+            trusted_subject_binding=None,
+        )
+        self.assertFalse(result["ok"], result)
+        self.assertEqual(
+            result["error_code"],
+            "E_V246_DESKTOP_SUBJECT_BINDING",
+            result,
+        )
+
     def test_manifest_schema_and_route_derivation_are_machine_bound(self) -> None:
         self.assertEqual(
             self.manifest["schema"],
@@ -924,8 +1132,16 @@ class V246DesktopEngineeringTests(unittest.TestCase):
         )
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "desktop-bundle.json"
+            binding_path = Path(directory) / "subject-binding.json"
             path.write_text(
                 json.dumps(document, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            binding_path.write_text(
+                json.dumps(
+                    self.trusted_subject_binding,
+                    ensure_ascii=False,
+                ),
                 encoding="utf-8",
             )
             proc = subprocess.run(
@@ -936,6 +1152,8 @@ class V246DesktopEngineeringTests(unittest.TestCase):
                     str(path),
                     "--fixture-root",
                     str(ROOT),
+                    "--subject-binding",
+                    str(binding_path),
                 ],
                 cwd=ROOT,
                 text=True,

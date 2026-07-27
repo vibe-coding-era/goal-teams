@@ -194,6 +194,7 @@ def _validate_typed_evidence(
     manifest: Mapping[str, Any],
 ) -> int:
     count = 0
+    evidence_ids: set[str] = set()
     fields = {
         "evidence_id",
         "level",
@@ -211,6 +212,13 @@ def _validate_typed_evidence(
     }
     for evidence in _evidence_refs(document):
         count += 1
+        evidence_id = str(evidence["evidence_id"])
+        if evidence_id in evidence_ids:
+            raise DesktopError(
+                "E_V246_DESKTOP_EVIDENCE_LEVEL",
+                "Evidence ID is reused across the bundle",
+            )
+        evidence_ids.add(evidence_id)
         if fixture_root is None:
             continue
         artifact = evidence["artifact"]
@@ -227,6 +235,112 @@ def _validate_typed_evidence(
                 "typed Evidence artifact does not match its declared binding",
             )
     return count
+
+
+def _evidence_binding_sha256(
+    evidence_rows: Iterable[Mapping[str, Any]],
+) -> str:
+    rows = sorted(
+        [
+            {
+                key: value
+                for key, value in evidence.items()
+                if key != "artifact"
+            }
+            | {"artifact": dict(evidence["artifact"])}
+            for evidence in evidence_rows
+        ],
+        key=lambda row: str(row["evidence_id"]),
+    )
+    return hashlib.sha256(
+        json.dumps(
+            rows,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest()
+
+
+def _canonical_json_sha256(value: Any) -> str:
+    return hashlib.sha256(
+        json.dumps(
+            value,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest()
+
+
+def _validate_trusted_subject_binding(
+    document: Mapping[str, Any],
+    evidence_rows: list[Mapping[str, Any]],
+    subject_binding: Mapping[str, Any] | None,
+    manifest: Mapping[str, Any],
+    schema: Mapping[str, Any],
+) -> None:
+    achieved = document["decision"]["contract_achieved"] is True
+    contract = manifest.get("trusted_subject_binding_contract")
+    if subject_binding is None:
+        if achieved:
+            raise DesktopError(
+                "E_V246_DESKTOP_SUBJECT_BINDING",
+                "achieved requires a frozen Harness or trusted-host subject binding",
+            )
+        return
+    if not isinstance(contract, dict):
+        raise DesktopError(
+            "E_V246_DESKTOP_SUBJECT_BINDING",
+            "trusted subject binding contract is missing",
+        )
+    _schema_validate(
+        subject_binding,
+        schema["$defs"]["trustedSubjectBinding"],
+        schema,
+        "$trusted_subject_binding",
+    )
+    if (
+        set(subject_binding)
+        != set(contract.get("required_fields", []))
+        or subject_binding.get("schema_version") != contract.get("schema_version")
+        or subject_binding.get("bundle_id") != document["bundle_id"]
+        or subject_binding.get("project_id") != document["project_id"]
+        or subject_binding.get("contract_revision") != document["revision"]
+    ):
+        raise DesktopError(
+            "E_V246_DESKTOP_SUBJECT_BINDING",
+            "trusted subject binding does not identify this bundle",
+        )
+    environment_rows = subject_binding.get("environments")
+    if not isinstance(environment_rows, list):
+        raise DesktopError(
+            "E_V246_DESKTOP_SUBJECT_BINDING",
+            "trusted environment registry is missing",
+        )
+    expected_environment_fields = set(
+        contract.get("environment_required_fields", [])
+    )
+    if any(set(row) != expected_environment_fields for row in environment_rows):
+        raise DesktopError(
+            "E_V246_DESKTOP_SUBJECT_BINDING",
+            "trusted environment registry shape drift",
+        )
+    environments = _unique(environment_rows, "environment_id")
+    code_revision = subject_binding["code_revision"]
+    for evidence in evidence_rows:
+        environment = environments.get(str(evidence["environment_id"]))
+        if evidence.get("code_revision") != code_revision or environment is None:
+            raise DesktopError(
+                "E_V246_DESKTOP_SUBJECT_BINDING",
+                "Evidence code revision or environment is outside trusted SSOT",
+            )
+        tuple_id = evidence.get("tuple_id")
+        if tuple_id is not None and environment.get("tuple_id") != tuple_id:
+            raise DesktopError(
+                "E_V246_DESKTOP_SUBJECT_BINDING",
+                "Evidence platform tuple differs from trusted environment",
+            )
 
 
 def _require_evidence_binding(
@@ -620,9 +734,19 @@ def _validate_desktop_tests(
                 "E_V246_DESKTOP_DENOMINATOR", "platform tuple fields are inconsistent"
             )
     cases = _unique(contract["cases"], "case_id")
+    required_native_risks = set(manifest["required_native_risks"])
+    if any(
+        case["risk_id"] in required_native_risks
+        and case["required"] is not True
+        for case in cases.values()
+    ):
+        raise DesktopError(
+            "E_V246_DESKTOP_DENOMINATOR",
+            "required native risk was downgraded to optional or N/A",
+        )
     required_cases = {key: value for key, value in cases.items() if value["required"]}
     if needs_desktop:
-        if not set(manifest["required_native_risks"]) <= {
+        if not required_native_risks <= {
             case["risk_id"] for case in cases.values()
         }:
             raise DesktopError("E_V246_DESKTOP_DENOMINATOR", "native risk denominator was reduced")
@@ -693,6 +817,7 @@ def _validate_desktop_tests(
             if (
                 case["required"]
                 or not isinstance(approval, dict)
+                or not isinstance(approval.get("impact_proof_ref"), dict)
                 or approval["approver_run_id"]
                 in {
                     roles["implementer_run_id"],
@@ -710,6 +835,7 @@ def _validate_desktop_tests(
                     "bundle_revision": document["revision"],
                     "case_id": case["case_id"],
                     "approver_run_id": approval["approver_run_id"],
+                    "impact_proof_ref": approval["impact_proof_ref"],
                     "decision": "approved",
                 },
                 fixture_root,
@@ -827,6 +953,8 @@ def _validate_desktop_completion_receipts(
     fixture_root: Path | None,
     manifest: Mapping[str, Any],
     evidence_ids: set[str],
+    evidence_binding_sha256: str,
+    subject_binding_sha256: str,
 ) -> None:
     if document["profile"] not in {"full", "regulated"}:
         return
@@ -872,6 +1000,10 @@ def _validate_desktop_completion_receipts(
             or payload.get("bundle_revision") != document["revision"]
             or payload.get("actor_run_id") != actor
             or set(payload.get("evidence_ids", [])) != evidence_ids
+            or payload.get("evidence_binding_sha256")
+            != evidence_binding_sha256
+            or payload.get("subject_binding_sha256")
+            != subject_binding_sha256
             or payload.get("completion_predicates")
             != contract.get("completion_predicates")
             or payload.get("conclusion") != contract.get("passing_conclusion")
@@ -887,6 +1019,7 @@ def validate_document(
     fixture_root: str | os.PathLike[str] | None = None,
     *,
     manifest_path: str | os.PathLike[str] | None = None,
+    trusted_subject_binding: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     try:
         if not isinstance(document, dict):
@@ -903,11 +1036,17 @@ def validate_document(
         if document["decision"]["contract_achieved"] and root is None:
             raise DesktopError("E_V246_DESKTOP_ARTIFACT", "achieved requires artifact root")
         artifact_count = _verify_artifacts(document, root)
-        evidence_count = 0
-        evidence_ids: set[str] = set()
-        for evidence in _evidence_refs(document):
-            evidence_count += 1
-            evidence_ids.add(str(evidence["evidence_id"]))
+        evidence_rows = list(_evidence_refs(document))
+        evidence_count = len(evidence_rows)
+        evidence_ids = {
+            str(evidence["evidence_id"]) for evidence in evidence_rows
+        }
+        if len(evidence_ids) != evidence_count:
+            raise DesktopError(
+                "E_V246_DESKTOP_EVIDENCE_LEVEL",
+                "Evidence ID is reused across the bundle",
+            )
+        for evidence in evidence_rows:
             if (
                 evidence.get("contract_revision") != document["revision"]
                 or evidence.get("level") not in LEVEL
@@ -917,6 +1056,7 @@ def validate_document(
                     "Evidence is stale or has an unknown level",
                 )
         _validate_typed_evidence(document, root, manifest)
+        evidence_binding_sha256 = _evidence_binding_sha256(evidence_rows)
         route = document["route"]
         for escalation in manifest.get("profile_escalation", []):
             when = str(escalation.get("when", ""))
@@ -962,6 +1102,18 @@ def validate_document(
             document, manifest, root
         )
         blockers.extend(desktop_blockers)
+        _validate_trusted_subject_binding(
+            document,
+            evidence_rows,
+            trusted_subject_binding,
+            manifest,
+            schema,
+        )
+        subject_binding_sha256 = (
+            _canonical_json_sha256(trusted_subject_binding)
+            if trusted_subject_binding is not None
+            else ""
+        )
         if route.get("replica") and isinstance(
             document.get("desktop_test_contract"), dict
         ):
@@ -1000,6 +1152,8 @@ def validate_document(
                 root,
                 manifest,
                 evidence_ids,
+                evidence_binding_sha256,
+                subject_binding_sha256,
             )
         return {
             "ok": True,
@@ -1162,14 +1316,39 @@ def self_test() -> dict[str, Any]:
             typed["artifact"]["sha256"] = hashlib.sha256(
                 artifact.read_bytes()
             ).hexdigest()
-        positive = validate_document(document, fixture_root=root)
+        evidence_rows = list(_evidence_refs(document))
+        subject_binding = {
+            "schema_version": "goal-teams-desktop-subject-binding-v1",
+            "bundle_id": document["bundle_id"],
+            "project_id": document["project_id"],
+            "candidate_commit": "1" * 40,
+            "candidate_tree": "2" * 40,
+            "code_revision": evidence_rows[0]["code_revision"],
+            "contract_revision": document["revision"],
+            "environments": [
+                {
+                    "environment_id": evidence_rows[0]["environment_id"],
+                    "tuple_id": evidence_rows[0]["tuple_id"],
+                    "toolchain_fingerprint_sha256": "3" * 64,
+                }
+            ],
+        }
+        positive = validate_document(
+            document,
+            fixture_root=root,
+            trusted_subject_binding=subject_binding,
+        )
         if not positive["ok"]:
             raise DesktopError("E_V246_DESKTOP_SELF_TEST", str(positive))
         negative = json.loads(json.dumps(document))
         negative["rust_backend_contract"]["crate_edges"] = [
             {"from": "domain", "to": "domain"}
         ]
-        rejected = validate_document(negative, fixture_root=root)
+        rejected = validate_document(
+            negative,
+            fixture_root=root,
+            trusted_subject_binding=subject_binding,
+        )
         if rejected["error_code"] != "E_V246_DESKTOP_DAG":
             raise DesktopError("E_V246_DESKTOP_SELF_TEST", "DAG negative missed")
     return {
@@ -1187,6 +1366,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--input", type=Path)
     parser.add_argument("--fixture-root", type=Path)
     parser.add_argument("--manifest", type=Path)
+    parser.add_argument("--subject-binding", type=Path)
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args(argv)
     try:
@@ -1197,6 +1377,11 @@ def main(argv: list[str] | None = None) -> int:
                 _load_json(args.input),
                 fixture_root=args.fixture_root,
                 manifest_path=args.manifest,
+                trusted_subject_binding=(
+                    _load_json(args.subject_binding)
+                    if args.subject_binding is not None
+                    else None
+                ),
             )
         else:
             raise DesktopError("E_V246_DESKTOP_SCHEMA", "--input or --self-test required")

@@ -8,6 +8,7 @@
 - 对 API/E2E 先复算风险分母，不接受设计者自报覆盖率：从 acceptance、API operations、persona/permission、状态机、依赖/failure modes、关键 journeys 与适用 browser/viewport/visual contracts 重建 applicable risks，再核对 case refs。分母缺项或不可追踪即 failed。
 - 对 Rust/Tauri/desktop route 读取 `references/desktop-engineering-protocol.md` 和机器合同，按能力事实派生要求：rust-only 不强加 L2/L3；Tauri 要 L2/L3；生产包要 L4；replica 要四维视觉/原生语义；cross-platform 要全部 required tuple。
 - 桌面测试必须区分 L1 Rust、L2 mock/browser、L3 instrumented real app、L4 production package。macOS 自动化只接受 `@wdio/tauri-service:embedded` 或已批准原生/Accessibility harness；直接 `tauri-driver`、普通 Chrome、mock 或截图不得冒充 macOS real-app Evidence。
+- 桌面 Evidence 必须逐项匹配 Harness/trusted-host 冻结的 candidate commit/tree 与 environment registry/toolchain fingerprint；QA/Audit receipt 绑定完整 Evidence binding digest，不只绑定 Evidence ID。required native risk 不能降为 optional/N/A；可选 N/A 必须有 capability absence impact proof 和独立 typed approval。
 - 逐 tuple 重算 OS/version/architecture/WebView/package/display/theme/locale/scale 分母，并覆盖适用原生能力、IPC 越权、异常输入、并发/取消/重试、故障恢复、安装升级卸载和生产测试能力泄漏。required tuple/case 非 passed 即不得 achieved。
 - 检查 TaskList 是否已经按 V2.0 功能级颗粒度拆分，并确认 SSOT 产出物位于 `versions/<artifact_version>/`。
 - 后端任务按 route gate 检查；Full/Regulated 才要求完整 Architecture、独立 TDD 与 API integration 链，Standard/Lite 只检查实际命中的门和 targeted regression。

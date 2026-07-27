@@ -950,6 +950,9 @@ def _validate_contracts_and_reviews(
     document: Mapping[str, Any],
     manifest: Mapping[str, Any],
     historical_ids: set[str],
+    current_evidence_ids: set[str],
+    acceptance_evidence_ids: set[str],
+    acceptance_achieved: bool,
     impact_items: Mapping[str, Mapping[str, Any]],
 ) -> list[str]:
     contracts = _index_unique(
@@ -1155,10 +1158,15 @@ def _validate_contracts_and_reviews(
         elif grill.get("critical") is True and na.get("claimed") is not True and (
             grill.get("conclusion") != "answered_with_evidence"
             or not _ids(grill.get("evidence_refs"), nonempty=True)
+            or (
+                acceptance_achieved
+                and not set(grill.get("evidence_refs", []))
+                <= acceptance_evidence_ids
+            )
         ):
             raise GovernanceError(
                 "E_V246_GRILL_EVIDENCE",
-                "critical Grill answer lacks evidence or has an unresolved finding",
+                "critical Grill answer lacks current acceptance-bound evidence",
             )
     for risk in risks.values():
         applicable = risk.get("applicable") is True
@@ -1175,6 +1183,15 @@ def _validate_contracts_and_reviews(
                 for field in ("case_ids", "assertion_ids", "run_ids", "evidence_refs")
             ) or not _id(risk.get("reviewer_run_id")):
                 blocking.append(f"adversarial_risk:{risk.get('risk_id')}:{coverage}")
+            elif (
+                acceptance_achieved
+                and not set(risk.get("evidence_refs", []))
+                <= acceptance_evidence_ids
+            ):
+                raise GovernanceError(
+                    "E_V246_RISK_EVIDENCE",
+                    "required adversarial risk lacks current acceptance-bound evidence",
+                )
         elif coverage == "not_applicable":
             impact_bound = any(
                 item.get("target_type") == "risk"
@@ -1462,6 +1479,17 @@ def validate_document(
         impact_items, blocking = _validate_changes_and_impacts(
             document, latest, history
         )
+        current_evidence_ids = {
+            evidence_id
+            for evidence_id, event in latest.items()
+            if event.get("evidence_integrity_state") == "valid"
+            and event.get("evidence_applicability_state") == "current"
+            and event.get("revalidation_state") in {"not_required", "closed"}
+        }
+        acceptance_projection = document["acceptance_projection"]
+        acceptance_evidence_ids = set(
+            acceptance_projection["acceptance_evidence_ids"]
+        )
         if any(
             event.get("impact_item_id") not in impact_items
             for event in document["evidence_applicability_events"]
@@ -1481,7 +1509,13 @@ def validate_document(
         )
         blocking.extend(
             _validate_contracts_and_reviews(
-                document, manifest, historical, impact_items
+                document,
+                manifest,
+                historical,
+                current_evidence_ids,
+                acceptance_evidence_ids,
+                acceptance_projection["state"] == "achieved",
+                impact_items,
             )
         )
         _validate_acceptance(

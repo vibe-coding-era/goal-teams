@@ -145,8 +145,13 @@ macOS、Windows、Linux 的 required tuple 分别计入风险分母。一个 tup
 | L4 | production package 的安装、启动、权限、升级/卸载与隔离 | 低层单元故障定位 |
 
 测试结果必须记录 test/case/run ID、tuple、level、输入、处理、期望输出、业务/原生断言、
-runner、独立 reviewer、artifact digest 和状态。截图、页面打开、退出码或日志单独均不足以
-证明通过。
+runner、独立 reviewer、artifact digest 和状态。`achieved` 还必须接收由冻结 Harness 或
+trusted host 提供、位于结果 bundle 之外的 `trusted_subject_binding`：其中 40 位
+candidate commit/tree、64 位 code revision digest、contract revision、environment
+registry 与 toolchain fingerprint 是当前验证 SSOT。每条 Evidence 的 `code_revision`
+必须等于该冻结 revision digest，每个 `environment_id` 必须解析到 registry，带 tuple 的
+Evidence 还必须与 registry tuple 完全一致；结果文件和 typed Evidence 自洽不能代替这项
+外部绑定。截图、页面打开、退出码或日志单独均不足以证明通过。
 
 ### 4.3 驱动与平台规则
 
@@ -174,8 +179,10 @@ macOS、Windows 和 Linux；直接驱动 `tauri-driver` 的桌面路径只适用
 
 按产品合同纳入窗口创建/关闭/重开、焦点、菜单、托盘、文件对话框、通知、深链、单实例、
 权限拒绝、签名/安装、升级/降级/卸载、sleep/resume、网络/磁盘失败、损坏状态、异常输入、
-IPC 越权、并发、取消、重试和崩溃恢复。不存在的能力需真实 N/A；存在但尚未实现/无法运行
-必须分别记录 `not_run|blocked|unavailable`。
+IPC 越权、并发、取消、重试和崩溃恢复。manifest 的 required native risk 必须持续保持
+`required=true`，不得降级为 optional/N/A。只有不在 required catalog 且产品合同明确
+不存在的能力可使用 N/A，并同时绑定 impact proof、typed approval 与独立 approver；
+存在但尚未实现/无法运行必须分别记录 `not_run|blocked|unavailable`。
 
 ## 5. 独立性与完成谓词
 
@@ -185,8 +192,9 @@ IPC 越权、并发、取消、重试和崩溃恢复。不存在的能力需真�
 - `contract_achieved` 只由 schema/validator 在 route 派生的 required denominator 全部 `passed`、
   Evidence 可回读、生产包隔离通过且独立审计闭合后派生。
 - Full/Regulated 的 `achieved` 必须同时回读 typed QA receipt 与 typed Completion Audit
-  receipt；两者分别绑定 bundle/revision、角色 run ID、完整 Evidence 集和机器重算的完成
-  谓词。只填写角色字符串或篡改 receipt run ID 均 fail closed。
+  receipt；两者分别绑定 bundle/revision、角色 run ID、完整 Evidence ID 集、完整 Evidence
+  binding digest、trusted subject binding digest 和机器重算的完成谓词。只填写角色字符串、
+  只绑定 Evidence ID 或篡改 receipt run ID 均 fail closed。
 - `decision.run_outcome` 必须按真实阻断状态投影：`failed`、`blocked/unavailable`、
   `not_run`、`flaky/其他未闭合谓词 -> partial` 与 `achieved` 不得互换。
 - 任何未知 platform、未声明 driver、层级冒充、伪造/过期 Evidence、分母缩小、缺失

@@ -228,7 +228,7 @@
       "transitions": {
         "absent": ["candidate_pushed", "conflict"],
         "candidate_pushed": ["main_promoted", "tag_pushed", "conflict"],
-        "main_promoted": ["tag_pushed", "release_draft", "conflict"],
+        "main_promoted": ["tag_pushed", "release_draft", "release_published", "conflict"],
         "tag_pushed": ["release_draft", "conflict"],
         "release_draft": ["asset_verified", "release_published", "conflict"],
         "release_published": ["asset_verified", "conflict"],

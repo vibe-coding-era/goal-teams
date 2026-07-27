@@ -343,7 +343,7 @@ GoalTeamsWork-<project_version>/
 - 新增正交状态机与 intent → execute → exact readback → CAS 事务合同；完成状态只能由完成谓词、有效 Evidence 和独立审计推导。
 - 新增可追溯测试合同、按风险路由的 Grill me 和对抗式测试，继续复用 V2.44 API/E2E 合同且不缩小风险分母。
 - 新增按能力派生的 Rust/Tauri 桌面工程合同：前端将“百分百复刻”拆成覆盖完整、同环境像素零差异、高保真与原生语义；PRD-only 先形成可独立批准的 HTML 基线。
-- Rust 后端统一 crate/module DAG、typed IPC、错误/并发/持久化/安全和 fmt/clippy/test 门；桌面测试按不可变 platform tuple 区分 L1 Rust、L2 mock/browser、L3 真实应用和 L4 生产包，macOS 不再用 browser 或 direct `tauri-driver` 冒充客户端 Evidence。
+- Rust 后端统一 crate/module DAG、typed IPC、错误/并发/持久化/安全和 fmt/clippy/test 门；桌面测试按不可变 platform tuple 区分 L1 Rust、L2 mock/browser、L3 真实应用和 L4 生产包，并用外部冻结的 candidate/environment SSOT 约束 Evidence，macOS 不再用 browser 或 direct `tauri-driver` 冒充客户端 Evidence。
 
 ## V2.43 版本改动
 

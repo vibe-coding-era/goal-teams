@@ -174,6 +174,26 @@
     "result_for_acceptance": "passed",
     "artifact_content_must_equal_ref_binding": true
   },
+  "trusted_subject_binding_contract": {
+    "schema_version": "goal-teams-desktop-subject-binding-v1",
+    "source": "frozen Harness or trusted host input outside the result bundle",
+    "required_fields": [
+      "schema_version",
+      "bundle_id",
+      "project_id",
+      "candidate_commit",
+      "candidate_tree",
+      "code_revision",
+      "contract_revision",
+      "environments"
+    ],
+    "environment_required_fields": [
+      "environment_id",
+      "tuple_id",
+      "toolchain_fingerprint_sha256"
+    ],
+    "achieved_requires_external_binding": true
+  },
   "typed_approval_contract": {
     "schema_version": "goal-teams-desktop-approval-v1",
     "types": ["baseline", "na", "rust_contract_na"],
@@ -189,6 +209,8 @@
       "bundle_revision",
       "actor_run_id",
       "evidence_ids",
+      "evidence_binding_sha256",
+      "subject_binding_sha256",
       "completion_predicates",
       "conclusion"
     ],
@@ -211,6 +233,7 @@
     "forged_or_stale_evidence",
     "production_test_capability_leak"
   ],
+  "required_native_risks_must_remain_required": true,
   "completion": {
     "required_item_pass_state": "passed",
     "blocking_states": [

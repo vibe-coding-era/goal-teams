@@ -846,17 +846,17 @@
       "expected_error_code": "E_V246_DESKTOP_ARTIFACT",
       "mutations": [
         {"op": "replace", "path": "/desktop_test_contract/cases/0/required", "value": false},
-        {"op": "replace", "path": "/desktop_test_contract/cases/0/na_approval", "value": {"reason": "Capability absent", "artifact": {"path": "tests/v23/fixtures/v244/artifacts/evidence.json", "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"}, "approver_run_id": "RUN-NA-APPROVER"}},
+        {"op": "replace", "path": "/desktop_test_contract/cases/0/na_approval", "value": {"reason": "Capability absent", "artifact": {"path": "tests/v23/fixtures/v244/artifacts/evidence.json", "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"}, "approver_run_id": "RUN-NA-APPROVER", "impact_proof_ref": {"path": "tests/v23/fixtures/v244/artifacts/evidence.json", "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"}}},
         {"op": "replace", "path": "/desktop_test_contract/runs/0/status", "value": "not_applicable"},
         {"op": "replace", "path": "/desktop_test_contract/runs/0/evidence", "value": null}
       ]
     },
     {
       "case_id": "V246-DESKTOP-OPTIONAL-NA-SELF-APPROVED",
-      "expected_error_code": "E_V246_DESKTOP_NA",
+      "expected_error_code": "E_V246_DESKTOP_DENOMINATOR",
       "mutations": [
         {"op": "replace", "path": "/desktop_test_contract/cases/0/required", "value": false},
-        {"op": "replace", "path": "/desktop_test_contract/cases/0/na_approval", "value": {"reason": "Capability absent", "artifact": {"path": "tests/v23/fixtures/v244/artifacts/evidence.json", "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"}, "approver_run_id": "RUN-TEST-RUNNER"}},
+        {"op": "replace", "path": "/desktop_test_contract/cases/0/na_approval", "value": {"reason": "Capability absent", "artifact": {"path": "tests/v23/fixtures/v244/artifacts/evidence.json", "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"}, "approver_run_id": "RUN-TEST-RUNNER", "impact_proof_ref": {"path": "tests/v23/fixtures/v244/artifacts/evidence.json", "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"}}},
         {"op": "replace", "path": "/desktop_test_contract/runs/0/status", "value": "not_applicable"},
         {"op": "replace", "path": "/desktop_test_contract/runs/0/evidence", "value": null}
       ]

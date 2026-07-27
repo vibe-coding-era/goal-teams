@@ -7,7 +7,7 @@ V2.1 起，Lead 每轮 `Integrate` 后先按 `prompts/lead/loop.md` 做轻量 in
 1. Lead 在候选收尾（所有可推进工作已处理，可能仍有 documented failed/blocked/deferred）时启动新的只读 `goal_completion_auditor`。Completion Audit 是被审任务图之外的最终门禁，不得注册成 required/acceptance-blocking task；只有 passed/achieved 分支要求 required task 全 accepted。
 2. Auditor 检查 ledger/checkpoint、reducer TaskList、strict Evidence registry、full-object Traceability、Dual Review、测试结果、SPEC/docs、未解决阻塞和剩余风险。
 2a. V2.46 另检查 verification contract、影响分析、Grill me 与对抗风险闭包：历史 pass 不因普通规则变化成为 invalid；仅有明确依赖链的项可 stale/retest_required，新增项保持 not_run，未受影响项继续 current。
-2b. Rust/Tauri/desktop route 运行 desktop engineering validator，复算能力派生门、复刻四维、Rust gates、L1-L4、platform tuple、driver 与生产包隔离；required 非 passed 或层级冒充时阻断。
+2b. Rust/Tauri/desktop route 运行 desktop engineering validator，传入冻结 Harness/trusted-host subject binding，复算 candidate/environment/toolchain、能力派生门、复刻四维、Rust gates、L1-L4、platform tuple、driver、required native risk 与生产包隔离；required 非 passed、N/A 降分母或层级冒充时阻断。
 3. Auditor 必须按 `prompts/packets/handoff-artifacts.md` 核对每个交接物是否有具体 Owner/Validator、`task_state`、`check_state`、Harness、当前 Evidence 和阻塞/延期原因，并验证 TaskList 与 ledger projection 一致。
 4. 只读 Auditor 返回完整 Completion Audit JSON；Lead/ledger owner 原样持久化为 `audit/completion-audit.json` 并实际运行 V2.3 `completion-audit` validator。required/blocking task 或 Evidence 指向本次实际 audit 文件（含自定义文件名）时必须以 `E_AUDIT_SELF_REFERENCE` 失败。只有 validator 通过且重算得到 `audit_state=passed` / `run_outcome=achieved`，Lead 才可发送最终完成回复。
 5. 如果未完成工作仍在已确认目标范围内，且未触发 Loop Gate 或 Budget Gate 停止条件，Lead 必须创建续跑任务并自动启动下一轮 Goal Teams；只展示续跑 `Teams 规划表`，不再要求用户确认。

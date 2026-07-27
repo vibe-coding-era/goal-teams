@@ -30,7 +30,7 @@ API/E2E 路由还必须把本文件、`references/test-case-assertion-protocol.m
 
 ## V2.46 Rust/Tauri 桌面工程
 
-桌面路由以 `references/desktop-engineering-protocol.md` 为 SSOT：Rust→L1、Tauri→L2/L3、package→L4、replica→四维、跨平台→required tuple；未命中不建空任务。macOS real-app 使用 embedded WDIO 或批准的原生 harness；直接 `tauri-driver` 无效。层级不可互代，非 passed 阻断 achieved。
+桌面路由以 `references/desktop-engineering-protocol.md` 为 SSOT：Rust→L1、Tauri→L2/L3、package→L4、replica→四维、跨平台→required tuple；未命中不建空任务。macOS real-app 使用 embedded WDIO 或批准的原生 harness；直接 `tauri-driver` 无效。层级不可互代，非 passed 阻断 achieved。`achieved` 必须额外接收 Harness/trusted-host 冻结的 candidate commit/tree 与 environment registry，Evidence 自洽不能替代外部 SSOT；required native risk 不得改成 optional/N/A。
 
 ## 适用颗粒度
 

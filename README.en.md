@@ -332,7 +332,7 @@ V2.3 adds deterministic machine contracts for closed state enums, a single-write
 - Added orthogonal state machines and an intent → execute → exact readback → CAS transaction contract; completion states are derived only from predicates, valid Evidence, and independent audit.
 - Added traceable test contracts, risk-routed Grill me review, and adversarial testing while preserving V2.44 API/E2E contracts and the full risk denominator.
 - Added capability-derived Rust/Tauri desktop contracts. “100% replication” is split into complete coverage, same-environment zero-pixel difference, high fidelity, and native-semantic match; PRD-only work first creates an independently approved interactive HTML baseline.
-- Rust backend rules now cover crate/module DAGs, typed IPC, errors, concurrency, persistence, security, and executable fmt/clippy/test gates. Desktop Evidence separates L1 Rust, L2 mock/browser, L3 real app, and L4 production package per immutable platform tuple; browser tests and direct `tauri-driver` cannot impersonate macOS client Evidence.
+- Rust backend rules now cover crate/module DAGs, typed IPC, errors, concurrency, persistence, security, and executable fmt/clippy/test gates. Desktop Evidence separates L1 Rust, L2 mock/browser, L3 real app, and L4 production package per immutable platform tuple and is constrained by an externally frozen candidate/environment SSOT; browser tests and direct `tauri-driver` cannot impersonate macOS client Evidence.
 
 ## V2.43 Changes
 

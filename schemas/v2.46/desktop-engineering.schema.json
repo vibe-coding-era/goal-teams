@@ -136,6 +136,10 @@
       "type": "string",
       "pattern": "^[0-9a-f]{64}$"
     },
+    "gitOid": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
     "artifactRef": {
       "type": "object",
       "additionalProperties": false,
@@ -201,6 +205,56 @@
           "minItems": 1,
           "uniqueItems": true,
           "items": {"$ref": "#/$defs/id"}
+        }
+      }
+    },
+    "trustedSubjectBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "bundle_id",
+        "project_id",
+        "candidate_commit",
+        "candidate_tree",
+        "code_revision",
+        "contract_revision",
+        "environments"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "goal-teams-desktop-subject-binding-v1"
+        },
+        "bundle_id": {"$ref": "#/$defs/id"},
+        "project_id": {"$ref": "#/$defs/id"},
+        "candidate_commit": {"$ref": "#/$defs/gitOid"},
+        "candidate_tree": {"$ref": "#/$defs/gitOid"},
+        "code_revision": {"$ref": "#/$defs/sha256"},
+        "contract_revision": {"type": "integer", "minimum": 1},
+        "environments": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "environment_id",
+              "tuple_id",
+              "toolchain_fingerprint_sha256"
+            ],
+            "properties": {
+              "environment_id": {"$ref": "#/$defs/id"},
+              "tuple_id": {
+                "oneOf": [
+                  {"$ref": "#/$defs/id"},
+                  {"type": "null"}
+                ]
+              },
+              "toolchain_fingerprint_sha256": {
+                "$ref": "#/$defs/sha256"
+              }
+            }
+          }
         }
       }
     },
@@ -700,11 +754,17 @@
             {
               "type": "object",
               "additionalProperties": false,
-              "required": ["reason", "artifact", "approver_run_id"],
+              "required": [
+                "reason",
+                "artifact",
+                "approver_run_id",
+                "impact_proof_ref"
+              ],
               "properties": {
                 "reason": {"type": "string", "minLength": 1},
                 "artifact": {"$ref": "#/$defs/artifactRef"},
-                "approver_run_id": {"$ref": "#/$defs/id"}
+                "approver_run_id": {"$ref": "#/$defs/id"},
+                "impact_proof_ref": {"$ref": "#/$defs/artifactRef"}
               }
             },
             {"type": "null"}

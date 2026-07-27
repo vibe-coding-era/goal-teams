@@ -6286,6 +6286,7 @@ def _derived_external_surface_phase(state: Mapping[str, Any]) -> str:
         manifest = json.loads(
             VERIFICATION_GOVERNANCE_MANIFEST_PATH.read_text(encoding="utf-8")
         )
+        surface_machine = manifest["state_machines"]["external_surface"]
         phases = manifest["release_runtime_projections"][
             "external_surface_phase"
         ]["ordered_operation_projection"]
@@ -6298,6 +6299,17 @@ def _derived_external_surface_phase(state: Mapping[str, Any]) -> str:
         _fail(
             "E_V246_RELEASE_STATE_ORTHOGONAL",
             "external-surface projection SSOT is malformed",
+        )
+    if not isinstance(surface_machine, Mapping):
+        _fail(
+            "E_V246_RELEASE_STATE_ORTHOGONAL",
+            "external-surface state machine SSOT is malformed",
+        )
+    transitions = surface_machine.get("transitions")
+    if not isinstance(transitions, Mapping):
+        _fail(
+            "E_V246_RELEASE_STATE_ORTHOGONAL",
+            "external-surface transition graph is malformed",
         )
     for checkpoint_id in (f"CP{number:02d}" for number in range(19)):
         checkpoint = checkpoints.get(checkpoint_id)
@@ -6318,7 +6330,15 @@ def _derived_external_surface_phase(state: Mapping[str, Any]) -> str:
                 and readback.get("classification") == "exact"
                 and operation_id in phases
             ):
-                latest = phases[str(operation_id)]
+                projected = phases[str(operation_id)]
+                if projected != latest and projected not in transitions.get(
+                    latest, []
+                ):
+                    _fail(
+                        "E_V246_RELEASE_STATE_ORTHOGONAL",
+                        "external-surface operation projection uses an undeclared edge",
+                    )
+                latest = projected
     return latest
 
 
