@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import importlib.util
 import hashlib
 import json
@@ -47,6 +48,177 @@ release = _load(
 
 
 class V244ReleaseEngineTests(unittest.TestCase):
+    def test_cp02_next_expected_before_preflight_is_zero_write(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state_path = Path(directory) / "promotion-state.json"
+            state_path.write_text('{"sentinel":"unchanged"}\n', encoding="utf-8")
+            state_sha256 = hashlib.sha256(state_path.read_bytes()).hexdigest()
+            state = {
+                "repository": "vibe-coding-era/goal-teams",
+                "version": "V2.46",
+                "candidate_commit": "b" * 40,
+                "current_checkpoint": "CP02",
+                "checkpoints": {
+                    "CP02": {
+                        "checkpoint_id": "CP02",
+                        "status": "pending",
+                        "candidate_commit": "b" * 40,
+                        "operations": [
+                            {
+                                "operation_id": "CP02.topology_validate",
+                                "sequence": 1,
+                                "status": "pending",
+                                "intent": {
+                                    "operation_id": "CP02.topology_validate",
+                                    "action": "local_validate",
+                                },
+                            }
+                        ],
+                    }
+                },
+            }
+            original_state = copy.deepcopy(state)
+            malformed = (
+                {},
+                {"next_checkpoint_expected_before": None},
+                {"next_checkpoint_expected_before": []},
+                {"next_checkpoint_expected_before": {}},
+                {
+                    "next_checkpoint_expected_before": {
+                        "CP03.github_authority_readback": "not-an-object"
+                    }
+                },
+            )
+            for supplied in malformed:
+                working_state = copy.deepcopy(state)
+                with self.subTest(supplied=supplied), mock.patch.object(
+                    release,
+                    "_load_state_cas",
+                    return_value=(state_path, working_state, state_sha256),
+                ), mock.patch.object(
+                    release, "_verify_frozen_git_identity"
+                ), mock.patch.object(
+                    release, "_operation_authorization", return_value={}
+                ), mock.patch.object(
+                    release, "_atomic_state_write"
+                ) as atomic_write, mock.patch.object(
+                    release, "_persist_operation_readback"
+                ) as persist_readback, mock.patch.object(
+                    release, "_execute_local_operation"
+                ) as execute_local:
+                    with self.assertRaises(release.PolicyError) as caught:
+                        release.execute_current_checkpoint(
+                            state_path,
+                            {
+                                "expected_state_sha256": state_sha256,
+                                "checkpoint_id": "CP02",
+                                **supplied,
+                            },
+                        )
+                self.assertEqual(
+                    caught.exception.receipt["error_code"],
+                    "E_V240_STATE_EXPECTED_BEFORE",
+                )
+                self.assertEqual(
+                    caught.exception.receipt["mutation_count"],
+                    0,
+                )
+                self.assertEqual(working_state, original_state)
+                self.assertEqual(
+                    hashlib.sha256(state_path.read_bytes()).hexdigest(),
+                    state_sha256,
+                )
+                atomic_write.assert_not_called()
+                persist_readback.assert_not_called()
+                execute_local.assert_not_called()
+
+    def test_cp02_preflight_preserves_in_progress_recovery_readback(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state_path = Path(directory) / "promotion-state.json"
+            state_path.write_text('{"sentinel":"unchanged"}\n', encoding="utf-8")
+            state_sha256 = hashlib.sha256(state_path.read_bytes()).hexdigest()
+            readback = {
+                "classification": "exact",
+                "source": "local_filesystem",
+                "details": {"topology_valid": True},
+                "state_sha256": "c" * 64,
+            }
+            intent = {
+                "operation_id": "CP02.topology_validate",
+                "action": "local_validate",
+            }
+            state = {
+                "repository": "vibe-coding-era/goal-teams",
+                "version": "V2.46",
+                "candidate_commit": "b" * 40,
+                "current_checkpoint": "CP02",
+                "recovery_state": "reconciliation_required",
+                "recovery_revision": 1,
+                "recovery_transition_receipts": [],
+                "reconciliation": {
+                    "operation_id": "CP02.topology_validate",
+                    "intent_sha256": "d" * 64,
+                    "readback_sha256": "e" * 64,
+                },
+                "checkpoints": {
+                    "CP02": {
+                        "checkpoint_id": "CP02",
+                        "status": "in_progress",
+                        "candidate_commit": "b" * 40,
+                        "operations": [
+                            {
+                                "operation_id": "CP02.topology_validate",
+                                "sequence": 1,
+                                "status": "in_progress",
+                                "intent": intent,
+                                "readback": readback,
+                                "receipt_sha256": release._canonical_json_sha256(
+                                    {
+                                        "intent": intent,
+                                        "readback": readback,
+                                    }
+                                ),
+                            }
+                        ],
+                    }
+                },
+            }
+            original_state = copy.deepcopy(state)
+            with mock.patch.object(
+                release,
+                "_load_state_cas",
+                return_value=(state_path, state, state_sha256),
+            ), mock.patch.object(
+                release, "_verify_frozen_git_identity"
+            ), mock.patch.object(
+                release, "_operation_authorization", return_value={}
+            ), mock.patch.object(
+                release, "_atomic_state_write"
+            ) as atomic_write, mock.patch.object(
+                release, "_persist_operation_readback"
+            ) as persist_readback:
+                with self.assertRaises(release.PolicyError) as caught:
+                    release.execute_current_checkpoint(
+                        state_path,
+                        {
+                            "expected_state_sha256": state_sha256,
+                            "checkpoint_id": "CP02",
+                        },
+                        recover_only=True,
+                    )
+            self.assertEqual(
+                caught.exception.receipt["error_code"],
+                "E_V240_STATE_EXPECTED_BEFORE",
+            )
+            self.assertEqual(caught.exception.receipt["mutation_count"], 0)
+            self.assertEqual(state, original_state)
+            self.assertEqual(
+                hashlib.sha256(state_path.read_bytes()).hexdigest(),
+                state_sha256,
+            )
+            atomic_write.assert_not_called()
+            persist_readback.assert_not_called()
+
     def test_active_profile_closes_every_public_release_identity(self) -> None:
         profile = release_config.active_release_config()
         self.assertEqual(profile["version"], "V2.46")

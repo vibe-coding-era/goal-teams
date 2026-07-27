@@ -2605,22 +2605,39 @@ def _new_checkpoint_record(
     }
 
 
-def _append_next_checkpoint(
+def _prepare_next_checkpoint(
     state: dict[str, Any], checkpoint_id: str, config: Mapping[str, Any]
-) -> None:
+) -> tuple[str, dict[str, Any]] | None:
+    """Build the next checkpoint before the current checkpoint can persist.
+
+    In particular, an external next checkpoint must have a complete
+    expected-before map before the current checkpoint becomes ``in_progress``
+    or stores any operation readback.  The returned record is side-effect free
+    and can be appended only after the current checkpoint has completed.
+    """
+
     number = int(checkpoint_id[2:])
     if number >= 18:
-        return
+        return None
     next_id = f"CP{number + 1:02d}"
     checkpoints = state["checkpoints"]
     if next_id in checkpoints:
-        return
+        return None
     expected_before = config.get("next_checkpoint_expected_before")
-    checkpoints[next_id] = _new_checkpoint_record(
+    if (
+        "next_checkpoint_expected_before" in config
+        and not isinstance(expected_before, Mapping)
+    ):
+        _fail(
+            "E_V240_STATE_EXPECTED_BEFORE",
+            "next checkpoint expected-before map is invalid",
+        )
+    record = _new_checkpoint_record(
         state,
         next_id,
-        expected_before if isinstance(expected_before, Mapping) else {},
+        expected_before if isinstance(expected_before, Mapping) else None,
     )
+    return next_id, record
 
 
 def _validate_scope_receipt(
@@ -6679,6 +6696,11 @@ def execute_current_checkpoint(
         _fail("E_V240_STATE_OPERATION_PLAN", "checkpoint operations are missing")
     for operation in operations:
         _operation_authorization(operation, config)
+    prepared_next_checkpoint = _prepare_next_checkpoint(
+        state,
+        checkpoint_id,
+        config,
+    )
 
     # Persist all intents before the first possible side effect.
     if checkpoint.get("status") == "pending":
@@ -7126,7 +7148,11 @@ def execute_current_checkpoint(
     checkpoint["receipt_sha256"] = _canonical_json_sha256(
         [operation["receipt_sha256"] for operation in operations]
     )
-    _append_next_checkpoint(state, checkpoint_id, config)
+    if prepared_next_checkpoint is not None:
+        next_checkpoint_id, next_checkpoint_record = (
+            prepared_next_checkpoint
+        )
+        state["checkpoints"][next_checkpoint_id] = next_checkpoint_record
     schema = _load_promotion_schema()
     phase_map = schema["x-semantic-validator"]["checkpoint_phase_after_pass"]
     target_phase = phase_map[checkpoint_id]
