@@ -950,7 +950,6 @@ def _validate_contracts_and_reviews(
     document: Mapping[str, Any],
     manifest: Mapping[str, Any],
     historical_ids: set[str],
-    current_evidence_ids: set[str],
     acceptance_evidence_ids: set[str],
     acceptance_achieved: bool,
     impact_items: Mapping[str, Mapping[str, Any]],
@@ -1479,13 +1478,6 @@ def validate_document(
         impact_items, blocking = _validate_changes_and_impacts(
             document, latest, history
         )
-        current_evidence_ids = {
-            evidence_id
-            for evidence_id, event in latest.items()
-            if event.get("evidence_integrity_state") == "valid"
-            and event.get("evidence_applicability_state") == "current"
-            and event.get("revalidation_state") in {"not_required", "closed"}
-        }
         acceptance_projection = document["acceptance_projection"]
         acceptance_evidence_ids = set(
             acceptance_projection["acceptance_evidence_ids"]
@@ -1512,7 +1504,6 @@ def validate_document(
                 document,
                 manifest,
                 historical,
-                current_evidence_ids,
                 acceptance_evidence_ids,
                 acceptance_projection["state"] == "achieved",
                 impact_items,
