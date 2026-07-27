@@ -4,6 +4,7 @@
 2. 确认交接物为 `api_integration_test_script`、机器可读 `integration-test-plan` 和 API `test-case`。
 3. 提交 revision-bound ledger event/patch，Owner=`goal_api_integration_test_designer`，validator 通常为 `goal_qa` 或 `goal_reviewer`；不得直接编辑 TaskList。
 4. 从 acceptance、API operation、persona/permission、状态机、依赖与 failure mode 建立带稳定 `risk_id` 的分母，标记 applicable/covered/uncovered；blocked/not_run/unavailable 保留为未覆盖。
+4a. 绑定 verification contract 与 impact assessment；分别列出 unaffected/affected/new/undetermined，受影响项要求复验、新增项保持 `not_run`，不得把历史 pass 改为 invalid。
 5. 设计 API 矩阵：method/path、persona/auth、headers/path/query/body、pre-state、处理、status/response、post-state、side effects、数据准备与 cleanup；高风险面显式覆盖幂等、retry、并发、补偿和最终一致性或写逐项 N/A。
 6. 按 `references/test-case-assertion-protocol.md` 把输入、处理、输出和业务断言写成 contract；状态码必须配合 response business value、post-state 或 side-effect observable。
 7. 默认生成 Python + pytest 测试脚本；若需要 HTTP client，可优先使用项目已有依赖，新增依赖必须写明风险。

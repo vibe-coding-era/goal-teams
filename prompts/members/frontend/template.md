@@ -9,6 +9,9 @@
 HTML OKF 元数据：<present/missing/not_applicable>
 viewport：<desktop/mobile>
 开发类型：dynamic frontend page | static HTML prototype
+桌面合同（条件）：<route facts / source mode / platform tuples / typed IPC>
+复刻四维（条件）：<coverage_complete / pixel_exact / high_fidelity / native_semantic_match>
+桌面 Evidence（条件）：<L2 mock-browser / L3 instrumented app / L4 production package>
 E2E：
 - command:
 - screenshot:

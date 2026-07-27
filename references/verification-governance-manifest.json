@@ -1,0 +1,421 @@
+{
+  "schema_version": "goal-teams-verification-governance-manifest-v2.46",
+  "product_version": "V2.46",
+  "protocol": "references/verification-governance-protocol.md",
+  "schema": "schemas/v2.46/verification-governance.schema.json",
+  "validator": "scripts/checks/validate-verification-governance.py",
+  "compatibility": {
+    "legacy_goal_teams_schema": "goal-teams-v2.3",
+    "testing_contract_schema": "goal-teams-testing-capability-v2.44",
+    "legacy_records_are_immutable": true,
+    "v246_is_append_only_projection": true
+  },
+  "evidence_axes": {
+    "evidence_integrity_state": ["unverified", "valid", "invalid"],
+    "evidence_applicability_state": ["current", "stale"],
+    "revalidation_state": [
+      "not_required",
+      "retest_required",
+      "scheduled",
+      "running",
+      "closed"
+    ]
+  },
+  "evidence_retest_identity": {
+    "same_evidence_id_revival_forbidden": true,
+    "new_evidence_id_required": true,
+    "new_run_id_required": true,
+    "new_attempt_id_required": true,
+    "supersedes_evidence_id_required": true,
+    "acceptance_uses_explicit_current_evidence_set": true
+  },
+  "bundle_history_binding": {
+    "revision_one_has_no_predecessor": true,
+    "later_revision_requires_digest_bound_predecessor": true,
+    "historical_ledgers_are_immutable_prefixes": true
+  },
+  "review_audit_receipt_contract": {
+    "schema_version": "goal-teams-v246-review-receipt-v1",
+    "receipt_types": ["independent_review", "completion_audit"],
+    "required_fields": [
+      "schema_version",
+      "receipt_type",
+      "bundle_id",
+      "bundle_revision",
+      "acceptance_evidence_ids",
+      "actor_run_id",
+      "completion_predicates",
+      "conclusion"
+    ],
+    "completion_predicates": {
+      "required_checks_passed": true,
+      "required_runs_achieved": true,
+      "evidence_current_valid": true,
+      "risk_denominator_closed": true
+    },
+    "passing_conclusion": "passed"
+  },
+  "task_completion_receipt_contract": {
+    "schema_version": "goal-teams-v246-task-completion-receipt-v1",
+    "receipt_type": "task_completion_audit",
+    "required_fields": [
+      "schema_version",
+      "receipt_type",
+      "bundle_id",
+      "bundle_revision",
+      "task_id",
+      "executor_run_id",
+      "auditor_run_id",
+      "evidence_ids",
+      "completion_predicates",
+      "conclusion"
+    ],
+    "completion_predicates": {
+      "task_work_completed": true,
+      "required_checks_passed": true,
+      "required_runs_achieved": true,
+      "evidence_current_valid": true,
+      "independent_review_passed": true
+    },
+    "passing_conclusion": "passed"
+  },
+  "impact_classes": [
+    "unaffected",
+    "affected",
+    "new_requirement",
+    "scope_change_pending",
+    "undetermined"
+  ],
+  "impact_semantics": {
+    "unaffected": {
+      "integrity_effect": "preserve",
+      "applicability": "current",
+      "revalidation": "not_required"
+    },
+    "affected": {
+      "integrity_effect": "preserve",
+      "applicability": "stale",
+      "revalidation": "retest_required"
+    },
+    "new_requirement": {
+      "integrity_effect": "not_applicable",
+      "check_state": "not_started",
+      "run_conclusion": "not_run"
+    },
+    "scope_change_pending": {
+      "integrity_effect": "preserve",
+      "acceptance": "blocked"
+    },
+    "undetermined": {
+      "integrity_effect": "preserve",
+      "acceptance": "blocked"
+    }
+  },
+  "state_machines": {
+    "task_lifecycle": {
+      "initial": "planned",
+      "states": ["planned", "running", "review", "accepted", "blocked", "deferred", "cancelled"],
+      "completion_states": ["accepted"],
+      "transitions": {
+        "planned": ["running", "blocked", "deferred", "cancelled"],
+        "running": ["review", "blocked", "deferred", "cancelled"],
+        "review": ["running", "accepted", "blocked", "deferred", "cancelled"],
+        "accepted": [],
+        "blocked": ["planned", "running", "deferred", "cancelled"],
+        "deferred": ["planned", "cancelled"],
+        "cancelled": []
+      }
+    },
+    "check_execution": {
+      "initial": "not_started",
+      "states": ["not_started", "running", "passed", "failed", "blocked", "not_required", "waived"],
+      "completion_states": ["passed", "not_required"],
+      "transitions": {
+        "not_started": ["running", "blocked", "not_required", "waived"],
+        "running": ["passed", "failed", "blocked"],
+        "passed": [],
+        "failed": [],
+        "blocked": ["not_started", "running"],
+        "not_required": [],
+        "waived": []
+      }
+    },
+    "run_conclusion": {
+      "initial": "not_run",
+      "states": ["not_run", "running", "achieved", "partial", "failed", "blocked", "flaky", "aborted"],
+      "completion_states": ["achieved"],
+      "transitions": {
+        "not_run": ["running", "blocked", "aborted"],
+        "running": ["achieved", "partial", "failed", "blocked", "flaky", "aborted"],
+        "achieved": [],
+        "partial": [],
+        "failed": [],
+        "blocked": ["not_run", "running"],
+        "flaky": [],
+        "aborted": []
+      }
+    },
+    "evidence_integrity": {
+      "initial": "unverified",
+      "states": ["unverified", "valid", "invalid"],
+      "completion_states": ["valid"],
+      "transitions": {
+        "unverified": ["valid", "invalid"],
+        "valid": ["invalid"],
+        "invalid": []
+      }
+    },
+    "evidence_applicability": {
+      "initial": "current",
+      "states": ["current", "stale"],
+      "completion_states": ["current"],
+      "transitions": {
+        "current": ["stale"],
+        "stale": []
+      }
+    },
+    "revalidation": {
+      "initial": "not_required",
+      "states": ["not_required", "retest_required", "scheduled", "running", "closed"],
+      "completion_states": ["not_required", "closed"],
+      "transitions": {
+        "not_required": ["retest_required"],
+        "retest_required": ["scheduled", "running"],
+        "scheduled": ["running"],
+        "running": ["closed", "retest_required"],
+        "closed": ["retest_required"]
+      }
+    },
+    "recovery": {
+      "binding": {
+        "mode": "receipt_state_machine",
+        "release_runtime_field": true,
+        "state_field": "recovery_state",
+        "revision_field": "recovery_revision",
+        "receipt_field": "recovery_transition_receipts",
+        "cas_independent_from": "state_revision",
+        "direct_state_write_forbidden": true
+      },
+      "initial": "none",
+      "states": ["none", "reconciliation_required", "recovering", "recovered", "conflict"],
+      "completion_states": ["none", "recovered"],
+      "transitions": {
+        "none": ["reconciliation_required", "conflict"],
+        "reconciliation_required": ["recovering", "conflict"],
+        "recovering": ["recovered", "reconciliation_required", "conflict"],
+        "recovered": ["none", "reconciliation_required", "conflict"],
+        "conflict": []
+      }
+    },
+    "external_surface": {
+      "binding": {
+        "mode": "receipt_state_machine",
+        "release_runtime_field": false
+      },
+      "initial": "absent",
+      "states": [
+        "absent",
+        "candidate_pushed",
+        "main_promoted",
+        "tag_pushed",
+        "release_draft",
+        "release_published",
+        "asset_verified",
+        "installed_verified",
+        "conflict"
+      ],
+      "completion_states": ["installed_verified"],
+      "transitions": {
+        "absent": ["candidate_pushed", "conflict"],
+        "candidate_pushed": ["main_promoted", "tag_pushed", "conflict"],
+        "main_promoted": ["tag_pushed", "release_draft", "conflict"],
+        "tag_pushed": ["release_draft", "conflict"],
+        "release_draft": ["asset_verified", "release_published", "conflict"],
+        "release_published": ["asset_verified", "conflict"],
+        "asset_verified": ["main_promoted", "installed_verified", "conflict"],
+        "installed_verified": ["conflict"],
+        "conflict": []
+      }
+    },
+    "release_checkpoint": {
+      "initial": "DRIFTED",
+      "states": [
+        "DRIFTED",
+        "RECOVERED",
+        "DEV_OPEN",
+        "RC_FROZEN",
+        "RC_VALIDATED",
+        "CANDIDATE_CI_GREEN",
+        "PROMOTION_LOCKED",
+        "TAG_PUSHED",
+        "DRAFT_VERIFIED",
+        "INSTALLED_VERIFIED",
+        "CLOSED",
+        "FAILED",
+        "CONFLICT"
+      ],
+      "completion_states": ["CLOSED"],
+      "transitions": {
+        "DRIFTED": ["RECOVERED", "FAILED", "CONFLICT"],
+        "RECOVERED": [
+          "DRIFTED",
+          "DEV_OPEN",
+          "RC_FROZEN",
+          "RC_VALIDATED",
+          "CANDIDATE_CI_GREEN",
+          "PROMOTION_LOCKED",
+          "TAG_PUSHED",
+          "DRAFT_VERIFIED",
+          "INSTALLED_VERIFIED",
+          "FAILED",
+          "CONFLICT"
+        ],
+        "DEV_OPEN": ["RC_FROZEN", "FAILED", "CONFLICT"],
+        "RC_FROZEN": ["RC_VALIDATED", "FAILED", "CONFLICT"],
+        "RC_VALIDATED": ["CANDIDATE_CI_GREEN", "FAILED", "CONFLICT"],
+        "CANDIDATE_CI_GREEN": ["PROMOTION_LOCKED", "FAILED", "CONFLICT"],
+        "PROMOTION_LOCKED": ["TAG_PUSHED", "FAILED", "CONFLICT"],
+        "TAG_PUSHED": ["DRAFT_VERIFIED", "FAILED", "CONFLICT"],
+        "DRAFT_VERIFIED": ["INSTALLED_VERIFIED", "FAILED", "CONFLICT"],
+        "INSTALLED_VERIFIED": ["CLOSED", "FAILED", "CONFLICT"],
+        "FAILED": ["RECOVERED", "CONFLICT"],
+        "CONFLICT": [],
+        "CLOSED": []
+      }
+    }
+  },
+  "release_runtime_projections": {
+    "external_surface_phase": {
+      "mode": "derived_from_exact_operation_readbacks",
+      "ordered_operation_projection": {
+        "CP12.candidate_push": "candidate_pushed",
+        "CP15.tag_push": "tag_pushed",
+        "CP16.draft_create": "release_draft",
+        "CP16.asset_download_verify": "asset_verified",
+        "CP17.main_promote": "main_promoted",
+        "CP17.release_publish": "release_published",
+        "CP17.published_asset_download": "asset_verified",
+        "CP17.actual_install": "installed_verified"
+      },
+      "conflict_override": "conflict"
+    },
+    "recovery_state": {
+      "mode": "derived_from_recovery_transition_receipt_head",
+      "revision_field": "recovery_revision",
+      "receipt_field": "recovery_transition_receipts",
+      "direct_runtime_write_forbidden": true,
+      "FAILED": "reconciliation_required_or_recovering",
+      "CONFLICT": "conflict",
+      "settled": "none_or_recovered",
+      "required_settlement_path": [
+        "none",
+        "reconciliation_required",
+        "recovering",
+        "recovered",
+        "none"
+      ]
+    }
+  },
+  "transition_event_algorithm": {
+    "canonical": "<machine_id>.<from_state>.<to_state>",
+    "aliases": {
+      "task_lifecycle:planned:running": ["task_started", "revalidation_started"],
+      "task_lifecycle:planned:blocked": ["task_blocked"],
+      "task_lifecycle:review:accepted": ["completion_derived"],
+      "check_execution:not_started:running": ["CHECK_STARTED", "check_started"],
+      "check_execution:running:failed": ["check_failed"],
+      "run_conclusion:not_run:running": ["run_started"],
+      "run_conclusion:running:flaky": ["run_completed_flaky"],
+      "recovery:none:reconciliation_required": ["result_became_uncertain"]
+    }
+  },
+  "completion_derivation": {
+    "direct_actor_declaration_forbidden": true,
+    "required_predicates": [
+      "all_required_impact_items_classified",
+      "no_pending_scope_change",
+      "all_required_revalidation_closed",
+      "all_acceptance_evidence_valid_and_current",
+      "all_required_checks_passed",
+      "all_critical_grills_answered_with_evidence",
+      "all_applicable_adversarial_risks_covered",
+      "independent_review_passed",
+      "completion_audit_passed"
+    ]
+  },
+  "side_effect_protocol": {
+    "steps": [
+      "persist_intent",
+      "verify_pre_state_and_cas",
+      "execute_once",
+      "exact_readback",
+      "persist_receipt",
+      "commit_state"
+    ],
+    "uncertain_result": "reconciliation_required",
+    "classifications": {
+      "absent": "execute_persisted_intent_only",
+      "exact": "adopt_without_replay",
+      "conflict": "stop",
+      "unavailable": "retry_readback_only"
+    }
+  },
+  "profiles": {
+    "lite": {
+      "impact_analysis": "affected_paths",
+      "grill": "minimum_critical_set",
+      "adversarial": "routed_only",
+      "empty_ceremony_forbidden": true
+    },
+    "standard": {
+      "impact_analysis": "complete_denominator",
+      "grill": "all_routed_critical",
+      "adversarial": "applicable_catalog",
+      "independent_review": true
+    },
+    "full": {
+      "impact_analysis": "complete_denominator",
+      "grill": "all_contract_critical",
+      "adversarial": "complete_risk_denominator",
+      "independent_designer_runner_qa_reviewer": true,
+      "completion_audit": true
+    },
+    "regulated": {
+      "inherits": "full",
+      "safety_review": true,
+      "evidence_anti_forgery": true,
+      "recovery_and_reconciliation": true,
+      "external_side_effect_approval": true
+    }
+  },
+  "adversarial_risk_catalog": [
+    "misuse",
+    "unauthorized_access",
+    "invalid_or_malicious_input",
+    "concurrency_and_race",
+    "retry_and_idempotency",
+    "failure_recovery",
+    "resource_cleanup",
+    "forged_or_stale_evidence",
+    "revision_and_cas_conflict",
+    "na_waiver_denominator_bypass"
+  ],
+  "anti_gaming": {
+    "history_deletion_allowed": false,
+    "rule_change_invalidates_history": false,
+    "missing_dependency_path_may_stale_evidence": false,
+    "full_regression_erases_history": false,
+    "failed_counts_as_passed": false,
+    "blocked_counts_as_passed": false,
+    "not_run_counts_as_passed": false,
+    "flaky_counts_as_passed": false,
+    "stale_counts_as_current": false,
+    "invalid_counts_as_acceptance_evidence": false,
+    "unapproved_scope_change_allowed": false,
+    "risk_denominator_shrink_allowed": false,
+    "prose_tested_claim_is_evidence": false
+    ,"same_evidence_id_revival_allowed": false
+    ,"predecessor_ledger_rewrite_allowed": false
+    ,"untyped_review_or_audit_is_evidence": false
+  }
+}

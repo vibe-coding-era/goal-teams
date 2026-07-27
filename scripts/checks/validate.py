@@ -18,11 +18,11 @@ except ModuleNotFoundError:  # pragma: no cover
 
 ROOT = Path(__file__).resolve().parents[2]
 CURRENT_VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
-PUBLISHED_VERSION = "V2.45"
+PUBLISHED_VERSION = "V2.46"
 GENERAL_CORE_POLICY_VERSION = "V2.5"
 LEGACY_DATA_SCHEMA_VERSION = "V2.3"
 CORE_POLICY_PROFILE = "goal-teams-core-v2.5"
-SELF_RELEASE_POLICY_PROFILE = "goal-teams-self-release-v2.45"
+SELF_RELEASE_POLICY_PROFILE = "goal-teams-self-release-v2.46"
 STARTUP_LINE = f"我是 Goal Teams Lead {CURRENT_VERSION}。"
 COMPATIBILITY_MARKER = (
     f"我是 Goal Teams Leader {CURRENT_VERSION}，使用 Goal + Plan 模式帮你完成规划、执行和交付，"
@@ -57,6 +57,7 @@ REQUIRED_FILES = [
     "references/profiles/goal-teams-self-release-v2.43.md",
     "references/profiles/goal-teams-self-release-v2.44.md",
     "references/profiles/goal-teams-self-release-v2.45.md",
+    "references/profiles/goal-teams-self-release-v2.46.md",
     "references/profiles/goal-teams-self-release-v2.39.md",
     "references/profiles/goal-teams-self-release-v2.38.md",
     "references/prompt-cache-manifest.json",
@@ -70,6 +71,10 @@ REQUIRED_FILES = [
     "references/test-case-assertion-protocol.md",
     "references/testing-capability-protocol.md",
     "references/testing-capability-manifest.json",
+    "references/verification-governance-protocol.md",
+    "references/verification-governance-manifest.json",
+    "references/desktop-engineering-protocol.md",
+    "references/desktop-capability-manifest.json",
     "references/goal-teams-automation-protocol.md",
     "references/goal-teams-production-pipeline.md",
     "references/goal-teams-scripted-tooling.md",
@@ -146,6 +151,8 @@ REQUIRED_FILES = [
     "scripts/checks/check-member-layout.py",
     "scripts/checks/validate-test-case-contract.py",
     "scripts/checks/score-testing-capability.py",
+    "scripts/checks/validate-verification-governance.py",
+    "scripts/checks/validate-desktop-engineering.py",
     "scripts/v23/v236_security.py",
     "scripts/v23/v236_trust.py",
     "scripts/v23/v236_acceptance.py",
@@ -167,6 +174,8 @@ REQUIRED_FILES = [
     "schemas/v2.44/integration-test-plan.schema.json",
     "schemas/v2.44/test-case.schema.json",
     "schemas/v2.44/test-run-result.schema.json",
+    "schemas/v2.46/verification-governance.schema.json",
+    "schemas/v2.46/desktop-engineering.schema.json",
     "tests/v23/test_v243_engineering_metrics.py",
     "scripts/release/build-release.py",
     "scripts/release/validate-release.py",
@@ -175,9 +184,11 @@ REQUIRED_FILES = [
     "references/public-release-scan-baseline-v2.40.json",
     "references/public-release-scan-baseline-v2.44.json",
     "references/public-release-scan-baseline-v2.45.json",
+    "references/public-release-scan-baseline-v2.46.json",
     "references/release-profiles/v2.40.json",
     "references/release-profiles/v2.44.json",
     "references/release-profiles/v2.45.json",
+    "references/release-profiles/v2.46.json",
     "scripts/check-member-layout.py",
     "scripts/validate-test-case-contract.py",
     "scripts/compare-artifacts.py",
@@ -496,7 +507,7 @@ FILE_RULES = {
         "references/rules-testing.md",
         "references/rules-loop.md",
         "references/goal-teams-core-v2.5.md",
-        "references/profiles/goal-teams-self-release-v2.45.md",
+        "references/profiles/goal-teams-self-release-v2.46.md",
         "references/flow-clarification-protocol.md",
         "references/agent-runtime-capability-contract.md",
         "references/rules-project-sizing.md",
@@ -556,7 +567,7 @@ FILE_RULES = {
         "`standard`",
         "显式提供时必须与派生值完全一致",
     ),
-    "references/profiles/goal-teams-self-release-v2.45.md": (
+    "references/profiles/goal-teams-self-release-v2.46.md": (
         SELF_RELEASE_POLICY_PROFILE,
         "52",
         "iteration 9",
@@ -782,7 +793,8 @@ def check_skill_frontmatter() -> None:
         version,
         GENERAL_CORE_POLICY_VERSION,
         LEGACY_DATA_SCHEMA_VERSION,
-        "V2.44",  # replay-only self-release and testing contract retained by V2.45
+        "V2.45",  # replay-only self-release profile retained by V2.46
+        "V2.44",  # replay-only self-release and testing contract retained by V2.46
         "V2.43",  # replay-only self-release Profile retained by V2.44
         "V2.42",  # replay-only self-release Profile retained by V2.44
         "V2.41",  # replay-only self-release Profile retained by V2.44
@@ -810,7 +822,7 @@ def check_skill_frontmatter() -> None:
         "references/rules-testing.md",
         "references/rules-loop.md",
         "references/goal-teams-core-v2.5.md",
-        "references/profiles/goal-teams-self-release-v2.45.md",
+        "references/profiles/goal-teams-self-release-v2.46.md",
         "references/prompt-cache-manifest.json",
         "prompts/lead/core.md",
         "prompts/lead/planning.md",
@@ -1013,18 +1025,19 @@ def check_release_engine_profiles() -> None:
         "V2.40": json.loads(read("references/release-profiles/v2.40.json")),
         "V2.44": json.loads(read("references/release-profiles/v2.44.json")),
         "V2.45": json.loads(read("references/release-profiles/v2.45.json")),
+        "V2.46": json.loads(read("references/release-profiles/v2.46.json")),
     }
-    active = profiles["V2.45"]
+    active = profiles["V2.46"]
     historical = profiles["V2.40"]
     if (
         active.get("status") != "active"
         or active.get("external_writes_allowed") is not True
-        or active.get("candidate_branch") != "codex/v2.45-release-engineer"
-        or active.get("tag") != "v2.45"
+        or active.get("candidate_branch") != "codex/v2.46-verification-governance"
+        or active.get("tag") != "v2.46"
         or active.get("public_scan_baseline")
-        != "references/public-release-scan-baseline-v2.45.json"
+        != "references/public-release-scan-baseline-v2.46.json"
     ):
-        fail("V2.45 active release-engine profile is inconsistent")
+        fail("V2.46 active release-engine profile is inconsistent")
     if (
         historical.get("status") != "historical_replay"
         or historical.get("external_writes_allowed") is not False
@@ -1037,6 +1050,13 @@ def check_release_engine_profiles() -> None:
         or not isinstance(profiles["V2.44"].get("host_acceptance"), dict)
     ):
         fail("V2.44 replay profile must retain predecessor and host verification")
+    if (
+        profiles["V2.45"].get("status") != "historical_replay"
+        or profiles["V2.45"].get("external_writes_allowed") is not False
+        or profiles["V2.45"].get("published_before") != "V2.44"
+        or not isinstance(profiles["V2.45"].get("host_acceptance"), dict)
+    ):
+        fail("V2.45 replay profile must retain predecessor and host verification")
     for version, profile in profiles.items():
         if (
             profile.get("schema_version")
@@ -1083,7 +1103,7 @@ def check_key_rules() -> None:
             "references/rules-testing.md",
             "references/rules-loop.md",
             "references/goal-teams-core-v2.5.md",
-            "references/profiles/goal-teams-self-release-v2.45.md",
+            "references/profiles/goal-teams-self-release-v2.46.md",
             "references/profiles/goal-teams-self-release-v2.44.md",
             "references/profiles/goal-teams-self-release-v2.43.md",
             "references/profiles/goal-teams-self-release-v2.39.md",

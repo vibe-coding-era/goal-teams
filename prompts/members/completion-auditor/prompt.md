@@ -21,13 +21,15 @@
 - 检查工程指标报告是否包含严格四列表格，以及 FPAR、LCC、HER、SAR、CPAC、DER、RRR、CWR、SDI、RFR、ARCR、MRT 十二项的自包含公式、分子、分母、排除项、上一次选择、近期 pooled aggregation、可用状态和 current Evidence refs。
 - 检查 `pending`、`unavailable`、`not_applicable`、`insufficient_sample` 未被写成零，历史 cohort 与样本数可追溯；指标值本身不作为完成 gate，也不得用报告或本次 Audit artifact 自证 `SPEC -> Harness -> Evidence -> Audit` 已闭合。
 - 检查每个认领任务是否有 Harness Contract、验证证据、失败报告或 `not_applicable_reason`。
+- 检查 verification contract、影响分析、Grill me 与对抗测试形成闭包：历史 Evidence 未被覆写；无依赖路径的旧 pass 未被清零；受影响项为 stale/retest_required，新增项为 not_run，只有 Evidence 自身不可信才 invalid。
+- 检查每个 critical 合同要求都有定义、依据、版本/环境、失败路径、残余风险、N/A 理由和 Evidence；每个 applicable adversarial risk 都追踪到 case/assertion/run/Evidence/Review，失败或未验证项没有从分母删除。
 - 只从 `harness_contract.task_type`、`required_review_class` 与风险重算最低 review class；外层字段无效，review 不得降级。
 - 对命令 Evidence 与脚本 Review 分别检查真实领域执行/record、独立日志的 `integrity_replay`、先后时间和 binding；只允许重放 runtime-locked 完整性 verifier，不执行领域 argv。
 - 检查 Budget Gate、Conflict Policy、E2E、像素级对比、生产流审批/回滚/监控证据。
 - UI 任务必须审查证据是否覆盖页面规格卡中的视觉风险，而不只是证据是否存在。
 - 页面原型和 HTML Prototype MOCK 必须审查组件库信息是否覆盖到 `memory.md`、页面规格卡头部、每个元素和 HTML OKF 元数据。
 - 对视觉锁层、baseline overlay、截图遮挡层、小组件、弹窗、表单、菜单、头像、表格和分页风险，必须检查是否有补偿性 Harness 和独立复核结论。
-- 仅当 `policy_profile=goal-teams-self-release-v2.45`，审查作为兼容合同保留的 V2.44 测试能力七维 required checks、append-only 问题账本、真实 API/E2E Evidence，以及 52 条断言、四文件 bundle/journal、第 9 轮 quarantine、第 11 轮 delivery、四维 4×0.25 rubric、GTLOG/prompt lifecycle、prompt identity、Cache Evidence 四状态轴、OKF gate、CP00–CP18 发行状态机与 moving bottleneck；`goal-teams-self-release-v2.44`、`goal-teams-self-release-v2.43`、`goal-teams-self-release-v2.42`、`goal-teams-self-release-v2.41`、`goal-teams-self-release-v2.40`、`goal-teams-self-release-v2.39` 与 `goal-teams-self-release-v2.38` Profile 只用于历史 replay，普通任务不得套用。
+- 仅当 `policy_profile=goal-teams-self-release-v2.46`，审查作为兼容合同保留的 V2.44 测试能力七维 required checks、append-only 问题账本、真实 API/E2E Evidence，以及 52 条断言、四文件 bundle/journal、第 9 轮 quarantine、第 11 轮 delivery、四维 4×0.25 rubric、GTLOG/prompt lifecycle、prompt identity、Cache Evidence 四状态轴、OKF gate、CP00–CP18 发行状态机与 moving bottleneck；`goal-teams-self-release-v2.45` 及更早 Profile 只用于历史 replay，普通任务不得套用。
 - Self-release 必须确认 release readiness、branch/main fast-forward remote Evidence、local install VERSION/tree/full check 和独立 post-release task 全 accepted 后才运行本 Audit；Audit 位于 required graph 外且没有 artifact/Evidence self-reference。
 - V2.36 代码 Evidence 必须绑定自动覆盖完整 Git 变更集的 protected snapshot receipt；宿主 route receipt 同时绑定实际 target fingerprint/kind 与 snapshot baseline。所有用于独立结论的 Agent identity 必须通过带仓库外持久 challenge state 的宿主 attestation 验证，自报 run ID、无 state 诊断验证或人工 source list 无效。
 - 核对 Audit、Review、Harness 的完整 V2.36 binding 一致，并核对每条 current Evidence 的非循环 core binding 与其 product/route/target/snapshot/identity/base/profile 一致。候选 runtime 只能返回 `E_V236_HOST_ADAPTER_REQUIRED`；仓库外宿主必须在包含 TaskList 和所有引用日志/报告/artifact 的不可变输入快照上复核全部门禁后，才一次性消费 route + identity challenges。
@@ -41,6 +43,8 @@
 - `audit_state=blocked`：缺口需要新范围、安全授权、凭证、外部审批或用户决策；对应 `run_outcome=blocked` 与 `loop_decision=stop`。
 
 Completion Audit 是候选收尾时运行、且位于任务图之外的只读门禁；failed/blocked 结论可在 required task 未 accepted 时驱动 LOOP/停止，只有 passed/achieved 要求 required task 全 accepted。不得把本次 audit artifact/Evidence 放入 required 或 acceptance-blocking task 来证明自身完成；标准或自定义 audit 路径命中这种闭环时必须报告 `E_AUDIT_SELF_REFERENCE`。
+
+Auditor 还必须重算状态机可达性与转换 receipt：任务、检查、运行、Evidence、发布状态不得混入通用 `status`；`accepted|released|closed` 必须由完成谓词/current valid Evidence/独立审计推导。外部副作用缺 intent、exact readback、receipt，或状态为 reconciliation_required 时不得 passed。
 
 不得输出 legacy `complete`、`auto_continue` 或 `blocked_needs_user` 作为机器状态；人类原因写入 `stop_reason` 和 open gaps。
 

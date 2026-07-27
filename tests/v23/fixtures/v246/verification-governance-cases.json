@@ -1,0 +1,2451 @@
+{
+  "schema_version": "goal-teams-verification-governance-fixtures-v2.46",
+  "base_document": {
+    "schema_version": "goal-teams-verification-governance-v2.46",
+    "bundle_id": "BUNDLE-V246-BASE",
+    "revision": 1,
+    "previous_bundle_ref": null,
+    "profile": "standard",
+    "generated_at": "2026-07-27T00:00:00Z",
+    "history_baseline_evidence_ids": [
+      "EV-HISTORICAL-PASS-1"
+    ],
+    "historical_evidence_ids": [
+      "EV-HISTORICAL-PASS-1"
+    ],
+    "change_events": [
+      {
+        "change_id": "CHANGE-V246-1",
+        "change_type": "rule",
+        "changed_artifact_ref": {
+          "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+          "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+        },
+        "before_revision": 1,
+        "after_revision": 2,
+        "before_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "after_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "semantic_change_summary": "Clarify current applicability without rewriting historical test facts.",
+        "actor_run_id": "RUN-RULE-AUTHOR",
+        "occurred_at": "2026-07-27T00:00:00Z"
+      }
+    ],
+    "impact_assessments": [
+      {
+        "assessment_id": "ASSESSMENT-V246-1",
+        "change_id": "CHANGE-V246-1",
+        "contract_revision": 2,
+        "denominator_item_ids": [
+          "IMPACT-V246-1"
+        ],
+        "items": [
+          {
+            "item_id": "IMPACT-V246-1",
+            "target_type": "test",
+            "target_id": "TEST-HISTORICAL-1",
+            "impact_class": "unaffected",
+            "dependency_path": [],
+            "evidence_ids": [
+              "EV-HISTORICAL-PASS-1"
+            ],
+            "current_check_state": "passed",
+            "current_run_conclusion": "achieved",
+            "reason_code": "NO_DEPENDENCY_PATH"
+          }
+        ],
+        "reviewer_run_id": "RUN-IMPACT-REVIEWER",
+        "revision": 1,
+        "expected_revision": 0
+      }
+    ],
+    "evidence_applicability_events": [
+      {
+        "event_id": "EVENT-APPLICABILITY-1",
+        "evidence_id": "EV-HISTORICAL-PASS-1",
+        "impact_item_id": "IMPACT-V246-1",
+        "evidence_integrity_state": "valid",
+        "evidence_applicability_state": "current",
+        "revalidation_state": "not_required",
+        "reason_code": "UNAFFECTED_BY_CHANGE",
+        "evidence_refs": [
+          {
+            "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+            "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+          }
+        ],
+        "run_id": "RUN-V246-1",
+        "attempt_id": "ATTEMPT-V246-1",
+        "actor_run_id": "RUN-IMPACT-REVIEWER",
+        "revision": 1,
+        "expected_revision": 0,
+        "occurred_at": "2026-07-27T00:00:01Z"
+      }
+    ],
+    "transition_receipts": [
+      {
+        "receipt_id": "TRANSITION-TASK-1",
+        "machine_id": "task_lifecycle",
+        "entity_id": "TASK-V246-1",
+        "transition_event": "task_started",
+        "from_state": "planned",
+        "to_state": "running",
+        "expected_revision": 0,
+        "new_revision": 1,
+        "guard_results": [
+          {
+            "guard_id": "GUARD-SPEC-BOUND",
+            "passed": true,
+            "evidence_refs": [
+              "EV-HISTORICAL-PASS-1"
+            ]
+          }
+        ],
+        "actor_run_id": "RUN-IMPLEMENTER",
+        "reason_code": "WORK_AUTHORIZED",
+        "evidence_refs": [
+          "EV-HISTORICAL-PASS-1"
+        ],
+        "occurred_at": "2026-07-27T00:00:02Z",
+        "idempotency_key": "IDEMPOTENCY-TASK-1"
+      }
+    ],
+    "verification_contracts": [
+      {
+        "contract_id": "CONTRACT-V246-1",
+        "revision": 2,
+        "profile": "standard",
+        "requirement_refs": [
+          "REQ-V246-1"
+        ],
+        "acceptance_criteria_refs": [
+          "AC-V246-1"
+        ],
+        "risk_denominator": [
+          "RISK-V246-1"
+        ],
+        "unacceptable_risk_ids": [
+          "RISK-V246-1"
+        ],
+        "pass_thresholds": {
+          "required_checks": "all_passed",
+          "required_runs": "achieved",
+          "max_failed": 0,
+          "max_blocked": 0,
+          "max_not_run": 0,
+          "max_flaky": 0
+        },
+        "role_bindings": {
+          "owner_run_id": "RUN-CONTRACT-OWNER",
+          "designer_run_id": "RUN-TEST-DESIGNER",
+          "runner_run_id": "RUN-TEST-RUNNER",
+          "reviewer_run_id": "RUN-CONTRACT-REVIEWER"
+        },
+        "evidence_requirements": [
+          {
+            "kind": "command_execution",
+            "artifact_hash_required": true,
+            "version_environment_binding_required": true
+          }
+        ],
+        "waiver_policy": {
+          "required_allowed": false,
+          "independent_approval_required": true
+        },
+        "change_approval_policy": {
+          "scope_change_requires_approval": true,
+          "spec_harness_update_required": true
+        },
+        "traceability": [
+          {
+            "requirement_id": "REQ-V246-1",
+            "acceptance_criteria_ids": [
+              "AC-V246-1"
+            ],
+            "test_plan_ids": [
+              "PLAN-V246-1"
+            ],
+            "test_case_ids": [
+              "CASE-V246-1"
+            ],
+            "harness_check_ids": [
+              "CHECK-V246-1"
+            ],
+            "run_ids": [
+              "RUN-V246-1"
+            ],
+            "evidence_ids": [
+              "EV-HISTORICAL-PASS-1"
+            ]
+          }
+        ]
+      }
+    ],
+    "grill_reviews": [
+      {
+        "grill_id": "GRILL-V246-1",
+        "contract_id": "CONTRACT-V246-1",
+        "requirement_id": "REQ-V246-1",
+        "critical": true,
+        "definition": "Historical validity and current applicability are independent facts.",
+        "basis_refs": [
+          "REQ-V246-1",
+          "AC-V246-1"
+        ],
+        "version_environment_refs": [
+          {
+            "path": "tests/v23/fixtures/v244/artifacts/api-case.json",
+            "sha256": "17e21884b7e8ba749b61d386a2aa334b91af0bedd0abf9166ffe29adccfefefa"
+          }
+        ],
+        "failure_path": "Block current acceptance while retaining the historical result.",
+        "residual_risks": [
+          "RISK-V246-1"
+        ],
+        "na": {
+          "claimed": false,
+          "reason": "",
+          "impact_assessment_ref": "",
+          "approval_ref": null,
+          "approver_run_id": ""
+        },
+        "evidence_refs": [
+          "EV-HISTORICAL-PASS-1"
+        ],
+        "reviewer_run_id": "RUN-GRILL-REVIEWER",
+        "conclusion": "answered_with_evidence"
+      }
+    ],
+    "adversarial_risks": [
+      {
+        "risk_id": "RISK-V246-1",
+        "category": "forged_or_stale_evidence",
+        "applicable": true,
+        "required": true,
+        "coverage_state": "passed",
+        "case_ids": [
+          "CASE-V246-1"
+        ],
+        "assertion_ids": [
+          "ASSERTION-V246-1"
+        ],
+        "run_ids": [
+          "RUN-V246-1"
+        ],
+        "evidence_refs": [
+          "EV-HISTORICAL-PASS-1"
+        ],
+        "reviewer_run_id": "RUN-RISK-REVIEWER",
+        "na_reason": "",
+        "na_approval_ref": null,
+        "na_approver_run_id": ""
+      }
+    ],
+    "acceptance_projection": {
+      "state": "achieved",
+      "derived_by_run_id": "RUN-COMPLETION-AUDITOR",
+      "independent_review_refs": [
+        {
+          "path": "tests/v23/fixtures/v244/artifacts/integration-test-plan.json",
+          "sha256": "5565fd8e5ec4f4a25120ebe69e87e78df58eba011fb9bec6c05807049a07a292"
+        }
+      ],
+      "completion_audit_refs": [
+        {
+          "path": "tests/v23/fixtures/v244/artifacts/run-result.json",
+          "sha256": "fa2a25f69f6b13426bcc2b0bf623b322bb6a2727d6313a0ce651536738a956cf"
+        }
+      ],
+      "acceptance_evidence_ids": [
+        "EV-HISTORICAL-PASS-1"
+      ],
+      "reason_codes": [
+        "ALL_COMPLETION_PREDICATES_SATISFIED"
+      ]
+    }
+  },
+  "valid_cases": [
+    {
+      "case_id": "V246-UNAFFECTED-HISTORY-PRESERVED",
+      "mutations": [],
+      "expected_summary": {
+        "historical_evidence_count": 1,
+        "stale_evidence_count": 0,
+        "retest_required_count": 0,
+        "not_run_count": 0,
+        "invalid_evidence_count": 0,
+        "acceptance_state": "achieved"
+      }
+    },
+    {
+      "case_id": "V246-AFFECTED-STALE-RETEST",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/impact_class",
+          "value": "affected"
+        },
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/dependency_path",
+          "value": [
+            "CHANGE-V246-1",
+            "HARNESS-V246-1",
+            "TEST-HISTORICAL-1"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/evidence_applicability_events/0/evidence_applicability_state",
+          "value": "stale"
+        },
+        {
+          "op": "replace",
+          "path": "/evidence_applicability_events/0/revalidation_state",
+          "value": "retest_required"
+        },
+        {
+          "op": "replace",
+          "path": "/evidence_applicability_events/0/reason_code",
+          "value": "DEPENDENCY_PATH_AFFECTED"
+        },
+        {
+          "op": "replace",
+          "path": "/acceptance_projection/state",
+          "value": "blocked"
+        },
+        {
+          "op": "replace",
+          "path": "/acceptance_projection/reason_codes",
+          "value": [
+            "RETEST_REQUIRED"
+          ]
+        }
+      ],
+      "expected_summary": {
+        "historical_evidence_count": 1,
+        "stale_evidence_count": 1,
+        "retest_required_count": 1,
+        "not_run_count": 0,
+        "invalid_evidence_count": 0,
+        "acceptance_state": "blocked"
+      }
+    },
+    {
+      "case_id": "V246-AFFECTED-RETEST-NEW-EVIDENCE-CURRENT",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/historical_evidence_ids",
+          "value": [
+            "EV-HISTORICAL-PASS-1",
+            "EV-RETEST-PASS-2"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/impact_class",
+          "value": "affected"
+        },
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/dependency_path",
+          "value": [
+            "CHANGE-V246-1",
+            "HARNESS-V246-1",
+            "TEST-HISTORICAL-1"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/evidence_ids",
+          "value": [
+            "EV-HISTORICAL-PASS-1",
+            "EV-RETEST-PASS-2"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/evidence_applicability_events",
+          "value": [
+            {
+              "event_id": "EVENT-APPLICABILITY-STALE",
+              "evidence_id": "EV-HISTORICAL-PASS-1",
+              "impact_item_id": "IMPACT-V246-1",
+              "evidence_integrity_state": "valid",
+              "evidence_applicability_state": "stale",
+              "revalidation_state": "retest_required",
+              "reason_code": "DEPENDENCY_PATH_AFFECTED",
+              "evidence_refs": [
+                {
+                  "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+                  "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+                }
+              ],
+              "run_id": "RUN-HISTORICAL-1",
+              "attempt_id": "ATTEMPT-HISTORICAL-1",
+              "actor_run_id": "RUN-IMPACT-REVIEWER",
+              "revision": 1,
+              "expected_revision": 0,
+              "occurred_at": "2026-07-27T00:00:01Z"
+            },
+            {
+              "event_id": "EVENT-APPLICABILITY-RETEST",
+              "evidence_id": "EV-RETEST-PASS-2",
+              "impact_item_id": "IMPACT-V246-1",
+              "evidence_integrity_state": "valid",
+              "evidence_applicability_state": "current",
+              "revalidation_state": "closed",
+              "reason_code": "RETEST_EXECUTED_WITH_NEW_EVIDENCE",
+              "evidence_refs": [
+                {
+                  "path": "tests/v23/fixtures/v244/artifacts/run-result.json",
+                  "sha256": "fa2a25f69f6b13426bcc2b0bf623b322bb6a2727d6313a0ce651536738a956cf"
+                }
+              ],
+              "run_id": "RUN-RETEST-2",
+              "attempt_id": "ATTEMPT-RETEST-2",
+              "actor_run_id": "RUN-TEST-RUNNER",
+              "revision": 1,
+              "expected_revision": 0,
+              "occurred_at": "2026-07-27T00:00:03Z",
+              "supersedes_evidence_id": "EV-HISTORICAL-PASS-1"
+            }
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/transition_receipts/0/evidence_refs",
+          "value": [
+            "EV-RETEST-PASS-2"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/transition_receipts/0/guard_results/0/evidence_refs",
+          "value": [
+            "EV-RETEST-PASS-2"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/verification_contracts/0/traceability/0/evidence_ids",
+          "value": [
+            "EV-RETEST-PASS-2"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/grill_reviews/0/evidence_refs",
+          "value": [
+            "EV-RETEST-PASS-2"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/evidence_refs",
+          "value": [
+            "EV-RETEST-PASS-2"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/acceptance_projection/acceptance_evidence_ids",
+          "value": [
+            "EV-RETEST-PASS-2"
+          ]
+        }
+      ],
+      "expected_summary": {
+        "historical_evidence_count": 2,
+        "stale_evidence_count": 1,
+        "retest_required_count": 1,
+        "invalid_evidence_count": 0,
+        "acceptance_state": "achieved"
+      }
+    },
+    {
+      "case_id": "V246-NEW-REQUIREMENT-NOT-RUN",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/denominator_item_ids",
+          "value": [
+            "IMPACT-V246-1",
+            "IMPACT-V246-NEW"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items",
+          "value": [
+            {
+              "item_id": "IMPACT-V246-1",
+              "target_type": "test",
+              "target_id": "TEST-HISTORICAL-1",
+              "impact_class": "unaffected",
+              "dependency_path": [],
+              "evidence_ids": [
+                "EV-HISTORICAL-PASS-1"
+              ],
+              "current_check_state": "passed",
+              "current_run_conclusion": "achieved",
+              "reason_code": "NO_DEPENDENCY_PATH"
+            },
+            {
+              "item_id": "IMPACT-V246-NEW",
+              "target_type": "requirement",
+              "target_id": "REQ-V246-NEW",
+              "impact_class": "new_requirement",
+              "dependency_path": [
+                "CHANGE-V246-1",
+                "REQ-V246-NEW"
+              ],
+              "evidence_ids": [],
+              "current_check_state": "not_started",
+              "current_run_conclusion": "not_run",
+              "reason_code": "NEW_REQUIREMENT_NOT_EXECUTED"
+            }
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/acceptance_projection/state",
+          "value": "blocked"
+        },
+        {
+          "op": "replace",
+          "path": "/acceptance_projection/reason_codes",
+          "value": [
+            "NEW_REQUIREMENT_NOT_RUN"
+          ]
+        }
+      ],
+      "expected_summary": {
+        "historical_evidence_count": 1,
+        "stale_evidence_count": 0,
+        "retest_required_count": 0,
+        "not_run_count": 1,
+        "invalid_evidence_count": 0,
+        "acceptance_state": "blocked"
+      }
+    },
+    {
+      "case_id": "V246-ACTUAL-EXECUTION-FAILED",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/current_check_state",
+          "value": "failed"
+        },
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/current_run_conclusion",
+          "value": "failed"
+        },
+        {
+          "op": "replace",
+          "path": "/acceptance_projection/state",
+          "value": "blocked"
+        },
+        {
+          "op": "replace",
+          "path": "/acceptance_projection/reason_codes",
+          "value": [
+            "CURRENT_EXECUTION_FAILED"
+          ]
+        }
+      ],
+      "expected_summary": {
+        "historical_evidence_count": 1,
+        "failed_count": 1,
+        "acceptance_state": "blocked"
+      }
+    },
+    {
+      "case_id": "V246-FORGED-EVIDENCE-INVALID",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/evidence_applicability_events/0/evidence_integrity_state",
+          "value": "invalid"
+        },
+        {
+          "op": "replace",
+          "path": "/evidence_applicability_events/0/reason_code",
+          "value": "EVIDENCE_HASH_MISMATCH"
+        },
+        {
+          "op": "replace",
+          "path": "/evidence_applicability_events/0/integrity_failure_code",
+          "value": "E_HASH_MISMATCH"
+        },
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/current_check_state",
+          "value": "failed"
+        },
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/current_run_conclusion",
+          "value": "failed"
+        },
+        {
+          "op": "replace",
+          "path": "/acceptance_projection/state",
+          "value": "blocked"
+        },
+        {
+          "op": "replace",
+          "path": "/acceptance_projection/reason_codes",
+          "value": [
+            "EVIDENCE_INTEGRITY_INVALID"
+          ]
+        }
+      ],
+      "expected_summary": {
+        "historical_evidence_count": 1,
+        "invalid_evidence_count": 1,
+        "failed_count": 1,
+        "acceptance_state": "blocked"
+      }
+    },
+    {
+      "case_id": "V246-UNDETERMINED-BLOCKS-NOT-CLEARS",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/impact_class",
+          "value": "undetermined"
+        },
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/current_check_state",
+          "value": "blocked"
+        },
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/current_run_conclusion",
+          "value": "blocked"
+        },
+        {
+          "op": "replace",
+          "path": "/evidence_applicability_events/0/reason_code",
+          "value": "IMPACT_UNDETERMINED_HISTORY_PRESERVED"
+        },
+        {
+          "op": "replace",
+          "path": "/acceptance_projection/state",
+          "value": "blocked"
+        },
+        {
+          "op": "replace",
+          "path": "/acceptance_projection/reason_codes",
+          "value": [
+            "IMPACT_UNDETERMINED"
+          ]
+        }
+      ],
+      "expected_summary": {
+        "historical_evidence_count": 1,
+        "stale_evidence_count": 0,
+        "blocked_count": 1,
+        "acceptance_state": "blocked"
+      }
+    },
+    {
+      "case_id": "V246-FULL-REGRESSION-PRESERVES-HISTORY",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/change_events/0/change_type",
+          "value": "test_mechanism"
+        },
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/impact_class",
+          "value": "affected"
+        },
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/dependency_path",
+          "value": [
+            "CHANGE-V246-1",
+            "TEST-MECHANISM-COMMON",
+            "TEST-HISTORICAL-1"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/evidence_applicability_events/0/evidence_applicability_state",
+          "value": "stale"
+        },
+        {
+          "op": "replace",
+          "path": "/evidence_applicability_events/0/revalidation_state",
+          "value": "retest_required"
+        },
+        {
+          "op": "replace",
+          "path": "/evidence_applicability_events/0/reason_code",
+          "value": "FULL_REGRESSION_POLICY"
+        },
+        {
+          "op": "replace",
+          "path": "/acceptance_projection/state",
+          "value": "blocked"
+        },
+        {
+          "op": "replace",
+          "path": "/acceptance_projection/reason_codes",
+          "value": [
+            "FULL_REGRESSION_RETEST_REQUIRED"
+          ]
+        }
+      ],
+      "expected_summary": {
+        "historical_evidence_count": 1,
+        "stale_evidence_count": 1,
+        "retest_required_count": 1,
+        "invalid_evidence_count": 0,
+        "acceptance_state": "blocked"
+      }
+    },
+    {
+      "case_id": "V246-CHECK-RETRY-FLAKY",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/current_check_state",
+          "value": "failed"
+        },
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/current_run_conclusion",
+          "value": "flaky"
+        },
+        {
+          "op": "replace",
+          "path": "/transition_receipts",
+          "value": [
+            {
+              "receipt_id": "TRANSITION-CHECK-1-START",
+              "machine_id": "check_execution",
+              "entity_id": "CHECK-ATTEMPT-1",
+              "transition_event": "check_started",
+              "from_state": "not_started",
+              "to_state": "running",
+              "expected_revision": 0,
+              "new_revision": 1,
+              "guard_results": [
+                {
+                  "guard_id": "GUARD-HARNESS-BOUND",
+                  "passed": true,
+                  "evidence_refs": [
+                    "EV-HISTORICAL-PASS-1"
+                  ]
+                }
+              ],
+              "actor_run_id": "RUN-TEST-RUNNER",
+              "reason_code": "INITIAL_ATTEMPT",
+              "evidence_refs": [
+                "EV-HISTORICAL-PASS-1"
+              ],
+              "occurred_at": "2026-07-27T00:00:02Z",
+              "idempotency_key": "IDEMPOTENCY-CHECK-1-START"
+            },
+            {
+              "receipt_id": "TRANSITION-CHECK-1-FAIL",
+              "machine_id": "check_execution",
+              "entity_id": "CHECK-ATTEMPT-1",
+              "transition_event": "check_failed",
+              "from_state": "running",
+              "to_state": "failed",
+              "expected_revision": 1,
+              "new_revision": 2,
+              "guard_results": [
+                {
+                  "guard_id": "GUARD-FAILURE-RETAINED",
+                  "passed": true,
+                  "evidence_refs": [
+                    "EV-HISTORICAL-PASS-1"
+                  ]
+                }
+              ],
+              "actor_run_id": "RUN-TEST-RUNNER",
+              "reason_code": "ASSERTION_FAILED",
+              "evidence_refs": [
+                "EV-HISTORICAL-PASS-1"
+              ],
+              "occurred_at": "2026-07-27T00:00:03Z",
+              "idempotency_key": "IDEMPOTENCY-CHECK-1-FAIL"
+            },
+            {
+              "receipt_id": "TRANSITION-RUN-START",
+              "machine_id": "run_conclusion",
+              "entity_id": "RUN-RETRY-1",
+              "transition_event": "run_started",
+              "from_state": "not_run",
+              "to_state": "running",
+              "expected_revision": 0,
+              "new_revision": 1,
+              "guard_results": [
+                {
+                  "guard_id": "GUARD-RETRY-AUTHORIZED",
+                  "passed": true,
+                  "evidence_refs": [
+                    "EV-HISTORICAL-PASS-1"
+                  ]
+                }
+              ],
+              "actor_run_id": "RUN-TEST-RUNNER",
+              "reason_code": "DIAGNOSTIC_RETRY",
+              "evidence_refs": [
+                "EV-HISTORICAL-PASS-1"
+              ],
+              "occurred_at": "2026-07-27T00:00:04Z",
+              "idempotency_key": "IDEMPOTENCY-RUN-START"
+            },
+            {
+              "receipt_id": "TRANSITION-RUN-FLAKY",
+              "machine_id": "run_conclusion",
+              "entity_id": "RUN-RETRY-1",
+              "transition_event": "run_completed_flaky",
+              "from_state": "running",
+              "to_state": "flaky",
+              "expected_revision": 1,
+              "new_revision": 2,
+              "guard_results": [
+                {
+                  "guard_id": "GUARD-FIRST-FAILURE-PRESERVED",
+                  "passed": true,
+                  "evidence_refs": [
+                    "EV-HISTORICAL-PASS-1"
+                  ]
+                }
+              ],
+              "actor_run_id": "RUN-TEST-RUNNER",
+              "reason_code": "FAILED_THEN_PASSED",
+              "evidence_refs": [
+                "EV-HISTORICAL-PASS-1"
+              ],
+              "occurred_at": "2026-07-27T00:00:05Z",
+              "idempotency_key": "IDEMPOTENCY-RUN-FLAKY"
+            }
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/acceptance_projection/state",
+          "value": "blocked"
+        },
+        {
+          "op": "replace",
+          "path": "/acceptance_projection/reason_codes",
+          "value": [
+            "FLAKY_REQUIRED_CHECK"
+          ]
+        }
+      ],
+      "expected_summary": {
+        "historical_evidence_count": 1,
+        "flaky_count": 1,
+        "acceptance_state": "blocked"
+      }
+    },
+    {
+      "case_id": "V246-ACCEPTED-SUCCESSOR",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/impact_class",
+          "value": "affected"
+        },
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/dependency_path",
+          "value": [
+            "CHANGE-V246-1",
+            "TASK-ACCEPTED-OLD"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/evidence_applicability_events/0/evidence_applicability_state",
+          "value": "stale"
+        },
+        {
+          "op": "replace",
+          "path": "/evidence_applicability_events/0/revalidation_state",
+          "value": "retest_required"
+        },
+        {
+          "op": "replace",
+          "path": "/evidence_applicability_events/0/reason_code",
+          "value": "ACCEPTED_TASK_REVALIDATION"
+        },
+        {
+          "op": "replace",
+          "path": "/transition_receipts",
+          "value": [
+            {
+              "receipt_id": "TRANSITION-OLD-ACCEPTED",
+              "machine_id": "task_lifecycle",
+              "entity_id": "TASK-ACCEPTED-OLD",
+              "transition_event": "completion_derived",
+              "from_state": "review",
+              "to_state": "accepted",
+              "expected_revision": 3,
+              "new_revision": 4,
+              "guard_results": [
+                {
+                  "guard_id": "GUARD-INDEPENDENT-AUDIT",
+                  "passed": true,
+                  "evidence_refs": [
+                    "EV-HISTORICAL-PASS-1"
+                  ]
+                }
+              ],
+          "actor_run_id": "RUN-HISTORICAL-COMPLETION-AUDITOR",
+              "reason_code": "HISTORICAL_COMPLETION_DERIVED",
+              "evidence_refs": [
+                "EV-HISTORICAL-PASS-1"
+              ],
+              "occurred_at": "2026-07-26T00:00:00Z",
+              "idempotency_key": "IDEMPOTENCY-OLD-ACCEPTED",
+              "history_ref": {
+                "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+                "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+              }
+            },
+            {
+              "receipt_id": "TRANSITION-SUCCESSOR-START",
+              "machine_id": "task_lifecycle",
+              "entity_id": "TASK-REVALIDATION-NEW",
+              "transition_event": "revalidation_started",
+              "from_state": "planned",
+              "to_state": "running",
+              "expected_revision": 0,
+              "new_revision": 1,
+              "guard_results": [
+                {
+                  "guard_id": "GUARD-SUCCESSOR-BOUND",
+                  "passed": true,
+                  "evidence_refs": [
+                    "EV-HISTORICAL-PASS-1"
+                  ]
+                }
+              ],
+              "actor_run_id": "RUN-TEST-RUNNER",
+              "reason_code": "NEW_RULE_REVALIDATION",
+              "evidence_refs": [
+                "EV-HISTORICAL-PASS-1"
+              ],
+              "occurred_at": "2026-07-27T00:00:02Z",
+              "idempotency_key": "IDEMPOTENCY-SUCCESSOR-START",
+              "supersedes_task_id": "TASK-ACCEPTED-OLD"
+            }
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/acceptance_projection/state",
+          "value": "blocked"
+        },
+        {
+          "op": "replace",
+          "path": "/acceptance_projection/reason_codes",
+          "value": [
+            "SUCCESSOR_REVALIDATION_OPEN"
+          ]
+        }
+      ],
+      "expected_summary": {
+        "historical_evidence_count": 1,
+        "stale_evidence_count": 1,
+        "retest_required_count": 1,
+        "acceptance_state": "blocked"
+      }
+    },
+    {
+      "case_id": "V246-SIDE-EFFECT-RECONCILIATION",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/transition_receipts",
+          "value": [
+            {
+              "receipt_id": "TRANSITION-RECONCILIATION-1",
+              "machine_id": "recovery",
+              "entity_id": "RELEASE-SIDE-EFFECT-1",
+              "transition_event": "result_became_uncertain",
+              "from_state": "none",
+              "to_state": "reconciliation_required",
+              "expected_revision": 0,
+              "new_revision": 1,
+              "guard_results": [
+                {
+                  "guard_id": "GUARD-INTENT-PERSISTED",
+                  "passed": true,
+                  "evidence_refs": [
+                    "EV-HISTORICAL-PASS-1"
+                  ]
+                }
+              ],
+              "actor_run_id": "RUN-RELEASE-ENGINEER",
+              "reason_code": "EXTERNAL_RESULT_UNAVAILABLE",
+              "evidence_refs": [
+                "EV-HISTORICAL-PASS-1"
+              ],
+              "occurred_at": "2026-07-27T00:00:02Z",
+              "idempotency_key": "IDEMPOTENCY-RECONCILIATION-1",
+              "side_effect": {
+                "intent_ref": {
+                  "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+                  "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+                },
+                "pre_state_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "side_effect_receipt_ref": {
+                  "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+                  "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+                },
+                "exact_readback_ref": {
+                  "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+                  "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+                },
+                "readback_classification": "unavailable",
+                "recovery_state": "reconciliation_required"
+              }
+            }
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/acceptance_projection/state",
+          "value": "blocked"
+        },
+        {
+          "op": "replace",
+          "path": "/acceptance_projection/reason_codes",
+          "value": [
+            "RECONCILIATION_REQUIRED"
+          ]
+        }
+      ],
+      "expected_summary": {
+        "historical_evidence_count": 1,
+        "acceptance_state": "blocked"
+      }
+    },
+    {
+      "case_id": "V246-FULL-COMPLETE-CONTRACT",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/profile",
+          "value": "full"
+        },
+        {
+          "op": "replace",
+          "path": "/verification_contracts/0/profile",
+          "value": "full"
+        },
+        {
+          "op": "add",
+          "path": "/verification_contracts/0/role_bindings/qa_run_id",
+          "value": "RUN-QA-INDEPENDENT"
+        },
+        {
+          "op": "add",
+          "path": "/verification_contracts/0/role_bindings/completion_auditor_run_id",
+          "value": "RUN-COMPLETION-AUDITOR"
+        },
+        {
+          "op": "replace",
+          "path": "/verification_contracts/0/risk_denominator",
+          "value": [
+            "RISK-MISUSE",
+            "RISK-UNAUTHORIZED",
+            "RISK-INPUT",
+            "RISK-CONCURRENCY",
+            "RISK-RETRY",
+            "RISK-RECOVERY",
+            "RISK-CLEANUP",
+            "RISK-EVIDENCE",
+            "RISK-CAS",
+            "RISK-NA"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/verification_contracts/0/unacceptable_risk_ids",
+          "value": [
+            "RISK-MISUSE",
+            "RISK-UNAUTHORIZED",
+            "RISK-INPUT",
+            "RISK-CONCURRENCY",
+            "RISK-RETRY",
+            "RISK-RECOVERY",
+            "RISK-CLEANUP",
+            "RISK-EVIDENCE",
+            "RISK-CAS",
+            "RISK-NA"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/grill_reviews/0/residual_risks",
+          "value": [
+            "RISK-EVIDENCE"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks",
+          "value": [
+            {
+              "risk_id": "RISK-MISUSE",
+              "category": "misuse",
+              "applicable": true,
+              "required": true,
+              "coverage_state": "passed",
+              "case_ids": ["CASE-MISUSE"],
+              "assertion_ids": ["ASSERT-MISUSE"],
+              "run_ids": ["RUN-MISUSE"],
+              "evidence_refs": ["EV-HISTORICAL-PASS-1"],
+              "reviewer_run_id": "RUN-RISK-REVIEWER",
+              "na_reason": "",
+              "na_approval_ref": null,
+              "na_approver_run_id": ""
+            },
+            {
+              "risk_id": "RISK-UNAUTHORIZED",
+              "category": "unauthorized_access",
+              "applicable": true,
+              "required": true,
+              "coverage_state": "passed",
+              "case_ids": ["CASE-UNAUTHORIZED"],
+              "assertion_ids": ["ASSERT-UNAUTHORIZED"],
+              "run_ids": ["RUN-UNAUTHORIZED"],
+              "evidence_refs": ["EV-HISTORICAL-PASS-1"],
+              "reviewer_run_id": "RUN-RISK-REVIEWER",
+              "na_reason": "",
+              "na_approval_ref": null,
+              "na_approver_run_id": ""
+            },
+            {
+              "risk_id": "RISK-INPUT",
+              "category": "invalid_or_malicious_input",
+              "applicable": true,
+              "required": true,
+              "coverage_state": "passed",
+              "case_ids": ["CASE-INPUT"],
+              "assertion_ids": ["ASSERT-INPUT"],
+              "run_ids": ["RUN-INPUT"],
+              "evidence_refs": ["EV-HISTORICAL-PASS-1"],
+              "reviewer_run_id": "RUN-RISK-REVIEWER",
+              "na_reason": "",
+              "na_approval_ref": null,
+              "na_approver_run_id": ""
+            },
+            {
+              "risk_id": "RISK-CONCURRENCY",
+              "category": "concurrency_and_race",
+              "applicable": true,
+              "required": true,
+              "coverage_state": "passed",
+              "case_ids": ["CASE-CONCURRENCY"],
+              "assertion_ids": ["ASSERT-CONCURRENCY"],
+              "run_ids": ["RUN-CONCURRENCY"],
+              "evidence_refs": ["EV-HISTORICAL-PASS-1"],
+              "reviewer_run_id": "RUN-RISK-REVIEWER",
+              "na_reason": "",
+              "na_approval_ref": null,
+              "na_approver_run_id": ""
+            },
+            {
+              "risk_id": "RISK-RETRY",
+              "category": "retry_and_idempotency",
+              "applicable": true,
+              "required": true,
+              "coverage_state": "passed",
+              "case_ids": ["CASE-RETRY"],
+              "assertion_ids": ["ASSERT-RETRY"],
+              "run_ids": ["RUN-RETRY"],
+              "evidence_refs": ["EV-HISTORICAL-PASS-1"],
+              "reviewer_run_id": "RUN-RISK-REVIEWER",
+              "na_reason": "",
+              "na_approval_ref": null,
+              "na_approver_run_id": ""
+            },
+            {
+              "risk_id": "RISK-RECOVERY",
+              "category": "failure_recovery",
+              "applicable": true,
+              "required": true,
+              "coverage_state": "passed",
+              "case_ids": ["CASE-RECOVERY"],
+              "assertion_ids": ["ASSERT-RECOVERY"],
+              "run_ids": ["RUN-RECOVERY"],
+              "evidence_refs": ["EV-HISTORICAL-PASS-1"],
+              "reviewer_run_id": "RUN-RISK-REVIEWER",
+              "na_reason": "",
+              "na_approval_ref": null,
+              "na_approver_run_id": ""
+            },
+            {
+              "risk_id": "RISK-CLEANUP",
+              "category": "resource_cleanup",
+              "applicable": true,
+              "required": true,
+              "coverage_state": "passed",
+              "case_ids": ["CASE-CLEANUP"],
+              "assertion_ids": ["ASSERT-CLEANUP"],
+              "run_ids": ["RUN-CLEANUP"],
+              "evidence_refs": ["EV-HISTORICAL-PASS-1"],
+              "reviewer_run_id": "RUN-RISK-REVIEWER",
+              "na_reason": "",
+              "na_approval_ref": null,
+              "na_approver_run_id": ""
+            },
+            {
+              "risk_id": "RISK-EVIDENCE",
+              "category": "forged_or_stale_evidence",
+              "applicable": true,
+              "required": true,
+              "coverage_state": "passed",
+              "case_ids": ["CASE-EVIDENCE"],
+              "assertion_ids": ["ASSERT-EVIDENCE"],
+              "run_ids": ["RUN-EVIDENCE"],
+              "evidence_refs": ["EV-HISTORICAL-PASS-1"],
+              "reviewer_run_id": "RUN-RISK-REVIEWER",
+              "na_reason": "",
+              "na_approval_ref": null,
+              "na_approver_run_id": ""
+            },
+            {
+              "risk_id": "RISK-CAS",
+              "category": "revision_and_cas_conflict",
+              "applicable": true,
+              "required": true,
+              "coverage_state": "passed",
+              "case_ids": ["CASE-CAS"],
+              "assertion_ids": ["ASSERT-CAS"],
+              "run_ids": ["RUN-CAS"],
+              "evidence_refs": ["EV-HISTORICAL-PASS-1"],
+              "reviewer_run_id": "RUN-RISK-REVIEWER",
+              "na_reason": "",
+              "na_approval_ref": null,
+              "na_approver_run_id": ""
+            },
+            {
+              "risk_id": "RISK-NA",
+              "category": "na_waiver_denominator_bypass",
+              "applicable": true,
+              "required": true,
+              "coverage_state": "passed",
+              "case_ids": ["CASE-NA"],
+              "assertion_ids": ["ASSERT-NA"],
+              "run_ids": ["RUN-NA"],
+              "evidence_refs": ["EV-HISTORICAL-PASS-1"],
+              "reviewer_run_id": "RUN-RISK-REVIEWER",
+              "na_reason": "",
+              "na_approval_ref": null,
+              "na_approver_run_id": ""
+            }
+          ]
+        }
+      ],
+      "expected_summary": {
+        "historical_evidence_count": 1,
+        "acceptance_state": "achieved"
+      }
+    },
+    {
+      "case_id": "V246-OPTIONAL-RISK-NA-WITH-INDEPENDENT-APPROVAL",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/target_type",
+          "value": "risk"
+        },
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/target_id",
+          "value": "RISK-V246-1"
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/applicable",
+          "value": false
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/required",
+          "value": false
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/coverage_state",
+          "value": "not_applicable"
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/case_ids",
+          "value": []
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/assertion_ids",
+          "value": []
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/run_ids",
+          "value": []
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/evidence_refs",
+          "value": []
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/na_reason",
+          "value": "Risk does not apply under the bound environment and impact analysis."
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/na_approval_ref",
+          "value": {
+            "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+            "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+          }
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/na_approver_run_id",
+          "value": "RUN-NA-APPROVER"
+        }
+      ],
+      "expected_summary": {
+        "historical_evidence_count": 1,
+        "acceptance_state": "achieved"
+      }
+    },
+    {
+      "case_id": "V246-GRILL-NA-WITH-INDEPENDENT-APPROVAL",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/grill_reviews/0/conclusion",
+          "value": "not_applicable_accepted"
+        },
+        {
+          "op": "replace",
+          "path": "/grill_reviews/0/na",
+          "value": {
+            "claimed": true,
+            "reason": "The challenged path is absent in the bound environment.",
+            "impact_assessment_ref": "ASSESSMENT-V246-1",
+            "approval_ref": {
+              "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+              "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+            },
+            "approver_run_id": "RUN-GRILL-NA-APPROVER"
+          }
+        },
+        {
+          "op": "replace",
+          "path": "/grill_reviews/0/evidence_refs",
+          "value": []
+        }
+      ],
+      "expected_summary": {
+        "historical_evidence_count": 1,
+        "acceptance_state": "achieved"
+      }
+    },
+    {
+      "case_id": "V246-V244-REPLAY",
+      "mutations": [],
+      "expected_summary": {
+        "historical_evidence_count": 1,
+        "acceptance_state": "achieved"
+      }
+    }
+  ],
+  "invalid_cases": [
+    {
+      "case_id": "V246-UNAPPROVED-SCOPE-EXPANSION",
+      "expected_error_code": "E_V246_SCOPE_APPROVAL",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/change_events/0/change_type",
+          "value": "risk_denominator"
+        },
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/impact_class",
+          "value": "scope_change_pending"
+        },
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/dependency_path",
+          "value": [
+            "CHANGE-V246-1",
+            "RISK-DENOMINATOR"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "V246-GRILL-WITHOUT-EVIDENCE",
+      "expected_error_code": "E_V246_GRILL_EVIDENCE",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/grill_reviews/0/evidence_refs",
+          "value": []
+        }
+      ]
+    },
+    {
+      "case_id": "V246-NA-WITHOUT-INDEPENDENT-ACCEPTANCE",
+      "expected_error_code": "E_V246_GRILL_NA",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/grill_reviews/0/conclusion",
+          "value": "not_applicable_accepted"
+        },
+        {
+          "op": "replace",
+          "path": "/grill_reviews/0/na",
+          "value": {
+            "claimed": true,
+            "reason": "claimed without independent acceptance",
+            "impact_assessment_ref": "ASSESSMENT-V246-1",
+            "approval_ref": null,
+            "approver_run_id": ""
+          }
+        },
+        {
+          "op": "replace",
+          "path": "/grill_reviews/0/evidence_refs",
+          "value": []
+        }
+      ]
+    },
+    {
+      "case_id": "V246-ADVERSARIAL-RISK-SELF-REVIEW",
+      "expected_error_code": "E_V246_TRACEABILITY",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/reviewer_run_id",
+          "value": "RUN-TEST-RUNNER"
+        }
+      ]
+    },
+    {
+      "case_id": "V246-DIRECT-ACTOR-ACHIEVED",
+      "expected_error_code": "E_V246_AUDIT_RECEIPT",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/acceptance_projection/derived_by_run_id",
+          "value": "RUN-TEST-RUNNER"
+        }
+      ]
+    },
+    {
+      "case_id": "V246-SCHEMA-UNKNOWN-NESTED-FIELD",
+      "expected_error_code": "E_V246_SCHEMA",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/change_events/0/status",
+          "value": "passed"
+        }
+      ]
+    },
+    {
+      "case_id": "V246-SCHEMA-MISSING-NESTED-REQUIRED",
+      "expected_error_code": "E_V246_SCHEMA",
+      "mutations": [
+        {
+          "op": "remove",
+          "path": "/change_events/0/actor_run_id"
+        }
+      ]
+    },
+    {
+      "case_id": "V246-CONTRACT-MISSING-PASS-THRESHOLDS",
+      "expected_error_code": "E_V246_SCHEMA",
+      "mutations": [
+        {
+          "op": "remove",
+          "path": "/verification_contracts/0/pass_thresholds"
+        }
+      ]
+    },
+    {
+      "case_id": "V246-BAD-GENERATED-AT",
+      "expected_error_code": "E_V246_SCHEMA",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/generated_at",
+          "value": "not-a-date-time"
+        }
+      ]
+    },
+    {
+      "case_id": "V246-GRILL-FAKE-EVIDENCE",
+      "expected_error_code": "E_V246_GRILL_EVIDENCE",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/grill_reviews/0/evidence_refs",
+          "value": [
+            "EV-FAKE-GRILL"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "V246-RISK-FAKE-EVIDENCE",
+      "expected_error_code": "E_V246_TRACEABILITY",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/evidence_refs",
+          "value": [
+            "EV-FAKE-RISK"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "V246-FULL-MISSING-QA",
+      "expected_error_code": "E_V246_TRACEABILITY",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/profile",
+          "value": "full"
+        },
+        {
+          "op": "replace",
+          "path": "/verification_contracts/0/profile",
+          "value": "full"
+        }
+      ]
+    },
+    {
+      "case_id": "V246-FULL-INCOMPLETE-RISK-CATALOG",
+      "expected_error_code": "E_V246_RISK_DENOMINATOR",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/profile",
+          "value": "full"
+        },
+        {
+          "op": "replace",
+          "path": "/verification_contracts/0/profile",
+          "value": "full"
+        },
+        {
+          "op": "add",
+          "path": "/verification_contracts/0/role_bindings/qa_run_id",
+          "value": "RUN-QA-INDEPENDENT"
+        },
+        {
+          "op": "add",
+          "path": "/verification_contracts/0/role_bindings/completion_auditor_run_id",
+          "value": "RUN-COMPLETION-AUDITOR-INDEPENDENT"
+        }
+      ]
+    },
+    {
+      "case_id": "V246-ARBITRARY-TRANSITION-EVENT",
+      "expected_error_code": "E_V246_TRANSITION",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/transition_receipts/0/transition_event",
+          "value": "arbitrary_unimplemented_event"
+        }
+      ]
+    },
+    {
+      "case_id": "V246-FIRST-RECEIPT-NONINITIAL-REVISION",
+      "expected_error_code": "E_V246_REVISION",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/transition_receipts/0/from_state",
+          "value": "review"
+        },
+        {
+          "op": "replace",
+          "path": "/transition_receipts/0/to_state",
+          "value": "accepted"
+        },
+        {
+          "op": "replace",
+          "path": "/transition_receipts/0/transition_event",
+          "value": "completion_derived"
+        },
+        {
+          "op": "replace",
+          "path": "/transition_receipts/0/expected_revision",
+          "value": 7
+        },
+        {
+          "op": "replace",
+          "path": "/transition_receipts/0/new_revision",
+          "value": 8
+        }
+      ]
+    },
+    {
+      "case_id": "V246-FORGED-REVIEW-AUDIT-REFS",
+      "expected_error_code": "E_V246_ARTIFACT",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/acceptance_projection/independent_review_refs",
+          "value": [
+            {
+              "path": "tests/v23/fixtures/v244/artifacts/integration-test-plan.json",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            }
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/acceptance_projection/completion_audit_refs",
+          "value": [
+            {
+              "path": "tests/v23/fixtures/v244/artifacts/run-result.json",
+              "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "V246-ARTIFACT-REF-MISSING-SHA",
+      "expected_error_code": "E_V246_SCHEMA",
+      "mutations": [
+        {
+          "op": "remove",
+          "path": "/change_events/0/changed_artifact_ref/sha256"
+        }
+      ]
+    },
+    {
+      "case_id": "V246-PROFILE-CONTRACT-DRIFT",
+      "expected_error_code": "E_V246_TRACEABILITY",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/profile",
+          "value": "lite"
+        }
+      ]
+    },
+    {
+      "case_id": "V246-EMPTY-CHAINS-CLAIM-ACHIEVED",
+      "expected_error_code": "E_V246_TRACEABILITY",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/change_events",
+          "value": []
+        },
+        {
+          "op": "replace",
+          "path": "/impact_assessments",
+          "value": []
+        },
+        {
+          "op": "replace",
+          "path": "/evidence_applicability_events",
+          "value": []
+        },
+        {
+          "op": "replace",
+          "path": "/transition_receipts",
+          "value": []
+        },
+        {
+          "op": "replace",
+          "path": "/verification_contracts",
+          "value": []
+        },
+        {
+          "op": "replace",
+          "path": "/grill_reviews",
+          "value": []
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks",
+          "value": []
+        }
+      ]
+    },
+    {
+      "case_id": "V246-REQUIRED-RISK-FAKE-NA-APPROVAL",
+      "expected_error_code": "E_V246_ARTIFACT",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/applicable",
+          "value": false
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/coverage_state",
+          "value": "not_applicable"
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/case_ids",
+          "value": []
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/assertion_ids",
+          "value": []
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/run_ids",
+          "value": []
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/evidence_refs",
+          "value": []
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/na_reason",
+          "value": "claimed N/A"
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/na_approval_ref",
+          "value": {
+            "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+            "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/na_approver_run_id",
+          "value": "RUN-NA-APPROVER"
+        }
+      ]
+    },
+    {
+      "case_id": "V246-ACHIEVED-WITHOUT-TRUSTED-ARTIFACT-ROOT",
+      "expected_error_code": "E_V246_ARTIFACT",
+      "fixture_root_mode": "none",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-ACHIEVED-WITH-MISSING-ARTIFACT",
+      "expected_error_code": "E_V246_ARTIFACT",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/acceptance_projection/independent_review_refs/0/path",
+          "value": "tests/v23/fixtures/v246/does-not-exist-review.json"
+        }
+      ]
+    },
+    {
+      "case_id": "V246-SAME-EVIDENCE-STALE-THEN-CURRENT",
+      "expected_error_code": "E_V246_EVIDENCE_REVIVAL",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/impact_class",
+          "value": "affected"
+        },
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/dependency_path",
+          "value": [
+            "CHANGE-V246-1",
+            "TEST-HISTORICAL-1"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/evidence_applicability_events",
+          "value": [
+            {
+              "event_id": "EVENT-APPLICABILITY-STALE",
+              "evidence_id": "EV-HISTORICAL-PASS-1",
+              "impact_item_id": "IMPACT-V246-1",
+              "evidence_integrity_state": "valid",
+              "evidence_applicability_state": "stale",
+              "revalidation_state": "retest_required",
+              "reason_code": "DEPENDENCY_PATH_AFFECTED",
+              "evidence_refs": [
+                {
+                  "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+                  "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+                }
+              ],
+              "run_id": "RUN-HISTORICAL-1",
+              "attempt_id": "ATTEMPT-HISTORICAL-1",
+              "actor_run_id": "RUN-IMPACT-REVIEWER",
+              "revision": 1,
+              "expected_revision": 0,
+              "occurred_at": "2026-07-27T00:00:01Z"
+            },
+            {
+              "event_id": "EVENT-APPLICABILITY-FAKE-CLOSE",
+              "evidence_id": "EV-HISTORICAL-PASS-1",
+              "impact_item_id": "IMPACT-V246-1",
+              "evidence_integrity_state": "valid",
+              "evidence_applicability_state": "current",
+              "revalidation_state": "closed",
+              "reason_code": "CLAIMED_RETEST_WITHOUT_NEW_RUN",
+              "evidence_refs": [
+                {
+                  "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+                  "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+                }
+              ],
+              "run_id": "RUN-HISTORICAL-1",
+              "attempt_id": "ATTEMPT-HISTORICAL-1",
+              "actor_run_id": "RUN-IMPACT-REVIEWER",
+              "revision": 2,
+              "expected_revision": 1,
+              "occurred_at": "2026-07-27T00:00:02Z",
+              "supersedes_event_id": "EVENT-APPLICABILITY-STALE"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "V246-PREVIOUS-BUNDLE-HISTORY-DELETION",
+      "expected_error_code": "E_V246_HISTORY_REWRITE",
+      "execution_mode": "previous_bundle",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-PREVIOUS-BUNDLE-APPLICABILITY-REWRITE",
+      "expected_error_code": "E_V246_HISTORY_REWRITE",
+      "execution_mode": "previous_bundle",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-PREVIOUS-BUNDLE-TRANSITION-REWRITE",
+      "expected_error_code": "E_V246_HISTORY_REWRITE",
+      "execution_mode": "previous_bundle",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-PREVIOUS-BUNDLE-CONTRACT-REWRITE",
+      "expected_error_code": "E_V246_HISTORY_REWRITE",
+      "execution_mode": "previous_bundle",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-OPTIONAL-RISK-FAKE-NA-APPROVAL",
+      "expected_error_code": "E_V246_ARTIFACT",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/applicable",
+          "value": false
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/required",
+          "value": false
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/coverage_state",
+          "value": "not_applicable"
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/case_ids",
+          "value": []
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/assertion_ids",
+          "value": []
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/run_ids",
+          "value": []
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/evidence_refs",
+          "value": []
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/reviewer_run_id",
+          "value": ""
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/na_reason",
+          "value": "optional risk claimed N/A"
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/na_approval_ref",
+          "value": {
+            "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+            "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        {
+          "op": "replace",
+          "path": "/adversarial_risks/0/na_approver_run_id",
+          "value": "RUN-NA-APPROVER"
+        }
+      ]
+    },
+    {
+      "case_id": "V246-IMPACT-ITEM-BORROWS-OTHER-EVIDENCE-EVENT",
+      "expected_error_code": "E_V246_TRACEABILITY",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/denominator_item_ids",
+          "value": [
+            "IMPACT-V246-1",
+            "IMPACT-V246-OTHER"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items",
+          "value": [
+            {
+              "item_id": "IMPACT-V246-1",
+              "target_type": "test",
+              "target_id": "TEST-HISTORICAL-1",
+              "impact_class": "unaffected",
+              "dependency_path": [],
+              "evidence_ids": [
+                "EV-HISTORICAL-PASS-1"
+              ],
+              "current_check_state": "passed",
+              "current_run_conclusion": "achieved",
+              "reason_code": "NO_DEPENDENCY_PATH"
+            },
+            {
+              "item_id": "IMPACT-V246-OTHER",
+              "target_type": "requirement",
+              "target_id": "REQ-V246-OTHER",
+              "impact_class": "new_requirement",
+              "dependency_path": [
+                "CHANGE-V246-1",
+                "REQ-V246-OTHER"
+              ],
+              "evidence_ids": [],
+              "current_check_state": "not_started",
+              "current_run_conclusion": "not_run",
+              "reason_code": "NEW_REQUIREMENT_NOT_EXECUTED"
+            }
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/evidence_applicability_events/0/impact_item_id",
+          "value": "IMPACT-V246-OTHER"
+        },
+        {
+          "op": "replace",
+          "path": "/acceptance_projection/state",
+          "value": "blocked"
+        },
+        {
+          "op": "replace",
+          "path": "/acceptance_projection/reason_codes",
+          "value": [
+            "NEW_REQUIREMENT_NOT_RUN"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "V246-CONTRACT-FOREIGN-AC",
+      "expected_error_code": "E_V246_TRACEABILITY",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/verification_contracts/0/traceability/0/acceptance_criteria_ids",
+          "value": [
+            "AC-FOREIGN"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "V246-UNACCEPTABLE-RISK-OUTSIDE-DENOMINATOR",
+      "expected_error_code": "E_V246_RISK_DENOMINATOR",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/verification_contracts/0/unacceptable_risk_ids",
+          "value": [
+            "RISK-OUTSIDE-DENOMINATOR"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "V246-ARBITRARY-PASS-THRESHOLDS",
+      "expected_error_code": "E_V246_SCHEMA",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/verification_contracts/0/pass_thresholds/max_failed",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "case_id": "V246-ALLOW-ANYTHING-WAIVER",
+      "expected_error_code": "E_V246_SCHEMA",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/verification_contracts/0/waiver_policy/required_allowed",
+          "value": true
+        }
+      ]
+    },
+    {
+      "case_id": "V246-SKIP-SPEC-CHANGE-POLICY",
+      "expected_error_code": "E_V246_SCHEMA",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/verification_contracts/0/change_approval_policy/spec_harness_update_required",
+          "value": false
+        }
+      ]
+    },
+    {
+      "case_id": "V246-FULL-MISSING-COMPLETION-AUDITOR",
+      "expected_error_code": "E_V246_TRACEABILITY",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/profile",
+          "value": "full"
+        },
+        {
+          "op": "replace",
+          "path": "/verification_contracts/0/profile",
+          "value": "full"
+        },
+        {
+          "op": "add",
+          "path": "/verification_contracts/0/role_bindings/qa_run_id",
+          "value": "RUN-QA-INDEPENDENT"
+        }
+      ]
+    },
+    {
+      "case_id": "V246-REQUIRED-CHECK-WAIVED-CLAIMS-ACHIEVED",
+      "expected_error_code": "E_V246_ACCEPTANCE",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/current_check_state",
+          "value": "waived"
+        }
+      ]
+    },
+    {
+      "case_id": "V246-REQUIRED-CHECK-NOT-REQUIRED-CLAIMS-ACHIEVED",
+      "expected_error_code": "E_V246_ACCEPTANCE",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/current_check_state",
+          "value": "not_required"
+        }
+      ]
+    },
+    {
+      "case_id": "V246-RUN-RUNNING-CLAIMS-ACHIEVED",
+      "expected_error_code": "E_V246_ACCEPTANCE",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/current_run_conclusion",
+          "value": "running"
+        }
+      ]
+    },
+    {
+      "case_id": "V246-GRILL-FOREIGN-BASIS",
+      "expected_error_code": "E_V246_GRILL_EVIDENCE",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/grill_reviews/0/basis_refs",
+          "value": [
+            "REQ-V246-1",
+            "AC-FOREIGN"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "V246-GRILL-FORGED-VERSION-ENVIRONMENT",
+      "expected_error_code": "E_V246_ARTIFACT",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/grill_reviews/0/version_environment_refs/0/sha256",
+          "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        }
+      ]
+    },
+    {
+      "case_id": "V246-GRILL-RESIDUAL-RISK-OUTSIDE-CONTRACT",
+      "expected_error_code": "E_V246_GRILL_EVIDENCE",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/grill_reviews/0/residual_risks",
+          "value": [
+            "RISK-OUTSIDE-DENOMINATOR"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "V246-REVIEW-RECEIPT-ZERO-BYTE",
+      "execution_mode": "typed_receipt",
+      "receipt_target": "review",
+      "receipt_mutation": "zero_byte",
+      "expected_error_code": "E_V246_AUDIT_RECEIPT",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-REVIEW-RECEIPT-WRONG-TYPE",
+      "execution_mode": "typed_receipt",
+      "receipt_target": "review",
+      "receipt_mutation": "wrong_type",
+      "expected_error_code": "E_V246_AUDIT_RECEIPT",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-REVIEW-RECEIPT-WRONG-BUNDLE",
+      "execution_mode": "typed_receipt",
+      "receipt_target": "review",
+      "receipt_mutation": "wrong_bundle",
+      "expected_error_code": "E_V246_AUDIT_RECEIPT",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-AUDIT-RECEIPT-WRONG-REVISION",
+      "execution_mode": "typed_receipt",
+      "receipt_target": "audit",
+      "receipt_mutation": "wrong_revision",
+      "expected_error_code": "E_V246_AUDIT_RECEIPT",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-AUDIT-RECEIPT-WRONG-EVIDENCE-SET",
+      "execution_mode": "typed_receipt",
+      "receipt_target": "audit",
+      "receipt_mutation": "wrong_evidence",
+      "expected_error_code": "E_V246_AUDIT_RECEIPT",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-REVIEW-RECEIPT-SELF-REVIEW",
+      "execution_mode": "typed_receipt",
+      "receipt_target": "review",
+      "receipt_mutation": "self_actor",
+      "expected_error_code": "E_V246_AUDIT_RECEIPT",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-AUDIT-RECEIPT-SELF-AUDIT",
+      "execution_mode": "typed_receipt",
+      "receipt_target": "audit",
+      "receipt_mutation": "self_actor",
+      "expected_error_code": "E_V246_AUDIT_RECEIPT",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-AUDIT-RECEIPT-NON-PASSED",
+      "execution_mode": "typed_receipt",
+      "receipt_target": "audit",
+      "receipt_mutation": "non_passed",
+      "expected_error_code": "E_V246_AUDIT_RECEIPT",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-HISTORY-REWRITE",
+      "expected_error_code": "E_V246_HISTORY_REWRITE",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/historical_evidence_ids",
+          "value": []
+        }
+      ]
+    },
+    {
+      "case_id": "V246-AFFECTED-WITHOUT-DEPENDENCY-PATH",
+      "expected_error_code": "E_V246_IMPACT_PATH",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/impact_class",
+          "value": "affected"
+        }
+      ]
+    },
+    {
+      "case_id": "V246-AFFECTED-MARKED-CURRENT",
+      "expected_error_code": "E_V246_IMPACT_SEMANTICS",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/impact_class",
+          "value": "affected"
+        },
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/dependency_path",
+          "value": [
+            "CHANGE-V246-1",
+            "TEST-HISTORICAL-1"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "V246-UNREACHABLE-TRANSITION",
+      "expected_error_code": "E_V246_TRANSITION",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/transition_receipts/0/to_state",
+          "value": "accepted"
+        }
+      ]
+    },
+    {
+      "case_id": "V246-NONCONTIGUOUS-REVISION",
+      "expected_error_code": "E_V246_REVISION",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/transition_receipts/0/new_revision",
+          "value": 7
+        }
+      ]
+    },
+    {
+      "case_id": "V246-TRANSITION-CHAIN-CAS-CONFLICT",
+      "expected_error_code": "E_V246_REVISION",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/transition_receipts",
+          "value": [
+            {
+              "receipt_id": "TRANSITION-TASK-CAS-1",
+              "machine_id": "task_lifecycle",
+              "entity_id": "TASK-V246-CAS",
+              "transition_event": "task_started",
+              "from_state": "planned",
+              "to_state": "running",
+              "expected_revision": 0,
+              "new_revision": 1,
+              "guard_results": [
+                {
+                  "guard_id": "GUARD-CAS-1",
+                  "passed": true,
+                  "evidence_refs": [
+                    "EV-HISTORICAL-PASS-1"
+                  ]
+                }
+              ],
+              "actor_run_id": "RUN-IMPLEMENTER",
+              "reason_code": "FIRST_WRITER",
+              "evidence_refs": [
+                "EV-HISTORICAL-PASS-1"
+              ],
+              "occurred_at": "2026-07-27T00:00:02Z",
+              "idempotency_key": "IDEMPOTENCY-TASK-CAS-1"
+            },
+            {
+              "receipt_id": "TRANSITION-TASK-CAS-2",
+              "machine_id": "task_lifecycle",
+              "entity_id": "TASK-V246-CAS",
+              "transition_event": "task_lifecycle.planned.blocked",
+              "from_state": "planned",
+              "to_state": "blocked",
+              "expected_revision": 0,
+              "new_revision": 1,
+              "guard_results": [
+                {
+                  "guard_id": "GUARD-CAS-2",
+                  "passed": true,
+                  "evidence_refs": [
+                    "EV-HISTORICAL-PASS-1"
+                  ]
+                }
+              ],
+              "actor_run_id": "RUN-OTHER-WRITER",
+              "reason_code": "STALE_WRITER",
+              "evidence_refs": [
+                "EV-HISTORICAL-PASS-1"
+              ],
+              "occurred_at": "2026-07-27T00:00:03Z",
+              "idempotency_key": "IDEMPOTENCY-TASK-CAS-2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "V246-SUCCESSOR-WITHOUT-ACCEPTED-PREDECESSOR",
+      "expected_error_code": "E_V246_TRACEABILITY",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/transition_receipts/0/transition_event",
+          "value": "revalidation_started"
+        },
+        {
+          "op": "replace",
+          "path": "/transition_receipts/0/supersedes_task_id",
+          "value": "TASK-UNKNOWN-NOT-ACCEPTED"
+        }
+      ]
+    },
+    {
+      "case_id": "V246-TRANSITION-WITH-UNKNOWN-EVIDENCE",
+      "expected_error_code": "E_V246_TRANSITION_EVIDENCE",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/transition_receipts/0/evidence_refs",
+          "value": [
+            "EV-UNKNOWN"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "V246-EXTERNAL-WRITE-WITHOUT-SIDE-EFFECT-BINDING",
+      "expected_error_code": "E_V246_SIDE_EFFECT_PROTOCOL",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/transition_receipts/0/machine_id",
+          "value": "external_surface"
+        },
+        {
+          "op": "replace",
+          "path": "/transition_receipts/0/entity_id",
+          "value": "RELEASE-V246-1"
+        },
+        {
+          "op": "replace",
+          "path": "/transition_receipts/0/from_state",
+          "value": "absent"
+        },
+        {
+          "op": "replace",
+          "path": "/transition_receipts/0/to_state",
+          "value": "candidate_pushed"
+        },
+        {
+          "op": "replace",
+          "path": "/transition_receipts/0/transition_event",
+          "value": "external_surface.absent.candidate_pushed"
+        }
+      ]
+    },
+    {
+      "case_id": "V246-RISK-DENOMINATOR-SHRINK",
+      "expected_error_code": "E_V246_RISK_DENOMINATOR",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/verification_contracts/0/risk_denominator",
+          "value": [
+            "RISK-OTHER"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "V246-BROKEN-TRACEABILITY",
+      "expected_error_code": "E_V246_TRACEABILITY",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/verification_contracts/0/traceability/0/evidence_ids",
+          "value": [
+            "EV-UNKNOWN"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "V246-ACHIEVED-WITH-STALE-EVIDENCE",
+      "expected_error_code": "E_V246_ACCEPTANCE",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/impact_class",
+          "value": "affected"
+        },
+        {
+          "op": "replace",
+          "path": "/impact_assessments/0/items/0/dependency_path",
+          "value": [
+            "CHANGE-V246-1",
+            "TEST-HISTORICAL-1"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/evidence_applicability_events/0/evidence_applicability_state",
+          "value": "stale"
+        },
+        {
+          "op": "replace",
+          "path": "/evidence_applicability_events/0/revalidation_state",
+          "value": "retest_required"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,622 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.46/verification-governance.schema.json",
+  "title": "Goal Teams V2.46 Verification Governance Bundle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "bundle_id",
+    "revision",
+    "profile",
+    "generated_at",
+    "previous_bundle_ref",
+    "history_baseline_evidence_ids",
+    "historical_evidence_ids",
+    "change_events",
+    "impact_assessments",
+    "evidence_applicability_events",
+    "transition_receipts",
+    "verification_contracts",
+    "grill_reviews",
+    "adversarial_risks",
+    "acceptance_projection"
+  ],
+  "properties": {
+    "schema_version": {"const": "goal-teams-verification-governance-v2.46"},
+    "bundle_id": {"$ref": "#/$defs/id"},
+    "revision": {"type": "integer", "minimum": 1},
+    "profile": {"enum": ["lite", "standard", "full", "regulated"]},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "previous_bundle_ref": {
+      "anyOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/artifactRef"}
+      ]
+    },
+    "history_baseline_evidence_ids": {"$ref": "#/$defs/uniqueIds"},
+    "historical_evidence_ids": {"$ref": "#/$defs/uniqueIds"},
+    "change_events": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/changeEvent"}
+    },
+    "impact_assessments": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/impactAssessment"}
+    },
+    "evidence_applicability_events": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/evidenceApplicabilityEvent"}
+    },
+    "transition_receipts": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/transitionReceipt"}
+    },
+    "verification_contracts": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/verificationContract"}
+    },
+    "grill_reviews": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/grillReview"}
+    },
+    "adversarial_risks": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/adversarialRisk"}
+    },
+    "acceptance_projection": {"$ref": "#/$defs/acceptanceProjection"}
+  },
+  "$defs": {
+    "id": {"type": "string", "minLength": 1},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "uniqueIds": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/id"}
+    },
+    "nonemptyIds": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/id"}
+    },
+    "artifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+        },
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "changeEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "change_id",
+        "change_type",
+        "changed_artifact_ref",
+        "before_revision",
+        "after_revision",
+        "before_sha256",
+        "after_sha256",
+        "semantic_change_summary",
+        "actor_run_id",
+        "occurred_at"
+      ],
+      "properties": {
+        "change_id": {"$ref": "#/$defs/id"},
+        "change_type": {
+          "enum": [
+            "rule",
+            "spec",
+            "acceptance_criteria",
+            "harness",
+            "schema",
+            "environment",
+            "risk_denominator",
+            "test_mechanism"
+          ]
+        },
+        "changed_artifact_ref": {"$ref": "#/$defs/artifactRef"},
+        "before_revision": {"type": "integer", "minimum": 0},
+        "after_revision": {"type": "integer", "minimum": 1},
+        "before_sha256": {"$ref": "#/$defs/sha256"},
+        "after_sha256": {"$ref": "#/$defs/sha256"},
+        "semantic_change_summary": {"type": "string", "minLength": 1},
+        "actor_run_id": {"$ref": "#/$defs/id"},
+        "occurred_at": {"type": "string", "format": "date-time"},
+        "scope_change_intent_ref": {"$ref": "#/$defs/artifactRef"},
+        "scope_change_approval_ref": {"$ref": "#/$defs/artifactRef"}
+      }
+    },
+    "impactItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "item_id",
+        "target_type",
+        "target_id",
+        "impact_class",
+        "dependency_path",
+        "evidence_ids",
+        "current_check_state",
+        "current_run_conclusion"
+      ],
+      "properties": {
+        "item_id": {"$ref": "#/$defs/id"},
+        "target_type": {
+          "enum": ["requirement", "acceptance_criterion", "risk", "test", "harness", "evidence"]
+        },
+        "target_id": {"$ref": "#/$defs/id"},
+        "impact_class": {
+          "enum": [
+            "unaffected",
+            "affected",
+            "new_requirement",
+            "scope_change_pending",
+            "undetermined"
+          ]
+        },
+        "dependency_path": {"$ref": "#/$defs/uniqueIds"},
+        "evidence_ids": {"$ref": "#/$defs/uniqueIds"},
+        "current_check_state": {
+          "enum": ["not_started", "running", "passed", "failed", "blocked", "not_required", "waived"]
+        },
+        "current_run_conclusion": {
+          "enum": ["not_run", "running", "achieved", "partial", "failed", "blocked", "flaky", "aborted"]
+        },
+        "scope_change_approval_ref": {"$ref": "#/$defs/artifactRef"},
+        "reason_code": {"$ref": "#/$defs/id"}
+      }
+    },
+    "impactAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assessment_id",
+        "change_id",
+        "contract_revision",
+        "denominator_item_ids",
+        "items",
+        "reviewer_run_id",
+        "revision",
+        "expected_revision"
+      ],
+      "properties": {
+        "assessment_id": {"$ref": "#/$defs/id"},
+        "change_id": {"$ref": "#/$defs/id"},
+        "contract_revision": {"type": "integer", "minimum": 1},
+        "denominator_item_ids": {"$ref": "#/$defs/nonemptyIds"},
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/impactItem"}
+        },
+        "reviewer_run_id": {"$ref": "#/$defs/id"},
+        "revision": {"type": "integer", "minimum": 1},
+        "expected_revision": {"type": "integer", "minimum": 0}
+      }
+    },
+    "evidenceApplicabilityEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "evidence_id",
+        "impact_item_id",
+        "evidence_integrity_state",
+        "evidence_applicability_state",
+        "revalidation_state",
+        "reason_code",
+        "evidence_refs",
+        "actor_run_id",
+        "run_id",
+        "attempt_id",
+        "revision",
+        "expected_revision",
+        "occurred_at"
+      ],
+      "properties": {
+        "event_id": {"$ref": "#/$defs/id"},
+        "evidence_id": {"$ref": "#/$defs/id"},
+        "impact_item_id": {"$ref": "#/$defs/id"},
+        "evidence_integrity_state": {"enum": ["unverified", "valid", "invalid"]},
+        "evidence_applicability_state": {"enum": ["current", "stale"]},
+        "revalidation_state": {
+          "enum": ["not_required", "retest_required", "scheduled", "running", "closed"]
+        },
+        "reason_code": {"$ref": "#/$defs/id"},
+        "integrity_failure_code": {"$ref": "#/$defs/id"},
+        "evidence_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/artifactRef"}
+        },
+        "actor_run_id": {"$ref": "#/$defs/id"},
+        "run_id": {"$ref": "#/$defs/id"},
+        "attempt_id": {"$ref": "#/$defs/id"},
+        "revision": {"type": "integer", "minimum": 1},
+        "expected_revision": {"type": "integer", "minimum": 0},
+        "occurred_at": {"type": "string", "format": "date-time"},
+        "supersedes_event_id": {"$ref": "#/$defs/id"},
+        "supersedes_evidence_id": {"$ref": "#/$defs/id"}
+      }
+    },
+    "guardResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["guard_id", "passed", "evidence_refs"],
+      "properties": {
+        "guard_id": {"$ref": "#/$defs/id"},
+        "passed": {"type": "boolean"},
+        "evidence_refs": {"$ref": "#/$defs/nonemptyIds"}
+      }
+    },
+    "sideEffectBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "intent_ref",
+        "pre_state_sha256",
+        "side_effect_receipt_ref",
+        "exact_readback_ref",
+        "readback_classification",
+        "recovery_state"
+      ],
+      "properties": {
+        "intent_ref": {"$ref": "#/$defs/artifactRef"},
+        "pre_state_sha256": {"$ref": "#/$defs/sha256"},
+        "side_effect_receipt_ref": {"$ref": "#/$defs/artifactRef"},
+        "exact_readback_ref": {"$ref": "#/$defs/artifactRef"},
+        "readback_classification": {"enum": ["absent", "exact", "conflict", "unavailable"]},
+        "recovery_state": {
+          "enum": ["none", "reconciliation_required", "recovering", "recovered", "conflict"]
+        }
+      }
+    },
+    "transitionReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "receipt_id",
+        "machine_id",
+        "entity_id",
+        "transition_event",
+        "from_state",
+        "to_state",
+        "expected_revision",
+        "new_revision",
+        "guard_results",
+        "actor_run_id",
+        "reason_code",
+        "evidence_refs",
+        "occurred_at",
+        "idempotency_key"
+      ],
+      "properties": {
+        "receipt_id": {"$ref": "#/$defs/id"},
+        "machine_id": {
+          "enum": [
+            "task_lifecycle",
+            "check_execution",
+            "run_conclusion",
+            "evidence_integrity",
+            "evidence_applicability",
+            "revalidation",
+            "recovery",
+            "external_surface",
+            "release_checkpoint"
+          ]
+        },
+        "entity_id": {"$ref": "#/$defs/id"},
+        "transition_event": {"$ref": "#/$defs/id"},
+        "from_state": {"$ref": "#/$defs/id"},
+        "to_state": {"$ref": "#/$defs/id"},
+        "expected_revision": {"type": "integer", "minimum": 0},
+        "new_revision": {"type": "integer", "minimum": 1},
+        "guard_results": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/guardResult"}
+        },
+        "actor_run_id": {"$ref": "#/$defs/id"},
+        "reason_code": {"$ref": "#/$defs/id"},
+        "evidence_refs": {"$ref": "#/$defs/nonemptyIds"},
+        "occurred_at": {"type": "string", "format": "date-time"},
+        "idempotency_key": {"$ref": "#/$defs/id"},
+        "side_effect": {"$ref": "#/$defs/sideEffectBinding"},
+        "supersedes_task_id": {"$ref": "#/$defs/id"},
+        "history_ref": {"$ref": "#/$defs/artifactRef"},
+        "executor_run_id": {"$ref": "#/$defs/id"},
+        "completion_audit_ref": {"$ref": "#/$defs/artifactRef"}
+      }
+    },
+    "traceabilityLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requirement_id",
+        "acceptance_criteria_ids",
+        "test_plan_ids",
+        "test_case_ids",
+        "harness_check_ids",
+        "run_ids",
+        "evidence_ids"
+      ],
+      "properties": {
+        "requirement_id": {"$ref": "#/$defs/id"},
+        "acceptance_criteria_ids": {"$ref": "#/$defs/nonemptyIds"},
+        "test_plan_ids": {"$ref": "#/$defs/nonemptyIds"},
+        "test_case_ids": {"$ref": "#/$defs/nonemptyIds"},
+        "harness_check_ids": {"$ref": "#/$defs/nonemptyIds"},
+        "run_ids": {"$ref": "#/$defs/nonemptyIds"},
+        "evidence_ids": {"$ref": "#/$defs/nonemptyIds"}
+      }
+    },
+    "roleBindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["owner_run_id", "designer_run_id", "runner_run_id", "reviewer_run_id"],
+      "properties": {
+        "owner_run_id": {"$ref": "#/$defs/id"},
+        "designer_run_id": {"$ref": "#/$defs/id"},
+        "runner_run_id": {"$ref": "#/$defs/id"},
+        "reviewer_run_id": {"$ref": "#/$defs/id"},
+        "qa_run_id": {"$ref": "#/$defs/id"},
+        "completion_auditor_run_id": {"$ref": "#/$defs/id"}
+      }
+    },
+    "verificationContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_id",
+        "revision",
+        "profile",
+        "requirement_refs",
+        "acceptance_criteria_refs",
+        "risk_denominator",
+        "unacceptable_risk_ids",
+        "pass_thresholds",
+        "role_bindings",
+        "evidence_requirements",
+        "waiver_policy",
+        "change_approval_policy",
+        "traceability"
+      ],
+      "properties": {
+        "contract_id": {"$ref": "#/$defs/id"},
+        "revision": {"type": "integer", "minimum": 1},
+        "profile": {"enum": ["lite", "standard", "full", "regulated"]},
+        "requirement_refs": {"$ref": "#/$defs/nonemptyIds"},
+        "acceptance_criteria_refs": {"$ref": "#/$defs/nonemptyIds"},
+        "risk_denominator": {"$ref": "#/$defs/nonemptyIds"},
+        "unacceptable_risk_ids": {"$ref": "#/$defs/uniqueIds"},
+        "pass_thresholds": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "required_checks",
+            "required_runs",
+            "max_failed",
+            "max_blocked",
+            "max_not_run",
+            "max_flaky"
+          ],
+          "properties": {
+            "required_checks": {"const": "all_passed"},
+            "required_runs": {"const": "achieved"},
+            "max_failed": {"const": 0},
+            "max_blocked": {"const": 0},
+            "max_not_run": {"const": 0},
+            "max_flaky": {"const": 0}
+          }
+        },
+        "role_bindings": {"$ref": "#/$defs/roleBindings"},
+        "evidence_requirements": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "artifact_hash_required",
+              "version_environment_binding_required"
+            ],
+            "properties": {
+              "kind": {
+                "enum": [
+                  "command_execution",
+                  "api_integration",
+                  "e2e",
+                  "visual_comparison",
+                  "security",
+                  "performance",
+                  "release_readback"
+                ]
+              },
+              "artifact_hash_required": {"const": true},
+              "version_environment_binding_required": {"const": true}
+            }
+          }
+        },
+        "waiver_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["required_allowed", "independent_approval_required"],
+          "properties": {
+            "required_allowed": {"const": false},
+            "independent_approval_required": {"const": true}
+          }
+        },
+        "change_approval_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scope_change_requires_approval",
+            "spec_harness_update_required"
+          ],
+          "properties": {
+            "scope_change_requires_approval": {"const": true},
+            "spec_harness_update_required": {"const": true}
+          }
+        },
+        "traceability": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/traceabilityLink"}
+        }
+      }
+    },
+    "grillReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "grill_id",
+        "contract_id",
+        "requirement_id",
+        "critical",
+        "definition",
+        "basis_refs",
+        "version_environment_refs",
+        "failure_path",
+        "residual_risks",
+        "na",
+        "evidence_refs",
+        "reviewer_run_id",
+        "conclusion"
+      ],
+      "properties": {
+        "grill_id": {"$ref": "#/$defs/id"},
+        "contract_id": {"$ref": "#/$defs/id"},
+        "requirement_id": {"$ref": "#/$defs/id"},
+        "critical": {"type": "boolean"},
+        "definition": {"type": "string", "minLength": 1},
+        "basis_refs": {"$ref": "#/$defs/nonemptyIds"},
+        "version_environment_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/artifactRef"}
+        },
+        "failure_path": {"type": "string", "minLength": 1},
+        "residual_risks": {"$ref": "#/$defs/uniqueIds"},
+        "na": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "claimed",
+            "reason",
+            "impact_assessment_ref",
+            "approval_ref",
+            "approver_run_id"
+          ],
+          "properties": {
+            "claimed": {"type": "boolean"},
+            "reason": {"type": "string"},
+            "impact_assessment_ref": {"type": "string"},
+            "approval_ref": {
+              "anyOf": [
+                {"type": "null"},
+                {"$ref": "#/$defs/artifactRef"}
+              ]
+            },
+            "approver_run_id": {"type": "string"}
+          }
+        },
+        "evidence_refs": {"$ref": "#/$defs/uniqueIds"},
+        "reviewer_run_id": {"$ref": "#/$defs/id"},
+        "conclusion": {
+          "enum": ["answered_with_evidence", "finding", "blocked", "not_applicable_accepted"]
+        }
+      }
+    },
+    "adversarialRisk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "risk_id",
+        "category",
+        "applicable",
+        "required",
+        "coverage_state",
+        "case_ids",
+        "assertion_ids",
+        "run_ids",
+        "evidence_refs",
+        "reviewer_run_id",
+        "na_reason",
+        "na_approval_ref",
+        "na_approver_run_id"
+      ],
+      "properties": {
+        "risk_id": {"$ref": "#/$defs/id"},
+        "category": {
+          "enum": [
+            "misuse",
+            "unauthorized_access",
+            "invalid_or_malicious_input",
+            "concurrency_and_race",
+            "retry_and_idempotency",
+            "failure_recovery",
+            "resource_cleanup",
+            "forged_or_stale_evidence",
+            "revision_and_cas_conflict",
+            "na_waiver_denominator_bypass"
+          ]
+        },
+        "applicable": {"type": "boolean"},
+        "required": {"type": "boolean"},
+        "coverage_state": {
+          "enum": ["passed", "failed", "blocked", "not_run", "flaky", "not_applicable"]
+        },
+        "case_ids": {"$ref": "#/$defs/uniqueIds"},
+        "assertion_ids": {"$ref": "#/$defs/uniqueIds"},
+        "run_ids": {"$ref": "#/$defs/uniqueIds"},
+        "evidence_refs": {"$ref": "#/$defs/uniqueIds"},
+        "reviewer_run_id": {"type": "string"},
+        "na_reason": {"type": "string"},
+        "na_approval_ref": {
+          "anyOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/artifactRef"}
+          ]
+        },
+        "na_approver_run_id": {"type": "string"}
+      }
+    },
+    "acceptanceProjection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "derived_by_run_id",
+        "acceptance_evidence_ids",
+        "independent_review_refs",
+        "completion_audit_refs",
+        "reason_codes"
+      ],
+      "properties": {
+        "state": {"enum": ["blocked", "achieved"]},
+        "derived_by_run_id": {"$ref": "#/$defs/id"},
+        "acceptance_evidence_ids": {"$ref": "#/$defs/nonemptyIds"},
+        "independent_review_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/artifactRef"}
+        },
+        "completion_audit_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/artifactRef"}
+        },
+        "reason_codes": {"$ref": "#/$defs/uniqueIds"}
+      }
+    }
+  }
+}

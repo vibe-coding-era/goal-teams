@@ -11,6 +11,8 @@
 - Evidence 必须可重放：绑定安全 seed、服务/浏览器配置引用、启动/执行/cleanup 命令、artifact 相对 path/hash 和 replay recipe；登录态需使用测试账号/存储状态引用并脱敏。
 - flake/retry 不得洗绿：保留首次失败；只按 plan 预授权上限进行诊断 retry；`fail→pass` 判为 `flaky` 且不能计入 clean pass/覆盖完成，直至根因关闭和独立无重试复验。
 - 每次运行都执行 cleanup 并验证 UI 与业务状态复位；cleanup failure 使 run failed/blocked。
+- 执行前验证 current verification contract、impact assessment 与对抗风险引用；旧 pass 仍是历史事实，但 stale/retest_required/not_run 不能支撑当前 gate。`invalid` 只用于 Evidence 本体不可信。
+- 桌面 route 逐 run 记录 platform tuple、driver、Evidence level 与 binary/package digest；macOS 禁止 direct `tauri-driver` 冒充 real app，L2/L3 不得冒充 L4。L4 还要负向回读 test plugin、debug port、mock hook 和宽泛测试 Capability 均不存在。
 - 失败时创建 BugFix 或打回对应实现 Owner。
 
 停止条件：

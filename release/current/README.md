@@ -1,28 +1,34 @@
-# Goal Teams V2.45 Release
+# Goal Teams V2.46 Release
 
-V2.45 adds a standalone, progressively loaded Release Engineer member for governed environment preparation, packaging, application/container/WeChat Mini Program/GitHub Skill delivery, rollback, benchmark baselines, and post-release readback. The member ships in the package but is not connected to the main Skill route or normal member dispatch.
+V2.46 adds machine-verifiable verification governance while preserving the V2.3 ledger, V2.44 API/E2E contracts, V2.43 metrics, and V2.45 Release Engineer.
 
-## Release governance
+## Verification governance
 
-- `goal-teams-self-release-v2.45` is the active repository self-release Profile. V2.44 retains predecessor and external-host verification semantics for replay, but cannot authorize new external writes.
-- The release-engine profile binds V2.45, `codex/v2.45-release-engineer`, `v2.45`, Release metadata, strict snapshot format, public-scan baseline, and close schema.
-- CP05 is external-host-only for every profile that freezes `host_acceptance`; caller JSON, files, paths, argv, environment tokens, and self-reported reviewer identity cannot advance it.
-- The CP00–CP18 lifecycle, exact-SHA CI, remote lock, immutable tag/Release, four fixed assets, published-asset re-download, temporary installation audit, actual local installation, and independent live audit remain mandatory.
+- Historical passed results remain valid facts under their bound code, SPEC, Harness, environment, and rule versions. Current applicability and revalidation obligations are separate state dimensions.
+- Rule changes require itemized impact analysis: unaffected evidence remains current, affected evidence becomes `stale` with `retest_required`, new requirements are `not_run`, actual failures are `failed`, and only untrustworthy evidence is `invalid`.
+- Test contracts bind scope, unacceptable risks, thresholds, owners, Evidence, waivers, approvals, AC, test plans, cases, and Harness.
+- Grill me challenges critical requirements according to Lite/Standard/Full/Regulated routing. Adversarial tests include abuse, privilege, invalid input, concurrency, retry, recovery, and forged or stale Evidence.
 
-## Standalone Release Engineer
+## State and release governance
 
-- Normal invocation performs only final release Evidence checks and never runs the full test suite.
-- Java, Rust, Go, Python, Node.js, five environments, and four release surfaces are selected from an approved versioned kit catalog.
-- Script generation requires a trusted-host-signed human plan approval; live execution requires a second trusted-host-signed human approval with one-time challenge, least-privilege, and database-safety attestations.
-- The fixed Evidence denominator includes unit, API, E2E, Review, Completion Audit, artifact, package, SBOM, provenance, and signature evidence. Callers may add kinds but cannot remove them.
-- Database destructive operations and unclosed indirect helper/database scripts fail closed. Production requires backup, restore proof, rollback, benchmark baseline, and post-release verification.
-- Receipts reuse the repository-wide V2.36 secret redaction boundary for credentials, Cookie, database URIs, `.netrc`, cloud secrets, and collaboration tokens.
+- Task lifecycle, check execution, run conclusion, Evidence integrity/applicability, release phase, and recovery are orthogonal.
+- External effects follow persisted intent, execution, exact readback, and revision/CAS commit. Uncertain outcomes allow only reconciliation or recovery.
+- `accepted`, `released`, and `closed` are derived from completion predicates, valid current Evidence, and independent audit.
+- V2.46 is the active self-release profile. V2.45 and earlier profiles are replay-only and cannot authorize new external writes.
+- CP05 remains external-host-only; immutable tag/Release, four fixed assets, published-asset re-download, local installation, and independent live audit remain mandatory.
+
+## Rust and Tauri desktop engineering
+
+- A consolidated, conditionally loaded desktop contract covers Rust backend architecture, typed Tauri IPC, macOS-focused frontend replication, and cross-platform client testing without expanding the main Skill entrypoint.
+- Replica acceptance keeps complete source coverage, same-tuple zero-pixel difference, high fidelity, and native-semantic match as separate gates. PRD-only work creates an independently approved interactive HTML baseline before implementation.
+- Desktop Evidence separates L1 Rust, L2 mock/browser, L3 instrumented real app, and L4 production package per immutable platform tuple. macOS real-app automation uses the embedded WebdriverIO Tauri service or an approved native harness; direct `tauri-driver` and browser-only runs cannot stand in for macOS client Evidence.
+- Production-package checks fail closed if test plugins, debug ports, mock hooks, or broad test capabilities remain present.
 
 ## Compatibility and evidence boundary
 
-- V2.44 API/E2E schemas, fixtures, benchmark, and the fixed 100-point capability denominator remain historical machine contracts and are not renamed.
-- The V2.43 engineering-metrics sidecar remains compatible; unavailable or insufficient observations are never reported as zero.
-- Structural validation, test exit codes, cache telemetry, and benchmark scores do not replace real Evidence, independent Review, trusted-host acceptance, or release readback.
+- V2.44 schemas, fixtures, benchmark, and fixed 100-point denominator keep their original identities.
+- Full regression may be required for the current candidate, but it never erases historical results.
+- Structural checks, exit codes, cache telemetry, and scores do not replace behavior Evidence, independent Review, trusted-host acceptance, or release readback.
 
 ## Release telemetry
 

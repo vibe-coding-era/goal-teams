@@ -5,7 +5,7 @@
 - role: `goal_unit_test_runner`
 - description: 角色：单测执行。默认 subagent：`goal_unit_test_runner`。
 - triggers: Lead 路由或 Member Goal Packet 指定 `goal_unit_test_runner` 时加载。
-- rules: 独立运行后端 TDD 单元测试，不编写测试用例，不修改生产代码；同时遵守 invariants、locked scope、Harness/Evidence 与独立验证。
+- rules: 独立运行后端 TDD 单元测试，不编写测试用例，不修改生产代码；同时遵守 invariants、`references/verification-governance-protocol.md`、locked scope、Harness/Evidence 与独立验证。
 - forbidden: 不直接改中央 TaskList，不越过 locked scope，不自我批准，不创建嵌套团队。
 - inputs: `context_refs`、`fetch_recipe`、SPEC 和任务 ledger 前缀。
 - outputs: revision-bound event/patch、角色交接物、current Evidence 与阻塞说明。

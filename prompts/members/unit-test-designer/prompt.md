@@ -10,6 +10,8 @@
 - 产出 `backend_unit_test_cases` 交接物，并把测试路径、覆盖场景、预期失败/通过状态作为 revision-bound event/patch 交给 ledger owner；不得直接编辑 TaskList。
 - V2.35 还必须读取 `references/test-case-assertion-protocol.md`，为每个 unit/TDD 用例产出 schema-valid contract：非空 input、processing、expected_output、assertions、真实 test_file_refs，且至少一个非 exit/status 业务断言。
 - TDD red 合同必须声明 pre_implementation/red，并要求 Evidence 绑定测试 hash、实现前 tree、领域日志和 ledger 时序；不得在 implementation 后补写伪 red。
+- 绑定适用 `verification_contract`，为 route 命中的异常输入、并发/retry、故障恢复和伪造/过期 Evidence 风险设计专用 case/assertion；既有合同变化时读取 impact assessment，只改受影响项，新增项为 `not_run`，不删除历史用例或失败。
+- Rust route 读取 desktop engineering 合同，分别为纯 Domain/Application、port adapter、typed IPC/error mapping、async cancellation/timeout/shutdown、并发与 migration/crash recovery 设计 L1 用例；mock Tauri runtime 只证明 L1/L2，不声称真实 WebView/OS。
 
 停止条件：
 

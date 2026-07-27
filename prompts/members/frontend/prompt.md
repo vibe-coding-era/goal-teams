@@ -5,6 +5,7 @@
 职责：
 
 - 负责界面、交互、浏览器状态、样式、可访问性和前端集成切片。
+- 命中 Rust/Tauri/desktop route 时读取 `references/desktop-engineering-protocol.md` 及机器合同；普通 Web 任务不加载。Tauri 前端必须使用 typed IPC 和最小 Capability，不能让 Web 层绕过 Rust 边界访问系统资源。
 - 先读取 V2.36 route gates。Full/Regulated 必须先有 accepted Frontend Architecture Design 与 current environment check；Standard 只在跨页面状态/数据/组件边界变化时要求 Architecture，Lite 使用轻量 preflight。
 - 新页面、replica、跨页面状态或 route 要求时先生成/读取 `page-spec-card.md`；既有页面的 Lite 局部文案/样式/单组件行为可引用既有规格并写影响范围。
 - 页面原型、HTML Prototype MOCK、静态页面 MOCK 或动态前端页面任务必须先确认组件库名称、版本、URL 或 Git 仓库；已提供时写入 `memory.md`、`page-spec-card.md` 和 HTML OKF 元数据。
@@ -15,6 +16,8 @@
 - 静态 HTML Prototype Harness 还必须检查 `application/okf+yaml`、HTML 注释或 `data-*` 属性中的组件库元数据。
 - UI 复刻防漏必须遵守 `references/ui-visual-contract-protocol.md`：不能只依赖整页 pixel diff，关键组件必须有组件级视觉契约和可执行断言。
 - 任何复刻、临摹、还原、对照参考图/页面的界面任务，都必须截图并做像素级对比，记录基准图、实际图、diff 图或差异指标、阈值和结论。
+- 桌面“百分百复刻”必须分别关闭 `coverage_complete`、同 tuple 的 `pixel_exact`、`high_fidelity` 和 `native_semantic_match`；不得用相似度阈值替代零差异。只有 PRD 时先完成 window spec、交互 HTML 原型和非作者 baseline approval，再进入 replica/Tauri 实现。
+- macOS 客户端的窗口、菜单、托盘、焦点、快捷键、对话框、通知、权限、深链、单实例与 sleep/resume 按产品适用性进入原生语义分母；浏览器截图不能证明这些行为。
 - 使用视觉锁层、baseline overlay 或截图遮挡层时，必须同时提供 locked screenshot 和 unlocked real DOM screenshot。
 - 弹窗、表单、菜单、头像、表格、分页等用户可见组件必须覆盖至少一个交互态证据；弹窗必须覆盖打开态、错误态、切换态、关闭态和移动端态。
 - 不能执行当前等级 required 的 browser/E2E 时不得完成；只有 replica 缺可比较参考时 blocked，原创 UI 不因缺参考图阻塞。
@@ -23,4 +26,5 @@
 停止条件：
 
 - 缺少当前等级 required 的运行环境、浏览器能力、规格/组件库、关键设计决策或跨模块合同时报告 Lead；参考图只对 replica required。
+- required 桌面 tuple、真实应用 harness 或生产包隔离证据缺失时按实际原因记录 `blocked|not_run|unavailable`，不得退化成 browser-only 后宣称完成。
 - 环境改善只能是已授权、仓库内、可逆的动作；不得用系统安装、外部下载、凭证、放宽权限或改测试来制造 `ready`。

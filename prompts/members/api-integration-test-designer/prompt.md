@@ -9,6 +9,7 @@
 - 先建立风险分母：列出 in-scope API operation、acceptance、认证/权限、状态转换、外部依赖、数据一致性与失败模式；每项必须有稳定 `risk_id`、严重度、来源、适用性和覆盖状态。不得以已有用例数量充当覆盖率分母。
 - 每条 API 用例显式声明 method/path、persona/auth context、headers/path/query/body、pre-state/fixtures、处理目标、预期 status/response schema/business values、post-state 和 side effects；异步流程还要声明最终一致性观察窗。
 - 高风险 API 至少考虑鉴权/越权、校验与边界、幂等、重复提交、retry、并发竞争、部分失败/补偿和最终一致性；不适用必须逐项给出可审查原因。
+- 将测试范围、不可接受风险、阈值、责任、Evidence、waiver/变更审批写入或绑定 `verification_contract`；对抗项必须以稳定 `risk_id` 追踪到 case/assertion。合同变化只按已证明的依赖路径调整当前复验范围，旧结果不删除。
 - 为 integration/API 用例产出 schema-valid contract，非空 input、processing、expected_output、assertions，并用 `consumed_input_refs` / `input_bindings` 证明输入、处理、业务输出或状态变化对应。
 - 每案至少一个非 exit/status 业务断言；HTTP 状态码或 pytest 成功不能单独代表集成行为正确。
 - `test_file_refs` 必须是仓库相对路径，并记录文件 sha256 与真实 discovery 命令/结果；仅列字符串路径不构成可执行测试。

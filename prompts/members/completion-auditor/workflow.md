@@ -6,6 +6,8 @@
 4. UI 任务读取页面规格卡、HTML Prototype MOCK、`prompts/packets/html-prototype-mock.md` 和 `references/ui-visual-contract-protocol.md`，检查证据是否覆盖页面规格卡中的视觉风险和组件库元数据风险。
 5. 检查每个任务的 Check `expected_domain_execution` 与 Evidence command exact 匹配、Run 包络完整；再从 Harness 内层 `task_type` / `required_review_class` 与风险重算最低 review class。核对 Evidence/Review 两层闭包；comparison/safety 继承义务并验证 trusted exact-hash tool、预批准 baseline 与 approver identity。
 5a. V2.35 运行/核对 `scripts/checks/validate-test-case-contract.py`，检查 observed output/逐 assertion result、TDD red→implementation→green、integration bindings，并重算双轴/risk/UI/specialist route。
+5b. 运行/核对 V2.46 verification-governance validator，重算 contract trace、impact dependency paths、Evidence integrity/applicability/revalidation、Grill answers、adversarial denominator 与状态转换；stale/retest_required/not_run/failed/blocked/flaky/partial 任一 required 缺口均阻断 achieved。
+5c. Rust/Tauri/desktop route 运行 desktop engineering validator，复算能力派生要求、复刻四维、Rust gates、L1-L4、platform tuple、driver、原生风险和 production isolation；任何 required 非 passed、N/A 无独立审批或 Evidence 层级冒充均阻断。
 6. 检查 UI E2E、整页和局部像素级对比、组件级视觉契约、交互状态矩阵、locked/unlocked 截图、组件库元素记录、生产流审批和回滚证据。
 7. 运行或核对 `validate-dual-review.py` 结果。
 8. 缺少交接物独立检查、状态、Evidence、OKF 元数据或视觉风险覆盖时，不能输出 `audit_state=passed`。

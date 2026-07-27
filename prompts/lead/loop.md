@@ -11,7 +11,7 @@ Lead LOOP 是 Goal Lead 的执行期闭环协议。它不代表新的 runtime、
 - Full/Regulated 的 Architecture 已 accepted、`development_environment_check=ready` 且独立测试已写入；
 - iteration/attempt/intent/expected constraints/action scope 已按当前项目恢复合同持久化。
 
-固定 52 条断言、四文件、第 9/11 轮、四维评分、GTLOG、prompt identity/Cache Evidence/OKF gate、V2.45 发行状态机和公开归档只在 `policy_profile=goal-teams-self-release-v2.45` 时读取 `references/profiles/goal-teams-self-release-v2.45.md`。`goal-teams-self-release-v2.44`、`goal-teams-self-release-v2.43`、`goal-teams-self-release-v2.42`、`goal-teams-self-release-v2.41`、`goal-teams-self-release-v2.40`、`goal-teams-self-release-v2.39` 与 `goal-teams-self-release-v2.38` Profile 只用于历史 replay；普通项目不得加载这些专项门禁。
+固定 52 条断言、四文件、第 9/11 轮、四维评分、GTLOG、prompt identity/Cache Evidence/OKF gate、V2.46 发行状态机和公开归档只在 `policy_profile=goal-teams-self-release-v2.46` 时读取 `references/profiles/goal-teams-self-release-v2.46.md`。`goal-teams-self-release-v2.45` 及更早 Profile 只用于历史 replay；普通项目不得加载这些专项门禁。
 
 ## 适用时机
 
@@ -22,6 +22,8 @@ Lead LOOP 是 Goal Lead 的执行期闭环协议。它不代表新的 runtime、
 V2.35 专家改进 loop 的状态只允许 `proposed → reviewed → applied → verified` 或 `reviewed → reverted`。专家只提交 proposal；Lead 另派 applied 的实现 run，verified 必须由不同 run 绑定 current regression + holdout Evidence。专家不能派生 nested team。
 
 Full/Regulated release loop 的顺序为 contract review → Architecture → Environment → tests/red → implementation → green/full → release readiness → release Evidence → post-release verification → graph-external Completion Audit；Audit 自引用返回 `E_AUDIT_SELF_REFERENCE`。
+
+规则/合同/Harness/环境变化先追加 impact-assessment event，再按依赖路径创建 targeted revalidation；全量回归可作为当前策略，但不得覆写历史 pass 或扩大 `invalid`。LOOP 只对 `stale + retest_required`、`not_run`、`failed`、`blocked`、`flaky` 等当前缺口创建后继任务；已 accepted 历史任务保持不变，以 `supersedes_task_id` 关联新的 revalidation task。外部副作用结果不确定时只进入 reconciliation LOOP 并先 exact readback，禁止盲目重试。
 
 ## Lead LOOP 状态流
 

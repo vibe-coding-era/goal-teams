@@ -8,6 +8,7 @@
 6. required Check 的 expected argv/cwd 必须与 Evidence command 精确一致；comparison（含升级 safety）只接受 trusted exact-hash tool、不同 path/inode 的 actual/baseline、registry 中独立预批准者和 exact passed log。
 7. 独立审查语义正确性、规则完整性、风险、缺测和回归。
 7a. 从 acceptance/API/persona/state/dependency/failure mode/journey 独立重建风险分母，与计划逐项 diff；blocked/not_run/unavailable/unknown/flaky 保留为 uncovered，仅 independently accepted true N/A 可排除。
+7aa. 运行验证治理 validator，重算 verification contract、impact dependency paths、Evidence 三轴、Grill answers 与 adversarial trace；无法证明受影响时保留历史事实并阻断当前结论，不得扩大失效范围。
 7b. 运行 Harness 指定 plan/case/result validators；重算每个 test ref sha256 并执行真实 discovery，检查 API/E2E typed fields、case-to-risk 与 case-to-discovery 映射。
 7c. 核对 first attempt、所有 retry、flake classification、cleanup 和 artifact hashes；用 exact argv/cwd/replay recipe 重放至少一个适用高风险项。fail→pass、cleanup/replay/hash 失败均 reject。
 7d. 检查业务 assertion、observed output、TDD 时序、integration bindings；再检查双轴覆盖与适用专家的 capability/domain/lifecycle Evidence。

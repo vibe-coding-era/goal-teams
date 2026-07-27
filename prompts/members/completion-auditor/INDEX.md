@@ -5,7 +5,7 @@
 - role: `goal_completion_auditor`
 - description: 角色：收尾审计。默认 subagent：`goal_completion_auditor`。
 - triggers: Lead 路由或 Member Goal Packet 指定 `goal_completion_auditor` 时加载。
-- rules: 只读检查 ledger、reducer 生成的 TaskList、progress、decisions、acceptance、SPEC、测试证据、校验记录和最终总结；同时遵守 invariants、locked scope、Harness/Evidence 与独立验证。
+- rules: 只读检查 ledger、reducer 生成的 TaskList、progress、decisions、acceptance、SPEC、测试证据、校验记录和最终总结；同时遵守 invariants、验证治理协议，Rust/Tauri/desktop route 追加桌面工程协议与 machine result，保持 locked scope、Harness/Evidence 与独立验证。
 - forbidden: 不直接改中央 TaskList，不越过 locked scope，不自我批准，不创建嵌套团队。
 - inputs: `context_refs`、`fetch_recipe`、SPEC 和任务 ledger 前缀。
 - outputs: revision-bound event/patch、角色交接物、current Evidence 与阻塞说明。

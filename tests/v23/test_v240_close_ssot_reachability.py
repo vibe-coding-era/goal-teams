@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import hashlib
 import json
+import os
 import shutil
 import subprocess
 import tempfile
@@ -56,10 +57,58 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _frozen_current_tree_commit(index_path: Path) -> str:
+    """Create an unreferenced commit from the exact current tree.
+
+    A private index preserves the user's real index, branch and worktree while
+    retaining the production source-at-commit equality check.
+    """
+
+    environment = os.environ.copy()
+    environment.update(
+        {
+            "GIT_INDEX_FILE": str(index_path),
+            "GIT_AUTHOR_NAME": "Goal Teams Test",
+            "GIT_AUTHOR_EMAIL": "goal-teams-test@example.invalid",
+            "GIT_COMMITTER_NAME": "Goal Teams Test",
+            "GIT_COMMITTER_EMAIL": "goal-teams-test@example.invalid",
+        }
+    )
+
+    def git(*args: str, input_text: str | None = None) -> str:
+        process = subprocess.run(
+            ["git", *args],
+            cwd=ROOT,
+            env=environment,
+            input=input_text,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if process.returncode != 0:
+            raise AssertionError(
+                f"frozen-tree git command failed: {args}: {process.stderr}"
+            )
+        return process.stdout.strip()
+
+    head = git("rev-parse", "HEAD")
+    git("read-tree", head)
+    git("add", "-A", "--", ".")
+    tree = git("write-tree")
+    return git(
+        "commit-tree",
+        tree,
+        "-p",
+        head,
+        input_text="V2.40 reachability frozen current tree\n",
+    )
+
+
 def _materialize_nonportable_evidence(
     work_root: Path,
     target_version: Path,
     candidate: str,
+    source_root: Path,
 ) -> None:
     evidence_path = target_version / "evidence" / "evidence.jsonl"
     records = [
@@ -69,7 +118,7 @@ def _materialize_nonportable_evidence(
     ]
     source_paths = ["VERSION"]
     workspace_revision = V23.source_manifest_sha256(
-        ROOT,
+        source_root,
         source_paths,
         commit=candidate,
     )
@@ -151,9 +200,6 @@ class V240CloseSsotReachabilityTests(unittest.TestCase):
             self.skipTest(
                 "CP18 reachability requires the trusted Goal Teams Git lineage"
             )
-        candidate = subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
-        ).strip()
         full_gate_calls: list[list[str]] = []
 
         def run_without_recursive_full_gate(argv, workspace):
@@ -171,16 +217,59 @@ class V240CloseSsotReachabilityTests(unittest.TestCase):
 
         original_ssot_validator = RELEASE._run_ssot_validator
         canonical = ROOT / "examples" / "canonical-v23"
-        docs = ROOT / "docs"
-        docs.mkdir(exist_ok=True)
-        with tempfile.TemporaryDirectory(prefix="v240-close-ssot-", dir=docs) as tmp:
+        develops = ROOT / "develops"
+        develops.mkdir(exist_ok=True)
+        frozen_parent = Path(
+            tempfile.mkdtemp(prefix="v240-frozen-tree-", dir=develops)
+        )
+        candidate = _frozen_current_tree_commit(
+            frozen_parent / "frozen-current-tree.index"
+        )
+        frozen_root = frozen_parent / "workspace"
+        subprocess.run(
+            [
+                "git",
+                "worktree",
+                "add",
+                "--detach",
+                str(frozen_root),
+                candidate,
+            ],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+
+        def cleanup_frozen_workspace() -> None:
+            subprocess.run(
+                ["git", "worktree", "remove", "--force", str(frozen_root)],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            shutil.rmtree(frozen_parent, ignore_errors=True)
+
+        self.addCleanup(cleanup_frozen_workspace)
+        frozen_docs = frozen_root / "docs"
+        frozen_docs.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(
+            prefix="v240-close-ssot-",
+            dir=frozen_docs,
+        ) as tmp:
             archive_root = Path(tmp)
             work_root = archive_root / "GoalTeamsWork-V2.40"
             shutil.copytree(canonical, work_root)
             source_version = work_root / "versions" / "V2.3"
             target_version = work_root / "versions" / "V2.40"
             shutil.copytree(source_version, target_version)
-            _materialize_nonportable_evidence(work_root, target_version, candidate)
+            _materialize_nonportable_evidence(
+                work_root,
+                target_version,
+                candidate,
+                frozen_root,
+            )
 
             harness_path = target_version / "harness" / "harness.json"
             harness = json.loads(harness_path.read_text(encoding="utf-8"))
@@ -244,7 +333,7 @@ class V240CloseSsotReachabilityTests(unittest.TestCase):
             reducer_probe = subprocess.run(
                 [
                     "python3.13",
-                    str(ROOT / "scripts" / "v23" / "goalteams_v23.py"),
+                    str(frozen_root / "scripts" / "v23" / "goalteams_v23.py"),
                     "reduce-ledger",
                     str(target_version / "ledger" / "events.jsonl"),
                     "--ledger-owner-run-id",
@@ -254,9 +343,9 @@ class V240CloseSsotReachabilityTests(unittest.TestCase):
                     "--evidence-root",
                     str(work_root),
                     "--source-root",
-                    str(ROOT),
+                    str(frozen_root),
                 ],
-                cwd=ROOT,
+                cwd=frozen_root,
                 text=True,
                 capture_output=True,
                 check=False,
@@ -278,7 +367,11 @@ class V240CloseSsotReachabilityTests(unittest.TestCase):
             # candidate worktree, so bind the validator to that equivalent
             # workspace boundary explicitly.
             with (
-                mock.patch.object(RELEASE, "_workspace_root", return_value=ROOT),
+                mock.patch.object(
+                    RELEASE,
+                    "_workspace_root",
+                    return_value=frozen_root,
+                ),
                 mock.patch.object(
                     RELEASE,
                     "_run_ssot_validator",

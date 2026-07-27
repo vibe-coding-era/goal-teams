@@ -5,10 +5,10 @@
 作者：肉山@TGO 杭州
 
 <!-- goal-teams-release:start -->
-当前发行：**V2.45** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.45) · [发行说明](release/current/README.md)
+当前发行：**V2.46** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.46) · [发行说明](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-当前版本：`V2.45`
+当前版本：`V2.46`
 
 Goal Teams 是一个面向 Codex 的团队协作 Skill。它会以一个 Goal Lead 的身份，把一个目标拆成可验证的计划，再协调多个独立 subagent（不同上下文执行）或用户指定的外部 skill 完成需求、设计、实现、测试、证据记录和收尾审计。过程中会应用到：
 - 应用Goal + Plan + Loop 模式
@@ -180,7 +180,7 @@ Use $goal-teams。
 显式调用 Goal Teams 或当前会话首次需要建立身份时汇报；已有完整上下文时不重复：
 
 ```text
-我是 Goal Teams Lead V2.45。
+我是 Goal Teams Lead V2.46。
 ```
 
 中文核心模型要点提示词：用户沟通和治理文档默认中文；代码、注释、测试名、fixture 和产品字符串遵循目标仓库约定；代码标识、命令、路径、API 名称、配置键、subagent ID 和精确引用保留原文。
@@ -197,6 +197,8 @@ Use $goal-teams。
 | `references/compat.md` | `TaskList.md`/`tasklist.md`、脚本兼容入口、成员包布局和版本同步口径。 |
 | `references/rules-ui.md` | UI、页面规格卡、HTML Prototype MOCK、E2E 和像素对比规则。 |
 | `references/rules-testing.md` | 后端架构先行、TDD、API 集成 pytest、前端 E2E 和独立测试规则。 |
+| `references/verification-governance-protocol.md` | 历史 Evidence 适用性、正交状态、测试合同、Grill me 与对抗式测试。 |
+| `references/desktop-engineering-protocol.md` | Rust/Tauri 桌面前端复刻、Rust 后端合同与跨平台 L1–L4 测试；配套 manifest/schema/validator 机器校验。 |
 | `references/rules-loop.md` | Lead LOOP、Loop Decision、Loop Gate、Budget Gate 和自动续跑边界。 |
 | `prompts/packets/handoff-artifacts.md` | 交接物 SSOT，定义 artifact 类型、Owner、validator、状态字段和 TaskList 账本格式。 |
 
@@ -334,6 +336,14 @@ GoalTeamsWork-<project_version>/
 - 新增独立、渐进加载的 Release Engineer 成员，覆盖 Java、Rust、Go、Python、Node.js、五类环境与应用、容器、微信小程序、GitHub Skill 发布面；它随包发布但不接入主 Skill 路由。
 - 固定最终 Evidence 分母，并以仓库外 trusted-host 签名绑定两次人类确认、最小权限与数据库安全 attestation；普通 JSON 或自报 approver 不能授权生成脚本或线上执行。
 - 生产发布强制备份、restore proof、rollback、Benchmark 基线和发布后回读；数据库破坏性操作、间接数据库客户端与未闭合辅助脚本 fail closed。
+
+## V2.46 版本改动
+
+- 历史测试结果永久保留；规则变化后独立记录 Evidence 完整性、当前适用性和复验义务，并用逐项影响分析禁止无依据清零。
+- 新增正交状态机与 intent → execute → exact readback → CAS 事务合同；完成状态只能由完成谓词、有效 Evidence 和独立审计推导。
+- 新增可追溯测试合同、按风险路由的 Grill me 和对抗式测试，继续复用 V2.44 API/E2E 合同且不缩小风险分母。
+- 新增按能力派生的 Rust/Tauri 桌面工程合同：前端将“百分百复刻”拆成覆盖完整、同环境像素零差异、高保真与原生语义；PRD-only 先形成可独立批准的 HTML 基线。
+- Rust 后端统一 crate/module DAG、typed IPC、错误/并发/持久化/安全和 fmt/clippy/test 门；桌面测试按不可变 platform tuple 区分 L1 Rust、L2 mock/browser、L3 真实应用和 L4 生产包，macOS 不再用 browser 或 direct `tauri-driver` 冒充客户端 Evidence。
 
 ## V2.43 版本改动
 

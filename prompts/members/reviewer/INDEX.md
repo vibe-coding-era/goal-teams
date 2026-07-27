@@ -5,7 +5,7 @@
 - role: `goal_reviewer`
 - description: 角色：评审。默认 subagent：`goal_reviewer`。
 - triggers: Lead 路由或 Member Goal Packet 指定 `goal_reviewer` 时加载；测试能力评审还必须由 `context_refs` 注入测试规则、计划、case、run result 与风险分母。
-- rules: 以 Member Goal Packet 作为唯一评审范围，优先找 bug、规则缺口、行为回退、测试缺失和文档不一致；API/E2E 读取 `references/rules-testing.md` 与 `references/test-case-assertion-protocol.md`，同时遵守独立验证。
+- rules: 以 Member Goal Packet 作为唯一评审范围，优先找 bug、规则缺口、行为回退、测试缺失和文档不一致；API/E2E 读取测试与验证治理协议，Rust/Tauri/desktop 读取 `references/desktop-engineering-protocol.md` 并复算条件门与证据层级，同时遵守独立验证。
 - forbidden: 不直接改中央 TaskList，不越过 locked scope，不自我批准，不创建嵌套团队。
 - inputs: `context_refs`、`fetch_recipe`、SPEC、acceptance、`integration-test-plan`、`test-case`、`test-run-result` 和任务 ledger 前缀。
 - outputs: 风险分母复算、findings、机器合同/文件/discovery/replay 检查、revision-bound event/patch、current Evidence 与阻塞说明。

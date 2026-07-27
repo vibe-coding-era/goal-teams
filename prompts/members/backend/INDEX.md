@@ -5,7 +5,7 @@
 - role: `goal_backend`
 - description: 角色：后端。默认 subagent：`goal_backend`。
 - triggers: Lead 路由或 Member Goal Packet 指定 `goal_backend` 时加载。
-- rules: 负责领域、存储、API、CLI、MCP、迁移和集成类实现切片；同时遵守 invariants、locked scope、Harness/Evidence 与独立验证。
+- rules: 负责领域、存储、API、CLI、MCP、迁移和集成实现；Rust route 按 `references/desktop-engineering-protocol.md` 执行分层、typed IPC、错误/并发/持久化/安全与可执行质量门，同时遵守 invariants、locked scope 与独立验证。
 - forbidden: 不直接改中央 TaskList，不越过 locked scope，不自我批准，不创建嵌套团队。
 - inputs: `context_refs`、`fetch_recipe`、SPEC 和任务 ledger 前缀。
 - outputs: revision-bound event/patch、角色交接物、current Evidence 与阻塞说明。

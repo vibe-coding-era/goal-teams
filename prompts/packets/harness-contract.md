@@ -11,6 +11,8 @@ okf_version: "0.1"
 
 Goal Teams 使用 `SPEC -> Harness -> Evidence -> Audit` 的验证链。
 
+V2.46 的测试合同、影响分析、Grill me、对抗风险与 Evidence 三轴语义统一引用 `references/verification-governance-protocol.md`；Harness 只保存当前任务的引用和完成谓词，不复制状态机。
+
 `schemas/v2.3/goal-teams.schema.json` 是机器字段 SSOT；本 packet 只把这些字段装配成正常 Goal+Plan 路由可直接使用的 closure packet。不得用自由文本 check 或非空路径代替完整对象。
 
 ```text
@@ -47,6 +49,8 @@ Harness Contract（验证契约）:
 - 前端 Harness 必须能区分前端实现、E2E 用例生成和 E2E 执行；用例作者和执行者不能是同一唯一 subagent。
 - 只引用已有或计划中明确要创建的检查；不要宣称会运行未验证、未授权或不存在的命令。
 - 任务没有 Harness 契约、有效 Evidence 或不适用说明时，不能标记为 `accepted`。
+- Harness 必须绑定适用 `verification_contract_ref/hash/revision`、`impact_assessment_ref`、对抗风险分母和 critical Grill 结果；合同变化后先验证逐项依赖路径，再决定 `current` 或 `stale + retest_required`。新增项为 `not_run`，全量回归不改写旧 Evidence。
+- `passed` Check 只接受 `evidence_integrity_state=valid`、`evidence_applicability_state=current`、`revalidation_state in {not_required,closed}` 的 Evidence。旧 Evidence 即使历史 pass，只要当前为 stale/retest_required 就不能单独支撑 acceptance。
 - V2.36 Harness 与 Review/Audit 使用同一完整 `v236_acceptance_binding`。每条 current Evidence 的 `environment.v236_acceptance_core_binding` 必须完整绑定 product、route receipt/digest、actual target、release、protected snapshot、attested identity registry、trusted release base、policy/state profile，以及宿主重派生的 execution profile/review class/gates；Evidence registry、ledger、checkpoint、traceability、TaskList 与 acceptance-input snapshot hashes 只放在非循环的顶层完整 binding 中。
 - `harness_contract.v236_execution_contract` 必须精确包含 `execution_profile`、`required_review_class`、完整 `gates`、每个 conditional gate 的 `gate_scopes` 和 `execution_contract_sha256`；`v236_gate_checks` 必须为每个 gate 给出 Check 引用。required gate 的 Check 必须真实存在、`passed` 且绑定 current core-bound Evidence 与 accepted Task；conditional N/A 必须写 `impact_decision=not_applicable`、route-bound `impact_scope` 和理由。
 - `completion_audit` 是 graph-external gate：`v236_gate_checks.completion_audit=[]`，不得创建 Task/Check/Evidence 自引用；仅由当前 Audit 的 `audit_state=passed`、`external_gate=true` 与完整 acceptance binding hash 证明。
@@ -165,7 +169,7 @@ Run:
 ```
 
 4. `evidence/evidence.jsonl`：每行是完整、带 kind 的 Evidence；acceptance Evidence 的 `command.argv/cwd` 必须与对应 Check 的 `expected_domain_execution` 精确一致。`command_execution` / `failure_record` 同时包含真实领域执行与独立 `integrity_replay`。V2.36 源码 Evidence 绑定自动覆盖完整 Git 变更集的 protected snapshot receipt、非空 ledger prefix 与宿主 attested producer identity；legacy ancestor/source manifest 只作兼容读取。symbolic HEAD 只属于 canonical portable fixture。失败、人工、外部或 unverified 证据永不进入 acceptance registry。所有 artifact/log/record 统一经 secret detection/redaction。
-5. `harness/traceability.json`：`requirements[]`、`acceptance_criteria[]`、`tasks[]`、`checks[]`、`runs[]`、`evidence[]` 全部使用完整对象；每个 required AC 必须有 Task → passed Check → passed Run → current valid Evidence，orphan/uncovered 阻断完成。
+5. `harness/traceability.json`：`requirements[]`、`acceptance_criteria[]`、`tasks[]`、`checks[]`、`runs[]`、`evidence[]` 全部使用完整对象；每个 required AC 必须有 Task → passed Check → passed Run → current valid Evidence，orphan/uncovered 阻断完成。V2.46 还必须追踪 `verification_contract → risk/Grill/adversarial item → case/assertion → Check/Run/Evidence → Review`；`stale|retest_required|not_run|failed|blocked|flaky|partial` 均不得投影为 current passed。
 6. `reviews/dual-review.json` 与 `reviews/semantic-review.md`：从 Harness 最低等级选择合法 `review_class`，严格字段见 `prompts/packets/dual-review-record.md`；脚本报告必须把真实 `domain_execution`、独立 `integrity_replay`、`binding_digest`、artifact、Evidence path/hash/size 和具体 reviewer run 闭合绑定。
 7. `audit/completion-audit.json`：候选收尾时作为只读外部门禁生成；使用 `prompts/members/completion-auditor/template.md` 从 checkpoint、strict Evidence registry、traceability 与 review 文件重算。failed/blocked 可驱动 LOOP/停止，只有 passed/achieved 要求 required task 全 accepted；不得接受调用方自报布尔值，也不得由 required/blocking task 或本次 audit Evidence 自证。
 

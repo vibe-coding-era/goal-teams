@@ -1,0 +1,226 @@
+{
+  "schema_version": "goal-teams-desktop-capability-v2.46",
+  "protocol": "references/desktop-engineering-protocol.md",
+  "schema": "schemas/v2.46/desktop-engineering.schema.json",
+  "validator": "scripts/checks/validate-desktop-engineering.py",
+  "route_when_any": [
+    "desktop=true",
+    "tauri=true",
+    "rust=true",
+    "desktop_package=true",
+    "native_surface=true",
+    "cross_platform_desktop_test=true"
+  ],
+  "profiles": {
+    "lite": {
+      "independent_completion_audit": false
+    },
+    "standard": {
+      "independent_completion_audit": false
+    },
+    "full": {
+      "independent_completion_audit": true
+    },
+    "regulated": {
+      "independent_completion_audit": true
+    }
+  },
+  "requirement_derivation": [
+    {
+      "when": "rust=true",
+      "requires": ["rust_backend_contract", "L1", "rust_quality_gates"]
+    },
+    {
+      "when": "tauri=true",
+      "requires": ["typed_ipc", "capability_denials", "L2", "L3"]
+    },
+    {
+      "when": "desktop_package=true",
+      "requires": ["L4", "production_package_isolation"]
+    },
+    {
+      "when": "replica=true",
+      "requires": [
+        "coverage_complete",
+        "pixel_exact_per_immutable_tuple",
+        "high_fidelity",
+        "native_semantic_match"
+      ]
+    },
+    {
+      "when": "prd_only=true",
+      "requires": [
+        "prd",
+        "window_spec",
+        "interactive_html_prototype",
+        "independent_baseline_approval",
+        "replica_route_revision"
+      ]
+    },
+    {
+      "when": "cross_platform_desktop_test=true",
+      "requires": ["all_required_platform_tuples"]
+    }
+  ],
+  "conditional_route_enforcement": {
+    "mode": "semantic_validator_complete",
+    "schema_all_of_is_not_standalone_acceptance": true,
+    "predicates": [
+      "desktop_or_tauri_requires_source_and_desktop_test_contract",
+      "rust_only_forbids_desktop_test_contract_and_L2_L3",
+      "tauri_requires_L2_L3_and_typed_ipc_denial_paths",
+      "desktop_package_requires_L4_and_production_isolation",
+      "replica_requires_all_four_fidelity_dimensions",
+      "prd_only_requires_replica_route_and_independent_baseline",
+      "cross_platform_requires_macos_windows_linux_tuples"
+    ]
+  },
+  "profile_escalation": [
+    {
+      "when": "replica=true",
+      "minimum_profile": "full"
+    },
+    {
+      "when": "desktop_package=true",
+      "minimum_profile": "full"
+    },
+    {
+      "when": "cross_platform_desktop_test=true",
+      "minimum_profile": "full"
+    }
+  ],
+  "fidelity_dimensions": {
+    "coverage_complete": {
+      "pass_predicate": "covered == denominator && denominator > 0"
+    },
+    "pixel_exact": {
+      "pass_predicate": "changed_pixels == 0 && tolerance == 0 && mask_count == 0"
+    },
+    "high_fidelity": {
+      "pass_predicate": "actual_score >= approved_threshold"
+    },
+    "native_semantic_match": {
+      "pass_predicate": "passed == denominator && denominator > 0"
+    }
+  },
+  "evidence_levels": {
+    "L1": "rust_unit_or_integration",
+    "L2": "mock_or_browser_only",
+    "L3": "instrumented_real_app",
+    "L4": "production_package"
+  },
+  "driver_rules": {
+    "macos": {
+      "allowed": [
+        "@wdio/tauri-service:embedded",
+        "approved_native_accessibility_harness"
+      ],
+      "forbidden": ["tauri-driver:direct", "browser_only_as_real_app"]
+    },
+    "windows": {
+      "allowed": [
+        "@wdio/tauri-service:embedded",
+        "@wdio/tauri-service:external",
+        "tauri-driver:direct",
+        "approved_native_accessibility_harness"
+      ]
+    },
+    "linux": {
+      "allowed": [
+        "@wdio/tauri-service:embedded",
+        "@wdio/tauri-service:external",
+        "tauri-driver:direct",
+        "approved_native_accessibility_harness"
+      ]
+    }
+  },
+  "evidence_level_driver_rules": {
+    "L2": ["mock_runtime", "browser_only", "declared_platform_driver"],
+    "L3": ["declared_platform_driver"],
+    "L4": ["approved_native_accessibility_harness"],
+    "production_instrumented_driver_forbidden": true
+  },
+  "rust_layers": [
+    "domain",
+    "application",
+    "infrastructure",
+    "tauri_adapter",
+    "composition_root"
+  ],
+  "required_rust_gates": [
+    "fmt",
+    "clippy",
+    "test",
+    "dependency_security"
+  ],
+  "rust_gate_commands": {
+    "fmt": ["cargo", "fmt", "--all", "--", "--check"],
+    "clippy": ["cargo", "clippy", "--workspace", "--all-targets", "--all-features", "--", "-D", "warnings"],
+    "test": ["cargo", "test", "--workspace", "--all-features"],
+    "dependency_security_any": [
+      ["cargo", "audit"],
+      ["cargo", "deny", "check"]
+    ]
+  },
+  "rust_contract_applicability": {
+    "contracts": ["async_contract", "persistence_contract"],
+    "applicable_requires_all_predicates_true": true,
+    "not_applicable_requires_reason": true,
+    "not_applicable_requires_typed_independent_approval": true,
+    "approval_type": "rust_contract_na"
+  },
+  "typed_evidence_contract": {
+    "schema_version": "goal-teams-desktop-evidence-v1",
+    "result_for_acceptance": "passed",
+    "artifact_content_must_equal_ref_binding": true
+  },
+  "typed_approval_contract": {
+    "schema_version": "goal-teams-desktop-approval-v1",
+    "types": ["baseline", "na", "rust_contract_na"],
+    "decision_for_acceptance": "approved"
+  },
+  "typed_completion_receipt_contract": {
+    "schema_version": "goal-teams-desktop-completion-receipt-v1",
+    "receipt_types": ["qa_review", "completion_audit"],
+    "required_fields": [
+      "schema_version",
+      "receipt_type",
+      "bundle_id",
+      "bundle_revision",
+      "actor_run_id",
+      "evidence_ids",
+      "completion_predicates",
+      "conclusion"
+    ],
+    "completion_predicates": {
+      "rust_gates_passed": true,
+      "route_requirements_passed": true,
+      "required_cases_and_tuples_passed": true,
+      "production_isolation_passed": true,
+      "independent_review_passed": true
+    },
+    "passing_conclusion": "passed"
+  },
+  "required_native_risks": [
+    "permission_denial",
+    "ipc_abuse",
+    "abnormal_input",
+    "concurrency",
+    "retry",
+    "failure_recovery",
+    "forged_or_stale_evidence",
+    "production_test_capability_leak"
+  ],
+  "completion": {
+    "required_item_pass_state": "passed",
+    "blocking_states": [
+      "failed",
+      "blocked",
+      "not_run",
+      "flaky",
+      "unavailable"
+    ],
+    "na_requires_independent_approval": true,
+    "production_package_must_exclude_test_capabilities": true
+  }
+}

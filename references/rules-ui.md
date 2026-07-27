@@ -15,6 +15,7 @@ okf_version: "0.1"
 
 - `references/ui-visual-contract-protocol.md`
 - `ui_mode=replica` 时读取 `references/ui-e2e-pixel-protocol.md`
+- Rust/Tauri/desktop route 读取 `references/desktop-engineering-protocol.md`
 - 新页面、跨页面状态或 prototype 时读取 `prompts/packets/page-spec-card.md`；生成 HTML Prototype 时再读 `prompts/packets/html-prototype-mock.md` 与 `references/google-okf-bilingual-spec.md`
 
 ## 规划规则
@@ -30,6 +31,8 @@ okf_version: "0.1"
 - 任何界面级任务都必须有可执行 browser Harness 和真实 DOM/可见状态 Evidence。Lite 可只覆盖受影响关键路径和目标 viewport；Standard 覆盖受影响路径、控制台错误与适用 viewport；Full/Regulated 覆盖完整关键路径和主要 viewport。无法执行当前等级 required 的 browser check 时不得标记完成。
 - 原创 UI 不要求外部参考图或 pixel baseline；使用真实 DOM screenshot、可见状态、几何/可访问性断言验证设计目标，缺参考图不构成 blocked。
 - 只有 `ui_mode=replica` 的复刻、临摹、还原、对照参考图/页面任务才必须做像素级对比；缺少可比较参考、环境指纹或独立 baseline approval 时保持 blocked。若用户把目标改为原创 UI 或非 UI/`sample_only`，必须记录范围 revision 并重新路由，不能用 waiver 假装 replica 已通过。
+- 桌面 replica 的“百分百”必须拆分为 coverage complete、同 tuple pixel exact、high fidelity 和 native semantic match；pixel exact 要求 changed pixels、tolerance、mask 都为零。PRD-only 先形成 window spec、交互 HTML 原型与非作者 baseline approval，再改 route 为 replica。
+- macOS/Windows/Linux 按各自 WebView、字体、DPR、主题、窗口和显示环境保存 baseline；普通 browser DOM/screenshot 不能替代窗口、菜单、托盘、权限等原生语义 Evidence。
 - 使用视觉锁层、baseline overlay 或截图遮挡层时，不能只用锁层截图作为通过证据；必须同时提供 locked screenshot 和 unlocked real DOM screenshot。
 - 关键组件必须有组件级视觉契约和可执行断言；头像、图标、小按钮等小组件必须有局部 crop 或几何断言。
 - 弹窗、表单、菜单、头像、表格、分页等用户可见组件必须覆盖至少一个交互态证据；弹窗必须覆盖打开态、错误态、切换态、关闭态和移动端态。

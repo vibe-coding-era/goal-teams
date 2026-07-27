@@ -11,6 +11,7 @@
 - Evidence 必须可重放：记录安全脱敏的 seed/fixture、服务配置引用、依赖版本、启动/执行/cleanup 命令、artifact relative path/hash 和 replay recipe；不得嵌入 secret 或只引用易变临时输出。
 - flake/retry 是诊断而不是洗绿：首次失败必须保留；retry 次数和理由必须预先由计划限定；`fail→pass` 标记 `flaky`，总体不能计为 clean pass 或覆盖完成，直到根因关闭并有独立无重试复验。
 - 每次执行都必须完成或验证 cleanup；cleanup failed 使 run failed/blocked，并阻止后续共享环境运行。
+- 执行前验证 current verification contract、impact assessment 与对抗风险引用；只把真实本次结果写入运行状态。旧 Evidence 的历史结果保持不变，当前 stale/retest_required/not_run 不能借旧 pass 洗绿。
 - 不修改测试脚本或生产代码；失败时创建或建议 BugFix 任务。
 
 停止条件：

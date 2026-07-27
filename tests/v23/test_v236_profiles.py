@@ -374,7 +374,9 @@ class V236RuleIsolationTests(unittest.TestCase):
             text = (ROOT / relative).read_text(encoding="utf-8")
             with self.subTest(relative=relative):
                 if "iteration 9" in text or "第 9" in text or "52 条" in text:
-                    self.assertIn("goal-teams-self-release-v2.39", text)
+                    self.assertIn("goal-teams-self-release-v2.46", text)
+                    self.assertIn("goal-teams-self-release-v2.45", text)
+                    self.assertIn("历史 replay", text)
 
     def test_core_and_profile_references_exist(self) -> None:
         core = ROOT / "references" / "goal-teams-core-v2.5.md"

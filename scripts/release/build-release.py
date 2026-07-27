@@ -193,10 +193,11 @@ KNOWN_RELEASES = {
     "V2.40": "codex/v2.40",
     "V2.44": "codex/v2.44-testing-capability",
     "V2.45": "codex/v2.45-release-engineer",
+    "V2.46": "codex/v2.46-verification-governance",
 }
 OKF_GENERATED_PATH = "references/okf-conformance-manifest.json"
-OKF_RELEASE_VERSIONS = {"V2.39", "V2.40", "V2.44", "V2.45"}
-STRICT_SNAPSHOT_VERSIONS = {"V2.40", "V2.44", "V2.45"}
+OKF_RELEASE_VERSIONS = {"V2.39", "V2.40", "V2.44", "V2.45", "V2.46"}
+STRICT_SNAPSHOT_VERSIONS = {"V2.40", "V2.44", "V2.45", "V2.46"}
 FROZEN_COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 
 

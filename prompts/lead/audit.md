@@ -6,6 +6,8 @@ V2.1 起，Lead 每轮 `Integrate` 后先按 `prompts/lead/loop.md` 做轻量 in
 
 1. Lead 在候选收尾（所有可推进工作已处理，可能仍有 documented failed/blocked/deferred）时启动新的只读 `goal_completion_auditor`。Completion Audit 是被审任务图之外的最终门禁，不得注册成 required/acceptance-blocking task；只有 passed/achieved 分支要求 required task 全 accepted。
 2. Auditor 检查 ledger/checkpoint、reducer TaskList、strict Evidence registry、full-object Traceability、Dual Review、测试结果、SPEC/docs、未解决阻塞和剩余风险。
+2a. V2.46 另检查 verification contract、影响分析、Grill me 与对抗风险闭包：历史 pass 不因普通规则变化成为 invalid；仅有明确依赖链的项可 stale/retest_required，新增项保持 not_run，未受影响项继续 current。
+2b. Rust/Tauri/desktop route 运行 desktop engineering validator，复算能力派生门、复刻四维、Rust gates、L1-L4、platform tuple、driver 与生产包隔离；required 非 passed 或层级冒充时阻断。
 3. Auditor 必须按 `prompts/packets/handoff-artifacts.md` 核对每个交接物是否有具体 Owner/Validator、`task_state`、`check_state`、Harness、当前 Evidence 和阻塞/延期原因，并验证 TaskList 与 ledger projection 一致。
 4. 只读 Auditor 返回完整 Completion Audit JSON；Lead/ledger owner 原样持久化为 `audit/completion-audit.json` 并实际运行 V2.3 `completion-audit` validator。required/blocking task 或 Evidence 指向本次实际 audit 文件（含自定义文件名）时必须以 `E_AUDIT_SELF_REFERENCE` 失败。只有 validator 通过且重算得到 `audit_state=passed` / `run_outcome=achieved`，Lead 才可发送最终完成回复。
 5. 如果未完成工作仍在已确认目标范围内，且未触发 Loop Gate 或 Budget Gate 停止条件，Lead 必须创建续跑任务并自动启动下一轮 Goal Teams；只展示续跑 `Teams 规划表`，不再要求用户确认。
@@ -13,17 +15,18 @@ V2.1 起，Lead 每轮 `Integrate` 后先按 `prompts/lead/loop.md` 做轻量 in
 7. 如果审计发现新范围、破坏性或安全敏感工作、缺少凭证、外部审批、未解决用户决策、最大轮次/成员数/时间/tokens/费用超限，记录 `audit_state=blocked`、`loop_decision=stop`、合法 `run_outcome` 与结构化 stop_reason，不自动续跑。
 8. 每次续跑前后更新 `progress.md` 或 `loop-state.json`，记录 loop round、缺口、Owner、validator、证据和停止条件。
 9. 重复审计和续跑，直到 auditor 报告完成，或只剩有记录的阻塞/延期工作。
+10. 核对任务、检查、运行、Evidence 与发布状态正交，所有转换有 event/from/to/guard/actor/reason/evidence/revision/idempotency；完成态由谓词推导。外部副作用缺 intent、exact readback、receipt 或需要 reconciliation 时不得 passed。
 
-只有 `policy_profile=goal-teams-self-release-v2.45`，最终 Auditor 才额外检查：
+只有 `policy_profile=goal-teams-self-release-v2.46`，最终 Auditor 才额外检查：
 
-`goal-teams-self-release-v2.39` 与 `goal-teams-self-release-v2.38` 只用于历史 replay，不得成为当前 route。
+`goal-teams-self-release-v2.45` 及更早 Profile 只用于历史 replay，不得成为当前 route。
 
 - Contract/Architecture/Environment/Implementation 顺序及 current exact-hash Evidence，四文件 marker/progress/contract/log/checkpoint 一致，pending journal 已安全 reconcile。
 - iteration 9 reset receipt 只针对预授权 `.goalteams-candidates/<candidate_id>`，目标已移入 `.goalteams-quarantine/<reset_id>/<candidate_id>`，repo/用户数据/账本/Evidence/provenance 均未删除。
 - iteration 11 有 current Verify/bottleneck assessment，且全部 delivery gate 闭合；失败只能返回 gaps，不得写 achieved/archive 或 iteration 12。
 - `design/originality/craft/functionality` 各四个 0.25 rubric item 均可从 candidate hash/current Evidence/独立 reviewer 重算；评分没有覆盖测试、Harness、Review 或 Audit 失败。
 - 每条 required divergence 都有首个 GTLOG frame 与 prompt lifecycle；`verified` 必须同时绑定 regression + holdout，原 divergence/provenance 仍保留。
-- 52 条自发布断言 current；V2.44 测试能力七维评分作为 V2.45 兼容合同绑定真实行为 Evidence；独立 Release Engineer 未进入主路由；CP18 公开 archive descriptor 只包含 `docs/archive/releases/V2.45/` 下的 completed/public 普通文件；sanitizer 拒绝 invocation/tool-call/transport handle、绝对路径、secret、raw logs 和过程包，而私有 receipt 保留完整 provenance。
+- 52 条自发布断言 current；V2.44 测试能力七维评分作为 V2.46 兼容合同绑定真实行为 Evidence；独立 Release Engineer 未进入主路由；CP18 公开 archive descriptor 只包含 `docs/archive/releases/V2.46/` 下的 completed/public 普通文件；sanitizer 拒绝 invocation/tool-call/transport handle、绝对路径、secret、raw logs 和过程包，而私有 receipt 保留完整 provenance。
 - 四个 Cache 状态轴分别给出 `structural_delivery_state`、`host_integration_state`、`live_cache_validation_state`、`request_hit_rate_support_state`，并把无授权 live probe 标为 `not_authorized`，不得用结构通过推导 live 命中结论。
 - route-static identity 由 manifest 重算；runtime digest 只接受宿主最终 ordered segments。observer telemetry 校验 parser/identity/counts，缺最终 prompt/provider usage 时 cache 结论 unavailable，不覆盖完成门。
 

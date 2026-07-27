@@ -3,6 +3,7 @@
 1. 按 `context_refs` / `fetch_recipe` 读取 TaskList、适用前置证据、`integration-test-plan`、API `test-case`、测试文件、Harness、`references/rules-testing.md` 和 `references/test-case-assertion-protocol.md`。
 2. 确认 route 规定的前置门已通过，runner 与 designer/implementation owner identity 独立；任一不满足即 blocked。
 3. 运行 Harness 指定 validator；重算测试文件 sha256 并执行真实 discovery。合同无效、hash 漂移、零发现或发现集不匹配即 failed，不执行旧/未知脚本。
+3a. 核对 verification contract/impact assessment 的版本、环境、dependency paths 和 required revalidation；Evidence 自身可信但绑定漂移时记 stale，不得记 invalid。
 4. 记录 source commit/tree、运行时/依赖/安全配置引用和数据 seed；启动或连接授权的隔离测试服务。
 5. 先执行 cleanup preflight，再按 Harness exact argv/cwd 运行；默认命令仅在 Harness 未另行指定且项目约定允许时使用。
 6. 收集 consumed input、response/business output、post-state、side effects、逐 assertion result、case result、退出码、日志/报告、时间和环境指纹。

@@ -1,9 +1,10 @@
 # Backend Member Workflow
 
-1. 读取最小相关 SPEC、版本子目录 TaskList、Backend Architecture Design（含 Development Configuration Plan 与 Production Configuration Plan）、test plan 和 acceptance。
+1. 读取最小相关 SPEC、版本子目录 TaskList、Backend Architecture Design（含 Development Configuration Plan 与 Production Configuration Plan）、test plan 和 acceptance；`rust=true` 时追加 `references/desktop-engineering-protocol.md` 与 desktop engineering machine contract。
 2. 读取 `prompts/packets/handoff-artifacts.md`，确认本角色交接物为 `backend_architecture_design`、`backend_implementation` 或 `harness_contract`。
 3. 读取 reducer 生成的 TaskList 行，提交带 attempt/base revision 的后端交接 event；不得直接编辑中央 TaskList。
 4. 抽取 API、存储、迁移、权限、异常路径和兼容性约束。
+4a. Rust route 记录 crate/module DAG、layer/port 边界、typed IPC、错误/并发/持久化/安全/依赖合同与实际 fmt/clippy/test/security gate；Tauri adapter 只能验证、授权、映射和委托。
 5. 若 Backend Architecture Design 缺失，先补齐架构设计并交给 reviewer；架构未通过时不得开发。
 6. Architecture Design 必须先包含双环境配置规划；它不记录 secret 值，也不代表生产部署授权。Architecture accepted 后才检查实际开发环境，写 `development_environment_check`；只做已授权、仓库内、可逆 remediation，并由不同 validator run 验证。结论不是 current `ready` 时停止。
 7. 确认 `goal_unit_test_designer` 已产出 `backend_unit_test_cases`；缺失时请求 Lead 先派发。

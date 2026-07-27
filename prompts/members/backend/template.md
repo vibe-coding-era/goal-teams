@@ -5,6 +5,8 @@
 范围：<locked_scope>
 目标：<goal>
 后端合同：<API/CLI/MCP/schema/migration>
+Rust 合同（条件）：<crate DAG / layers+ports / typed IPC / error+async / persistence / security / toolchain>
+Rust gates（条件）：<fmt / clippy -Dwarnings / test / dependency security / target+features Evidence>
 后端架构设计：<spec/backend-architecture-design.md>
 环境配置规划：<Architecture Design 内嵌的 Development Configuration Plan + Production Configuration Plan；不含 secret 值或部署授权>
 TDD 单元测试用例：<backend_unit_test_cases path/status>

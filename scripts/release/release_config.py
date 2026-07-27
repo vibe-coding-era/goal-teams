@@ -13,19 +13,21 @@ from typing import Any
 
 SCHEMA_VERSION = "goal-teams-release-engine-profile-v1"
 PROTOCOL_VERSION = "V2.40"
-ACTIVE_VERSION = "V2.45"
+ACTIVE_VERSION = "V2.46"
 ROOT = Path(__file__).resolve().parents[2]
 PROFILE_BY_VERSION = {
     "V2.40": ROOT / "references" / "release-profiles" / "v2.40.json",
     "V2.44": ROOT / "references" / "release-profiles" / "v2.44.json",
     "V2.45": ROOT / "references" / "release-profiles" / "v2.45.json",
+    "V2.46": ROOT / "references" / "release-profiles" / "v2.46.json",
 }
 PREDECESSOR_BY_VERSION = {
     "V2.40": None,
     "V2.44": "V2.40",
     "V2.45": "V2.44",
+    "V2.46": "V2.45",
 }
-HOST_ACCEPTANCE_VERSIONS = {"V2.44", "V2.45"}
+HOST_ACCEPTANCE_VERSIONS = {"V2.44", "V2.45", "V2.46"}
 REQUIRED_FIELDS = {
     "schema_version",
     "protocol_version",

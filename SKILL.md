@@ -29,7 +29,7 @@ description: 跨 Agent 运行时的多成员工作流协议。用于 $goal-teams
 | 场景 | 读取文件 |
 | --- | --- |
 | 启动响应契约与流程澄清 | 内化 `RULES.md`，读取 `references/flow-clarification-protocol.md`；用户需要数字选择流程、成员/ Subagent 编制参考或“直接改”时，再读取 `references/project-flow-selection.md`；先用用户可读的澄清项补齐信息，再提出流程建议并等待确认 |
-| 策略路由 | 流程澄清已确认后，先用 `references/rules-project-sizing.md` 判定 route facts；普通任务加载 `references/goal-teams-core-v2.5.md`，仅本仓库当前自发布加载 `references/profiles/goal-teams-self-release-v2.45.md`；V2.44/V2.43/V2.42/V2.41/V2.40/V2.39/V2.38 Profile 仅用于历史 replay；命中专项才加载 `references/rules-specialists.md` |
+| 策略路由 | 流程澄清已确认后，先用 `references/rules-project-sizing.md` 判定 route facts；普通任务加载 `references/goal-teams-core-v2.5.md`，仅本仓库当前自发布加载 `references/profiles/goal-teams-self-release-v2.46.md`；V2.45/V2.44/V2.43/V2.42/V2.41/V2.40/V2.39/V2.38 Profile 仅用于历史 replay；命中专项才加载 `references/rules-specialists.md` |
 | 进入 Goal + Plan 执行 | `references/invariants.md`、`prompts/lead/core.md`、`prompts/lead/planning.md` |
 | 持久化输出 | `prompts/packets/memory.md`、`references/google-okf-bilingual-spec.md` |
 | 迁移、安装或兼容 | `references/compat.md`、`references/agent-runtime-capability-contract.md`、`references/goal-teams-v2.3-contract.md` |
@@ -40,7 +40,7 @@ description: 跨 Agent 运行时的多成员工作流协议。用于 $goal-teams
 | 任意团队成员 | `prompts/members/<role>/INDEX.md`；按需读 `prompts/members/shared.md` 与 Goal Packet 指定文件 |
 | 定义交接物和 SSOT | `prompts/packets/handoff-artifacts.md`、`prompts/packets/member-goal-packet.md` |
 | UI 页面、复刻、截图或前端交互 | `references/rules-ui.md`、`prompts/members/frontend/INDEX.md`；replica 再加载 pixel/visual protocol |
-| 后端、API、TDD 或测试编排 | `references/rules-testing.md`、`prompts/members/backend/INDEX.md` 与命中的测试角色 `INDEX.md` |
+| 后端、API、TDD、测试、Rust/Tauri/desktop | `references/rules-testing.md`、`prompts/members/backend/INDEX.md`、测试角色 `INDEX.md`；验证治理读 verification protocol，桌面读 `references/desktop-engineering-protocol.md` |
 | 前端 E2E 测试 | `references/rules-testing.md`、对应 E2E 角色 `INDEX.md`；replica 再加载 pixel protocol |
 | Lead LOOP、续跑和审计 | `references/rules-loop.md`、Lead loop/audit prompt、team-plan packet |
 | QA、验收、代码审查或双重复核 | QA/Reviewer `INDEX.md`、Harness packet、`references/dual-review-protocol.md` |
@@ -55,9 +55,9 @@ description: 跨 Agent 运行时的多成员工作流协议。用于 $goal-teams
 
 ## 版本身份
 
-产品 `V2.45`；核心策略 `V2.5`；legacy schema `V2.3`。显式调用或首次建立身份时使用 `我是 Goal Teams Lead V2.45。`；已有上下文不重复。
+产品 `V2.46`；核心策略 `V2.5`；legacy schema `V2.3`。显式调用或首次建立身份时使用 `我是 Goal Teams Lead V2.46。`；已有上下文不重复。
 
-兼容标记（非启动模板）：`我是 Goal Teams Leader V2.45，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：`
+兼容标记（非启动模板）：`我是 Goal Teams Leader V2.46，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：`
 
 ## 启动澄清（用户可见）
 

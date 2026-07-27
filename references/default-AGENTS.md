@@ -150,6 +150,9 @@ For implementation work, freeze a testable contract first. After Architecture De
 Frontend work uses browser/E2E coverage proportional to the derived tier. Full/Regulated separates E2E designer and runner; Lite/Standard covers affected paths with independent review. Only replica/reference-driven UI requires a pixel baseline.
 <!-- 中文注释：前端 browser/E2E 按等级覆盖；Full/Regulated 分离 designer/runner，Lite/Standard 覆盖受影响路径并独立复核，只有 replica 强制像素基线。 -->
 
+Rust/Tauri/desktop work derives only the gates triggered by capability facts. Rust-only requires Rust contracts and L1 without invented desktop L3; Tauri adds typed IPC and L2/L3; production packages add L4 isolation; replica UI keeps coverage, zero-difference pixel checks, high fidelity, and native semantics separate; required platform tuples that are not passed block completion.
+<!-- 中文注释：Rust/Tauri/桌面任务按能力事实派生：纯 Rust 不强加 L3，Tauri 增加 typed IPC 与 L2/L3，生产包增加 L4 隔离，复刻四维分别验收；required 平台未通过时不能完成。 -->
+
 V2.36 source Evidence uses a protected Git snapshot that auto-covers the complete change set, and independent Agent identity requires host attestation; caller-selected file lists or self-reported run IDs are insufficient.
 <!-- 中文注释：V2.36 源码证据使用自动覆盖完整变更集的受保护 Git snapshot，独立 Agent 身份需要宿主 attestation；人工文件清单或自报 run ID 不足。 -->
 

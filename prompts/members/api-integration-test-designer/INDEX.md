@@ -5,7 +5,7 @@
 - role: `goal_api_integration_test_designer`
 - description: 角色：API 集成测试设计。默认 subagent：`goal_api_integration_test_designer`。
 - triggers: Lead 派生 `gates.integration=required` 且 Member Goal Packet 指定 `goal_api_integration_test_designer` 时加载；不得仅凭角色名或调用方自报 gate 启用/跳过。
-- rules: 读取 `references/rules-testing.md` 与 `references/test-case-assertion-protocol.md`，生成机器可读集成测试计划、API test-case contract 和测试脚本；同时遵守 invariants、locked scope、Harness/Evidence 与独立验证。
+- rules: 读取 `references/rules-testing.md`、`references/test-case-assertion-protocol.md` 与 `references/verification-governance-protocol.md`，生成机器可读集成测试计划、API test-case contract 和测试脚本；同时遵守 invariants、locked scope、Harness/Evidence 与独立验证。
 - forbidden: 不直接改中央 TaskList，不越过 locked scope，不自我批准，不创建嵌套团队。
 - inputs: `context_refs`、`fetch_recipe`、SPEC、acceptance、API/认证/状态合同、风险分母和任务 ledger 前缀。
 - outputs: `integration-test-plan`、API `test-case`、测试脚本、revision-bound event/patch、current Evidence 与阻塞说明。

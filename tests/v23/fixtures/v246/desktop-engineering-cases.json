@@ -1,0 +1,1090 @@
+{
+  "schema_version": "goal-teams-desktop-engineering-fixtures-v2.46",
+  "base_document": {
+    "schema_version": "goal-teams-desktop-engineering-v2.46",
+    "bundle_id": "DESKTOP-V246-FULL-MACOS",
+    "revision": 1,
+    "profile": "full",
+    "project_id": "PROJECT-V246-DESKTOP",
+    "generated_at": "2026-07-27T00:00:00Z",
+    "route": {
+      "desktop": true,
+      "tauri": true,
+      "rust": true,
+      "desktop_package": true,
+      "native_surface": true,
+      "cross_platform_desktop_test": false,
+      "replica": true,
+      "prd_only": false
+    },
+    "source_contract": {
+      "mode": "prototype",
+      "prd_ref": null,
+      "source_inventory_ref": {
+        "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+        "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+      },
+      "window_spec_ref": {
+        "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+        "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+      },
+      "html_prototype_ref": {
+        "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+        "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+      },
+      "baseline_approval": {
+        "approval_id": "BASELINE-V246-1",
+        "artifact": {
+          "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+          "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+        },
+        "author_run_id": "RUN-UI-IMPLEMENTER",
+        "reviewer_run_id": "RUN-TEST-REVIEWER",
+        "decision": "approved"
+      },
+      "route_revision": "replica"
+    },
+    "ui_replica_contract": {
+      "surfaces": [
+        {
+          "surface_id": "SURFACE-MAIN-WINDOW",
+          "kind": "window",
+          "required": true,
+          "state_ids": [
+            "STATE-DEFAULT",
+            "STATE-ERROR"
+          ]
+        }
+      ],
+      "coverage_complete": {
+        "denominator": 2,
+        "covered": 2,
+        "state": "passed",
+        "evidence": {
+          "evidence_id": "EV-COVERAGE",
+          "level": "L3",
+          "artifact": {
+            "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+            "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+          },
+          "code_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "contract_revision": 1,
+          "environment_id": "ENV-MACOS-14-ARM64"
+        }
+      },
+      "pixel_exact": [
+        {
+          "tuple_id": "TUPLE-MACOS-14-ARM64",
+          "changed_pixels": 0,
+          "tolerance": 0,
+          "mask_count": 0,
+          "state": "passed",
+          "evidence": {
+            "evidence_id": "EV-PIXEL",
+            "level": "L3",
+            "artifact": {
+              "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+              "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+            },
+            "code_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "contract_revision": 1,
+            "environment_id": "ENV-MACOS-14-ARM64"
+          }
+        }
+      ],
+      "high_fidelity": [
+        {
+          "tuple_id": "TUPLE-MACOS-14-ARM64",
+          "algorithm": "SSIM-V1",
+          "approved_threshold": 0.99,
+          "actual_score": 1.0,
+          "state": "passed",
+          "diff_artifact": {
+            "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+            "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+          }
+        }
+      ],
+      "native_semantic_match": {
+        "denominator": 10,
+        "passed": 10,
+        "state": "passed",
+        "evidence": {
+          "evidence_id": "EV-NATIVE",
+          "level": "L3",
+          "artifact": {
+            "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+            "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+          },
+          "code_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "contract_revision": 1,
+          "environment_id": "ENV-MACOS-14-ARM64"
+        }
+      }
+    },
+    "rust_backend_contract": {
+      "crate_nodes": [
+        {"node_id": "CRATE-DOMAIN", "layer": "domain"},
+        {"node_id": "CRATE-APPLICATION", "layer": "application"},
+        {"node_id": "CRATE-INFRASTRUCTURE", "layer": "infrastructure"},
+        {"node_id": "CRATE-TAURI-ADAPTER", "layer": "tauri_adapter"},
+        {"node_id": "CRATE-COMPOSITION", "layer": "composition_root"}
+      ],
+      "crate_edges": [
+        {"from": "CRATE-APPLICATION", "to": "CRATE-DOMAIN"},
+        {"from": "CRATE-INFRASTRUCTURE", "to": "CRATE-APPLICATION"},
+        {"from": "CRATE-TAURI-ADAPTER", "to": "CRATE-APPLICATION"},
+        {"from": "CRATE-COMPOSITION", "to": "CRATE-INFRASTRUCTURE"},
+        {"from": "CRATE-COMPOSITION", "to": "CRATE-TAURI-ADAPTER"}
+      ],
+      "ipc_commands": [
+        {
+          "command_id": "COMMAND-SAVE",
+          "input_type": "SaveInput",
+          "output_type": "SaveOutput",
+          "error_type": "DesktopError",
+          "authorization_policy": "CAPABILITY-SAVE",
+          "validation_rules": ["PATH-BOUND", "SIZE-BOUND"],
+          "timeout_policy": "TIMEOUT-5S",
+          "cancellation_policy": "CANCEL-ON-WINDOW-CLOSE",
+          "application_delegate": "APPLICATION-SAVE"
+        }
+      ],
+      "recoverable_error_type": "DesktopError",
+      "panic_policy": "invariant_only",
+      "async_contract": {
+        "applicable": true,
+        "ownership": true,
+        "cancellation": true,
+        "timeouts": true,
+        "shutdown": true,
+        "blocking_isolation": true
+      },
+      "persistence_contract": {
+        "applicable": true,
+        "schema_versioned": true,
+        "migration_tested": true,
+        "atomicity_defined": true,
+        "crash_recovery_tested": true,
+        "idempotency_defined": true
+      },
+      "security_contract": {
+        "least_privilege_capabilities": true,
+        "deny_paths_tested": true,
+        "input_limits_defined": true,
+        "sensitive_log_redaction": true
+      },
+      "toolchain": {
+        "channel": "pinned",
+        "rust_version": "1.88.0",
+        "msrv": "1.85.0",
+        "lockfile_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "gates": [
+        {
+          "gate_id": "fmt",
+          "command": "cargo fmt --all -- --check",
+          "state": "passed",
+          "evidence": {
+            "evidence_id": "EV-RUST-FMT",
+            "level": "L1",
+            "artifact": {
+              "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+              "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+            },
+            "code_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "contract_revision": 1,
+            "environment_id": "ENV-RUST-1-88"
+          }
+        },
+        {
+          "gate_id": "clippy",
+          "command": "cargo clippy --workspace --all-targets --all-features -- -D warnings",
+          "state": "passed",
+          "evidence": {
+            "evidence_id": "EV-RUST-CLIPPY",
+            "level": "L1",
+            "artifact": {
+              "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+              "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+            },
+            "code_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "contract_revision": 1,
+            "environment_id": "ENV-RUST-1-88"
+          }
+        },
+        {
+          "gate_id": "test",
+          "command": "cargo test --workspace --all-features",
+          "state": "passed",
+          "evidence": {
+            "evidence_id": "EV-RUST-TEST",
+            "level": "L1",
+            "artifact": {
+              "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+              "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+            },
+            "code_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "contract_revision": 1,
+            "environment_id": "ENV-RUST-1-88"
+          }
+        },
+        {
+          "gate_id": "dependency_security",
+          "command": "cargo deny check",
+          "state": "passed",
+          "evidence": {
+            "evidence_id": "EV-RUST-DEPENDENCY",
+            "level": "L1",
+            "artifact": {
+              "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+              "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+            },
+            "code_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "contract_revision": 1,
+            "environment_id": "ENV-RUST-1-88"
+          }
+        }
+      ]
+    },
+    "desktop_test_contract": {
+      "platform_denominator": [
+        {
+          "tuple_id": "TUPLE-MACOS-14-ARM64",
+          "os": "macos",
+          "os_version": "14.5",
+          "architecture": "aarch64",
+          "webview": "wkwebview",
+          "webview_version": "617.1",
+          "package_format": "app",
+          "display_server": "quartz",
+          "theme": "light",
+          "locale": "zh-CN",
+          "scale_factor": 2,
+          "required": true
+        }
+      ],
+      "required_evidence_levels": ["L1", "L2", "L3", "L4"],
+      "cases": [
+        {
+          "case_id": "CASE-PERMISSION",
+          "risk_id": "permission_denial",
+          "capability": "file-write",
+          "required": true,
+          "minimum_evidence_level": "L2",
+          "input": {"path": "denied"},
+          "processing": ["authorize", "deny"],
+          "expected_output": {"error": "permission_denied"},
+          "assertions": ["write_not_performed"],
+          "na_approval": null
+        },
+        {
+          "case_id": "CASE-IPC",
+          "risk_id": "ipc_abuse",
+          "capability": "typed-ipc",
+          "required": true,
+          "minimum_evidence_level": "L2",
+          "input": {"payload": "oversized"},
+          "processing": ["decode", "reject"],
+          "expected_output": {"error": "input_too_large"},
+          "assertions": ["handler_not_entered"],
+          "na_approval": null
+        },
+        {
+          "case_id": "CASE-INPUT",
+          "risk_id": "abnormal_input",
+          "capability": "validation",
+          "required": true,
+          "minimum_evidence_level": "L3",
+          "input": {"path": "../escape"},
+          "processing": ["invoke", "validate"],
+          "expected_output": {"error": "invalid_path"},
+          "assertions": ["filesystem_unchanged"],
+          "na_approval": null
+        },
+        {
+          "case_id": "CASE-CONCURRENCY",
+          "risk_id": "concurrency",
+          "capability": "shared-state",
+          "required": true,
+          "minimum_evidence_level": "L3",
+          "input": {"workers": 4},
+          "processing": ["invoke_concurrently", "join"],
+          "expected_output": {"writes": 4},
+          "assertions": ["no_lost_update"],
+          "na_approval": null
+        },
+        {
+          "case_id": "CASE-RETRY",
+          "risk_id": "retry",
+          "capability": "idempotency",
+          "required": true,
+          "minimum_evidence_level": "L3",
+          "input": {"attempts": 2},
+          "processing": ["invoke", "retry"],
+          "expected_output": {"effects": 1},
+          "assertions": ["idempotency_key_reused"],
+          "na_approval": null
+        },
+        {
+          "case_id": "CASE-RECOVERY",
+          "risk_id": "failure_recovery",
+          "capability": "crash-recovery",
+          "required": true,
+          "minimum_evidence_level": "L3",
+          "input": {"fault": "crash_after_intent"},
+          "processing": ["persist_intent", "crash", "reconcile"],
+          "expected_output": {"state": "recovered"},
+          "assertions": ["single_effect"],
+          "na_approval": null
+        },
+        {
+          "case_id": "CASE-EVIDENCE",
+          "risk_id": "forged_or_stale_evidence",
+          "capability": "evidence-readback",
+          "required": true,
+          "minimum_evidence_level": "L3",
+          "input": {"digest": "forged"},
+          "processing": ["read", "hash", "compare"],
+          "expected_output": {"accepted": false},
+          "assertions": ["fail_closed"],
+          "na_approval": null
+        },
+        {
+          "case_id": "CASE-PRODUCTION-LEAK",
+          "risk_id": "production_test_capability_leak",
+          "capability": "package-isolation",
+          "required": true,
+          "minimum_evidence_level": "L4",
+          "input": {"package": "production"},
+          "processing": ["install", "inspect", "launch"],
+          "expected_output": {"test_capabilities": 0},
+          "assertions": ["debug_port_absent", "test_plugin_absent"],
+          "na_approval": null
+        }
+      ],
+      "runs": [
+        {
+          "run_id": "RUN-PERMISSION-L2",
+          "case_id": "CASE-PERMISSION",
+          "tuple_id": "TUPLE-MACOS-14-ARM64",
+          "driver": "mock_runtime",
+          "evidence_level": "L2",
+          "status": "passed",
+          "evidence": {
+            "evidence_id": "EV-RUN-PERMISSION",
+            "level": "L2",
+            "artifact": {
+              "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+              "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+            },
+            "code_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "contract_revision": 1,
+            "environment_id": "ENV-MACOS-14-ARM64"
+          },
+          "runner_run_id": "RUN-TEST-RUNNER",
+          "reviewer_run_id": "RUN-TEST-REVIEWER"
+        },
+        {
+          "run_id": "RUN-IPC-L2",
+          "case_id": "CASE-IPC",
+          "tuple_id": "TUPLE-MACOS-14-ARM64",
+          "driver": "browser_only",
+          "evidence_level": "L2",
+          "status": "passed",
+          "evidence": {
+            "evidence_id": "EV-RUN-IPC",
+            "level": "L2",
+            "artifact": {
+              "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+              "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+            },
+            "code_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "contract_revision": 1,
+            "environment_id": "ENV-MACOS-14-ARM64"
+          },
+          "runner_run_id": "RUN-TEST-RUNNER",
+          "reviewer_run_id": "RUN-TEST-REVIEWER"
+        },
+        {
+          "run_id": "RUN-INPUT-L3",
+          "case_id": "CASE-INPUT",
+          "tuple_id": "TUPLE-MACOS-14-ARM64",
+          "driver": "@wdio/tauri-service:embedded",
+          "evidence_level": "L3",
+          "status": "passed",
+          "evidence": {
+            "evidence_id": "EV-RUN-INPUT",
+            "level": "L3",
+            "artifact": {
+              "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+              "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+            },
+            "code_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "contract_revision": 1,
+            "environment_id": "ENV-MACOS-14-ARM64"
+          },
+          "runner_run_id": "RUN-TEST-RUNNER",
+          "reviewer_run_id": "RUN-TEST-REVIEWER"
+        },
+        {
+          "run_id": "RUN-CONCURRENCY-L3",
+          "case_id": "CASE-CONCURRENCY",
+          "tuple_id": "TUPLE-MACOS-14-ARM64",
+          "driver": "@wdio/tauri-service:embedded",
+          "evidence_level": "L3",
+          "status": "passed",
+          "evidence": {
+            "evidence_id": "EV-RUN-CONCURRENCY",
+            "level": "L3",
+            "artifact": {
+              "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+              "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+            },
+            "code_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "contract_revision": 1,
+            "environment_id": "ENV-MACOS-14-ARM64"
+          },
+          "runner_run_id": "RUN-TEST-RUNNER",
+          "reviewer_run_id": "RUN-TEST-REVIEWER"
+        },
+        {
+          "run_id": "RUN-RETRY-L3",
+          "case_id": "CASE-RETRY",
+          "tuple_id": "TUPLE-MACOS-14-ARM64",
+          "driver": "@wdio/tauri-service:embedded",
+          "evidence_level": "L3",
+          "status": "passed",
+          "evidence": {
+            "evidence_id": "EV-RUN-RETRY",
+            "level": "L3",
+            "artifact": {
+              "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+              "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+            },
+            "code_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "contract_revision": 1,
+            "environment_id": "ENV-MACOS-14-ARM64"
+          },
+          "runner_run_id": "RUN-TEST-RUNNER",
+          "reviewer_run_id": "RUN-TEST-REVIEWER"
+        },
+        {
+          "run_id": "RUN-RECOVERY-L3",
+          "case_id": "CASE-RECOVERY",
+          "tuple_id": "TUPLE-MACOS-14-ARM64",
+          "driver": "@wdio/tauri-service:embedded",
+          "evidence_level": "L3",
+          "status": "passed",
+          "evidence": {
+            "evidence_id": "EV-RUN-RECOVERY",
+            "level": "L3",
+            "artifact": {
+              "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+              "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+            },
+            "code_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "contract_revision": 1,
+            "environment_id": "ENV-MACOS-14-ARM64"
+          },
+          "runner_run_id": "RUN-TEST-RUNNER",
+          "reviewer_run_id": "RUN-TEST-REVIEWER"
+        },
+        {
+          "run_id": "RUN-EVIDENCE-L3",
+          "case_id": "CASE-EVIDENCE",
+          "tuple_id": "TUPLE-MACOS-14-ARM64",
+          "driver": "@wdio/tauri-service:embedded",
+          "evidence_level": "L3",
+          "status": "passed",
+          "evidence": {
+            "evidence_id": "EV-RUN-EVIDENCE",
+            "level": "L3",
+            "artifact": {
+              "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+              "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+            },
+            "code_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "contract_revision": 1,
+            "environment_id": "ENV-MACOS-14-ARM64"
+          },
+          "runner_run_id": "RUN-TEST-RUNNER",
+          "reviewer_run_id": "RUN-TEST-REVIEWER"
+        },
+        {
+          "run_id": "RUN-PRODUCTION-L4",
+          "case_id": "CASE-PRODUCTION-LEAK",
+          "tuple_id": "TUPLE-MACOS-14-ARM64",
+          "driver": "approved_native_accessibility_harness",
+          "evidence_level": "L4",
+          "status": "passed",
+          "evidence": {
+            "evidence_id": "EV-RUN-PRODUCTION",
+            "level": "L4",
+            "artifact": {
+              "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+              "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+            },
+            "code_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "contract_revision": 1,
+            "environment_id": "ENV-MACOS-14-ARM64"
+          },
+          "runner_run_id": "RUN-TEST-RUNNER",
+          "reviewer_run_id": "RUN-TEST-REVIEWER"
+        }
+      ],
+      "production_isolation": {
+        "test_plugin_absent": true,
+        "debug_port_absent": true,
+        "mock_hook_absent": true,
+        "broad_test_capability_absent": true,
+        "state": "passed",
+        "evidence": {
+          "evidence_id": "EV-PRODUCTION-ISOLATION",
+          "level": "L4",
+          "artifact": {
+            "path": "tests/v23/fixtures/v244/artifacts/evidence.json",
+            "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"
+          },
+          "code_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "contract_revision": 1,
+          "environment_id": "ENV-MACOS-14-ARM64"
+        }
+      }
+    },
+    "roles": {
+      "implementer_run_id": "RUN-IMPLEMENTER",
+      "test_designer_run_id": "RUN-TEST-DESIGNER",
+      "test_runner_run_id": "RUN-TEST-RUNNER",
+      "reviewer_run_id": "RUN-TEST-REVIEWER",
+      "qa_run_id": "RUN-QA",
+      "completion_auditor_run_id": "RUN-COMPLETION-AUDITOR"
+    },
+    "decision": {
+      "run_outcome": "achieved",
+      "contract_achieved": true,
+      "reason_codes": ["ALL-DESKTOP-PREDICATES-PASSED"],
+      "qa_review_ref": null,
+      "completion_audit_ref": null
+    }
+  },
+  "valid_cases": [
+    {
+      "case_id": "V246-DESKTOP-FULL-MACOS-TAURI-REPLICA",
+      "mutations": [],
+      "expected_summary": {
+        "contract_achieved": true,
+        "required_platform_count": 1,
+        "required_case_count": 8
+      }
+    },
+    {
+      "case_id": "V246-DESKTOP-RUST-ONLY-LITE",
+      "mutations": [
+        {"op": "replace", "path": "/bundle_id", "value": "DESKTOP-V246-RUST-ONLY"},
+        {"op": "replace", "path": "/profile", "value": "lite"},
+        {"op": "replace", "path": "/route/desktop", "value": false},
+        {"op": "replace", "path": "/route/tauri", "value": false},
+        {"op": "replace", "path": "/route/desktop_package", "value": false},
+        {"op": "replace", "path": "/route/native_surface", "value": false},
+        {"op": "replace", "path": "/route/replica", "value": false},
+        {"op": "replace", "path": "/source_contract", "value": null},
+        {"op": "replace", "path": "/ui_replica_contract", "value": null},
+        {"op": "replace", "path": "/desktop_test_contract", "value": null},
+        {"op": "replace", "path": "/rust_backend_contract/ipc_commands", "value": []},
+        {"op": "replace", "path": "/rust_backend_contract/async_contract", "value": {"applicable": false, "na_approval": {"reason": "The synchronous Rust-only scope has no asynchronous runtime.", "artifact": {"path": "tests/v23/fixtures/v244/artifacts/evidence.json", "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"}, "approver_run_id": "RUN-RUST-NA-APPROVER"}}},
+        {"op": "replace", "path": "/rust_backend_contract/persistence_contract", "value": {"applicable": false, "na_approval": {"reason": "The in-memory Rust-only scope has no persistent storage.", "artifact": {"path": "tests/v23/fixtures/v244/artifacts/evidence.json", "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"}, "approver_run_id": "RUN-RUST-NA-APPROVER"}}},
+        {"op": "replace", "path": "/roles/qa_run_id", "value": null},
+        {"op": "replace", "path": "/roles/completion_auditor_run_id", "value": null},
+        {"op": "replace", "path": "/decision/qa_review_ref", "value": null},
+        {"op": "replace", "path": "/decision/completion_audit_ref", "value": null},
+        {"op": "replace", "path": "/decision/reason_codes", "value": ["RUST-L1-GATES-PASSED"]}
+      ],
+      "expected_summary": {
+        "contract_achieved": true,
+        "required_platform_count": 0,
+        "required_case_count": 0
+      }
+    }
+  ],
+  "invalid_cases": [
+    {
+      "case_id": "V246-DESKTOP-RUST-ONLY-REQUIRES-L3",
+      "expected_error_code": "E_V246_DESKTOP_ROUTE",
+      "mutations": [
+        {"op": "replace", "path": "/profile", "value": "lite"},
+        {"op": "replace", "path": "/route/desktop", "value": false},
+        {"op": "replace", "path": "/route/tauri", "value": false},
+        {"op": "replace", "path": "/route/desktop_package", "value": false},
+        {"op": "replace", "path": "/route/native_surface", "value": false},
+        {"op": "replace", "path": "/route/replica", "value": false},
+        {"op": "replace", "path": "/source_contract", "value": null},
+        {"op": "replace", "path": "/ui_replica_contract", "value": null},
+        {"op": "replace", "path": "/desktop_test_contract/required_evidence_levels", "value": ["L1", "L3"]},
+        {"op": "replace", "path": "/roles/qa_run_id", "value": null},
+        {"op": "replace", "path": "/roles/completion_auditor_run_id", "value": null}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-PRD-ONLY-SKIPS-HTML-BASELINE",
+      "expected_error_code": "E_V246_DESKTOP_SCHEMA",
+      "mutations": [
+        {"op": "replace", "path": "/route/prd_only", "value": true},
+        {"op": "replace", "path": "/source_contract/mode", "value": "prd_only"},
+        {"op": "remove", "path": "/source_contract/html_prototype_ref"}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-PRD-ONLY-SELF-APPROVED-BASELINE",
+      "expected_error_code": "E_V246_DESKTOP_INDEPENDENCE",
+      "mutations": [
+        {"op": "replace", "path": "/route/prd_only", "value": true},
+        {"op": "replace", "path": "/source_contract/mode", "value": "prd_only"},
+        {"op": "replace", "path": "/source_contract/prd_ref", "value": {"path": "tests/v23/fixtures/v244/artifacts/evidence.json", "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"}},
+        {"op": "replace", "path": "/source_contract/baseline_approval/reviewer_run_id", "value": "RUN-UI-IMPLEMENTER"}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-PRD-ONLY-NON-REPLICA-CHAIN",
+      "expected_error_code": "E_V246_DESKTOP_ROUTE",
+      "mutations": [
+        {"op": "replace", "path": "/route/prd_only", "value": true},
+        {"op": "replace", "path": "/route/replica", "value": false},
+        {"op": "replace", "path": "/source_contract/mode", "value": "prd_only"},
+        {"op": "replace", "path": "/source_contract/prd_ref", "value": {"path": "tests/v23/fixtures/v244/artifacts/evidence.json", "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"}},
+        {"op": "replace", "path": "/ui_replica_contract", "value": null}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-ROUTE-MISSING-SOURCE-CONTRACT",
+      "expected_error_code": "E_V246_DESKTOP_ROUTE",
+      "mutations": [
+        {"op": "replace", "path": "/source_contract", "value": null}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-ROUTE-MISSING-TEST-CONTRACT",
+      "expected_error_code": "E_V246_DESKTOP_ROUTE",
+      "mutations": [
+        {"op": "replace", "path": "/desktop_test_contract", "value": null}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-REPLICA-BELOW-FULL",
+      "expected_error_code": "E_V246_DESKTOP_ROUTE",
+      "mutations": [
+        {"op": "replace", "path": "/profile", "value": "standard"}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-PACKAGE-BELOW-FULL",
+      "expected_error_code": "E_V246_DESKTOP_ROUTE",
+      "mutations": [
+        {"op": "replace", "path": "/profile", "value": "standard"},
+        {"op": "replace", "path": "/route/replica", "value": false},
+        {"op": "replace", "path": "/ui_replica_contract", "value": null}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-CROSS-PLATFORM-BELOW-FULL",
+      "expected_error_code": "E_V246_DESKTOP_ROUTE",
+      "mutations": [
+        {"op": "replace", "path": "/profile", "value": "standard"},
+        {"op": "replace", "path": "/route/replica", "value": false},
+        {"op": "replace", "path": "/route/desktop_package", "value": false},
+        {"op": "replace", "path": "/route/cross_platform_desktop_test", "value": true},
+        {"op": "replace", "path": "/ui_replica_contract", "value": null}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-COVERAGE-NOT-100",
+      "expected_error_code": "E_V246_DESKTOP_COMPLETION",
+      "mutations": [
+        {"op": "replace", "path": "/ui_replica_contract/coverage_complete/covered", "value": 1}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-PIXEL-CHANGED-NONZERO",
+      "expected_error_code": "E_V246_DESKTOP_COMPLETION",
+      "mutations": [
+        {"op": "replace", "path": "/ui_replica_contract/pixel_exact/0/changed_pixels", "value": 1}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-PIXEL-TOLERANCE-NONZERO",
+      "expected_error_code": "E_V246_DESKTOP_COMPLETION",
+      "mutations": [
+        {"op": "replace", "path": "/ui_replica_contract/pixel_exact/0/tolerance", "value": 0.01}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-PIXEL-MASK-NONZERO",
+      "expected_error_code": "E_V246_DESKTOP_COMPLETION",
+      "mutations": [
+        {"op": "replace", "path": "/ui_replica_contract/pixel_exact/0/mask_count", "value": 1}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-HIGH-FIDELITY-NOT-PIXEL-EXACT",
+      "expected_error_code": "E_V246_DESKTOP_COMPLETION",
+      "mutations": [
+        {"op": "replace", "path": "/ui_replica_contract/high_fidelity/0/actual_score", "value": 1.0},
+        {"op": "replace", "path": "/ui_replica_contract/pixel_exact/0/changed_pixels", "value": 12}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-NATIVE-SEMANTIC-INCOMPLETE",
+      "expected_error_code": "E_V246_DESKTOP_COMPLETION",
+      "mutations": [
+        {"op": "replace", "path": "/ui_replica_contract/native_semantic_match/passed", "value": 9}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-CRATE-DAG-CYCLE",
+      "expected_error_code": "E_V246_DESKTOP_DAG",
+      "mutations": [
+        {"op": "add", "path": "/rust_backend_contract/crate_edges/5", "value": {"from": "CRATE-DOMAIN", "to": "CRATE-APPLICATION"}}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-ADAPTER-CROSSES-INFRASTRUCTURE",
+      "expected_error_code": "E_V246_DESKTOP_DAG",
+      "mutations": [
+        {"op": "replace", "path": "/rust_backend_contract/crate_edges/2/to", "value": "CRATE-INFRASTRUCTURE"}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-IPC-MISSING-AUTHORIZATION",
+      "expected_error_code": "E_V246_DESKTOP_SCHEMA",
+      "mutations": [
+        {"op": "remove", "path": "/rust_backend_contract/ipc_commands/0/authorization_policy"}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-IPC-MISSING-TIMEOUT",
+      "expected_error_code": "E_V246_DESKTOP_SCHEMA",
+      "mutations": [
+        {"op": "remove", "path": "/rust_backend_contract/ipc_commands/0/timeout_policy"}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-IPC-MISSING-CANCELLATION",
+      "expected_error_code": "E_V246_DESKTOP_SCHEMA",
+      "mutations": [
+        {"op": "remove", "path": "/rust_backend_contract/ipc_commands/0/cancellation_policy"}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-RUST-GATE-MISSING",
+      "expected_error_code": "E_V246_DESKTOP_DENOMINATOR",
+      "mutations": [
+        {"op": "replace", "path": "/rust_backend_contract/gates/3/gate_id", "value": "feature_matrix"}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-RUST-COMMAND-WITHOUT-EVIDENCE",
+      "expected_error_code": "E_V246_DESKTOP_EVIDENCE_LEVEL",
+      "mutations": [
+        {"op": "replace", "path": "/rust_backend_contract/gates/0/evidence", "value": null}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-MACOS-DIRECT-TAURI-DRIVER",
+      "expected_error_code": "E_V246_DESKTOP_DRIVER",
+      "mutations": [
+        {"op": "replace", "path": "/desktop_test_contract/runs/2/driver", "value": "tauri-driver:direct"}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-L2-MASQUERADES-AS-L3",
+      "expected_error_code": "E_V246_DESKTOP_EVIDENCE_LEVEL",
+      "mutations": [
+        {"op": "replace", "path": "/desktop_test_contract/runs/2/evidence/level", "value": "L2"}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-L4-EMBEDDED-CLAIMS-PRODUCTION-ISOLATION",
+      "expected_error_code": "E_V246_DESKTOP_DRIVER",
+      "mutations": [
+        {"op": "replace", "path": "/desktop_test_contract/runs/7/driver", "value": "@wdio/tauri-service:embedded"}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-REQUIRED-CASE-BLOCKED",
+      "expected_error_code": "E_V246_DESKTOP_COMPLETION",
+      "mutations": [
+        {"op": "replace", "path": "/desktop_test_contract/runs/2/status", "value": "blocked"},
+        {"op": "replace", "path": "/desktop_test_contract/runs/2/evidence", "value": null}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-REQUIRED-CASE-NOT-RUN",
+      "expected_error_code": "E_V246_DESKTOP_COMPLETION",
+      "mutations": [
+        {"op": "replace", "path": "/desktop_test_contract/runs/2/status", "value": "not_run"},
+        {"op": "replace", "path": "/desktop_test_contract/runs/2/evidence", "value": null}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-REQUIRED-CASE-FLAKY",
+      "execution_mode": "typed_evidence",
+      "target": "run",
+      "mutation": "flaky_result",
+      "expected_error_code": "E_V246_DESKTOP_COMPLETION",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-DESKTOP-REQUIRED-TUPLE-UNAVAILABLE",
+      "expected_error_code": "E_V246_DESKTOP_COMPLETION",
+      "mutations": [
+        {"op": "replace", "path": "/desktop_test_contract/runs/2/status", "value": "unavailable"},
+        {"op": "replace", "path": "/desktop_test_contract/runs/2/evidence", "value": null}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-OPTIONAL-NA-FORGED-APPROVAL",
+      "expected_error_code": "E_V246_DESKTOP_ARTIFACT",
+      "mutations": [
+        {"op": "replace", "path": "/desktop_test_contract/cases/0/required", "value": false},
+        {"op": "replace", "path": "/desktop_test_contract/cases/0/na_approval", "value": {"reason": "Capability absent", "artifact": {"path": "tests/v23/fixtures/v244/artifacts/evidence.json", "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"}, "approver_run_id": "RUN-NA-APPROVER"}},
+        {"op": "replace", "path": "/desktop_test_contract/runs/0/status", "value": "not_applicable"},
+        {"op": "replace", "path": "/desktop_test_contract/runs/0/evidence", "value": null}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-OPTIONAL-NA-SELF-APPROVED",
+      "expected_error_code": "E_V246_DESKTOP_NA",
+      "mutations": [
+        {"op": "replace", "path": "/desktop_test_contract/cases/0/required", "value": false},
+        {"op": "replace", "path": "/desktop_test_contract/cases/0/na_approval", "value": {"reason": "Capability absent", "artifact": {"path": "tests/v23/fixtures/v244/artifacts/evidence.json", "sha256": "9ee77d386cb21a9617ebb741520f1d40f5e3ad3b93c317adafaa856bd0796447"}, "approver_run_id": "RUN-TEST-RUNNER"}},
+        {"op": "replace", "path": "/desktop_test_contract/runs/0/status", "value": "not_applicable"},
+        {"op": "replace", "path": "/desktop_test_contract/runs/0/evidence", "value": null}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-L4-TEST-PLUGIN-LEAK",
+      "expected_error_code": "E_V246_DESKTOP_COMPLETION",
+      "mutations": [
+        {"op": "replace", "path": "/desktop_test_contract/production_isolation/test_plugin_absent", "value": false}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-L4-DEBUG-PORT-LEAK",
+      "expected_error_code": "E_V246_DESKTOP_COMPLETION",
+      "mutations": [
+        {"op": "replace", "path": "/desktop_test_contract/production_isolation/debug_port_absent", "value": false}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-L4-MOCK-HOOK-LEAK",
+      "expected_error_code": "E_V246_DESKTOP_COMPLETION",
+      "mutations": [
+        {"op": "replace", "path": "/desktop_test_contract/production_isolation/mock_hook_absent", "value": false}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-L4-BROAD-CAPABILITY-LEAK",
+      "expected_error_code": "E_V246_DESKTOP_COMPLETION",
+      "mutations": [
+        {"op": "replace", "path": "/desktop_test_contract/production_isolation/broad_test_capability_absent", "value": false}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-RUNNER-SELF-REVIEW",
+      "expected_error_code": "E_V246_DESKTOP_INDEPENDENCE",
+      "mutations": [
+        {"op": "replace", "path": "/desktop_test_contract/runs/0/reviewer_run_id", "value": "RUN-TEST-RUNNER"}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-ARTIFACT-MISSING",
+      "expected_error_code": "E_V246_DESKTOP_ARTIFACT",
+      "mutations": [
+        {"op": "replace", "path": "/rust_backend_contract/gates/0/evidence/artifact/path", "value": "tests/v23/fixtures/v246/missing-rust-evidence.json"}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-ARTIFACT-HASH-DRIFT",
+      "expected_error_code": "E_V246_DESKTOP_ARTIFACT",
+      "mutations": [
+        {"op": "replace", "path": "/rust_backend_contract/gates/0/evidence/artifact/sha256", "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"}
+      ]
+    },
+    {
+      "case_id": "V246-DESKTOP-GATE-COMMAND-TRUE",
+      "execution_mode": "typed_evidence",
+      "target": "gate",
+      "mutation": "command_true",
+      "expected_error_code": "E_V246_DESKTOP_EVIDENCE_LEVEL",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-DESKTOP-FMT-COMMAND-MISSING-TOKENS",
+      "execution_mode": "typed_evidence",
+      "target": "gate",
+      "mutation": "fmt_tokens",
+      "expected_error_code": "E_V246_DESKTOP_EVIDENCE_LEVEL",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-DESKTOP-CLIPPY-COMMAND-MISSING-TOKENS",
+      "execution_mode": "typed_evidence",
+      "target": "gate",
+      "mutation": "clippy_tokens",
+      "expected_error_code": "E_V246_DESKTOP_EVIDENCE_LEVEL",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-DESKTOP-TEST-COMMAND-MISSING-TOKENS",
+      "execution_mode": "typed_evidence",
+      "target": "gate",
+      "mutation": "test_tokens",
+      "expected_error_code": "E_V246_DESKTOP_EVIDENCE_LEVEL",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-DESKTOP-GATE-EVIDENCE-ZERO-BYTE",
+      "execution_mode": "typed_evidence",
+      "target": "gate",
+      "mutation": "zero_byte",
+      "expected_error_code": "E_V246_DESKTOP_SCHEMA",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-DESKTOP-GATE-EVIDENCE-ARBITRARY-JSON",
+      "execution_mode": "typed_evidence",
+      "target": "gate",
+      "mutation": "arbitrary_json",
+      "expected_error_code": "E_V246_DESKTOP_EVIDENCE_LEVEL",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-DESKTOP-PIXEL-EVIDENCE-ZERO-BYTE",
+      "execution_mode": "typed_evidence",
+      "target": "pixel",
+      "mutation": "zero_byte",
+      "expected_error_code": "E_V246_DESKTOP_SCHEMA",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-DESKTOP-PIXEL-EVIDENCE-ARBITRARY-JSON",
+      "execution_mode": "typed_evidence",
+      "target": "pixel",
+      "mutation": "arbitrary_json",
+      "expected_error_code": "E_V246_DESKTOP_EVIDENCE_LEVEL",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-DESKTOP-EVIDENCE-WRONG-TYPE",
+      "execution_mode": "typed_evidence",
+      "target": "gate",
+      "mutation": "wrong_type",
+      "expected_error_code": "E_V246_DESKTOP_EVIDENCE_LEVEL",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-DESKTOP-EVIDENCE-FAILED-RESULT",
+      "execution_mode": "typed_evidence",
+      "target": "gate",
+      "mutation": "failed_result",
+      "expected_error_code": "E_V246_DESKTOP_EVIDENCE_LEVEL",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-DESKTOP-EVIDENCE-PRODUCER-IMPLEMENTER",
+      "execution_mode": "typed_evidence",
+      "target": "gate",
+      "mutation": "producer_implementer",
+      "expected_error_code": "E_V246_DESKTOP_EVIDENCE_LEVEL",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-DESKTOP-EVIDENCE-REVIEWER-UNBOUND",
+      "execution_mode": "typed_evidence",
+      "target": "gate",
+      "mutation": "reviewer_unbound",
+      "expected_error_code": "E_V246_DESKTOP_EVIDENCE_LEVEL",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-DESKTOP-EVIDENCE-WRONG-SUBJECT",
+      "execution_mode": "typed_evidence",
+      "target": "gate",
+      "mutation": "wrong_subject",
+      "expected_error_code": "E_V246_DESKTOP_EVIDENCE_LEVEL",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-DESKTOP-EVIDENCE-WRONG-COMMAND",
+      "execution_mode": "typed_evidence",
+      "target": "gate",
+      "mutation": "wrong_command",
+      "expected_error_code": "E_V246_DESKTOP_EVIDENCE_LEVEL",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-DESKTOP-EVIDENCE-WRONG-TUPLE",
+      "execution_mode": "typed_evidence",
+      "target": "gate",
+      "mutation": "wrong_tuple",
+      "expected_error_code": "E_V246_DESKTOP_EVIDENCE_LEVEL",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-DESKTOP-BASELINE-REVIEWER-UNBOUND",
+      "execution_mode": "typed_approval",
+      "target": "baseline",
+      "mutation": "reviewer_unbound",
+      "expected_error_code": "E_V246_DESKTOP_INDEPENDENCE",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-DESKTOP-BASELINE-REVIEWER-IMPLEMENTER",
+      "execution_mode": "typed_approval",
+      "target": "baseline",
+      "mutation": "reviewer_implementer",
+      "expected_error_code": "E_V246_DESKTOP_INDEPENDENCE",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-DESKTOP-BASELINE-APPROVAL-WRONG-BUNDLE",
+      "execution_mode": "typed_approval",
+      "target": "baseline",
+      "mutation": "wrong_bundle",
+      "expected_error_code": "E_V246_DESKTOP_NA",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-DESKTOP-NA-APPROVER-TEST-DESIGNER",
+      "execution_mode": "typed_approval",
+      "target": "na",
+      "mutation": "approver_designer",
+      "expected_error_code": "E_V246_DESKTOP_NA",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-DESKTOP-NA-APPROVAL-WRONG-BUNDLE",
+      "execution_mode": "typed_approval",
+      "target": "na",
+      "mutation": "wrong_bundle",
+      "expected_error_code": "E_V246_DESKTOP_NA",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-DESKTOP-NA-APPROVAL-WRONG-REVISION",
+      "execution_mode": "typed_approval",
+      "target": "na",
+      "mutation": "wrong_revision",
+      "expected_error_code": "E_V246_DESKTOP_NA",
+      "mutations": []
+    },
+    {
+      "case_id": "V246-DESKTOP-NA-APPROVAL-WRONG-CASE",
+      "execution_mode": "typed_approval",
+      "target": "na",
+      "mutation": "wrong_case",
+      "expected_error_code": "E_V246_DESKTOP_NA",
+      "mutations": []
+    }
+  ]
+}

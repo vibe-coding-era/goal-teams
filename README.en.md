@@ -5,10 +5,10 @@
 Author: 肉山@TGO Hangzhou
 
 <!-- goal-teams-release:start -->
-Current release: **V2.45** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.45) · [release/current/README.md](release/current/README.md)
+Current release: **V2.46** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.46) · [release/current/README.md](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-Current version: `V2.45`
+Current version: `V2.46`
 
 Goal Teams is a Codex Skill for coordinated agent work. It turns one goal into a verifiable plan, then lets a Goal Lead coordinate independent subagents running in separate contexts, or user-selected external skills, across requirements, design, implementation, tests, evidence, and completion audit.
 
@@ -175,7 +175,7 @@ Use $goal-teams。
 Use this identity line on an explicit Goal Teams invocation or when the session first needs to establish identity; do not repeat it when full context already exists:
 
 ```text
-我是 Goal Teams Lead V2.45。
+我是 Goal Teams Lead V2.46。
 ```
 
 Core language rule: user communication and governance documents default to Chinese; code, comments, test names, fixtures, and product strings follow the target repository's conventions; keep identifiers, commands, paths, API names, config keys, subagent IDs, and exact references unchanged.
@@ -192,6 +192,8 @@ Core language rule: user communication and governance documents default to Chine
 | `references/compat.md` | `TaskList.md`/`tasklist.md`, script compatibility wrappers, member-package layout, and version sync rules. |
 | `references/rules-ui.md` | UI, Page Specification Card, HTML Prototype MOCK, E2E, and pixel-comparison rules. |
 | `references/rules-testing.md` | Backend architecture-first, TDD, API integration pytest, frontend E2E, and independent testing rules. |
+| `references/verification-governance-protocol.md` | Historical Evidence applicability, orthogonal states, test contracts, Grill me, and adversarial testing. |
+| `references/desktop-engineering-protocol.md` | Rust/Tauri desktop replication, Rust backend contracts, and cross-platform L1-L4 testing, with a machine manifest/schema/validator. |
 | `references/rules-loop.md` | Lead LOOP, Loop Decision, Loop Gate, Budget Gate, and auto-continuation boundaries. |
 | `prompts/packets/handoff-artifacts.md` | Handoff SSOT for artifact types, Owner, validator, status fields, and TaskList ledger format. |
 
@@ -298,7 +300,7 @@ GoalTeamsWork-<project_version>/
 
 ## Version Note
 
-The current version is read from `VERSION`. On the V2.3 machine contract and V2.5 core policy, `V2.45` retains contract-first execution, Architecture and Environment Evidence gates, a recoverable `Gather → Reason → Act → Verify → Repeat` LOOP, four-file disk state, a constrained iteration-9 candidate reset, a fail-closed iteration-11 delivery gate, four-dimensional scoring, V2.44 machine-checkable API/E2E testing contracts, and real-behavior benchmarking. Detailed contracts are loaded from `references/` by task type. The current public release note is [release/current](release/current/README.md); process ledgers and provenance remain in the non-public workspace.
+The current version is read from `VERSION`. On the V2.3 machine contract and V2.5 core policy, `V2.46` retains contract-first execution, Architecture and Environment Evidence gates, a recoverable `Gather → Reason → Act → Verify → Repeat` LOOP, four-file disk state, a constrained iteration-9 candidate reset, a fail-closed iteration-11 delivery gate, four-dimensional scoring, V2.44 machine-checkable API/E2E testing contracts, and real-behavior benchmarking. Detailed contracts are loaded from `references/` by task type. The current public release note is [release/current](release/current/README.md); process ledgers and provenance remain in the non-public workspace.
 
 See the [current release note](release/current/README.md) for the visible package inventory. It does not replace runtime rules, `VERSION`, or installation validation.
 
@@ -323,6 +325,14 @@ V2.3 adds deterministic machine contracts for closed state enums, a single-write
 - Added a standalone, progressively loaded Release Engineer covering Java, Rust, Go, Python, Node.js, five environments, and application, container, WeChat Mini Program, and GitHub Skill releases. It ships in the package without joining the main Skill route.
 - Fixed the minimum final-Evidence denominator and bound both human approvals, least privilege, and database-safety attestations to an external trusted-host signature; plain JSON and self-reported approvers cannot authorize script generation or live execution.
 - Production releases require backup, restore proof, rollback, benchmark baseline, and post-release readback. Destructive database operations, indirect database clients, and unclosed helper scripts fail closed.
+
+## V2.46 Changes
+
+- Historical test results are retained permanently while Evidence integrity, current applicability, and revalidation obligations are tracked independently through itemized impact analysis.
+- Added orthogonal state machines and an intent → execute → exact readback → CAS transaction contract; completion states are derived only from predicates, valid Evidence, and independent audit.
+- Added traceable test contracts, risk-routed Grill me review, and adversarial testing while preserving V2.44 API/E2E contracts and the full risk denominator.
+- Added capability-derived Rust/Tauri desktop contracts. “100% replication” is split into complete coverage, same-environment zero-pixel difference, high fidelity, and native-semantic match; PRD-only work first creates an independently approved interactive HTML baseline.
+- Rust backend rules now cover crate/module DAGs, typed IPC, errors, concurrency, persistence, security, and executable fmt/clippy/test gates. Desktop Evidence separates L1 Rust, L2 mock/browser, L3 real app, and L4 production package per immutable platform tuple; browser tests and direct `tauri-driver` cannot impersonate macOS client Evidence.
 
 ## V2.43 Changes
 

@@ -1,0 +1,11 @@
+{
+  "assertions": [],
+  "review": {
+    "decision": "pending",
+    "independent": false,
+    "review_id": "RUN-V246-PUBLIC-SCAN-REVIEW-PENDING",
+    "reviewer_type": "independent_release_reviewer"
+  },
+  "schema_version": "goal-teams-public-scan-baseline-v1",
+  "version": "V2.46"
+}

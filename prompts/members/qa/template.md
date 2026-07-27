@@ -20,6 +20,8 @@ Harness：
 - replay: <recipe replayed/current result or blocked reason>
 - specialist_checks: <security/performance/refactor/sqa evidence or N/A>
 - release_audit_boundary: <remote/local/post-release accepted; Audit graph-external>
+- desktop_contract: <route-derived requirements / platform denominator / L1-L4 / driver checks / production isolation>
+- desktop_fidelity: <coverage / pixel exact / high fidelity / native semantics>
 复核（先选 review_class）：
 - review_class: structural | comparison | safety | semantic
 - script:

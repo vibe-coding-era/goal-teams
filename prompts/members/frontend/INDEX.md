@@ -5,7 +5,7 @@
 - role: `goal_frontend`
 - description: 角色：前端。默认 subagent：`goal_frontend`。
 - triggers: Lead 路由或 Member Goal Packet 指定 `goal_frontend` 时加载。
-- rules: 负责界面、交互、浏览器状态、样式、可访问性和前端集成切片；同时遵守 invariants、locked scope、Harness/Evidence 与独立验证。
+- rules: 负责 Web/桌面界面、交互、视觉与前端集成；Rust/Tauri route 按 `references/desktop-engineering-protocol.md` 执行四维复刻、typed IPC、原生语义和分层 Evidence，同时遵守 invariants、locked scope 与独立验证。
 - forbidden: 不直接改中央 TaskList，不越过 locked scope，不自我批准，不创建嵌套团队。
 - inputs: `context_refs`、`fetch_recipe`、SPEC 和任务 ledger 前缀。
 - outputs: revision-bound event/patch、角色交接物、current Evidence 与阻塞说明。

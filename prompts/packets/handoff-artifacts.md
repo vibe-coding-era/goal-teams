@@ -18,6 +18,7 @@ okf_version: "0.1"
 - `tasklist.md` 只作为 V2.2 legacy migration 输入；V2.3 禁止双写。所有 SSOT 产出物写入 `versions/<artifact_version>/`。
 - `Member Goal Packet` 是成员执行契约，必须只认领 tasklist 中已有或计划创建的交接物。
 - 交接物没有独立检查者、有效 `check_state` 或 Evidence 时，不能标记为 `accepted`。
+- V2.46 验证治理对象、正交状态和转换规则以 `references/verification-governance-protocol.md` 为准；历史 Evidence 不改写，适用性与复验义务通过 append-only event 投影。
 - 交接物字段变化时，先更新本文件，再同步 workflow、template、README 和 runtime 示例。
 
 ## V2.3 正交状态字段
@@ -43,7 +44,14 @@ check_state:
 
 run_outcome: achieved | partial | blocked | aborted
 loop_decision: continue | replan | stop
+
+evidence_integrity_state: unverified | valid | invalid
+evidence_applicability_state: current | stale
+revalidation_state: not_required | retest_required | scheduled | running | closed
+impact_class: unaffected | affected | new_requirement | scope_change_pending | undetermined
 ```
+
+Evidence/impact 字段不是 `task_state`、`check_state` 或 `run_outcome` 的别名；旧测试通过事实与当前验收资格必须分别表达，禁止使用通用 `status` 混写。
 
 ## V2.3 Task 机器必填字段
 
@@ -97,6 +105,8 @@ Task Handoff Record（ledger checkpoint 与 TaskList 投影的同一任务）:
 | `environment_configuration_plan` | Architecture Design 内的 Development Configuration Plan 与 Production Configuration Plan | 对应 Architecture Design Owner | `goal_reviewer` 或 `goal_qa` | 每份适用 Architecture Design 必须写入；Lite 未创建 Architecture 时记录不适用原因 | 配置来源/引用、依赖、网络/数据、可观测性、验证、差异；不记录 secret 值，生产环境规划不代表部署授权 |
 | `development_environment_check` | Architecture accepted 后的开发环境检查与安全 remediation | 当前 `goal_backend` / `goal_frontend` 实现 Owner | `goal_qa` 或 `goal_reviewer`（必须是不同 run） | Full/Regulated 或 route 要求时写入；Lite 用 preflight | `spec/development-environment-check.md`、Architecture/workspace/tool exact hash、argv/cwd/log、remediation before/after、current `local_verified` Evidence；只有 `ready` 开实现门 |
 | `integration_test_plan` | API/E2E 风险分母、环境、数据、入口/退出与 Evidence 计划 | `goal_api_integration_test_designer` 或 `goal_e2e_test_designer` | `goal_qa` 或 `goal_reviewer`（不同 run） | V2.44 API/E2E route 必需 | `goal-teams-integration-test-plan-v2.44` schema、risk IDs/applicability/case refs/coverage state、文件 identity |
+| `verification_contract` | 测试范围、不可接受风险、阈值、责任、Evidence、waiver/变更审批、Grill me 与对抗风险的统一合同 | 需求/测试 Designer | `goal_qa` 或 `goal_reviewer`（不同 run） | route 命中验证治理时；Lite 可内联最小合同 | Requirement/AC/plan/case/Harness/Evidence refs、contract revision/hash、risk denominator、critical Grill answers、adversarial trace |
+| `verification_impact_assessment` | 规则/合同/Harness/环境变化后的依赖链影响分析 | Goal Lead 或独立分析 Owner | `goal_reviewer`（不同 run） | 验证绑定发生变化时 | change refs、before/after identity、dependency paths、unaffected/affected/new/undetermined 清单与复验策略 |
 | `test_case` | Typed API 用例或 E2E journey | 对应测试设计成员 | 对应独立测试执行成员与 `goal_reviewer` | 适用测试必须登记 | V2.35 四段合同 + V2.44 typed protocol fields、业务 oracle、side effects/checkpoints、path/SHA-256/discovery |
 | `test_run_result` | API/E2E 执行、attempt、assertion、retry/flake/cleanup/replay 的机器结果 | 对应测试执行成员 | `goal_qa` 或 `goal_reviewer`（不同 run） | 每个实际 run 必需；`not_run|blocked` 也需事实记录 | `goal-teams-test-run-result-v2.44` schema、runner/source identity、observed results、原始失败和 artifacts |
 | `security_assessment` | 代码、依赖、secret、注入、端口暴露只读安全评估 | `goal_security` | `goal_reviewer`（不同 run，最低 safety） | 路由命中 security 时 | coverage、授权记录、findings、脚本 + 独立语义安全复核 |

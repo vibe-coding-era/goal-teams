@@ -23,6 +23,8 @@ Goal Teams 工作总是先规划，再派发或编辑实现文件。直接执行
 14. 后端按 gates 安排：Full/Regulated 使用 Architecture -> 独立 TDD designer -> implementation -> 独立 runner -> API integration；Standard 按合同/API/数据/行为影响触发；Lite 使用 targeted regression。API integration 默认 Python + pytest。
 15. 前端按 gates 安排：Full/Regulated 使用设计/实现/独立 E2E 链；Lite/Standard 覆盖受影响路径并独立复核；只有 replica 强制 pixel comparison。
 15a. route-required 测试设计必须产出 schema-valid input/processing/expected_output/assertions；runner 记录 observed output 与逐 assertion result，不能只用 exit/status code。
+15b. 测试或门禁变化必须计划 `verification_contract` 与 `verification_impact_assessment`：写明 before/after identity、逐项依赖路径、未受影响/受影响/新增/不明清单和复验策略；不得用“规则升级”概括清零。从 route 派生 Grill me 与对抗风险，Lite/Standard 只计划命中项，Full/Regulated 的 critical 合同进入独立质询。
+15c. 实现方提出会改变产品语义、验收范围或风险分母的新 required gate 时，先记录 scope-change intent 并更新 SPEC/Harness；未确认保持 `scope_change_pending/blocked`，不得自行扩张或缩小分母。
 16. 生成 Plan 表格前，不启动实现 subagents，也不编辑实现文件。
 17. 解析每个待加载引用的分级：核心和已触发条件引用缺失时记录缺失路径/影响并设置 `task_state=blocked`、`check_state=blocked`，停止派发；只有低风险、非 acceptance-blocking 且 Harness 未要求独立验证的工作，才可因未触发条件/可选引用记录 `degraded_mode=single_agent`。不得用此降级产生 `accepted`、`passed` 或 `achieved`。
 18. 记录失败状态时只写一个 `check_state`：检查已执行但不通过或证据无效为 `failed`；因授权、能力或必需引用缺失而无法检查为 `blocked`。`failed|blocked` 只可作为自然语言替代关系，不能写入 schema。

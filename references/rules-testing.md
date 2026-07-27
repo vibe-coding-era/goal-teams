@@ -16,9 +16,21 @@ okf_version: "0.1"
 - `prompts/packets/handoff-artifacts.md`
 - `references/subagent-dispatch-protocol.md`
 - `prompts/packets/harness-contract.md`
+- `references/verification-governance-protocol.md`
 - 对应成员包：`prompts/members/<role>/prompt.md`，必要时读取同目录 `template.md`、`workflow.md`、`scripts.md`
+- Rust/Tauri/desktop route：`references/desktop-engineering-protocol.md`、manifest/schema 与当前 validator
 
 API/E2E 路由还必须把本文件、`references/test-case-assertion-protocol.md`、适用 `integration-test-plan`、`test-case`、`test-run-result` 的 exact `context_refs` 和 validator argv 写入 Member Goal Packet/Harness。成员不得仅加载通用 prompt、沿用历史 validator 或自行猜测 artifact 路径；required ref 缺失即 blocked。
+
+## V2.46 统一验证治理
+
+测试合同、Grill me、对抗测试、Evidence 适用性与状态转换以 `references/verification-governance-protocol.md` 及其机器文件为 SSOT。
+
+- required 测试追踪 AC、case、Harness、Evidence、风险与审批。变化先逐项分析：未受影响保留，受影响 `stale + retest_required`，新增 `not_run`；仅证据不可信为 `invalid`，实际失败为 `failed`。关键项执行 Grill me，对抗风险进入分母；新增语义或门禁须先更新 SPEC/Harness 并确认，否则 blocked。
+
+## V2.46 Rust/Tauri 桌面工程
+
+桌面路由以 `references/desktop-engineering-protocol.md` 为 SSOT：Rust→L1、Tauri→L2/L3、package→L4、replica→四维、跨平台→required tuple；未命中不建空任务。macOS real-app 使用 embedded WDIO 或批准的原生 harness；直接 `tauri-driver` 无效。层级不可互代，非 passed 阻断 achieved。
 
 ## 适用颗粒度
 
@@ -119,4 +131,5 @@ acceptance / API / persona / state / failure mode
 - 从 Harness 内层 `task_type`、`required_review_class` 与风险推导最低 `review_class`；comparison/safety 使用 LLM + 脚本双重复核，structural/semantic 不互代，只执行适用复核并记录经独立 reviewer 接受的结构化 N/A；记录到 `prompts/packets/dual-review-record.md`。
 - 实现者自测不能替代独立校验。
 - Evidence 不足时按原因使用 `task_state=running` 或 `blocked`，并把已执行失败/证据无效记录为 `check_state=failed`，无法执行/完成记录为 `check_state=blocked`；不得改写成 accepted/achieved。
+- QA/Reviewer 必须先验证 impact assessment 的依赖边，再判断当前适用性；不能以合同升级为由把无依赖路径的历史 Evidence 判 `invalid`，也不能用历史 `passed` 关闭 `stale|retest_required|not_run` 的当前门。
 - QA/Reviewer 必须从上游 acceptance/API/persona/state/failure mode 重建风险分母，对照 plan diff，并至少重放一个适用高风险 case；plan/case/result validator、file/hash/discovery、cleanup/replay 任一 required 门失败即不得 pass。

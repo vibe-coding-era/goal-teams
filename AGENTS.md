@@ -14,15 +14,17 @@
 
 - `goal-teams.md` 记录长期用户指定要求，是规则变更的上游依据。
 - `RULES.md` 承载 V2.02 Response Contract（响应规范），Goal Lead 和所有成员必须遵守。
-- `VERSION` 只记录当前产品版本 `V2.45`，需要和 `SKILL.md` 正文、用户确认的 README 版本投影、runtime 启动语保持一致；当前 GitHub Release 资产仍由 development version checker 按 `release/current/` 的已发布版本单独校验；通用核心策略版本为 `V2.5`，legacy 机器数据 schema 版本为 `V2.3`，三者不得混用；`SKILL.md` frontmatter 只保留 `name` 和 `description`。
+- `VERSION` 只记录当前产品版本 `V2.46`，需要和 `SKILL.md` 正文、用户确认的 README 版本投影、runtime 启动语保持一致；当前 GitHub Release 资产仍由 development version checker 按 `release/current/` 的已发布版本单独校验；通用核心策略版本为 `V2.5`，legacy 机器数据 schema 版本为 `V2.3`，三者不得混用；`SKILL.md` frontmatter 只保留 `name` 和 `description`。
 - `SKILL.md` 是 Codex 发现和执行 skill 的主入口。
 - `references/invariants.md` 承载所有任务永远生效的不变量、硬边界和失败降级协议。
 - `references/compat.md` 集中声明 `TaskList.md`/`tasklist.md`、脚本兼容入口、成员包布局和版本同步口径。
 - `references/rules-ui.md` 承载 UI、页面规格卡、HTML Prototype MOCK、E2E 和像素对比的条件规则。
 - `references/rules-testing.md` 承载后端架构先行、TDD、API 集成 pytest、前端 E2E 和独立测试派发条件规则。
+- `references/verification-governance-protocol.md`、manifest/schema/validator 承载 V2.46 历史 Evidence、影响分析、正交状态、测试合同、Grill me 和对抗测试。
+- `references/desktop-engineering-protocol.md`、manifest/schema/validator 合并承载 V2.46 Rust/Tauri 前端复刻、Rust 后端工程和跨平台 L1–L4 桌面测试；主 `SKILL.md` 只保留条件入口。
 - `references/rules-loop.md` 承载 Lead LOOP、Loop Decision、Loop Gate、Budget Gate、Conflict Policy 和自动续跑边界。
 - `references/goal-teams-core-v2.5.md` 承载普通项目通用核心策略、`goal-teams-core-v2.5` policy profile 和自动 gate 派生契约。
-- `references/profiles/goal-teams-self-release-v2.45.md` 仅承载 Goal Teams 仓库当前自发布的独立 Release Engineer、测试能力兼容、52 条断言、第 9/11 轮、四维评分、prompt identity、Cache Evidence、OKF、发行状态机和公开归档规则；`goal-teams-self-release-v2.44.md`、`goal-teams-self-release-v2.43.md`、`goal-teams-self-release-v2.42.md`、`goal-teams-self-release-v2.41.md`、`goal-teams-self-release-v2.40.md`、`goal-teams-self-release-v2.39.md` 与 `goal-teams-self-release-v2.38.md` 只保留历史 replay，不得把任一 self-release 专项规则放回全局不变量。
+- `references/profiles/goal-teams-self-release-v2.46.md` 仅承载 Goal Teams 仓库当前自发布的验证治理组合、52 条断言、第 9/11 轮、四维评分、prompt identity、Cache Evidence、OKF、发行状态机和公开归档规则；V2.45 的 Release Engineer 与更早 Profile 作为兼容输入只保留历史 replay，不得把任一 self-release 专项规则放回全局不变量。
 - `references/rules-project-sizing.md` 承载项目规模、工作类型与安全/UI 覆盖的条件路由规则；V2.36 起 Lite/Standard 必须按实际风险和工作量保留轻量路径。
 - `references/rules-specialists.md` 承载 V2.35 安全、性能、重构和 SQA 四个只读提案专家及 Lead-only dispatch 边界。
 - `references/test-case-assertion-protocol.md` 承载 V2.35 测试输入、处理、期望输出与可执行断言契约。
@@ -64,7 +66,7 @@
 - `subagents/goal-*.toml` 是实际可注册的成员 agent 配置。
 - `README.md` 和 `README.en.md` 只做介绍、安装、示例和发布说明，避免承载唯一规则。
 - `references/release-packaging-protocol.md` 是统一发行规范；所有版本必须先生成并校验 `release/versions/<VERSION>/`，再上传 GitHub Release。
-- `scripts/release/release_config.py` 与 `references/release-profiles/*.json` 是发行身份闭集；仅 `V2.45` 可写，`V2.44` 与 `V2.40` 只 replay。升级细则见发行规范。
+- `scripts/release/release_config.py` 与 `references/release-profiles/*.json` 是发行身份闭集；仅 `V2.46` 可写，`V2.45`、`V2.44` 与 `V2.40` 只 replay。升级细则见发行规范。
 - `scripts/release/` 承载发行构建、验证与 GitHub 发布后复核脚本；不得绕过本地 release 门禁直接上传。
 - `scripts/checks/check-workspace-boundaries.py` 检查 worktree 不越出仓库、`docs/`/`develops/` 不被跟踪或安装、GitHub Release 资产只来自 `release/versions/`。
 
@@ -94,6 +96,10 @@
 - `references/test-case-assertion-protocol.md`
 - `references/testing-capability-protocol.md`
 - `references/testing-capability-manifest.json`
+- `references/verification-governance-protocol.md`
+- `references/verification-governance-manifest.json`
+- `references/desktop-engineering-protocol.md`
+- `references/desktop-capability-manifest.json`
 - `references/goal-teams-runtime.md`
 - `references/goal-teams-automation-protocol.md`
 - `references/goal-teams-production-pipeline.md`
@@ -104,6 +110,7 @@
 - `references/engineering-metrics-manifest.json`
 - `schemas/v2.43/engineering-metrics.schema.json`
 - `schemas/v2.44/`
+- `schemas/v2.46/`
 - `references/google-okf-bilingual-spec.md`
 - `references/ui-e2e-pixel-protocol.md`
 - `references/ui-visual-contract-protocol.md`

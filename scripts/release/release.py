@@ -64,6 +64,9 @@ RELEASE_ROOT = Path(__file__).resolve().parents[2]
 PROMOTION_SCHEMA_PATH = (
     RELEASE_ROOT / "schemas" / "release-promotion-state.schema.json"
 )
+VERIFICATION_GOVERNANCE_MANIFEST_PATH = (
+    RELEASE_ROOT / "references" / "verification-governance-manifest.json"
+)
 RELEASE_CONFIG_PATH = Path(__file__).resolve().with_name("release_config.py")
 ED25519_VERIFY_PATH = Path(__file__).resolve().with_name("ed25519_verify.py")
 
@@ -449,6 +452,52 @@ def _load_promotion_schema() -> dict[str, Any]:
     if not isinstance(value, dict):
         _fail("E_V240_STATE_SCHEMA", "promotion schema is not an object")
     return value
+
+
+def _load_release_checkpoint_machine() -> dict[str, Any]:
+    """Load the V2.46 release checkpoint machine from its machine SSOT."""
+
+    try:
+        manifest = json.loads(
+            VERIFICATION_GOVERNANCE_MANIFEST_PATH.read_text(encoding="utf-8")
+        )
+        machine = manifest["state_machines"]["release_checkpoint"]
+    except (OSError, json.JSONDecodeError, KeyError, TypeError) as exc:
+        _fail(
+            "E_V246_RELEASE_TRANSITION",
+            f"cannot load release checkpoint machine: {exc}",
+        )
+    if not isinstance(machine, dict) or not isinstance(
+        machine.get("transitions"), dict
+    ):
+        _fail(
+            "E_V246_RELEASE_TRANSITION",
+            "release checkpoint machine SSOT is malformed",
+        )
+    return machine
+
+
+def _load_recovery_machine() -> dict[str, Any]:
+    """Load the independent V2.46 recovery machine from its machine SSOT."""
+
+    try:
+        manifest = json.loads(
+            VERIFICATION_GOVERNANCE_MANIFEST_PATH.read_text(encoding="utf-8")
+        )
+        machine = manifest["state_machines"]["recovery"]
+    except (OSError, json.JSONDecodeError, KeyError, TypeError) as exc:
+        _fail(
+            "E_V246_RECOVERY_TRANSITION",
+            f"cannot load recovery machine: {exc}",
+        )
+    if not isinstance(machine, dict) or not isinstance(
+        machine.get("transitions"), dict
+    ):
+        _fail(
+            "E_V246_RECOVERY_TRANSITION",
+            "recovery machine SSOT is malformed",
+        )
+    return machine
 
 
 def validate_readme_projection(root: str | os.PathLike[str], version: str) -> dict[str, Any]:
@@ -1343,6 +1392,82 @@ def _schema_operation_plan(schema: Mapping[str, Any]) -> dict[str, list[dict[str
     return result
 
 
+def _validate_recovery_transition_ledger(state: Mapping[str, Any]) -> None:
+    """Validate the recovery receipt prefix, CAS revision, and projected head."""
+
+    receipts = state.get("recovery_transition_receipts")
+    revision = state.get("recovery_revision")
+    machine = _load_recovery_machine()
+    transitions = machine["transitions"]
+    if (
+        not isinstance(receipts, list)
+        or not isinstance(revision, int)
+        or isinstance(revision, bool)
+    ):
+        _fail(
+            "E_V246_RECOVERY_TRANSITION",
+            "recovery transition ledger/revision is malformed",
+        )
+    expected_source = "none"
+    idempotency_keys: set[str] = set()
+    for index, receipt in enumerate(receipts, start=1):
+        target = (
+            receipt.get("to_state")
+            if isinstance(receipt, Mapping)
+            else None
+        )
+        allowed_targets = transitions.get(expected_source, [])
+        expected_event = f"recovery.{expected_source}.{target}"
+        idempotency_key = (
+            receipt.get("idempotency_key")
+            if isinstance(receipt, Mapping)
+            else None
+        )
+        if (
+            not isinstance(receipt, Mapping)
+            or receipt.get("machine_id") != "recovery"
+            or receipt.get("from_state") != expected_source
+            or target not in allowed_targets
+            or receipt.get("transition_event") != expected_event
+            or not isinstance(receipt.get("expected_revision"), int)
+            or isinstance(receipt.get("expected_revision"), bool)
+            or not isinstance(receipt.get("new_revision"), int)
+            or isinstance(receipt.get("new_revision"), bool)
+            or receipt.get("expected_revision") != index - 1
+            or receipt.get("new_revision") != index
+            or not isinstance(receipt.get("guard_results"), list)
+            or not receipt.get("guard_results")
+            or any(
+                not isinstance(guard, Mapping)
+                or guard.get("passed") is not True
+                or not guard.get("evidence_refs")
+                for guard in receipt["guard_results"]
+            )
+            or not receipt.get("evidence_refs")
+            or not receipt.get("actor_run_id")
+            or not receipt.get("reason_code")
+            or SHA256_RE.fullmatch(str(idempotency_key or "")) is None
+            or idempotency_key in idempotency_keys
+        ):
+            _fail(
+                "E_V246_RECOVERY_TRANSITION",
+                "recovery transition receipt chain is invalid",
+            )
+        idempotency_keys.add(str(idempotency_key))
+        expected_source = str(target)
+    if revision != len(receipts):
+        _fail(
+            "E_V246_RECOVERY_TRANSITION_CAS",
+            "recovery revision differs from receipt prefix",
+        )
+    expected_head = receipts[-1].get("to_state") if receipts else "none"
+    if state.get("recovery_state") != expected_head:
+        _fail(
+            "E_V246_RECOVERY_TRANSITION",
+            "recovery_state differs from the recovery receipt head",
+        )
+
+
 def validate_promotion_state(
     state: Mapping[str, Any], expected: Mapping[str, Any] | None = None
 ) -> dict[str, Any]:
@@ -1352,6 +1477,24 @@ def validate_promotion_state(
         _fail("E_V240_STATE_SCHEMA", "promotion state must be an object")
     cfg = _release_cfg(state.get("version"))
     if cfg["status"] == "active":
+        if any(
+            field not in state
+            for field in (
+                "checkpoint_phase",
+                "external_surface_phase",
+                "recovery_state",
+                "reconciliation",
+                "resume_checkpoint_phase",
+                "state_revision",
+                "release_transition_receipts",
+                "recovery_revision",
+                "recovery_transition_receipts",
+            )
+        ):
+            _fail(
+                "E_V246_RELEASE_STATE_ORTHOGONAL",
+                "active release state lacks the V2.46 orthogonal state axes",
+            )
         candidate_for_profile = _require_sha40(
             state.get("candidate_commit"), "E_V240_STATE_FORGED"
         )
@@ -1781,6 +1924,126 @@ def validate_promotion_state(
         if state.get("phase") != phase_map.get(highest_passed):
             _fail("E_V240_STATE_PHASE", "phase does not match highest passed checkpoint")
         highest_number = int(highest_passed[2:])
+    checkpoint_phase = state.get("checkpoint_phase")
+    external_surface_phase = state.get("external_surface_phase")
+    recovery_state = state.get("recovery_state")
+    reconciliation = state.get("reconciliation")
+    transition_receipts = state.get("release_transition_receipts")
+    state_revision = state.get("state_revision")
+    if transition_receipts is not None:
+        release_machine = _load_release_checkpoint_machine()
+        release_transitions = release_machine["transitions"]
+        if not isinstance(transition_receipts, list) or not isinstance(
+            state_revision, int
+        ):
+            _fail(
+                "E_V246_RELEASE_TRANSITION",
+                "release transition ledger/revision is malformed",
+            )
+        expected_source = "DRIFTED"
+        for index, receipt in enumerate(transition_receipts, start=1):
+            receipt_target = (
+                receipt.get("to_state")
+                if isinstance(receipt, Mapping)
+                else None
+            )
+            allowed_targets = release_transitions.get(expected_source, [])
+            expected_event = (
+                f"release_checkpoint.{expected_source}.{receipt_target}"
+            )
+            if (
+                not isinstance(receipt, Mapping)
+                or receipt.get("machine_id") != "release_checkpoint"
+                or receipt.get("from_state") != expected_source
+                or receipt_target not in allowed_targets
+                or receipt.get("transition_event") != expected_event
+                or receipt.get("expected_revision") != index - 1
+                or receipt.get("new_revision") != index
+                or not isinstance(receipt.get("guard_results"), list)
+                or not receipt.get("guard_results")
+                or any(
+                    not isinstance(guard, Mapping)
+                    or guard.get("passed") is not True
+                    or not guard.get("evidence_refs")
+                    for guard in receipt["guard_results"]
+                )
+                or not receipt.get("evidence_refs")
+                or not receipt.get("actor_run_id")
+                or not receipt.get("reason_code")
+                or SHA256_RE.fullmatch(
+                    str(receipt.get("idempotency_key", ""))
+                )
+                is None
+            ):
+                _fail(
+                    "E_V246_RELEASE_TRANSITION",
+                    "release transition receipt chain is invalid",
+                )
+            expected_source = str(receipt.get("to_state"))
+        if state_revision != len(transition_receipts):
+            _fail(
+                "E_V246_RELEASE_TRANSITION_CAS",
+                "release transition revision differs from receipt prefix",
+            )
+        expected_head = (
+            transition_receipts[-1].get("to_state")
+            if transition_receipts
+            else "DRIFTED"
+        )
+        if checkpoint_phase != expected_head:
+            _fail(
+                "E_V246_RELEASE_TRANSITION",
+                "checkpoint_phase differs from the release receipt head",
+            )
+    if state.get("recovery_transition_receipts") is not None:
+        _validate_recovery_transition_ledger(state)
+    resume_checkpoint_phase = state.get("resume_checkpoint_phase")
+    if recovery_state in {None, "none", "recovered"} and (
+        checkpoint_phase is not None and checkpoint_phase != state.get("phase")
+    ):
+        _fail(
+            "E_V246_RELEASE_STATE_ORTHOGONAL",
+            "settled checkpoint phase differs from the legacy replay projection",
+        )
+    if external_surface_phase is not None:
+        expected_external = _derived_external_surface_phase(state)
+        if external_surface_phase != expected_external:
+            _fail(
+                "E_V246_RELEASE_STATE_ORTHOGONAL",
+                "external_surface_phase differs from exact checkpoint readbacks",
+            )
+    if recovery_state in {"reconciliation_required", "recovering", "conflict"}:
+        if not isinstance(reconciliation, Mapping):
+            _fail(
+                "E_V246_RELEASE_STATE_ORTHOGONAL",
+                "open recovery state lacks reconciliation identity",
+            )
+    elif reconciliation is not None:
+        _fail(
+            "E_V246_RELEASE_STATE_ORTHOGONAL",
+            "closed recovery state retains a reconciliation record",
+        )
+    if recovery_state in {"reconciliation_required", "recovering"}:
+        if (
+            checkpoint_phase != "FAILED"
+            or not isinstance(resume_checkpoint_phase, str)
+            or resume_checkpoint_phase != state.get("phase")
+        ):
+            _fail(
+                "E_V246_RELEASE_STATE_ORTHOGONAL",
+                "FAILED recovery lacks the exact persisted resume phase",
+            )
+    elif recovery_state == "conflict":
+        if checkpoint_phase != "CONFLICT":
+            _fail(
+                "E_V246_RELEASE_STATE_ORTHOGONAL",
+                "conflict recovery state lacks CONFLICT checkpoint state",
+            )
+    elif resume_checkpoint_phase is not None:
+        _fail(
+            "E_V246_RELEASE_STATE_ORTHOGONAL",
+            "settled release state retains a resume checkpoint phase",
+        )
     if highest_number >= 3:
         authority = state.get("github_authority")
         if not isinstance(authority, Mapping):
@@ -2494,6 +2757,15 @@ def start_release(config: Mapping[str, Any]) -> dict[str, Any]:
         "candidate_commit": candidate,
         "candidate_tree": candidate_tree,
         "phase": "DRIFTED",
+        "checkpoint_phase": "DRIFTED",
+        "external_surface_phase": "absent",
+        "recovery_state": "none",
+        "reconciliation": None,
+        "resume_checkpoint_phase": None,
+        "state_revision": 0,
+        "release_transition_receipts": [],
+        "recovery_revision": 0,
+        "recovery_transition_receipts": [],
         "current_checkpoint": "CP00",
         "transition_map_version": "goal-teams-v2.40-transition-map-v1",
         "checkpoints": {},
@@ -5748,6 +6020,18 @@ def _persist_operation_readback(
     receipt_source = {"intent": operation["intent"], "readback": readback}
     operation["readback"] = copy.deepcopy(dict(readback))
     operation["receipt_sha256"] = _canonical_json_sha256(receipt_source)
+    action_phase = {
+        "candidate_push": "candidate_pushed",
+        "tag_push": "tag_pushed",
+        "draft_create": "release_draft",
+        "asset_download_verify": "asset_verified",
+        "main_promote": "main_promoted",
+        "release_publish": "release_published",
+        "published_asset_download": "asset_verified",
+        "actual_install": "installed_verified",
+    }.get(operation.get("intent", {}).get("action"))
+    if action_phase is not None:
+        state["external_surface_phase"] = action_phase
     state["updated_at"] = _utc_now()
     return _atomic_state_write(path, state, expected_sha256=expected_digest)
 
@@ -5974,6 +6258,340 @@ def _derive_checkpoint_state_updates(
     return {}
 
 
+def _external_surface_after_checkpoint(checkpoint_id: str) -> str:
+    """Project only side effects proven by a completed exact-readback checkpoint."""
+
+    checkpoint_number = int(checkpoint_id[2:])
+    if checkpoint_number < 12:
+        return "absent"
+    if checkpoint_number < 15:
+        return "candidate_pushed"
+    if checkpoint_number == 15:
+        return "tag_pushed"
+    if checkpoint_number == 16:
+        return "release_draft"
+    return "installed_verified"
+
+
+def _derived_external_surface_phase(state: Mapping[str, Any]) -> str:
+    """Derive the latest user-visible surface from persisted exact readbacks."""
+
+    if state.get("recovery_state") == "conflict":
+        return "conflict"
+    checkpoints = state.get("checkpoints")
+    if not isinstance(checkpoints, Mapping):
+        return "absent"
+    latest = "absent"
+    try:
+        manifest = json.loads(
+            VERIFICATION_GOVERNANCE_MANIFEST_PATH.read_text(encoding="utf-8")
+        )
+        phases = manifest["release_runtime_projections"][
+            "external_surface_phase"
+        ]["ordered_operation_projection"]
+    except (OSError, json.JSONDecodeError, KeyError, TypeError) as exc:
+        _fail(
+            "E_V246_RELEASE_STATE_ORTHOGONAL",
+            f"cannot load external-surface projection SSOT: {exc}",
+        )
+    if not isinstance(phases, dict):
+        _fail(
+            "E_V246_RELEASE_STATE_ORTHOGONAL",
+            "external-surface projection SSOT is malformed",
+        )
+    for checkpoint_id in (f"CP{number:02d}" for number in range(19)):
+        checkpoint = checkpoints.get(checkpoint_id)
+        operations = (
+            checkpoint.get("operations")
+            if isinstance(checkpoint, Mapping)
+            else None
+        )
+        if not isinstance(operations, list):
+            continue
+        for operation in operations:
+            if not isinstance(operation, Mapping):
+                continue
+            readback = operation.get("readback")
+            operation_id = operation.get("operation_id")
+            if (
+                isinstance(readback, Mapping)
+                and readback.get("classification") == "exact"
+                and operation_id in phases
+            ):
+                latest = phases[str(operation_id)]
+    return latest
+
+
+def _append_release_transition(
+    state: dict[str, Any],
+    *,
+    to_state: str,
+    event: str,
+    actor_run_id: str,
+    reason_code: str,
+    evidence_refs: Sequence[str],
+    idempotency_key: str,
+    expected_revision: int,
+    side_effect: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Append one CAS-bound release checkpoint transition receipt."""
+
+    source = state.get("checkpoint_phase")
+    machine = _load_release_checkpoint_machine()
+    transition_map = machine["transitions"]
+    targets = transition_map.get(source, []) if isinstance(transition_map, Mapping) else []
+    canonical_event = f"release_checkpoint.{source}.{to_state}"
+    if to_state not in targets or event != canonical_event:
+        _fail(
+            "E_V246_RELEASE_TRANSITION",
+            f"forbidden release transition/event: {source}->{to_state} via {event}",
+        )
+    if (
+        state.get("state_revision") != expected_revision
+        or not isinstance(expected_revision, int)
+    ):
+        _fail("E_V246_RELEASE_TRANSITION_CAS", "release state revision conflict")
+    if (
+        not isinstance(evidence_refs, Sequence)
+        or isinstance(evidence_refs, (str, bytes))
+        or not evidence_refs
+        or not all(isinstance(ref, str) and ref for ref in evidence_refs)
+        or SHA256_RE.fullmatch(idempotency_key) is None
+        or not actor_run_id
+        or not reason_code
+        or not event
+    ):
+        _fail("E_V246_RELEASE_TRANSITION", "release transition binding is incomplete")
+    receipts = state.get("release_transition_receipts")
+    if not isinstance(receipts, list):
+        _fail("E_V246_RELEASE_TRANSITION", "release transition ledger is absent")
+    if any(
+        isinstance(receipt, Mapping)
+        and receipt.get("idempotency_key") == idempotency_key
+        for receipt in receipts
+    ):
+        _fail("E_V246_RELEASE_TRANSITION_CAS", "release idempotency key was reused")
+    occurred_at = _utc_now()
+    new_revision = expected_revision + 1
+    receipt_core: dict[str, Any] = {
+        "machine_id": "release_checkpoint",
+        "entity_id": f"{state.get('repository')}:{state.get('version')}",
+        "transition_event": event,
+        "from_state": source,
+        "to_state": to_state,
+        "expected_revision": expected_revision,
+        "new_revision": new_revision,
+        "guard_results": [
+            {
+                "guard_id": "release-transition-evidence-bound",
+                "passed": True,
+                "evidence_refs": list(evidence_refs),
+            }
+        ],
+        "actor_run_id": actor_run_id,
+        "reason_code": reason_code,
+        "evidence_refs": list(evidence_refs),
+        "occurred_at": occurred_at,
+        "idempotency_key": idempotency_key,
+    }
+    if side_effect is not None:
+        receipt_core["side_effect"] = copy.deepcopy(dict(side_effect))
+    receipt = {
+        "receipt_id": "RTR-V246-"
+        + _canonical_json_sha256(receipt_core)[:24].upper(),
+        **receipt_core,
+    }
+    receipts.append(receipt)
+    state["state_revision"] = new_revision
+    state["checkpoint_phase"] = to_state
+    return copy.deepcopy(receipt)
+
+
+def _append_recovery_transition(
+    state: dict[str, Any],
+    *,
+    to_state: str,
+    event: str,
+    actor_run_id: str,
+    reason_code: str,
+    evidence_refs: Sequence[str],
+    idempotency_key: str,
+    expected_revision: int,
+) -> dict[str, Any]:
+    """Append one transition to the independent recovery-machine ledger."""
+
+    source = state.get("recovery_state")
+    machine = _load_recovery_machine()
+    transition_map = machine["transitions"]
+    targets = (
+        transition_map.get(source, [])
+        if isinstance(transition_map, Mapping)
+        else []
+    )
+    canonical_event = f"recovery.{source}.{to_state}"
+    if to_state not in targets or event != canonical_event:
+        _fail(
+            "E_V246_RECOVERY_TRANSITION",
+            f"forbidden recovery transition/event: {source}->{to_state} via {event}",
+        )
+    if (
+        state.get("recovery_revision") != expected_revision
+        or not isinstance(expected_revision, int)
+        or isinstance(expected_revision, bool)
+    ):
+        _fail("E_V246_RECOVERY_TRANSITION_CAS", "recovery revision conflict")
+    if (
+        not isinstance(evidence_refs, Sequence)
+        or isinstance(evidence_refs, (str, bytes))
+        or not evidence_refs
+        or not all(isinstance(ref, str) and ref for ref in evidence_refs)
+        or SHA256_RE.fullmatch(idempotency_key) is None
+        or not actor_run_id
+        or not reason_code
+    ):
+        _fail(
+            "E_V246_RECOVERY_TRANSITION",
+            "recovery transition binding is incomplete",
+        )
+    receipts = state.get("recovery_transition_receipts")
+    if not isinstance(receipts, list):
+        _fail(
+            "E_V246_RECOVERY_TRANSITION",
+            "recovery transition ledger is absent",
+        )
+    if any(
+        isinstance(receipt, Mapping)
+        and receipt.get("idempotency_key") == idempotency_key
+        for receipt in receipts
+    ):
+        _fail(
+            "E_V246_RECOVERY_TRANSITION_CAS",
+            "recovery idempotency key was reused",
+        )
+    new_revision = expected_revision + 1
+    receipt_core: dict[str, Any] = {
+        "machine_id": "recovery",
+        "entity_id": f"{state.get('repository')}:{state.get('version')}",
+        "transition_event": event,
+        "from_state": source,
+        "to_state": to_state,
+        "expected_revision": expected_revision,
+        "new_revision": new_revision,
+        "guard_results": [
+            {
+                "guard_id": "recovery-transition-evidence-bound",
+                "passed": True,
+                "evidence_refs": list(evidence_refs),
+            }
+        ],
+        "actor_run_id": actor_run_id,
+        "reason_code": reason_code,
+        "evidence_refs": list(evidence_refs),
+        "occurred_at": _utc_now(),
+        "idempotency_key": idempotency_key,
+    }
+    receipt = {
+        "receipt_id": "RCR-V246-"
+        + _canonical_json_sha256(receipt_core)[:24].upper(),
+        **receipt_core,
+    }
+    receipts.append(receipt)
+    state["recovery_revision"] = new_revision
+    state["recovery_state"] = to_state
+    return copy.deepcopy(receipt)
+
+
+def _persist_terminal_release_state(
+    path: Path,
+    state: dict[str, Any],
+    digest: str,
+    *,
+    operation_id: str,
+    intent: Mapping[str, Any],
+    readback: Mapping[str, Any],
+    actor_run_id: str,
+    external_side_effect_count: int,
+) -> tuple[
+    str,
+    dict[str, Any] | None,
+    dict[str, Any] | None,
+]:
+    """Persist FAILED/CONFLICT after a non-exact live readback."""
+
+    classification = str(readback.get("classification"))
+    target = "CONFLICT" if classification == "conflict" else "FAILED"
+    recovery_state = (
+        "conflict" if classification == "conflict" else "reconciliation_required"
+    )
+    intent_sha256 = _canonical_json_sha256(intent)
+    readback_sha256 = _canonical_json_sha256(readback)
+    side_effect = {
+        "operation_id": operation_id,
+        "classification": classification,
+        "intent_sha256": intent_sha256,
+        "readback_sha256": readback_sha256,
+        "external_side_effect_count": external_side_effect_count,
+    }
+    source = str(state.get("checkpoint_phase"))
+    if source != "FAILED":
+        state["resume_checkpoint_phase"] = source
+    receipt = None
+    if source != target:
+        receipt = _append_release_transition(
+            state,
+            to_state=target,
+            event=f"release_checkpoint.{source}.{target}",
+            actor_run_id=actor_run_id,
+            reason_code=f"READBACK_{classification.upper()}",
+            evidence_refs=[intent_sha256, readback_sha256],
+            idempotency_key=_canonical_json_sha256(
+                {
+                    "operation_id": operation_id,
+                    "intent_sha256": intent_sha256,
+                    "readback_sha256": readback_sha256,
+                    "target": target,
+                }
+            ),
+            expected_revision=int(state.get("state_revision", -1)),
+            side_effect=side_effect,
+        )
+    recovery_receipt = None
+    if state.get("recovery_state") != recovery_state:
+        recovery_receipt = _append_recovery_transition(
+            state,
+            to_state=recovery_state,
+            event=f"recovery.{state.get('recovery_state')}.{recovery_state}",
+            actor_run_id=actor_run_id,
+            reason_code=f"READBACK_{classification.upper()}",
+            evidence_refs=[intent_sha256, readback_sha256],
+            idempotency_key=_canonical_json_sha256(
+                {
+                    "machine_id": "recovery",
+                    "operation_id": operation_id,
+                    "intent_sha256": intent_sha256,
+                    "readback_sha256": readback_sha256,
+                    "target": recovery_state,
+                }
+            ),
+            expected_revision=int(state.get("recovery_revision", -1)),
+        )
+    if target == "CONFLICT":
+        state["external_surface_phase"] = "conflict"
+    state["reconciliation"] = {
+        "operation_id": operation_id,
+        "classification": classification,
+        "intent_sha256": intent_sha256,
+        "readback_sha256": readback_sha256,
+        "observed_at": str(readback.get("observed_at") or _utc_now()),
+    }
+    state["updated_at"] = _utc_now()
+    return (
+        _atomic_state_write(path, state, expected_sha256=digest),
+        receipt,
+        recovery_receipt,
+    )
+
+
 def execute_current_checkpoint(
     state_path: str | os.PathLike[str],
     config: Mapping[str, Any],
@@ -5994,6 +6612,7 @@ def execute_current_checkpoint(
     if not isinstance(expected_digest, str):
         _fail("E_V240_STATE_CAS", "expected_state_sha256 is required")
     path, state, digest = _load_state_cas(state_path, expected_digest)
+    invocation_recovery_receipts: list[dict[str, Any]] = []
     _verify_frozen_git_identity(state)
     checkpoint_id = str(state.get("current_checkpoint"))
     if checkpoint_id == "CP05" and isinstance(
@@ -6046,6 +6665,44 @@ def execute_current_checkpoint(
         checkpoint["status"] = "in_progress"
         for operation in operations:
             operation["status"] = "in_progress"
+        state["updated_at"] = _utc_now()
+        digest = _atomic_state_write(path, state, expected_sha256=digest)
+    if state.get("recovery_state") == "reconciliation_required":
+        if not recover_only:
+            _fail(
+                "E_V246_RECOVERY_TRANSITION",
+                "reconciliation_required can only advance through recover",
+            )
+        reconciliation = state.get("reconciliation")
+        if not isinstance(reconciliation, Mapping):
+            _fail(
+                "E_V246_RECOVERY_TRANSITION",
+                "recovery transition lacks reconciliation evidence",
+            )
+        recovery_evidence = [
+            str(reconciliation.get("intent_sha256")),
+            str(reconciliation.get("readback_sha256")),
+        ]
+        recovery_receipt = _append_recovery_transition(
+            state,
+            to_state="recovering",
+            event="recovery.reconciliation_required.recovering",
+            actor_run_id=str(
+                _release_cfg_for_state(state).get("owner_run_id")
+            ),
+            reason_code="RECONCILIATION_STARTED",
+            evidence_refs=recovery_evidence,
+            idempotency_key=_canonical_json_sha256(
+                {
+                    "machine_id": "recovery",
+                    "operation_id": reconciliation.get("operation_id"),
+                    "event": "reconciliation_started",
+                    "evidence_refs": recovery_evidence,
+                }
+            ),
+            expected_revision=int(state.get("recovery_revision", -1)),
+        )
+        invocation_recovery_receipts.append(recovery_receipt)
         state["updated_at"] = _utc_now()
         digest = _atomic_state_write(path, state, expected_sha256=digest)
 
@@ -6360,9 +7017,32 @@ def execute_current_checkpoint(
             ):
                 _fail("E_V240_DRAFT_ASSET_IDENTITY", "downloaded asset set differs from CP10 seal")
         if readback.get("classification") != "exact":
-            _fail(
+            (
+                failure_digest,
+                terminal_receipt,
+                recovery_transition_receipt,
+            ) = _persist_terminal_release_state(
+                path,
+                state,
+                digest,
+                operation_id=operation_id,
+                intent=intent,
+                readback=readback,
+                actor_run_id=str(
+                    _release_cfg_for_state(state).get("owner_run_id")
+                ),
+                external_side_effect_count=external_effects,
+            )
+            raise PolicyError(
                 "E_V240_OPERATION_NOT_EXACT",
                 f"live state is {readback.get('classification')}: {operation_id}",
+                mutation_count=1,
+                external_side_effect_count=external_effects,
+                recovery_state=state["recovery_state"],
+                external_surface_phase=state["external_surface_phase"],
+                release_transition_receipt=terminal_receipt,
+                recovery_transition_receipt=recovery_transition_receipt,
+                state_sha256=failure_digest,
             )
         digest = _persist_operation_readback(
             path, state, checkpoint_id, index, readback, digest
@@ -6429,7 +7109,124 @@ def execute_current_checkpoint(
     _append_next_checkpoint(state, checkpoint_id, config)
     schema = _load_promotion_schema()
     phase_map = schema["x-semantic-validator"]["checkpoint_phase_after_pass"]
-    state["phase"] = phase_map[checkpoint_id]
+    target_phase = phase_map[checkpoint_id]
+    transition_evidence = [
+        str(operation["receipt_sha256"]) for operation in operations
+    ]
+    owner_run_id = str(_release_cfg_for_state(state).get("owner_run_id"))
+    transition_receipt: dict[str, Any] | None = None
+    if state.get("checkpoint_phase") == "FAILED":
+        if state.get("recovery_state") != "recovering":
+            _fail(
+                "E_V246_RECOVERY_TRANSITION",
+                "FAILED checkpoint can complete only from recovery.recovering",
+            )
+        resume_phase = state.get("resume_checkpoint_phase")
+        if not isinstance(resume_phase, str):
+            _fail(
+                "E_V246_RELEASE_TRANSITION",
+                "FAILED recovery lacks its persisted resume checkpoint phase",
+            )
+        recovered_receipt = _append_release_transition(
+            state,
+            to_state="RECOVERED",
+            event="release_checkpoint.FAILED.RECOVERED",
+            actor_run_id=owner_run_id,
+            reason_code="EXACT_READBACK_RECONCILED",
+            evidence_refs=transition_evidence,
+            idempotency_key=_canonical_json_sha256(
+                {
+                    "checkpoint": checkpoint_id,
+                    "event": "release_reconciled",
+                    "evidence_refs": transition_evidence,
+                }
+            ),
+            expected_revision=int(state["state_revision"]),
+        )
+        transition_receipt = recovered_receipt
+        if resume_phase != target_phase:
+            transition_receipt = _append_release_transition(
+                state,
+                to_state=resume_phase,
+                event=f"release_checkpoint.RECOVERED.{resume_phase}",
+                actor_run_id=owner_run_id,
+                reason_code="RECONCILIATION_RESUMED",
+                evidence_refs=transition_evidence,
+                idempotency_key=_canonical_json_sha256(
+                    {
+                        "checkpoint": checkpoint_id,
+                        "event": "release_resumed",
+                        "resume_phase": resume_phase,
+                        "evidence_refs": transition_evidence,
+                    }
+                ),
+                expected_revision=int(state["state_revision"]),
+            )
+        recovery_receipt = _append_recovery_transition(
+            state,
+            to_state="recovered",
+            event="recovery.recovering.recovered",
+            actor_run_id=owner_run_id,
+            reason_code="EXACT_READBACK_RECONCILED",
+            evidence_refs=transition_evidence,
+            idempotency_key=_canonical_json_sha256(
+                {
+                    "machine_id": "recovery",
+                    "checkpoint": checkpoint_id,
+                    "event": "recovery_reconciled",
+                    "evidence_refs": transition_evidence,
+                }
+            ),
+            expected_revision=int(state["recovery_revision"]),
+        )
+        invocation_recovery_receipts.append(recovery_receipt)
+    if state.get("checkpoint_phase") != target_phase:
+        source_phase = str(state.get("checkpoint_phase"))
+        transition_receipt = _append_release_transition(
+            state,
+            to_state=target_phase,
+            event=f"release_checkpoint.{source_phase}.{target_phase}",
+            actor_run_id=owner_run_id,
+            reason_code=f"{checkpoint_id}_EXACT_READBACK_COMPLETE",
+            evidence_refs=transition_evidence,
+            idempotency_key=_canonical_json_sha256(
+                {
+                    "checkpoint": checkpoint_id,
+                    "source_phase": source_phase,
+                    "target_phase": target_phase,
+                    "evidence_refs": transition_evidence,
+                }
+            ),
+            expected_revision=int(state["state_revision"]),
+        )
+    state["phase"] = target_phase
+    state["external_surface_phase"] = _derived_external_surface_phase(state)
+    if state.get("recovery_state") == "recovered":
+        recovery_receipt = _append_recovery_transition(
+            state,
+            to_state="none",
+            event="recovery.recovered.none",
+            actor_run_id=owner_run_id,
+            reason_code="RECOVERY_SETTLED",
+            evidence_refs=transition_evidence,
+            idempotency_key=_canonical_json_sha256(
+                {
+                    "machine_id": "recovery",
+                    "checkpoint": checkpoint_id,
+                    "event": "recovery_settled",
+                    "evidence_refs": transition_evidence,
+                }
+            ),
+            expected_revision=int(state["recovery_revision"]),
+        )
+        invocation_recovery_receipts.append(recovery_receipt)
+    elif state.get("recovery_state") != "none":
+        _fail(
+            "E_V246_RECOVERY_TRANSITION",
+            "checkpoint completion cannot bypass the recovery machine",
+        )
+    state["reconciliation"] = None
+    state["resume_checkpoint_phase"] = None
     checkpoint_number = int(checkpoint_id[2:])
     state["current_checkpoint"] = (
         "CP18" if checkpoint_number == 18 else f"CP{checkpoint_number + 1:02d}"
@@ -6442,6 +7239,11 @@ def execute_current_checkpoint(
         checkpoint=checkpoint_id,
         next_checkpoint=state["current_checkpoint"],
         phase=state["phase"],
+        checkpoint_phase=state.get("checkpoint_phase", state["phase"]),
+        external_surface_phase=state.get("external_surface_phase", "absent"),
+        recovery_state=state.get("recovery_state", "none"),
+        release_transition_receipt=transition_receipt,
+        recovery_transition_receipts=invocation_recovery_receipts,
         state_path=str(path),
         state_sha256=digest,
         mutation_count=2 + len(operations),
@@ -6652,6 +7454,9 @@ def _status_from_config(config: Mapping[str, Any]) -> dict[str, Any]:
         state_path=str(path),
         state_sha256=digest,
         phase=state["phase"],
+        checkpoint_phase=state.get("checkpoint_phase", state["phase"]),
+        external_surface_phase=state.get("external_surface_phase", "absent"),
+        recovery_state=state.get("recovery_state", "none"),
         current_checkpoint=state["current_checkpoint"],
         next_checkpoint=resume["next_checkpoint"],
         actions=resume["actions"],

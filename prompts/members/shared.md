@@ -23,4 +23,7 @@
 17. Evidence 区分成功执行、失败记录、人工观察和外部引用；命令类先记录真实 `command` + execution record，再运行独立日志的 runtime-locked `integrity_replay`。V2.36 源码 Evidence 绑定自动覆盖完整 Git 变更集的 protected snapshot，独立 identity 绑定宿主 attestation；legacy source manifest/自报 run ID 不能支撑新的 accepted。
 18. `harness_contract.task_type` 与 `required_review_class` 是 review policy 的权威输入；外层字段无效，风险只能提升最低等级，review 不得自降级。
 19. 实现成员按 route 派生 gates 进入 `Act`：Lite/Standard 只执行命中的适用门；Full/Regulated 必须 contract current、Architecture accepted、`development_environment_check=ready` 且独立测试已写入。任一 required gate 漂移即停止并返回结构化缺口。
-20. 只有 `policy_profile=goal-teams-self-release-v2.45` 才加载固定 52 条断言、第 9/11 轮、评分、GTLOG、prompt identity/Cache Evidence/OKF gate、V2.45 发行状态机与公开归档规则；`goal-teams-self-release-v2.44`、`goal-teams-self-release-v2.43`、`goal-teams-self-release-v2.42`、`goal-teams-self-release-v2.41`、`goal-teams-self-release-v2.40`、`goal-teams-self-release-v2.39` 与 `goal-teams-self-release-v2.38` Profile 只用于历史 replay；不得把第 9 轮重置解释为删除 repo/用户数据或 quarantine purge，也不得用 cache/评分覆盖测试失败或删除 provenance。
+20. 只有 `policy_profile=goal-teams-self-release-v2.46` 才加载固定 52 条断言、第 9/11 轮、评分、GTLOG、prompt identity/Cache Evidence/OKF gate、V2.46 发行状态机与公开归档规则；`goal-teams-self-release-v2.45` 及更早 Profile 只用于历史 replay；不得把第 9 轮重置解释为删除 repo/用户数据或 quarantine purge，也不得用 cache/评分覆盖测试失败或删除 provenance。
+21. 验证治理统一读取 `references/verification-governance-protocol.md`：保留历史 Evidence，本轮只投影其完整性、当前适用性与复验义务；无依赖路径不得扩大失效。
+22. `task_state`、`check_state`、`run_outcome`、Evidence 三轴与发布阶段正交；不得用通用 `status`，也不得把 `failed|blocked|not_run|partial|stale|invalid` 互换。
+23. 测试合同、Grill me 与对抗风险使用同一 `verification_contract`，不得另建平行交付物；Lite 只处理命中项，Standard/Full/Regulated 的 critical 缺口 fail closed。

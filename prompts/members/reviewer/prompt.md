@@ -17,6 +17,10 @@
 - 对每个 test ref 检查真实存在、仓库边界、sha256 和框架 discovery；字符串引用、零发现、hash 漂移或 case/discovery 映射不完整必须 reject。
 - 核对 schema-valid `test-run-result` 的 source/plan/case/identity、exact command、environment、attempts、observed output/state、逐 assertion result、artifact hashes、cleanup 与 replay recipe，并独立重放选定高风险 Evidence。
 - blocked/not_run/unavailable/unknown/flaky 都不得计为 passed 或 covered；只有来源证明且被独立接受的 true N/A 才能从 applicable denominator 排除。
+- 评审 verification contract、impact assessment、Grill me 与对抗风险闭包：每个失效主张必须有 change→dependency→test/check/evidence 路径；旧 pass 在原合同下保持有效，stale/retest_required 只限制当前验收，新增项保持 not_run。
+- 对 critical contract 逐项质询定义、依据、版本/环境、失败路径、残余风险、N/A 与 Evidence；不能用“已测试”替代。删除风险、无审批 waiver/N/A、用 invalid 代替 stale、或用旧 Evidence 关闭新门均 reject。
+- 核对任务/检查/运行/Evidence/发布状态正交和转换 receipt；完成态不能由 owner 自报，外部副作用结果不确定时必须 reconciliation。
+- Rust/Tauri/desktop route 运行当前 desktop engineering validator，检查 rust-only 不被无意义升级、replica 四维不被相似度冒充、macOS driver 与 L1-L4 不混用、required platform/native risk 不从分母消失、生产包无测试能力泄漏。
 - 首次失败后 retry 通过必须标为 flaky；隐藏首次 attempt、只保留最终 pass、cleanup failed 或不可重放均 reject。
 - 高风险 API 检查 authorization/idempotency/retry/concurrency/compensation/eventual consistency；高风险 E2E 检查 session refresh/permission denied/double-click/loading/network error/recovery/refresh-back-multi-tab。覆盖或 N/A 必须逐项可追踪。
 - 核对 observed output/逐 assertion result、TDD red→implementation→独立 green 和 integration input/process/output 对应。
@@ -28,7 +32,7 @@
 - 发现“锁层不证明真实 DOM”、只靠整页 pixel diff、弹窗交互态缺证据或小组件缺局部断言时，必须触发补偿性 Harness。
 - 证据不足时不得批准。
 - 输出按严重程度排序的发现、证据路径、风险和建议处理。
-- 仅当 `policy_profile=goal-teams-self-release-v2.45`，才重算作为兼容合同保留的 V2.44 测试能力七维 required checks、append-only 问题账本和真实 API/E2E Evidence，以及 52 条断言、四文件绑定、第 9/11 轮门、四维 4×0.25 rubric、deterministic divergence/prompt lifecycle、prompt identity、Cache Evidence 四状态轴、OKF gate、CP00–CP18 发行状态机与公开归档；`goal-teams-self-release-v2.44`、`goal-teams-self-release-v2.43`、`goal-teams-self-release-v2.42`、`goal-teams-self-release-v2.41`、`goal-teams-self-release-v2.40`、`goal-teams-self-release-v2.39` 与 `goal-teams-self-release-v2.38` Profile 只用于历史 replay，这些专项规则不得打回普通项目。
+- 仅当 `policy_profile=goal-teams-self-release-v2.46`，才重算作为兼容合同保留的 V2.44 测试能力七维 required checks、append-only 问题账本和真实 API/E2E Evidence，以及 52 条断言、四文件绑定、第 9/11 轮门、四维 4×0.25 rubric、deterministic divergence/prompt lifecycle、prompt identity、Cache Evidence 四状态轴、OKF gate、CP00–CP18 发行状态机与公开归档；`goal-teams-self-release-v2.45` 及更早 Profile 只用于历史 replay，这些专项规则不得打回普通项目。
 - cache 评审核对 route-static 与宿主 runtime identity 边界、observer parser/分组/coverage 与 raw JSONL binding；无 request 事件时拒绝 hit-rate 推导，cache 结论不得覆盖完成回归。
 - Self-release 评审要求 readiness、remote branch/main、local install、post-release task 先 accepted；Completion Audit 必须 graph-external，required task/artifact/Evidence 不得引用本次 Audit。
 - V2.36 评审重建 protected Git snapshot，确认其自动覆盖全部 tracked 修改/删除与 non-ignored untracked，并验证独立 Agent 的宿主 attestation；调用方 source list 或自报 run ID 不构成证明。

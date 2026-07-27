@@ -1,0 +1,880 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.46/desktop-engineering.schema.json",
+  "title": "Goal Teams V2.46 Rust/Tauri Desktop Engineering Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "bundle_id",
+    "revision",
+    "profile",
+    "project_id",
+    "generated_at",
+    "route",
+    "source_contract",
+    "ui_replica_contract",
+    "rust_backend_contract",
+    "desktop_test_contract",
+    "roles",
+    "decision"
+  ],
+  "properties": {
+    "schema_version": {"const": "goal-teams-desktop-engineering-v2.46"},
+    "bundle_id": {"$ref": "#/$defs/id"},
+    "revision": {"type": "integer", "minimum": 1},
+    "profile": {"enum": ["lite", "standard", "full", "regulated"]},
+    "project_id": {"$ref": "#/$defs/id"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "route": {"$ref": "#/$defs/route"},
+    "source_contract": {
+      "oneOf": [
+        {"$ref": "#/$defs/sourceContract"},
+        {"type": "null"}
+      ]
+    },
+    "ui_replica_contract": {
+      "oneOf": [
+        {"$ref": "#/$defs/uiReplicaContract"},
+        {"type": "null"}
+      ]
+    },
+    "rust_backend_contract": {"$ref": "#/$defs/rustBackendContract"},
+    "desktop_test_contract": {
+      "oneOf": [
+        {"$ref": "#/$defs/desktopTestContract"},
+        {"type": "null"}
+      ]
+    },
+    "roles": {"$ref": "#/$defs/roles"},
+    "decision": {"$ref": "#/$defs/decision"}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "route": {
+            "properties": {"desktop": {"const": true}}
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "source_contract": {"$ref": "#/$defs/sourceContract"},
+          "desktop_test_contract": {"$ref": "#/$defs/desktopTestContract"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "route": {
+            "properties": {"tauri": {"const": true}}
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "source_contract": {"$ref": "#/$defs/sourceContract"},
+          "desktop_test_contract": {"$ref": "#/$defs/desktopTestContract"},
+          "rust_backend_contract": {
+            "allOf": [
+              {"$ref": "#/$defs/rustBackendContract"},
+              {
+                "required": ["ipc_commands"],
+                "properties": {
+                  "ipc_commands": {"type": "array", "minItems": 1}
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "route": {
+            "properties": {"replica": {"const": true}}
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "source_contract": {"$ref": "#/$defs/sourceContract"},
+          "ui_replica_contract": {"$ref": "#/$defs/uiReplicaContract"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "route": {
+            "properties": {"prd_only": {"const": true}}
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "source_contract": {
+            "allOf": [
+              {"$ref": "#/$defs/sourceContract"},
+              {"properties": {"mode": {"const": "prd_only"}}}
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@+-]*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "artifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+        },
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "evidenceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_id",
+        "level",
+        "artifact",
+        "code_revision",
+        "contract_revision",
+        "environment_id",
+        "evidence_type",
+        "result",
+        "producer_run_id",
+        "reviewer_run_id",
+        "subject_id",
+        "command",
+        "tuple_id",
+        "assertion_ids"
+      ],
+      "properties": {
+        "evidence_id": {"$ref": "#/$defs/id"},
+        "level": {"enum": ["L1", "L2", "L3", "L4"]},
+        "artifact": {"$ref": "#/$defs/artifactRef"},
+        "code_revision": {"$ref": "#/$defs/sha256"},
+        "contract_revision": {"type": "integer", "minimum": 1},
+        "environment_id": {"$ref": "#/$defs/id"},
+        "evidence_type": {
+          "enum": [
+            "rust_gate",
+            "desktop_run",
+            "coverage_metric",
+            "pixel_metric",
+            "high_fidelity_metric",
+            "native_metric",
+            "production_isolation"
+          ]
+        },
+        "result": {"enum": ["passed", "failed"]},
+        "producer_run_id": {"$ref": "#/$defs/id"},
+        "reviewer_run_id": {"$ref": "#/$defs/id"},
+        "subject_id": {"$ref": "#/$defs/id"},
+        "command": {
+          "oneOf": [{"type": "string", "minLength": 1}, {"type": "null"}]
+        },
+        "tuple_id": {
+          "oneOf": [{"$ref": "#/$defs/id"}, {"type": "null"}]
+        },
+        "assertion_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/id"}
+        }
+      }
+    },
+    "route": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "desktop",
+        "tauri",
+        "rust",
+        "desktop_package",
+        "native_surface",
+        "cross_platform_desktop_test",
+        "replica",
+        "prd_only"
+      ],
+      "properties": {
+        "desktop": {"type": "boolean"},
+        "tauri": {"type": "boolean"},
+        "rust": {"const": true},
+        "desktop_package": {"type": "boolean"},
+        "native_surface": {"type": "boolean"},
+        "cross_platform_desktop_test": {"type": "boolean"},
+        "replica": {"type": "boolean"},
+        "prd_only": {"type": "boolean"}
+      }
+    },
+    "baselineApproval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "approval_id",
+        "artifact",
+        "author_run_id",
+        "reviewer_run_id",
+        "decision"
+      ],
+      "properties": {
+        "approval_id": {"$ref": "#/$defs/id"},
+        "artifact": {"$ref": "#/$defs/artifactRef"},
+        "author_run_id": {"$ref": "#/$defs/id"},
+        "reviewer_run_id": {"$ref": "#/$defs/id"},
+        "decision": {"enum": ["approved", "rejected", "pending"]}
+      }
+    },
+    "sourceContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "prd_ref",
+        "source_inventory_ref",
+        "window_spec_ref",
+        "html_prototype_ref",
+        "baseline_approval",
+        "route_revision"
+      ],
+      "properties": {
+        "mode": {"enum": ["prototype", "prd_only"]},
+        "prd_ref": {
+          "oneOf": [
+            {"$ref": "#/$defs/artifactRef"},
+            {"type": "null"}
+          ]
+        },
+        "source_inventory_ref": {"$ref": "#/$defs/artifactRef"},
+        "window_spec_ref": {"$ref": "#/$defs/artifactRef"},
+        "html_prototype_ref": {"$ref": "#/$defs/artifactRef"},
+        "baseline_approval": {"$ref": "#/$defs/baselineApproval"},
+        "route_revision": {"enum": ["specification", "prototype", "replica"]}
+      }
+    },
+    "platformTuple": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tuple_id",
+        "os",
+        "os_version",
+        "architecture",
+        "webview",
+        "webview_version",
+        "package_format",
+        "display_server",
+        "theme",
+        "locale",
+        "scale_factor",
+        "required"
+      ],
+      "properties": {
+        "tuple_id": {"$ref": "#/$defs/id"},
+        "os": {"enum": ["macos", "windows", "linux"]},
+        "os_version": {"$ref": "#/$defs/id"},
+        "architecture": {"enum": ["x86_64", "aarch64"]},
+        "webview": {"enum": ["wkwebview", "webview2", "webkitgtk"]},
+        "webview_version": {"$ref": "#/$defs/id"},
+        "package_format": {
+          "enum": ["app", "dmg", "pkg", "msi", "nsis", "deb", "rpm", "appimage"]
+        },
+        "display_server": {"enum": ["quartz", "win32", "x11", "wayland"]},
+        "theme": {"enum": ["light", "dark", "system"]},
+        "locale": {"$ref": "#/$defs/id"},
+        "scale_factor": {"type": "number", "exclusiveMinimum": 0},
+        "required": {"type": "boolean"}
+      }
+    },
+    "coverageMetric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["denominator", "covered", "state", "evidence"],
+      "properties": {
+        "denominator": {"type": "integer", "minimum": 1},
+        "covered": {"type": "integer", "minimum": 0},
+        "state": {"enum": ["passed", "failed", "blocked", "not_run"]},
+        "evidence": {"$ref": "#/$defs/evidenceRef"}
+      }
+    },
+    "pixelMetric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tuple_id",
+        "changed_pixels",
+        "tolerance",
+        "mask_count",
+        "state",
+        "evidence"
+      ],
+      "properties": {
+        "tuple_id": {"$ref": "#/$defs/id"},
+        "changed_pixels": {"type": "integer", "minimum": 0},
+        "tolerance": {"type": "number", "minimum": 0},
+        "mask_count": {"type": "integer", "minimum": 0},
+        "state": {"enum": ["passed", "failed", "blocked", "not_run"]},
+        "evidence": {"$ref": "#/$defs/evidenceRef"}
+      }
+    },
+    "fidelityMetric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tuple_id",
+        "algorithm",
+        "approved_threshold",
+        "actual_score",
+        "state",
+        "diff_artifact",
+        "evidence"
+      ],
+      "properties": {
+        "tuple_id": {"$ref": "#/$defs/id"},
+        "algorithm": {"$ref": "#/$defs/id"},
+        "approved_threshold": {"type": "number", "minimum": 0, "maximum": 1},
+        "actual_score": {"type": "number", "minimum": 0, "maximum": 1},
+        "state": {"enum": ["passed", "failed", "blocked", "not_run"]},
+        "diff_artifact": {"$ref": "#/$defs/artifactRef"},
+        "evidence": {"$ref": "#/$defs/evidenceRef"}
+      }
+    },
+    "nativeMetric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["denominator", "passed", "state", "evidence"],
+      "properties": {
+        "denominator": {"type": "integer", "minimum": 1},
+        "passed": {"type": "integer", "minimum": 0},
+        "state": {"enum": ["passed", "failed", "blocked", "not_run"]},
+        "evidence": {"$ref": "#/$defs/evidenceRef"}
+      }
+    },
+    "surface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["surface_id", "kind", "required", "state_ids"],
+      "properties": {
+        "surface_id": {"$ref": "#/$defs/id"},
+        "kind": {
+          "enum": [
+            "window",
+            "page",
+            "component",
+            "menu",
+            "tray",
+            "dialog",
+            "notification"
+          ]
+        },
+        "required": {"type": "boolean"},
+        "state_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/id"}
+        }
+      }
+    },
+    "uiReplicaContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "surfaces",
+        "coverage_complete",
+        "pixel_exact",
+        "high_fidelity",
+        "native_semantic_match"
+      ],
+      "properties": {
+        "surfaces": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/surface"}
+        },
+        "coverage_complete": {"$ref": "#/$defs/coverageMetric"},
+        "pixel_exact": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/pixelMetric"}
+        },
+        "high_fidelity": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/fidelityMetric"}
+        },
+        "native_semantic_match": {"$ref": "#/$defs/nativeMetric"}
+      }
+    },
+    "crateNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node_id", "layer"],
+      "properties": {
+        "node_id": {"$ref": "#/$defs/id"},
+        "layer": {
+          "enum": [
+            "domain",
+            "application",
+            "infrastructure",
+            "tauri_adapter",
+            "composition_root"
+          ]
+        }
+      }
+    },
+    "crateEdge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to"],
+      "properties": {
+        "from": {"$ref": "#/$defs/id"},
+        "to": {"$ref": "#/$defs/id"}
+      }
+    },
+    "ipcCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_id",
+        "input_type",
+        "output_type",
+        "error_type",
+        "authorization_policy",
+        "validation_rules",
+        "timeout_policy",
+        "cancellation_policy",
+        "application_delegate"
+      ],
+      "properties": {
+        "command_id": {"$ref": "#/$defs/id"},
+        "input_type": {"$ref": "#/$defs/id"},
+        "output_type": {"$ref": "#/$defs/id"},
+        "error_type": {"$ref": "#/$defs/id"},
+        "authorization_policy": {"$ref": "#/$defs/id"},
+        "validation_rules": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/id"}
+        },
+        "timeout_policy": {"$ref": "#/$defs/id"},
+        "cancellation_policy": {"$ref": "#/$defs/id"},
+        "application_delegate": {"$ref": "#/$defs/id"}
+      }
+    },
+    "rustGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gate_id", "command", "state", "evidence"],
+      "properties": {
+        "gate_id": {
+          "enum": [
+            "fmt",
+            "clippy",
+            "test",
+            "dependency_security",
+            "feature_matrix",
+            "target_build",
+            "migration_recovery"
+          ]
+        },
+        "command": {"type": "string", "minLength": 1},
+        "state": {
+          "enum": [
+            "passed",
+            "failed",
+            "blocked",
+            "not_run",
+            "flaky",
+            "unavailable",
+            "not_applicable"
+          ]
+        },
+        "evidence": {
+          "oneOf": [
+            {"$ref": "#/$defs/evidenceRef"},
+            {"type": "null"}
+          ]
+        }
+      }
+    },
+    "rustApplicabilityApproval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason", "artifact", "approver_run_id"],
+      "properties": {
+        "reason": {"type": "string", "minLength": 1},
+        "artifact": {"$ref": "#/$defs/artifactRef"},
+        "approver_run_id": {"$ref": "#/$defs/id"}
+      }
+    },
+    "asyncContract": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "applicable",
+            "ownership",
+            "cancellation",
+            "timeouts",
+            "shutdown",
+            "blocking_isolation"
+          ],
+          "properties": {
+            "applicable": {"const": true},
+            "ownership": {"const": true},
+            "cancellation": {"const": true},
+            "timeouts": {"const": true},
+            "shutdown": {"const": true},
+            "blocking_isolation": {"const": true}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["applicable", "na_approval"],
+          "properties": {
+            "applicable": {"const": false},
+            "na_approval": {
+              "$ref": "#/$defs/rustApplicabilityApproval"
+            }
+          }
+        }
+      ]
+    },
+    "persistenceContract": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "applicable",
+            "schema_versioned",
+            "migration_tested",
+            "atomicity_defined",
+            "crash_recovery_tested",
+            "idempotency_defined"
+          ],
+          "properties": {
+            "applicable": {"const": true},
+            "schema_versioned": {"const": true},
+            "migration_tested": {"const": true},
+            "atomicity_defined": {"const": true},
+            "crash_recovery_tested": {"const": true},
+            "idempotency_defined": {"const": true}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["applicable", "na_approval"],
+          "properties": {
+            "applicable": {"const": false},
+            "na_approval": {
+              "$ref": "#/$defs/rustApplicabilityApproval"
+            }
+          }
+        }
+      ]
+    },
+    "rustBackendContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "crate_nodes",
+        "crate_edges",
+        "recoverable_error_type",
+        "panic_policy",
+        "async_contract",
+        "persistence_contract",
+        "security_contract",
+        "toolchain",
+        "gates"
+      ],
+      "properties": {
+        "crate_nodes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/crateNode"}
+        },
+        "crate_edges": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/crateEdge"}
+        },
+        "ipc_commands": {
+          "oneOf": [
+            {
+              "type": "array",
+              "items": {"$ref": "#/$defs/ipcCommand"}
+            },
+            {"type": "null"}
+          ]
+        },
+        "recoverable_error_type": {"$ref": "#/$defs/id"},
+        "panic_policy": {"enum": ["invariant_only", "forbidden"]},
+        "async_contract": {"$ref": "#/$defs/asyncContract"},
+        "persistence_contract": {"$ref": "#/$defs/persistenceContract"},
+        "security_contract": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "least_privilege_capabilities",
+            "deny_paths_tested",
+            "input_limits_defined",
+            "sensitive_log_redaction"
+          ],
+          "properties": {
+            "least_privilege_capabilities": {"const": true},
+            "deny_paths_tested": {"type": "boolean"},
+            "input_limits_defined": {"const": true},
+            "sensitive_log_redaction": {"const": true}
+          }
+        },
+        "toolchain": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["channel", "rust_version", "msrv", "lockfile_sha256"],
+          "properties": {
+            "channel": {"enum": ["stable", "beta", "nightly", "pinned"]},
+            "rust_version": {"$ref": "#/$defs/id"},
+            "msrv": {"$ref": "#/$defs/id"},
+            "lockfile_sha256": {"$ref": "#/$defs/sha256"}
+          }
+        },
+        "gates": {
+          "type": "array",
+          "minItems": 4,
+          "items": {"$ref": "#/$defs/rustGate"}
+        }
+      }
+    },
+    "desktopCase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "risk_id",
+        "capability",
+        "required",
+        "minimum_evidence_level",
+        "input",
+        "processing",
+        "expected_output",
+        "assertions",
+        "na_approval"
+      ],
+      "properties": {
+        "case_id": {"$ref": "#/$defs/id"},
+        "risk_id": {"$ref": "#/$defs/id"},
+        "capability": {"$ref": "#/$defs/id"},
+        "required": {"type": "boolean"},
+        "minimum_evidence_level": {"enum": ["L1", "L2", "L3", "L4"]},
+        "input": {"type": "object", "minProperties": 1},
+        "processing": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "expected_output": {"type": "object", "minProperties": 1},
+        "assertions": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "na_approval": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["reason", "artifact", "approver_run_id"],
+              "properties": {
+                "reason": {"type": "string", "minLength": 1},
+                "artifact": {"$ref": "#/$defs/artifactRef"},
+                "approver_run_id": {"$ref": "#/$defs/id"}
+              }
+            },
+            {"type": "null"}
+          ]
+        }
+      }
+    },
+    "desktopRun": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "case_id",
+        "tuple_id",
+        "driver",
+        "evidence_level",
+        "status",
+        "evidence",
+        "runner_run_id",
+        "reviewer_run_id"
+      ],
+      "properties": {
+        "run_id": {"$ref": "#/$defs/id"},
+        "case_id": {"$ref": "#/$defs/id"},
+        "tuple_id": {"$ref": "#/$defs/id"},
+        "driver": {
+          "enum": [
+            "@wdio/tauri-service:embedded",
+            "@wdio/tauri-service:external",
+            "tauri-driver:direct",
+            "approved_native_accessibility_harness",
+            "mock_runtime",
+            "browser_only"
+          ]
+        },
+        "evidence_level": {"enum": ["L1", "L2", "L3", "L4"]},
+        "status": {
+          "enum": [
+            "passed",
+            "failed",
+            "blocked",
+            "not_run",
+            "flaky",
+            "unavailable",
+            "not_applicable"
+          ]
+        },
+        "evidence": {
+          "oneOf": [
+            {"$ref": "#/$defs/evidenceRef"},
+            {"type": "null"}
+          ]
+        },
+        "runner_run_id": {"$ref": "#/$defs/id"},
+        "reviewer_run_id": {"$ref": "#/$defs/id"}
+      }
+    },
+    "productionIsolation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "test_plugin_absent",
+        "debug_port_absent",
+        "mock_hook_absent",
+        "broad_test_capability_absent",
+        "state",
+        "evidence"
+      ],
+      "properties": {
+        "test_plugin_absent": {"type": "boolean"},
+        "debug_port_absent": {"type": "boolean"},
+        "mock_hook_absent": {"type": "boolean"},
+        "broad_test_capability_absent": {"type": "boolean"},
+        "state": {
+          "enum": ["passed", "failed", "blocked", "not_run", "unavailable"]
+        },
+        "evidence": {"$ref": "#/$defs/evidenceRef"}
+      }
+    },
+    "desktopTestContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "platform_denominator",
+        "required_evidence_levels",
+        "cases",
+        "runs",
+        "production_isolation"
+      ],
+      "properties": {
+        "platform_denominator": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/platformTuple"}
+        },
+        "required_evidence_levels": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"enum": ["L1", "L2", "L3", "L4"]}
+        },
+        "cases": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/desktopCase"}
+        },
+        "runs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/desktopRun"}
+        },
+        "production_isolation": {"$ref": "#/$defs/productionIsolation"}
+      }
+    },
+    "roles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "implementer_run_id",
+        "test_designer_run_id",
+        "test_runner_run_id",
+        "reviewer_run_id",
+        "qa_run_id",
+        "completion_auditor_run_id"
+      ],
+      "properties": {
+        "implementer_run_id": {"$ref": "#/$defs/id"},
+        "test_designer_run_id": {"$ref": "#/$defs/id"},
+        "test_runner_run_id": {"$ref": "#/$defs/id"},
+        "reviewer_run_id": {"$ref": "#/$defs/id"},
+        "qa_run_id": {
+          "oneOf": [{"$ref": "#/$defs/id"}, {"type": "null"}]
+        },
+        "completion_auditor_run_id": {
+          "oneOf": [{"$ref": "#/$defs/id"}, {"type": "null"}]
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "run_outcome",
+        "contract_achieved",
+        "reason_codes",
+        "qa_review_ref",
+        "completion_audit_ref"
+      ],
+      "properties": {
+        "run_outcome": {
+          "enum": ["achieved", "partial", "failed", "blocked", "not_run"]
+        },
+        "contract_achieved": {"type": "boolean"},
+        "reason_codes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/id"}
+        },
+        "qa_review_ref": {
+          "oneOf": [
+            {"$ref": "#/$defs/artifactRef"},
+            {"type": "null"}
+          ]
+        },
+        "completion_audit_ref": {
+          "oneOf": [
+            {"$ref": "#/$defs/artifactRef"},
+            {"type": "null"}
+          ]
+        }
+      }
+    }
+  }
+}
