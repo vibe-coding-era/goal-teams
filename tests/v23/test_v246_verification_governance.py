@@ -33,6 +33,7 @@ V244_VALIDATOR_PATH = (
 )
 RELEASE_SCHEMA_PATH = ROOT / "schemas" / "release-promotion-state.schema.json"
 RELEASE_RUNTIME_PATH = ROOT / "scripts" / "release" / "release.py"
+TEMP_ROOT = ROOT / "tests"
 
 
 def _load_module(name: str, path: Path) -> Any:
@@ -58,9 +59,7 @@ class V246VerificationGovernanceTests(unittest.TestCase):
             "_goalteams_v246_release_state_runtime",
             RELEASE_RUNTIME_PATH,
         )
-        cls.receipt_directory = tempfile.TemporaryDirectory(
-            dir=ROOT / "docs"
-        )
+        cls.receipt_directory = tempfile.TemporaryDirectory(dir=TEMP_ROOT)
         cls.receipt_root = Path(cls.receipt_directory.name)
         acceptance_evidence_ids = ["EV-HISTORICAL-PASS-1"]
         predicates = {
@@ -101,6 +100,17 @@ class V246VerificationGovernanceTests(unittest.TestCase):
     @classmethod
     def tearDownClass(cls) -> None:
         cls.receipt_directory.cleanup()
+
+    def test_v246_tests_do_not_require_ignored_docs_directory(self) -> None:
+        ignored_docs_temp_root = "dir=ROOT" + ' / "docs"'
+        for name in (
+            "test_v246_verification_governance.py",
+            "test_v246_desktop_engineering.py",
+        ):
+            source = (ROOT / "tests" / "v23" / name).read_text(
+                encoding="utf-8"
+            )
+            self.assertNotIn(ignored_docs_temp_root, source)
 
     @classmethod
     def _write_receipt_artifact(
@@ -582,7 +592,7 @@ class V246VerificationGovernanceTests(unittest.TestCase):
             "V246-PREVIOUS-BUNDLE-HISTORY-DELETION"
         )
         previous = copy.deepcopy(self.fixtures["base_document"])
-        with tempfile.TemporaryDirectory(dir=ROOT / "docs") as directory:
+        with tempfile.TemporaryDirectory(dir=TEMP_ROOT) as directory:
             previous_path = Path(directory) / "previous-bundle.json"
             previous_path.write_text(
                 json.dumps(
@@ -630,7 +640,7 @@ class V246VerificationGovernanceTests(unittest.TestCase):
             ),
         }
         previous = copy.deepcopy(self.fixtures["base_document"])
-        with tempfile.TemporaryDirectory(dir=ROOT / "docs") as directory:
+        with tempfile.TemporaryDirectory(dir=TEMP_ROOT) as directory:
             previous_path = Path(directory) / "previous-bundle.json"
             previous_path.write_text(
                 json.dumps(
@@ -1159,7 +1169,7 @@ class V246VerificationGovernanceTests(unittest.TestCase):
             ("conflict", "CONFLICT", "conflict"),
         ):
             with self.subTest(classification=classification), tempfile.TemporaryDirectory(
-                dir=ROOT / "docs"
+                dir=TEMP_ROOT
             ) as directory:
                 path = Path(directory) / "promotion-state.json"
                 state = copy.deepcopy(base)

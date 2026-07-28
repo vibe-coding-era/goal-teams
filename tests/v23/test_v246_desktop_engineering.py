@@ -23,6 +23,7 @@ FIXTURE_PATH = (
     / "v246"
     / "desktop-engineering-cases.json"
 )
+TEMP_ROOT = ROOT / "tests"
 
 
 def _load_module(name: str, path: Path) -> Any:
@@ -45,7 +46,7 @@ class V246DesktopEngineeringTests(unittest.TestCase):
         cls.fixtures = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
         cls.manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
         cls.schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
-        cls.artifact_directory = tempfile.TemporaryDirectory(dir=ROOT / "docs")
+        cls.artifact_directory = tempfile.TemporaryDirectory(dir=TEMP_ROOT)
         cls.artifact_root = Path(cls.artifact_directory.name)
         cls._hydrate_typed_artifacts(cls.fixtures["base_document"])
         cls.trusted_subject_binding = cls._build_subject_binding(
