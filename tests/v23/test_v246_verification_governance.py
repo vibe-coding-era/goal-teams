@@ -34,6 +34,7 @@ V244_VALIDATOR_PATH = (
 RELEASE_SCHEMA_PATH = ROOT / "schemas" / "release-promotion-state.schema.json"
 RELEASE_RUNTIME_PATH = ROOT / "scripts" / "release" / "release.py"
 TEMP_ROOT = ROOT / "tests"
+RELEASE_STATE_TEMP_ROOT = ROOT / "develops"
 
 
 def _load_module(name: str, path: Path) -> Any:
@@ -59,6 +60,10 @@ class V246VerificationGovernanceTests(unittest.TestCase):
             "_goalteams_v246_release_state_runtime",
             RELEASE_RUNTIME_PATH,
         )
+        cls.release_state_temp_root_preexisting = (
+            RELEASE_STATE_TEMP_ROOT.exists()
+        )
+        RELEASE_STATE_TEMP_ROOT.mkdir(exist_ok=True)
         cls.receipt_directory = tempfile.TemporaryDirectory(dir=TEMP_ROOT)
         cls.receipt_root = Path(cls.receipt_directory.name)
         acceptance_evidence_ids = ["EV-HISTORICAL-PASS-1"]
@@ -100,6 +105,8 @@ class V246VerificationGovernanceTests(unittest.TestCase):
     @classmethod
     def tearDownClass(cls) -> None:
         cls.receipt_directory.cleanup()
+        if not cls.release_state_temp_root_preexisting:
+            RELEASE_STATE_TEMP_ROOT.rmdir()
 
     def test_v246_tests_do_not_require_ignored_docs_directory(self) -> None:
         ignored_docs_temp_root = "dir=ROOT" + ' / "docs"'
@@ -1169,7 +1176,7 @@ class V246VerificationGovernanceTests(unittest.TestCase):
             ("conflict", "CONFLICT", "conflict"),
         ):
             with self.subTest(classification=classification), tempfile.TemporaryDirectory(
-                dir=TEMP_ROOT
+                dir=RELEASE_STATE_TEMP_ROOT
             ) as directory:
                 path = Path(directory) / "promotion-state.json"
                 state = copy.deepcopy(base)
