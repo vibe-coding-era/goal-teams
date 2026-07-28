@@ -44,7 +44,13 @@ if [[ -z "$PYTHON_BIN" ]]; then
 fi
 
 "$PYTHON_BIN" scripts/checks/validate.py
-"$PYTHON_BIN" scripts/checks/check-version-sync.py --mode candidate
+PRODUCT_VERSION="$(<VERSION)"
+PUBLISHED_VERSION="$("$PYTHON_BIN" -c 'import json; print(json.load(open("release/current/manifest.json", encoding="utf-8"))["product_version"])')"
+if [[ "$PRODUCT_VERSION" == "$PUBLISHED_VERSION" ]]; then
+  "$PYTHON_BIN" scripts/checks/check-version-sync.py --mode candidate
+else
+  "$PYTHON_BIN" scripts/checks/check-version-sync.py --mode development --published-version "$PUBLISHED_VERSION"
+fi
 "$PYTHON_BIN" scripts/checks/check-v241-flow.py
 "$PYTHON_BIN" scripts/checks/check-workspace-boundaries.py
 "$PYTHON_BIN" scripts/checks/check-routing-fixtures.py
@@ -65,6 +71,9 @@ fi
 "$PYTHON_BIN" scripts/checks/validate-test-case-contract.py --self-test
 "$PYTHON_BIN" scripts/checks/validate-verification-governance.py --self-test
 "$PYTHON_BIN" scripts/checks/validate-desktop-engineering.py --self-test
+"$PYTHON_BIN" scripts/checks/validate-v247-flow-test-strategy.py
+"$PYTHON_BIN" scripts/checks/validate-v247-codeagent-runtime.py
+"$PYTHON_BIN" scripts/checks/validate-v247-incremental-document.py
 if [[ -f .github/workflows/check.yml ]]; then
   "$PYTHON_BIN" scripts/checks/check-ci-pins.py
 fi

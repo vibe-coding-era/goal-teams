@@ -1,0 +1,87 @@
+{
+  "schema_version": "goal-teams-incremental-document-v2.47",
+  "product_version": "V2.47",
+  "schema": "schemas/v2.47/incremental-document.schema.json",
+  "validator": "scripts/checks/validate-v247-incremental-document.py",
+  "operations": ["append", "replace_section", "tombstone"],
+  "ordering": ["base_revision", "new_revision", "fragment_id"],
+  "stable_prefix_encoding": "canonical-json-utf8",
+  "runtime_integration_state": "contract_p0_not_runtime_integrated",
+  "p0_projection_fixture": {
+    "document_id": "DOC-V247-P0",
+    "stable_prefix": ["contract-v2.47", "normal-rules"],
+    "stable_prefix_sha256": "b9d9191d26100bf42328301a80a27f8e9b463c9f902f564506bfdd8da79c4156",
+    "dynamic_tail_a": ["task-a", "state-running"],
+    "dynamic_tail_b": ["task-b", "state-accepted"],
+    "fragments": [
+      {
+        "document_id": "DOC-V247-P0",
+        "fragment_id": "R1",
+        "base_revision": 0,
+        "new_revision": 1,
+        "section_id": "intro",
+        "operation": "append",
+        "content_ref": "fixtures/R1",
+        "content": "# Intro\n",
+        "content_sha256": "2a8a06bbb4a42eee60f35e2c6eacb1c3bbe0f8748817d1547a59692784b53c33",
+        "actor_run_id": "RUN-V247-DOC-P0",
+        "created_at": "2026-07-28T00:00:01+08:00"
+      },
+      {
+        "document_id": "DOC-V247-P0",
+        "fragment_id": "R2",
+        "base_revision": 1,
+        "new_revision": 2,
+        "section_id": "goal",
+        "operation": "append",
+        "content_ref": "fixtures/R2",
+        "content": "Goal\n",
+        "content_sha256": "22efdbbccda15c3da0ddcdbc34dd6ce063ff2311fcf594ab7ee2d11f9816a58f",
+        "actor_run_id": "RUN-V247-DOC-P0",
+        "created_at": "2026-07-28T00:00:02+08:00"
+      },
+      {
+        "document_id": "DOC-V247-P0",
+        "fragment_id": "R3",
+        "base_revision": 2,
+        "new_revision": 3,
+        "section_id": "goal",
+        "operation": "replace_section",
+        "content_ref": "fixtures/R3",
+        "content": "Updated goal\n",
+        "content_sha256": "8482c48ba3df0c57c0a944b80cd79710e68d2f44eed3a61510c4e34ce6305387",
+        "actor_run_id": "RUN-V247-DOC-P0",
+        "created_at": "2026-07-28T00:00:03+08:00"
+      },
+      {
+        "document_id": "DOC-V247-P0",
+        "fragment_id": "R4",
+        "base_revision": 3,
+        "new_revision": 4,
+        "section_id": "goal",
+        "operation": "tombstone",
+        "content_ref": "fixtures/R4",
+        "content": "",
+        "content_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "actor_run_id": "RUN-V247-DOC-P0",
+        "created_at": "2026-07-28T00:00:04+08:00"
+      },
+      {
+        "document_id": "DOC-V247-P0",
+        "fragment_id": "R5",
+        "base_revision": 4,
+        "new_revision": 5,
+        "section_id": "goal",
+        "operation": "append",
+        "content_ref": "fixtures/R5",
+        "content": "Final goal\n",
+        "content_sha256": "f46c0f9cd1a3a5a6ae3e0429fbe7e742e9088f49fc284ca634ddc944ae53bda6",
+        "actor_run_id": "RUN-V247-DOC-P0",
+        "created_at": "2026-07-28T00:00:05+08:00"
+      }
+    ],
+    "expected_projection": "# Intro\nFinal goal\n",
+    "expected_projection_sha256": "e7495b82ca2dba99bc553d54bd9ddf9cb7221840572134fe3bc14ddb9d1da12f",
+    "expected_revision": 5
+  }
+}

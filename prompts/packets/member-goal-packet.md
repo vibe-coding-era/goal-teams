@@ -58,6 +58,10 @@ Member Goal Packet（成员目标包）:
 - selected_flow_nodes: {已确认保留的流程节点和裁剪理由}
 - runtime_capability_ref: references/agent-runtime-capability-contract.md
 - runtime_capability_result: {runtime_id、可用能力、降级或 blocked 原因}
+- runtime_profile_manifest_ref: references/codeagent-runtime-manifest.json
+- runtime_profile_ref: {Portable Core 正常规则 + 当前宿主特殊规则；未知时 blocked}
+- flow_test_strategy_ref: references/flow-test-strategy-manifest.json
+- incremental_document_protocol_ref: references/incremental-document-ssot-protocol.md
 - lane_or_deliverable:
 - handoff_artifacts:
   - schema_version: goal-teams-v2.3
@@ -159,6 +163,10 @@ Member Goal Packet（成员目标包）:
   - e2e_test_designer: goal_e2e_test_designer
   - e2e_test_runner: goal_e2e_test_runner
 - stop_conditions:
+- discovered_scope_change:
+  - proposal_only: true
+  - required_task_creation_forbidden: true
+  - dispatch_forbidden_until_user_selection: true
 - output_contract:
   - Doc Capsules
   - plan
@@ -173,6 +181,8 @@ Member Goal Packet（成员目标包）:
   - team-state updates
   - completion status
   - 阻塞和风险
+  - 过程文档增量 fragments（不得双写最终投影）
+  - scope_change_proposal（如有；不得执行）
 ```
 
 稳定合同到此结束。`scripts/v23/prompt_compilers.py` 是本模板的 canonical serializer；字段顺序只从 `references/prompt-cache-manifest.json` 的 `artifact_compilers.member_goal_packet` 读取。编译必须对 marker 之前的真实 UTF-8 bytes、canonical dynamic assignment bytes 和最终 combined packet bytes 分别产出 `stable_prefix_sha256`、`dynamic_assignment_sha256`、`combined_packet_sha256`。combined digest 只写 sidecar metadata，避免自引用。旧 packet 可映射到下方动态块，但旧格式缺失的三项 digest 必须标记 `legacy/unavailable`；迁移后的新产物只能对实际新 bytes 重算 digest，不得伪造旧 digest。

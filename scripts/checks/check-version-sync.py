@@ -37,6 +37,8 @@ STALE_ACTIVE_CURRENT_PATTERNS = (
         r"goal-teams-self-release-v2\.(?:38|39)\.md`"
     ),
 )
+REPLAY_PROFILE_LINE = "V2.46 及更早 Profile 只用于历史 replay"
+REPLAY_RUNTIME_LINE = "V2.46 及更早只读 replay"
 
 
 def fail(message: str) -> None:
@@ -145,13 +147,13 @@ def validate_runtime_identity(product: str) -> tuple[str, str]:
             startup,
             f"当前 `{profile}`",
             profile_path,
-            "V2.45/V2.44/V2.43/V2.42/V2.41/V2.40/V2.39/V2.38 Profile 只用于历史 replay",
+            REPLAY_PROFILE_LINE,
         ),
         "references/runtime/03-goal-loop.md": (
             startup,
-            f"{product} 继续按 V2.38-compatible prompt-cache manifest",
+            f"{product} 按 prompt-cache manifest",
             f"当前 self-release refs 指向 {product} Profile",
-            "V2.45/V2.44/V2.43/V2.42/V2.41/V2.40/V2.39/V2.38 只读 replay",
+            REPLAY_RUNTIME_LINE,
         ),
     }
     for path, markers in active_runtime_markers.items():
@@ -172,7 +174,7 @@ def validate_runtime_identity(product: str) -> tuple[str, str]:
         "requirements-analyst/INDEX.md",
         "product/INDEX.md",
         "members/<role>/INDEX.md",
-        "Profile 仅用于历史 replay",
+        "Profile 仅历史 replay",
     ):
         if marker not in skill:
             fail(f"SKILL.md missing current route marker: {marker}")

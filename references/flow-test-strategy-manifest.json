@@ -1,0 +1,268 @@
+{
+  "schema_version": "goal-teams-flow-test-strategy-v2.47",
+  "product_version": "V2.47",
+  "schema": "schemas/v2.47/flow-test-strategy.schema.json",
+  "validator": "scripts/checks/validate-v247-flow-test-strategy.py",
+  "test_suites": {
+    "incremental": {
+      "denominator": "changed_behavior_and_direct_dependency_paths",
+      "prior_result_reuse": "historical_only"
+    },
+    "p0_smoke": {
+      "denominator": "all_applicable_p0_cases_for_selected_flow_and_product_surfaces",
+      "prior_result_reuse": "historical_only"
+    },
+    "full_regression": {
+      "denominator": "complete_frozen_regression_catalog",
+      "prior_result_reuse": "forbidden_for_current_run"
+    }
+  },
+  "flow_policies": {
+    "small": {
+      "required_during_work": ["incremental", "p0_smoke"],
+      "final_full_regression": "not_required",
+      "user_clarification_required": false,
+      "reuse_prior_incremental_or_smoke_in_full_run": false
+    },
+    "medium": {
+      "required_during_work": ["incremental", "p0_smoke"],
+      "final_full_regression": "user_choice",
+      "user_clarification_required": true,
+      "unconfirmed_state": "awaiting_user_choice",
+      "reuse_prior_incremental_or_smoke_in_full_run": false
+    },
+    "large": {
+      "required_during_work": ["incremental", "p0_smoke"],
+      "final_full_regression": "required",
+      "user_clarification_required": false,
+      "reuse_prior_incremental_or_smoke_in_full_run": false
+    }
+  },
+  "product_surface_denominator": [
+    "portable_core",
+    "documentation",
+    "cli",
+    "backend",
+    "api",
+    "ui_original",
+    "ui_replica",
+    "desktop",
+    "flow_routing",
+    "ledger_harness_evidence",
+    "prompt_cache_incremental_ssot",
+    "runtime_compatibility",
+    "response_contract",
+    "self_release_guard"
+  ],
+  "p0_execution_scope": "deterministic_contract_smoke",
+  "p0_cases": [
+    {
+      "case_id": "P0-V247-FLOW-SMALL",
+      "scope_kind": "flow",
+      "scope_id": "small",
+      "input": {"flow_selection": "small", "changed_paths": ["RULES.md"]},
+      "processing": {"kind": "compile_test_strategy"},
+      "expected_output": {"required_suites": ["incremental", "p0_smoke"], "final_full_regression": "not_required"},
+      "assertions": [
+        {"assertion_id": "A-P0-SMALL-01", "actual_ref": "observed_output.required_suites", "comparator": "sequence_equals", "expected_ref": "expected_output.required_suites"},
+        {"assertion_id": "A-P0-SMALL-02", "actual_ref": "observed_output.final_full_regression", "comparator": "equals", "expected_ref": "expected_output.final_full_regression"}
+      ]
+    },
+    {
+      "case_id": "P0-V247-FLOW-MEDIUM",
+      "scope_kind": "flow",
+      "scope_id": "medium",
+      "input": {"flow_selection": "medium", "user_full_regression_choice": null},
+      "processing": {"kind": "compile_test_strategy"},
+      "expected_output": {"required_suites": ["incremental", "p0_smoke"], "clarification": "required", "full_regression_state": "awaiting_user_choice"},
+      "assertions": [
+        {"assertion_id": "A-P0-MEDIUM-01", "actual_ref": "observed_output.clarification", "comparator": "equals", "expected_ref": "expected_output.clarification"},
+        {"assertion_id": "A-P0-MEDIUM-02", "actual_ref": "observed_output.full_regression_state", "comparator": "equals", "expected_ref": "expected_output.full_regression_state"}
+      ]
+    },
+    {
+      "case_id": "P0-V247-FLOW-LARGE",
+      "scope_kind": "flow",
+      "scope_id": "large",
+      "input": {"flow_selection": "large", "prior_suites": ["incremental", "p0_smoke"]},
+      "processing": {"kind": "compile_test_strategy"},
+      "expected_output": {"final_full_regression": "required", "reuse_prior_results": false, "denominator": "complete_frozen_regression_catalog"},
+      "assertions": [
+        {"assertion_id": "A-P0-LARGE-01", "actual_ref": "observed_output.reuse_prior_results", "comparator": "equals", "expected_ref": "expected_output.reuse_prior_results"},
+        {"assertion_id": "A-P0-LARGE-02", "actual_ref": "observed_output.denominator", "comparator": "equals", "expected_ref": "expected_output.denominator"}
+      ]
+    },
+    {
+      "case_id": "P0-V247-PRODUCT-PORTABLE-CORE",
+      "scope_kind": "product",
+      "scope_id": "portable_core",
+      "input": {"runtime_id": "unknown", "capabilities": {"read_workspace": true}},
+      "processing": {"kind": "select_runtime_profile"},
+      "expected_output": {"state": "blocked", "full_adapter_claim": false},
+      "assertions": [
+        {"assertion_id": "A-P0-CORE-01", "actual_ref": "observed_output.state", "comparator": "equals", "expected_ref": "expected_output.state"},
+        {"assertion_id": "A-P0-CORE-02", "actual_ref": "observed_output.full_adapter_claim", "comparator": "equals", "expected_ref": "expected_output.full_adapter_claim"}
+      ]
+    },
+    {
+      "case_id": "P0-V247-PRODUCT-DOCUMENTATION",
+      "scope_kind": "product",
+      "scope_id": "documentation",
+      "input": {"surface_id": "documentation"},
+      "processing": {"kind": "route_product_surface"},
+      "expected_output": {"required_checks": ["okf", "ssot_projection", "link_integrity"]},
+      "assertions": [
+        {"assertion_id": "A-P0-DOCS-01", "actual_ref": "observed_output.required_checks", "comparator": "sequence_equals", "expected_ref": "expected_output.required_checks"}
+      ]
+    },
+    {
+      "case_id": "P0-V247-PRODUCT-CLI",
+      "scope_kind": "product",
+      "scope_id": "cli",
+      "input": {"surface_id": "cli"},
+      "processing": {"kind": "route_product_surface"},
+      "expected_output": {"required_checks": ["command_contract", "incremental", "p0_smoke"]},
+      "assertions": [
+        {"assertion_id": "A-P0-CLI-01", "actual_ref": "observed_output.required_checks", "comparator": "sequence_equals", "expected_ref": "expected_output.required_checks"}
+      ]
+    },
+    {
+      "case_id": "P0-V247-PRODUCT-BACKEND",
+      "scope_kind": "product",
+      "scope_id": "backend",
+      "input": {"surface_id": "backend"},
+      "processing": {"kind": "route_product_surface"},
+      "expected_output": {"required_checks": ["targeted_behavior", "incremental", "p0_smoke"]},
+      "assertions": [
+        {"assertion_id": "A-P0-BACKEND-01", "actual_ref": "observed_output.required_checks", "comparator": "sequence_equals", "expected_ref": "expected_output.required_checks"}
+      ]
+    },
+    {
+      "case_id": "P0-V247-PRODUCT-API",
+      "scope_kind": "product",
+      "scope_id": "api",
+      "input": {"surface_id": "api"},
+      "processing": {"kind": "route_product_surface"},
+      "expected_output": {"required_checks": ["typed_contract", "business_assertion", "incremental", "p0_smoke"]},
+      "assertions": [
+        {"assertion_id": "A-P0-API-01", "actual_ref": "observed_output.required_checks", "comparator": "sequence_equals", "expected_ref": "expected_output.required_checks"}
+      ]
+    },
+    {
+      "case_id": "P0-V247-PRODUCT-UI-ORIGINAL",
+      "scope_kind": "product",
+      "scope_id": "ui_original",
+      "input": {"surface_id": "ui_original"},
+      "processing": {"kind": "route_product_surface"},
+      "expected_output": {"required_checks": ["affected_user_path", "dom_visible_state", "p0_smoke"]},
+      "assertions": [
+        {"assertion_id": "A-P0-UIO-01", "actual_ref": "observed_output.required_checks", "comparator": "sequence_equals", "expected_ref": "expected_output.required_checks"}
+      ]
+    },
+    {
+      "case_id": "P0-V247-PRODUCT-UI-REPLICA",
+      "scope_kind": "product",
+      "scope_id": "ui_replica",
+      "input": {"surface_id": "ui_replica"},
+      "processing": {"kind": "route_product_surface"},
+      "expected_output": {"required_checks": ["e2e", "pixel_comparison", "p0_smoke"]},
+      "assertions": [
+        {"assertion_id": "A-P0-UIR-01", "actual_ref": "observed_output.required_checks", "comparator": "sequence_equals", "expected_ref": "expected_output.required_checks"}
+      ]
+    },
+    {
+      "case_id": "P0-V247-PRODUCT-DESKTOP",
+      "scope_kind": "product",
+      "scope_id": "desktop",
+      "input": {"surface_id": "desktop"},
+      "processing": {"kind": "route_product_surface"},
+      "expected_output": {"required_checks": ["app_launch", "critical_native_path", "platform_tuple"]},
+      "assertions": [
+        {"assertion_id": "A-P0-DESKTOP-01", "actual_ref": "observed_output.required_checks", "comparator": "sequence_equals", "expected_ref": "expected_output.required_checks"}
+      ]
+    },
+    {
+      "case_id": "P0-V247-PRODUCT-FLOW-ROUTING",
+      "scope_kind": "product",
+      "scope_id": "flow_routing",
+      "input": {"flow_selection": "medium", "phase": "final"},
+      "processing": {"kind": "derive_flow_test_gate"},
+      "expected_output": {"user_clarification_required": true},
+      "assertions": [
+        {"assertion_id": "A-P0-ROUTE-01", "actual_ref": "observed_output.user_clarification_required", "comparator": "equals", "expected_ref": "expected_output.user_clarification_required"}
+      ]
+    },
+    {
+      "case_id": "P0-V247-PRODUCT-LEDGER-HARNESS",
+      "scope_kind": "product",
+      "scope_id": "ledger_harness_evidence",
+      "input": {"current_required_tasks": ["GT-001"], "discovered_task": "GT-NEW"},
+      "processing": {"kind": "apply_scope_change_policy"},
+      "expected_output": {"required_tasks": ["GT-001"], "proposal_only": ["GT-NEW"]},
+      "assertions": [
+        {"assertion_id": "A-P0-LEDGER-01", "actual_ref": "observed_output.required_tasks", "comparator": "sequence_equals", "expected_ref": "expected_output.required_tasks"},
+        {"assertion_id": "A-P0-LEDGER-02", "actual_ref": "observed_output.proposal_only", "comparator": "sequence_equals", "expected_ref": "expected_output.proposal_only"}
+      ]
+    },
+    {
+      "case_id": "P0-V247-PRODUCT-PROMPT-CACHE",
+      "scope_kind": "product",
+      "scope_id": "prompt_cache_incremental_ssot",
+      "input": {"stable_prefix": ["contract", "rules"], "dynamic_tail": ["task", "state"], "fragments": ["R1", "R2"]},
+      "processing": {"kind": "compile_incremental_document"},
+      "expected_output": {"stable_prefix_unchanged": true, "single_writable_ssot": true, "projection_order": ["R1", "R2"]},
+      "assertions": [
+        {"assertion_id": "A-P0-CACHE-01", "actual_ref": "observed_output.stable_prefix_unchanged", "comparator": "equals", "expected_ref": "expected_output.stable_prefix_unchanged"},
+        {"assertion_id": "A-P0-CACHE-02", "actual_ref": "observed_output.projection_order", "comparator": "sequence_equals", "expected_ref": "expected_output.projection_order"}
+      ]
+    },
+    {
+      "case_id": "P0-V247-PRODUCT-RUNTIME-COMPAT",
+      "scope_kind": "product",
+      "scope_id": "runtime_compatibility",
+      "input": {"runtime_id": "cursor", "capabilities": {"read_workspace": true, "write_workspace": true}},
+      "processing": {"kind": "select_runtime_profile"},
+      "expected_output": {"common_rules_loaded": true, "special_rules_id": "cursor", "capability_claim": "manifest_bounded"},
+      "assertions": [
+        {"assertion_id": "A-P0-RUNTIME-01", "actual_ref": "observed_output.special_rules_id", "comparator": "equals", "expected_ref": "expected_output.special_rules_id"},
+        {"assertion_id": "A-P0-RUNTIME-02", "actual_ref": "observed_output.capability_claim", "comparator": "equals", "expected_ref": "expected_output.capability_claim"}
+      ]
+    },
+    {
+      "case_id": "P0-V247-PRODUCT-RESPONSE",
+      "scope_kind": "product",
+      "scope_id": "response_contract",
+      "input": {"task_state": "running", "check_state": "not_started"},
+      "processing": {"kind": "render_user_update"},
+      "expected_output": {"fields": ["任务", "成员", "进度", "结果", "Banchmark", "下一轮 LOOP"], "private_reasoning_exposed": false},
+      "assertions": [
+        {"assertion_id": "A-P0-RESPONSE-01", "actual_ref": "observed_output.fields", "comparator": "sequence_equals", "expected_ref": "expected_output.fields"},
+        {"assertion_id": "A-P0-RESPONSE-02", "actual_ref": "observed_output.private_reasoning_exposed", "comparator": "equals", "expected_ref": "expected_output.private_reasoning_exposed"}
+      ]
+    },
+    {
+      "case_id": "P0-V247-PRODUCT-RESPONSE-NEXT-TASK",
+      "scope_kind": "product",
+      "scope_id": "response_contract",
+      "input": {"task_state": "accepted", "check_state": "passed"},
+      "processing": {"kind": "render_user_update"},
+      "expected_output": {"fields": ["任务", "成员", "进度", "结果", "Banchmark", "下一个任务"], "private_reasoning_exposed": false},
+      "assertions": [
+        {"assertion_id": "A-P0-RESPONSE-NEXT-01", "actual_ref": "observed_output.fields", "comparator": "sequence_equals", "expected_ref": "expected_output.fields"},
+        {"assertion_id": "A-P0-RESPONSE-NEXT-02", "actual_ref": "observed_output.private_reasoning_exposed", "comparator": "equals", "expected_ref": "expected_output.private_reasoning_exposed"}
+      ]
+    },
+    {
+      "case_id": "P0-V247-PRODUCT-SELF-RELEASE-GUARD",
+      "scope_kind": "product",
+      "scope_id": "self_release_guard",
+      "input": {"requested_scope": "implementation", "external_action": "publish"},
+      "processing": {"kind": "evaluate_authority"},
+      "expected_output": {"state": "blocked", "mutation_count": 0},
+      "assertions": [
+        {"assertion_id": "A-P0-RELEASE-01", "actual_ref": "observed_output.state", "comparator": "equals", "expected_ref": "expected_output.state"},
+        {"assertion_id": "A-P0-RELEASE-02", "actual_ref": "observed_output.mutation_count", "comparator": "equals", "expected_ref": "expected_output.mutation_count"}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.47/flow-test-strategy.schema.json",
+  "title": "Goal Teams V2.47 Flow Test Strategy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "product_version",
+    "schema",
+    "validator",
+    "test_suites",
+    "flow_policies",
+    "product_surface_denominator",
+    "p0_execution_scope",
+    "p0_cases"
+  ],
+  "properties": {
+    "schema_version": {"const": "goal-teams-flow-test-strategy-v2.47"},
+    "product_version": {"const": "V2.47"},
+    "schema": {"const": "schemas/v2.47/flow-test-strategy.schema.json"},
+    "validator": {"const": "scripts/checks/validate-v247-flow-test-strategy.py"},
+    "test_suites": {
+      "type": "object",
+      "required": ["incremental", "p0_smoke", "full_regression"],
+      "additionalProperties": false,
+      "properties": {
+        "incremental": {"$ref": "#/$defs/testSuite"},
+        "p0_smoke": {"$ref": "#/$defs/testSuite"},
+        "full_regression": {"$ref": "#/$defs/testSuite"}
+      }
+    },
+    "flow_policies": {
+      "type": "object",
+      "required": ["small", "medium", "large"],
+      "additionalProperties": false,
+      "properties": {
+        "small": {"$ref": "#/$defs/flowPolicy"},
+        "medium": {"$ref": "#/$defs/flowPolicy"},
+        "large": {"$ref": "#/$defs/flowPolicy"}
+      }
+    },
+    "product_surface_denominator": {
+      "type": "array",
+      "minItems": 14,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "p0_execution_scope": {"const": "deterministic_contract_smoke"},
+    "p0_cases": {
+      "type": "array",
+      "minItems": 9,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "scope_kind",
+          "scope_id",
+          "input",
+          "processing",
+          "expected_output",
+          "assertions"
+        ],
+        "properties": {
+          "case_id": {"type": "string", "pattern": "^P0-V247-[A-Z0-9-]+$"},
+          "scope_kind": {"enum": ["flow", "product"]},
+          "scope_id": {"type": "string", "minLength": 1},
+          "input": {"type": "object"},
+          "processing": {"type": "object", "minProperties": 1},
+          "expected_output": {"type": "object", "minProperties": 1},
+          "assertions": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["assertion_id", "actual_ref", "comparator", "expected_ref"],
+              "properties": {
+                "assertion_id": {"type": "string", "minLength": 1},
+                "actual_ref": {"type": "string", "pattern": "^observed_output\\."},
+                "comparator": {"enum": ["equals", "sequence_equals"]},
+                "expected_ref": {"type": "string", "pattern": "^expected_output\\."}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "testSuite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["denominator", "prior_result_reuse"],
+      "properties": {
+        "denominator": {"type": "string", "minLength": 1},
+        "prior_result_reuse": {"type": "string", "minLength": 1}
+      }
+    },
+    "flowPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required_during_work",
+        "final_full_regression",
+        "user_clarification_required",
+        "reuse_prior_incremental_or_smoke_in_full_run"
+      ],
+      "properties": {
+        "required_during_work": {
+          "const": ["incremental", "p0_smoke"]
+        },
+        "final_full_regression": {
+          "enum": ["not_required", "user_choice", "required"]
+        },
+        "user_clarification_required": {"type": "boolean"},
+        "unconfirmed_state": {"const": "awaiting_user_choice"},
+        "reuse_prior_incremental_or_smoke_in_full_run": {"const": false}
+      }
+    }
+  }
+}

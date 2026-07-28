@@ -9,11 +9,12 @@ okf_version: "0.1"
 
 # Goal Teams Testing Rules
 
-只在任务涉及实现、测试、API、CLI、MCP、前端交互、E2E、QA、验收或测试报告时读取本文件。
+仅在实现、测试、API、CLI、MCP、E2E、QA、验收或测试报告时读取。
 
 ## 必读文件
 
 - `prompts/packets/handoff-artifacts.md`
+- `references/flow-test-strategy-manifest.json`
 - `references/subagent-dispatch-protocol.md`
 - `prompts/packets/harness-contract.md`
 - `references/verification-governance-protocol.md`
@@ -26,15 +27,17 @@ API/E2E 路由还必须把本文件、`references/test-case-assertion-protocol.m
 
 测试合同、Grill me、对抗测试、Evidence 适用性与状态转换以 `references/verification-governance-protocol.md` 及其机器文件为 SSOT。
 
-- required 追踪 AC/case/Harness/Evidence/风险/审批。逐项分类：未受影响保留；受影响 `stale + retest_required`；新增 `not_run`；不可信才 `invalid`；执行失败为 `failed`。关键项 Grill me，对抗风险进分母；新增语义/门禁更新 SPEC/Harness 并确认，否则 blocked。
+- required 追踪 AC/case/Harness/Evidence/风险/审批；影响分类、Grill me、对抗分母与状态转换不得在本文件重定义。
 
 ## V2.46 Rust/Tauri 桌面工程
 
-桌面路由按 `references/desktop-engineering-protocol.md`：Rust→L1、Tauri→L2/L3、package→L4、replica→四维、跨平台→required tuple；未命中不建任务。macOS real-app 用 embedded WDIO 或批准的原生 harness，直接 `tauri-driver` 无效。层级不互代，非 passed 阻断 achieved。`achieved` 须接收 Harness/trusted-host 冻结的 candidate commit/tree 与 environment registry；Evidence 自洽不替代 SSOT，required native risk 不得降为 optional/N/A。
+桌面路由只按 desktop protocol/manifest 派生 L1–L4、replica 四维和 platform tuple；层级不互代，未命中不建任务，真实应用与冻结 SSOT 证据要求不得降级。
 
 ## 适用颗粒度
 
 每个功能切片只创建当前 `profile` 与技术面实际触发的任务；不得为 Lite/Standard 预建 18 个空任务。Full/Regulated 使用下表的完整适用链，其他等级只保留 required/conditional 命中的行；不适用项可在计划层集中写 `not_applicable_reason`，无需逐项制造任务。
+
+流程测试读 manifest：small=增量+P0；medium 最终等待用户选择全量；large 最终新 run 重跑完整分母。流程/产品面均需可执行 P0 四段合同。
 
 | 顺序 | 任务 | 默认 Owner |
 | --- | --- | --- |

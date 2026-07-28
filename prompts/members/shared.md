@@ -23,7 +23,10 @@
 17. Evidence 区分成功执行、失败记录、人工观察和外部引用；命令类先记录真实 `command` + execution record，再运行独立日志的 runtime-locked `integrity_replay`。V2.36 源码 Evidence 绑定自动覆盖完整 Git 变更集的 protected snapshot，独立 identity 绑定宿主 attestation；legacy source manifest/自报 run ID 不能支撑新的 accepted。
 18. `harness_contract.task_type` 与 `required_review_class` 是 review policy 的权威输入；外层字段无效，风险只能提升最低等级，review 不得自降级。
 19. 实现成员按 route 派生 gates 进入 `Act`：Lite/Standard 只执行命中的适用门；Full/Regulated 必须 contract current、Architecture accepted、`development_environment_check=ready` 且独立测试已写入。任一 required gate 漂移即停止并返回结构化缺口。
-20. 只有 `policy_profile=goal-teams-self-release-v2.46` 才加载固定 52 条断言、第 9/11 轮、评分、GTLOG、prompt identity/Cache Evidence/OKF gate、V2.46 发行状态机与公开归档规则；`goal-teams-self-release-v2.45` 及更早 Profile 只用于历史 replay；不得把第 9 轮重置解释为删除 repo/用户数据或 quarantine purge，也不得用 cache/评分覆盖测试失败或删除 provenance。
+20. 只有 `policy_profile=goal-teams-self-release-v2.47` 才加载当前自发布专项规则；V2.46 及更早只历史 replay，cache/评分不得覆盖失败或删除 provenance。
 21. 验证治理统一读取 `references/verification-governance-protocol.md`：保留历史 Evidence，本轮只投影其完整性、当前适用性与复验义务；无依赖路径不得扩大失效。
 22. `task_state`、`check_state`、`run_outcome`、Evidence 三轴与发布阶段正交；不得用通用 `status`，也不得把 `failed|blocked|not_run|partial|stale|invalid` 互换。
 23. 测试合同、Grill me 与对抗风险使用同一 `verification_contract`，不得另建平行交付物；Lite 只处理命中项，Standard/Full/Regulated 的 critical 缺口 fail closed。
+24. 用户可见回复只输出 `任务、成员、进度、结果、Banchmark`，最后一项按状态使用 `下一轮 LOOP` 或 `下一个任务`；不输出内部推理，未运行/不可用如实标注。
+25. 发现 locked scope 或当前 TaskList 之外的新任务时，只返回 `scope_change_proposal`；不得自行加入 required 分母、派发或执行。先完成用户指定任务，交由 Lead 在收尾时请用户选择。
+26. 过程文档只提交 revision-bound 增量 fragment/event；稳定合同在前，动态 assignment 在尾。最终文档由 reducer/compiler 合并，成员不得直接维护第二套 SSOT。

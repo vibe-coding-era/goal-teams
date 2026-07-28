@@ -22,7 +22,12 @@ PUBLISHED_VERSION = "V2.46"
 GENERAL_CORE_POLICY_VERSION = "V2.5"
 LEGACY_DATA_SCHEMA_VERSION = "V2.3"
 CORE_POLICY_PROFILE = "goal-teams-core-v2.5"
-SELF_RELEASE_POLICY_PROFILE = "goal-teams-self-release-v2.46"
+SELF_RELEASE_POLICY_PROFILE = (
+    f"goal-teams-self-release-v{CURRENT_VERSION.removeprefix('V').lower()}"
+)
+SELF_RELEASE_PROFILE_PATH = (
+    f"references/profiles/{SELF_RELEASE_POLICY_PROFILE}.md"
+)
 STARTUP_LINE = f"我是 Goal Teams Lead {CURRENT_VERSION}。"
 COMPATIBILITY_MARKER = (
     f"我是 Goal Teams Leader {CURRENT_VERSION}，使用 Goal + Plan 模式帮你完成规划、执行和交付，"
@@ -58,6 +63,28 @@ REQUIRED_FILES = [
     "references/profiles/goal-teams-self-release-v2.44.md",
     "references/profiles/goal-teams-self-release-v2.45.md",
     "references/profiles/goal-teams-self-release-v2.46.md",
+    "references/profiles/goal-teams-self-release-v2.47.md",
+    "references/flow-test-strategy.md",
+    "references/flow-test-strategy-manifest.json",
+    "references/incremental-document-ssot-protocol.md",
+    "references/incremental-document-manifest.json",
+    "references/codeagent-official-source-index.md",
+    "references/codeagent-runtime-manifest.json",
+    "references/runtime-adapters/common.md",
+    "references/runtime-adapters/codex.md",
+    "references/runtime-adapters/claude-code.md",
+    "references/runtime-adapters/cursor.md",
+    "references/runtime-adapters/kimi-code.md",
+    "references/runtime-adapters/glm.md",
+    "references/runtime-adapters/qwen-code.md",
+    "references/runtime-adapters/qoder.md",
+    "references/runtime-adapters/trae.md",
+    "schemas/v2.47/flow-test-strategy.schema.json",
+    "schemas/v2.47/codeagent-runtime.schema.json",
+    "schemas/v2.47/incremental-document.schema.json",
+    "scripts/checks/validate-v247-flow-test-strategy.py",
+    "scripts/checks/validate-v247-codeagent-runtime.py",
+    "scripts/checks/validate-v247-incremental-document.py",
     "references/profiles/goal-teams-self-release-v2.39.md",
     "references/profiles/goal-teams-self-release-v2.38.md",
     "references/prompt-cache-manifest.json",
@@ -507,7 +534,9 @@ FILE_RULES = {
         "references/rules-testing.md",
         "references/rules-loop.md",
         "references/goal-teams-core-v2.5.md",
-        "references/profiles/goal-teams-self-release-v2.46.md",
+        SELF_RELEASE_PROFILE_PATH,
+        "references/flow-test-strategy-manifest.json",
+        "references/codeagent-runtime-manifest.json",
         "references/flow-clarification-protocol.md",
         "references/agent-runtime-capability-contract.md",
         "references/rules-project-sizing.md",
@@ -567,11 +596,30 @@ FILE_RULES = {
         "`standard`",
         "显式提供时必须与派生值完全一致",
     ),
-    "references/profiles/goal-teams-self-release-v2.46.md": (
+    SELF_RELEASE_PROFILE_PATH: (
         SELF_RELEASE_POLICY_PROFILE,
-        "52",
-        "iteration 9",
-        "iteration 11",
+        "flow-test-strategy-manifest.json",
+        "incremental-document-ssot-protocol.md",
+        "codeagent-runtime-manifest.json",
+        "开发候选",
+    ),
+    "references/flow-test-strategy-manifest.json": (
+        "goal-teams-flow-test-strategy-v2.47",
+        '"awaiting_user_choice"',
+        '"forbidden_for_current_run"',
+        '"product_surface_denominator"',
+    ),
+    "references/codeagent-runtime-manifest.json": (
+        "goal-teams-codeagent-runtime-v2.47",
+        '"profile_count": 1',
+        '"runtime_id": "glm"',
+        '"runtime_id": "trae"',
+    ),
+    "references/incremental-document-manifest.json": (
+        "goal-teams-incremental-document-v2.47",
+        '"replace_section"',
+        '"stable_prefix_sha256"',
+        '"expected_projection_sha256"',
     ),
     "references/prompt-cache-protocol.md": (
         "route_static_digest",
@@ -793,6 +841,7 @@ def check_skill_frontmatter() -> None:
         version,
         GENERAL_CORE_POLICY_VERSION,
         LEGACY_DATA_SCHEMA_VERSION,
+        "V2.46",  # current public release and replay-only self-release profile
         "V2.45",  # replay-only self-release profile retained by V2.46
         "V2.44",  # replay-only self-release and testing contract retained by V2.46
         "V2.43",  # replay-only self-release Profile retained by V2.44
@@ -802,7 +851,12 @@ def check_skill_frontmatter() -> None:
         "V2.39",  # replay-only self-release Profile retained by V2.44
         "V2.38",  # replay-only prompt/profile identity retained by V2.44
     }
-    missing_versions = sorted(allowed_versions - skill_versions)
+    required_versions = {
+        version,
+        GENERAL_CORE_POLICY_VERSION,
+        LEGACY_DATA_SCHEMA_VERSION,
+    }
+    missing_versions = sorted(required_versions - skill_versions)
     if missing_versions:
         fail("SKILL.md missing required product/core/legacy versions: " + ", ".join(missing_versions))
     unexpected_versions = sorted(skill_versions - allowed_versions)
@@ -822,7 +876,9 @@ def check_skill_frontmatter() -> None:
         "references/rules-testing.md",
         "references/rules-loop.md",
         "references/goal-teams-core-v2.5.md",
-        "references/profiles/goal-teams-self-release-v2.46.md",
+        SELF_RELEASE_PROFILE_PATH,
+        "references/flow-test-strategy-manifest.json",
+        "references/codeagent-runtime-manifest.json",
         "references/prompt-cache-manifest.json",
         "prompts/lead/core.md",
         "prompts/lead/planning.md",
@@ -1103,7 +1159,12 @@ def check_key_rules() -> None:
             "references/rules-testing.md",
             "references/rules-loop.md",
             "references/goal-teams-core-v2.5.md",
-            "references/profiles/goal-teams-self-release-v2.46.md",
+            SELF_RELEASE_PROFILE_PATH,
+            "references/flow-test-strategy-manifest.json",
+            "references/incremental-document-ssot-protocol.md",
+            "references/incremental-document-manifest.json",
+            "references/codeagent-runtime-manifest.json",
+            "references/codeagent-official-source-index.md",
             "references/profiles/goal-teams-self-release-v2.44.md",
             "references/profiles/goal-teams-self-release-v2.43.md",
             "references/profiles/goal-teams-self-release-v2.39.md",
