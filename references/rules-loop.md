@@ -72,6 +72,7 @@ run_outcome: achieved | partial | blocked | aborted
 ## 自动续跑边界
 
 - 自动续跑只能处理已确认范围内的缺口。
+- 当前 TaskList 外的新任务只写 `scope_change_proposal`；Lead 先跑完用户指定任务，再在 `下一个任务` 中提交方案供用户选择。未获选择不得加入 required 分母、派发或执行。
 - 新范围、高风险、凭证、外部审批、安全敏感改动、关键业务决策或 Budget Gate 超限必须停下问用户或记录阻塞。
 - 所有续跑任务必须有 Owner、validator、Harness、预期新增证据和停止条件。
 - 中途 Loop Audit 不能替代最终 `goal_completion_auditor`。

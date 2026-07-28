@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed checks for the V2.41 flow contract on the V2.46 runtime."""
+"""Fail-closed checks for the V2.41 flow contract on the V2.47 runtime."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 def read(relative: str) -> str:
     path = ROOT / relative
     if not path.is_file():
-        raise SystemExit(f"[FAIL] missing required V2.46 file: {relative}")
+        raise SystemExit(f"[FAIL] missing required V2.47 file: {relative}")
     return path.read_text(encoding="utf-8")
 
 
@@ -19,12 +19,12 @@ def require_markers(relative: str, *markers: str) -> None:
     text = read(relative)
     for marker in markers:
         if marker not in text:
-            raise SystemExit(f"[FAIL] {relative} missing V2.46 marker: {marker}")
+            raise SystemExit(f"[FAIL] {relative} missing V2.47 marker: {marker}")
 
 
 def main() -> None:
-    if read("VERSION").strip() != "V2.46":
-        raise SystemExit("[FAIL] VERSION must be V2.46")
+    if read("VERSION").strip() != "V2.47":
+        raise SystemExit("[FAIL] VERSION must be V2.47")
     require_markers(
         "references/flow-clarification-protocol.md",
         "LLM 的判断是：你应该使用",
@@ -86,19 +86,33 @@ def main() -> None:
         "文件作用",
         "输入/输出格式",
         "规模与大小",
-        "为避免误用流程，请确认：",
         "references/project-flow-selection.md",
         "1=小型需求/BugFix",
         "5=直接改",
     )
     require_markers(
         "RULES.md",
-        "V2.46 验证治理、流程澄清与运行时兼容",
+        "V2.47 流程测试、增量 SSOT 与运行时兼容",
         "Proposal",
         "确认前",
         "生产环境规划不等于部署授权",
     )
-    print("V2.46 flow clarification checks passed.")
+    require_markers(
+        "references/flow-test-strategy-manifest.json",
+        '"small"',
+        '"medium"',
+        '"large"',
+        '"awaiting_user_choice"',
+        '"forbidden_for_current_run"',
+    )
+    require_markers(
+        "references/codeagent-runtime-manifest.json",
+        '"runtime_id": "codex"',
+        '"runtime_id": "glm"',
+        '"runtime_id": "trae"',
+        '"profile_count": 1',
+    )
+    print("V2.47 flow clarification checks passed.")
 
 
 if __name__ == "__main__":

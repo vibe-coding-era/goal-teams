@@ -104,11 +104,11 @@ class V240ReleaseDocumentationTests(unittest.TestCase):
                 CHECKER.validate_release_projection("V2.39", "V2.40")
 
     def test_active_runtime_identity_is_current_and_replay_only(self) -> None:
-        profile, profile_path = CHECKER.validate_runtime_identity("V2.46")
-        self.assertEqual(profile, "goal-teams-self-release-v2.46")
+        profile, profile_path = CHECKER.validate_runtime_identity("V2.47")
+        self.assertEqual(profile, "goal-teams-self-release-v2.47")
         self.assertEqual(
             profile_path,
-            "references/profiles/goal-teams-self-release-v2.46.md",
+            "references/profiles/goal-teams-self-release-v2.47.md",
         )
 
         original_read = CHECKER.read
@@ -117,7 +117,7 @@ class V240ReleaseDocumentationTests(unittest.TestCase):
             text = original_read(path)
             if path == "references/runtime/03-goal-loop.md":
                 return text.replace(
-                    "我是 Goal Teams Lead V2.46。",
+                    "我是 Goal Teams Lead V2.47。",
                     "我是 Goal Teams Lead V2.39。",
                     1,
                 )
@@ -125,7 +125,7 @@ class V240ReleaseDocumentationTests(unittest.TestCase):
 
         with mock.patch.object(CHECKER, "read", side_effect=stale_read):
             with redirect_stdout(io.StringIO()), self.assertRaises(SystemExit):
-                CHECKER.validate_runtime_identity("V2.46")
+                CHECKER.validate_runtime_identity("V2.47")
 
     def test_public_command_set_and_checkpoint_order_are_documented(self) -> None:
         proc = subprocess.run(

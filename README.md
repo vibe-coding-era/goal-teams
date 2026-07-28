@@ -8,9 +8,9 @@
 当前发行：**V2.46** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.46) · [发行说明](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-当前版本：`V2.46`
+当前版本：`V2.47`
 
-Goal Teams 是一个面向 Codex 的团队协作 Skill。它会以一个 Goal Lead 的身份，把一个目标拆成可验证的计划，再协调多个独立 subagent（不同上下文执行）或用户指定的外部 skill 完成需求、设计、实现、测试、证据记录和收尾审计。过程中会应用到：
+Goal Teams 是一个跨 CodeAgent 的团队协作 Skill，Codex 是当前可用宿主之一。它会以一个 Goal Lead 的身份，把一个目标拆成可验证的计划，再协调多个独立成员完成需求、设计、实现、测试、证据记录和收尾审计。V2.47 提供八类宿主的官方合同映射，但完整 adapter 仍以各宿主实测为准。过程中会应用到：
 - 应用Goal + Plan + Loop 模式
 - 构建和严格遵循 SPEC + Harness + SSOT 三大原则
 - 不同角色使用不同的 subagent（不同上下文执行）保持上下文独立性不被污染
@@ -180,7 +180,7 @@ Use $goal-teams。
 显式调用 Goal Teams 或当前会话首次需要建立身份时汇报；已有完整上下文时不重复：
 
 ```text
-我是 Goal Teams Lead V2.46。
+我是 Goal Teams Lead V2.47。
 ```
 
 中文核心模型要点提示词：用户沟通和治理文档默认中文；代码、注释、测试名、fixture 和产品字符串遵循目标仓库约定；代码标识、命令、路径、API 名称、配置键、subagent ID 和精确引用保留原文。
@@ -344,6 +344,13 @@ GoalTeamsWork-<project_version>/
 - 新增可追溯测试合同、按风险路由的 Grill me 和对抗式测试，继续复用 V2.44 API/E2E 合同且不缩小风险分母。
 - 新增按能力派生的 Rust/Tauri 桌面工程合同：前端将“百分百复刻”拆成覆盖完整、同环境像素零差异、高保真与原生语义；PRD-only 先形成可独立批准的 HTML 基线。
 - Rust 后端统一 crate/module DAG、typed IPC、错误/并发/持久化/安全和 fmt/clippy/test 门；桌面测试按不可变 platform tuple 区分 L1 Rust、L2 mock/browser、L3 真实应用和 L4 生产包，并用外部冻结的 candidate/environment SSOT 约束 Evidence，macOS 不再用 browser 或 direct `tauri-driver` 冒充客户端 Evidence。
+
+## V2.47 版本改动
+
+- 新增流程测试 SSOT：小流程只做增量与 P0 冒烟；中流程最终由用户选择是否全量回归；大流程最终以新的完整分母全量回归，禁止复用前序结果抵扣。
+- 过程文档改为 append-only fragment/ledger，保持稳定合同前缀和动态实例尾部；项目完成后才生成最终确定性投影。没有宿主 usage Evidence 时不宣称缓存命中率提高。
+- 用户可见执行输出固定为任务、成员、进度、结果、Banchmark 和下一轮 LOOP/下一个任务；范围外发现先作为 proposal，完成当前指定任务后再由用户选择。
+- 新增 Codex、Claude Code、Cursor、Kimi Code、GLM、Qwen Code、Qoder、TRAE 的官方来源索引、公共规则、独立 overlay、机器清单和 fail-closed 选择器；这表示合同映射，不表示八个完整 adapter 已通过运行时验证。
 
 ## V2.43 版本改动
 

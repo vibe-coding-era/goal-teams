@@ -8,9 +8,9 @@ Author: 肉山@TGO Hangzhou
 Current release: **V2.46** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.46) · [release/current/README.md](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-Current version: `V2.46`
+Current version: `V2.47`
 
-Goal Teams is a Codex Skill for coordinated agent work. It turns one goal into a verifiable plan, then lets a Goal Lead coordinate independent subagents running in separate contexts, or user-selected external skills, across requirements, design, implementation, tests, evidence, and completion audit.
+Goal Teams is a cross-CodeAgent coordination Skill, with Codex as one available host. It turns one goal into a verifiable plan and lets a Goal Lead coordinate independent members across requirements, design, implementation, tests, evidence, and completion audit. V2.47 maps official contracts for eight host families; a complete adapter still requires host-specific runtime evidence.
 
 ## Core Mechanisms
 
@@ -175,7 +175,7 @@ Use $goal-teams。
 Use this identity line on an explicit Goal Teams invocation or when the session first needs to establish identity; do not repeat it when full context already exists:
 
 ```text
-我是 Goal Teams Lead V2.46。
+我是 Goal Teams Lead V2.47。
 ```
 
 Core language rule: user communication and governance documents default to Chinese; code, comments, test names, fixtures, and product strings follow the target repository's conventions; keep identifiers, commands, paths, API names, config keys, subagent IDs, and exact references unchanged.
@@ -300,7 +300,7 @@ GoalTeamsWork-<project_version>/
 
 ## Version Note
 
-The current version is read from `VERSION`. On the V2.3 machine contract and V2.5 core policy, `V2.46` retains contract-first execution, Architecture and Environment Evidence gates, a recoverable `Gather → Reason → Act → Verify → Repeat` LOOP, four-file disk state, a constrained iteration-9 candidate reset, a fail-closed iteration-11 delivery gate, four-dimensional scoring, V2.44 machine-checkable API/E2E testing contracts, and real-behavior benchmarking. Detailed contracts are loaded from `references/` by task type. The current public release note is [release/current](release/current/README.md); process ledgers and provenance remain in the non-public workspace.
+The current product version is read from `VERSION`; the public release remains V2.46 until a separately approved release workflow updates it. On the V2.3 machine contract and V2.5 core policy, `V2.47` adds flow-sized test strategy, incremental document SSOT, a compact response contract, and manifest-bounded CodeAgent runtime overlays while retaining prior verification contracts as compatibility inputs. Detailed contracts are loaded from `references/` by task type.
 
 See the [current release note](release/current/README.md) for the visible package inventory. It does not replace runtime rules, `VERSION`, or installation validation.
 
@@ -333,6 +333,13 @@ V2.3 adds deterministic machine contracts for closed state enums, a single-write
 - Added traceable test contracts, risk-routed Grill me review, and adversarial testing while preserving V2.44 API/E2E contracts and the full risk denominator.
 - Added capability-derived Rust/Tauri desktop contracts. “100% replication” is split into complete coverage, same-environment zero-pixel difference, high fidelity, and native-semantic match; PRD-only work first creates an independently approved interactive HTML baseline.
 - Rust backend rules now cover crate/module DAGs, typed IPC, errors, concurrency, persistence, security, and executable fmt/clippy/test gates. Desktop Evidence separates L1 Rust, L2 mock/browser, L3 real app, and L4 production package per immutable platform tuple and is constrained by an externally frozen candidate/environment SSOT; browser tests and direct `tauri-driver` cannot impersonate macOS client Evidence.
+
+## V2.47 Changes
+
+- Added a flow-test SSOT: small runs use incremental and P0 smoke tests only; medium runs ask the user whether to run final full regression; large runs execute a fresh full denominator that cannot reuse earlier results.
+- Process documents now use append-only fragments/ledger, stable contract prefixes, and a dynamic instance tail; final deterministic documents are projected only at project completion. Cache-hit improvement is not claimed without host usage evidence.
+- User-visible execution updates are limited to task, member, progress, result, Banchmark, and next LOOP/task. Out-of-scope discoveries remain proposals until the requested work is finished and the user chooses.
+- Added official-source mappings, common rules, separate overlays, a machine manifest, and fail-closed selection for Codex, Claude Code, Cursor, Kimi Code, GLM, Qwen Code, Qoder, and TRAE. This is contract mapping, not proof that eight complete runtime adapters have passed.
 
 ## V2.43 Changes
 

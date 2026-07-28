@@ -1,0 +1,176 @@
+{
+  "schema_version": "goal-teams-codeagent-runtime-v2.47",
+  "product_version": "V2.47",
+  "schema": "schemas/v2.47/codeagent-runtime.schema.json",
+  "validator": "scripts/checks/validate-v247-codeagent-runtime.py",
+  "common_rules": "references/runtime-adapters/common.md",
+  "official_source_index": "references/codeagent-official-source-index.md",
+  "selection": {
+    "mode": "detected_runtime_only",
+    "profile_count": 1,
+    "unknown_runtime": "blocked",
+    "conflicting_runtime_facts": "blocked",
+    "model_provider_is_not_runtime": true,
+    "load_order": [
+      "portable_core",
+      "normal_rules",
+      "common_rules",
+      "one_runtime_overlay",
+      "task_dynamic_tail"
+    ]
+  },
+  "runtime_denominator": [
+    "codex",
+    "claude-code",
+    "cursor",
+    "kimi-code",
+    "glm",
+    "qwen-code",
+    "qoder",
+    "trae"
+  ],
+  "runtimes": [
+    {
+      "runtime_id": "codex",
+      "runtime_kind": "agent_runtime",
+      "adapter_state": "contract_mapped_not_runtime_verified",
+      "detection_facts": ["host_runtime_id", "surface", "version", "skill_roots"],
+      "skill_roots": [".agents/skills", "$CODEX_HOME/skills", "/etc/codex/skills"],
+      "instruction_files": ["AGENTS.override.md", "AGENTS.md"],
+      "manual_invocation": "$goal-teams",
+      "overlay": "references/runtime-adapters/codex.md",
+      "source_ids": ["OAI-01", "OAI-02", "OAI-03", "OAI-04"]
+    },
+    {
+      "runtime_id": "claude-code",
+      "runtime_kind": "agent_runtime",
+      "adapter_state": "contract_mapped_not_runtime_verified",
+      "detection_facts": ["host_runtime_id", "surface", "version", "skill_roots"],
+      "skill_roots": [".claude/skills", "~/.claude/skills"],
+      "instruction_files": ["CLAUDE.md", ".claude/CLAUDE.md", "CLAUDE.local.md", ".claude/rules"],
+      "manual_invocation": "/goal-teams",
+      "overlay": "references/runtime-adapters/claude-code.md",
+      "source_ids": ["ANT-01", "ANT-02", "ANT-03", "ANT-04"]
+    },
+    {
+      "runtime_id": "cursor",
+      "runtime_kind": "agent_runtime",
+      "adapter_state": "contract_mapped_not_runtime_verified",
+      "detection_facts": ["host_runtime_id", "surface", "version", "skill_roots"],
+      "skill_roots": [".agents/skills", ".cursor/skills", "~/.agents/skills", "~/.cursor/skills"],
+      "instruction_files": ["AGENTS.md", ".cursor/rules"],
+      "manual_invocation": "/goal-teams",
+      "overlay": "references/runtime-adapters/cursor.md",
+      "source_ids": ["CUR-01", "CUR-02", "CUR-03", "CUR-04"]
+    },
+    {
+      "runtime_id": "kimi-code",
+      "runtime_kind": "agent_runtime",
+      "adapter_state": "contract_mapped_not_runtime_verified",
+      "detection_facts": ["host_runtime_id", "surface", "version", "skill_roots", "kimi_code_home"],
+      "skill_roots": [".kimi-code/skills", ".agents/skills", "$KIMI_CODE_HOME/skills", "~/.agents/skills"],
+      "instruction_files": ["AGENTS.md", "$KIMI_CODE_HOME/AGENTS.md"],
+      "manual_invocation": "/skill:goal-teams",
+      "overlay": "references/runtime-adapters/kimi-code.md",
+      "source_ids": ["KIMI-01", "KIMI-02", "KIMI-03", "KIMI-04", "KIMI-05"]
+    },
+    {
+      "runtime_id": "glm",
+      "runtime_kind": "model_provider",
+      "adapter_state": "provider_only_requires_host_runtime",
+      "detection_facts": ["model_provider", "host_runtime_id", "host_runtime_version"],
+      "skill_roots": [],
+      "instruction_files": [],
+      "manual_invocation": "follow_host_runtime",
+      "overlay": "references/runtime-adapters/glm.md",
+      "source_ids": ["GLM-01", "GLM-02", "GLM-03", "GLM-04"]
+    },
+    {
+      "runtime_id": "qwen-code",
+      "runtime_kind": "agent_runtime",
+      "adapter_state": "contract_mapped_not_runtime_verified",
+      "detection_facts": ["host_runtime_id", "surface", "version", "skill_roots"],
+      "skill_roots": [".qwen/skills", "~/.qwen/skills"],
+      "instruction_files": ["QWEN.md", ".qwen/QWEN.local.md", "AGENTS.md"],
+      "manual_invocation": "/goal-teams",
+      "overlay": "references/runtime-adapters/qwen-code.md",
+      "source_ids": ["QWEN-01", "QWEN-02", "QWEN-03", "QWEN-04"]
+    },
+    {
+      "runtime_id": "qoder",
+      "runtime_kind": "agent_runtime",
+      "adapter_state": "contract_mapped_not_runtime_verified",
+      "detection_facts": ["host_runtime_id", "surface", "version", "edition", "skill_roots"],
+      "skill_roots": [".qoder/skills", "~/.qoder/skills"],
+      "instruction_files": ["AGENTS.md", "AGENTS.local.md", ".qoder/rules"],
+      "manual_invocation": "/goal-teams",
+      "overlay": "references/runtime-adapters/qoder.md",
+      "source_ids": ["QODER-01", "QODER-02", "QODER-03", "QODER-04"]
+    },
+    {
+      "runtime_id": "trae",
+      "runtime_kind": "agent_runtime",
+      "adapter_state": "capability_probe_required",
+      "detection_facts": ["host_runtime_id", "surface", "version", "skill_schema_fields", "skill_roots", "instruction_files", "manual_skill_invocation", "sandbox_mode"],
+      "skill_roots": [".agents/skills"],
+      "instruction_files": ["AGENTS.md", "AGENT.md", "CLAUDE.md", ".trae/rules"],
+      "manual_invocation": "capability_probe_required",
+      "overlay": "references/runtime-adapters/trae.md",
+      "source_ids": ["TRAE-01", "TRAE-02", "TRAE-03"]
+    }
+  ],
+  "p0_selection_fixtures": [
+    {
+      "fixture_id": "KNOWN-CURSOR",
+      "runtime_ids": ["cursor"],
+      "model_provider": null,
+      "expected": {"state": "selected", "runtime_id": "cursor", "overlay_count": 1}
+    },
+    {
+      "fixture_id": "UNKNOWN",
+      "runtime_ids": ["unknown"],
+      "model_provider": null,
+      "expected": {"state": "blocked", "reason": "unknown_runtime", "overlay_count": 0}
+    },
+    {
+      "fixture_id": "CONFLICT",
+      "runtime_ids": ["codex", "cursor"],
+      "model_provider": null,
+      "expected": {"state": "blocked", "reason": "conflicting_runtime_facts", "overlay_count": 0}
+    },
+    {
+      "fixture_id": "GLM-WITHOUT-HOST",
+      "runtime_ids": [],
+      "model_provider": "glm",
+      "expected": {"state": "blocked", "reason": "host_runtime_required", "overlay_count": 0}
+    },
+    {
+      "fixture_id": "GLM-ON-CLAUDE",
+      "runtime_ids": ["claude-code"],
+      "model_provider": "glm",
+      "expected": {"state": "selected", "runtime_id": "claude-code", "overlay_count": 1}
+    },
+    {
+      "fixture_id": "TRAE-WITHOUT-SCHEMA-PROBE",
+      "runtime_ids": ["trae"],
+      "model_provider": null,
+      "capability_facts": {},
+      "expected": {"state": "blocked", "reason": "capability_probe_required", "overlay_count": 0}
+    },
+    {
+      "fixture_id": "TRAE-COMPLETE-PROBE",
+      "runtime_ids": ["trae"],
+      "model_provider": null,
+      "capability_facts": {
+        "surface": "ide",
+        "version": "fixture",
+        "skill_schema_fields": ["name", "description"],
+        "skill_roots": [".agents/skills"],
+        "instruction_files": ["AGENTS.md"],
+        "manual_skill_invocation": "fixture-confirmed",
+        "sandbox_mode": "fixture-confirmed"
+      },
+      "expected": {"state": "selected", "runtime_id": "trae", "overlay_count": 1}
+    }
+  ]
+}

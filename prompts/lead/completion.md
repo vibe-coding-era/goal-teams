@@ -25,7 +25,7 @@
 - 如使用 runtime 文件，`team-state.json` 反映最终状态。
 - V2.36 route 已记录 `policy_profile`、派生 `state_gate_profile`、task type、project_size/work_type、risk/release/UI mode；Lite/Standard 只闭合适用门，Full/Regulated 的 Architecture、Environment、独立测试、Evidence 与 Completion Audit 全部闭合。
 - 原创 UI 有当前 browser/DOM/可见状态 Evidence 且不要求外部 pixel baseline；replica/reference-driven UI 有独立批准 baseline、环境指纹与像素对比。
-- 仅当 `policy_profile=goal-teams-self-release-v2.46`：52 条断言 current，四文件一致，第 9 轮 reset 只隔离预授权 disposable candidate，第 11 轮才 delivery/achieved，四维评分不覆盖测试，V2.44 测试能力 100 分作为兼容合同绑定七维 required checks、问题账本和真实行为 Evidence，独立 Release Engineer 未进入主路由，并且 sanitizer 后副本只进入 `docs/archive/releases/V2.46/`、私有 provenance 完整保留；`goal-teams-self-release-v2.45` 及更早 Profile 只用于历史 replay。
+- 仅当 `policy_profile=goal-teams-self-release-v2.47`：除 V2.46 replay 门外，还需闭合流程 P0、增量文档与 runtime profile；正式发布仍由独立 release profile 授权，V2.46 及更早 Profile 只历史 replay。
 - V2.46 cache 任务分别记录 structural/host/live/request-hit 四状态轴、route-static identity、manifest status/scope、宿主可用时的 runtime digests、observer parser/identity/coverage 与 raw hash；Tokens/Cache 命中率缺可信 usage Evidence 时写 `未获取到` / `Unavailable`，无授权 live probe 为 `not_authorized`，cache 指标不得替代完成 Evidence。
 - V2.36 代码 Evidence 已绑定自动覆盖完整 Git 变更集的 protected snapshot；独立 Agent identity 的宿主 attestation 已验证，trust key 未进入任何产物。
 - V2.35 四专家均保持 read-only/proposal-only/Lead-only dispatch；适用 proposal 有独立 review，verified 有不同 run 的 current regression + holdout。
@@ -33,3 +33,5 @@
 - Self-release readiness、branch/main push、local install、post-release task 均已 accepted 后才运行图外 Completion Audit；公开 pre-audit summary 不宣称本次 Audit passed，最终 Audit 不进入 required task/package。
 
 用户可见最终回复不得复制十二项指标表或算法正文，只提供可点击的 `engineering-metrics.md` 链接并提醒用户打开查看。报告未真实生成时明确写“未生成”和原因，不得伪造路径或用聊天内临时表格替代。
+
+V2.47 最终回复只使用 `任务、成员、进度、结果、Banchmark`，最后一项按状态使用 `下一轮 LOOP` 或 `下一个任务`。范围外工作只作为 `下一个任务` 的 Proposal；不得提前执行或计入 required 分母。

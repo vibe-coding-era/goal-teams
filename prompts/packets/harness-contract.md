@@ -13,6 +13,8 @@ Goal Teams 使用 `SPEC -> Harness -> Evidence -> Audit` 的验证链。
 
 V2.46 的测试合同、影响分析、Grill me、对抗风险与 Evidence 三轴语义统一引用 `references/verification-governance-protocol.md`；Harness 只保存当前任务的引用和完成谓词，不复制状态机。
 
+V2.47 的 suite/flow/product P0 分母只引用 `references/flow-test-strategy-manifest.json`；small 不建 full regression，medium 未选择时 `awaiting_user_choice`，large 的最终 full run 使用新的完整分母且不复用前序结果。
+
 `schemas/v2.3/goal-teams.schema.json` 是机器字段 SSOT；本 packet 只把这些字段装配成正常 Goal+Plan 路由可直接使用的 closure packet。不得用自由文本 check 或非空路径代替完整对象。
 
 ```text

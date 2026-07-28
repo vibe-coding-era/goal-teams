@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.47/codeagent-runtime.schema.json",
+  "title": "Goal Teams V2.47 CodeAgent Runtime Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "product_version",
+    "schema",
+    "validator",
+    "common_rules",
+    "official_source_index",
+    "selection",
+    "runtime_denominator",
+    "runtimes",
+    "p0_selection_fixtures"
+  ],
+  "properties": {
+    "schema_version": {"const": "goal-teams-codeagent-runtime-v2.47"},
+    "product_version": {"const": "V2.47"},
+    "schema": {"const": "schemas/v2.47/codeagent-runtime.schema.json"},
+    "validator": {"const": "scripts/checks/validate-v247-codeagent-runtime.py"},
+    "common_rules": {"const": "references/runtime-adapters/common.md"},
+    "official_source_index": {"const": "references/codeagent-official-source-index.md"},
+    "selection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "profile_count",
+        "unknown_runtime",
+        "conflicting_runtime_facts",
+        "model_provider_is_not_runtime",
+        "load_order"
+      ],
+      "properties": {
+        "mode": {"const": "detected_runtime_only"},
+        "profile_count": {"const": 1},
+        "unknown_runtime": {"const": "blocked"},
+        "conflicting_runtime_facts": {"const": "blocked"},
+        "model_provider_is_not_runtime": {"const": true},
+        "load_order": {
+          "const": [
+            "portable_core",
+            "normal_rules",
+            "common_rules",
+            "one_runtime_overlay",
+            "task_dynamic_tail"
+          ]
+        }
+      }
+    },
+    "runtime_denominator": {
+      "const": [
+        "codex",
+        "claude-code",
+        "cursor",
+        "kimi-code",
+        "glm",
+        "qwen-code",
+        "qoder",
+        "trae"
+      ]
+    },
+    "runtimes": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {"$ref": "#/$defs/runtime"}
+    },
+    "p0_selection_fixtures": {
+      "type": "array",
+      "minItems": 5,
+      "items": {"$ref": "#/$defs/fixture"}
+    }
+  },
+  "$defs": {
+    "stringArray": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runtime_id",
+        "runtime_kind",
+        "adapter_state",
+        "detection_facts",
+        "skill_roots",
+        "instruction_files",
+        "manual_invocation",
+        "overlay",
+        "source_ids"
+      ],
+      "properties": {
+        "runtime_id": {"type": "string", "minLength": 1},
+        "runtime_kind": {"enum": ["agent_runtime", "model_provider"]},
+        "adapter_state": {
+          "enum": [
+            "contract_mapped_not_runtime_verified",
+            "provider_only_requires_host_runtime",
+            "capability_probe_required"
+          ]
+        },
+        "detection_facts": {"$ref": "#/$defs/stringArray"},
+        "skill_roots": {"$ref": "#/$defs/stringArray"},
+        "instruction_files": {"$ref": "#/$defs/stringArray"},
+        "manual_invocation": {"type": "string", "minLength": 1},
+        "overlay": {"type": "string", "pattern": "^references/runtime-adapters/.+\\.md$"},
+        "source_ids": {"$ref": "#/$defs/stringArray"}
+      }
+    },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fixture_id", "runtime_ids", "model_provider", "expected"],
+      "properties": {
+        "fixture_id": {"type": "string", "minLength": 1},
+        "runtime_ids": {"type": "array", "items": {"type": "string"}},
+        "model_provider": {"type": ["string", "null"]},
+        "capability_facts": {"type": "object"},
+        "expected": {"type": "object", "minProperties": 3}
+      }
+    }
+  }
+}

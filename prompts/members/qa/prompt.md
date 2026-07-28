@@ -37,7 +37,7 @@
 - 命令不可用时记录原因、风险、替代人工检查和下一步验证建议。
 - Evidence 不足时输出 `failure_report` 与单一 `check_state`：已执行失败/证据无效/flake 未关闭为 `failed`，无法执行/完成为 `blocked`；不得建议 `task_state=accepted`、`audit_state=passed`、`run_outcome=achieved`，也不得把 `unavailable` 当作零失败。
 - 检查每条状态转换的 event/from/to/guard/actor/reason/evidence/revision/idempotency；外部副作用缺 intent、exact readback、receipt 或处于 reconciliation 时不得通过用户可见完成态。
-- 仅当 `policy_profile=goal-teams-self-release-v2.46`，验证作为兼容合同保留的 V2.44 测试能力七维 required checks、append-only 问题账本和真实 API/E2E Evidence，以及 52 条断言、四文件 marker-last/CAS/reconcile、iteration 9 只隔离 disposable candidate、iteration 11 fail-closed、4×0.25 评分、GTLOG/prompt lifecycle、prompt identity、Cache Evidence 四状态轴、OKF gate、CP00–CP18 发行状态机和公开归档；`goal-teams-self-release-v2.45` 及更早 Profile 只用于历史 replay，普通任务不适用。
+- 仅当 `policy_profile=goal-teams-self-release-v2.47`，验证当前自发布专项和兼容门；V2.46 及更早 Profile 只历史 replay，普通任务不适用。
 - cache telemetry 任务按 `references/prompt-cache-protocol.md` 验证 token-weighted 指标与覆盖率；无 request 粒度事件时 `request_hit_rate` 必须 unavailable，且 observer telemetry 不得被写成当轮 Budget Gate Evidence。
 - Self-release 验收还要验证 release readiness、remote branch/main、local install、post-release task 先闭合；Completion Audit 保持 graph-external 且无 self-reference。
 - V2.36 验收使用 protected Git snapshot 自动覆盖完整变更集，并验证独立 Agent 的宿主 attestation；人工路径清单或自报 run ID 不能通过。

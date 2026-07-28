@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### V2.47
+
+- Added a machine-readable flow test strategy and executable P0 smoke denominator: small uses incremental plus smoke only, medium waits for the user's final-regression choice, and large runs a fresh full denominator without reusing earlier results.
+- Added append-only incremental document SSOT, stable-prefix/dynamic-tail ordering, and deterministic final projection without claiming provider cache improvement when usage telemetry is unavailable.
+- Reduced user-visible execution updates to task, member, progress, result, Benchmark, and next LOOP/task; out-of-scope discoveries remain proposals until the requested work is complete.
+- Added 32 official source records, one portable common contract, eight runtime overlays, a strict selector, schema, and validator for Codex, Claude Code, Cursor, Kimi Code, GLM, Qwen Code, Qoder, and TRAE. Runtime-complete adapter claims remain unverified.
+
 ### V2.45
 
 - Added a standalone, progressively loaded Release Engineer for Java, Rust, Go, Python, Node.js, five environment classes, applications, containers, WeChat Mini Programs, and GitHub Skill publication without adding it to the main Goal Teams route.

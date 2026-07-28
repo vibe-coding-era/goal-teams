@@ -15,6 +15,8 @@ okf_version: "0.1"
 
 `references/prompt-cache-manifest.json` 是 route-static 顺序、artifact compiler 与 budget 的机器 SSOT。`scripts/v23/prompt_cache.py` 负责安全读取、顺序校验和 digest；各消费者不得维护另一套顺序表。
 
+V2.47 过程文档还必须读取 `references/incremental-document-ssot-protocol.md`：稳定合同与字段顺序属于前缀，task/run/user/state/document fragment 属于动态尾。过程事实只追加 fragment/ledger，最终文档由确定性 reducer/compiler 投影；不得反复重写整份文档形成第二 SSOT。
+
 V2.35/V2.36 的签名 `rule_set` 继续表示 policy membership，并为兼容 replay 保持原 byte shape；它不是 prompt 装载顺序。`prompt-plan --features` 在不修改 signed route 的前提下，把该集合编译成 manifest 管理的 `structured_policy` ordered subset。
 
 - `prefix_manifest_sha256` 绑定 route ID、ordered refs 和动态尾标签，不绑定文件内容。

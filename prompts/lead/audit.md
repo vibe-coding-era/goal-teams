@@ -17,9 +17,9 @@ V2.1 起，Lead 每轮 `Integrate` 后先按 `prompts/lead/loop.md` 做轻量 in
 9. 重复审计和续跑，直到 auditor 报告完成，或只剩有记录的阻塞/延期工作。
 10. 核对任务、检查、运行、Evidence 与发布状态正交，所有转换有 event/from/to/guard/actor/reason/evidence/revision/idempotency；完成态由谓词推导。外部副作用缺 intent、exact readback、receipt 或需要 reconciliation 时不得 passed。
 
-只有 `policy_profile=goal-teams-self-release-v2.46`，最终 Auditor 才额外检查：
+只有 `policy_profile=goal-teams-self-release-v2.47`，最终 Auditor 才额外检查：
 
-`goal-teams-self-release-v2.45` 及更早 Profile 只用于历史 replay，不得成为当前 route。
+`goal-teams-self-release-v2.46`、`goal-teams-self-release-v2.45` 及更早 Profile 只用于历史 replay，不得成为当前 route。
 
 - Contract/Architecture/Environment/Implementation 顺序及 current exact-hash Evidence，四文件 marker/progress/contract/log/checkpoint 一致，pending journal 已安全 reconcile。
 - iteration 9 reset receipt 只针对预授权 `.goalteams-candidates/<candidate_id>`，目标已移入 `.goalteams-quarantine/<reset_id>/<candidate_id>`，repo/用户数据/账本/Evidence/provenance 均未删除。

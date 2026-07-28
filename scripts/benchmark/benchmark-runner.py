@@ -1522,6 +1522,7 @@ def _tree_manifest(root: Path) -> tuple[list[dict[str, Any]], str]:
                 "sha256": digest_path(path),
             }
         )
+    entries.sort(key=lambda item: item["path"])
     return entries, digest_bytes(canonical_bytes(entries))
 
 
