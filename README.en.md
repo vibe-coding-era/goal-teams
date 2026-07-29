@@ -5,10 +5,10 @@
 Author: 肉山@TGO Hangzhou
 
 <!-- goal-teams-release:start -->
-Current release: **V2.46** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.46) · [release/current/README.md](release/current/README.md)
+Current release: **V2.48** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.48) · [release/current/README.md](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-V2.48 release candidate: local implementation and testing only; no GitHub write, formal install, or formal release has occurred.
+V2.48 uses a five-step release flow designed for a Skill bundle; local process material is excluded from the published package.
 As a Skill bundle, this repository uses a five-gate simple release: local validation needs no pre-approval, and external publication requires one explicit confirmation.
 
 Current version: `V2.48`
@@ -304,7 +304,7 @@ GoalTeamsWork-<project_version>/
 
 ## Version Note
 
-The current product version is read from `VERSION`; the public release remains V2.46 until a separately approved release workflow updates it. On the V2.3 machine contract and V2.5 core policy, `V2.48` adds composable Agent-product development contracts while retaining V2.47 flow/document/runtime overlays and earlier verification contracts as compatibility inputs. Detailed contracts are loaded from `references/` by task type.
+The current product version is read from `VERSION`. On the V2.3 machine contract and V2.5 core policy, `V2.48` adds composable Agent-product development contracts while retaining V2.47 flow/document/runtime overlays and earlier verification contracts as compatibility inputs. Detailed contracts are loaded from `references/` by task type.
 
 Ordinary Skill releases use five simple gates. Local verification needs no pre-approval; tag, GitHub Release, or formal installation requires one explicit confirmation bound to the exact candidate and operations.
 
@@ -345,7 +345,7 @@ V2.3 adds deterministic machine contracts for closed state enums, a single-write
 - Added an independent Agent Product Manager and a shared capability contract for product, frontend, backend, and testing roles: prompt programming, context and memory, cache boundaries, external tools, Browser, Computer Use, Playwright, and approval boundaries are independently scoped.
 - Added an official-source matrix for Codex, Claude Cowork, QoderWork, WorkBuddy, and TRAE/TraeWork. It separates documented capability, unknown capability, and unsupported inference; product material is not runtime-adapter or live-Evidence proof.
 - Added three decomposable product patterns (controlled task execution, context-workflow collaboration, and browser/desktop execution) plus a five-layer composable architecture. The action ladder is API/MCP → Playwright/DOM → Browser → Computer Use.
-- Added a V2.48 schema, manifest, standalone validator, and regression tests. V2.47 flow/document/runtime contracts remain historical compatibility inputs; the public release and release engine remain V2.46.
+- Added a V2.48 schema, manifest, standalone validator, and regression tests. V2.47 flow/document/runtime contracts remain historical compatibility inputs, while the V2.46 governed release engine remains available only as a compatibility path.
 
 ## V2.47 Changes
 

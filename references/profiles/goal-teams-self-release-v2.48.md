@@ -1,7 +1,7 @@
 ---
 type: Goal Teams Policy Profile
 title: Goal Teams Self Release V2.48
-description: Goal Teams V2.48 候选的 Agent 产品开发成员、资料合同与既有流程测试兼容规则；正式发布仍需独立 release profile。
+description: Goal Teams V2.48 的 Agent 产品开发成员、资料合同、既有流程测试兼容与 Skill 简单发行规则。
 tags: [goal-teams, self-release, v2.48, policy-profile, agent-development]
 timestamp: 2026-07-29T00:00:00+08:00
 okf_version: "0.1"
@@ -27,9 +27,9 @@ Profile 只用于历史 replay。
 其他 L0 升级事实才要求 full/regulated 与最终全量。Agent 的 Browser/Computer Use、凭证、
 权限、支付、删除或外部写入必须按实际风险升级，不能借小型流程绕过批准。
 
-## 候选与发布边界
+## 发行边界
 
-V2.48 当前是 Skill 开发候选，默认使用
+V2.48 作为 Skill 包默认使用
 `references/skill-release-simple-protocol.md` 的 `skill_simple` 路径：
 
 1. 本地 S0–S3 不需要先批准发行计划。

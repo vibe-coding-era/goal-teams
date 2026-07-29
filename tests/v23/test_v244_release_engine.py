@@ -355,14 +355,11 @@ class V244ReleaseEngineTests(unittest.TestCase):
         manifest = json.loads(
             (ROOT / "release/current/manifest.json").read_text(encoding="utf-8")
         )
-        self.assertEqual(manifest["product_version"], "V2.46")
-        self.assertEqual(manifest["candidate_product_version"], "V2.48")
-        self.assertEqual(
-            manifest["candidate_release_state"],
-            "skill_simple_local_validation",
-        )
+        self.assertEqual(manifest["product_version"], "V2.48")
+        self.assertNotIn("candidate_product_version", manifest)
+        self.assertNotIn("candidate_release_state", manifest)
         self.assertEqual(manifest["status"], "release")
-        self.assertIn("V2.46", (ROOT / "release/current/README.md").read_text())
+        self.assertIn("V2.48", (ROOT / "release/current/README.md").read_text())
 
     def test_skill_projection_rejects_release_identity_drift(self) -> None:
         profile = json.loads(

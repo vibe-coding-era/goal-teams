@@ -36,6 +36,15 @@ release_validator = load(
 
 
 class V248SkillReleaseTests(unittest.TestCase):
+    def test_public_manifest_claims_v248_agent_product_scope(self) -> None:
+        manifest = json.loads(
+            (ROOT / "release/current/manifest.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            manifest["claim_scope"],
+            "agent_product_development_and_verification_governance_desktop_contracts",
+        )
+
     def test_isolated_validation_accepts_candidate_projection_only(self) -> None:
         candidate = {
             "product_version": "V2.46",

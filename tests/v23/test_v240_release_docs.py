@@ -44,14 +44,14 @@ class V240ReleaseDocumentationTests(unittest.TestCase):
     def test_root_release_blocks_are_localized_and_semantically_equal(self) -> None:
         zh_text = (ROOT / "README.md").read_text(encoding="utf-8")
         en_text = (ROOT / "README.en.md").read_text(encoding="utf-8")
-        self.assertIn("当前发行：**V2.46**", zh_text)
+        self.assertIn("当前发行：**V2.48**", zh_text)
         self.assertIn("[GitHub 发行页]", zh_text)
         self.assertIn("[发行说明](release/current/README.md)", zh_text)
-        self.assertIn("Current release: **V2.46**", en_text)
+        self.assertIn("Current release: **V2.48**", en_text)
         self.assertNotIn("Current release: **V2.40**", zh_text)
         self.assertEqual(
-            CHECKER.read_release_block("README.md", "V2.46", "V2.46"),
-            CHECKER.read_release_block("README.en.md", "V2.46", "V2.46"),
+            CHECKER.read_release_block("README.md", "V2.48", "V2.48"),
+            CHECKER.read_release_block("README.en.md", "V2.48", "V2.48"),
         )
 
     def test_development_projection_separates_published_and_product_versions(self) -> None:

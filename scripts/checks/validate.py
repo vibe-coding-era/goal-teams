@@ -18,7 +18,11 @@ except ModuleNotFoundError:  # pragma: no cover
 
 ROOT = Path(__file__).resolve().parents[2]
 CURRENT_VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
-PUBLISHED_VERSION = "V2.46"
+PUBLISHED_VERSION = str(
+    json.loads(
+        (ROOT / "release/current/manifest.json").read_text(encoding="utf-8")
+    ).get("product_version", "")
+)
 GENERAL_CORE_POLICY_VERSION = "V2.5"
 LEGACY_DATA_SCHEMA_VERSION = "V2.3"
 CORE_POLICY_PROFILE = "goal-teams-core-v2.5"
@@ -41,7 +45,7 @@ CHINESE_CORE_LINE = "用户沟通和治理文档默认中文"
 def validate_v248_public_projection(
     root: Path, profile: object
 ) -> dict[str, object]:
-    """Validate candidate markers without claiming V2.48 is already released."""
+    """Validate the exact V2.48 public release projection."""
 
     failure = {
         "ok": False,
@@ -54,11 +58,11 @@ def validate_v248_public_projection(
     if not isinstance(profile, dict) or profile.get("version") != "V2.48":
         return failure
     required = {
-        "README.md": "V2.48 发行候选",
-        "README.en.md": "V2.48 release candidate",
+        "README.md": "当前发行：**V2.48**",
+        "README.en.md": "Current release: **V2.48**",
         ".github/workflows/release-gate.yml": "Goal Teams V2.48 Skill verification",
-        "release/current/README.md": "V2.48 candidate marker",
-        "release/current/manifest.json": '"candidate_product_version": "V2.48"',
+        "release/current/README.md": "# Goal Teams V2.48 Release",
+        "release/current/manifest.json": '"product_version": "V2.48"',
     }
     for relative, marker in required.items():
         target = Path(root) / relative
@@ -74,8 +78,8 @@ def validate_v248_public_projection(
         "ok": True,
         "passed": True,
         "error_code": None,
-        "candidate_version": "V2.48",
-        "published_version": "V2.46",
+        "release_version": "V2.48",
+        "published_version": "V2.48",
         "mutation_count": 0,
         "external_mutation_count": 0,
         "external_side_effect_count": 0,
@@ -674,7 +678,7 @@ FILE_RULES = {
         "flow-test-strategy-manifest.json",
         "incremental-document-ssot-protocol.md",
         "codeagent-runtime-manifest.json",
-        "开发候选",
+        "Skill 包默认使用",
     ),
     "references/flow-test-strategy-manifest.json": (
         "goal-teams-flow-test-strategy-v2.47",
@@ -1185,7 +1189,7 @@ def check_release_engine_profiles() -> None:
             )
         )
     ):
-        fail("V2.48 candidate release-engine profile is inconsistent")
+        fail("V2.48 Skill simple-release profile is inconsistent")
     if (
         profiles["V2.46"].get("status") != "active"
         or profiles["V2.46"].get("external_writes_allowed") is not True

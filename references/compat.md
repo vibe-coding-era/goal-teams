@@ -87,9 +87,9 @@ okf_version: "0.1"
 
 - 验证治理保留历史 Evidence；桌面合同按 route 派生 L1-L4、复刻四维与跨平台 tuple。层级不可互代，旧 schema 保持 replay；细则见 V2.46 protocol。
 
-## V2.48 候选兼容
+## V2.48 发行兼容
 
-- `VERSION=V2.48` 是开发候选；`release/current`/release engine 仍为 V2.46。新 Agent 产品开发合同不改写 V2.3/V2.44/V2.46 及 V2.47 flow/document/runtime 合同。
+- `VERSION=V2.48` 与 `release/current` 投影当前发行；V2.46 governed engine 仅作历史兼容。新合同不改写 V2.3/V2.44/V2.46/V2.47 合同。
 
 ## 成员包布局
 

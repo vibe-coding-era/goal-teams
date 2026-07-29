@@ -5,10 +5,10 @@
 作者：肉山@TGO 杭州
 
 <!-- goal-teams-release:start -->
-当前发行：**V2.46** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.46) · [发行说明](release/current/README.md)
+当前发行：**V2.48** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.48) · [发行说明](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-V2.48 发行候选：本地实现与测试中；尚未执行 GitHub 写入、正式安装或正式发行。
+V2.48 使用面向 Skill 包的五步简单发行流程；发布包不携带本地过程资料。
 本仓库作为 Skill 包采用五步简单发行：本地验证无需预批准，外部发布前只需一次明确确认。
 
 当前版本：`V2.48`
@@ -354,7 +354,7 @@ GoalTeamsWork-<project_version>/
 - 新增独立 Agent 产品经理成员，并让产品、前端、后端与测试成员按同一能力合同协作：Prompt 编程、上下文与记忆、缓存边界、外部工具、Browser、Computer Use、Playwright 和安全审批各自有可验证边界。
 - 新增 Codex、Claude Cowork、QoderWork、WorkBuddy、TRAE/TraeWork 的官方来源矩阵；资料把已文档化能力、未知项和不可推断的能力分开，不把产品介绍写成运行时适配或实机 Evidence。
 - 内置受控任务执行、上下文工作流协作、浏览器/桌面执行三套可拆分产品方案，以及 Product/API、编排、上下文、工具、证据五层可组合架构方案；动作升级固定为 API/MCP → Playwright/DOM → Browser → Computer Use。
-- 新增 V2.48 schema、manifest、独立校验器与回归测试；V2.47 flow/document/runtime 合同保持历史兼容，公开发行与 release engine 仍是 V2.46。
+- 新增 V2.48 schema、manifest、独立校验器与回归测试；V2.47 flow/document/runtime 合同保持历史兼容，V2.46 governed release engine 保留为历史兼容路径。
 
 ## V2.47 版本改动
 
