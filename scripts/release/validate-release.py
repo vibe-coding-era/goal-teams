@@ -181,9 +181,9 @@ WORKSPACE_ROOT = workspace_root()
 RELEASE_ROOT = WORKSPACE_ROOT / "release" / "versions"
 META = {"_release.json", "_files.sha256", "_artifacts/SHA256SUMS"}
 OKF_GENERATED_PATH = "references/okf-conformance-manifest.json"
-OKF_RELEASE_VERSIONS = {"V2.39", "V2.40", "V2.44", "V2.45", "V2.46"}
+OKF_RELEASE_VERSIONS = {"V2.39", "V2.40", "V2.44", "V2.45", "V2.46", "V2.48"}
 STRICT_SNAPSHOT_SCHEMA = "goal-teams-release-snapshot-v2.40"
-STRICT_SNAPSHOT_VERSIONS = {"V2.40", "V2.44", "V2.45", "V2.46"}
+STRICT_SNAPSHOT_VERSIONS = {"V2.40", "V2.44", "V2.45", "V2.46", "V2.48"}
 MAX_TAR_MEMBERS = 2048
 MAX_TAR_PATH_BYTES = 240
 MAX_TAR_SINGLE_FILE_BYTES = 16 * 1024 * 1024
@@ -202,6 +202,46 @@ class V240FilesManifestError(RuntimeError):
             "external_side_effect_count": 0,
         }
         super().__init__(f"E_V240_FILES_MANIFEST_COLUMNS: {message}")
+
+
+def validate_v248_release_identity(
+    expected: object, observed: object
+) -> dict[str, object]:
+    """Compare the exact V2.48 candidate/package identity."""
+
+    required = {
+        "version", "source_commit", "source_tree",
+        "profile_sha256", "asset_set_digest",
+    }
+    if (
+        not isinstance(expected, dict)
+        or not isinstance(observed, dict)
+        or set(expected) != required
+        or set(observed) != required
+        or expected.get("version") != "V2.48"
+        or observed != expected
+    ):
+        return {
+            "ok": False,
+            "passed": False,
+            "error_code": "E_V248_RELEASE_IDENTITY_DRIFT",
+            "mutation_count": 0,
+            "external_mutation_count": 0,
+            "external_side_effect_count": 0,
+        }
+    return {
+        "ok": True,
+        "passed": True,
+        "error_code": None,
+        "identity_sha256": hashlib.sha256(
+            json.dumps(
+                expected, sort_keys=True, separators=(",", ":")
+            ).encode("utf-8")
+        ).hexdigest(),
+        "mutation_count": 0,
+        "external_mutation_count": 0,
+        "external_side_effect_count": 0,
+    }
 
 
 def parse_v240_files_manifest(content: str) -> list[dict[str, object]]:

@@ -37,6 +37,50 @@ PLAN_HISTORY_LINE = "在开始规划前，如果有什么历史文档、历史�
 PLAN_HISTORY_POLICY = "只有缺少历史资料会改变执行时"
 CHINESE_CORE_LINE = "用户沟通和治理文档默认中文"
 
+
+def validate_v248_public_projection(
+    root: Path, profile: object
+) -> dict[str, object]:
+    """Validate candidate markers without claiming V2.48 is already released."""
+
+    failure = {
+        "ok": False,
+        "passed": False,
+        "error_code": "E_V248_PUBLIC_PROJECTION",
+        "mutation_count": 0,
+        "external_mutation_count": 0,
+        "external_side_effect_count": 0,
+    }
+    if not isinstance(profile, dict) or profile.get("version") != "V2.48":
+        return failure
+    required = {
+        "README.md": "V2.48 发行候选",
+        "README.en.md": "V2.48 release candidate",
+        ".github/workflows/release-gate.yml": "Goal Teams V2.48 Skill verification",
+        "release/current/README.md": "V2.48 candidate marker",
+        "release/current/manifest.json": '"candidate_product_version": "V2.48"',
+    }
+    for relative, marker in required.items():
+        target = Path(root) / relative
+        if not target.is_file() or target.is_symlink():
+            return failure
+        try:
+            text = target.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            return failure
+        if marker not in text:
+            return failure
+    return {
+        "ok": True,
+        "passed": True,
+        "error_code": None,
+        "candidate_version": "V2.48",
+        "published_version": "V2.46",
+        "mutation_count": 0,
+        "external_mutation_count": 0,
+        "external_side_effect_count": 0,
+    }
+
 REQUIRED_FILES = [
     "AGENTS.md",
     "RULES.md",
@@ -292,6 +336,9 @@ REQUIRED_FILES = [
     "schemas/v2.36/acceptance-input-snapshot.schema.json",
     "schemas/release-promotion-state.schema.json",
     "schemas/release-engine-profile.schema.json",
+    "references/skill-release-simple-protocol.md",
+    "references/release-profiles/v2.48.json",
+    "scripts/release/skill_release.py",
     "tests/v23/test_v244_release_engine.py",
 ]
 
@@ -577,6 +624,18 @@ FILE_RULES = {
         "scripts/check-routing-fixtures.py",
         "scripts/checks/check-routing-fixtures.py",
         "后续版本优先使用",
+    ),
+    "references/release-packaging-protocol.md": (
+        "## 使用边界",
+        "V2.48 普通 Skill 发行不进入下文 CP00–CP18 状态机",
+        "一次人工发布确认以简单协议",
+        "`governed_release`",
+    ),
+    "references/profiles/goal-teams-self-release-v2.48.md": (
+        "## Skill 发行分类边界",
+        "V2.48 默认分类为 `skill_bundle`",
+        "同一五步简单发行",
+        "`governed_release`",
     ),
     "references/rules-ui.md": (
         "page-spec-card.md",
@@ -1096,18 +1155,43 @@ def check_release_engine_profiles() -> None:
         "V2.44": json.loads(read("references/release-profiles/v2.44.json")),
         "V2.45": json.loads(read("references/release-profiles/v2.45.json")),
         "V2.46": json.loads(read("references/release-profiles/v2.46.json")),
+        "V2.48": json.loads(read("references/release-profiles/v2.48.json")),
     }
-    active = profiles["V2.46"]
+    active = profiles["V2.48"]
     historical = profiles["V2.40"]
     if (
         active.get("status") != "active"
-        or active.get("external_writes_allowed") is not True
-        or active.get("candidate_branch") != "codex/v2.46-verification-governance"
-        or active.get("tag") != "v2.46"
-        or active.get("public_scan_baseline")
-        != "references/public-release-scan-baseline-v2.46.json"
+        or active.get("external_writes_allowed") is not False
+        or active.get("release_mode") != "skill_simple"
+        or active.get("approval_model")
+        != "single_human_before_external_write"
+        or active.get("release_gates")
+        != [
+            "source_freeze",
+            "checks",
+            "package",
+            "isolated_install",
+            "publish",
+        ]
+        or active.get("candidate_branch") != "codex/v2.48-release"
+        or active.get("tag") != "v2.48"
+        or any(
+            field in active
+            for field in (
+                "host_acceptance",
+                "approval_signer",
+                "nonce_consumption_authority",
+                "independent_review_authority",
+            )
+        )
     ):
-        fail("V2.46 active release-engine profile is inconsistent")
+        fail("V2.48 candidate release-engine profile is inconsistent")
+    if (
+        profiles["V2.46"].get("status") != "active"
+        or profiles["V2.46"].get("external_writes_allowed") is not True
+        or not isinstance(profiles["V2.46"].get("host_acceptance"), dict)
+    ):
+        fail("V2.46 immutable source profile no longer records its published identity")
     if (
         historical.get("status") != "historical_replay"
         or historical.get("external_writes_allowed") is not False
@@ -1131,7 +1215,10 @@ def check_release_engine_profiles() -> None:
         if (
             profile.get("schema_version")
             != "goal-teams-release-engine-profile-v1"
-            or profile.get("protocol_version") != "V2.40"
+            or (
+                version != "V2.48"
+                and profile.get("protocol_version") != "V2.40"
+            )
             or profile.get("version") != version
             or profile.get("snapshot_schema_version")
             != "goal-teams-release-snapshot-v2.40"
@@ -1141,9 +1228,9 @@ def check_release_engine_profiles() -> None:
             fail(f"{version} release-engine profile identity is inconsistent")
     workflow_path = ROOT / ".github/workflows/release-gate.yml"
     if workflow_path.is_file():
-        check_release_workflow_projection(
-            active, workflow_path.read_text(encoding="utf-8")
-        )
+        projection = validate_v248_public_projection(ROOT, active)
+        if not projection["passed"]:
+            fail("V2.48 Skill verification projection is inconsistent")
 
 
 def check_file_rule_sets() -> None:

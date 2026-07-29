@@ -194,10 +194,11 @@ KNOWN_RELEASES = {
     "V2.44": "codex/v2.44-testing-capability",
     "V2.45": "codex/v2.45-release-engineer",
     "V2.46": "codex/v2.46-verification-governance",
+    "V2.48": "codex/v2.48-release",
 }
 OKF_GENERATED_PATH = "references/okf-conformance-manifest.json"
-OKF_RELEASE_VERSIONS = {"V2.39", "V2.40", "V2.44", "V2.45", "V2.46"}
-STRICT_SNAPSHOT_VERSIONS = {"V2.40", "V2.44", "V2.45", "V2.46"}
+OKF_RELEASE_VERSIONS = {"V2.39", "V2.40", "V2.44", "V2.45", "V2.46", "V2.48"}
+STRICT_SNAPSHOT_VERSIONS = {"V2.40", "V2.44", "V2.45", "V2.46", "V2.48"}
 FROZEN_COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 
 
@@ -212,6 +213,29 @@ class V240FilesManifestError(RuntimeError):
             "external_side_effect_count": 0,
         }
         super().__init__(f"E_V240_FILES_MANIFEST_COLUMNS: {message}")
+
+
+def validate_release_version(version: Any) -> dict[str, object]:
+    """Validate the builder's closed version set without creating output."""
+
+    if version not in KNOWN_RELEASES:
+        return {
+            "ok": False,
+            "passed": False,
+            "error_code": "E_V240_RELEASE_PROFILE",
+            "mutation_count": 0,
+            "external_mutation_count": 0,
+            "external_side_effect_count": 0,
+        }
+    return {
+        "ok": True,
+        "passed": True,
+        "error_code": None,
+        "version": version,
+        "mutation_count": 0,
+        "external_mutation_count": 0,
+        "external_side_effect_count": 0,
+    }
 
 
 def format_v240_files_manifest(rows: list[dict[str, object]]) -> str:

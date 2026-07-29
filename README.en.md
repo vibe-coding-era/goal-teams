@@ -8,6 +8,9 @@ Author: 肉山@TGO Hangzhou
 Current release: **V2.46** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.46) · [release/current/README.md](release/current/README.md)
 <!-- goal-teams-release:end -->
 
+V2.48 release candidate: local implementation and testing only; no GitHub write, formal install, or formal release has occurred.
+As a Skill bundle, this repository uses a five-gate simple release: local validation needs no pre-approval, and external publication requires one explicit confirmation.
+
 Current version: `V2.48`
 
 Goal Teams is a cross-CodeAgent coordination Skill, with Codex as one available host. It turns one goal into a verifiable plan and lets a Goal Lead coordinate independent members across requirements, design, implementation, tests, evidence, and completion audit. V2.48 adds composable Agent-product development material and an independent Agent Product Manager; a complete adapter still requires host-specific runtime evidence.
@@ -302,6 +305,8 @@ GoalTeamsWork-<project_version>/
 ## Version Note
 
 The current product version is read from `VERSION`; the public release remains V2.46 until a separately approved release workflow updates it. On the V2.3 machine contract and V2.5 core policy, `V2.48` adds composable Agent-product development contracts while retaining V2.47 flow/document/runtime overlays and earlier verification contracts as compatibility inputs. Detailed contracts are loaded from `references/` by task type.
+
+Ordinary Skill releases use five simple gates. Local verification needs no pre-approval; tag, GitHub Release, or formal installation requires one explicit confirmation bound to the exact candidate and operations.
 
 See the [current release note](release/current/README.md) for the visible package inventory. It does not replace runtime rules, `VERSION`, or installation validation.
 

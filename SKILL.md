@@ -34,7 +34,7 @@ description: 跨 Agent 运行时的多成员工作流协议。用于 $goal-teams
 | 持久化输出 | `prompts/packets/memory.md`、`references/google-okf-bilingual-spec.md` |
 | 迁移、安装或 CodeAgent 兼容 | `references/compat.md`、`references/agent-runtime-capability-contract.md`、`references/codeagent-runtime-manifest.json`；只加载 `references/runtime-adapters/common.md` 与检测命中的一个宿主文件；legacy 再读 `references/goal-teams-v2.3-contract.md` |
 | 流程测试或过程文档 | `references/flow-test-strategy-manifest.json`；写过程文档再读 incremental document protocol/manifest |
-| 发布/GitHub Release | `references/release-packaging-protocol.md`、`scripts/release/README.md` |
+| 发布/GitHub Release | 普通 Skill 读 `references/skill-release-simple-protocol.md`；高风险再读 `references/release-packaging-protocol.md` |
 | Plan 模式需求卡片 | `prompts/lead/requirement-card.md`、`prompts/packets/requirement-card.md`、`references/google-okf-bilingual-spec.md` |
 | 需求分析与 PRD | `requirements-analyst/INDEX.md` 或 `product/INDEX.md`；Architecture 读 route 指定 frontend/backend `INDEX.md` |
 | Agent 产品、Prompt/Context/Cache、MCP/浏览器/Computer Use/Playwright | `references/agent-development/INDEX.md`；产品定义加载 `agent-product-manager/INDEX.md`，开发/测试只加载各自命中的成员 `INDEX.md` |

@@ -6,28 +6,18 @@
   "additionalProperties": false,
   "required": [
     "schema_version",
-    "protocol_version",
     "version",
     "status",
     "external_writes_allowed",
     "published_before",
     "tag",
-    "candidate_location",
     "candidate_branch",
-    "goal_teams_work",
-    "goal_teams_work_location",
-    "owner_run_id",
     "profile_path",
     "release_title",
     "release_body",
     "tag_message",
-    "workflow_display_prefix",
-    "legacy_recovery_required",
     "snapshot_schema_version",
-    "files_manifest_format",
-    "public_scan_baseline",
-    "close_schema_version",
-    "host_acceptance"
+    "files_manifest_format"
   ],
   "properties": {
     "schema_version": {"const": "goal-teams-release-engine-profile-v1"},
@@ -35,6 +25,19 @@
     "version": {"type": "string", "pattern": "^V[0-9]+\\.[0-9]+$"},
     "status": {"enum": ["active", "historical_replay"]},
     "external_writes_allowed": {"type": "boolean"},
+    "release_mode": {"const": "skill_simple"},
+    "approval_model": {
+      "const": "single_human_before_external_write"
+    },
+    "release_gates": {
+      "const": [
+        "source_freeze",
+        "checks",
+        "package",
+        "isolated_install",
+        "publish"
+      ]
+    },
     "published_before": {
       "anyOf": [
         {"type": "null"},
@@ -120,5 +123,33 @@
         }
       ]
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"version": {"const": "V2.48"}},
+        "required": ["version"]
+      },
+      "then": {
+        "required": ["release_mode", "approval_model", "release_gates"],
+        "properties": {
+          "external_writes_allowed": {"const": false}
+        }
+      },
+      "else": {
+        "required": [
+          "protocol_version",
+          "candidate_location",
+          "goal_teams_work",
+          "goal_teams_work_location",
+          "owner_run_id",
+          "workflow_display_prefix",
+          "legacy_recovery_required",
+          "public_scan_baseline",
+          "close_schema_version",
+          "host_acceptance"
+        ]
+      }
+    }
+  ]
 }

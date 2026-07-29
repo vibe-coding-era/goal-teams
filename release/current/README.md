@@ -1,5 +1,7 @@
 # Goal Teams V2.46 Release
 
+V2.48 candidate marker: the repository contains a locally tested candidate projection, while this directory still records the published V2.46 release until separately authorized publication succeeds.
+
 V2.46 adds machine-verifiable verification governance while preserving the V2.3 ledger, V2.44 API/E2E contracts, V2.43 metrics, and V2.45 Release Engineer.
 
 ## Verification governance
@@ -14,7 +16,7 @@ V2.46 adds machine-verifiable verification governance while preserving the V2.3 
 - Task lifecycle, check execution, run conclusion, Evidence integrity/applicability, release phase, and recovery are orthogonal.
 - External effects follow persisted intent, execution, exact readback, and revision/CAS commit. Uncertain outcomes allow only reconciliation or recovery.
 - `accepted`, `released`, and `closed` are derived from completion predicates, valid current Evidence, and independent audit.
-- V2.46 is the active self-release profile. V2.45 and earlier profiles are replay-only and cannot authorize new external writes.
+- V2.46 remains the published release. V2.48 is a `skill_simple` candidate; local validation does not authorize tag, GitHub Release, or formal installation.
 - CP05 remains external-host-only; immutable tag/Release, four fixed assets, published-asset re-download, local installation, and independent live audit remain mandatory.
 
 ## Rust and Tauri desktop engineering
@@ -28,7 +30,7 @@ V2.46 adds machine-verifiable verification governance while preserving the V2.3 
 
 - V2.44 schemas, fixtures, benchmark, and fixed 100-point denominator keep their original identities.
 - Full regression may be required for the current candidate, but it never erases historical results.
-- Structural checks, exit codes, cache telemetry, and scores do not replace behavior Evidence, independent Review, trusted-host acceptance, or release readback.
+- Structural checks, exit codes, cache telemetry, and scores do not replace behavior checks, deterministic package identity, isolated install rehearsal, or published-asset readback.
 
 ## Release telemetry
 

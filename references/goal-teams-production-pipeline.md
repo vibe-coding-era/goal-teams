@@ -157,7 +157,7 @@ release_gate:
 
 `gate_status: approved` 只表示协议层允许进入下一步；真实发布仍取决于外部系统权限和人工授权。
 
-V2.36 的 Goal Teams self-release 固定为 Full/Regulated，在进入本门前要求适用 security、performance、refactor、sqa proposal/review 与完整 Evidence gates；专家只读且不能自行派发。普通 medium/small 按 Core V2.5 路由保留 Standard/Lite，Architecture、完整 Environment 与独立测试可按影响减少，但 current Evidence、安全覆盖和适用验证不得减少。
+项目执行等级与发行工件分类正交。V2.48 普通 Skill 使用五步 `skill_simple`：本地 identity/check/package/隔离安装无需预批准，发布前只做一次明确人工确认；V2.46 CP00–CP18 仅保留历史 replay 或显式高风险 `governed_release`。简单发行仍保留 exact identity、可复现包、扫描、安装回滚、发布后下载验真；数据库迁移、服务流量、基础设施回滚、签名 nonce authority 与完整 CP ledger 只在实际命中对应运行面时加载。普通 medium/small 按 Core V2.5 路由保留 Standard/Lite，Architecture、完整 Environment 与独立测试可按影响减少，但 current Evidence、安全覆盖和适用验证不得减少。
 
 ## Safety Gate
 

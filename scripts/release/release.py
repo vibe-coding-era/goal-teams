@@ -128,12 +128,23 @@ def _release_cfg(version: Any) -> dict[str, Any]:
     if not isinstance(version, str):
         _fail("E_V240_RELEASE_SOURCE_IDENTITY", "release version is missing")
     try:
-        return _RELEASE_CONFIG_MODULE.release_config(version)
+        config = _RELEASE_CONFIG_MODULE.release_config(version)
     except ValueError:
         _fail(
             "E_V240_RELEASE_SOURCE_IDENTITY",
             f"release version is not configured: {version}",
         )
+    if config.get("release_mode") == "skill_simple":
+        _fail(
+            "E_SKILL_RELEASE_MODE",
+            (
+                f"{version} uses the Skill simple-release path; use "
+                "scripts/release/skill_release.py"
+            ),
+            release_mode="skill_simple",
+            required_entrypoint="scripts/release/skill_release.py",
+        )
+    return config
 
 
 def _release_cfg_for_state(state: Mapping[str, Any]) -> dict[str, Any]:

@@ -8,6 +8,9 @@
 当前发行：**V2.46** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.46) · [发行说明](release/current/README.md)
 <!-- goal-teams-release:end -->
 
+V2.48 发行候选：本地实现与测试中；尚未执行 GitHub 写入、正式安装或正式发行。
+本仓库作为 Skill 包采用五步简单发行：本地验证无需预批准，外部发布前只需一次明确确认。
+
 当前版本：`V2.48`
 
 Goal Teams 是一个跨 CodeAgent 的团队协作 Skill，Codex 是当前可用宿主之一。它会以一个 Goal Lead 的身份，把一个目标拆成可验证的计划，再协调多个独立成员完成需求、设计、实现、测试、证据记录和收尾审计。V2.48 新增可组合的 Agent 产品开发资料和独立 Agent 产品经理；既有八类宿主合同仍需各宿主实测才能成为完整 adapter。过程中会应用到：
@@ -296,7 +299,7 @@ GoalTeamsWork-<project_version>/
 | 10. 分级 Review 与完成审计 | 脚本检查机械事实，LLM Reviewer 检查语义和风险；最后由独立 Completion Auditor 判断闭环 | Required 任务、当前 Evidence 和最终审计全部通过，才能 `achieved` |
 | 11. 长任务 LOOP 与恢复 | 使用 `Gather → Reason → Act → Verify → Repeat`；支持 `continue / replan / stop`、四文件状态、CAS 和中断恢复 | 验证失败时补缺或重规划；状态不一致时失败关闭，不猜测继续 |
 | 12. 安全、预算与失败治理 | 管理凭证、破坏性操作、外部写入、预算、冲突、脱敏和不可信内容 | 可在任何阶段阻断流程；明确区分 `failed / blocked / partial` |
-| 13. 迁移、安装与发布治理 | 支持旧版本扫描迁移、原子安装、备份、回滚、卸载，以及发布门禁和公开归档 | 用于 Skill 自身升级和候选发布；真实生产操作仍需外部授权 |
+| 13. 迁移、安装与发布治理 | 支持旧版本扫描迁移、原子安装、备份、回滚、卸载；普通 Skill 使用五步简单发行 | 本地验证无需预批准；外部发布前取得一次明确确认 |
 | 14. Benchmark 与质量改进 | 对比不同 Prompt、Skill 版本和执行方式；记录评分、失败类型、分歧、回归与瓶颈 | 位于主交付流程之外，用于判断流程是否真的改进 |
 
 ## 设计依据和出处

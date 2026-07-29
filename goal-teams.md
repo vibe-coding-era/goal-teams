@@ -18,6 +18,7 @@
 - `references/prompt-cache-manifest.json` 是 route-static 顺序与 byte budget 的机器 SSOT；`route_static_digest` 只标识计划文件 bytes。最终 prompt 不可见时 runtime digests 为 null；只有宿主 ordered manifest 可生成它们。Goal Teams 不能强制、清空或保证 provider cache。
 - 当轮 Budget Gate 只使用 agent 可见的 `subject_visible_telemetry`；runner 轮后采集的 `observer_telemetry` 只用于事后分析。cache 报告使用 token-weighted `cached_input_share`、`uncached_input_tokens` 与 `telemetry_coverage`；没有 request 粒度事件时 `request_hit_rate=null/unavailable`，不得由 turn 聚合外推。
 - `gate_profile` 必须由 `policy_profile + product_version + task_type + route facts` 自动派生；调用方不得通过提交或省略 `state_gate_profile` 自选、跳过或降低门禁。
+- 本仓库是 Skill 包，默认使用 `skill_simple`：本地 S0–S3 只做版本/commit 冻结、检查、确定性打包和隔离安装生命周期，不要求先批准发行计划；tag、GitHub Release 或正式安装前只取得一次绑定 exact candidate、资产和操作范围的人工确认。只有命中凭证、支付/认证、数据库/服务、破坏性基础设施或自动外部写入时才升级 `governed_release`。
 - Lite/Standard 必须根据风险、规模、任务类型和覆盖事实保留真实轻量路径，只生成适用任务与 Evidence；Full/Regulated 用于跨模块、高风险、发布、安全、支付/认证或其他明确升级条件。
 - 原创 UI 使用 browser、DOM、geometry 和 visual Evidence；只有复刻或 reference-driven UI 强制 pixel baseline。
 - 统一 secret redaction 由共享实现提供，并覆盖 Authorization/Cookie、YAML/TOML key-value、数据库 URI、`.netrc`、云凭证与协作工具 token；非 UTF-8/控制字节公开副本 fail closed。
@@ -202,7 +203,10 @@
 ## 发布仓库维护
 
 - 当前公开发行面只使用 `release/current/`；`docs/` 是 Git 忽略的本地知识库，按版本保存历史过程、完整 PRD/架构、集成测试库和发行凭证，不进入 GitHub 或安装包。
-- V2.44 起发行身份由 `scripts/release/release_config.py` 和 `references/release-profiles/*.json` 的 Git-tracked 闭集派生，并绑定 CP00、operation intent、CP05 与 CP10；当前公开发行与外部写入仍只允许 V2.46 active release profile。V2.48 是开发候选，不得写 `release/current`、tag/Release、安装或外部系统。
+- Skill 发布遵循“简化程序部署仪式，不简化供应链可信度”：默认 `skill_bundle` 只保留 source identity、`./scripts/check.sh`、适用定向测试、双构建、safe tar/secret scan、隔离 install/update/failure rollback/uninstall、一次发布确认和发布后下载验真。`docs_only` 通常随下一版本交付；只有实际高风险运行面才升级 `governed_release`。
+- 多类同时命中取最高等级；rename/copy、删除、mode、symlink、submodule、generated/transitive input、未知路径或分类冲突不得降级。任一正式公开 Release 仍需 exact identity、allowlist 可复现包、safe tar、secret/public scan、安装/更新/失败回滚验证、计划与执行两次审批、逐 operation intent/readback/receipt/CAS、远端资产下载验真及独立关闭审计。
+- V2.48 简单发行身份仍由 `scripts/release/release_config.py` 与 Git-tracked profile 派生，但不绑定 CP00–CP18 或四类签名 authority。当前公开发行仍是 V2.46；V2.48 在一次发布确认前不得写 tag、GitHub Release、正式安装或外部系统。
+- 五步 Skill 发布链为：S0 冻结 identity → S1 本地检查 → S2 双构建与扫描 → S3 隔离安装生命周期 → S4 一次人工确认后发布并回下载验真。普通 Skill 不建立九任务发行图、两阶段签名批准、nonce 消费状态或 trusted-host；这些只属于显式 `governed_release`。
 - 产品版本升级不得降低 snapshot 安全格式；V2.48 候选继续继承 V2.46 的 sealed source commit、唯一 generated OKF、严格四列 `_files.sha256` 和四个公开资产要求。未知版本、profile 漂移、历史 profile 写入、两列清单或未独立批准的 public scan baseline 一律 fail closed。
 - 发布文档只陈述当前仓库可验证的内容。规划、提案或未通过验证的能力必须明确标为未实现，不能作为版本发布声明。
 
