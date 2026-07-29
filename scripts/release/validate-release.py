@@ -204,6 +204,30 @@ class V240FilesManifestError(RuntimeError):
         super().__init__(f"E_V240_FILES_MANIFEST_COLUMNS: {message}")
 
 
+def release_projection_state(
+    version: str,
+    current: object,
+    *,
+    allow_candidate: bool,
+) -> str:
+    """Distinguish a published projection from an isolated candidate."""
+
+    if not isinstance(current, dict) or current.get("status") != "release":
+        return "invalid"
+    if current.get("product_version") == version:
+        return "final"
+    if (
+        allow_candidate
+        and version == "V2.48"
+        and current.get("product_version") == "V2.46"
+        and current.get("candidate_product_version") == version
+        and current.get("candidate_release_state")
+        == "skill_simple_local_validation"
+    ):
+        return "candidate"
+    return "invalid"
+
+
 def validate_v248_release_identity(
     expected: object, observed: object
 ) -> dict[str, object]:
@@ -514,7 +538,12 @@ def main() -> None:
             errors.append(f"{version}: current release manifest missing")
         else:
             current = json.loads(current_manifest.read_text(encoding="utf-8"))
-            if current.get("product_version") != version or current.get("status") != "release":
+            projection_state = release_projection_state(
+                version,
+                current,
+                allow_candidate=args.isolated_no_docs_archive,
+            )
+            if projection_state == "invalid":
                 errors.append(f"{version}: current release manifest is not final")
         source_ref = str(record.get("source_ref") or "")
         commit = str(record.get("source_commit") or "")

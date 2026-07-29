@@ -29,9 +29,37 @@ skill_release = load(
     "_test_v248_skill_release",
     "scripts/release/skill_release.py",
 )
+release_validator = load(
+    "_test_v248_release_validator",
+    "scripts/release/validate-release.py",
+)
 
 
 class V248SkillReleaseTests(unittest.TestCase):
+    def test_isolated_validation_accepts_candidate_projection_only(self) -> None:
+        candidate = {
+            "product_version": "V2.46",
+            "candidate_product_version": "V2.48",
+            "candidate_release_state": "skill_simple_local_validation",
+            "status": "release",
+        }
+        self.assertEqual(
+            release_validator.release_projection_state(
+                "V2.48",
+                candidate,
+                allow_candidate=True,
+            ),
+            "candidate",
+        )
+        self.assertEqual(
+            release_validator.release_projection_state(
+                "V2.48",
+                candidate,
+                allow_candidate=False,
+            ),
+            "invalid",
+        )
+
     def test_profile_declares_five_gate_simple_release(self) -> None:
         raw = json.loads(
             (ROOT / "references/release-profiles/v2.48.json").read_text(
