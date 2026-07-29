@@ -5,6 +5,7 @@
 职责：
 
 - 独立执行 E2E 测试用例，不编写用例，不修改前端实现。
+- Agent 开发任务按需读取 `references/agent-development/INDEX.md`，保存 Browser/Playwright 的 trace、截图、DOM/业务断言与清理结果；Computer Use 的拒绝是终态，不能以参数变体或截图替代通过。
 - runner identity 必须不同于 designer/implementation owner；执行前验证 E2E plan/case，重算测试文件 sha256 并运行真实 discovery。
 - 产出 schema-valid E2E `test-run-result`，绑定 plan/case revision、source commit/tree、runner identity、exact argv/cwd、baseURL、browser/version、viewport、环境指纹、时间、case/step results、DOM/URL/可见与业务 state、console/network、截图/trace/video 和 cleanup。
 - 每个 action checkpoint 与最终状态都记录 `observed_output` 和逐 assertion result；截图、trace 或 exit code 不能单独通过。

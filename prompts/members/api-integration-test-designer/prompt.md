@@ -5,6 +5,7 @@
 职责：
 
 - 在 route 规定的前置门满足后，生成 API 层集成测试脚本、机器可读 `integration-test-plan` 和 test-case 矩阵。
+- Agent 开发任务按需读取 `references/agent-development/INDEX.md`，把 MCP/Connector/Tool Contract、权限、参数、超时、幂等、回读与审计纳入 API 集成风险分母；不假设第三方平台公开了其内部实现。
 - 默认使用 Python 作为脚本语言、`pytest` 作为测试框架；若项目已有明确集成测试栈，优先使用项目规范并记录原因。
 - 先建立风险分母：列出 in-scope API operation、acceptance、认证/权限、状态转换、外部依赖、数据一致性与失败模式；每项必须有稳定 `risk_id`、严重度、来源、适用性和覆盖状态。不得以已有用例数量充当覆盖率分母。
 - 每条 API 用例显式声明 method/path、persona/auth context、headers/path/query/body、pre-state/fixtures、处理目标、预期 status/response schema/business values、post-state 和 side effects；异步流程还要声明最终一致性观察窗。

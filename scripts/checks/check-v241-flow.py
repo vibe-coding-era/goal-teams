@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed checks for the V2.41 flow contract on the V2.47 runtime."""
+"""Fail-closed checks for the V2.41 flow contract on the V2.48 runtime."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 def read(relative: str) -> str:
     path = ROOT / relative
     if not path.is_file():
-        raise SystemExit(f"[FAIL] missing required V2.47 file: {relative}")
+        raise SystemExit(f"[FAIL] missing required V2.48 file: {relative}")
     return path.read_text(encoding="utf-8")
 
 
@@ -19,12 +19,12 @@ def require_markers(relative: str, *markers: str) -> None:
     text = read(relative)
     for marker in markers:
         if marker not in text:
-            raise SystemExit(f"[FAIL] {relative} missing V2.47 marker: {marker}")
+            raise SystemExit(f"[FAIL] {relative} missing V2.48 marker: {marker}")
 
 
 def main() -> None:
-    if read("VERSION").strip() != "V2.47":
-        raise SystemExit("[FAIL] VERSION must be V2.47")
+    if read("VERSION").strip() != "V2.48":
+        raise SystemExit("[FAIL] VERSION must be V2.48")
     require_markers(
         "references/flow-clarification-protocol.md",
         "LLM 的判断是：你应该使用",
@@ -92,7 +92,7 @@ def main() -> None:
     )
     require_markers(
         "RULES.md",
-        "V2.47 流程测试、增量 SSOT 与运行时兼容",
+        "V2.47 流程测试、增量文档和新范围",
         "Proposal",
         "确认前",
         "生产环境规划不等于部署授权",
@@ -112,7 +112,7 @@ def main() -> None:
         '"runtime_id": "trae"',
         '"profile_count": 1',
     )
-    print("V2.47 flow clarification checks passed.")
+    print("V2.48 flow clarification checks passed.")
 
 
 if __name__ == "__main__":

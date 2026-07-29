@@ -46,7 +46,7 @@
       "contract_id": "okf-concept-document-v0.1",
       "priority": 20,
       "globs": ["references/*.md", "references/**/*.md"],
-      "exclude_globs": ["references/default-AGENTS.md", "references/**/README*.md"]
+      "exclude_globs": ["references/default-AGENTS.md", "references/**/README*.md", "references/**/INDEX.md", "references/**/index.md"]
     },
     {
       "rule_id": "A_CANONICAL_BUNDLE",

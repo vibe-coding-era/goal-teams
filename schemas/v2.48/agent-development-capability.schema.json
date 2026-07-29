@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/vibe-coding-era/goal-teams/schemas/v2.48/agent-development-capability.schema.json",
+  "title": "Goal Teams V2.48 Agent Development Capability Contract",
+  "schema_version": "goal-teams-agent-development-v2.48",
+  "type": "object",
+  "required": ["schema_version", "product_version", "schema", "validator", "reference_index", "roles", "design_patterns", "tool_execution_order", "claim_states"],
+  "properties": {
+    "schema_version": {"const": "goal-teams-agent-development-v2.48"},
+    "product_version": {"const": "V2.48"},
+    "schema": {"const": "schemas/v2.48/agent-development-capability.schema.json"},
+    "validator": {"const": "scripts/checks/validate-v248-agent-development.py"},
+    "reference_index": {"type": "string", "minLength": 1},
+    "roles": {"type": "array", "minItems": 11, "uniqueItems": true, "items": {"type": "object", "required": ["role_id", "member_package", "required_topics"], "properties": {"role_id": {"type": "string"}, "member_package": {"type": "string"}, "required_topics": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}}}, "additionalProperties": false}},
+    "design_patterns": {"type": "array", "minItems": 3, "items": {"type": "object", "required": ["pattern_id", "modules", "non_goals"], "properties": {"pattern_id": {"type": "string"}, "modules": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}}, "non_goals": {"type": "array", "minItems": 1, "items": {"type": "string"}}}, "additionalProperties": false}},
+    "tool_execution_order": {"const": ["api_or_mcp", "playwright_or_dom", "browser", "computer_use"]},
+    "claim_states": {"const": ["documented", "documented_limited", "contract_mapped_not_runtime_verified", "executed", "blocked", "not_run", "unknown", "not_found"]}
+  },
+  "additionalProperties": false
+}

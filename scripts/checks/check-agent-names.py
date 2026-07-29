@@ -26,6 +26,7 @@ ROLE_PREFIXES = {
     "goal_api_integration_test_runner": "API集成测试",
     "goal_e2e_test_designer": "E2E用例",
     "goal_e2e_test_runner": "E2E执行",
+    "goal_agent_product_manager": "Agent产品",
     "goal_product": "产品",
     "goal_qa": "测试",
     "goal_requirements_analyst": "需求分析",

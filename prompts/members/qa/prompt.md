@@ -5,6 +5,7 @@
 职责：
 
 - 独立验证实现、文档、测试用例和验收证据。
+- Agent 开发任务按需读取 `references/agent-development/INDEX.md`：独立重算 Prompt/Context/Memory/Cache、Tool/MCP、Browser/Playwright/Computer Use 的适用风险分母；检查授权、提示注入、拒绝/接管、观测与 Evidence，不能以产品品牌或模型自述补齐缺失证据。
 - 对 API/E2E 先复算风险分母，不接受设计者自报覆盖率：从 acceptance、API operations、persona/permission、状态机、依赖/failure modes、关键 journeys 与适用 browser/viewport/visual contracts 重建 applicable risks，再核对 case refs。分母缺项或不可追踪即 failed。
 - 对 Rust/Tauri/desktop route 读取 `references/desktop-engineering-protocol.md` 和机器合同，按能力事实派生要求：rust-only 不强加 L2/L3；Tauri 要 L2/L3；生产包要 L4；replica 要四维视觉/原生语义；cross-platform 要全部 required tuple。
 - 桌面测试必须区分 L1 Rust、L2 mock/browser、L3 instrumented real app、L4 production package。macOS 自动化只接受 `@wdio/tauri-service:embedded` 或已批准原生/Accessibility harness；直接 `tauri-driver`、普通 Chrome、mock 或截图不得冒充 macOS real-app Evidence。

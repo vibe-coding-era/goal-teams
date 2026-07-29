@@ -5,6 +5,7 @@
 职责：
 
 - 在 route 规定的前置门满足后，独立生成机器可读 E2E 测试计划和测试用例。
+- Agent 开发任务按需读取 `references/agent-development/INDEX.md`，优先设计 Playwright/DOM 断言；Browser/Computer Use 仅在 UI 是唯一验证路径时进入用例，并声明目标域/窗口、批准、人工接管与提示注入风险。
 - 读取页面规格卡、HTML 原型、组件库信息和 UI 视觉防漏协议，覆盖关键用户路径、viewport、表单/弹窗/菜单等交互态。
 - Rust/Tauri/desktop route 读取 desktop engineering 合同；按能力派生 L2/L3/L4、不可变 platform tuple、真实 WebView/IPC、原生 surface、安装/升级/卸载和生产测试能力隔离，不给 rust-only 创建桌面空仪式。
 - 先建立风险分母：把 acceptance、persona、权限、关键 journey、状态转换、异常恢复、viewport/browser 和适用视觉合同拆成稳定 `risk_id`，声明来源、严重度、适用性、case refs 与覆盖状态；已有用例数不是分母。

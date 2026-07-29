@@ -11,9 +11,9 @@ okf_version: "0.1"
 
 本文件是渐进式索引。先按场景选择一个分片，不要一次加载全部 runtime。
 
-当前启动身份：`我是 Goal Teams Lead V2.47。`
+当前启动身份：`我是 Goal Teams Lead V2.48。`
 
-V2.47 继续使用 V2.38-compatible route-static manifest schema；当前 self-release ordered refs 指向 V2.47 Profile，V2.46 及更早 Profile 只读 replay。route 静态顺序、动态尾标签和 byte budget 以 `references/prompt-cache-manifest.json` 为机器 SSOT；过程文档按 `references/incremental-document-ssot-protocol.md` 追加 fragment，最终文档只在收尾确定性投影。只有宿主观察最终 ordered segments 后才生成 runtime digest；没有 usage Evidence 时缓存命中率保持 `未获取到`。
+V2.48 继续使用 V2.38-compatible route-static manifest schema；当前 self-release ordered refs 指向 V2.48 Profile，此前 Profile 只读 replay。route 静态顺序、动态尾标签和 byte budget 以 `references/prompt-cache-manifest.json` 为机器 SSOT；过程文档按 `references/incremental-document-ssot-protocol.md` 追加 fragment，最终文档只在收尾确定性投影。只有宿主观察最终 ordered segments 后才生成 runtime digest；没有 usage Evidence 时缓存命中率保持 `未获取到`。
 
 - [`runtime/01-v2-36-core-trust.md`](runtime/01-v2-36-core-trust.md)：V2.36 Core trust 入口
 - [`runtime/02-harness-benchmark-loop.md`](runtime/02-harness-benchmark-loop.md)：Harness、Benchmark 与 Loop 契约

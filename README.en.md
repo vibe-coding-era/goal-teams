@@ -8,9 +8,9 @@ Author: 肉山@TGO Hangzhou
 Current release: **V2.46** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.46) · [release/current/README.md](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-Current version: `V2.47`
+Current version: `V2.48`
 
-Goal Teams is a cross-CodeAgent coordination Skill, with Codex as one available host. It turns one goal into a verifiable plan and lets a Goal Lead coordinate independent members across requirements, design, implementation, tests, evidence, and completion audit. V2.47 maps official contracts for eight host families; a complete adapter still requires host-specific runtime evidence.
+Goal Teams is a cross-CodeAgent coordination Skill, with Codex as one available host. It turns one goal into a verifiable plan and lets a Goal Lead coordinate independent members across requirements, design, implementation, tests, evidence, and completion audit. V2.48 adds composable Agent-product development material and an independent Agent Product Manager; a complete adapter still requires host-specific runtime evidence.
 
 ## Core Mechanisms
 
@@ -175,7 +175,7 @@ Use $goal-teams。
 Use this identity line on an explicit Goal Teams invocation or when the session first needs to establish identity; do not repeat it when full context already exists:
 
 ```text
-我是 Goal Teams Lead V2.47。
+我是 Goal Teams Lead V2.48。
 ```
 
 Core language rule: user communication and governance documents default to Chinese; code, comments, test names, fixtures, and product strings follow the target repository's conventions; keep identifiers, commands, paths, API names, config keys, subagent IDs, and exact references unchanged.
@@ -261,6 +261,7 @@ GoalTeamsWork-<project_version>/
 | Subagent ID | Main responsibility |
 | --- | --- |
 | `goal_requirements_analyst` | Clarification, research-assisted analysis, Requirement Specification Card, and PRD input. |
+| `goal_agent_product_manager` | Agent PRD, capability contract, Prompt/Context/Cache, tool/approval matrix, composable product patterns, and acceptance input. |
 | `goal_product` | PRD, acceptance criteria, prototype structure, and product review. |
 | `goal_backend` | Domain model, storage, API, CLI, MCP, migrations, and integrations. |
 | `goal_frontend` | UI, HTML prototype, browser verification, E2E, replica pixel comparison, and screenshot evidence. |
@@ -300,7 +301,7 @@ GoalTeamsWork-<project_version>/
 
 ## Version Note
 
-The current product version is read from `VERSION`; the public release remains V2.46 until a separately approved release workflow updates it. On the V2.3 machine contract and V2.5 core policy, `V2.47` adds flow-sized test strategy, incremental document SSOT, a compact response contract, and manifest-bounded CodeAgent runtime overlays while retaining prior verification contracts as compatibility inputs. Detailed contracts are loaded from `references/` by task type.
+The current product version is read from `VERSION`; the public release remains V2.46 until a separately approved release workflow updates it. On the V2.3 machine contract and V2.5 core policy, `V2.48` adds composable Agent-product development contracts while retaining V2.47 flow/document/runtime overlays and earlier verification contracts as compatibility inputs. Detailed contracts are loaded from `references/` by task type.
 
 See the [current release note](release/current/README.md) for the visible package inventory. It does not replace runtime rules, `VERSION`, or installation validation.
 
@@ -333,6 +334,13 @@ V2.3 adds deterministic machine contracts for closed state enums, a single-write
 - Added traceable test contracts, risk-routed Grill me review, and adversarial testing while preserving V2.44 API/E2E contracts and the full risk denominator.
 - Added capability-derived Rust/Tauri desktop contracts. “100% replication” is split into complete coverage, same-environment zero-pixel difference, high fidelity, and native-semantic match; PRD-only work first creates an independently approved interactive HTML baseline.
 - Rust backend rules now cover crate/module DAGs, typed IPC, errors, concurrency, persistence, security, and executable fmt/clippy/test gates. Desktop Evidence separates L1 Rust, L2 mock/browser, L3 real app, and L4 production package per immutable platform tuple and is constrained by an externally frozen candidate/environment SSOT; browser tests and direct `tauri-driver` cannot impersonate macOS client Evidence.
+
+## V2.48 Changes
+
+- Added an independent Agent Product Manager and a shared capability contract for product, frontend, backend, and testing roles: prompt programming, context and memory, cache boundaries, external tools, Browser, Computer Use, Playwright, and approval boundaries are independently scoped.
+- Added an official-source matrix for Codex, Claude Cowork, QoderWork, WorkBuddy, and TRAE/TraeWork. It separates documented capability, unknown capability, and unsupported inference; product material is not runtime-adapter or live-Evidence proof.
+- Added three decomposable product patterns (controlled task execution, context-workflow collaboration, and browser/desktop execution) plus a five-layer composable architecture. The action ladder is API/MCP → Playwright/DOM → Browser → Computer Use.
+- Added a V2.48 schema, manifest, standalone validator, and regression tests. V2.47 flow/document/runtime contracts remain historical compatibility inputs; the public release and release engine remain V2.46.
 
 ## V2.47 Changes
 

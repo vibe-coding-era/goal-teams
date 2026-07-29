@@ -37,8 +37,8 @@ STALE_ACTIVE_CURRENT_PATTERNS = (
         r"goal-teams-self-release-v2\.(?:38|39)\.md`"
     ),
 )
-REPLAY_PROFILE_LINE = "V2.46 及更早 Profile 只用于历史 replay"
-REPLAY_RUNTIME_LINE = "V2.46 及更早只读 replay"
+REPLAY_PROFILE_LINE = "V2.47 及更早 Profile 只用于历史 replay"
+REPLAY_RUNTIME_LINE = "V2.47 及更早只读 replay"
 
 
 def fail(message: str) -> None:

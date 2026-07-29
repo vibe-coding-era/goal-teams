@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 ROLES = [
     "requirements-analyst",
+    "agent-product-manager",
     "product",
     "backend",
     "frontend",

@@ -25,14 +25,14 @@ okf_version: "0.1"
 10. 通用核心以 `references/agent-runtime-capability-contract.md` 为准：运行时只能声明已验证能力；Codex 特有入口、路径或 subagent 配置属于 adapter。缺少必需能力时降级或 blocked，不得以文档存在宣称跨 Agent 已可执行。
 11. 工程指标是独立观测面，不替代 ledger、TaskList、SPEC、Harness、Evidence、Review 或 Completion Audit；没有覆盖闭合事实时不得把未观测事件写成 `0`，指标报告也不得反向自证任务完成。
 12. V2.46 历史 Evidence、影响分析、正交状态和外部副作用遵守 `references/verification-governance-protocol.md`：无依赖路径不扩大失效，全量回归不作废历史，完成态由谓词/独立审计推导，不确定副作用只对账。
-13. V2.47 流程测试读 `references/flow-test-strategy-manifest.json`；过程文档读 incremental SSOT protocol；新范围只写 `scope_change_proposal`，完成当前指定任务后交用户选择。禁止复用前序结果抵扣 large 全量、双写最终文档或用本地 digest 冒充 Cache 命中。
+13. V2.47 流程测试读 `references/flow-test-strategy-manifest.json`；过程文档读 incremental SSOT protocol；V2.48 Agent 产品开发读 `references/agent-development/INDEX.md` 和 capability manifest。新范围只写 `scope_change_proposal`，完成当前指定任务后交用户选择。禁止复用前序结果抵扣 large 全量、双写最终文档或用本地 digest 冒充 Cache 命中。
 
 规则冲突时：系统/用户 → 项目 AGENTS → invariants → 条件规则 → `RULES.md`（仅用户可见响应）→ Lead prompt → Member prompt。`RULES.md` 不参与状态、权限、Evidence、Harness、独立性或完成谓词的降级决策。
 
 ## V2.36 Profile 与路由硬边界
 
 1. 普通任务默认使用 `references/goal-teams-core-v2.5.md`，机器名为 `goal-teams-core-v2.5`；固定断言数量、固定迭代编号、评分和产品公开归档不是 L0 不变量。
-2. 可信 adapter 才可派生并加载当前 `goal-teams-self-release-v2.47`；V2.46 及更早只 replay。`state_gate_profile` 自动派生，显式值必须精确匹配。
+2. 可信 adapter 才可派生并加载当前 `goal-teams-self-release-v2.48`；V2.47 及更早只 replay。`state_gate_profile` 自动派生，显式值必须精确匹配。
 3. `project_size=large|medium|small` 与 `work_type=feature|bugfix` 正交；执行等级由规模、风险、发布、技术面与 UI 模式共同派生。Lite/Standard 可减少不适用的 Architecture、完整环境报告和全量测试，但不得减少 scoped contract、当前 Evidence、适用验证、安全/授权边界或最终结论诚实性。
 4. `full|regulated` 的 Architecture、Environment、独立测试、Harness/Evidence 与独立完成审计保持强门；高风险、安全、认证、支付、迁移、破坏性动作或高风险外部写入强制 regulated/safety，不得由规模降级。
 5. 原创 UI 不因 `ui=true` 自动进入 full，也不要求 reference pixel baseline；复刻/reference-driven UI 至少 full，必须使用独立批准的不同 baseline、环境指纹和像素比较。

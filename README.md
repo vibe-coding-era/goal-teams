@@ -8,9 +8,9 @@
 当前发行：**V2.46** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.46) · [发行说明](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-当前版本：`V2.47`
+当前版本：`V2.48`
 
-Goal Teams 是一个跨 CodeAgent 的团队协作 Skill，Codex 是当前可用宿主之一。它会以一个 Goal Lead 的身份，把一个目标拆成可验证的计划，再协调多个独立成员完成需求、设计、实现、测试、证据记录和收尾审计。V2.47 提供八类宿主的官方合同映射，但完整 adapter 仍以各宿主实测为准。过程中会应用到：
+Goal Teams 是一个跨 CodeAgent 的团队协作 Skill，Codex 是当前可用宿主之一。它会以一个 Goal Lead 的身份，把一个目标拆成可验证的计划，再协调多个独立成员完成需求、设计、实现、测试、证据记录和收尾审计。V2.48 新增可组合的 Agent 产品开发资料和独立 Agent 产品经理；既有八类宿主合同仍需各宿主实测才能成为完整 adapter。过程中会应用到：
 - 应用Goal + Plan + Loop 模式
 - 构建和严格遵循 SPEC + Harness + SSOT 三大原则
 - 不同角色使用不同的 subagent（不同上下文执行）保持上下文独立性不被污染
@@ -180,7 +180,7 @@ Use $goal-teams。
 显式调用 Goal Teams 或当前会话首次需要建立身份时汇报；已有完整上下文时不重复：
 
 ```text
-我是 Goal Teams Lead V2.47。
+我是 Goal Teams Lead V2.48。
 ```
 
 中文核心模型要点提示词：用户沟通和治理文档默认中文；代码、注释、测试名、fixture 和产品字符串遵循目标仓库约定；代码标识、命令、路径、API 名称、配置键、subagent ID 和精确引用保留原文。
@@ -266,6 +266,7 @@ GoalTeamsWork-<project_version>/
 | Subagent ID | 主要职责 |
 | --- | --- |
 | `goal_requirements_analyst` | 澄清目标、调研辅助、需求规格卡、PRD 前置输入。 |
+| `goal_agent_product_manager` | Agent PRD、能力合同、Prompt/Context/Cache、工具/审批矩阵、可组合产品方案与验收输入。 |
 | `goal_product` | PRD、验收标准、原型结构和产品评审。 |
 | `goal_backend` | 领域模型、存储、API、CLI、MCP、迁移和集成。 |
 | `goal_frontend` | UI、HTML 原型、浏览器验证、E2E、复刻像素级对比和截图证据。 |
@@ -285,7 +286,7 @@ GoalTeamsWork-<project_version>/
 | --- | --- | --- |
 | 1. 目标与计划建模 | 把模糊目标转成 Done Criteria、需求卡片、用户故事、验收标准和 SPEC | 整个流程的起点，先定义“什么算完成” |
 | 2. 风险路由与渐进加载 | 按任务选择 `Lite / Standard / Full / Regulated`，只加载 UI、后端、测试、LOOP 等适用规则 | 决定任务需要多严格，避免小任务也走完整重流程 |
-| 3. 多 Agent 角色编排 | 内置需求、产品、前后端、单测、API、E2E、QA、文档、Reviewer、Auditor 等 14 类角色，也可接入外部 Skill | 根据依赖关系串行或并行派发任务 |
+| 3. 多 Agent 角色编排 | 内置需求、Agent 产品、产品、前后端、单测、API、E2E、QA、文档、Reviewer、Auditor 等 15 类角色，也可接入外部 Skill | 根据依赖关系串行或并行派发任务 |
 | 4. 范围与职责隔离 | 每个成员获得 `locked_scope`；Owner、测试者、Reviewer、Auditor 使用不同身份，禁止自我批准 | 防止多人覆盖同一文件、范围失控和“自己证明自己正确” |
 | 5. SSOT、Ledger 与项目记忆 | append-only ledger 保存事实，reducer 生成 `TaskList.md`；产物按版本保存，根目录维护 `memory.md` | 贯穿全流程，保证状态可重放、可恢复、可追踪 |
 | 6. Contract-first 工程门禁 | 顺序为：合同冻结并独立评审 → 架构通过 → 开发环境 Evidence 就绪 → 独立测试准备 → 实现 | 防止需求、架构或环境尚未稳定就开始编码 |
@@ -344,6 +345,13 @@ GoalTeamsWork-<project_version>/
 - 新增可追溯测试合同、按风险路由的 Grill me 和对抗式测试，继续复用 V2.44 API/E2E 合同且不缩小风险分母。
 - 新增按能力派生的 Rust/Tauri 桌面工程合同：前端将“百分百复刻”拆成覆盖完整、同环境像素零差异、高保真与原生语义；PRD-only 先形成可独立批准的 HTML 基线。
 - Rust 后端统一 crate/module DAG、typed IPC、错误/并发/持久化/安全和 fmt/clippy/test 门；桌面测试按不可变 platform tuple 区分 L1 Rust、L2 mock/browser、L3 真实应用和 L4 生产包，并用外部冻结的 candidate/environment SSOT 约束 Evidence，macOS 不再用 browser 或 direct `tauri-driver` 冒充客户端 Evidence。
+
+## V2.48 版本改动
+
+- 新增独立 Agent 产品经理成员，并让产品、前端、后端与测试成员按同一能力合同协作：Prompt 编程、上下文与记忆、缓存边界、外部工具、Browser、Computer Use、Playwright 和安全审批各自有可验证边界。
+- 新增 Codex、Claude Cowork、QoderWork、WorkBuddy、TRAE/TraeWork 的官方来源矩阵；资料把已文档化能力、未知项和不可推断的能力分开，不把产品介绍写成运行时适配或实机 Evidence。
+- 内置受控任务执行、上下文工作流协作、浏览器/桌面执行三套可拆分产品方案，以及 Product/API、编排、上下文、工具、证据五层可组合架构方案；动作升级固定为 API/MCP → Playwright/DOM → Browser → Computer Use。
+- 新增 V2.48 schema、manifest、独立校验器与回归测试；V2.47 flow/document/runtime 合同保持历史兼容，公开发行与 release engine 仍是 V2.46。
 
 ## V2.47 版本改动
 

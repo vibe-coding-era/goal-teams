@@ -10,7 +10,8 @@ import sys
 from pathlib import Path
 
 
-# V2.47 loads the mandatory flow-clarification protocol at startup.  The
+# V2.48 loads the mandatory flow-clarification protocol and current Agent
+# development route at startup.  The
 # repository-startup route budget is the source of truth in the prompt-cache
 # manifest; this default keeps the legacy checker aligned with that route.
 DEFAULT_LIMIT = 21_504
@@ -119,7 +120,7 @@ def evaluate(root: Path, limit: int) -> dict[str, object]:
         "passed": installed_identity["passed"] and base_total <= limit,
     }
     routing_result = {
-        "definition": "V2.47 conditionally routed core/profile policy files",
+        "definition": "V2.48 conditionally routed core/profile policy files",
         "files": routing,
         "bytes": sum(routing.values()),
         "limits": V235_ROUTING_LIMITS,

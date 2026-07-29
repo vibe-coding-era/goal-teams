@@ -14,7 +14,7 @@
 
 - `goal-teams.md` 记录长期用户指定要求，是规则变更的上游依据。
 - `RULES.md` 承载 V2.02 Response Contract（响应规范），Goal Lead 和所有成员必须遵守。
-- `VERSION` 只记录当前产品版本 `V2.47`，需要和 `SKILL.md` 正文、用户确认的 README 版本投影、runtime 启动语保持一致；当前 GitHub Release 资产仍由 development version checker 按 `release/current/` 的已发布 `V2.46` 单独校验；通用核心策略版本为 `V2.5`，legacy 机器数据 schema 版本为 `V2.3`，三者不得混用；`SKILL.md` frontmatter 只保留 `name` 和 `description`。
+- `VERSION` 只记录当前产品版本 `V2.48`，需要和 `SKILL.md` 正文、用户确认的 README 版本投影、runtime 启动语保持一致；当前 GitHub Release 资产仍由 development version checker 按 `release/current/` 的已发布 `V2.46` 单独校验；通用核心策略版本为 `V2.5`，legacy 机器数据 schema 版本为 `V2.3`，三者不得混用；`SKILL.md` frontmatter 只保留 `name` 和 `description`。
 - `SKILL.md` 是 Codex 发现和执行 skill 的主入口。
 - `references/invariants.md` 承载所有任务永远生效的不变量、硬边界和失败降级协议。
 - `references/compat.md` 集中声明 `TaskList.md`/`tasklist.md`、脚本兼容入口、成员包布局和版本同步口径。
@@ -24,7 +24,8 @@
 - `references/desktop-engineering-protocol.md`、manifest/schema/validator 合并承载 V2.46 Rust/Tauri 前端复刻、Rust 后端工程和跨平台 L1–L4 桌面测试；主 `SKILL.md` 只保留条件入口。
 - `references/rules-loop.md` 承载 Lead LOOP、Loop Decision、Loop Gate、Budget Gate、Conflict Policy 和自动续跑边界。
 - `references/goal-teams-core-v2.5.md` 承载普通项目通用核心策略、`goal-teams-core-v2.5` policy profile 和自动 gate 派生契约。
-- `references/profiles/goal-teams-self-release-v2.47.md` 承载当前开发候选的流程测试、缓存友好增量文档、响应与跨 CodeAgent 兼容组合；V2.46 及更早 Profile 只保留历史 replay。当前公开发行和可写 release engine 仍是 V2.46，不得由候选 Profile 绕过。
+- `references/profiles/goal-teams-self-release-v2.48.md` 承载当前开发候选的 Agent 产品开发成员、资料合同与既有流程兼容；V2.47 及更早 Profile 只保留历史 replay。当前公开发行和可写 release engine 仍是 V2.46，不得由候选 Profile 绕过。
+- `references/agent-development/`、`references/agent-development-capability-manifest.json` 与 `schemas/v2.48/` 承载 Agent 产品、Prompt、上下文/记忆/缓存、工具/MCP、Browser/Computer Use/Playwright、三套可组合方案和声明状态；平台资料不等于 runtime adapter 或实机验证。
 - `references/flow-test-strategy.md`、manifest/schema/validator 承载 V2.47 small/medium/large 流程测试和产品 P0 冒烟分母；`references/incremental-document-ssot-protocol.md` 承载稳定前缀、动态尾部、增量 fragment 与最终投影；`references/codeagent-runtime-manifest.json`、官方来源索引和 runtime adapters 承载八类 CodeAgent 的渐进加载合同。
 - `references/rules-project-sizing.md` 承载项目规模、工作类型与安全/UI 覆盖的条件路由规则；V2.36 起 Lite/Standard 必须按实际风险和工作量保留轻量路径。
 - `references/rules-specialists.md` 承载 V2.35 安全、性能、重构和 SQA 四个只读提案专家及 Lead-only dispatch 边界。
@@ -85,7 +86,8 @@
 - `references/rules-testing.md`
 - `references/rules-loop.md`
 - `references/goal-teams-core-v2.5.md`
-- `references/profiles/goal-teams-self-release-v2.47.md`
+- `references/profiles/goal-teams-self-release-v2.48.md`
+- `references/agent-development/`
 - `references/profiles/goal-teams-self-release-v2.46.md`（历史 replay；当前公开发行）
 - `references/profiles/goal-teams-self-release-v2.44.md`
 - `references/profiles/goal-teams-self-release-v2.43.md`（历史 replay）
@@ -122,6 +124,7 @@
 - `schemas/v2.44/`
 - `schemas/v2.46/`
 - `schemas/v2.47/`
+- `schemas/v2.48/`
 - `references/google-okf-bilingual-spec.md`
 - `references/ui-e2e-pixel-protocol.md`
 - `references/ui-visual-contract-protocol.md`

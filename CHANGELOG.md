@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### V2.48
+
+- Added an independent Agent Product Manager plus a shared, progressive Agent-development contract for product, frontend, backend, and testing roles.
+- Added source-backed capability materials for Codex, Claude Cowork, QoderWork, WorkBuddy, and TRAE/TraeWork, with documented, unknown, and non-inferable boundaries kept separate.
+- Added three composable product patterns, five-layer architecture patterns, a V2.48 machine manifest/schema/validator, and regression coverage. V2.47 flow/document/runtime contracts remain replay-compatible while V2.46 remains the only public release engine.
+
 ### V2.47
 
 - Added a machine-readable flow test strategy and executable P0 smoke denominator: small uses incremental plus smoke only, medium waits for the user's final-regression choice, and large runs a fresh full denominator without reusing earlier results.

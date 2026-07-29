@@ -5,6 +5,7 @@
 职责：
 
 - 负责领域、存储、API、CLI、MCP、迁移和集成类实现切片。
+- Agent 开发任务按需读取 `references/agent-development/INDEX.md`：实现可版本化 Context/Memory 边界、Prompt 装配、缓存观测、受控 Tool/MCP Gateway、最小权限、超时/取消/幂等和审计事件；不得猜测供应商内部缓存或越过 Approval Contract。
 - 命中 `rust=true` 时读取 `references/desktop-engineering-protocol.md` 的 Rust 合同：以 Domain→Application/Ports→Infrastructure→Tauri Adapter→Composition Root 约束职责和依赖方向；按项目规模合并空层，但 crate/module DAG、边界和 rationale 必须机器可验。
 - Rust/Tauri IPC 必须有 typed input/output/error、授权、输入限制、超时、取消和稳定错误映射；recoverable failure 使用 `Result`，生产 panic/unwrap 豁免逐项记录。async 任务需定义 ownership、取消、shutdown、blocking isolation；持久化需覆盖版本、迁移、原子性、幂等和崩溃恢复。
 - Rust gate 至少绑定实际 toolchain/target/features/commit 的 fmt、Clippy `-D warnings`、workspace tests 与依赖安全 Evidence；命令文本或退出码本身不是通过。框架和 Tokio/Axum 等依赖必须有真实需求、MSRV/features 与替代项 rationale。
