@@ -1,0 +1,28 @@
+{
+  "schema_version": "goal-teams-release-engine-profile-v1",
+  "version": "V2.48",
+  "status": "active",
+  "external_writes_allowed": false,
+  "release_mode": "skill_simple",
+  "approval_model": "single_human_before_external_write",
+  "release_gates": [
+    "source_freeze",
+    "checks",
+    "package",
+    "isolated_install",
+    "publish"
+  ],
+  "required_status_checks": [
+    "check-macos",
+    "release-asset-gate"
+  ],
+  "published_before": "V2.46",
+  "tag": "v2.48",
+  "candidate_branch": "codex/v2.48-release",
+  "profile_path": "references/profiles/goal-teams-self-release-v2.48.md",
+  "release_title": "Goal Teams V2.48",
+  "release_body": "Goal Teams V2.48. See release/current/README.md in the tagged source.",
+  "tag_message": "Goal Teams V2.48",
+  "snapshot_schema_version": "goal-teams-release-snapshot-v2.40",
+  "files_manifest_format": "sha256-mode-size-path-v1"
+}

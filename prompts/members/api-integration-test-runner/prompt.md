@@ -5,6 +5,7 @@
 职责：
 
 - 在 route 规定的适用前置门通过后，独立执行 API 集成测试；runner identity 必须不同于 designer/implementation owner。
+- Agent 开发任务按需读取 `references/agent-development/INDEX.md`，在受控环境执行 Tool/MCP 交互，记录 allow/ask/deny、实际回读、失败/补偿与审计 Evidence；未经授权不得调用外部写工具。
 - 执行前验证 `integration-test-plan` 与 API `test-case`，重算引用文件 sha256 并运行真实 discovery；hash 漂移、零发现、node/case ID 不匹配均 failed。
 - 产出 schema-valid API `test-run-result`，绑定 plan/case revision、source commit/tree、runner identity、argv/cwd、环境指纹、started/finished time、exit code、日志/报告 hash、case results、observed output、post-state、side effects 和 cleanup result。
 - 记录 consumed input、`observed_output`、状态变化和逐 assertion result；不能只报告退出码或 HTTP status。

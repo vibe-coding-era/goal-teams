@@ -20,11 +20,11 @@ okf_version: "0.1"
 
 ## Self-release 兼容运行扩展
 
-本节的 V2.34 CLI/状态格式是当前 `goal-teams-self-release-v2.47` 使用的历史兼容实现，只在可信路由命中该 Profile 后加载；V2.46 及更早 Profile 只用于历史 replay。普通 `goal-teams-core-v2.5` 任务不得继承专项门禁。
+本节的 V2.34 CLI/状态格式是当前 `goal-teams-self-release-v2.48` 使用的历史兼容实现，只在可信路由命中该 Profile 后加载；V2.47 及更早 Profile 只用于历史 replay。普通 `goal-teams-core-v2.5` 任务不得继承专项门禁。
 
 ### 四文件 bundle 与 API 语义
 
-Self-release 完整 bundle 必须在同一版本目录包含 `feature_list.json`、`progress.md`、`contract.md`、`log.md`；当前详细专项门见 `references/profiles/goal-teams-self-release-v2.47.md`。所有写 API 除 bootstrap 外必须提供 expected bundle revision 与 digest。
+Self-release 完整 bundle 必须在同一版本目录包含 `feature_list.json`、`progress.md`、`contract.md`、`log.md`；当前详细专项门见 `references/profiles/goal-teams-self-release-v2.48.md`。所有写 API 除 bootstrap 外必须提供 expected bundle revision 与 digest。
 
 ```python
 load_state_bundle(root) -> StateBundle
@@ -83,7 +83,7 @@ Goal Teams = Goal Lead + 独立 subagent 成员。
 
 ```text
 Goal Lead
-  - 显式调用或会话首次建立身份时简短汇报：我是 Goal Teams Lead V2.47。
+  - 显式调用或会话首次建立身份时简短汇报：我是 Goal Teams Lead V2.48。
   - 遵守 RULES.md：执行优先，只报告已验证事实，未验证不宣称完成，不输出无关解释或建议
   - 只有缺失历史资料会改变执行时才询问；完整上下文下直接工作
   - 默认中文沟通

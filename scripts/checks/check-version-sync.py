@@ -37,8 +37,8 @@ STALE_ACTIVE_CURRENT_PATTERNS = (
         r"goal-teams-self-release-v2\.(?:38|39)\.md`"
     ),
 )
-REPLAY_PROFILE_LINE = "V2.46 及更早 Profile 只用于历史 replay"
-REPLAY_RUNTIME_LINE = "V2.46 及更早只读 replay"
+REPLAY_PROFILE_LINE = "V2.47 及更早 Profile 只用于历史 replay"
+REPLAY_RUNTIME_LINE = "V2.47 及更早只读 replay"
 
 
 def fail(message: str) -> None:
@@ -286,12 +286,16 @@ def validate_release_projection(expected_version: str, product: str) -> None:
         fail("release/current manifest cache evidence mismatch")
     version_tuple = tuple(map(int, expected_version[1:].split(".")))
     expected_claim_scope = (
-        "verification_governance_and_rust_tauri_desktop_contracts"
-        if version_tuple >= (2, 46)
+        "agent_product_development_and_verification_governance_desktop_contracts"
+        if version_tuple >= (2, 48)
         else (
-            "structural_governance_and_test_contracts"
-            if version_tuple >= (2, 44)
-            else "structural_governance"
+            "verification_governance_and_rust_tauri_desktop_contracts"
+            if version_tuple >= (2, 46)
+            else (
+                "structural_governance_and_test_contracts"
+                if version_tuple >= (2, 44)
+                else "structural_governance"
+            )
         )
     )
     if release.get("claim_scope") != expected_claim_scope:

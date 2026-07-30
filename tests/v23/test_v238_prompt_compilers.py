@@ -47,7 +47,7 @@ class V238PromptCompilerTests(unittest.TestCase):
 
         validation = compiler.validate_subagent_prefixes(ROOT)
         self.assertTrue(validation["passed"], validation)
-        self.assertEqual(validation["target_count"], 18)
+        self.assertEqual(validation["target_count"], 19)
         self.assertEqual(validation["common_prefix_bytes"], len(source))
 
         first = compiler.expand_subagent_prefixes(ROOT)

@@ -9,9 +9,21 @@ okf_version: "0.1"
 
 # Goal Teams 发布打包规范
 
+> 当前 V2.48 是纯 Skill 包，默认发行规则已简化为
+> [`references/skill-release-simple-protocol.md`](skill-release-simple-protocol.md)。
+> 本文件保留高风险 `governed_release` 与 V2.46 历史 CP00–CP18 replay；除非命中明确
+> 升级条件或用户指定，不再作为普通 Skill 发行的默认计划。
+
 ## Objective
 
-任何 GitHub Release 都必须先在本地 `release/versions/<VERSION>/` 形成完整、可复现、已校验的发行目录；未经本地门禁通过，不得创建 tag 或上传发行资产。
+任何 GitHub Release 都必须先形成完整、可复现、已校验的本地发行资产；未经适用门禁和
+一次明确发布确认，不得创建 tag 或上传发行资产。普通 Skill 发行不要求先批准本地测试计划。
+
+## 使用边界
+
+V2.48 普通 Skill 发行不进入下文 CP00–CP18 状态机；其本地门禁和一次人工发布确认以简单协议
+为准。下文只保留 V2.46 历史 replay，以及确有凭证、支付/认证、数据库/服务、破坏性基础设施或
+自动外部写入风险时另行设计的 `governed_release` 参考。
 
 V2.44 起，发行身份不再散落为脚本中的版本常量，而由
 `references/release-profiles/<version>.json` 与
@@ -91,6 +103,10 @@ V2.46 CP05 的 `host_acceptance` 使用发行 Profile 冻结的 Ed25519 公钥�
 字段后 acceptance 对象的 canonical JSON bytes 的 64-byte Ed25519 签名。候选公共验证器
 必须实际验签，不能只检查签名长度或摘要格式。HMAC 仅用于宿主私有 challenge
 state 的完整性与防重放，不能作为公开验收签名。
+
+V2.48 `skill_simple` 不实现 plan/execution 签名批准、nonce authority、review authority
+或 state-slot 状态机。若未来实际命中 `governed_release`，必须另建独立 profile、SPEC、
+schema 和测试，不得把简单发行 receipt 升格成高保障授权，也不得复用 V2.46 identity。
 
 V2.46 的 CP05 不能接收 caller JSON、布尔值、摘要、文件路径、argv/env token
 或 module-level object 作为 capability。公开 `release.py promote/recover`

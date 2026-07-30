@@ -44,7 +44,7 @@ okf_version: "0.1"
 - `specialist_requests` 只允许 `security|performance|refactor|sqa`，只能增加检查，不能删除门禁。
 - V2.46 Rust/Tauri/desktop 按能力派生；rust-only 无 L3，replica 保留四维。
 - `project_size` 与 `work_type` 是正交事实；`bugfix` 不是 size，risk 也不能改写 size。
-- `target_kind` 必须由可信 workspace adapter 从仓库身份生成，不能根据自由文本猜测；只有 `goal_teams_repository + release=true + product_version=V2.36` 派生自发布 Profile。
+- `target_kind` 必须由可信 workspace adapter 从仓库身份生成，不能根据自由文本猜测；`goal_teams_repository + product_version=V2.48` 派生当前自发布 Profile。
 - `ui=false` 时 `ui_mode` 必须为 `none`；`ui=true` 时只能为 `original|replica`。`policy_profile|task_type` 只由路由器生成；`state_gate_profile` 可省略，显式提供时必须与派生值精确匹配。
 - 相同规范化输入必须生成 byte-equivalent policy body、稳定排序的 `rule_set` 与 `reason_codes`。
 
@@ -52,7 +52,7 @@ okf_version: "0.1"
 
 1. 系统/用户授权与 `references/invariants.md` 的 L0 安全边界。
 2. `security_sensitive|external_write|auth|payment|migration|destructive` 为 true，或 `risk=high|critical`：强制 `profile=regulated`、`required_review_class=safety`、`security=required`。
-3. Goal Teams 仓库 V2.47 候选加载 `policy_profile=goal-teams-self-release-v2.47`；`release=false` 时 execution profile 仍按规模/风险派生，`release=true` 才至少 full。V2.46 及更早 route 只 replay。
+3. Goal Teams V2.48 加载 `goal-teams-self-release-v2.48`；普通 Skill 走 `skill_simple`，不自动 Full；高风险或用户指定才升级 `governed_release`。旧 route 只 replay。
 4. reference-driven/复刻 UI：强制 `profile=full|regulated`、独立 E2E 与 pixel comparison；原创 UI 只按规模/风险分级，不自动 full。
 5. `large|release`：至少 full；`medium|risk=medium|backend|api`：至少 standard；其余符合 low-risk 条件的 small 局部任务为 lite。
 6. `work_type=bugfix` 只增加与行为影响匹配的 regression/TDD/integration，不再跨规模强制完整 Architecture/Environment。

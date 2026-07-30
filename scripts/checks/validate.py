@@ -18,7 +18,11 @@ except ModuleNotFoundError:  # pragma: no cover
 
 ROOT = Path(__file__).resolve().parents[2]
 CURRENT_VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
-PUBLISHED_VERSION = "V2.46"
+PUBLISHED_VERSION = str(
+    json.loads(
+        (ROOT / "release/current/manifest.json").read_text(encoding="utf-8")
+    ).get("product_version", "")
+)
 GENERAL_CORE_POLICY_VERSION = "V2.5"
 LEGACY_DATA_SCHEMA_VERSION = "V2.3"
 CORE_POLICY_PROFILE = "goal-teams-core-v2.5"
@@ -36,6 +40,50 @@ COMPATIBILITY_MARKER = (
 PLAN_HISTORY_LINE = "在开始规划前，如果有什么历史文档、历史经验或参考资料需要输入吗？"
 PLAN_HISTORY_POLICY = "只有缺少历史资料会改变执行时"
 CHINESE_CORE_LINE = "用户沟通和治理文档默认中文"
+
+
+def validate_v248_public_projection(
+    root: Path, profile: object
+) -> dict[str, object]:
+    """Validate the exact V2.48 public release projection."""
+
+    failure = {
+        "ok": False,
+        "passed": False,
+        "error_code": "E_V248_PUBLIC_PROJECTION",
+        "mutation_count": 0,
+        "external_mutation_count": 0,
+        "external_side_effect_count": 0,
+    }
+    if not isinstance(profile, dict) or profile.get("version") != "V2.48":
+        return failure
+    required = {
+        "README.md": "当前发行：**V2.48**",
+        "README.en.md": "Current release: **V2.48**",
+        ".github/workflows/release-gate.yml": "Goal Teams V2.48 Skill verification",
+        "release/current/README.md": "# Goal Teams V2.48 Release",
+        "release/current/manifest.json": '"product_version": "V2.48"',
+    }
+    for relative, marker in required.items():
+        target = Path(root) / relative
+        if not target.is_file() or target.is_symlink():
+            return failure
+        try:
+            text = target.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            return failure
+        if marker not in text:
+            return failure
+    return {
+        "ok": True,
+        "passed": True,
+        "error_code": None,
+        "release_version": "V2.48",
+        "published_version": "V2.48",
+        "mutation_count": 0,
+        "external_mutation_count": 0,
+        "external_side_effect_count": 0,
+    }
 
 REQUIRED_FILES = [
     "AGENTS.md",
@@ -64,6 +112,17 @@ REQUIRED_FILES = [
     "references/profiles/goal-teams-self-release-v2.45.md",
     "references/profiles/goal-teams-self-release-v2.46.md",
     "references/profiles/goal-teams-self-release-v2.47.md",
+    "references/profiles/goal-teams-self-release-v2.48.md",
+    "references/agent-development/INDEX.md",
+    "references/agent-development/platform-reference-matrix.md",
+    "references/agent-development/prompt-context-cache.md",
+    "references/agent-development/tool-browser-computer-use.md",
+    "references/agent-development/product-design-patterns.md",
+    "references/agent-development/architecture-patterns.md",
+    "references/agent-development/testing-evaluation-safety.md",
+    "references/agent-development-capability-manifest.json",
+    "schemas/v2.48/agent-development-capability.schema.json",
+    "scripts/checks/validate-v248-agent-development.py",
     "references/flow-test-strategy.md",
     "references/flow-test-strategy-manifest.json",
     "references/incremental-document-ssot-protocol.md",
@@ -131,6 +190,7 @@ REQUIRED_FILES = [
     "prompts/lead/completion.md",
     "prompts/members/shared.md",
     "prompts/members/requirements-analyst/prompt.md",
+    "prompts/members/agent-product-manager/prompt.md",
     "prompts/members/product/prompt.md",
     "prompts/members/backend/prompt.md",
     "prompts/members/frontend/prompt.md",
@@ -280,6 +340,9 @@ REQUIRED_FILES = [
     "schemas/v2.36/acceptance-input-snapshot.schema.json",
     "schemas/release-promotion-state.schema.json",
     "schemas/release-engine-profile.schema.json",
+    "references/skill-release-simple-protocol.md",
+    "references/release-profiles/v2.48.json",
+    "scripts/release/skill_release.py",
     "tests/v23/test_v244_release_engine.py",
 ]
 
@@ -300,6 +363,7 @@ EXPECTED_SUBAGENTS = {
     "goal-frontend.toml": "goal_frontend",
     "goal-api-integration-test-designer.toml": "goal_api_integration_test_designer",
     "goal-api-integration-test-runner.toml": "goal_api_integration_test_runner",
+    "goal-agent-product-manager.toml": "goal_agent_product_manager",
     "goal-product.toml": "goal_product",
     "goal-qa.toml": "goal_qa",
     "goal-requirements-analyst.toml": "goal_requirements_analyst",
@@ -321,6 +385,7 @@ EXPECTED_ROLE_PREFIXES = {
     "goal_frontend": "前端",
     "goal_api_integration_test_designer": "API集成测试",
     "goal_api_integration_test_runner": "API集成测试",
+    "goal_agent_product_manager": "Agent产品",
     "goal_product": "产品",
     "goal_qa": "测试",
     "goal_requirements_analyst": "需求分析",
@@ -564,6 +629,18 @@ FILE_RULES = {
         "scripts/checks/check-routing-fixtures.py",
         "后续版本优先使用",
     ),
+    "references/release-packaging-protocol.md": (
+        "## 使用边界",
+        "V2.48 普通 Skill 发行不进入下文 CP00–CP18 状态机",
+        "一次人工发布确认以简单协议",
+        "`governed_release`",
+    ),
+    "references/profiles/goal-teams-self-release-v2.48.md": (
+        "## Skill 发行分类边界",
+        "V2.48 默认分类为 `skill_bundle`",
+        "同一五步简单发行",
+        "`governed_release`",
+    ),
     "references/rules-ui.md": (
         "page-spec-card.md",
         "HTML Prototype MOCK",
@@ -601,7 +678,7 @@ FILE_RULES = {
         "flow-test-strategy-manifest.json",
         "incremental-document-ssot-protocol.md",
         "codeagent-runtime-manifest.json",
-        "开发候选",
+        "Skill 包默认使用",
     ),
     "references/flow-test-strategy-manifest.json": (
         "goal-teams-flow-test-strategy-v2.47",
@@ -1082,18 +1159,45 @@ def check_release_engine_profiles() -> None:
         "V2.44": json.loads(read("references/release-profiles/v2.44.json")),
         "V2.45": json.loads(read("references/release-profiles/v2.45.json")),
         "V2.46": json.loads(read("references/release-profiles/v2.46.json")),
+        "V2.48": json.loads(read("references/release-profiles/v2.48.json")),
     }
-    active = profiles["V2.46"]
+    active = profiles["V2.48"]
     historical = profiles["V2.40"]
     if (
         active.get("status") != "active"
-        or active.get("external_writes_allowed") is not True
-        or active.get("candidate_branch") != "codex/v2.46-verification-governance"
-        or active.get("tag") != "v2.46"
-        or active.get("public_scan_baseline")
-        != "references/public-release-scan-baseline-v2.46.json"
+        or active.get("external_writes_allowed") is not False
+        or active.get("release_mode") != "skill_simple"
+        or active.get("approval_model")
+        != "single_human_before_external_write"
+        or active.get("release_gates")
+        != [
+            "source_freeze",
+            "checks",
+            "package",
+            "isolated_install",
+            "publish",
+        ]
+        or active.get("required_status_checks")
+        != ["check-macos", "release-asset-gate"]
+        or active.get("candidate_branch") != "codex/v2.48-release"
+        or active.get("tag") != "v2.48"
+        or any(
+            field in active
+            for field in (
+                "host_acceptance",
+                "approval_signer",
+                "nonce_consumption_authority",
+                "independent_review_authority",
+            )
+        )
     ):
-        fail("V2.46 active release-engine profile is inconsistent")
+        fail("V2.48 Skill simple-release profile is inconsistent")
+    if (
+        profiles["V2.46"].get("status") != "active"
+        or profiles["V2.46"].get("external_writes_allowed") is not True
+        or not isinstance(profiles["V2.46"].get("host_acceptance"), dict)
+    ):
+        fail("V2.46 immutable source profile no longer records its published identity")
     if (
         historical.get("status") != "historical_replay"
         or historical.get("external_writes_allowed") is not False
@@ -1117,7 +1221,10 @@ def check_release_engine_profiles() -> None:
         if (
             profile.get("schema_version")
             != "goal-teams-release-engine-profile-v1"
-            or profile.get("protocol_version") != "V2.40"
+            or (
+                version != "V2.48"
+                and profile.get("protocol_version") != "V2.40"
+            )
             or profile.get("version") != version
             or profile.get("snapshot_schema_version")
             != "goal-teams-release-snapshot-v2.40"
@@ -1127,9 +1234,18 @@ def check_release_engine_profiles() -> None:
             fail(f"{version} release-engine profile identity is inconsistent")
     workflow_path = ROOT / ".github/workflows/release-gate.yml"
     if workflow_path.is_file():
-        check_release_workflow_projection(
-            active, workflow_path.read_text(encoding="utf-8")
-        )
+        workflow = workflow_path.read_text(encoding="utf-8")
+        if "check-ubuntu" in workflow:
+            fail("V2.48 Skill verification must not require check-ubuntu")
+        for required_job in ("check-macos", "release-asset-gate"):
+            if workflow.count(f"name: {required_job}") != 1:
+                fail(
+                    "V2.48 Skill verification required status drift: "
+                    + required_job
+                )
+        projection = validate_v248_public_projection(ROOT, active)
+        if not projection["passed"]:
+            fail("V2.48 Skill verification projection is inconsistent")
 
 
 def check_file_rule_sets() -> None:
@@ -1187,6 +1303,7 @@ def check_key_rules() -> None:
             "prompts/lead/completion.md",
             "prompts/members/shared.md",
             "prompts/members/requirements-analyst/prompt.md",
+            "prompts/members/agent-product-manager/prompt.md",
             "prompts/members/product/prompt.md",
             "prompts/members/backend/prompt.md",
             "prompts/members/backend/template.md",

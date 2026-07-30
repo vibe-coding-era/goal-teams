@@ -74,6 +74,7 @@ fi
 "$PYTHON_BIN" scripts/checks/validate-v247-flow-test-strategy.py
 "$PYTHON_BIN" scripts/checks/validate-v247-codeagent-runtime.py
 "$PYTHON_BIN" scripts/checks/validate-v247-incremental-document.py
+"$PYTHON_BIN" scripts/checks/validate-v248-agent-development.py
 if [[ -f .github/workflows/check.yml ]]; then
   "$PYTHON_BIN" scripts/checks/check-ci-pins.py
 fi

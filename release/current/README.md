@@ -1,6 +1,12 @@
-# Goal Teams V2.46 Release
+# Goal Teams V2.48 Release
 
-V2.46 adds machine-verifiable verification governance while preserving the V2.3 ledger, V2.44 API/E2E contracts, V2.43 metrics, and V2.45 Release Engineer.
+V2.48 adds composable Agent-product development guidance and a five-step release flow designed for a Skill bundle. It preserves the V2.3 ledger, V2.44 API/E2E contracts, V2.46 verification and desktop contracts, and V2.47 flow/document/runtime contracts.
+
+## Agent-product development
+
+- Adds progressive-loading references for product, prompt, context, memory/cache, tool/MCP, Browser, Computer Use, and Playwright work.
+- Adds an independent Agent Product Manager member package and three composable design patterns.
+- Keeps platform documentation, repository contracts, runtime adapters, and real-host verification as distinct evidence states.
 
 ## Verification governance
 
@@ -14,8 +20,8 @@ V2.46 adds machine-verifiable verification governance while preserving the V2.3 
 - Task lifecycle, check execution, run conclusion, Evidence integrity/applicability, release phase, and recovery are orthogonal.
 - External effects follow persisted intent, execution, exact readback, and revision/CAS commit. Uncertain outcomes allow only reconciliation or recovery.
 - `accepted`, `released`, and `closed` are derived from completion predicates, valid current Evidence, and independent audit.
-- V2.46 is the active self-release profile. V2.45 and earlier profiles are replay-only and cannot authorize new external writes.
-- CP05 remains external-host-only; immutable tag/Release, four fixed assets, published-asset re-download, local installation, and independent live audit remain mandatory.
+- V2.48 uses `skill_simple`: source freeze, checks, deterministic packaging, isolated install rehearsal, and one human confirmation before external publication.
+- The V2.46 CP00–CP18 governed engine remains available for historical replay and high-assurance compatibility; it is not the default V2.48 path.
 
 ## Rust and Tauri desktop engineering
 
@@ -28,7 +34,7 @@ V2.46 adds machine-verifiable verification governance while preserving the V2.3 
 
 - V2.44 schemas, fixtures, benchmark, and fixed 100-point denominator keep their original identities.
 - Full regression may be required for the current candidate, but it never erases historical results.
-- Structural checks, exit codes, cache telemetry, and scores do not replace behavior Evidence, independent Review, trusted-host acceptance, or release readback.
+- Structural checks, exit codes, cache telemetry, and scores do not replace behavior checks, deterministic package identity, isolated install rehearsal, or published-asset readback.
 
 ## Release telemetry
 

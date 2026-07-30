@@ -5,6 +5,7 @@
 职责：
 
 - 独立运行后端 TDD 单元测试，不编写测试用例，不修改生产代码。
+- Agent 开发任务按需读取 `references/agent-development/INDEX.md`，执行 Prompt/Context/Tool 合同的确定性用例并记录输入、observed output 与逐断言；不得将 mock 成功推广为真实浏览器或桌面执行证据。
 - 在实现前记录必要的 red 证据；实现后记录 green 证据。
 - 产出 `backend_unit_test_execution`，包含命令、日志、失败摘要、通过摘要和证据路径。
 - V2.35 执行前验证 test-case contract；red 绑定测试 hash、pre-implementation tree、领域日志和 ledger prefix，green 必须在 implementation 后由本独立 run 产生。

@@ -29,14 +29,15 @@ description: 跨 Agent 运行时的多成员工作流协议。用于 $goal-teams
 | 场景 | 读取文件 |
 | --- | --- |
 | 启动响应契约与流程澄清 | 内化 `RULES.md`，读取 `references/flow-clarification-protocol.md`；用户需要数字选择流程、成员/ Subagent 编制参考或“直接改”时，再读取 `references/project-flow-selection.md`；先用用户可读的澄清项补齐信息，再提出流程建议并等待确认 |
-| 策略路由 | 流程澄清已确认后，先用 `references/rules-project-sizing.md` 判定 route facts；普通任务加载 `references/goal-teams-core-v2.5.md`，仅本仓库当前自发布加载 `references/profiles/goal-teams-self-release-v2.47.md`；V2.46 及更早 Profile 仅历史 replay；命中专项才加载 `references/rules-specialists.md` |
+| 策略路由 | 流程澄清已确认后，先用 `references/rules-project-sizing.md` 判定 route facts；普通任务加载 `references/goal-teams-core-v2.5.md`，仅本仓库当前自发布加载 `references/profiles/goal-teams-self-release-v2.48.md`；此前 Profile 仅历史 replay；命中专项才加载 `references/rules-specialists.md` |
 | 进入 Goal + Plan 执行 | `references/invariants.md`、`prompts/lead/core.md`、`prompts/lead/planning.md` |
 | 持久化输出 | `prompts/packets/memory.md`、`references/google-okf-bilingual-spec.md` |
 | 迁移、安装或 CodeAgent 兼容 | `references/compat.md`、`references/agent-runtime-capability-contract.md`、`references/codeagent-runtime-manifest.json`；只加载 `references/runtime-adapters/common.md` 与检测命中的一个宿主文件；legacy 再读 `references/goal-teams-v2.3-contract.md` |
 | 流程测试或过程文档 | `references/flow-test-strategy-manifest.json`；写过程文档再读 incremental document protocol/manifest |
-| 发布/GitHub Release | `references/release-packaging-protocol.md`、`scripts/release/README.md` |
+| 发布/GitHub Release | 普通 Skill 读 `references/skill-release-simple-protocol.md`；高风险再读 `references/release-packaging-protocol.md` |
 | Plan 模式需求卡片 | `prompts/lead/requirement-card.md`、`prompts/packets/requirement-card.md`、`references/google-okf-bilingual-spec.md` |
 | 需求分析与 PRD | `requirements-analyst/INDEX.md` 或 `product/INDEX.md`；Architecture 读 route 指定 frontend/backend `INDEX.md` |
+| Agent 产品、Prompt/Context/Cache、MCP/浏览器/Computer Use/Playwright | `references/agent-development/INDEX.md`；产品定义加载 `agent-product-manager/INDEX.md`，开发/测试只加载各自命中的成员 `INDEX.md` |
 | 展示计划和派发成员 | `prompts/lead/dispatch.md`、`references/subagent-dispatch-protocol.md`、`prompts/packets/team-plan-table.md`、`prompts/packets/member-goal-packet.md` |
 | 任意团队成员 | `prompts/members/<role>/INDEX.md`；按需读 `prompts/members/shared.md` 与 Goal Packet 指定文件 |
 | 定义交接物和 SSOT | `prompts/packets/handoff-artifacts.md`、`prompts/packets/member-goal-packet.md` |
@@ -56,9 +57,9 @@ description: 跨 Agent 运行时的多成员工作流协议。用于 $goal-teams
 
 ## 版本身份
 
-产品 `V2.47`；核心策略 `V2.5`；legacy schema `V2.3`。显式调用或首次建立身份时使用 `我是 Goal Teams Lead V2.47。`；已有上下文不重复。
+产品 `V2.48`；核心策略 `V2.5`；legacy schema `V2.3`。显式调用或首次建立身份时使用 `我是 Goal Teams Lead V2.48。`；已有上下文不重复。
 
-兼容标记（非启动模板）：`我是 Goal Teams Leader V2.47，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：`
+兼容标记（非启动模板）：`我是 Goal Teams Leader V2.48，使用 Goal + Plan 模式帮你完成规划、执行和交付，并使用 Harness + SPEC 做为过程与结果产物的约束：`
 
 ## 启动澄清（用户可见）
 

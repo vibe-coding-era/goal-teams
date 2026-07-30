@@ -1,0 +1,27 @@
+{
+  "schema_version": "goal-teams-agent-development-v2.48",
+  "product_version": "V2.48",
+  "schema": "schemas/v2.48/agent-development-capability.schema.json",
+  "validator": "scripts/checks/validate-v248-agent-development.py",
+  "reference_index": "references/agent-development/INDEX.md",
+  "roles": [
+    {"role_id": "goal_agent_product_manager", "member_package": "prompts/members/agent-product-manager", "required_topics": ["product_design", "prompt_context_cache", "tool_governance", "acceptance"]},
+    {"role_id": "goal_product", "member_package": "prompts/members/product", "required_topics": ["product_design", "acceptance"]},
+    {"role_id": "goal_backend", "member_package": "prompts/members/backend", "required_topics": ["context_memory", "tool_gateway", "audit"]},
+    {"role_id": "goal_frontend", "member_package": "prompts/members/frontend", "required_topics": ["agent_experience", "browser_observability", "approval_ui"]},
+    {"role_id": "goal_qa", "member_package": "prompts/members/qa", "required_topics": ["evaluation", "safety", "evidence"]},
+    {"role_id": "goal_unit_test_designer", "member_package": "prompts/members/unit-test-designer", "required_topics": ["deterministic_contract"]},
+    {"role_id": "goal_unit_test_runner", "member_package": "prompts/members/unit-test-runner", "required_topics": ["observed_assertions"]},
+    {"role_id": "goal_api_integration_test_designer", "member_package": "prompts/members/api-integration-test-designer", "required_topics": ["tool_contract"]},
+    {"role_id": "goal_api_integration_test_runner", "member_package": "prompts/members/api-integration-test-runner", "required_topics": ["controlled_execution"]},
+    {"role_id": "goal_e2e_test_designer", "member_package": "prompts/members/e2e-test-designer", "required_topics": ["browser_playwright"]},
+    {"role_id": "goal_e2e_test_runner", "member_package": "prompts/members/e2e-test-runner", "required_topics": ["browser_evidence"]}
+  ],
+  "design_patterns": [
+    {"pattern_id": "controlled_task_execution", "modules": ["capability_contract", "tool_gateway", "execution_approval", "observation_evidence"], "non_goals": ["parallel_agents", "desktop_control"]},
+    {"pattern_id": "context_workflow_collaboration", "modules": ["context_memory", "prompt_cache", "handoff_ledger", "workflow_router"], "non_goals": ["approval_bypass"]},
+    {"pattern_id": "browser_desktop_execution", "modules": ["playwright_dom", "browser", "computer_use", "human_takeover"], "non_goals": ["credential_automation", "security_prompt_approval"]}
+  ],
+  "tool_execution_order": ["api_or_mcp", "playwright_or_dom", "browser", "computer_use"],
+  "claim_states": ["documented", "documented_limited", "contract_mapped_not_runtime_verified", "executed", "blocked", "not_run", "unknown", "not_found"]
+}

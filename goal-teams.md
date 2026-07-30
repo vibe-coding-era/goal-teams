@@ -4,13 +4,13 @@
 
 ## 基本原则
 
-- 当前产品版本为 `V2.47`，保存在仓库根目录 `VERSION`，并同步写入 `SKILL.md` 正文和启动语；通用 Goal Teams 核心策略版本为 `V2.5`，legacy 机器数据 schema 版本为 `V2.3`，三者必须分开表达；`SKILL.md` frontmatter 只保留 `name` 和 `description`。
+- 当前产品版本为 `V2.48`，保存在仓库根目录 `VERSION`，并同步写入 `SKILL.md` 正文和启动语；通用 Goal Teams 核心策略版本为 `V2.5`，legacy 机器数据 schema 版本为 `V2.3`，三者必须分开表达；`SKILL.md` frontmatter 只保留 `name` 和 `description`。
 - 历史 `V2.02` 与 `V2.1` 是 `V2.3` 前的补丁线；后续版本优先使用 `V2.3`、`V2.4` 这类递增格式，避免继续新增 `V2.0x` 版本叙事。
-- 显式调用 Goal Teams 或当前会话首次需要建立身份时，Goal Lead 简短汇报：`我是 Goal Teams Lead V2.47。`；已有完整上下文时直接执行，不重复仪式。
-- 当前产品按 `V2.47` 执行；历史版本过程与演进说明只保存在本地 `docs/archive/`，正式运行面仅说明当前规则。legacy schema/runtime 标识只用于机器兼容，不代表当前产品版本。
+- 显式调用 Goal Teams 或当前会话首次需要建立身份时，Goal Lead 简短汇报：`我是 Goal Teams Lead V2.48。`；已有完整上下文时直接执行，不重复仪式。
+- 当前产品按 `V2.48` 执行；历史版本过程与演进说明只保存在本地 `docs/archive/`，正式运行面仅说明当前规则。legacy schema/runtime 标识只用于机器兼容，不代表当前产品版本。
 - `SKILL.md` 只保留触发导向 description、固定启动语、不变量、规划检查、失败降级摘要、工作流摘要和渐进式加载路由；完整硬边界和条件规则分别放入 `references/invariants.md`、`references/rules-ui.md`、`references/rules-testing.md`、`references/rules-loop.md`、`references/rules-project-sizing.md`、`references/rules-specialists.md`、`references/test-case-assertion-protocol.md` 和 `references/compat.md`。
 - 用户可见的流程选择详细内容放在 `references/project-flow-selection.md`，由 `SKILL.md` 在用户需要数字选择、项目成员/Subagent 编制参考或“直接改”时渐进加载；选项 `1|2|3` 分别规范化为 `small|medium|large`，选项 `4` 先补齐自定义节点，选项 `5` 走最小修改路径。
-- 普通任务使用 `policy_profile=goal-teams-core-v2.5`；只有 Goal Teams 仓库当前候选使用 `policy_profile=goal-teams-self-release-v2.47`，V2.46 及更早 Profile 只用于历史 replay。V2.47 的流程测试、增量文档、响应契约和 CodeAgent 兼容属于当前 self-release Profile；历史 52 条发布断言、第 9/11 轮、四维评分和公开归档仍按对应历史 Profile replay，不属于全局不变量。
+- 普通任务使用 `policy_profile=goal-teams-core-v2.5`；只有 Goal Teams 仓库当前候选使用 `policy_profile=goal-teams-self-release-v2.48`，V2.47 及更早 Profile 只用于历史 replay。V2.48 的 Agent 产品开发资料与成员合同，以及 V2.47 的流程测试、增量文档、响应契约和 CodeAgent 兼容都由当前 self-release Profile 组合；历史 52 条发布断言、第 9/11 轮、四维评分和公开归档仍按对应历史 Profile replay，不属于全局不变量。
 - 流程测试以 `references/flow-test-strategy-manifest.json` 为 SSOT：小流程只做增量与 P0 冒烟；中流程最终必须询问用户是否全量回归，未选择时保持 `awaiting_user_choice`；大流程先做增量与 P0 冒烟，最终用新的完整分母全量回归，禁止用前序结果抵扣。
 - 过程文档以增量 fragment/ledger 为唯一事实源，稳定合同前缀和 route-static references 放前，用户/任务/Evidence 动态值放尾；项目完成后才确定性投影最终文档。没有宿主 usage Evidence 时不得宣称缓存命中率提高。
 - CodeAgent 兼容以 `references/codeagent-runtime-manifest.json` 为机器 SSOT；只加载 Portable Core、正常规则、common 和一个已检测宿主 overlay。GLM 是 model provider，不是独立 runtime；TRAE schema 未闭合时 capability probe；所有完整 adapter 声明必须有宿主实测。
@@ -18,6 +18,7 @@
 - `references/prompt-cache-manifest.json` 是 route-static 顺序与 byte budget 的机器 SSOT；`route_static_digest` 只标识计划文件 bytes。最终 prompt 不可见时 runtime digests 为 null；只有宿主 ordered manifest 可生成它们。Goal Teams 不能强制、清空或保证 provider cache。
 - 当轮 Budget Gate 只使用 agent 可见的 `subject_visible_telemetry`；runner 轮后采集的 `observer_telemetry` 只用于事后分析。cache 报告使用 token-weighted `cached_input_share`、`uncached_input_tokens` 与 `telemetry_coverage`；没有 request 粒度事件时 `request_hit_rate=null/unavailable`，不得由 turn 聚合外推。
 - `gate_profile` 必须由 `policy_profile + product_version + task_type + route facts` 自动派生；调用方不得通过提交或省略 `state_gate_profile` 自选、跳过或降低门禁。
+- 本仓库是 Skill 包，默认使用 `skill_simple`：本地 S0–S3 只做版本/commit 冻结、检查、确定性打包和隔离安装生命周期，不要求先批准发行计划；tag、GitHub Release 或正式安装前只取得一次绑定 exact candidate、资产和操作范围的人工确认。只有命中凭证、支付/认证、数据库/服务、破坏性基础设施或自动外部写入时才升级 `governed_release`。
 - Lite/Standard 必须根据风险、规模、任务类型和覆盖事实保留真实轻量路径，只生成适用任务与 Evidence；Full/Regulated 用于跨模块、高风险、发布、安全、支付/认证或其他明确升级条件。
 - 原创 UI 使用 browser、DOM、geometry 和 visual Evidence；只有复刻或 reference-driven UI 强制 pixel baseline。
 - 统一 secret redaction 由共享实现提供，并覆盖 Authorization/Cookie、YAML/TOML key-value、数据库 URI、`.netrc`、云凭证与协作工具 token；非 UTF-8/控制字节公开副本 fail closed。
@@ -28,8 +29,8 @@
 - `RULES.md` 承载 Goal Lead 和所有成员的 Response Contract，要求执行优先、只报告已验证事实、未验证不宣称完成、区分观察和结论、避免无关解释和建议。
 - SSOT 是核心原则：交接物类型、Owner 字段、独立检查字段和状态字段以 `prompts/packets/handoff-artifacts.md` 为 Single Source of Truth；其他 workflow、template、README 和 runtime 示例只能引用或同步它，不能另起一套口径。
 - Google OKF 是生成文档的核心格式：所有 Markdown 输出默认使用 YAML frontmatter，且必须包含非空 `type`；本地双语规范为 `references/google-okf-bilingual-spec.md`。
-- V2.43 起任务完成与 benchmark 统一计算 12 项工程指标；V2.47 继续复用该兼容 sidecar。算法、事件、状态、近期窗口与历史可比性以 `references/engineering-metrics-protocol.md` 和 `references/engineering-metrics-manifest.json` 为 SSOT；未采集、样本不足或不适用不得写成零，指标不得替代完成证据链。
-- V2.47 继续兼容 V2.46 Rust/Tauri/desktop 合同：统一使用 `references/desktop-engineering-protocol.md`、`references/desktop-capability-manifest.json` 和 `schemas/v2.46/desktop-engineering.schema.json`，不改写历史 schema。按 rust/tauri/package/replica/PRD-only/cross-platform 事实派生门禁，保持 Lite/Standard 轻量路径。
+- V2.43 起任务完成与 benchmark 统一计算 12 项工程指标；V2.48 继续复用该兼容 sidecar。算法、事件、状态、近期窗口与历史可比性以 `references/engineering-metrics-protocol.md` 和 `references/engineering-metrics-manifest.json` 为 SSOT；未采集、样本不足或不适用不得写成零，指标不得替代完成证据链。
+- V2.48 继续兼容 V2.46 Rust/Tauri/desktop 合同，并新增可组合 Agent 产品资料与角色合同：统一使用 `references/agent-development/INDEX.md`、`references/agent-development-capability-manifest.json` 和 `schemas/v2.48/agent-development-capability.schema.json`，不改写历史 schema。按 rust/tauri/package/replica/PRD-only/cross-platform 与 Agent 工具风险事实派生门禁，保持 Lite/Standard 轻量路径。
 - 给用户生成的工程指标报告必须是自包含 Google OKF，包含算法和证据口径；最终聊天不展开完整表格，只返回报告链接、生成状态并提醒用户查看。
 - 用户未指定生成目录时，输出根目录默认写入 `GoalTeamsWork-<project_version>/`；该目录必须包含 OKF `memory.md`，按时间线从老到新记录重要用户设置、配置、组件库、上下文摘要和决策，作者固定为 `GoalTeams`。
 - 所有 SSOT 产出物必须写入输出目录下的版本号子目录，例如 `GoalTeamsWork-<project_version>/versions/<artifact_version>/`；不同版本的 SPEC、TaskList、Harness、Evidence 和 Acceptance 不得混放。
@@ -202,8 +203,11 @@
 ## 发布仓库维护
 
 - 当前公开发行面只使用 `release/current/`；`docs/` 是 Git 忽略的本地知识库，按版本保存历史过程、完整 PRD/架构、集成测试库和发行凭证，不进入 GitHub 或安装包。
-- V2.44 起发行身份由 `scripts/release/release_config.py` 和 `references/release-profiles/*.json` 的 Git-tracked 闭集派生，并绑定 CP00、operation intent、CP05 与 CP10；当前公开发行与外部写入仍只允许 V2.46 active release profile。V2.47 是开发候选，不得写 `release/current`、tag/Release、安装或外部系统。
-- 产品版本升级不得降低 snapshot 安全格式；V2.47 候选继续继承 V2.46 的 sealed source commit、唯一 generated OKF、严格四列 `_files.sha256` 和四个公开资产要求。未知版本、profile 漂移、历史 profile 写入、两列清单或未独立批准的 public scan baseline 一律 fail closed。
+- Skill 发布遵循“简化程序部署仪式，不简化供应链可信度”：默认 `skill_bundle` 只保留 source identity、`./scripts/check.sh`、适用定向测试、双构建、safe tar/secret scan、隔离 install/update/failure rollback/uninstall、一次发布确认和发布后下载验真。`docs_only` 通常随下一版本交付；只有实际高风险运行面才升级 `governed_release`。
+- 多类同时命中取最高等级；rename/copy、删除、mode、symlink、submodule、generated/transitive input、未知路径或分类冲突不得降级。`governed_release` 需 exact identity、allowlist 可复现包、safe tar、secret/public scan、安装/更新/失败回滚验证、计划与执行两次审批、逐 operation intent/readback/receipt/CAS、远端资产下载验真及独立关闭审计；`skill_bundle` 使用下述 S0–S4，不继承这些额外 authority。
+- V2.48 简单发行身份仍由 `scripts/release/release_config.py` 与 Git-tracked profile 派生，但不绑定 CP00–CP18 或四类签名 authority。V2.48 的外部写入仍必须在 S0–S3 完成后绑定一次人工确认；确认前不得写 tag、GitHub Release、正式安装或外部系统。
+- 五步 Skill 发布链为：S0 冻结 identity → S1 本地检查 → S2 双构建与扫描 → S3 隔离安装生命周期 → S4 一次人工确认后发布并回下载验真。普通 Skill 不建立九任务发行图、两阶段签名批准、nonce 消费状态或 trusted-host；这些只属于显式 `governed_release`。
+- 产品版本升级不得降低 snapshot 安全格式；V2.48 继续继承 V2.46 的 sealed source commit、唯一 generated OKF、严格四列 `_files.sha256` 和四个公开资产要求。未知版本、profile 漂移、历史 profile 写入或两列清单一律 fail closed；独立批准的 public scan baseline 仅是 `governed_release` 门禁，不得反向加到 `skill_bundle`。
 - 发布文档只陈述当前仓库可验证的内容。规划、提案或未通过验证的能力必须明确标为未实现，不能作为版本发布声明。
 
 - 更新 skill 规则时，同步更新：

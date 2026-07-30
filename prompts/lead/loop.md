@@ -11,7 +11,7 @@ Lead LOOP 是 Goal Lead 的执行期闭环协议。它不代表新的 runtime、
 - Full/Regulated 的 Architecture 已 accepted、`development_environment_check=ready` 且独立测试已写入；
 - iteration/attempt/intent/expected constraints/action scope 已按当前项目恢复合同持久化。
 
-固定自发布门禁只在 `policy_profile=goal-teams-self-release-v2.47` 时读取 `references/profiles/goal-teams-self-release-v2.47.md`；V2.46 及更早 Profile 只用于历史 replay。
+固定自发布门禁只在 `policy_profile=goal-teams-self-release-v2.48` 时读取 `references/profiles/goal-teams-self-release-v2.48.md`；V2.47 及更早 Profile 只用于历史 replay。
 
 ## 适用时机
 

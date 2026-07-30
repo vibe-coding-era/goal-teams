@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Load closed, Git-tracked release identities for the CP00-CP18 engine."""
+"""Load closed, Git-tracked release identities.
+
+V2.48 is a Skill simple-release profile used by ``skill_release.py``.
+V2.46 keeps the governed CP00-CP18 engine; earlier versions are replay-only.
+"""
 
 from __future__ import annotations
 
@@ -13,19 +17,21 @@ from typing import Any
 
 SCHEMA_VERSION = "goal-teams-release-engine-profile-v1"
 PROTOCOL_VERSION = "V2.40"
-ACTIVE_VERSION = "V2.46"
+ACTIVE_VERSION = "V2.48"
 ROOT = Path(__file__).resolve().parents[2]
 PROFILE_BY_VERSION = {
     "V2.40": ROOT / "references" / "release-profiles" / "v2.40.json",
     "V2.44": ROOT / "references" / "release-profiles" / "v2.44.json",
     "V2.45": ROOT / "references" / "release-profiles" / "v2.45.json",
     "V2.46": ROOT / "references" / "release-profiles" / "v2.46.json",
+    "V2.48": ROOT / "references" / "release-profiles" / "v2.48.json",
 }
 PREDECESSOR_BY_VERSION = {
     "V2.40": None,
     "V2.44": "V2.40",
     "V2.45": "V2.44",
     "V2.46": "V2.45",
+    "V2.48": "V2.46",
 }
 HOST_ACCEPTANCE_VERSIONS = {"V2.44", "V2.45", "V2.46"}
 REQUIRED_FIELDS = {
@@ -53,6 +59,32 @@ REQUIRED_FIELDS = {
     "close_schema_version",
     "host_acceptance",
 }
+SIMPLE_FIELDS = {
+    "schema_version",
+    "version",
+    "status",
+    "external_writes_allowed",
+    "release_mode",
+    "approval_model",
+    "release_gates",
+    "required_status_checks",
+    "published_before",
+    "tag",
+    "candidate_branch",
+    "profile_path",
+    "release_title",
+    "release_body",
+    "tag_message",
+    "snapshot_schema_version",
+    "files_manifest_format",
+}
+SIMPLE_GATES = [
+    "source_freeze",
+    "checks",
+    "package",
+    "isolated_install",
+    "publish",
+]
 VERSION_RE = re.compile(r"^V[0-9]+\.[0-9]+$")
 CANDIDATE_RE = re.compile(r"^develops/[a-z0-9][a-z0-9._-]*$")
 BRANCH_RE = re.compile(r"^codex/[A-Za-z0-9._/-]+$")
@@ -75,8 +107,64 @@ def _load_profile(version: str) -> dict[str, Any]:
         value = json.loads(raw)
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise ValueError(f"release profile is unreadable: {version}") from exc
-    if not isinstance(value, dict) or set(value) != REQUIRED_FIELDS:
+    simple_mode = (
+        version == "V2.48"
+        and isinstance(value, dict)
+        and value.get("release_mode") == "skill_simple"
+    )
+    expected_fields = SIMPLE_FIELDS if simple_mode else REQUIRED_FIELDS
+    if not isinstance(value, dict) or set(value) != expected_fields:
         raise ValueError(f"release profile fields drift: {version}")
+    if simple_mode:
+        if (
+            value["schema_version"] != SCHEMA_VERSION
+            or value["version"] != version
+            or value["status"] != "active"
+            or value["external_writes_allowed"] is not False
+            or value["approval_model"]
+            != "single_human_before_external_write"
+            or value["release_gates"] != SIMPLE_GATES
+            or value["required_status_checks"]
+            != ["check-macos", "release-asset-gate"]
+            or value["published_before"] != "V2.46"
+            or value["tag"] != "v2.48"
+            or value["candidate_branch"] != "codex/v2.48-release"
+            or value["profile_path"]
+            != "references/profiles/goal-teams-self-release-v2.48.md"
+            or value["release_title"] != "Goal Teams V2.48"
+            or value["release_body"]
+            != (
+                "Goal Teams V2.48. "
+                "See release/current/README.md in the tagged source."
+            )
+            or value["tag_message"] != "Goal Teams V2.48"
+            or value["snapshot_schema_version"]
+            != "goal-teams-release-snapshot-v2.40"
+            or value["files_manifest_format"]
+            != "sha256-mode-size-path-v1"
+        ):
+            raise ValueError(f"release simple policy drift: {version}")
+        profile_path = (ROOT / value["profile_path"]).resolve()
+        try:
+            profile_path.relative_to(ROOT)
+        except ValueError as exc:
+            raise ValueError(
+                f"release profile path escapes root: {version}"
+            ) from exc
+        if not profile_path.is_file() or profile_path.is_symlink():
+            raise ValueError(
+                f"release profile dependency is unsafe: {value['profile_path']}"
+            )
+        projected = deepcopy(value)
+        projected["closure_state"] = "ready_for_local_validation"
+        return {
+            **projected,
+            "config_path": path.relative_to(ROOT).as_posix(),
+            "config_sha256": hashlib.sha256(raw).hexdigest(),
+            "config_canonical_sha256": hashlib.sha256(
+                _canonical_bytes(value)
+            ).hexdigest(),
+        }
     if (
         value["schema_version"] != SCHEMA_VERSION
         or value["protocol_version"] != PROTOCOL_VERSION
@@ -114,12 +202,17 @@ def _load_profile(version: str) -> dict[str, Any]:
         or not isinstance(value["legacy_recovery_required"], bool)
     ):
         raise ValueError(f"release profile identity drift: {version}")
-    expected_status = "active" if version == ACTIVE_VERSION else "historical_replay"
+    expected_status = (
+        "active"
+        if version in {"V2.46", ACTIVE_VERSION}
+        else "historical_replay"
+    )
+    expected_external_writes = version == "V2.46"
     expected_predecessor = PREDECESSOR_BY_VERSION.get(version)
     host_required = version in HOST_ACCEPTANCE_VERSIONS
     if (
         value["status"] != expected_status
-        or value["external_writes_allowed"] is not (version == ACTIVE_VERSION)
+        or value["external_writes_allowed"] is not expected_external_writes
         or value["published_before"] != expected_predecessor
         or value["legacy_recovery_required"] is not (version == "V2.40")
     ):
@@ -164,10 +257,7 @@ def _load_profile(version: str) -> dict[str, Any]:
         )
     ):
         raise ValueError(f"release host profile is inconsistent: {version}")
-    if (
-        not host_required
-        and value["host_acceptance"] is not None
-    ):
+    if not host_required and value.get("host_acceptance") is not None:
         raise ValueError(f"release host profile is inconsistent: {version}")
     for relative in (value["profile_path"], value["public_scan_baseline"]):
         target = (ROOT / relative).resolve()
@@ -177,8 +267,9 @@ def _load_profile(version: str) -> dict[str, Any]:
             raise ValueError(f"release profile path escapes root: {version}") from exc
         if not target.is_file() or target.is_symlink():
             raise ValueError(f"release profile dependency is unsafe: {relative}")
+    projected = deepcopy(value)
     return {
-        **value,
+        **projected,
         "config_path": path.relative_to(ROOT).as_posix(),
         "config_sha256": hashlib.sha256(raw).hexdigest(),
         "config_canonical_sha256": hashlib.sha256(

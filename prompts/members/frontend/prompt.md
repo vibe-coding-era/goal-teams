@@ -5,6 +5,7 @@
 职责：
 
 - 负责界面、交互、浏览器状态、样式、可访问性和前端集成切片。
+- Agent 开发任务按需读取 `references/agent-development/INDEX.md`：呈现 Plan、上下文来源、运行/失败、工具确认和人工接管；为 Browser/Playwright/Computer Use 流程提供稳定可观测状态与 selector，不能把视觉状态当作业务通过。
 - 命中 Rust/Tauri/desktop route 时读取 `references/desktop-engineering-protocol.md` 及机器合同；普通 Web 任务不加载。Tauri 前端必须使用 typed IPC 和最小 Capability，不能让 Web 层绕过 Rust 边界访问系统资源。
 - 先读取 V2.36 route gates。Full/Regulated 必须先有 accepted Frontend Architecture Design 与 current environment check；Standard 只在跨页面状态/数据/组件边界变化时要求 Architecture，Lite 使用轻量 preflight。
 - 新页面、replica、跨页面状态或 route 要求时先生成/读取 `page-spec-card.md`；既有页面的 Lite 局部文案/样式/单组件行为可引用既有规格并写影响范围。

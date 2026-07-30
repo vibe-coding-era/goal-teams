@@ -220,35 +220,50 @@ class V244ReleaseEngineTests(unittest.TestCase):
             persist_readback.assert_not_called()
 
     def test_active_profile_closes_every_public_release_identity(self) -> None:
-        profile = release_config.active_release_config()
-        self.assertEqual(profile["version"], "V2.46")
-        self.assertEqual(profile["status"], "active")
-        self.assertTrue(profile["external_writes_allowed"])
-        self.assertEqual(profile["candidate_branch"], "codex/v2.46-verification-governance")
-        self.assertEqual(profile["tag"], "v2.46")
-        self.assertEqual(profile["release_title"], "Goal Teams V2.46")
-        self.assertEqual(profile["tag_message"], "Goal Teams V2.46")
+        replay = release_config.release_config("V2.46")
+        self.assertEqual(replay["status"], "active")
+        self.assertTrue(replay["external_writes_allowed"])
         self.assertEqual(
-            profile["host_acceptance"]["schema_version"],
+            replay["candidate_branch"],
+            "codex/v2.46-verification-governance",
+        )
+        self.assertEqual(replay["tag"], "v2.46")
+        self.assertEqual(replay["release_title"], "Goal Teams V2.46")
+        self.assertEqual(replay["tag_message"], "Goal Teams V2.46")
+        self.assertEqual(
+            replay["host_acceptance"]["schema_version"],
             "goal-teams-external-host-acceptance-v2",
         )
-        self.assertEqual(profile["host_acceptance"]["algorithm"], "Ed25519")
+        self.assertEqual(replay["host_acceptance"]["algorithm"], "Ed25519")
         self.assertEqual(
-            profile["host_acceptance"]["signature_domain"],
+            replay["host_acceptance"]["signature_domain"],
             "goal-teams/v2.46/cp05/host-acceptance/ed25519/v1",
         )
         self.assertEqual(
             hashlib.sha256(
-                bytes.fromhex(profile["host_acceptance"]["public_key_hex"])
+                bytes.fromhex(
+                    replay["host_acceptance"]["public_key_hex"]
+                )
             ).hexdigest(),
-            profile["host_acceptance"]["key_id"],
+            replay["host_acceptance"]["key_id"],
         )
         self.assertEqual(
-            profile["files_manifest_format"],
+            replay["files_manifest_format"],
             "sha256-mode-size-path-v1",
         )
-        self.assertRegex(profile["config_sha256"], r"^[0-9a-f]{64}$")
-        self.assertRegex(profile["config_canonical_sha256"], r"^[0-9a-f]{64}$")
+        self.assertRegex(replay["config_sha256"], r"^[0-9a-f]{64}$")
+        self.assertRegex(
+            replay["config_canonical_sha256"],
+            r"^[0-9a-f]{64}$",
+        )
+        self.assertEqual(release_config.ACTIVE_VERSION, "V2.48")
+        active = release_config.active_release_config()
+        self.assertEqual(active["release_mode"], "skill_simple")
+        self.assertEqual(
+            active["closure_state"],
+            "ready_for_local_validation",
+        )
+        self.assertFalse(active["external_writes_allowed"])
 
     def test_unknown_profile_and_profile_field_drift_fail_closed(self) -> None:
         with self.assertRaisesRegex(ValueError, "unsupported release version"):
@@ -302,7 +317,7 @@ class V244ReleaseEngineTests(unittest.TestCase):
             candidate_commit="b" * 40,
             base_main_commit="a" * 40,
             authority={},
-            execute_external_writes=False,
+            execute_external_writes=True,
         )
         self.assertEqual(instance.candidate_ref, "refs/heads/codex/v2.46-verification-governance")
         self.assertEqual(instance.tag, "v2.46")
@@ -328,46 +343,39 @@ class V244ReleaseEngineTests(unittest.TestCase):
             encoding="utf-8"
         ) if (ROOT / ".github/workflows/release-gate.yml").is_file() else None
         if workflow is not None:
-            source_validator.check_release_workflow_projection(
-                release_config.active_release_config(), workflow
+            candidate_profile = json.loads(
+                (
+                    ROOT / "references/release-profiles/v2.48.json"
+                ).read_text(encoding="utf-8")
             )
+            projection = source_validator.validate_v248_public_projection(
+                ROOT, candidate_profile
+            )
+            self.assertTrue(projection["passed"])
         manifest = json.loads(
             (ROOT / "release/current/manifest.json").read_text(encoding="utf-8")
         )
-        self.assertEqual(manifest["product_version"], "V2.46")
+        self.assertEqual(manifest["product_version"], "V2.48")
+        self.assertNotIn("candidate_product_version", manifest)
+        self.assertNotIn("candidate_release_state", manifest)
         self.assertEqual(manifest["status"], "release")
-        self.assertIn("V2.46", (ROOT / "release/current/README.md").read_text())
+        self.assertIn("V2.48", (ROOT / "release/current/README.md").read_text())
 
-    def test_workflow_projection_rejects_each_release_identity_drift(self) -> None:
-        workflow_path = ROOT / ".github/workflows/release-gate.yml"
-        if not workflow_path.is_file():
-            self.skipTest("installed package does not include GitHub workflow")
-        workflow = workflow_path.read_text(encoding="utf-8")
-        profile = release_config.active_release_config()
-        mutations = (
-            workflow.replace(
-                "branches: [main, codex/v2.46-verification-governance]",
-                "branches: [main, codex/v2.40]",
-                1,
-            ),
-            workflow.replace("--version V2.46", "--version V2.40", 1),
-            workflow.replace(
-                "Goal Teams V2.46 release {0}",
-                "Goal Teams V2.40 release {0}",
-                1,
-            ),
-            workflow.replace(
-                "/V2.46/_files.sha256",
-                "/V2.40/_files.sha256",
-                1,
-            ),
+    def test_skill_projection_rejects_release_identity_drift(self) -> None:
+        profile = json.loads(
+            (
+                ROOT / "references/release-profiles/v2.48.json"
+            ).read_text(encoding="utf-8")
         )
-        for mutated in mutations:
-            with self.subTest(mutated=mutated):
-                with mock.patch.object(
-                    source_validator, "fail", side_effect=SystemExit(1)
-                ), self.assertRaises(SystemExit):
-                    source_validator.check_release_workflow_projection(profile, mutated)
+        drifted = {
+            **profile,
+            "version": "V2.40",
+        }
+        result = source_validator.validate_v248_public_projection(
+            ROOT, drifted
+        )
+        self.assertFalse(result["passed"])
+        self.assertEqual(result["error_code"], "E_V248_PUBLIC_PROJECTION")
 
     def test_v244_private_workflow_helper_is_also_host_only(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -657,7 +665,7 @@ class V244ReleaseEngineTests(unittest.TestCase):
             candidate_commit="b" * 40,
             base_main_commit="a" * 40,
             authority={},
-            execute_external_writes=True,
+            execute_external_writes=False,
         )
         before = {"classification": "before", "details": {}}
         conflict = {"classification": "conflict", "details": {}}

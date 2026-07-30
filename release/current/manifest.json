@@ -1,11 +1,11 @@
 {
-  "schema_version": "goal-teams-release-manifest-v2.46",
-  "product_version": "V2.46",
+  "schema_version": "goal-teams-release-manifest-v2.48",
+  "product_version": "V2.48",
   "core_policy_version": "V2.5",
   "legacy_data_schema_version": "V2.3",
   "docs_policy": "local-only",
   "release_scope": "runtime-package",
-  "claim_scope": "verification_governance_and_rust_tauri_desktop_contracts",
+  "claim_scope": "agent_product_development_and_verification_governance_desktop_contracts",
   "cache_evidence": {
     "structural_delivery_state": "passed",
     "host_integration_state": "unavailable",

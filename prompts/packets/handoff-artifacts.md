@@ -97,6 +97,7 @@ Task Handoff Record（ledger checkpoint 与 TaskList 投影的同一任务）:
 | `tasklist_projection` | reducer 生成的 TaskList 人类视图 | ledger owner / reducer | `goal_completion_auditor` | 每个项目先建立 ledger 后生成 | `ledger/events.jsonl`、checkpoint、`TaskList.md` byte-equivalent replay |
 | `requirement_card` | 需求卡片 | Goal Lead | `goal_reviewer` 或用户确认 | 是 | `spec/requirement-card.md`、确认记录 |
 | `requirement_spec_card` | Requirement Specification Card | `goal_requirements_analyst` | `goal_product` 或 `goal_reviewer` | Standard/Full/Regulated 或 route 要求时；Lite 可并入 requirement card | `spec/requirement-spec-card.md`、结构检查、LLM 复核 |
+| `agent_product_capability_contract` | Agent PRD、Capability Contract、Prompt/Context/Cache 与 Tool/Approval Matrix | `goal_agent_product_manager` | `goal_reviewer` 或 `goal_qa`（不同 run） | Agent 产品、Agent 能力改造或 route 指定时；普通功能不强制 | `references/agent-development/` 来源状态、模块/非目标、动作阶梯、Input → Processing → Expected Output → Assertions、风险与 Evidence 位置 |
 | `prd` | PRD、用户故事、功能验收标准 | `goal_product` | `goal_reviewer` | 新产品/功能、Full/Regulated 或 route 要求时；局部 Lite 修复可结构化 N/A | `spec/PRD.md`、溯源检查、评审记录 |
 | `page_spec_card` | Page Specification Card、页面规格卡、组件级视觉契约、交互状态矩阵 | `goal_product` 或 `goal_frontend` | `goal_reviewer` 或 `goal_qa` | 新页面/replica/跨页面状态或 route 要求时写入 | `spec/page-spec-card.md`、视觉契约检查、Harness 证据 |
 | `backend_architecture_design` | Backend Architecture Design、后端架构设计 | `goal_backend` | `goal_reviewer` | `gates.architecture=required` 的后端任务写入 | `spec/backend-architecture-design.md`、架构评审、API/数据/权限边界 |
@@ -173,6 +174,7 @@ Full/Regulated Profile 的每个功能切片在版本子目录 `TaskList.md` 中
 | 顺序 | 功能级任务 | artifact_type | 默认 Owner agent_type（派发时必须具体到 member/run） | 默认前置 |
 | --- | --- | --- | --- | --- |
 | 1 | 某功能的需求规格卡 | `requirement_spec_card` | `goal_requirements_analyst` | `tasklist_projection`（其事实源为 ledger） |
+| 1a | Agent 产品能力合同 | `agent_product_capability_contract` | `goal_agent_product_manager` | `requirement_spec_card`（仅 Agent route） |
 | 2 | 某功能的 PRD | `prd` | `goal_product` | `requirement_spec_card` |
 | 3 | 某功能的页面规格卡 | `page_spec_card` | `goal_product` 或 `goal_frontend` | `prd` |
 | 4 | 某功能的 HTML 原型 | `html_prototype` | `goal_frontend` | `page_spec_card` |
