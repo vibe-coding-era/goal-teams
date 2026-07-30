@@ -13,6 +13,8 @@ python3 scripts/release/skill_release.py verify --version V2.48 --commit <commit
 本地验证完成后状态为 `ready_for_publish_approval`。只有用户针对 exact version、commit/tree、
 tag、资产 hash 和外部操作做一次明确确认后，才可另行执行 push/tag/GitHub Release 或正式安装。
 普通 Skill 发行不使用 CP00–CP18、两阶段签名批准或 nonce authority。
+V2.48 GitHub 必需状态检查只有 `check-macos` 与 `release-asset-gate`；
+`check-ubuntu` 不属于 small 流程或普通 Skill 发行的合并门禁。
 
 以下 `release.py` 与 CP00–CP18 内容是 V2.46 governed 兼容路径，不是 V2.48
 普通 Skill 发行默认入口。

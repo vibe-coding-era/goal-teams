@@ -60,6 +60,11 @@ nonce 消费状态。测试、报告和历史失败可以保留在 `docs/`，但
 - `skill_bundle`：S0–S4 全部适用；脚本、schema、installer 变化增加对应定向测试。
 - `governed_release`：仅在命中高风险升级条件时使用历史高保障协议。
 
+V2.48 `skill_bundle` 的 GitHub 必需状态检查只包含 `check-macos` 与
+`release-asset-gate`。`check-ubuntu` 属于历史 governed/cross-platform 深度验证面，
+不得成为 small 流程或普通 Skill 发行的合并门禁。常规 Ubuntu 回归可以保留为非阻断检查；
+若实际变更命中跨平台执行风险，再按影响分析升级定向测试或 `governed_release`。
+
 规则变化不会使历史测试自动 `invalid`。旧结果保留为 historical；受影响用例标
 `stale/retest_required`，新简单发行门禁按当前候选重新执行。
 

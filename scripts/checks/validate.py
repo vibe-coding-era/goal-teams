@@ -1177,6 +1177,8 @@ def check_release_engine_profiles() -> None:
             "isolated_install",
             "publish",
         ]
+        or active.get("required_status_checks")
+        != ["check-macos", "release-asset-gate"]
         or active.get("candidate_branch") != "codex/v2.48-release"
         or active.get("tag") != "v2.48"
         or any(
@@ -1232,6 +1234,15 @@ def check_release_engine_profiles() -> None:
             fail(f"{version} release-engine profile identity is inconsistent")
     workflow_path = ROOT / ".github/workflows/release-gate.yml"
     if workflow_path.is_file():
+        workflow = workflow_path.read_text(encoding="utf-8")
+        if "check-ubuntu" in workflow:
+            fail("V2.48 Skill verification must not require check-ubuntu")
+        for required_job in ("check-macos", "release-asset-gate"):
+            if workflow.count(f"name: {required_job}") != 1:
+                fail(
+                    "V2.48 Skill verification required status drift: "
+                    + required_job
+                )
         projection = validate_v248_public_projection(ROOT, active)
         if not projection["passed"]:
             fail("V2.48 Skill verification projection is inconsistent")

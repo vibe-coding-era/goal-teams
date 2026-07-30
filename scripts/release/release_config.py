@@ -67,6 +67,7 @@ SIMPLE_FIELDS = {
     "release_mode",
     "approval_model",
     "release_gates",
+    "required_status_checks",
     "published_before",
     "tag",
     "candidate_branch",
@@ -123,6 +124,8 @@ def _load_profile(version: str) -> dict[str, Any]:
             or value["approval_model"]
             != "single_human_before_external_write"
             or value["release_gates"] != SIMPLE_GATES
+            or value["required_status_checks"]
+            != ["check-macos", "release-asset-gate"]
             or value["published_before"] != "V2.46"
             or value["tag"] != "v2.48"
             or value["candidate_branch"] != "codex/v2.48-release"

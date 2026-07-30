@@ -12,6 +12,10 @@
     "isolated_install",
     "publish"
   ],
+  "required_status_checks": [
+    "check-macos",
+    "release-asset-gate"
+  ],
   "published_before": "V2.46",
   "tag": "v2.48",
   "candidate_branch": "codex/v2.48-release",

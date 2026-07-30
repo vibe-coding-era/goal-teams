@@ -81,6 +81,10 @@ class V248SkillReleaseTests(unittest.TestCase):
             "single_human_before_external_write",
         )
         self.assertEqual(len(raw["release_gates"]), 5)
+        self.assertEqual(
+            raw["required_status_checks"],
+            ["check-macos", "release-asset-gate"],
+        )
         self.assertFalse(raw["external_writes_allowed"])
         for field in (
             "host_acceptance",
@@ -99,6 +103,18 @@ class V248SkillReleaseTests(unittest.TestCase):
             "ready_for_local_validation",
         )
         self.assertFalse(config["external_writes_allowed"])
+        self.assertEqual(
+            config["required_status_checks"],
+            ["check-macos", "release-asset-gate"],
+        )
+
+    def test_skill_release_workflow_excludes_ubuntu_gate(self) -> None:
+        workflow = (
+            ROOT / ".github/workflows/release-gate.yml"
+        ).read_text(encoding="utf-8")
+        self.assertNotIn("check-ubuntu", workflow)
+        self.assertEqual(workflow.count("name: check-macos"), 1)
+        self.assertEqual(workflow.count("name: release-asset-gate"), 1)
 
     def test_v246_governed_profile_remains_unchanged(self) -> None:
         config = release_config.release_config("V2.46")

@@ -40,6 +40,8 @@ V2.48 作为 Skill 包默认使用
    trusted-host identity 来解除阻断。
 5. 普通 Skill 发行不要求 Ed25519 plan/execution approval、nonce authority、
    independent review authority 或 CP00–CP18 ledger。
+6. GitHub 合并门禁只要求 `check-macos` 与 `release-asset-gate`；`check-ubuntu`
+   不属于 small 流程或 V2.48 `skill_simple` 的必需门禁。
 
 V2.48 `skill_simple` profile 不声明历史 trust 字段，也不要求补 key。旧高保障字段只保留在
 历史 profile 或显式 `governed_release` profile 中。
