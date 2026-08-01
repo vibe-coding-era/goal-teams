@@ -26,6 +26,7 @@ import argparse
 import contextlib
 import datetime as dt
 import hashlib
+import importlib.abc
 import importlib.util
 import json
 import os
@@ -1072,6 +1073,141 @@ def prepare_release_source() -> list[str]:
     return selected
 
 
+class StableBytesSourceLoader(importlib.abc.SourceLoader):
+    """Load one already-verified source blob without consulting bytecode caches."""
+
+    def __init__(self, name: str, path: Path, source: bytes) -> None:
+        self.name = name
+        self.path = str(path)
+        self.source = source
+
+    def get_filename(self, fullname: str) -> str:
+        if fullname != self.name:
+            raise ImportError("E_PROMPT_IDENTITY_RUNTIME")
+        return self.path
+
+    def get_data(self, path: str) -> bytes:
+        if path != self.path:
+            raise OSError("E_PROMPT_IDENTITY_RUNTIME")
+        return self.source
+
+    def path_stats(self, path: str) -> dict[str, Any]:
+        raise OSError("E_PROMPT_IDENTITY_RUNTIME")
+
+
+def load_python_module(
+    name: str,
+    trusted_root: Path,
+    relative_path: str,
+    required_symbols: tuple[str, ...],
+) -> Any:
+    try:
+        normalized = normalize_release_relative(
+            relative_path, "E_PROMPT_IDENTITY_RUNTIME"
+        )
+        root = validate_no_symlink_ancestors(
+            trusted_root, "E_PROMPT_IDENTITY_RUNTIME"
+        )
+        if not root.is_dir() or root.is_symlink():
+            raise InstallError("E_PROMPT_IDENTITY_RUNTIME")
+        path = validate_no_symlink_ancestors(
+            root.joinpath(*PurePosixPath(normalized).parts),
+            "E_PROMPT_IDENTITY_RUNTIME",
+        )
+        if not path_within(path, root):
+            raise InstallError("E_PROMPT_IDENTITY_RUNTIME")
+        source, _record = read_stable_bytes(path, max_bytes=2 * 1024 * 1024)
+    except (OSError, UnicodeError, InstallError, ValueError) as exc:
+        raise InstallError("E_PROMPT_IDENTITY_RUNTIME") from exc
+
+    previous_module = sys.modules.get(name)
+    had_previous_module = name in sys.modules
+    try:
+        loader = StableBytesSourceLoader(name, path, source)
+        spec = importlib.util.spec_from_file_location(name, path, loader=loader)
+        if spec is None:
+            raise InstallError("E_PROMPT_IDENTITY_RUNTIME")
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        loader.exec_module(module)
+        if any(not callable(getattr(module, symbol, None)) for symbol in required_symbols):
+            raise InstallError("E_PROMPT_IDENTITY_RUNTIME")
+    except BaseException as exc:
+        if had_previous_module:
+            sys.modules[name] = previous_module
+        else:
+            sys.modules.pop(name, None)
+        raise InstallError("E_PROMPT_IDENTITY_RUNTIME") from exc
+    return module
+
+
+def load_v249_prompt_modules(root: Path) -> tuple[Any, Any]:
+    try:
+        safe_root = validate_no_symlink_ancestors(
+            root, "E_PROMPT_IDENTITY_RUNTIME"
+        )
+        if not safe_root.is_dir() or safe_root.is_symlink():
+            raise InstallError("E_PROMPT_IDENTITY_RUNTIME")
+    except (OSError, InstallError) as exc:
+        raise InstallError("E_PROMPT_IDENTITY_RUNTIME") from exc
+    module_names = (
+        "scripts",
+        "scripts.v249",
+        "scripts.v249.generation_runtime",
+        "scripts.v249.route_closure",
+    )
+    missing = object()
+    prior_modules = {name: sys.modules.get(name, missing) for name in module_names}
+    scripts_package = type(sys)("scripts")
+    scripts_package.__package__ = "scripts"
+    scripts_package.__path__ = [str(safe_root / "scripts")]
+    v249_package = type(sys)("scripts.v249")
+    v249_package.__package__ = "scripts.v249"
+    v249_package.__path__ = [str(safe_root / "scripts" / "v249")]
+    scripts_package.v249 = v249_package
+    sys.modules["scripts"] = scripts_package
+    sys.modules["scripts.v249"] = v249_package
+    sys.modules.pop("scripts.v249.generation_runtime", None)
+    sys.modules.pop("scripts.v249.route_closure", None)
+    try:
+        generation_module = load_python_module(
+            "scripts.v249.generation_runtime",
+            safe_root,
+            "scripts/v249/generation_runtime.py",
+            (
+                "canonical_json_digest",
+                "load_generation",
+                "resolve_repo_file",
+                "sha256_bytes",
+            ),
+        )
+        closure_module = load_python_module(
+            "scripts.v249.route_closure",
+            safe_root,
+            "scripts/v249/route_closure.py",
+            ("compile_route_closure",),
+        )
+        imported_helpers = (
+            "canonical_json_digest",
+            "resolve_repo_file",
+            "sha256_bytes",
+        )
+        if any(
+            getattr(closure_module, symbol, None)
+            is not getattr(generation_module, symbol, None)
+            for symbol in imported_helpers
+        ):
+            raise InstallError("E_PROMPT_IDENTITY_RUNTIME")
+        return generation_module, closure_module
+    finally:
+        for name in reversed(module_names):
+            previous_module = prior_modules[name]
+            if previous_module is missing:
+                sys.modules.pop(name, None)
+            else:
+                sys.modules[name] = previous_module
+
+
 def compute_prompt_identity(root: Path) -> dict[str, Any]:
     active_path = root / "references" / "current" / "ACTIVE.json"
     if active_path.is_file() and not active_path.is_symlink():
@@ -1087,12 +1223,7 @@ def compute_prompt_identity(root: Path) -> dict[str, Any]:
                 for path in (generation_path, closure_path)
             ):
                 raise InstallError("E_PROMPT_IDENTITY_RUNTIME")
-            generation_module = load_python_module(
-                f"_goalteams_install_generation_{stamp}", generation_path
-            )
-            closure_module = load_python_module(
-                f"_goalteams_install_route_{stamp}", closure_path
-            )
+            generation_module, closure_module = load_v249_prompt_modules(root)
             try:
                 generation = generation_module.load_generation(root)
                 closure = closure_module.compile_route_closure(
@@ -1100,7 +1231,9 @@ def compute_prompt_identity(root: Path) -> dict[str, Any]:
                     generation,
                     route_id="V249-ROUTE-STARTUP",
                 )
-            except (OSError, TypeError, ValueError, RuntimeError) as exc:
+                if not isinstance(generation, dict) or not isinstance(closure, dict):
+                    raise InstallError("E_PROMPT_IDENTITY_INVALID")
+            except BaseException as exc:
                 raise InstallError("E_PROMPT_IDENTITY_INVALID") from exc
             if (
                 generation.get("activation_digest_verified") is not True
