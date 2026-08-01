@@ -1,0 +1,8 @@
+{
+  "schema_version": "goal-teams-active-generation-v1",
+  "generation_id": "V2.49",
+  "activation_manifest": "references/current/generations/V2.49/activation-manifest.json",
+  "activation_manifest_sha256": "f173e5a66a248fb37b98e3cec4f3f4cae3e2751572539959513a243805ccfe35",
+  "state": "active_current",
+  "updated_at": "2026-08-01T15:42:17+08:00"
+}

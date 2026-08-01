@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.49/project-route.schema.json",
+  "type": "object",
+  "required": ["project_size", "workflow_phase", "release_intent", "implementation_scope_complete", "stage"],
+  "properties": {
+    "project_size": {"enum": ["discussion", "small", "medium", "large"]},
+    "workflow_phase": {"enum": ["discussion", "development", "release"]},
+    "release_intent": {"type": "boolean"},
+    "implementation_scope_complete": {"type": "boolean"},
+    "stage": {"enum": ["candidate", "released"]},
+    "s1_current": {"type": "boolean"},
+    "released_runtime_transition_receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "release_control_receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "candidate_frozen": {"type": "boolean"},
+    "development_denominator_id": {"type": "string", "minLength": 1},
+    "release_denominator_id": {"type": "string", "minLength": 1},
+    "risk": {"enum": ["low", "medium", "high"]},
+    "external_write": {"type": "boolean"}
+  },
+  "additionalProperties": false
+}

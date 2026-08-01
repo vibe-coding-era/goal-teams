@@ -1,0 +1,789 @@
+{
+  "schema_version": "goal-teams-activation-manifest-v2.49",
+  "generation_id": "V2.49",
+  "generation_state": "active",
+  "baseline_generation_id": "V2.48",
+  "manifest_payload_sha256": "b1964f39334995f994ef82f129d43aa7e428ca44fb81f9493991100e937a4ece",
+  "identity": {
+    "loaded_runtime_product_version": "V2.49",
+    "route_contract_schema_version": "goal-teams-project-route-v2.49",
+    "target_policy_generation": "V2.49"
+  },
+  "root_sets": {
+    "bootstrap": [
+      {
+        "path": ".agents/skills/goal-teams/SKILL.md",
+        "sha256": "95a81a428c2412f6e8259cc102aa1985df631e23cba36db332e1c43b2075ca7f",
+        "bytes": 471
+      },
+      {
+        "path": "AGENTS.md",
+        "sha256": "6321d225054b06c8052c2de5666bcd6c157f77399061abb05d0da6dcb584b271",
+        "bytes": 6351
+      },
+      {
+        "path": "RULES.md",
+        "sha256": "54eccb6490d87105fe8bfdef19fb41c78d3422af8d23848e3f740c35ca81aea4",
+        "bytes": 1281
+      },
+      {
+        "path": "SKILL.md",
+        "sha256": "81ca900f386334e7a1ddaeaae66cef2a42cd1275d2cff48ccd4b7992a5dc3e4c",
+        "bytes": 6230
+      },
+      {
+        "path": "VERSION",
+        "sha256": "1e248e68fc6c9c1667514ff78d0b7600f0169a831214c39ecb77b91a2fb3f82f",
+        "bytes": 6
+      },
+      {
+        "path": "agents/openai.yaml",
+        "sha256": "e9573309952b223cbbaa3acdd85753592871c0e69aaccc3c80b971f465486948",
+        "bytes": 489
+      },
+      {
+        "path": "goal-teams.md",
+        "sha256": "de74a55f3c6b77ae7ce9a74dec2ecf14ce2ceb8ddcf2ba16bc6788b0fa72328b",
+        "bytes": 4872
+      },
+      {
+        "path": "references/current/generations/V2.49/INDEX.md",
+        "sha256": "2e6c949ef1a8338f314533150c1f388339a34d1b1304ae96aa2de5786a02afc2",
+        "bytes": 1279
+      },
+      {
+        "path": "scripts/v249/generation_runtime.py",
+        "sha256": "2615f280992adedcf16e965152d3c3c8da6616b074b307791976bdc41352a258",
+        "bytes": 25931
+      },
+      {
+        "path": "scripts/v249/route_closure.py",
+        "sha256": "b08a5e9df46c321a25ca7f284cc8d0305511ea5ee5e262231f13da84fd4ed357",
+        "bytes": 7587
+      }
+    ],
+    "current": [
+      {
+        "path": "references/current/generations/V2.49/core.md",
+        "sha256": "779714ad2b5e74ab2ce4f2df63e9f038aa374229d5eb1a57a256f08ca21b2d9e",
+        "bytes": 2922
+      },
+      {
+        "path": "references/current/generations/V2.49/routing.md",
+        "sha256": "5c49b834a02d2f9fbccc5e141605d919483dd0622fd7156b10268fa10a4cd058",
+        "bytes": 2774
+      },
+      {
+        "path": "references/current/generations/V2.49/assurance-levels.md",
+        "sha256": "708ed88ed33d0b7e4f7403ecb4d97d71f4a0056bb029483a132929a43e61dc73",
+        "bytes": 2200
+      },
+      {
+        "path": "references/current/generations/V2.49/functions/requirements.md",
+        "sha256": "822c8db7b0d1a658777f1a90b91042db243abdc90dcbade543299117de2cad99",
+        "bytes": 2062
+      },
+      {
+        "path": "references/current/generations/V2.49/functions/architecture-implementation.md",
+        "sha256": "bd25444ca1eae06136eb4f0e8e0dee3d7b8113e0de47631f44a564505ff95d02",
+        "bytes": 2373
+      },
+      {
+        "path": "references/current/generations/V2.49/functions/testing.md",
+        "sha256": "711794ae0fde831913dc8ef74ff35789997e800f3838ea14db6f6af398acf340",
+        "bytes": 2920
+      },
+      {
+        "path": "references/current/generations/V2.49/functions/ui-desktop.md",
+        "sha256": "5fd4559e9fc9c707360a22357b34debf42204610ffd348c0065c66dabfc51da3",
+        "bytes": 2232
+      },
+      {
+        "path": "references/current/generations/V2.49/functions/agent-runtime.md",
+        "sha256": "4737d1a523ee33792fcfa7814c43060e6aa570f7760420b3af42808bcc213026",
+        "bytes": 2393
+      },
+      {
+        "path": "references/current/generations/V2.49/functions/release-operations.md",
+        "sha256": "f9c11579e69dfb41f1c45fdab3900c01154842eda28bbf44d599848113ff29b9",
+        "bytes": 3043
+      },
+      {
+        "path": "references/current/generations/V2.49/contracts/task-state.md",
+        "sha256": "f55fa312e051e27f8e3912e56448c44ab3adfb15e2f12ca39c1ee00b0611f243",
+        "bytes": 2273
+      },
+      {
+        "path": "references/current/generations/V2.49/contracts/test-case-gate.md",
+        "sha256": "5b0e32d14c60a4b8816ac986d1777370a8509ba4e7df133f6264eaf4512a466a",
+        "bytes": 2393
+      },
+      {
+        "path": "references/current/generations/V2.49/contracts/harness-evidence.md",
+        "sha256": "1b6c37633ca50f4f13ac3245aa39312ae03fe4ec3a1f60e32963333cdbf4d2d3",
+        "bytes": 2394
+      },
+      {
+        "path": "references/current/generations/V2.49/contracts/review-completion.md",
+        "sha256": "1e582f4568b65d873efa0f37080ad65c0ab60bc05a6886d42c53fc3b15e60e88",
+        "bytes": 2565
+      },
+      {
+        "path": "references/current/generations/V2.49/contracts/approval-side-effects.md",
+        "sha256": "34989fbbf5014d48101946e939f8d2b18461b989481b5c03fb07615b7a9f4a8b",
+        "bytes": 2638
+      },
+      {
+        "path": "references/current/generations/V2.49/rule-manifest.json",
+        "sha256": "cff057c75f4bca28c5333eaaca7f2b76157b61b64aa872af4dadff0993be8c17",
+        "bytes": 11460
+      },
+      {
+        "path": "references/current/generations/V2.49/prompt-manifest.json",
+        "sha256": "73ff966222e38eadf7291744c0d7aaac126852804fe33a2177b74458d238d112",
+        "bytes": 12268
+      },
+      {
+        "path": "references/okf-conformance-policy.json",
+        "sha256": "e2f881c5f1e3e111ef707dda4f30c13b6ae71cdd687cdb2814402fca063d8687",
+        "bytes": 5792
+      },
+      {
+        "path": "references/profiles/goal-teams-self-release-v2.49.md",
+        "sha256": "ffbc6b6088c01c880afb97534e30d42347c670f0f8748f4fd0a6ef971c8a621e",
+        "bytes": 3442
+      },
+      {
+        "path": "references/release-profiles/v2.49.json",
+        "sha256": "9a5dbb2944a6eb892300ec2221f34b1291503adb247bebdbea1bc1f1d7e90929",
+        "bytes": 1557
+      },
+      {
+        "path": "references/current/generations/V2.49/contracts/public-asset-map.json",
+        "sha256": "f33538c0aa66a376c3546920635e261a7d2c51940e895a66b53d21d2120b99be",
+        "bytes": 768
+      },
+      {
+        "path": "references/current/generations/V2.49/contracts/release-command-manifest.json",
+        "sha256": "ac56a67ef9e142048c2d15572411f47438b66a23cd3e538f6d33c008723ce331",
+        "bytes": 3405
+      },
+      {
+        "path": "references/current/generations/V2.49/contracts/release-route-manifest.json",
+        "sha256": "4d89465c133db47e8e39e9896432a4b65fe961485a3a3e2105f6d8e0c4ab723f",
+        "bytes": 2567
+      },
+      {
+        "path": "references/current/generations/V2.49/contracts/release-security-review-manifest.json",
+        "sha256": "83437d9c03c13731fba15262bd5dc23dfbd01c45eacd7fd8e66d0b4a54b2d078",
+        "bytes": 12741
+      }
+    ],
+    "execution": [
+      {
+        "path": "release/current/manifest.json",
+        "sha256": "4588f24b2ede630b7929ec82b6d5acf763c0edf6a949f181b9aa83aeef25ef73",
+        "bytes": 1588
+      },
+      {
+        "path": "scripts/check.sh",
+        "sha256": "d510d27d5780db0c4621138757494c9da6330f33dedae16b5860bc9018d9e666",
+        "bytes": 137
+      },
+      {
+        "path": "scripts/checks/check.sh",
+        "sha256": "ba12def7c7f4da0339fc8427020a5804973d00a7754e827d76af6c2285253cb3",
+        "bytes": 3008
+      },
+      {
+        "path": "scripts/checks/check-okf.py",
+        "sha256": "46b40ccc82e601a73470b1bd19e55bb6cb705b51389f8efe77dcf38c1a260b8c",
+        "bytes": 6664
+      },
+      {
+        "path": "scripts/checks/check-package-manifest.py",
+        "sha256": "1eda3cd56264d49a61b670daad8dace731fb2156e3c400c462be4e31f296225b",
+        "bytes": 11769
+      },
+      {
+        "path": "scripts/checks/validate.py",
+        "sha256": "639eb339d372f1f759620d07006c771dbdc35d9b77337c8fa39b9ef57e6ef4e4",
+        "bytes": 64808
+      },
+      {
+        "path": "scripts/install-local.sh",
+        "sha256": "974be151975064d909a922bf7b17cd38ba2a67c8050d1b9173a4901e7807ce30",
+        "bytes": 146
+      },
+      {
+        "path": "scripts/install/install-local.sh",
+        "sha256": "d5f1c1a4384564402575b94232e6035c96e2bff509ebd8c7f10530c5c0f11dcb",
+        "bytes": 107576
+      },
+      {
+        "path": "scripts/install/package-manifest.txt",
+        "sha256": "f5d4434d4ac93189367702bbb70a744be08f940ec86a95ce86ddb7720bde05d6",
+        "bytes": 1537
+      },
+      {
+        "path": "scripts/install/replay-package-manifest.txt",
+        "sha256": "a12a0f2f23b2ebfe07210c1b9e29d0614a3d9c9851b45799ca29ef43ac474272",
+        "bytes": 698
+      },
+      {
+        "path": "scripts/release/build-release.py",
+        "sha256": "a8d3b76f86292152741eceb0c1b7c8c94b974adac6ede4774b4f1ed867e7ccba",
+        "bytes": 26424
+      },
+      {
+        "path": "scripts/release/release_config.py",
+        "sha256": "6a41981f511ae40f9d48c37c7aca6cedde1f194c20855841f008af516d6938e2",
+        "bytes": 14559
+      },
+      {
+        "path": "scripts/release/skill_release.py",
+        "sha256": "86a45b9f6b59dacae08c145418ac912125b86f0a98d8a774e37ff7ab22332ae3",
+        "bytes": 48070
+      },
+      {
+        "path": "scripts/release/validate-release.py",
+        "sha256": "19f00f550c1093d09ae8f846fe13316ca245e0ca337449f8647c805186c99697",
+        "bytes": 37692
+      },
+      {
+        "path": "scripts/checks/check-v249.py",
+        "sha256": "8f2b30c51069ef9db189aeb2c03964936e40e61931e5cbf99c81723e2cbe5f1f",
+        "bytes": 19029
+      },
+      {
+        "path": "scripts/checks/run-v249-release-security-review.py",
+        "sha256": "b32f178d729ca052210e53298bf3f3723aa945326680481be6e0473753ff7219",
+        "bytes": 45508
+      },
+      {
+        "path": "scripts/checks/validate-v249-generation.py",
+        "sha256": "c2953b782f9653a25ed29f6e16147b279c8a382c8da80f757d6efbc579d96a83",
+        "bytes": 5475
+      },
+      {
+        "path": "scripts/checks/validate-v249-test-gate.py",
+        "sha256": "a4071af1b210331e40ec2aeea5d8618aa5219058c1bdc893164a93b54bcb53f5",
+        "bytes": 2046
+      },
+      {
+        "path": "scripts/v249/freeze_v248_snapshot.py",
+        "sha256": "626103867e9c0c35d12fd496d9c113d4c259b1b70199e8b94212fd5113b3fc97",
+        "bytes": 5589
+      },
+      {
+        "path": "scripts/v249/generate_subagents.py",
+        "sha256": "ac882acfe18fc8269c5141a82209632cb11cee3d42e7f0f00d77ecc1b9c04dad",
+        "bytes": 4941
+      },
+      {
+        "path": "scripts/v249/github_ssh.py",
+        "sha256": "518d262d71cf2dc43758e39de94e2018d20016ba6618a24571085bb5a91b5451",
+        "bytes": 2759
+      },
+      {
+        "path": "scripts/v249/okf_conformance.py",
+        "sha256": "7cd60d4f1243f7fa0d445399aff1f355bb7a7d21224d2d052f1ea24090dfe112",
+        "bytes": 65993
+      },
+      {
+        "path": "scripts/v249/output_contract.py",
+        "sha256": "f77f3b1c9049527b8ea2dccbc50dd5bb508330455445621b9f77b70592015dc4",
+        "bytes": 1573
+      },
+      {
+        "path": "scripts/v249/release_flow.py",
+        "sha256": "8208645377d6588360b9656a324db004db9043a515a77dc384a101076693c918",
+        "bytes": 60059
+      },
+      {
+        "path": "scripts/v249/replay_runner.py",
+        "sha256": "bf4015b1ca30e2e159fec13bd64b9dd4b34fbcbcee0ea2835d010d9b712a0143",
+        "bytes": 8189
+      },
+      {
+        "path": "scripts/v249/repository_boundary.py",
+        "sha256": "5f5f02164dbf5ba2c726f5176700a0fd5bf527ba5d705e29ffe76009deeb34e7",
+        "bytes": 21047
+      },
+      {
+        "path": "scripts/v249/runtime_host_adapter.py",
+        "sha256": "9da4328f7cdbfb9868e5d8e7e306781ef856992303f8ea8bd87635587d54a60e",
+        "bytes": 12925
+      },
+      {
+        "path": "scripts/v249/runtime_transition.py",
+        "sha256": "90c9b1e54db9379c17241e984f4121b7454799d2ba2722e237b44de7aed17fd9",
+        "bytes": 53420
+      },
+      {
+        "path": "scripts/v249/s4_executor.py",
+        "sha256": "da8103933e66143d7794e40f035b600d50af2c25f6f020d308a41226ead35176",
+        "bytes": 97951
+      },
+      {
+        "path": "scripts/v249/test_gate.py",
+        "sha256": "168a5547f169b5ac22dfbc12d19d40fa669537fea161606a35dc4cb827410deb",
+        "bytes": 24525
+      },
+      {
+        "path": "subagents/common-developer-instructions.txt",
+        "sha256": "7333d37711fce8b50f5ca9a24eece2fb5ac11a824d19dba18d8001c3764ff743",
+        "bytes": 1300
+      },
+      {
+        "path": "subagents/goal-agent-product-manager.toml",
+        "sha256": "92cb17f4b4362d270e7061c40534690bfbc0020c751637e09d77c7536ce28836",
+        "bytes": 2006
+      },
+      {
+        "path": "subagents/goal-api-integration-test-designer.toml",
+        "sha256": "4fca452fad26d14fd0155382a173fc3059d43f1f020b00968df8c87f6a11de9f",
+        "bytes": 2063
+      },
+      {
+        "path": "subagents/goal-api-integration-test-runner.toml",
+        "sha256": "586995c06023e2fb2531090eba31a8b757dff786b1eacb93a28a2eaff0dfd1fb",
+        "bytes": 2035
+      },
+      {
+        "path": "subagents/goal-backend.toml",
+        "sha256": "740f75368acaa30715d8ac6c00c35ea85cef33e8ff39ba9164bb1c6d238f8d21",
+        "bytes": 1956
+      },
+      {
+        "path": "subagents/goal-completion-auditor.toml",
+        "sha256": "8af5db192f3d98c2701a7fd4ece61a3014804dc1ded8ef238f167a5611c5b651",
+        "bytes": 2039
+      },
+      {
+        "path": "subagents/goal-docs.toml",
+        "sha256": "78955d368bcbb9e33a5c2588824630612c7fb469d06a5b46924edcb4fdf81241",
+        "bytes": 1986
+      },
+      {
+        "path": "subagents/goal-e2e-test-designer.toml",
+        "sha256": "f20c4e1c378b0fb7493ea7d80b53f77705f9c111e12bd7ec2b8f2cd92efc335c",
+        "bytes": 2012
+      },
+      {
+        "path": "subagents/goal-e2e-test-runner.toml",
+        "sha256": "4e5af20fd0179ee526e0dd8825838a47d6fc0fff63382b4e1a0bcfc5d41306af",
+        "bytes": 2036
+      },
+      {
+        "path": "subagents/goal-frontend.toml",
+        "sha256": "0424b72cd1195e9bb8494f7dfde758044668826708977cc8dd6dd0e318f796a9",
+        "bytes": 1995
+      },
+      {
+        "path": "subagents/goal-performance.toml",
+        "sha256": "7b0105c69f3f9dedc34c0b64136f8284e7e73e1e10ef42a8542a08efc9cffda9",
+        "bytes": 1980
+      },
+      {
+        "path": "subagents/goal-product.toml",
+        "sha256": "13c4b903cdf1b3a52374961003f2964b087220fd2d19de6fdb420a61855a61f6",
+        "bytes": 1986
+      },
+      {
+        "path": "subagents/goal-qa.toml",
+        "sha256": "9e80962a62eeadb33e60b77d1dabb30c95d0bc59185cf9a7a763b154b3946069",
+        "bytes": 1995
+      },
+      {
+        "path": "subagents/goal-refactor.toml",
+        "sha256": "cf9c79f6dc6086e0d5907fb7725bf1393be5559da1cbd13be329c6ae4edd117a",
+        "bytes": 1953
+      },
+      {
+        "path": "subagents/goal-requirements-analyst.toml",
+        "sha256": "cef08e01b3d81965285e49e01b5bd2f1e979591f64d9a3b8e434164e779a1fbe",
+        "bytes": 2004
+      },
+      {
+        "path": "subagents/goal-reviewer.toml",
+        "sha256": "da6e1707705e94a7791ad2a374bdd14163a4750dff50d3f2e8e5c782c464083c",
+        "bytes": 1996
+      },
+      {
+        "path": "subagents/goal-security.toml",
+        "sha256": "eb3170a31dabf1dd48aa661423f9f6c9ea00bb4ad8826fbe5a0a010e3097c5f7",
+        "bytes": 1984
+      },
+      {
+        "path": "subagents/goal-sqa.toml",
+        "sha256": "3992c51ca23076dcdbeb979657ad8c2f392cb260682dfb79d3ed3cbf8534d721",
+        "bytes": 1983
+      },
+      {
+        "path": "subagents/goal-unit-test-designer.toml",
+        "sha256": "b6718457c00991788b271e8112f110a495f6e731a40940ffc5eb41c120016cb1",
+        "bytes": 1994
+      },
+      {
+        "path": "subagents/goal-unit-test-runner.toml",
+        "sha256": "6aa9c2de8c1001b8f521e6ab435f16b4ab9e95c3fcf15db0ddc479e4076961ff",
+        "bytes": 2033
+      },
+      {
+        "path": "tests/v249/__init__.py",
+        "sha256": "ae906bd2446112c80efdfcf2c052dd4039bd2a94bbcd97854ff7131e6f08d03a",
+        "bytes": 47
+      },
+      {
+        "path": "tests/v249/test_generation.py",
+        "sha256": "f251864032b16112a64bca645368e525d649942cbe093888bb35851e60528af9",
+        "bytes": 939
+      },
+      {
+        "path": "tests/v249/test_generation_isolation.py",
+        "sha256": "e1d01f884d2d0b7841d86a12b6ea939ceb7522b35de9a3413d1260bb682271fd",
+        "bytes": 6535
+      },
+      {
+        "path": "tests/v249/test_github_ssh.py",
+        "sha256": "5c6ffcc9989636200d7831c20bc529f3e3c0002e536bcdce5d1841b08130a2ea",
+        "bytes": 957
+      },
+      {
+        "path": "tests/v249/test_installer_route.py",
+        "sha256": "fff702b0a97edbd6858e3cbbc31e08c3b7f861b6c036b8ac65750bbddbd4e231",
+        "bytes": 1419
+      },
+      {
+        "path": "tests/v249/test_output_contract.py",
+        "sha256": "bbd4e3c79fd55197fb48bdb66708459739b34c08170b8218027d8ca6b01555a8",
+        "bytes": 1922
+      },
+      {
+        "path": "tests/v249/test_package_isolation.py",
+        "sha256": "702484a327ef9bccda9aaf43a1f024164c35b40f5efb2d6c0d2f1dd5cc893855",
+        "bytes": 2311
+      },
+      {
+        "path": "tests/v249/test_release_checker.py",
+        "sha256": "608fb5918fbd3fd1a0e76a7389840941bc6b30c24f32560fb7e70feb3fed1fac",
+        "bytes": 6422
+      },
+      {
+        "path": "tests/v249/test_release_control.py",
+        "sha256": "704cac366611796f9fca9db9232b9f4840f61ec5938d12181abbb13d32fe5559",
+        "bytes": 32855
+      },
+      {
+        "path": "tests/v249/test_release_flow.py",
+        "sha256": "ef9a88f37261a8995c6959c60979fb948c4b4a133c769ad813528b4b7646f407",
+        "bytes": 4789
+      },
+      {
+        "path": "tests/v249/test_release_security_review.py",
+        "sha256": "291a6953866f6474ac05a9822bb5c220fe1247ff4484211e2deb5123c33bdad4",
+        "bytes": 13402
+      },
+      {
+        "path": "tests/v249/test_replay.py",
+        "sha256": "e94e7c454c1b4adf26b792466d2063056aafea143e79c4b4c3533346f7dcb5cc",
+        "bytes": 1271
+      },
+      {
+        "path": "tests/v249/test_replay_binding.py",
+        "sha256": "db7db29e2bc089d2525308892e579576f91a38ae16e9ced3cffc6ca4e709e4c9",
+        "bytes": 2237
+      },
+      {
+        "path": "tests/v249/test_runtime_cli.py",
+        "sha256": "44adff3dc5e6937ae6ef591bb10dadd75bc3ef4fc7327debd05229d34bdd05c3",
+        "bytes": 3564
+      },
+      {
+        "path": "tests/v249/test_runtime_host_adapter.py",
+        "sha256": "8f2a94b33cde9b7c95b8aca02c994e34df45fa08a9076fb2b004a156cc012e09",
+        "bytes": 9242
+      },
+      {
+        "path": "tests/v249/test_runtime_transition.py",
+        "sha256": "7de6dc5ad2fb178654a0ceb3055dab934c0fe6f805930bebe86a550f3f5ff579",
+        "bytes": 22645
+      },
+      {
+        "path": "tests/v249/test_s4_executor.py",
+        "sha256": "bc3bb32ac08c3c99dd535e6901a158aafc8d8ae12886a27e68648ec54ea3ecd3",
+        "bytes": 53995
+      },
+      {
+        "path": "tests/v249/test_schema_contracts.py",
+        "sha256": "7bf6e872c7d5f4079b19cdb24b3dcca40d8a0ea36dd95916370a457db54c058e",
+        "bytes": 8064
+      },
+      {
+        "path": "tests/v249/test_subagents.py",
+        "sha256": "3a98fb1db314649a819b8455f5f305ef595ef4bbd13580152cc6b517235066de",
+        "bytes": 2435
+      },
+      {
+        "path": "tests/v249/test_test_gate.py",
+        "sha256": "158eae9702ad6a889bfc5abbd13c408f22531d4ab93c6e541f6037e16910d81c",
+        "bytes": 2333
+      },
+      {
+        "path": "tests/v249/test_workflow_release_contract.py",
+        "sha256": "27262e1c2eeda75ebff15f0659638c338682e174f09295623ece4382026e622f",
+        "bytes": 17474
+      }
+    ],
+    "schemas_and_validators": [
+      {
+        "path": "schemas/release-engine-profile.schema.json",
+        "sha256": "ef89697c962efd4e13f3a599dd3f0c04c4281a75d698b645baf8ad2a10ba628e",
+        "bytes": 7947
+      },
+      {
+        "path": "schemas/v2.49/activation-manifest.schema.json",
+        "sha256": "8ec57101fa6759b2e18075848a8558194b0c77172008c8493e05305a02bd0cbf",
+        "bytes": 5350
+      },
+      {
+        "path": "schemas/v2.49/baseline-activation-manifest.schema.json",
+        "sha256": "919ec19aea751e6020d15ef315edd1d4dafb23b7ec8b385ad40042b5ea926a6c",
+        "bytes": 2559
+      },
+      {
+        "path": "schemas/v2.49/legacy-replay-manifest.schema.json",
+        "sha256": "1e921993a22e289b13c99bb645671cb2718fde1937ef2b60d41fd2e0b73fa4e1",
+        "bytes": 4039
+      },
+      {
+        "path": "schemas/v2.49/project-route.schema.json",
+        "sha256": "5e356f929e4d97fbd40451383b546f5412198b3d4bec22181bf66cc84e607872",
+        "bytes": 1123
+      },
+      {
+        "path": "schemas/v2.49/release-control.schema.json",
+        "sha256": "6a78b9a6198c2675108d8c8545a74c40864896353fcfc2d4ae4be0679748f9ad",
+        "bytes": 23394
+      },
+      {
+        "path": "schemas/v2.49/rule-manifest.schema.json",
+        "sha256": "60acd90f7662504f67e761d10b541546e1927373883c6bc7aeca8a8832f511da",
+        "bytes": 1951
+      },
+      {
+        "path": "schemas/v2.49/runtime-transition-receipt.schema.json",
+        "sha256": "7cdb3fbe1a77ed8558e8820fa0e0f5f90b5378cd96a1b9ffeaf61270b94e1deb",
+        "bytes": 10336
+      },
+      {
+        "path": "schemas/v2.49/test-gate.schema.json",
+        "sha256": "6d262947b7df8be731e8a2d003a27868fba61dc3da6a63485710852c7d4a8ee3",
+        "bytes": 3681
+      },
+      {
+        "path": "schemas/v2.49/user-output.schema.json",
+        "sha256": "90eea33fc6d210f0c18653ba2bc42fcc0f4d57e7784fce1e087838438329d48d",
+        "bytes": 799
+      }
+    ]
+  },
+  "rule_manifest_path": "references/current/generations/V2.49/rule-manifest.json",
+  "prompt_manifest_path": "references/current/generations/V2.49/prompt-manifest.json",
+  "semantic_owner_set_digest": "5234cba71579a1a7d103d68aad07805be88e3832bd466cfb87c1b47052316a0d",
+  "rule_index_digest": "cff057c75f4bca28c5333eaaca7f2b76157b61b64aa872af4dadff0993be8c17",
+  "prompt_plan_digest": "73ff966222e38eadf7291744c0d7aaac126852804fe33a2177b74458d238d112",
+  "schema_and_validator_digest": "c5f213501270367fe7ea4730d2643ad50382e774a99d2cc2a7d004b343d7290d",
+  "current_default_allowlist": [
+    ".agents/skills/goal-teams/SKILL.md",
+    "AGENTS.md",
+    "RULES.md",
+    "SKILL.md",
+    "VERSION",
+    "agents/openai.yaml",
+    "goal-teams.md",
+    "references/current/ACTIVE.json",
+    "references/current/generations/V2.49/INDEX.md",
+    "references/current/generations/V2.49/activation-manifest.json",
+    "references/current/generations/V2.49/assurance-levels.md",
+    "references/current/generations/V2.49/contracts/approval-side-effects.md",
+    "references/current/generations/V2.49/contracts/harness-evidence.md",
+    "references/current/generations/V2.49/contracts/public-asset-map.json",
+    "references/current/generations/V2.49/contracts/release-command-manifest.json",
+    "references/current/generations/V2.49/contracts/release-route-manifest.json",
+    "references/current/generations/V2.49/contracts/release-security-review-manifest.json",
+    "references/current/generations/V2.49/contracts/review-completion.md",
+    "references/current/generations/V2.49/contracts/task-state.md",
+    "references/current/generations/V2.49/contracts/test-case-gate.md",
+    "references/current/generations/V2.49/core.md",
+    "references/current/generations/V2.49/functions/agent-runtime.md",
+    "references/current/generations/V2.49/functions/architecture-implementation.md",
+    "references/current/generations/V2.49/functions/release-operations.md",
+    "references/current/generations/V2.49/functions/requirements.md",
+    "references/current/generations/V2.49/functions/testing.md",
+    "references/current/generations/V2.49/functions/ui-desktop.md",
+    "references/current/generations/V2.49/prompt-manifest.json",
+    "references/current/generations/V2.49/routing.md",
+    "references/current/generations/V2.49/rule-manifest.json",
+    "references/okf-conformance-policy.json",
+    "references/profiles/goal-teams-self-release-v2.49.md",
+    "references/release-profiles/v2.49.json",
+    "release/current/manifest.json",
+    "schemas/release-engine-profile.schema.json",
+    "schemas/v2.49/activation-manifest.schema.json",
+    "schemas/v2.49/baseline-activation-manifest.schema.json",
+    "schemas/v2.49/legacy-replay-manifest.schema.json",
+    "schemas/v2.49/project-route.schema.json",
+    "schemas/v2.49/release-control.schema.json",
+    "schemas/v2.49/rule-manifest.schema.json",
+    "schemas/v2.49/runtime-transition-receipt.schema.json",
+    "schemas/v2.49/test-gate.schema.json",
+    "schemas/v2.49/user-output.schema.json",
+    "scripts/check.sh",
+    "scripts/checks/check-okf.py",
+    "scripts/checks/check-package-manifest.py",
+    "scripts/checks/check-v249.py",
+    "scripts/checks/check.sh",
+    "scripts/checks/run-v249-release-security-review.py",
+    "scripts/checks/validate-v249-generation.py",
+    "scripts/checks/validate-v249-test-gate.py",
+    "scripts/checks/validate.py",
+    "scripts/install-local.sh",
+    "scripts/install/install-local.sh",
+    "scripts/install/package-manifest.txt",
+    "scripts/install/replay-package-manifest.txt",
+    "scripts/release/build-release.py",
+    "scripts/release/release_config.py",
+    "scripts/release/skill_release.py",
+    "scripts/release/validate-release.py",
+    "scripts/v249/freeze_v248_snapshot.py",
+    "scripts/v249/generate_subagents.py",
+    "scripts/v249/generation_runtime.py",
+    "scripts/v249/github_ssh.py",
+    "scripts/v249/okf_conformance.py",
+    "scripts/v249/output_contract.py",
+    "scripts/v249/release_flow.py",
+    "scripts/v249/replay_runner.py",
+    "scripts/v249/repository_boundary.py",
+    "scripts/v249/route_closure.py",
+    "scripts/v249/runtime_host_adapter.py",
+    "scripts/v249/runtime_transition.py",
+    "scripts/v249/s4_executor.py",
+    "scripts/v249/test_gate.py",
+    "subagents/common-developer-instructions.txt",
+    "subagents/goal-agent-product-manager.toml",
+    "subagents/goal-api-integration-test-designer.toml",
+    "subagents/goal-api-integration-test-runner.toml",
+    "subagents/goal-backend.toml",
+    "subagents/goal-completion-auditor.toml",
+    "subagents/goal-docs.toml",
+    "subagents/goal-e2e-test-designer.toml",
+    "subagents/goal-e2e-test-runner.toml",
+    "subagents/goal-frontend.toml",
+    "subagents/goal-performance.toml",
+    "subagents/goal-product.toml",
+    "subagents/goal-qa.toml",
+    "subagents/goal-refactor.toml",
+    "subagents/goal-requirements-analyst.toml",
+    "subagents/goal-reviewer.toml",
+    "subagents/goal-security.toml",
+    "subagents/goal-sqa.toml",
+    "subagents/goal-unit-test-designer.toml",
+    "subagents/goal-unit-test-runner.toml",
+    "tests/v249/__init__.py",
+    "tests/v249/test_generation.py",
+    "tests/v249/test_generation_isolation.py",
+    "tests/v249/test_github_ssh.py",
+    "tests/v249/test_installer_route.py",
+    "tests/v249/test_output_contract.py",
+    "tests/v249/test_package_isolation.py",
+    "tests/v249/test_release_checker.py",
+    "tests/v249/test_release_control.py",
+    "tests/v249/test_release_flow.py",
+    "tests/v249/test_release_security_review.py",
+    "tests/v249/test_replay.py",
+    "tests/v249/test_replay_binding.py",
+    "tests/v249/test_runtime_cli.py",
+    "tests/v249/test_runtime_host_adapter.py",
+    "tests/v249/test_runtime_transition.py",
+    "tests/v249/test_s4_executor.py",
+    "tests/v249/test_schema_contracts.py",
+    "tests/v249/test_subagents.py",
+    "tests/v249/test_test_gate.py",
+    "tests/v249/test_workflow_release_contract.py"
+  ],
+  "current_default_allowlist_digest": "d5e21e0fc843b948b0b72b97d991f053f31be02d4b9dcd0d4cbf9a0dbba1ceef",
+  "optional_replay_allowlist_digest": "04b191ea778934f3ebe0e14a630e8feae679628549c8e3147dc850f2ad1e5d52",
+  "legacy_classification": {
+    "path_prefixes": [
+      "examples/canonical-v23/",
+      "references/current/generations/V2.48/",
+      "references/legacy-replay/",
+      "references/public-release-scan-baseline-",
+      "schemas/v2.3/",
+      "schemas/v2.35/",
+      "schemas/v2.36/",
+      "schemas/v2.43/",
+      "schemas/v2.44/",
+      "schemas/v2.46/",
+      "schemas/v2.47/",
+      "schemas/v2.48/",
+      "tests/v23/"
+    ],
+    "exact_paths": [
+      "references/profiles/goal-teams-self-release-v2.36.md",
+      "references/profiles/goal-teams-self-release-v2.37.md",
+      "references/profiles/goal-teams-self-release-v2.38.md",
+      "references/profiles/goal-teams-self-release-v2.39.md",
+      "references/profiles/goal-teams-self-release-v2.40.md",
+      "references/profiles/goal-teams-self-release-v2.41.md",
+      "references/profiles/goal-teams-self-release-v2.42.md",
+      "references/profiles/goal-teams-self-release-v2.43.md",
+      "references/profiles/goal-teams-self-release-v2.44.md",
+      "references/profiles/goal-teams-self-release-v2.45.md",
+      "references/profiles/goal-teams-self-release-v2.46.md",
+      "references/profiles/goal-teams-self-release-v2.47.md",
+      "references/profiles/goal-teams-self-release-v2.48.md",
+      "references/release-profiles/v2.40.json",
+      "references/release-profiles/v2.44.json",
+      "references/release-profiles/v2.45.json",
+      "references/release-profiles/v2.46.json",
+      "references/release-profiles/v2.48.json",
+      "scripts/v23/cache_probe.py",
+      "scripts/v23/engineering_metrics.py",
+      "scripts/v23/goalteams_v23.py",
+      "scripts/v23/okf_conformance.py",
+      "scripts/v23/package_selection.py",
+      "scripts/v23/prompt_cache.py",
+      "scripts/v23/prompt_compilers.py",
+      "scripts/v23/v234_closure.py",
+      "scripts/v23/v234_state.py",
+      "scripts/v23/v235_policy.py",
+      "scripts/v23/v236_acceptance.py",
+      "scripts/v23/v236_security.py",
+      "scripts/v23/v236_trust.py",
+      "scripts/v23/version_binding.py"
+    ],
+    "replay_manifest_sha256": "93db4c52b1ed37bd49dc065c769b097a335f14a56a61633d0cac53301ff8f60b"
+  },
+  "projection_writer_allowlist": [],
+  "projection_writer_allowlist_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "fixture_and_completion_contract_digest": "063ba4bc4d00a90d2dc80af1fc1c25833aea58a83eb3bd685a782ce63694fa68",
+  "repository_control_exclusions": [
+    {
+      "path_prefix": ".github/workflows/",
+      "reason": "repository_only_not_installable_runtime_asset",
+      "binding": "exact_source_tree_plus_release_profile_and_command_contract"
+    }
+  ],
+  "budgets": {
+    "max_route_rule_bytes": 72194,
+    "byte_count_algorithm": "sum_raw_file_bytes_after_path_deduplication"
+  },
+  "rollback": {
+    "activation_manifest_path": "references/current/generations/V2.48/activation-manifest.json",
+    "activation_manifest_sha256": "6a77c373e6e3b8275a9b20fd41878920f603c2d2d35fcfd5732406236f3bd052",
+    "window_status": "open"
+  }
+}

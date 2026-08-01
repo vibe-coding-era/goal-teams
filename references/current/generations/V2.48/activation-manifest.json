@@ -1,0 +1,174 @@
+{
+  "schema_version": "goal-teams-baseline-activation-manifest-v2.49",
+  "generation_id": "V2.48",
+  "generation_state": "baseline_rollback_only",
+  "manifest_payload_sha256": "f3a50e1d4bf4703811a6d6ab79249270fc495b2ac0b4aa0e2a592e0467f4d33b",
+  "source_commit": "23720434b38976c7242735925a3514012283c486",
+  "source_tree": "b21f65db96419cef200ce130befa557c5122ce25",
+  "captured_at": "2026-08-01T12:05:34+08:00",
+  "snapshot_root": "references/legacy-replay/generations/V2.48/snapshot",
+  "loaded_rule_bytes": 144388,
+  "loaded_path_deduplication_rule": "repo_relative_posix_path_first_occurrence",
+  "byte_count_algorithm": "sum_raw_file_bytes_after_path_deduplication",
+  "rollback_supported": true,
+  "semantic_owner_paths": [
+    {
+      "path": "references/legacy-replay/generations/V2.48/snapshot/AGENTS.md",
+      "sha256": "ce41dc8b08e82b5b83ca0339d243b5229888c09c3c5655d5e61aec94aee01ad5",
+      "bytes": 15092
+    },
+    {
+      "path": "references/legacy-replay/generations/V2.48/snapshot/.agents/skills/goal-teams/SKILL.md",
+      "sha256": "693eff090418380dc68b668815a03263d0ffedba1f6e583e98fd6406a77b5ef5",
+      "bytes": 492
+    },
+    {
+      "path": "references/legacy-replay/generations/V2.48/snapshot/SKILL.md",
+      "sha256": "8f2a055cc88b4c1161ae452c91d10ec092970e1e4bed908d8ee265b44a6d870b",
+      "bytes": 9237
+    },
+    {
+      "path": "references/legacy-replay/generations/V2.48/snapshot/RULES.md",
+      "sha256": "be5702d89eba0da5720fa42aab4dbb61be698438ebb8063158ae8dd6c12c5a19",
+      "bytes": 6180
+    },
+    {
+      "path": "references/legacy-replay/generations/V2.48/snapshot/goal-teams.md",
+      "sha256": "ae2f3b0f3df4e6419ef23375d5f339f5ebc92d34162fbeed9fb09d14fb5b5d0b",
+      "bytes": 33494
+    },
+    {
+      "path": "references/legacy-replay/generations/V2.48/snapshot/agents/openai.yaml",
+      "sha256": "92087b90a82ad21fa60470b960a4ba332f7973676a49c431632d290bf39e22ff",
+      "bytes": 480
+    },
+    {
+      "path": "references/legacy-replay/generations/V2.48/snapshot/references/compat.md",
+      "sha256": "549eebfbd3196bcc737ef0ac100085b0d0fa69624ec5125bf9b5d799cd947e7b",
+      "bytes": 13121
+    },
+    {
+      "path": "references/legacy-replay/generations/V2.48/snapshot/references/dual-review-protocol.md",
+      "sha256": "005b35f48f67cc8b74daf3237ec27122e8abbdde3eddf38b8e03e65930eeb676",
+      "bytes": 5471
+    },
+    {
+      "path": "references/legacy-replay/generations/V2.48/snapshot/references/goal-teams-core-v2.5.md",
+      "sha256": "d49f45fd21fe043ef660f7decf482e777b40d04536708bbf8d816180db141b8c",
+      "bytes": 5779
+    },
+    {
+      "path": "references/legacy-replay/generations/V2.48/snapshot/references/invariants.md",
+      "sha256": "448bf1227733b070ee54813b7177c824ca5a278915dc38d7c7a6425e2c1e5076",
+      "bytes": 12289
+    },
+    {
+      "path": "references/legacy-replay/generations/V2.48/snapshot/references/profiles/goal-teams-self-release-v2.36.md",
+      "sha256": "75e71a6f380b41ee998c2314bb205b731ee593a72c8c541f6cb217fd5d0f8e07",
+      "bytes": 5353
+    },
+    {
+      "path": "references/legacy-replay/generations/V2.48/snapshot/references/rules-project-sizing.md",
+      "sha256": "f79ed9971b8cfe80a62ccae582e32951fc4c2feb69bd0be6ef7478969860475c",
+      "bytes": 6082
+    },
+    {
+      "path": "references/legacy-replay/generations/V2.48/snapshot/references/rules-specialists.md",
+      "sha256": "0bc1525d5181cd327b941a830bf6629c0ef13813172eb223f1c20adbc083df0c",
+      "bytes": 5948
+    },
+    {
+      "path": "references/legacy-replay/generations/V2.48/snapshot/references/rules-testing.md",
+      "sha256": "de3b95d44cab66a278790cd821fed38e747cc902afc146ee4dcfeba2cfdc71b5",
+      "bytes": 13421
+    },
+    {
+      "path": "references/legacy-replay/generations/V2.48/snapshot/references/test-case-assertion-protocol.md",
+      "sha256": "687079c903554977f5e70f66853be802d5eb0f6bdc2fa0fdbc39851acdf8f350",
+      "bytes": 7901
+    },
+    {
+      "path": "references/legacy-replay/generations/V2.48/snapshot/references/skill-release-simple-protocol.md",
+      "sha256": "d4a76921671bdd1453f49462c15dd8d22cd47bbc7fd7a5b7a0575ea5ac781752",
+      "bytes": 4048
+    }
+  ],
+  "execution_identity_paths": [
+    {
+      "path": "references/legacy-replay/generations/V2.48/snapshot/references/prompt-cache-manifest.json",
+      "sha256": "e610293c7751f39e4b547fec3299b02dc2c3d43b62919fa653ec70491e32e8b1",
+      "bytes": 13865
+    },
+    {
+      "path": "references/legacy-replay/generations/V2.48/snapshot/scripts/install/package-manifest.txt",
+      "sha256": "2c6bed1f54f4598d89a7a7cba228453479b97252de48cabfc337175fe8b749ac",
+      "bytes": 678
+    },
+    {
+      "path": "references/legacy-replay/generations/V2.48/snapshot/subagents/common-developer-instructions.txt",
+      "sha256": "61528fcab378b6874aef952f3d951b555997cc12e095cd0949ef7782fea77e5d",
+      "bytes": 1391
+    }
+  ],
+  "subagent_config_digests": {
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-agent-product-manager.toml": "fcc405f2af7ea22d5264d46b8b2c66f3d6034913aaef5d3a5418c708dac0db19",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-api-integration-test-designer.toml": "1790310efc853182e17aaa8318b8c59a6bac3c2e9f02f500c4b6b25bdcc6ebfa",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-api-integration-test-runner.toml": "59053c2bb3e3a973a3ffd0c472e4c2d571e69ee2b9d43e28796023518340bba4",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-backend.toml": "5fae896b4d128c8d565a5300ff7616070a2dcf226c542cd2d48c3a14b2bf0cd7",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-completion-auditor.toml": "ae8850275c4476a61f4f40f83b9b7098eef6274154aa3e8a67048facaa97ca65",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-docs.toml": "87749105ab2c2d72e237e387a946fdcc0326a49b6a939b71289cbe5b30d8377e",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-e2e-test-designer.toml": "b0e460dcd3808fbe3c5d3097165e19ebc934653ae89c1c4921bc61f81a93c794",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-e2e-test-runner.toml": "1de12a92b0b9de9d6b61f6925fb420a04aa969fa0c9b29b497a5c7dedb992eb9",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-frontend.toml": "234e406d4f6ebef99ef8bd0d8c8bcb85bb9bb2827265231b2fb9b4632249b03e",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-performance.toml": "fdb0a0e73944c98257bd212a7ef68ca236a50ba5b79cf966a720b6dd1ab2be02",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-product.toml": "b8de2174ff2a9c70117b872e0382d85f3059e748dbe515155b5a0bec5100be7a",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-qa.toml": "a329c327c7a8bad3ee79a4f9fd373743bebd6971cf9018da75ab32216f3a6781",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-refactor.toml": "47efbab288b5693927b2cffc40bcc66b964dc2b39eb055fb9dd919ccd2cd0293",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-requirements-analyst.toml": "a41f0e0f94390874f3a534a7f71401312785e46b1098bb16e30152ce707fec54",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-reviewer.toml": "6bdb6187f9ea8efb547f4a2ed9bceae81f1ab1442302e3ef67f6431ff1d5c14a",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-security.toml": "f7b8142ad787603303a0496bd5452f5543dab04177b48ec5c97b7bc24e5e255b",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-sqa.toml": "772c61c1cfe1ca47030a59fe1ae5af5c9d3332dba3ea694014ab5af86c2606fa",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-unit-test-designer.toml": "53e8aeb87b2bbcec724ea9562daae027b796422f2acd01f70412dda9489f29d0",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-unit-test-runner.toml": "e2a693bd2b7617877fac88b61f4681bba243f689ceba10c101458cb10941c213"
+  },
+  "source_paths": {
+    "references/legacy-replay/generations/V2.48/snapshot/AGENTS.md": "AGENTS.md",
+    "references/legacy-replay/generations/V2.48/snapshot/.agents/skills/goal-teams/SKILL.md": ".agents/skills/goal-teams/SKILL.md",
+    "references/legacy-replay/generations/V2.48/snapshot/SKILL.md": "SKILL.md",
+    "references/legacy-replay/generations/V2.48/snapshot/RULES.md": "RULES.md",
+    "references/legacy-replay/generations/V2.48/snapshot/goal-teams.md": "goal-teams.md",
+    "references/legacy-replay/generations/V2.48/snapshot/agents/openai.yaml": "agents/openai.yaml",
+    "references/legacy-replay/generations/V2.48/snapshot/references/compat.md": "references/compat.md",
+    "references/legacy-replay/generations/V2.48/snapshot/references/dual-review-protocol.md": "references/dual-review-protocol.md",
+    "references/legacy-replay/generations/V2.48/snapshot/references/goal-teams-core-v2.5.md": "references/goal-teams-core-v2.5.md",
+    "references/legacy-replay/generations/V2.48/snapshot/references/invariants.md": "references/invariants.md",
+    "references/legacy-replay/generations/V2.48/snapshot/references/profiles/goal-teams-self-release-v2.36.md": "references/profiles/goal-teams-self-release-v2.36.md",
+    "references/legacy-replay/generations/V2.48/snapshot/references/rules-project-sizing.md": "references/rules-project-sizing.md",
+    "references/legacy-replay/generations/V2.48/snapshot/references/rules-specialists.md": "references/rules-specialists.md",
+    "references/legacy-replay/generations/V2.48/snapshot/references/rules-testing.md": "references/rules-testing.md",
+    "references/legacy-replay/generations/V2.48/snapshot/references/test-case-assertion-protocol.md": "references/test-case-assertion-protocol.md",
+    "references/legacy-replay/generations/V2.48/snapshot/references/skill-release-simple-protocol.md": "references/skill-release-simple-protocol.md",
+    "references/legacy-replay/generations/V2.48/snapshot/references/prompt-cache-manifest.json": "references/prompt-cache-manifest.json",
+    "references/legacy-replay/generations/V2.48/snapshot/scripts/install/package-manifest.txt": "scripts/install/package-manifest.txt",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/common-developer-instructions.txt": "subagents/common-developer-instructions.txt",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-agent-product-manager.toml": "subagents/goal-agent-product-manager.toml",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-api-integration-test-designer.toml": "subagents/goal-api-integration-test-designer.toml",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-api-integration-test-runner.toml": "subagents/goal-api-integration-test-runner.toml",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-backend.toml": "subagents/goal-backend.toml",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-completion-auditor.toml": "subagents/goal-completion-auditor.toml",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-docs.toml": "subagents/goal-docs.toml",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-e2e-test-designer.toml": "subagents/goal-e2e-test-designer.toml",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-e2e-test-runner.toml": "subagents/goal-e2e-test-runner.toml",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-frontend.toml": "subagents/goal-frontend.toml",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-performance.toml": "subagents/goal-performance.toml",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-product.toml": "subagents/goal-product.toml",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-qa.toml": "subagents/goal-qa.toml",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-refactor.toml": "subagents/goal-refactor.toml",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-requirements-analyst.toml": "subagents/goal-requirements-analyst.toml",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-reviewer.toml": "subagents/goal-reviewer.toml",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-security.toml": "subagents/goal-security.toml",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-sqa.toml": "subagents/goal-sqa.toml",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-unit-test-designer.toml": "subagents/goal-unit-test-designer.toml",
+    "references/legacy-replay/generations/V2.48/snapshot/subagents/goal-unit-test-runner.toml": "subagents/goal-unit-test-runner.toml"
+  }
+}

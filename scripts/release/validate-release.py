@@ -168,7 +168,8 @@ def workspace_root() -> Path:
     except OSError:
         return SOURCE_ROOT
     # The strict four-column parser is part of Gitless package tests; live
-    # release validation still requires Git when source reconstruction runs.
+    # release validation still requires Git to derive the frozen-source
+    # expected payload map used for same-built-asset integrity checks.
     if result.returncode != 0:
         return SOURCE_ROOT
     common = Path(result.stdout.strip())
@@ -181,9 +182,13 @@ WORKSPACE_ROOT = workspace_root()
 RELEASE_ROOT = WORKSPACE_ROOT / "release" / "versions"
 META = {"_release.json", "_files.sha256", "_artifacts/SHA256SUMS"}
 OKF_GENERATED_PATH = "references/okf-conformance-manifest.json"
-OKF_RELEASE_VERSIONS = {"V2.39", "V2.40", "V2.44", "V2.45", "V2.46", "V2.48"}
+OKF_RELEASE_VERSIONS = {"V2.39", "V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49"}
 STRICT_SNAPSHOT_SCHEMA = "goal-teams-release-snapshot-v2.40"
-STRICT_SNAPSHOT_VERSIONS = {"V2.40", "V2.44", "V2.45", "V2.46", "V2.48"}
+STRICT_SNAPSHOT_VERSIONS = {"V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49"}
+SUPPORTED_RELEASE_VERSIONS = {
+    "V2.33", "V2.34", "V2.35", "V2.36", "V2.37", "V2.38", "V2.39",
+    "V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49",
+}
 MAX_TAR_MEMBERS = 2048
 MAX_TAR_PATH_BYTES = 240
 MAX_TAR_SINGLE_FILE_BYTES = 16 * 1024 * 1024
@@ -218,11 +223,15 @@ def release_projection_state(
         return "final"
     if (
         allow_candidate
-        and version == "V2.48"
-        and current.get("product_version") == "V2.46"
+        and version in {"V2.48", "V2.49"}
+        and current.get("product_version")
+        == ("V2.46" if version == "V2.48" else "V2.48")
         and current.get("candidate_product_version") == version
         and current.get("candidate_release_state")
-        == "skill_simple_local_validation"
+        in {
+            "skill_simple_local_validation",
+            "v249_release_readiness",
+        }
     ):
         return "candidate"
     return "invalid"
@@ -249,6 +258,50 @@ def validate_v248_release_identity(
             "ok": False,
             "passed": False,
             "error_code": "E_V248_RELEASE_IDENTITY_DRIFT",
+            "mutation_count": 0,
+            "external_mutation_count": 0,
+            "external_side_effect_count": 0,
+        }
+    return {
+        "ok": True,
+        "passed": True,
+        "error_code": None,
+        "identity_sha256": hashlib.sha256(
+            json.dumps(
+                expected, sort_keys=True, separators=(",", ":")
+            ).encode("utf-8")
+        ).hexdigest(),
+        "mutation_count": 0,
+        "external_mutation_count": 0,
+        "external_side_effect_count": 0,
+    }
+
+
+def validate_v249_release_identity(
+    expected: object, observed: object
+) -> dict[str, object]:
+    """Compare an exact V2.49 released identity and its single asset set."""
+
+    required = {
+        "version",
+        "source_commit",
+        "source_tree",
+        "profile_sha256",
+        "asset_set_digest",
+        "asset_set_id",
+    }
+    if (
+        not isinstance(expected, dict)
+        or not isinstance(observed, dict)
+        or set(expected) != required
+        or set(observed) != required
+        or expected.get("version") != "V2.49"
+        or observed != expected
+    ):
+        return {
+            "ok": False,
+            "passed": False,
+            "error_code": "E_V249_RELEASE_IDENTITY_DRIFT",
             "mutation_count": 0,
             "external_mutation_count": 0,
             "external_side_effect_count": 0,
@@ -434,10 +487,15 @@ def write_expected_file(root: Path, relative: str, mode: str, data: bytes) -> No
     target.chmod(0o755 if mode == "100755" else 0o644)
 
 
-def independently_materialize_release(
+def materialize_expected_payload_map(
     commit: str,
 ) -> tuple[dict[str, tuple[str, bytes]], set[str], str, dict[str, object] | None]:
-    """Rebuild generated assets from the frozen source for byte comparison."""
+    """Derive the expected payload map for same-built-asset integrity checks.
+
+    This function does not create a release archive or a second public asset
+    set.  It materializes only a temporary validation tree and therefore makes
+    no reproducibility claim.
+    """
 
     trusted, generated, manifest_sha = trusted_release_files(commit)
     source_version = trusted.get("VERSION", ("", b""))[1].decode("utf-8").strip()
@@ -451,12 +509,12 @@ def independently_materialize_release(
         stage = Path(directory)
         for relative, (mode, data) in trusted.items():
             write_expected_file(stage, relative, mode, data)
-        runtime_path = stage / "scripts" / "v23" / "okf_conformance.py"
+        runtime_path = stage / "scripts" / "v249" / "okf_conformance.py"
         spec = importlib.util.spec_from_file_location(
             f"_goalteams_validate_okf_{commit[:16]}", runtime_path
         )
         if spec is None or spec.loader is None:
-            raise RuntimeError("cannot load frozen OKF runtime for independent validation")
+            raise RuntimeError("cannot load frozen OKF runtime for integrity validation")
         module = importlib.util.module_from_spec(spec)
         previous = sys.dont_write_bytecode
         sys.dont_write_bytecode = True
@@ -498,7 +556,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--release-root",
         type=Path,
-        help="Explicit release root for isolated reproducibility/CI validation",
+        help="Explicit release root for frozen-source and boundary integrity validation",
     )
     parser.add_argument(
         "--isolated-no-docs-archive",
@@ -521,6 +579,9 @@ def main() -> None:
     for version in versions:
         if not re.fullmatch(r"V[0-9]+\.[0-9]+", version):
             errors.append(f"invalid release version: {version}")
+            continue
+        if version not in SUPPORTED_RELEASE_VERSIONS:
+            errors.append(f"unsupported release version: {version}")
             continue
         root = release_root / version
         record_path, checksum_path = root / "_release.json", root / "_files.sha256"
@@ -645,18 +706,18 @@ def main() -> None:
                 errors.append(f"{version}: frozen Git source contains nonrelease paths {forbidden_source}")
             try:
                 trusted, generated, manifest_sha, expected_okf = (
-                    independently_materialize_release(commit)
+                    materialize_expected_payload_map(commit)
                 )
             except (OSError, RuntimeError, UnicodeDecodeError, KeyError, ValueError) as exc:
                 errors.append(
-                    f"{version}: frozen source package reconstruction failed: {type(exc).__name__}:{exc}"
+                    f"{version}: frozen-source expected payload derivation failed: {type(exc).__name__}:{exc}"
                 )
                 trusted, generated, manifest_sha, expected_okf = {}, set(), "unavailable", None
             if set(trusted) != set(files):
                 errors.append(f"{version}: release files differ from frozen source plus generated allowlist")
             source_mismatches = [p for p, (_, data) in trusted.items() if p not in files or hashlib.sha256(data).hexdigest() != digest(files[p])]
             if source_mismatches:
-                errors.append(f"{version}: files differ from independently reconstructed package {source_mismatches}")
+                errors.append(f"{version}: files differ from frozen-source expected payload {source_mismatches}")
             mode_mismatches = [
                 path
                 for path, (mode, _) in trusted.items()
@@ -690,10 +751,10 @@ def main() -> None:
                     errors.append(f"{version}: metadata {key} is not bound to frozen source")
             if generated:
                 # Release metadata and archives intentionally live beside the
-                # payload.  Rebuild the frozen payload in an isolated root for
-                # the strict complete-tree replay; actual release bytes/modes
-                # are already compared with this trusted map above and again
-                # with the tar manifest below.
+                # payload.  Materialize a temporary validation tree for the
+                # strict complete-tree check; no archive or second public
+                # asset set is created. Actual release bytes/modes are compared
+                # with this expected map above and with the tar manifest below.
                 with tempfile.TemporaryDirectory(
                     prefix="goal-teams-release-payload-replay-"
                 ) as directory:
@@ -794,7 +855,19 @@ def main() -> None:
                 if archive_source_mismatches:
                     errors.append(f"{version}: docs archive differs from frozen Git source {archive_source_mismatches}")
         results.append({"version": version, "files": len(files), "hash_mismatches": len(mismatches), "forbidden": len(forbidden), "artifact_ok": artifact_ok})
-    payload = {"schema_version": "goal-teams-release-validation-v2", "passed": not errors, "versions": results, "errors": errors}
+    payload = {
+        "schema_version": "goal-teams-release-validation-v2",
+        "passed": not errors,
+        "validation_contract": {
+            "validation_kind": "same_built_asset_frozen_source_and_boundary_integrity",
+            "asset_build_invocation_count": 0,
+            "second_build_comparison_attempted": False,
+            "reproducibility_claim": False,
+            "release_asset_set_mutation_count": 0,
+        },
+        "versions": results,
+        "errors": errors,
+    }
     print(json.dumps(payload, ensure_ascii=False, indent=2))
     raise SystemExit(0 if not errors else 1)
 

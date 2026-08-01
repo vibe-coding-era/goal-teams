@@ -1,0 +1,13 @@
+# Optional V2.49 historical Replay supplement. The default installer does not
+# read this file. An explicit Replay or rollback workflow combines this narrow
+# supplement with Current and records the selected historical generation.
+file references/legacy-replay/INDEX.md
+file references/legacy-replay/manifest.json
+prefix references/legacy-replay/generations/V2.48/
+file references/current/generations/V2.48/activation-manifest.json
+file references/profiles/goal-teams-self-release-v2.36.md
+file schemas/v2.36/project-route.schema.json
+file schemas/v2.49/legacy-replay-manifest.schema.json
+file scripts/v23/v235_policy.py
+file scripts/v249/replay_runner.py
+file tests/v23/fixtures/v236/routing.json

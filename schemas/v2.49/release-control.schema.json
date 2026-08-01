@@ -1,0 +1,498 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.49/release-control.schema.json",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "repository",
+    "version",
+    "project_size",
+    "candidate_branch",
+    "tag",
+    "source_commit",
+    "source_tree",
+    "asset_set_id",
+    "asset_set_digest",
+    "intent_sha256",
+    "authorization_receipt",
+    "released_runtime_transition",
+    "s0",
+    "full_regression",
+    "release_security_review",
+    "s1",
+    "s2",
+    "asset_integrity_validation",
+    "s3",
+    "repository_boundary",
+    "external_anchor_validation",
+    "s4_preflight",
+    "release_control_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "goal-teams-v2.49-release-control-receipt-v1"},
+    "repository": {"const": "vibe-coding-era/goal-teams"},
+    "version": {"const": "V2.49"},
+    "project_size": {"enum": ["small", "medium", "large"]},
+    "candidate_branch": {"const": "codex/v2.49-simplification"},
+    "tag": {"const": "v2.49"},
+    "source_commit": {"$ref": "#/$defs/git_sha"},
+    "source_tree": {"$ref": "#/$defs/git_sha"},
+    "asset_set_id": {"type": "string", "minLength": 1},
+    "asset_set_digest": {"$ref": "#/$defs/sha256"},
+    "intent_sha256": {"$ref": "#/$defs/sha256"},
+    "authorization_receipt": {
+      "type": "object",
+      "required": ["schema_version", "authorization_id", "authorization_state", "authorization_lineage_preserved", "repository", "version", "candidate_branch", "tag", "action_allowlist", "validity_conditions", "intent", "intent_sha256"],
+      "properties": {
+        "schema_version": {"const": "goal-teams-project-start-authorization-v2.49"},
+        "authorization_id": {"type": "string", "minLength": 1},
+        "authorization_state": {"const": "granted_once_at_project_start"},
+        "authorization_lineage_preserved": {"const": true},
+        "repository": {"type": "object"},
+        "version": {"const": "V2.49"},
+        "candidate_branch": {"const": "codex/v2.49-simplification"},
+        "tag": {"const": "v2.49"},
+        "action_allowlist": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "validity_conditions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "intent": {"type": "object"},
+        "intent_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "released_runtime_transition": {
+      "$ref": "https://goal-teams.local/schemas/v2.49/runtime-transition-receipt.schema.json"
+    },
+    "s0": {"$ref": "#/$defs/current_receipt"},
+    "full_regression": {"$ref": "#/$defs/current_receipt"},
+    "release_security_review": {"$ref": "#/$defs/current_receipt"},
+    "s1": {"$ref": "#/$defs/current_receipt"},
+    "s2": {"$ref": "#/$defs/current_receipt"},
+    "asset_integrity_validation": {"$ref": "#/$defs/current_receipt"},
+    "s3": {"$ref": "#/$defs/receipt"},
+    "repository_boundary": {"$ref": "#/$defs/current_receipt"},
+    "external_anchor_validation": {"$ref": "#/$defs/current_receipt"},
+    "s4_preflight": {"$ref": "#/$defs/s4_preflight_receipt"},
+    "release_control_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "git_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "receipt": {
+      "type": "object",
+      "required": ["receipt_sha256"],
+      "properties": {"receipt_sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "current_receipt": {
+      "type": "object",
+      "required": ["check_state", "evidence_state", "receipt_sha256"],
+      "properties": {
+        "check_state": {"const": "passed"},
+        "evidence_state": {"const": "current"},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "s4_preflight_receipt": {
+      "allOf": [
+        {"$ref": "#/$defs/current_receipt"},
+        {
+          "type": "object",
+          "required": [
+            "gate_id",
+            "publish_allowed",
+            "external_anchor_revalidation_required",
+            "action_executed",
+            "additional_user_confirmation_required",
+            "git_transport",
+            "https_git_fallback_allowed"
+          ],
+          "properties": {
+            "gate_id": {"const": "s4_preflight"},
+            "publish_allowed": {"const": false},
+            "external_anchor_revalidation_required": {"const": true},
+            "action_executed": {"const": false},
+            "additional_user_confirmation_required": {"const": false},
+            "git_transport": {"const": "ssh_only"},
+            "https_git_fallback_allowed": {"const": false}
+          }
+        }
+      ]
+    },
+    "operation_journal_entry": {
+      "type": "object",
+      "required": ["step_id", "operation", "target", "scope", "state", "attempted_this_run", "readback_state"],
+      "properties": {
+        "step_id": {"type": "string", "minLength": 1},
+        "operation": {"enum": ["tag_local_create", "tag_push", "release_create", "asset_upload", "release_publish", "install"]},
+        "target": {"type": "string", "minLength": 1},
+        "scope": {"enum": ["local_repository", "external_service", "local_install"]},
+        "state": {"enum": ["not_started", "attempted", "confirmed", "uncertain"]},
+        "attempted_this_run": {"type": "boolean"},
+        "readback_state": {"enum": ["not_run", "absent", "exact", "conflict", "unavailable"]}
+      },
+      "additionalProperties": false
+    },
+    "s4_reconciliation_entry": {
+      "type": "object",
+      "required": ["step_id", "observed_state"],
+      "properties": {
+        "step_id": {"type": "string", "minLength": 1},
+        "observed_state": {"enum": ["absent", "exact", "conflict", "unavailable"]}
+      },
+      "additionalProperties": false
+    },
+    "s4_outcome_receipt": {
+      "type": "object",
+      "required": [
+        "schema_version", "gate_id", "repository", "version", "tag",
+        "source_commit", "source_tree", "asset_set_id", "asset_set_digest",
+        "intent_sha256", "authorization_id", "release_control_sha256",
+        "check_state", "run_outcome", "evidence_state", "ok", "passed",
+        "error_code", "failure_class", "execution_mode", "action_executed",
+        "external_side_effect_count", "write_attempt_count",
+        "external_write_attempt_count", "confirmed_side_effect_count",
+        "uncertain_write_count", "operation_counts", "operation_journal",
+        "reconciliation", "git_transport", "https_git_fallback_allowed",
+        "additional_user_confirmation_required", "tag_readback",
+        "release_readback", "asset_readback", "download_asset_set_digest",
+        "install_readback", "schema_validation", "receipt_sha256"
+      ],
+      "properties": {
+        "schema_version": {"const": "goal-teams-v2.49-s4-outcome-receipt-v2"},
+        "gate_id": {"const": "s4_publish_install_readback"},
+        "repository": {"enum": ["vibe-coding-era/goal-teams", null]},
+        "version": {"enum": ["V2.49", null]},
+        "tag": {"enum": ["v2.49", null]},
+        "source_commit": {"anyOf": [{"$ref": "#/$defs/git_sha"}, {"type": "null"}]},
+        "source_tree": {"anyOf": [{"$ref": "#/$defs/git_sha"}, {"type": "null"}]},
+        "asset_set_id": {"anyOf": [{"type": "string", "minLength": 1}, {"type": "null"}]},
+        "asset_set_digest": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "intent_sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "authorization_id": {"anyOf": [{"type": "string", "minLength": 1}, {"type": "null"}]},
+        "release_control_sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "check_state": {"enum": ["passed", "blocked", "failed"]},
+        "run_outcome": {"enum": ["passed", "blocked", "failed"]},
+        "evidence_state": {"enum": ["current", "invalid"]},
+        "ok": {"type": "boolean"},
+        "passed": {"type": "boolean"},
+        "error_code": {"anyOf": [{"type": "string", "pattern": "^E_[A-Z0-9_:-]+$"}, {"type": "null"}]},
+        "failure_class": {"enum": [null, "blocked_before_write", "failed_after_write", "partial_or_uncertain"]},
+        "execution_mode": {"enum": [null, "executed_and_verified", "reconciled_existing"]},
+        "action_executed": {"type": "boolean"},
+        "external_side_effect_count": {"type": "integer", "minimum": 0, "maximum": 8},
+        "write_attempt_count": {"type": "integer", "minimum": 0, "maximum": 9},
+        "external_write_attempt_count": {"type": "integer", "minimum": 0, "maximum": 8},
+        "confirmed_side_effect_count": {"type": "integer", "minimum": 0, "maximum": 9},
+        "uncertain_write_count": {"type": "integer", "minimum": 0, "maximum": 9},
+        "operation_counts": {
+          "type": "object",
+          "required": ["tag_create", "tag_push", "release_create", "asset_upload", "release_publish", "install"],
+          "properties": {
+            "tag_create": {"type": "integer", "minimum": 0, "maximum": 1},
+            "tag_push": {"type": "integer", "minimum": 0, "maximum": 1},
+            "release_create": {"type": "integer", "minimum": 0, "maximum": 1},
+            "asset_upload": {"type": "integer", "minimum": 0, "maximum": 4},
+            "release_publish": {"type": "integer", "minimum": 0, "maximum": 1},
+            "install": {"type": "integer", "minimum": 0, "maximum": 1}
+          },
+          "additionalProperties": false
+        },
+        "operation_journal": {
+          "type": "array",
+          "minItems": 9,
+          "maxItems": 9,
+          "prefixItems": [
+            {
+              "allOf": [
+                {"$ref": "#/$defs/operation_journal_entry"},
+                {"type": "object", "properties": {"step_id": {"const": "tag_local_create"}, "operation": {"const": "tag_local_create"}, "target": {"const": "refs/tags/v2.49"}, "scope": {"const": "local_repository"}}}
+              ]
+            },
+            {
+              "allOf": [
+                {"$ref": "#/$defs/operation_journal_entry"},
+                {"type": "object", "properties": {"step_id": {"const": "tag_push"}, "operation": {"const": "tag_push"}, "target": {"const": "refs/tags/v2.49"}, "scope": {"const": "external_service"}}}
+              ]
+            },
+            {
+              "allOf": [
+                {"$ref": "#/$defs/operation_journal_entry"},
+                {"type": "object", "properties": {"step_id": {"const": "release_create"}, "operation": {"const": "release_create"}, "target": {"const": "v2.49"}, "scope": {"const": "external_service"}}}
+              ]
+            },
+            {
+              "allOf": [
+                {"$ref": "#/$defs/operation_journal_entry"},
+                {"type": "object", "properties": {"step_id": {"const": "asset_upload:SHA256SUMS"}, "operation": {"const": "asset_upload"}, "target": {"const": "SHA256SUMS"}, "scope": {"const": "external_service"}}}
+              ]
+            },
+            {
+              "allOf": [
+                {"$ref": "#/$defs/operation_journal_entry"},
+                {"type": "object", "properties": {"step_id": {"const": "asset_upload:_files.sha256"}, "operation": {"const": "asset_upload"}, "target": {"const": "_files.sha256"}, "scope": {"const": "external_service"}}}
+              ]
+            },
+            {
+              "allOf": [
+                {"$ref": "#/$defs/operation_journal_entry"},
+                {"type": "object", "properties": {"step_id": {"const": "asset_upload:_release.json"}, "operation": {"const": "asset_upload"}, "target": {"const": "_release.json"}, "scope": {"const": "external_service"}}}
+              ]
+            },
+            {
+              "allOf": [
+                {"$ref": "#/$defs/operation_journal_entry"},
+                {"type": "object", "properties": {"step_id": {"const": "asset_upload:goal-teams-V2.49.tar.gz"}, "operation": {"const": "asset_upload"}, "target": {"const": "goal-teams-V2.49.tar.gz"}, "scope": {"const": "external_service"}}}
+              ]
+            },
+            {
+              "allOf": [
+                {"$ref": "#/$defs/operation_journal_entry"},
+                {"type": "object", "properties": {"step_id": {"const": "release_publish"}, "operation": {"const": "release_publish"}, "target": {"const": "v2.49"}, "scope": {"const": "external_service"}}}
+              ]
+            },
+            {
+              "allOf": [
+                {"$ref": "#/$defs/operation_journal_entry"},
+                {"type": "object", "properties": {"step_id": {"const": "install"}, "operation": {"const": "install"}, "target": {"const": "canonical CODEX_HOME"}, "scope": {"const": "local_install"}}}
+              ]
+            }
+          ],
+          "items": false
+        },
+        "reconciliation": {
+          "type": "object",
+          "required": ["performed", "trigger", "overall_state", "entries"],
+          "properties": {
+            "performed": {"type": "boolean"},
+            "trigger": {"enum": ["not_required", "exception"]},
+            "overall_state": {"enum": ["not_required", "exact", "absent", "conflict", "partial", "uncertain"]},
+            "entries": {"type": "array", "items": {"$ref": "#/$defs/s4_reconciliation_entry"}}
+          },
+          "additionalProperties": false
+        },
+        "git_transport": {"const": "ssh_only"},
+        "https_git_fallback_allowed": {"const": false},
+        "additional_user_confirmation_required": {"const": false},
+        "tag_readback": {
+          "anyOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "required": ["tag", "object_sha", "peeled_commit", "annotated", "message"],
+              "properties": {
+                "tag": {"const": "v2.49"},
+                "object_sha": {"$ref": "#/$defs/git_sha"},
+                "peeled_commit": {"$ref": "#/$defs/git_sha"},
+                "annotated": {"const": true},
+                "message": {"const": "Goal Teams V2.49"}
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "release_readback": {
+          "anyOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "required": ["release_id", "url", "state", "draft", "prerelease"],
+              "properties": {
+                "release_id": {"type": "integer", "minimum": 1},
+                "url": {"const": "https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.49"},
+                "state": {"const": "published"},
+                "draft": {"const": false},
+                "prerelease": {"const": false}
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "asset_readback": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "prefixItems": [
+            {
+              "type": "object",
+              "required": ["name", "asset_id", "size", "sha256", "download_sha256"],
+              "properties": {
+                "name": {"const": "SHA256SUMS"},
+                "asset_id": {"anyOf": [{"type": "integer", "minimum": 1}, {"type": "null"}]},
+                "size": {"anyOf": [{"type": "integer", "minimum": 0}, {"type": "null"}]},
+                "sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+                "download_sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]}
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": ["name", "asset_id", "size", "sha256", "download_sha256"],
+              "properties": {
+                "name": {"const": "_files.sha256"},
+                "asset_id": {"anyOf": [{"type": "integer", "minimum": 1}, {"type": "null"}]},
+                "size": {"anyOf": [{"type": "integer", "minimum": 0}, {"type": "null"}]},
+                "sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+                "download_sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]}
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": ["name", "asset_id", "size", "sha256", "download_sha256"],
+              "properties": {
+                "name": {"const": "_release.json"},
+                "asset_id": {"anyOf": [{"type": "integer", "minimum": 1}, {"type": "null"}]},
+                "size": {"anyOf": [{"type": "integer", "minimum": 0}, {"type": "null"}]},
+                "sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+                "download_sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]}
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": ["name", "asset_id", "size", "sha256", "download_sha256"],
+              "properties": {
+                "name": {"const": "goal-teams-V2.49.tar.gz"},
+                "asset_id": {"anyOf": [{"type": "integer", "minimum": 1}, {"type": "null"}]},
+                "size": {"anyOf": [{"type": "integer", "minimum": 0}, {"type": "null"}]},
+                "sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+                "download_sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]}
+              },
+              "additionalProperties": false
+            }
+          ],
+          "items": false
+        },
+        "download_asset_set_digest": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "install_readback": {
+          "anyOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "required": ["installed_state_sha256", "release_identity_sha256", "version", "source_commit", "source_tree", "installation_performed", "package_file_count", "package_tree_sha256", "state_package_files_sha256", "agent_file_count", "agent_set_sha256", "symlink_count"],
+              "properties": {
+                "installed_state_sha256": {"$ref": "#/$defs/sha256"},
+                "release_identity_sha256": {"$ref": "#/$defs/sha256"},
+                "version": {"const": "V2.49"},
+                "source_commit": {"$ref": "#/$defs/git_sha"},
+                "source_tree": {"$ref": "#/$defs/git_sha"},
+                "installation_performed": {"type": "boolean"},
+                "package_file_count": {"type": "integer", "minimum": 1},
+                "package_tree_sha256": {"$ref": "#/$defs/sha256"},
+                "state_package_files_sha256": {"$ref": "#/$defs/sha256"},
+                "agent_file_count": {"type": "integer", "minimum": 0},
+                "agent_set_sha256": {"$ref": "#/$defs/sha256"},
+                "symlink_count": {"const": 0}
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "schema_validation": {
+          "type": "object",
+          "required": ["state", "engine", "schema_ref", "schema_sha256", "runtime_transition_schema_sha256"],
+          "properties": {
+            "state": {"enum": ["validated", "unavailable", "invalid"]},
+            "engine": {"anyOf": [{"type": "string", "minLength": 1}, {"type": "null"}]},
+            "schema_ref": {"const": "https://goal-teams.local/schemas/v2.49/release-control.schema.json#/$defs/s4_outcome_receipt"},
+            "schema_sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+            "runtime_transition_schema_sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+            "error_code": {"type": "string", "pattern": "^E_[A-Z0-9_:-]+$"}
+          },
+          "additionalProperties": false
+        },
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "failure_class": {"const": null},
+            "check_state": {"const": "passed"},
+            "run_outcome": {"const": "passed"},
+            "evidence_state": {"const": "current"},
+            "ok": {"const": true},
+            "passed": {"const": true},
+            "error_code": {"type": "null"},
+            "execution_mode": {"enum": ["executed_and_verified", "reconciled_existing"]},
+            "repository": {"const": "vibe-coding-era/goal-teams"},
+            "version": {"const": "V2.49"},
+            "tag": {"const": "v2.49"},
+            "source_commit": {"$ref": "#/$defs/git_sha"},
+            "source_tree": {"$ref": "#/$defs/git_sha"},
+            "asset_set_id": {"type": "string", "minLength": 1},
+            "asset_set_digest": {"$ref": "#/$defs/sha256"},
+            "intent_sha256": {"$ref": "#/$defs/sha256"},
+            "authorization_id": {"type": "string", "minLength": 1},
+            "release_control_sha256": {"$ref": "#/$defs/sha256"},
+            "tag_readback": {"type": "object"},
+            "release_readback": {"type": "object"},
+            "asset_readback": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {"type": "string"},
+                  "asset_id": {"type": "integer", "minimum": 1},
+                  "size": {"type": "integer", "minimum": 0},
+                  "sha256": {"$ref": "#/$defs/sha256"},
+                  "download_sha256": {"$ref": "#/$defs/sha256"}
+                }
+              }
+            },
+            "download_asset_set_digest": {"$ref": "#/$defs/sha256"},
+            "install_readback": {"type": "object"},
+            "schema_validation": {
+              "type": "object",
+              "required": ["state", "engine", "schema_sha256", "runtime_transition_schema_sha256"],
+              "properties": {
+                "state": {"const": "validated"},
+                "engine": {"type": "string", "minLength": 1},
+                "schema_sha256": {"$ref": "#/$defs/sha256"},
+                "runtime_transition_schema_sha256": {"$ref": "#/$defs/sha256"}
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "failure_class": {"const": "blocked_before_write"},
+            "check_state": {"const": "blocked"},
+            "run_outcome": {"const": "blocked"},
+            "evidence_state": {"const": "invalid"},
+            "ok": {"const": false},
+            "passed": {"const": false},
+            "error_code": {"type": "string", "pattern": "^E_[A-Z0-9_:-]+$"},
+            "execution_mode": {"type": "null"},
+            "write_attempt_count": {"const": 0}
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "failure_class": {"enum": ["failed_after_write", "partial_or_uncertain"]},
+            "check_state": {"const": "failed"},
+            "run_outcome": {"const": "failed"},
+            "evidence_state": {"const": "invalid"},
+            "ok": {"const": false},
+            "passed": {"const": false},
+            "error_code": {"type": "string", "pattern": "^E_[A-Z0-9_:-]+$"},
+            "execution_mode": {"type": "null"},
+            "write_attempt_count": {"type": "integer", "minimum": 1}
+          }
+        }
+      ],
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

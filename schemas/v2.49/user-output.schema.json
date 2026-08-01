@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.49/user-output.schema.json",
+  "type": "object",
+  "required": ["任务", "成员", "进度", "结果", "Banchmark"],
+  "properties": {
+    "任务": {"type": "string"},
+    "成员": {"type": "string"},
+    "进度": {"type": "string"},
+    "结果": {"type": "string"},
+    "Banchmark": {"type": "string"},
+    "下一轮 LOOP": {"type": "string"},
+    "下一个任务": {"type": "string"}
+  },
+  "oneOf": [
+    {
+      "required": ["下一轮 LOOP"],
+      "properties": {"下一轮 LOOP": {}, "下一个任务": false}
+    },
+    {
+      "required": ["下一个任务"],
+      "properties": {"下一个任务": {}, "下一轮 LOOP": false}
+    }
+  ],
+  "additionalProperties": false
+}

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### V2.49
+
+- Added a digest-bound Current generation, functional-rule templates, explicit Legacy Replay, and zero-Legacy route/package closure checks.
+- Added the immutable four-object test chain and separated Development from Release denominators; Medium/Large development now blocks only on TDD and affected-scope checks.
+- Moved full regression and the independent security review to final Release readiness, retired S2 double-build/security gates, and made S3 Large-Release-only.
+- Added one-time project-start authorization, SSH-only GitHub Git transport, simplified S4 recovery/readback, fresh runtime transition receipts, and the exact six-field output envelope.
+
 ### V2.48
 
 - Added an independent Agent Product Manager plus a shared, progressive Agent-development contract for product, frontend, backend, and testing roles.
