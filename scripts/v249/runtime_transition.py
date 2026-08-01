@@ -921,6 +921,8 @@ def validate_transition(
     expected_adapter_identity: str | None = None,
     expected_adapter_code_sha256: str | None = None,
     expected_host_execution_id: str | None = None,
+    route_receipt_path_override: Path | str | None = None,
+    authorization_receipt_path_override: Path | str | None = None,
     validation_time: dt.datetime | None = None,
     root: Path = ROOT,
 ) -> dict[str, Any]:
@@ -1091,8 +1093,13 @@ def validate_transition(
     root = root.resolve()
     observed_context: dict[str, Any] | None = None
     route_evidence_current = False
+    route_receipt_input = (
+        route_receipt_path_override
+        if route_receipt_path_override is not None
+        else str(value.get("route_receipt_path", ""))
+    )
     try:
-        route_evidence = _evidence_file(str(value.get("route_receipt_path", "")), root)
+        route_evidence = _evidence_file(route_receipt_input, root)
         route_evidence_current = value.get("route_receipt_sha256") == _sha256(
             route_evidence.read_bytes()
         )
@@ -1105,7 +1112,7 @@ def validate_transition(
             root=root,
             stage=str(value.get("stage", "")),
             project_size=str(project_size or ""),
-            route_receipt_path=str(value.get("route_receipt_path", "")),
+            route_receipt_path=route_receipt_input,
             loaded_runtime_product_version=LOADED_RUNTIME_PRODUCT_VERSION,
         )
     except (OSError, UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
@@ -1148,13 +1155,21 @@ def validate_transition(
 
     authorization: dict[str, Any] | None = None
     authorization_digest: str | None = None
+    authorization_receipt_input = (
+        authorization_receipt_path_override
+        if authorization_receipt_path_override is not None
+        else str(value.get("authorization_receipt_path", ""))
+    )
     try:
         authorization, authorization_label, authorization_digest = _load_authorization(
-            str(value.get("authorization_receipt_path", "")), root=root
+            authorization_receipt_input, root=root
         )
         _append_if(
             errors,
-            value.get("authorization_receipt_path") != authorization_label
+            (
+                authorization_receipt_path_override is None
+                and value.get("authorization_receipt_path") != authorization_label
+            )
             or value.get("authorization_receipt_sha256") != authorization_digest
             or value.get("authorization_id") != authorization.get("authorization_id")
             or value.get("authorization_lineage_preserved") is not True

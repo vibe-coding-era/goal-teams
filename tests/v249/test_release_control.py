@@ -2,11 +2,17 @@ from __future__ import annotations
 
 import copy
 import datetime as dt
+import hashlib
+import json
+import tempfile
 import unittest
+from pathlib import Path
 from unittest import mock
 
 from scripts.release import skill_release
-from scripts.v249 import release_flow
+from scripts.v249 import release_flow, runtime_transition
+from scripts.v249.generation_runtime import load_generation
+from scripts.v249.route_closure import compile_route_closure
 from scripts.v249.repository_boundary import build_boundary_receipt
 
 
@@ -611,7 +617,216 @@ def validate(control: dict) -> dict:
         )
 
 
+def checkpoint_fixture(root: Path) -> tuple[Path, Path, dict[str, str]]:
+    receipt_root = root / "receipts"
+    release_root = root / "release"
+    artifact_root = release_root / "V2.49" / "_artifacts"
+    receipt_root.mkdir(parents=True)
+    artifact_root.mkdir(parents=True)
+    asset_paths = {
+        "SHA256SUMS": artifact_root / "SHA256SUMS",
+        "_files.sha256": release_root / "V2.49" / "_files.sha256",
+        "_release.json": release_root / "V2.49" / "_release.json",
+        "goal-teams-V2.49.tar.gz": artifact_root / "goal-teams-V2.49.tar.gz",
+    }
+    for index, (name, path) in enumerate(sorted(asset_paths.items()), start=1):
+        path.write_bytes(f"{index}:{name}\n".encode())
+    assets = [
+        {
+            "name": name,
+            "size": path.stat().st_size,
+            "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        }
+        for name, path in sorted(asset_paths.items())
+    ]
+    s2 = release_flow.build_s2_receipt(
+        source_commit=SOURCE,
+        source_tree=TREE,
+        asset_set_id="ASSET-V249-CHECKPOINT",
+        assets=assets,
+    )
+    auth = authorization()
+    runtime = {
+        "receipt_sha256": "1" * 64,
+        "controller_handoff_receipt": {},
+    }
+    s0 = {"receipt_sha256": "2" * 64}
+    full = {"receipt_sha256": "3" * 64}
+    security = {"receipt_sha256": "4" * 64}
+    s1 = {"receipt_sha256": "5" * 64}
+    integrity = {"receipt_sha256": "6" * 64}
+    s3 = {"receipt_sha256": "7" * 64, "s3_process_invocation_count": 1}
+    boundary = {"receipt_sha256": "8" * 64}
+    control = {
+        "project_size": "large",
+        "asset_set_id": s2["asset_set_id"],
+        "asset_set_digest": s2["asset_set_digest"],
+        "authorization_receipt": auth,
+        "released_runtime_transition": runtime,
+        "s0": s0,
+        "full_regression": full,
+        "release_security_review": security,
+        "s1": s1,
+        "s2": s2,
+        "asset_integrity_validation": integrity,
+        "s3": s3,
+        "repository_boundary": boundary,
+        "release_control_sha256": "9" * 64,
+    }
+    values = {
+        "authorization.json": auth,
+        "controller-handoff.json": {},
+        "github-owner-key-validation.json": {},
+        "release-route-receipt.json": {},
+        "released-runtime-transition.json": runtime,
+        "s1-check.json": {
+            "s0_receipt": s0,
+            "release_gate_receipts": {
+                "full_regression": full,
+                "release_security_review": security,
+            },
+            "s1_receipt": s1,
+        },
+        "s2-build.json": {},
+        "asset-validation.json": {
+            "s2_receipt": s2,
+            "asset_integrity_validation_receipt": integrity,
+        },
+        "repository-boundary.json": boundary,
+        "repository-boundary-pre-s4.json": boundary,
+        "s3.json": s3,
+        "release-control.json": control,
+        "s4-authorized-operation-plan.json": {
+            "status": "authorized_operation_plan_not_executed",
+            "publish_state": "authorized_not_executed",
+            "external_side_effect_count": 0,
+            "action_executed": False,
+            "operation_plan_authorized": True,
+            "source_commit": SOURCE,
+            "source_git_tree": TREE,
+            "release_control_sha256": control["release_control_sha256"],
+            "authorization_id": auth["authorization_id"],
+            "asset_set_id": s2["asset_set_id"],
+            "asset_set_digest": s2["asset_set_digest"],
+            "check_state": "not_started",
+            "run_outcome": "not_run",
+            "evidence_state": "not_created",
+            "ok": False,
+            "passed": False,
+            "additional_user_confirmation_required": False,
+            "https_git_fallback_allowed": False,
+        },
+    }
+    for name, value in values.items():
+        (receipt_root / name).write_text(
+            json.dumps(value, sort_keys=True), encoding="utf-8"
+        )
+    outcomes = {
+        phase: "success" for phase in skill_release.V249_CONTINUATION_PHASE_ORDER
+    }
+    return receipt_root, release_root, outcomes
+
+
 class TestV249ReleaseControl(unittest.TestCase):
+    def test_runtime_external_anchor_tracks_the_complete_dynamic_input_set(self) -> None:
+        activation_path = (
+            "references/current/generations/V2.49/activation-manifest.json"
+        )
+        prompt_manifest_path = (
+            "references/current/generations/V2.49/prompt-manifest.json"
+        )
+        current_paths = [
+            "references/current/generations/V2.49/core.md",
+            "references/current/generations/V2.49/functions/release-operations.md",
+        ]
+        self.assertEqual(
+            set(runtime_transition.REQUIRED_STATIC_INPUT_PATHS),
+            set(skill_release.V249_RUNTIME_STATIC_INPUT_PATHS),
+        )
+        expected_paths = (
+            set(skill_release.V249_RUNTIME_STATIC_INPUT_PATHS)
+            | {
+                runtime_transition.ACTIVE_PATH,
+                activation_path,
+                prompt_manifest_path,
+                *current_paths,
+            }
+        )
+        contents = {path: f"content:{path}".encode() for path in expected_paths}
+        contents[activation_path] = json.dumps(
+            {"prompt_manifest_path": prompt_manifest_path},
+            sort_keys=True,
+        ).encode()
+        digests = {
+            path: hashlib.sha256(raw).hexdigest()
+            for path, raw in contents.items()
+        }
+        runtime = {
+            "input_digests": digests,
+            "loaded_paths": sorted(digests),
+            "current_loaded_paths": current_paths,
+            "current_input_digests": {
+                path: digests[path] for path in current_paths
+            },
+        }
+
+        observed = skill_release._validate_v249_runtime_external_anchor(
+            runtime=runtime,
+            activation_path=activation_path,
+            frozen_bytes=lambda path: contents[path],
+        )
+
+        self.assertEqual(digests, observed)
+
+        runtime["loaded_paths"] = sorted(digests)[:-1]
+        with self.assertRaisesRegex(
+            skill_release.SkillReleaseError, "E_V249_RUNTIME_EXTERNAL_ANCHOR"
+        ):
+            skill_release._validate_v249_runtime_external_anchor(
+                runtime=runtime,
+                activation_path=activation_path,
+                frozen_bytes=lambda path: contents[path],
+            )
+
+    def test_exact_large_release_runtime_closure_is_accepted_by_preflight(self) -> None:
+        root = Path(__file__).resolve().parents[2]
+        generation = load_generation(root)
+        route = compile_route_closure(root, generation, "V249-ROUTE-LARGE-RELEASE")
+        activation_path = generation["activation_manifest_path"]
+        prompt_manifest_path = generation["activation_manifest"][
+            "prompt_manifest_path"
+        ]
+        expected_paths = (
+            set(runtime_transition.REQUIRED_STATIC_INPUT_PATHS)
+            | {
+                runtime_transition.ACTIVE_PATH,
+                activation_path,
+                prompt_manifest_path,
+                *route["loaded_paths"],
+            }
+        )
+        self.assertEqual(28, len(expected_paths))
+        digests = {
+            path: hashlib.sha256((root / path).read_bytes()).hexdigest()
+            for path in expected_paths
+        }
+        runtime = {
+            "input_digests": digests,
+            "loaded_paths": sorted(digests),
+            "current_loaded_paths": route["loaded_paths"],
+            "current_input_digests": {
+                path: digests[path] for path in route["loaded_paths"]
+            },
+        }
+
+        observed = skill_release._validate_v249_runtime_external_anchor(
+            runtime=runtime,
+            activation_path=activation_path,
+            frozen_bytes=lambda path: (root / path).read_bytes(),
+        )
+
+        self.assertEqual(digests, observed)
+
     def test_s0_uses_shared_strict_runtime_validator_and_rejects_weak_entry(self) -> None:
         runtime = transition()
         strict_failure = {
@@ -698,6 +913,397 @@ class TestV249ReleaseControl(unittest.TestCase):
         verdict = validate(control)
         self.assertFalse(verdict["ok"])
         self.assertIn("E_V249_AUTHORIZATION_ACTION_DRIFT", verdict["errors"])
+
+    def test_authorization_rejects_unexpected_persisted_fields(self) -> None:
+        for location in ("top", "repository"):
+            with self.subTest(location=location):
+                value = authorization()
+                if location == "top":
+                    value["access_token"] = "must-not-be-persisted"
+                else:
+                    value["repository"]["private_note"] = "must-not-be-persisted"
+                verdict = release_flow.validate_project_start_authorization(
+                    value,
+                    repository="vibe-coding-era/goal-teams",
+                    version="V2.49",
+                    candidate_branch="codex/v2.49-simplification",
+                    tag="v2.49",
+                    validation_time=NOW,
+                )
+                self.assertFalse(verdict["ok"])
+                self.assertIn(
+                    "E_V249_AUTHORIZATION_UNEXPECTED_FIELD", verdict["errors"]
+                )
+
+        value = authorization()
+        del value["repository"]["id"]
+        value["intent"]["repository_id"] = None
+        value["intent_sha256"] = release_flow.canonical_sha256(value["intent"])
+        verdict = release_flow.validate_project_start_authorization(
+            value,
+            repository="vibe-coding-era/goal-teams",
+            version="V2.49",
+            candidate_branch="codex/v2.49-simplification",
+            tag="v2.49",
+            validation_time=NOW,
+        )
+        self.assertFalse(verdict["ok"])
+        self.assertIn("E_V249_AUTHORIZATION_UNEXPECTED_FIELD", verdict["errors"])
+
+        malformed = authorization()
+        malformed["locked_scope"] = None
+        malformed["intent"]["locked_scope"] = None
+        malformed["intent_sha256"] = release_flow.canonical_sha256(
+            malformed["intent"]
+        )
+        malformed["action_allowlist"] = [{"unexpected": "object"}]
+        verdict = release_flow.validate_project_start_authorization(
+            malformed,
+            repository="vibe-coding-era/goal-teams",
+            version="V2.49",
+            candidate_branch="codex/v2.49-simplification",
+            tag="v2.49",
+            validation_time=NOW,
+        )
+        self.assertFalse(verdict["ok"])
+        self.assertIn("E_V249_AUTHORIZATION_IDENTITY_DRIFT", verdict["errors"])
+        self.assertIn("E_V249_AUTHORIZATION_ACTION_DRIFT", verdict["errors"])
+
+        nested_secret = authorization()
+        nested_secret["credential_policy"] = {"access_token": "forbidden"}
+        verdict = release_flow.validate_project_start_authorization(
+            nested_secret,
+            repository="vibe-coding-era/goal-teams",
+            version="V2.49",
+            candidate_branch="codex/v2.49-simplification",
+            tag="v2.49",
+            validation_time=NOW,
+        )
+        self.assertFalse(verdict["ok"])
+        self.assertIn("E_V249_AUTHORIZATION_FIELD_TYPE", verdict["errors"])
+
+    def test_continuation_checkpoint_requires_complete_ready_chain(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            receipt_root, release_root, outcomes = checkpoint_fixture(Path(temp))
+            with (
+                mock.patch.object(
+                    skill_release,
+                    "_read_identity",
+                    return_value={"source_git_tree": TREE},
+                ),
+                mock.patch.object(
+                    skill_release,
+                    "validate_v249_s4_control",
+                    return_value={"ok": True, "errors": []},
+                ),
+            ):
+                checkpoint = skill_release.build_v249_continuation_checkpoint(
+                    "V2.49",
+                    SOURCE,
+                    project_size="large",
+                    job_status="success",
+                    workflow_run_id="1001",
+                    workflow_run_attempt="1",
+                    gate_outcomes=outcomes,
+                    receipt_source_root=receipt_root,
+                    release_root=release_root,
+                )
+            self.assertEqual("ready_for_s4", checkpoint["state"])
+            self.assertEqual("release_asset_chain_only", checkpoint["claim_scope"])
+            self.assertEqual({}, checkpoint["diagnostic_files"])
+            self.assertEqual([], checkpoint["missing_files"])
+            self.assertEqual(4, len(checkpoint["public_assets"]))
+            self.assertEqual(
+                set(skill_release.V249_CONTINUATION_FORMAL_RECEIPTS),
+                set(checkpoint["formal_files"]),
+            )
+            self.assertTrue(checkpoint["resumable_without_rebuild"])
+
+            (receipt_root / "release-control.json").write_text(
+                "not-json", encoding="utf-8"
+            )
+            with mock.patch.object(
+                skill_release,
+                "_read_identity",
+                return_value={"source_git_tree": TREE},
+            ):
+                partial = skill_release.build_v249_continuation_checkpoint(
+                    "V2.49",
+                    SOURCE,
+                    project_size="large",
+                    job_status="success",
+                    workflow_run_id="1001",
+                    workflow_run_attempt="1",
+                    gate_outcomes=outcomes,
+                    receipt_source_root=receipt_root,
+                    release_root=release_root,
+                )
+            self.assertEqual("diagnostic_partial", partial["state"])
+            self.assertEqual("checkpoint_validation", partial["first_failed_phase"])
+            self.assertEqual({}, partial["formal_files"])
+            self.assertFalse(partial["resumable_without_rebuild"])
+
+    def test_continuation_checkpoint_uses_explicit_step_outcome(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            receipt_root, release_root, outcomes = checkpoint_fixture(Path(temp))
+            outcomes["s4_plan"] = "failure"
+            (receipt_root / "plan-output.json").write_text(
+                json.dumps(
+                    {
+                        "command": "authorize_s4_plan",
+                        "status": "failed",
+                        "error_code": "E_TEST",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            with mock.patch.object(
+                skill_release,
+                "_read_identity",
+                return_value={"source_git_tree": TREE},
+            ):
+                checkpoint = skill_release.build_v249_continuation_checkpoint(
+                    "V2.49",
+                    SOURCE,
+                    project_size="large",
+                    job_status="failure",
+                    workflow_run_id="1002",
+                    workflow_run_attempt="1",
+                    gate_outcomes=outcomes,
+                    receipt_source_root=receipt_root,
+                    release_root=release_root,
+                )
+            self.assertEqual("diagnostic_partial", checkpoint["state"])
+            self.assertEqual("s4_plan", checkpoint["first_failed_phase"])
+            self.assertEqual("failure", checkpoint["failure_outcome"])
+            self.assertIn("plan-output.json", checkpoint["diagnostic_files"])
+            self.assertEqual({}, checkpoint["formal_files"])
+
+    def test_ready_checkpoint_consumer_rejects_tampering(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            receipt_root, release_root, outcomes = checkpoint_fixture(Path(temp))
+            with (
+                mock.patch.object(
+                    skill_release,
+                    "_read_identity",
+                    return_value={"source_git_tree": TREE},
+                ),
+                mock.patch.object(
+                    skill_release,
+                    "validate_v249_s4_control",
+                    return_value={"ok": True, "errors": []},
+                ),
+            ):
+                checkpoint = skill_release.build_v249_continuation_checkpoint(
+                    "V2.49",
+                    SOURCE,
+                    project_size="large",
+                    job_status="success",
+                    workflow_run_id="1003",
+                    workflow_run_attempt="1",
+                    gate_outcomes=outcomes,
+                    receipt_source_root=receipt_root,
+                    release_root=release_root,
+                )
+                (receipt_root / "_checkpoint.json").write_text(
+                    json.dumps(checkpoint, sort_keys=True), encoding="utf-8"
+                )
+                verdict = skill_release.validate_v249_continuation_checkpoint(
+                    "V2.49",
+                    SOURCE,
+                    checkpoint,
+                    receipt_root=receipt_root,
+                    release_root=release_root,
+                    expected_workflow_run_id="1003",
+                    expected_workflow_run_attempt="1",
+                )
+                self.assertTrue(verdict["passed"], verdict["errors"])
+
+                forged_summary = copy.deepcopy(checkpoint)
+                forged_summary["asset_set_digest"] = "f" * 64
+                forged_summary.pop("checkpoint_sha256")
+                forged_summary["checkpoint_sha256"] = release_flow.canonical_sha256(
+                    forged_summary
+                )
+                summary_verdict = (
+                    skill_release.validate_v249_continuation_checkpoint(
+                        "V2.49",
+                        SOURCE,
+                        forged_summary,
+                        receipt_root=receipt_root,
+                        release_root=release_root,
+                        expected_workflow_run_id="1003",
+                        expected_workflow_run_attempt="1",
+                    )
+                )
+                self.assertIn(
+                    "E_V249_CONTINUATION_SUMMARY_BINDING",
+                    summary_verdict["errors"],
+                )
+
+                forged_route = copy.deepcopy(checkpoint)
+                forged_route["project_size"] = "small"
+                forged_route["gate_outcomes"] = {
+                    phase: "failure"
+                    for phase in skill_release.V249_CONTINUATION_PHASE_ORDER
+                }
+                forged_route["workflow_run_id"] = ""
+                forged_route["workflow_run_attempt"] = ""
+                forged_route.pop("checkpoint_sha256")
+                forged_route["checkpoint_sha256"] = release_flow.canonical_sha256(
+                    forged_route
+                )
+                route_verdict = (
+                    skill_release.validate_v249_continuation_checkpoint(
+                        "V2.49",
+                        SOURCE,
+                        forged_route,
+                        receipt_root=receipt_root,
+                        release_root=release_root,
+                        expected_workflow_run_id="1003",
+                        expected_workflow_run_attempt="1",
+                    )
+                )
+                self.assertIn(
+                    "E_V249_CONTINUATION_GATE_OUTCOMES",
+                    route_verdict["errors"],
+                )
+                self.assertIn(
+                    "E_V249_CONTINUATION_CHECKPOINT_IDENTITY",
+                    route_verdict["errors"],
+                )
+
+                plan_path = receipt_root / "s4-authorized-operation-plan.json"
+                original_plan = plan_path.read_text(encoding="utf-8")
+                forged_plan_value = json.loads(original_plan)
+                forged_plan_value.update(
+                    {
+                        "publish_state": "published",
+                        "operation_plan_authorized": False,
+                        "source_commit": "a" * 40,
+                        "source_git_tree": "b" * 40,
+                    }
+                )
+                plan_path.write_text(
+                    json.dumps(forged_plan_value, sort_keys=True), encoding="utf-8"
+                )
+                forged_plan_checkpoint = copy.deepcopy(checkpoint)
+                forged_plan_checkpoint["formal_files"][plan_path.name] = {
+                    "size": plan_path.stat().st_size,
+                    "sha256": hashlib.sha256(plan_path.read_bytes()).hexdigest(),
+                }
+                forged_plan_checkpoint.pop("checkpoint_sha256")
+                forged_plan_checkpoint["checkpoint_sha256"] = (
+                    release_flow.canonical_sha256(forged_plan_checkpoint)
+                )
+                plan_verdict = skill_release.validate_v249_continuation_checkpoint(
+                    "V2.49",
+                    SOURCE,
+                    forged_plan_checkpoint,
+                    receipt_root=receipt_root,
+                    release_root=release_root,
+                    expected_workflow_run_id="1003",
+                    expected_workflow_run_attempt="1",
+                )
+                self.assertIn(
+                    "E_V249_CONTINUATION_PLAN_CONTRACT", plan_verdict["errors"]
+                )
+                plan_path.write_text(original_plan, encoding="utf-8")
+
+                auth_path = receipt_root / "authorization.json"
+                original_auth = auth_path.read_text(encoding="utf-8")
+                auth_path.write_text("{}", encoding="utf-8")
+                forged_auth_checkpoint = copy.deepcopy(checkpoint)
+                forged_auth_checkpoint["formal_files"][auth_path.name] = {
+                    "size": auth_path.stat().st_size,
+                    "sha256": hashlib.sha256(auth_path.read_bytes()).hexdigest(),
+                }
+                forged_auth_checkpoint["authorization_receipt_sha256"] = (
+                    release_flow.canonical_sha256({})
+                )
+                forged_auth_checkpoint.pop("checkpoint_sha256")
+                forged_auth_checkpoint["checkpoint_sha256"] = (
+                    release_flow.canonical_sha256(forged_auth_checkpoint)
+                )
+                auth_verdict = skill_release.validate_v249_continuation_checkpoint(
+                    "V2.49",
+                    SOURCE,
+                    forged_auth_checkpoint,
+                    receipt_root=receipt_root,
+                    release_root=release_root,
+                    expected_workflow_run_id="1003",
+                    expected_workflow_run_attempt="1",
+                )
+                self.assertIn(
+                    "E_V249_CHECKPOINT_RECEIPT_BINDING", auth_verdict["errors"]
+                )
+                auth_path.write_text(original_auth, encoding="utf-8")
+
+                tar_path = (
+                    release_root
+                    / "V2.49"
+                    / "_artifacts"
+                    / "goal-teams-V2.49.tar.gz"
+                )
+                original_tar = tar_path.read_bytes()
+                tar_path.write_bytes(b"tampered-asset")
+                forged_assets = copy.deepcopy(checkpoint)
+                forged_assets["public_assets"]["goal-teams-V2.49.tar.gz"] = {
+                    "size": tar_path.stat().st_size,
+                    "sha256": hashlib.sha256(tar_path.read_bytes()).hexdigest(),
+                }
+                forged_assets.pop("checkpoint_sha256")
+                forged_assets["checkpoint_sha256"] = release_flow.canonical_sha256(
+                    forged_assets
+                )
+                asset_verdict = skill_release.validate_v249_continuation_checkpoint(
+                    "V2.49",
+                    SOURCE,
+                    forged_assets,
+                    receipt_root=receipt_root,
+                    release_root=release_root,
+                    expected_workflow_run_id="1003",
+                    expected_workflow_run_attempt="1",
+                )
+                self.assertIn(
+                    "E_V249_CONTINUATION_ASSET_BINDING", asset_verdict["errors"]
+                )
+                tar_path.write_bytes(original_tar)
+
+                (receipt_root / "s1-check.json").write_text("{}", encoding="utf-8")
+                tampered = skill_release.validate_v249_continuation_checkpoint(
+                    "V2.49",
+                    SOURCE,
+                    checkpoint,
+                    receipt_root=receipt_root,
+                    release_root=release_root,
+                    expected_workflow_run_id="1003",
+                    expected_workflow_run_attempt="1",
+                )
+            self.assertFalse(tampered["passed"])
+            self.assertIn(
+                "E_V249_CONTINUATION_RECEIPT_DIGEST", tampered["errors"]
+            )
+
+    def test_non_large_checkpoint_requires_large_s3_steps_to_be_skipped(self) -> None:
+        outcomes = {
+            phase: "success"
+            for phase in skill_release.V249_CONTINUATION_PHASE_ORDER
+        }
+        self.assertIn(
+            "E_V249_CHECKPOINT_GATE_OUTCOME",
+            skill_release._checkpoint_gate_errors(
+                project_size="medium", gate_outcomes=outcomes
+            ),
+        )
+        for phase in skill_release.V249_CONTINUATION_LARGE_ONLY_PHASES:
+            outcomes[phase] = "skipped"
+        self.assertEqual(
+            [],
+            skill_release._checkpoint_gate_errors(
+                project_size="medium", gate_outcomes=outcomes
+            ),
+        )
 
     def test_resealed_runtime_or_security_summary_is_not_accepted(self) -> None:
         control = control_receipt()

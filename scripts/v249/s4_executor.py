@@ -61,6 +61,8 @@ CANONICAL_ASSET_NAMES = (
 )
 MAX_ASSET_BYTES = 128 * 1024 * 1024
 MAX_PACKAGE_FILES = 20000
+MAX_RECEIPT_BYTES = 16 * 1024 * 1024
+POSITIVE_DECIMAL_RE = re.compile(r"^[1-9][0-9]*$")
 
 JOURNAL_LAYOUT = (
     ("tag_local_create", "tag_local_create", "refs/tags/v2.49", "local_repository"),
@@ -1056,13 +1058,161 @@ class CommandBackend:
 
 
 def _default_control_validator(
-    version: str, commit: str, control: dict[str, object]
+    version: str,
+    commit: str,
+    control: dict[str, object],
+    *,
+    receipt_root: Path | None = None,
 ) -> dict[str, object]:
     module = _load_module(
         "_goal_teams_v249_skill_release_for_s4",
         ROOT / "scripts" / "release" / "skill_release.py",
     )
-    return module.validate_v249_s4_control(version, commit, control)
+    return module.validate_v249_s4_control(
+        version,
+        commit,
+        control,
+        runtime_route_receipt_path=(
+            None if receipt_root is None else receipt_root / "release-route-receipt.json"
+        ),
+        runtime_authorization_receipt_path=(
+            None if receipt_root is None else receipt_root / "authorization.json"
+        ),
+    )
+
+
+def _read_json_object(path: Path, error_code: str) -> dict[str, object]:
+    """Read one bounded regular JSON object without following a file symlink."""
+
+    if not isinstance(path, Path):
+        raise S4ExecutionError(error_code)
+    try:
+        metadata = path.lstat()
+        if (
+            not stat.S_ISREG(metadata.st_mode)
+            or metadata.st_nlink != 1
+            or metadata.st_size > MAX_RECEIPT_BYTES
+        ):
+            raise OSError
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise S4ExecutionError(error_code) from exc
+    if not isinstance(value, dict):
+        raise S4ExecutionError(error_code)
+    return value
+
+
+def _default_checkpoint_validator(
+    version: str,
+    commit: str,
+    checkpoint_receipt: Path,
+    *,
+    receipt_root: Path,
+    release_root: Path,
+    expected_workflow_run_id: str,
+    expected_workflow_run_attempt: str,
+    release_control: dict[str, object],
+) -> dict[str, object]:
+    """Validate the exact ready artifact chain that authorizes S4 continuation."""
+
+    if not all(
+        isinstance(path, Path)
+        for path in (checkpoint_receipt, receipt_root, release_root)
+    ):
+        raise S4ExecutionError("E_V249_S4_CHECKPOINT_PATH")
+    try:
+        root_metadata = receipt_root.lstat()
+        if not stat.S_ISDIR(root_metadata.st_mode):
+            raise OSError
+        expected_receipt_root = (release_root / version / "_receipts").resolve()
+        if receipt_root.resolve() != expected_receipt_root:
+            raise S4ExecutionError("E_V249_S4_CHECKPOINT_PATH")
+        expected_checkpoint = receipt_root / "_checkpoint.json"
+        if checkpoint_receipt.resolve() != expected_checkpoint.resolve():
+            raise S4ExecutionError("E_V249_S4_CHECKPOINT_PATH")
+    except S4ExecutionError:
+        raise
+    except OSError as exc:
+        raise S4ExecutionError("E_V249_S4_RECEIPT_ROOT") from exc
+
+    checkpoint = _read_json_object(
+        checkpoint_receipt, "E_V249_S4_CHECKPOINT_INPUT"
+    )
+    formal_control = _read_json_object(
+        receipt_root / "release-control.json",
+        "E_V249_S4_CHECKPOINT_CONTROL_BINDING",
+    )
+    try:
+        control_matches = (
+            formal_control == release_control
+            and canonical_sha256(formal_control)
+            == canonical_sha256(release_control)
+        )
+    except (TypeError, ValueError) as exc:
+        raise S4ExecutionError(
+            "E_V249_S4_CHECKPOINT_CONTROL_BINDING"
+        ) from exc
+    if not control_matches:
+        raise S4ExecutionError("E_V249_S4_CHECKPOINT_CONTROL_BINDING")
+
+    module = _load_module(
+        "_goal_teams_v249_skill_release_for_s4_checkpoint",
+        ROOT / "scripts" / "release" / "skill_release.py",
+    )
+    return module.validate_v249_continuation_checkpoint(
+        version,
+        commit,
+        checkpoint,
+        receipt_root=receipt_root,
+        release_root=release_root,
+        expected_workflow_run_id=expected_workflow_run_id,
+        expected_workflow_run_attempt=expected_workflow_run_attempt,
+    )
+
+
+def _require_checkpoint_verdict(
+    verdict: object,
+    *,
+    version: str,
+    commit: str,
+) -> None:
+    valid = (
+        isinstance(verdict, dict)
+        and verdict.get("ok") is True
+        and verdict.get("passed") is True
+        and verdict.get("status") == "continuation_checkpoint_passed"
+        and verdict.get("error_code") is None
+        and verdict.get("errors") == []
+        and verdict.get("check_state") == "passed"
+        and verdict.get("run_outcome") == "passed"
+        and verdict.get("evidence_state") == "current"
+        and verdict.get("claim_scope") == "release_asset_chain_only"
+        and verdict.get("version") == version
+        and verdict.get("source_commit") == commit
+        and isinstance(verdict.get("checkpoint_sha256"), str)
+        and SHA256_RE.fullmatch(str(verdict["checkpoint_sha256"])) is not None
+        and verdict.get("persistent_local_mutation_count") == 0
+        and verdict.get("external_mutation_count") == 0
+        and verdict.get("external_side_effect_count") == 0
+    )
+    if valid:
+        return
+    candidates: list[object] = []
+    if isinstance(verdict, dict):
+        errors = verdict.get("errors")
+        if isinstance(errors, list):
+            candidates.extend(errors)
+        candidates.append(verdict.get("error_code"))
+    code = next(
+        (
+            candidate
+            for candidate in candidates
+            if isinstance(candidate, str)
+            and re.fullmatch(r"E_[A-Z0-9_:-]+", candidate) is not None
+        ),
+        "E_V249_S4_CHECKPOINT_REQUIRED",
+    )
+    raise S4ExecutionError(str(code))
 
 
 def _asset_paths(release_root: Path, version: str) -> dict[str, Path]:
@@ -2116,9 +2266,16 @@ def execute_s4(
     commit: str,
     release_control: dict[str, object],
     release_root: Path,
+    checkpoint_receipt: Path,
+    receipt_root: Path,
+    expected_workflow_run_id: str,
+    expected_workflow_run_attempt: str,
     repository_root: Path = ROOT,
     backend: S4Backend | None = None,
     runner: CommandRunner | None = None,
+    checkpoint_validator: Callable[..., dict[str, object]] = (
+        _default_checkpoint_validator
+    ),
     control_validator: Callable[
         [str, str, dict[str, object]], dict[str, object]
     ] = _default_control_validator,
@@ -2137,7 +2294,39 @@ def execute_s4(
             raise S4ExecutionError("E_V249_S4_IDENTITY")
         if not isinstance(release_control, dict):
             raise S4ExecutionError("E_V249_RELEASE_CONTROL_REQUIRED")
-        verdict = control_validator(version, commit, release_control)
+        if (
+            not isinstance(expected_workflow_run_id, str)
+            or not isinstance(expected_workflow_run_attempt, str)
+            or POSITIVE_DECIMAL_RE.fullmatch(expected_workflow_run_id) is None
+            or POSITIVE_DECIMAL_RE.fullmatch(expected_workflow_run_attempt) is None
+        ):
+            raise S4ExecutionError(
+                "E_V249_S4_CHECKPOINT_WORKFLOW_IDENTITY"
+            )
+        checkpoint_verdict = checkpoint_validator(
+            version,
+            commit,
+            checkpoint_receipt,
+            receipt_root=receipt_root,
+            release_root=release_root,
+            expected_workflow_run_id=expected_workflow_run_id,
+            expected_workflow_run_attempt=expected_workflow_run_attempt,
+            release_control=release_control,
+        )
+        _require_checkpoint_verdict(
+            checkpoint_verdict,
+            version=version,
+            commit=commit,
+        )
+        if control_validator is _default_control_validator:
+            verdict = _default_control_validator(
+                version,
+                commit,
+                release_control,
+                receipt_root=receipt_root,
+            )
+        else:
+            verdict = control_validator(version, commit, release_control)
         if not isinstance(verdict, dict) or verdict.get("ok") is not True:
             errors = verdict.get("errors") if isinstance(verdict, dict) else None
             code = (
@@ -2485,24 +2674,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--version", default=VERSION)
     parser.add_argument("--commit", required=True)
     parser.add_argument("--release-control-receipt", type=Path, required=True)
+    parser.add_argument("--checkpoint-receipt", type=Path, required=True)
+    parser.add_argument("--receipt-root", type=Path, required=True)
     parser.add_argument("--release-root", type=Path, required=True)
+    parser.add_argument("--expected-workflow-run-id", required=True)
+    parser.add_argument("--expected-workflow-run-attempt", required=True)
     return parser.parse_args()
 
 
 def _read_control(path: Path) -> dict[str, object]:
-    try:
-        metadata = path.lstat()
-        if (
-            not stat.S_ISREG(metadata.st_mode)
-            or metadata.st_size > 16 * 1024 * 1024
-        ):
-            raise OSError
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise S4ExecutionError("E_V249_RELEASE_CONTROL_INPUT") from exc
-    if not isinstance(value, dict):
-        raise S4ExecutionError("E_V249_RELEASE_CONTROL_INPUT")
-    return value
+    return _read_json_object(path, "E_V249_RELEASE_CONTROL_INPUT")
 
 
 def main() -> int:
@@ -2541,6 +2722,12 @@ def main() -> int:
             commit=args.commit,
             release_control=control,
             release_root=args.release_root,
+            checkpoint_receipt=args.checkpoint_receipt,
+            receipt_root=args.receipt_root,
+            expected_workflow_run_id=args.expected_workflow_run_id,
+            expected_workflow_run_attempt=(
+                args.expected_workflow_run_attempt
+            ),
         )
     except S4ExecutionError as exc:
         print(json.dumps(exc.receipt, ensure_ascii=False, sort_keys=True))

@@ -217,8 +217,13 @@ class TestReleaseWorkflowSequence(unittest.TestCase):
             "actions/upload-artifact@"
             "ea165f8d65b6e75b540449e92b4886f43607fa02"
         )
-        self.assertEqual(1, workflow.count(upload))
+        self.assertEqual(2, workflow.count(upload))
         self.assertIn("name: goal-teams-v249-release-${{ github.sha }}", workflow)
+        self.assertIn(
+            "name: goal-teams-v249-diagnostic-${{ github.sha }}-"
+            "${{ github.run_id }}-${{ github.run_attempt }}",
+            workflow,
+        )
         for relative in (
             "release/versions/V2.49/_artifacts/goal-teams-V2.49.tar.gz",
             "release/versions/V2.49/_artifacts/SHA256SUMS",
@@ -235,10 +240,25 @@ class TestReleaseWorkflowSequence(unittest.TestCase):
             "s3.json",
             "release-control.json",
             "s4-authorized-operation-plan.json",
+            "_checkpoint.json",
         ):
             self.assertIn(receipt, workflow)
         self.assertIn("if-no-files-found: error", workflow)
         self.assertEqual(1, workflow.count("scripts/release/build-release.py"))
+        self.assertEqual(
+            1,
+            workflow.count(
+                "if: always() && steps.release-version.outputs.release == 'true'"
+            ),
+        )
+        self.assertIn("scripts/release/skill_release.py checkpoint", workflow)
+        self.assertIn("scripts/release/skill_release.py verify-checkpoint", workflow)
+        self.assertIn('> "${diagnostic_root}/checkpoint-output.json"', workflow)
+        self.assertNotIn('> "${diagnostic_root}/_checkpoint.json"', workflow)
+        self.assertNotIn('"${diagnostic_root}/_checkpoint.json"', workflow)
+        self.assertIn("steps.stage_receipts.outputs.checkpoint_state == 'ready_for_s4'", workflow)
+        self.assertIn("path: release/versions/V2.49/_diagnostics/", workflow)
+        self.assertIn('claim_scope', text("scripts/release/skill_release.py"))
         self.assertLess(
             workflow.index("Create the S4 authorized-operation plan without external writes"),
             workflow.index(upload),
@@ -248,8 +268,44 @@ class TestReleaseWorkflowSequence(unittest.TestCase):
         workflow = text(".github/workflows/release-gate.yml")
         self.assertEqual(1, workflow.count("scripts/release/skill_release.py plan-s4"))
         self.assertNotIn("scripts/release/skill_release.py publish", workflow)
+        self.assertIn(
+            'plan.get("status") != "authorized_operation_plan_not_executed"',
+            workflow,
+        )
         self.assertIn('plan.get("publish_state") != "authorized_not_executed"', workflow)
         self.assertIn('plan.get("external_side_effect_count") != 0', workflow)
+        self.assertEqual(
+            1, workflow.count('for key in ("command", "status", "error_code")')
+        )
+        self.assertIn(
+            'report_failure "${RUNNER_TEMP}/preflight-output.json"', workflow
+        )
+        self.assertIn(
+            'report_failure "${RUNNER_TEMP}/plan-output.json"',
+            workflow,
+        )
+        self.assertIn(
+            'cp "${RUNNER_TEMP}/preflight-output.json" '
+            '"${RUNNER_TEMP}/release-control.json"',
+            workflow,
+        )
+        self.assertIn(
+            'cp "${RUNNER_TEMP}/plan-output.json" '
+            '"${RUNNER_TEMP}/s4-authorized-operation-plan.json"',
+            workflow,
+        )
+        self.assertLess(
+            workflow.index('raise SystemExit("E_V249_WORKFLOW_PLAN_ONLY_ASSERTION")'),
+            workflow.index(
+                'cp "${RUNNER_TEMP}/preflight-output.json" '
+                '"${RUNNER_TEMP}/release-control.json"'
+            ),
+        )
+        self.assertIn(
+            '--release-control-receipt "${RUNNER_TEMP}/preflight-output.json"',
+            workflow,
+        )
+        self.assertNotIn('cat "${RUNNER_TEMP}/preflight-output.json"', workflow)
 
     def test_release_order_is_consistent_in_owner_projections(self) -> None:
         skill = text("SKILL.md")

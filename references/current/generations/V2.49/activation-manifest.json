@@ -3,7 +3,7 @@
   "generation_id": "V2.49",
   "generation_state": "active",
   "baseline_generation_id": "V2.48",
-  "manifest_payload_sha256": "bb8107e0b9f0a4a0081458b87873eb784efd1c1cbaa61d5db70aa8e2226d1b4f",
+  "manifest_payload_sha256": "aca89fc2f046e33ea76d659d32ac5951f84e6464bc35791529dfeef5959bfab1",
   "identity": {
     "loaded_runtime_product_version": "V2.49",
     "route_contract_schema_version": "goal-teams-project-route-v2.49",
@@ -242,8 +242,8 @@
       },
       {
         "path": "scripts/release/skill_release.py",
-        "sha256": "86a45b9f6b59dacae08c145418ac912125b86f0a98d8a774e37ff7ab22332ae3",
-        "bytes": 48070
+        "sha256": "87d293bcf575c91a86677f229f95cf342230b99f6d5175ce5c49f393a971de77",
+        "bytes": 76282
       },
       {
         "path": "scripts/release/validate-release.py",
@@ -297,8 +297,8 @@
       },
       {
         "path": "scripts/v249/release_flow.py",
-        "sha256": "8208645377d6588360b9656a324db004db9043a515a77dc384a101076693c918",
-        "bytes": 60059
+        "sha256": "81c2d212c0be5569efc26da1fbd8a44261979acde09b29b13517362d14d7fc71",
+        "bytes": 64715
       },
       {
         "path": "scripts/v249/replay_runner.py",
@@ -317,13 +317,13 @@
       },
       {
         "path": "scripts/v249/runtime_transition.py",
-        "sha256": "90c9b1e54db9379c17241e984f4121b7454799d2ba2722e237b44de7aed17fd9",
-        "bytes": 53420
+        "sha256": "f716d624a7414c7b440a2513f769dac26de98812df66dbf697f3df9d7e5727d7",
+        "bytes": 53961
       },
       {
         "path": "scripts/v249/s4_executor.py",
-        "sha256": "da8103933e66143d7794e40f035b600d50af2c25f6f020d308a41226ead35176",
-        "bytes": 97951
+        "sha256": "4174d5d724c344556a64c9d12e8dcc3863a00a203d7d45fe2c7519f411d93c0e",
+        "bytes": 104699
       },
       {
         "path": "scripts/v249/test_gate.py",
@@ -472,8 +472,8 @@
       },
       {
         "path": "tests/v249/test_release_control.py",
-        "sha256": "704cac366611796f9fca9db9232b9f4840f61ec5938d12181abbb13d32fe5559",
-        "bytes": 32855
+        "sha256": "a109e372b86cb1749efa9ae847699aea02de9c0d094b04261932a1281a2560b3",
+        "bytes": 58164
       },
       {
         "path": "tests/v249/test_release_flow.py",
@@ -507,18 +507,18 @@
       },
       {
         "path": "tests/v249/test_runtime_transition.py",
-        "sha256": "7de6dc5ad2fb178654a0ceb3055dab934c0fe6f805930bebe86a550f3f5ff579",
-        "bytes": 22645
+        "sha256": "2b205ef9cf9af70cdf54fba19ee8fcad38464aba6b507bd6f91ead02be6486a3",
+        "bytes": 24253
       },
       {
         "path": "tests/v249/test_s4_executor.py",
-        "sha256": "bc3bb32ac08c3c99dd535e6901a158aafc8d8ae12886a27e68648ec54ea3ecd3",
-        "bytes": 53995
+        "sha256": "663b90ae212957bd4b339d3b21260eb573aef407b992f293acc1b236bbd7fbb2",
+        "bytes": 71411
       },
       {
         "path": "tests/v249/test_schema_contracts.py",
-        "sha256": "7bf6e872c7d5f4079b19cdb24b3dcca40d8a0ea36dd95916370a457db54c058e",
-        "bytes": 8064
+        "sha256": "da646a2e1777a59acda054fb86785b91fd98752dd9dc655c70fc348418a6961b",
+        "bytes": 8352
       },
       {
         "path": "tests/v249/test_subagents.py",
@@ -532,8 +532,8 @@
       },
       {
         "path": "tests/v249/test_workflow_release_contract.py",
-        "sha256": "99f3f9939178698a15916dd81af9ef165f25e8272d97328e6bd2b7c4c217304c",
-        "bytes": 18762
+        "sha256": "c3437d2e1d35ff79630b8f2aefebde32cfbcfbe6b8b6be3d98fbb6f5a504fe53",
+        "bytes": 21124
       }
     ],
     "schemas_and_validators": [
@@ -564,8 +564,8 @@
       },
       {
         "path": "schemas/v2.49/release-control.schema.json",
-        "sha256": "6a78b9a6198c2675108d8c8545a74c40864896353fcfc2d4ae4be0679748f9ad",
-        "bytes": 23394
+        "sha256": "3b56d99423fa788b4bc7610634395d385094782f880e4ca18073c4649816d0d3",
+        "bytes": 26356
       },
       {
         "path": "schemas/v2.49/rule-manifest.schema.json",
@@ -594,7 +594,7 @@
   "semantic_owner_set_digest": "5234cba71579a1a7d103d68aad07805be88e3832bd466cfb87c1b47052316a0d",
   "rule_index_digest": "cff057c75f4bca28c5333eaaca7f2b76157b61b64aa872af4dadff0993be8c17",
   "prompt_plan_digest": "73ff966222e38eadf7291744c0d7aaac126852804fe33a2177b74458d238d112",
-  "schema_and_validator_digest": "c5f213501270367fe7ea4730d2643ad50382e774a99d2cc2a7d004b343d7290d",
+  "schema_and_validator_digest": "1c6da23113ecb5a1d5b9a80f39705cdbfefe52954bea75e0b3455860682851bb",
   "current_default_allowlist": [
     ".agents/skills/goal-teams/SKILL.md",
     "AGENTS.md",

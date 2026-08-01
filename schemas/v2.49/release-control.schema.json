@@ -42,16 +42,40 @@
     "intent_sha256": {"$ref": "#/$defs/sha256"},
     "authorization_receipt": {
       "type": "object",
-      "required": ["schema_version", "authorization_id", "authorization_state", "authorization_lineage_preserved", "repository", "version", "candidate_branch", "tag", "action_allowlist", "validity_conditions", "intent", "intent_sha256"],
+      "required": ["schema_version", "receipt_id", "authorization_id", "authorization_state", "authorization_lineage_preserved", "issued_at", "expires_at", "repository", "version", "candidate_branch", "tag", "locked_scope", "action_allowlist", "validity_conditions", "intent", "intent_sha256"],
       "properties": {
         "schema_version": {"const": "goal-teams-project-start-authorization-v2.49"},
+        "receipt_id": {"type": "string", "minLength": 1},
         "authorization_id": {"type": "string", "minLength": 1},
         "authorization_state": {"const": "granted_once_at_project_start"},
         "authorization_lineage_preserved": {"const": true},
-        "repository": {"type": "object"},
+        "authorization_source": {"type": "string", "minLength": 1},
+        "approver_identity": {"type": "string", "minLength": 1},
+        "issued_at": {"type": "string", "format": "date-time"},
+        "expires_at": {
+          "anyOf": [
+            {"type": "string", "format": "date-time"},
+            {"type": "null"}
+          ]
+        },
+        "repository": {
+          "type": "object",
+          "required": ["id", "name_with_owner", "origin_fetch", "origin_push", "default_branch"],
+          "properties": {
+            "id": {"type": "string", "minLength": 1},
+            "name_with_owner": {"const": "vibe-coding-era/goal-teams"},
+            "origin_fetch": {"const": "git@github.com:vibe-coding-era/goal-teams.git"},
+            "origin_push": {"const": "git@github.com:vibe-coding-era/goal-teams.git"},
+            "default_branch": {"const": "main"},
+            "base_sha": {"$ref": "#/$defs/git_sha"},
+            "base_tree": {"$ref": "#/$defs/git_sha"}
+          },
+          "additionalProperties": false
+        },
         "version": {"const": "V2.49"},
         "candidate_branch": {"const": "codex/v2.49-simplification"},
         "tag": {"const": "v2.49"},
+        "locked_scope": {"type": "string", "minLength": 1},
         "action_allowlist": {
           "type": "array",
           "minItems": 1,
@@ -64,9 +88,53 @@
           "uniqueItems": true,
           "items": {"type": "string", "minLength": 1}
         },
-        "intent": {"type": "object"},
-        "intent_sha256": {"$ref": "#/$defs/sha256"}
-      }
+        "intent": {
+          "type": "object",
+          "required": ["repository_id", "repository", "version", "candidate_branch", "tag", "locked_scope", "action_allowlist", "validity_conditions"],
+          "properties": {
+            "repository_id": {"type": "string", "minLength": 1},
+            "repository": {"const": "vibe-coding-era/goal-teams"},
+            "version": {"const": "V2.49"},
+            "candidate_branch": {"const": "codex/v2.49-simplification"},
+            "tag": {"const": "v2.49"},
+            "locked_scope": {"type": "string", "minLength": 1},
+            "action_allowlist": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {"type": "string", "minLength": 1}
+            },
+            "validity_conditions": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {"type": "string", "minLength": 1}
+            }
+          },
+          "additionalProperties": false
+        },
+        "intent_sha256": {"$ref": "#/$defs/sha256"},
+        "conversational_reconfirmation_required": {"type": "boolean"},
+        "credential_policy": {"type": "string", "minLength": 1},
+        "idempotency_key": {"type": "string", "minLength": 1},
+        "later_exact_identity_is_evidence_not_authorization": {"type": "boolean"},
+        "permitted_other_external_writes": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "revocation_conditions": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "revoked": {"type": "boolean"},
+        "revoked_at": {
+          "anyOf": [
+            {"type": "string", "format": "date-time"},
+            {"type": "null"}
+          ]
+        }
+      },
+      "additionalProperties": false
     },
     "released_runtime_transition": {
       "$ref": "https://goal-teams.local/schemas/v2.49/runtime-transition-receipt.schema.json"

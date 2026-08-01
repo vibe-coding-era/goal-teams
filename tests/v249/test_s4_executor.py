@@ -140,6 +140,54 @@ def accepted_control(_: str, __: str, control: dict[str, object]) -> dict[str, o
     }
 
 
+def accepted_checkpoint(
+    _: str,
+    __: str,
+    checkpoint_receipt: Path,
+    *,
+    receipt_root: Path,
+    release_root: Path,
+    expected_workflow_run_id: str,
+    expected_workflow_run_attempt: str,
+    release_control: dict[str, object],
+) -> dict[str, object]:
+    del release_root, release_control
+    assert checkpoint_receipt == receipt_root / "_checkpoint.json"
+    assert expected_workflow_run_id == "1003"
+    assert expected_workflow_run_attempt == "1"
+    return {
+        "ok": True,
+        "passed": True,
+        "status": "continuation_checkpoint_passed",
+        "error_code": None,
+        "errors": [],
+        "version": VERSION,
+        "source_commit": SOURCE,
+        "checkpoint_sha256": "6" * 64,
+        "check_state": "passed",
+        "run_outcome": "passed",
+        "evidence_state": "current",
+        "claim_scope": "release_asset_chain_only",
+        "persistent_local_mutation_count": 0,
+        "external_mutation_count": 0,
+        "external_side_effect_count": 0,
+    }
+
+
+def rejected_checkpoint(error_code: str) -> dict[str, object]:
+    return {
+        "ok": False,
+        "passed": False,
+        "status": "failed",
+        "error_code": error_code,
+        "errors": [error_code],
+        "check_state": "failed",
+        "run_outcome": "failed",
+        "evidence_state": "invalid",
+        "claim_scope": "release_asset_chain_only",
+    }
+
+
 def accepted_prewrite_boundary(**kwargs: object) -> dict[str, object]:
     control = kwargs["control"]
     assert isinstance(control, dict)
@@ -417,6 +465,394 @@ class TestV249S4Executor(unittest.TestCase):
         assert isinstance(entries, list)
         return next(entry for entry in entries if entry["step_id"] == step_id)
 
+    def execute_s4(self, **kwargs: object) -> dict[str, object]:
+        release_root = kwargs["release_root"]
+        assert isinstance(release_root, Path)
+        receipt_root = release_root / VERSION / "_receipts"
+        kwargs.setdefault("checkpoint_receipt", receipt_root / "_checkpoint.json")
+        kwargs.setdefault("receipt_root", receipt_root)
+        kwargs.setdefault("expected_workflow_run_id", "1003")
+        kwargs.setdefault("expected_workflow_run_attempt", "1")
+        kwargs.setdefault("checkpoint_validator", accepted_checkpoint)
+        return s4_executor.execute_s4(**kwargs)
+
+    @staticmethod
+    def write_checkpoint_inputs(
+        release_root: Path,
+        control: dict[str, object],
+        checkpoint: dict[str, object],
+    ) -> tuple[Path, Path]:
+        receipt_root = release_root / VERSION / "_receipts"
+        receipt_root.mkdir(parents=True, exist_ok=True)
+        checkpoint_receipt = receipt_root / "_checkpoint.json"
+        checkpoint_receipt.write_text(
+            json.dumps(checkpoint, sort_keys=True), encoding="utf-8"
+        )
+        (receipt_root / "release-control.json").write_text(
+            json.dumps(control, sort_keys=True), encoding="utf-8"
+        )
+        return receipt_root, checkpoint_receipt
+
+    def test_default_control_validator_uses_downloaded_receipt_paths(self) -> None:
+        module = mock.Mock()
+        module.validate_v249_s4_control.return_value = {"ok": True}
+        receipt_root = Path("/portable/release/versions/V2.49/_receipts")
+        with mock.patch.object(s4_executor, "_load_module", return_value=module):
+            verdict = s4_executor._default_control_validator(
+                VERSION,
+                SOURCE,
+                {},
+                receipt_root=receipt_root,
+            )
+
+        self.assertEqual({"ok": True}, verdict)
+        module.validate_v249_s4_control.assert_called_once_with(
+            VERSION,
+            SOURCE,
+            {},
+            runtime_route_receipt_path=(
+                receipt_root / "release-route-receipt.json"
+            ),
+            runtime_authorization_receipt_path=(
+                receipt_root / "authorization.json"
+            ),
+        )
+
+    def test_default_checkpoint_validator_consumes_exact_official_inputs(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            release_root, assets = make_release_tree(root)
+            control = make_control(assets)
+            checkpoint = {
+                "state": "ready_for_s4",
+                "workflow_run_id": "1003",
+                "workflow_run_attempt": "1",
+            }
+            receipt_root, checkpoint_receipt = self.write_checkpoint_inputs(
+                release_root, control, checkpoint
+            )
+            module = mock.Mock()
+            module.validate_v249_continuation_checkpoint.return_value = (
+                accepted_checkpoint(
+                    VERSION,
+                    SOURCE,
+                    checkpoint_receipt,
+                    receipt_root=receipt_root,
+                    release_root=release_root,
+                    expected_workflow_run_id="1003",
+                    expected_workflow_run_attempt="1",
+                    release_control=control,
+                )
+            )
+
+            with mock.patch.object(
+                s4_executor, "_load_module", return_value=module
+            ):
+                verdict = s4_executor._default_checkpoint_validator(
+                    VERSION,
+                    SOURCE,
+                    checkpoint_receipt,
+                    receipt_root=receipt_root,
+                    release_root=release_root,
+                    expected_workflow_run_id="1003",
+                    expected_workflow_run_attempt="1",
+                    release_control=control,
+                )
+
+        self.assertTrue(verdict["passed"])
+        module.validate_v249_continuation_checkpoint.assert_called_once_with(
+            VERSION,
+            SOURCE,
+            checkpoint,
+            receipt_root=receipt_root,
+            release_root=release_root,
+            expected_workflow_run_id="1003",
+            expected_workflow_run_attempt="1",
+        )
+
+    def test_default_checkpoint_validator_rejects_control_substitution(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            release_root, assets = make_release_tree(root)
+            formal_control = make_control(assets)
+            supplied_control = json.loads(json.dumps(formal_control))
+            supplied_control["candidate_branch"] = "codex/substituted-control"
+            receipt_root, checkpoint_receipt = self.write_checkpoint_inputs(
+                release_root,
+                formal_control,
+                {"state": "ready_for_s4"},
+            )
+            module = mock.Mock()
+
+            with (
+                mock.patch.object(
+                    s4_executor, "_load_module", return_value=module
+                ),
+                self.assertRaises(s4_executor.S4ExecutionError) as caught,
+            ):
+                s4_executor._default_checkpoint_validator(
+                    VERSION,
+                    SOURCE,
+                    checkpoint_receipt,
+                    receipt_root=receipt_root,
+                    release_root=release_root,
+                    expected_workflow_run_id="1003",
+                    expected_workflow_run_attempt="1",
+                    release_control=supplied_control,
+                )
+
+        self.assertEqual(
+            "E_V249_S4_CHECKPOINT_CONTROL_BINDING", caught.exception.code
+        )
+        module.validate_v249_continuation_checkpoint.assert_not_called()
+
+    def test_checkpoint_path_must_be_the_exact_regular_receipt_file(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            release_root, assets = make_release_tree(root)
+            control = make_control(assets)
+            receipt_root, checkpoint_receipt = self.write_checkpoint_inputs(
+                release_root, control, {"state": "ready_for_s4"}
+            )
+            alternate = receipt_root / "renamed-checkpoint.json"
+            alternate.write_bytes(checkpoint_receipt.read_bytes())
+
+            with self.assertRaises(s4_executor.S4ExecutionError) as wrong_path:
+                s4_executor._default_checkpoint_validator(
+                    VERSION,
+                    SOURCE,
+                    alternate,
+                    receipt_root=receipt_root,
+                    release_root=release_root,
+                    expected_workflow_run_id="1003",
+                    expected_workflow_run_attempt="1",
+                    release_control=control,
+                )
+            self.assertEqual(
+                "E_V249_S4_CHECKPOINT_PATH", wrong_path.exception.code
+            )
+
+            checkpoint_payload = checkpoint_receipt.read_bytes()
+            checkpoint_receipt.unlink()
+            symlink_target = root / "ready-checkpoint.json"
+            symlink_target.write_bytes(checkpoint_payload)
+            checkpoint_receipt.symlink_to(symlink_target)
+            with self.assertRaises(s4_executor.S4ExecutionError) as symlink:
+                s4_executor._default_checkpoint_validator(
+                    VERSION,
+                    SOURCE,
+                    checkpoint_receipt,
+                    receipt_root=receipt_root,
+                    release_root=release_root,
+                    expected_workflow_run_id="1003",
+                    expected_workflow_run_attempt="1",
+                    release_control=control,
+                )
+            self.assertEqual(
+                "E_V249_S4_CHECKPOINT_INPUT", symlink.exception.code
+            )
+
+    def test_cli_requires_explicit_checkpoint_identity_inputs(self) -> None:
+        argv = [
+            "s4_executor.py",
+            "--commit",
+            SOURCE,
+            "--release-control-receipt",
+            "/tmp/release-control.json",
+            "--checkpoint-receipt",
+            "/tmp/_checkpoint.json",
+            "--receipt-root",
+            "/tmp/receipts",
+            "--release-root",
+            "/tmp/release/versions",
+            "--expected-workflow-run-id",
+            "1003",
+            "--expected-workflow-run-attempt",
+            "1",
+        ]
+        with mock.patch("sys.argv", argv):
+            args = s4_executor.parse_args()
+
+        self.assertEqual(Path("/tmp/_checkpoint.json"), args.checkpoint_receipt)
+        self.assertEqual(Path("/tmp/receipts"), args.receipt_root)
+        self.assertEqual("1003", args.expected_workflow_run_id)
+        self.assertEqual("1", args.expected_workflow_run_attempt)
+
+    def test_missing_checkpoint_blocks_before_control_or_backend(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            release_root, assets = make_release_tree(root)
+            control = make_control(assets)
+            receipt_root = release_root / VERSION / "_receipts"
+            receipt_root.mkdir(parents=True)
+            (receipt_root / "release-control.json").write_text(
+                json.dumps(control, sort_keys=True), encoding="utf-8"
+            )
+            backend = FakeBackend()
+            backend.read_fetch_remote = mock.Mock(
+                side_effect=AssertionError("backend must not be called")
+            )
+            control_validator = mock.Mock(
+                side_effect=AssertionError("control validator must not be called")
+            )
+
+            with self.assertRaises(s4_executor.S4ExecutionError) as caught:
+                self.execute_s4(
+                    version=VERSION,
+                    commit=SOURCE,
+                    release_control=control,
+                    release_root=release_root,
+                    repository_root=root,
+                    backend=backend,
+                    checkpoint_validator=s4_executor._default_checkpoint_validator,
+                    control_validator=control_validator,
+                )
+
+        self.assertEqual("E_V249_S4_CHECKPOINT_INPUT", caught.exception.code)
+        self.assertEqual(0, caught.exception.receipt["write_attempt_count"])
+        self.assertEqual(
+            {key: 0 for key in backend.write_counts}, backend.write_counts
+        )
+        control_validator.assert_not_called()
+        backend.read_fetch_remote.assert_not_called()
+
+    def test_nonready_checkpoints_fail_closed_before_any_s4_action(self) -> None:
+        cases = (
+            (
+                "diagnostic",
+                {"state": "diagnostic_partial"},
+                "1003",
+                "E_V249_CONTINUATION_CHECKPOINT_STATE",
+            ),
+            (
+                "resealed",
+                {"state": "ready_for_s4", "checkpoint_sha256": "f" * 64},
+                "1003",
+                "E_V249_CONTINUATION_SUMMARY_BINDING",
+            ),
+            (
+                "wrong-run",
+                {
+                    "state": "ready_for_s4",
+                    "workflow_run_id": "1002",
+                    "workflow_run_attempt": "1",
+                },
+                "1003",
+                "E_V249_CONTINUATION_CHECKPOINT_IDENTITY",
+            ),
+        )
+        for label, checkpoint, expected_run_id, error_code in cases:
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as temp:
+                root = Path(temp)
+                release_root, assets = make_release_tree(root)
+                control = make_control(assets)
+                receipt_root, checkpoint_receipt = self.write_checkpoint_inputs(
+                    release_root, control, checkpoint
+                )
+                module = mock.Mock()
+                module.validate_v249_continuation_checkpoint.return_value = (
+                    rejected_checkpoint(error_code)
+                )
+                backend = FakeBackend()
+                backend.read_fetch_remote = mock.Mock(
+                    side_effect=AssertionError("backend must not be called")
+                )
+                control_validator = mock.Mock(
+                    side_effect=AssertionError(
+                        "control validator must not be called"
+                    )
+                )
+
+                with (
+                    mock.patch.object(
+                        s4_executor, "_load_module", return_value=module
+                    ),
+                    self.assertRaises(s4_executor.S4ExecutionError) as caught,
+                ):
+                    self.execute_s4(
+                        version=VERSION,
+                        commit=SOURCE,
+                        release_control=control,
+                        release_root=release_root,
+                        repository_root=root,
+                        backend=backend,
+                        checkpoint_receipt=checkpoint_receipt,
+                        receipt_root=receipt_root,
+                        expected_workflow_run_id=expected_run_id,
+                        expected_workflow_run_attempt="1",
+                        checkpoint_validator=(
+                            s4_executor._default_checkpoint_validator
+                        ),
+                        control_validator=control_validator,
+                    )
+
+                self.assertEqual(error_code, caught.exception.code)
+                self.assertEqual(
+                    "blocked_before_write",
+                    caught.exception.receipt["failure_class"],
+                )
+                self.assertEqual(
+                    0, caught.exception.receipt["write_attempt_count"]
+                )
+                self.assertEqual(
+                    {key: 0 for key in backend.write_counts},
+                    backend.write_counts,
+                )
+                control_validator.assert_not_called()
+                backend.read_fetch_remote.assert_not_called()
+
+    def test_default_checkpoint_success_reaches_s4_once(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            release_root, assets = make_release_tree(root)
+            control = make_control(assets)
+            checkpoint = {
+                "state": "ready_for_s4",
+                "workflow_run_id": "1003",
+                "workflow_run_attempt": "1",
+            }
+            receipt_root, checkpoint_receipt = self.write_checkpoint_inputs(
+                release_root, control, checkpoint
+            )
+            module = mock.Mock()
+            module.validate_v249_continuation_checkpoint.return_value = (
+                accepted_checkpoint(
+                    VERSION,
+                    SOURCE,
+                    checkpoint_receipt,
+                    receipt_root=receipt_root,
+                    release_root=release_root,
+                    expected_workflow_run_id="1003",
+                    expected_workflow_run_attempt="1",
+                    release_control=control,
+                )
+            )
+            module.validate_v249_s4_control.return_value = accepted_control(
+                VERSION, SOURCE, control
+            )
+            backend = FakeBackend()
+
+            with mock.patch.object(
+                s4_executor, "_load_module", return_value=module
+            ):
+                receipt = self.execute_s4(
+                    version=VERSION,
+                    commit=SOURCE,
+                    release_control=control,
+                    release_root=release_root,
+                    repository_root=root,
+                    backend=backend,
+                    checkpoint_receipt=checkpoint_receipt,
+                    receipt_root=receipt_root,
+                    checkpoint_validator=s4_executor._default_checkpoint_validator,
+                    control_validator=s4_executor._default_control_validator,
+                )
+
+        self.assertTrue(receipt["passed"])
+        self.assertEqual("executed_and_verified", receipt["execution_mode"])
+        self.assertEqual(1, backend.write_counts["install"])
+        module.validate_v249_continuation_checkpoint.assert_called_once()
+
     def test_first_execution_and_exact_repeat_are_both_valid(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
@@ -424,7 +860,7 @@ class TestV249S4Executor(unittest.TestCase):
             control = make_control(assets)
             backend = FakeBackend()
 
-            first = s4_executor.execute_s4(
+            first = self.execute_s4(
                 version=VERSION,
                 commit=SOURCE,
                 release_control=control,
@@ -453,7 +889,7 @@ class TestV249S4Executor(unittest.TestCase):
                 s4_executor.validate_outcome_receipt(invalid)
 
             before = dict(backend.write_counts)
-            second = s4_executor.execute_s4(
+            second = self.execute_s4(
                 version=VERSION,
                 commit=SOURCE,
                 release_control=control,
@@ -483,7 +919,7 @@ class TestV249S4Executor(unittest.TestCase):
                 calls.append(dict(kwargs))
                 return accepted_prewrite_boundary(**kwargs)
 
-            receipt = s4_executor.execute_s4(
+            receipt = self.execute_s4(
                 version=VERSION,
                 commit=SOURCE,
                 release_control=make_control(assets),
@@ -511,7 +947,7 @@ class TestV249S4Executor(unittest.TestCase):
                 )
 
             with self.assertRaises(s4_executor.S4ExecutionError) as caught:
-                s4_executor.execute_s4(
+                self.execute_s4(
                     version=VERSION,
                     commit=SOURCE,
                     release_control=make_control(assets),
@@ -562,7 +998,7 @@ class TestV249S4Executor(unittest.TestCase):
             }
 
             with self.assertRaises(s4_executor.S4ExecutionError) as caught:
-                s4_executor.execute_s4(
+                self.execute_s4(
                     version=VERSION,
                     commit=SOURCE,
                     release_control=make_control(assets),
@@ -610,7 +1046,7 @@ class TestV249S4Executor(unittest.TestCase):
             }
 
             with self.assertRaises(s4_executor.S4ExecutionError) as caught:
-                s4_executor.execute_s4(
+                self.execute_s4(
                     version=VERSION,
                     commit=SOURCE,
                     release_control=control,
@@ -646,7 +1082,7 @@ class TestV249S4Executor(unittest.TestCase):
             }
 
             with self.assertRaises(s4_executor.S4ExecutionError) as caught:
-                s4_executor.execute_s4(
+                self.execute_s4(
                     version=VERSION,
                     commit=SOURCE,
                     release_control=make_control(assets),
@@ -671,7 +1107,7 @@ class TestV249S4Executor(unittest.TestCase):
                 return {"ok": False, "errors": ["E_V249_EXTERNAL_ANCHOR_REVALIDATION"]}
 
             with self.assertRaises(s4_executor.S4ExecutionError) as caught:
-                s4_executor.execute_s4(
+                self.execute_s4(
                     version=VERSION,
                     commit=SOURCE,
                     release_control=control,
@@ -692,7 +1128,7 @@ class TestV249S4Executor(unittest.TestCase):
             backend.remote_url = "https://github.com/vibe-coding-era/goal-teams.git"
 
             with self.assertRaises(s4_executor.S4ExecutionError) as caught:
-                s4_executor.execute_s4(
+                self.execute_s4(
                     version=VERSION,
                     commit=SOURCE,
                     release_control=control,
@@ -710,7 +1146,7 @@ class TestV249S4Executor(unittest.TestCase):
             release_root, assets = make_release_tree(root)
             control = make_control(assets)
             backend = FakeBackend()
-            s4_executor.execute_s4(
+            self.execute_s4(
                 version=VERSION,
                 commit=SOURCE,
                 release_control=control,
@@ -724,7 +1160,7 @@ class TestV249S4Executor(unittest.TestCase):
             before = dict(backend.write_counts)
 
             with self.assertRaises(s4_executor.S4ExecutionError) as caught:
-                s4_executor.execute_s4(
+                self.execute_s4(
                     version=VERSION,
                     commit=SOURCE,
                     release_control=control,
@@ -745,7 +1181,7 @@ class TestV249S4Executor(unittest.TestCase):
             backend.fail_after_mutation = "tag_push"
 
             with self.assertRaises(s4_executor.S4ExecutionError) as caught:
-                s4_executor.execute_s4(
+                self.execute_s4(
                     version=VERSION,
                     commit=SOURCE,
                     release_control=control,
@@ -770,7 +1206,7 @@ class TestV249S4Executor(unittest.TestCase):
 
             backend.fail_after_mutation = None
             before_pushes = backend.write_counts["tag_push"]
-            resumed = s4_executor.execute_s4(
+            resumed = self.execute_s4(
                 version=VERSION,
                 commit=SOURCE,
                 release_control=control,
@@ -797,7 +1233,7 @@ class TestV249S4Executor(unittest.TestCase):
             backend.fail_without_mutation = "release_create"
 
             with self.assertRaises(s4_executor.S4ExecutionError) as caught:
-                s4_executor.execute_s4(
+                self.execute_s4(
                     version=VERSION,
                     commit=SOURCE,
                     release_control=make_control(assets),
@@ -833,7 +1269,7 @@ class TestV249S4Executor(unittest.TestCase):
             }
 
             with self.assertRaises(s4_executor.S4ExecutionError) as caught:
-                s4_executor.execute_s4(
+                self.execute_s4(
                     version=VERSION,
                     commit=SOURCE,
                     release_control=make_control(assets),
@@ -858,7 +1294,7 @@ class TestV249S4Executor(unittest.TestCase):
             backend.reconciliation_read_error = "tag_push"
 
             with self.assertRaises(s4_executor.S4ExecutionError) as caught:
-                s4_executor.execute_s4(
+                self.execute_s4(
                     version=VERSION,
                     commit=SOURCE,
                     release_control=make_control(assets),
@@ -880,7 +1316,7 @@ class TestV249S4Executor(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             release_root, assets = make_release_tree(root)
-            receipt = s4_executor.execute_s4(
+            receipt = self.execute_s4(
                 version=VERSION,
                 commit=SOURCE,
                 release_control=make_control(assets),
@@ -912,7 +1348,7 @@ class TestV249S4Executor(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             release_root, assets = make_release_tree(root)
-            receipt = s4_executor.execute_s4(
+            receipt = self.execute_s4(
                 version=VERSION,
                 commit=SOURCE,
                 release_control=make_control(assets),
@@ -999,7 +1435,7 @@ class TestV249S4Executor(unittest.TestCase):
             root = Path(temp)
             release_root, assets = make_release_tree(root)
             with self.assertRaises(s4_executor.S4ExecutionError) as caught:
-                s4_executor.execute_s4(
+                self.execute_s4(
                     version=VERSION,
                     commit=SOURCE,
                     release_control=make_control(assets),

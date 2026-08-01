@@ -314,6 +314,43 @@ class TestV249RuntimeTransition(unittest.TestCase):
         )
         self.assertFalse(verdict["external_independence_proven"])
 
+    def test_downloaded_receipts_can_override_expired_runner_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            value = _observe(root)
+            route_raw = (root / "docs/route-receipt.json").read_bytes()
+            authorization_raw = (
+                root / "docs/authorization-receipt.json"
+            ).read_bytes()
+            portable_route = root / "downloaded/release-route-receipt.json"
+            portable_authorization = root / "downloaded/authorization.json"
+            portable_route.parent.mkdir(parents=True)
+            portable_route.write_bytes(route_raw)
+            portable_authorization.write_bytes(authorization_raw)
+            value["route_receipt_path"] = "/expired-runner/route-receipt.json"
+            value["authorization_receipt_path"] = (
+                "/expired-runner/authorization.json"
+            )
+            value["receipt_sha256"] = _canonical_sha256(value)
+
+            stale = self._validate(value, root)
+            portable = self._validate(
+                value,
+                root,
+                route_receipt_path_override=portable_route,
+                authorization_receipt_path_override=portable_authorization,
+            )
+
+        self.assertFalse(stale["ok"])
+        self.assertIn(
+            "E_V249_RUNTIME_TRANSITION_ROUTE_RECEIPT_DIGEST", stale["errors"]
+        )
+        self.assertIn(
+            "E_V249_RUNTIME_TRANSITION_AUTHORIZATION_RECEIPT_DIGEST",
+            stale["errors"],
+        )
+        self.assertTrue(portable["ok"], portable["errors"])
+
     def test_forged_signature_is_rejected_by_fixed_owner_verifier(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
