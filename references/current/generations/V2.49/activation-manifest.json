@@ -3,7 +3,7 @@
   "generation_id": "V2.49",
   "generation_state": "active",
   "baseline_generation_id": "V2.48",
-  "manifest_payload_sha256": "a0b9178d9ca8809244521c0fb85162b67490aae28da280bc9145f092fadd98ef",
+  "manifest_payload_sha256": "bb8107e0b9f0a4a0081458b87873eb784efd1c1cbaa61d5db70aa8e2226d1b4f",
   "identity": {
     "loaded_runtime_product_version": "V2.49",
     "route_contract_schema_version": "goal-teams-project-route-v2.49",
@@ -217,8 +217,8 @@
       },
       {
         "path": "scripts/install/install-local.sh",
-        "sha256": "d5f1c1a4384564402575b94232e6035c96e2bff509ebd8c7f10530c5c0f11dcb",
-        "bytes": 107576
+        "sha256": "5d5a32e957d17511cdf0cde913ac9c2d10720c770bacb5cc77d2720beb932737",
+        "bytes": 112541
       },
       {
         "path": "scripts/install/package-manifest.txt",
@@ -462,8 +462,8 @@
       },
       {
         "path": "tests/v249/test_package_isolation.py",
-        "sha256": "702484a327ef9bccda9aaf43a1f024164c35b40f5efb2d6c0d2f1dd5cc893855",
-        "bytes": 2311
+        "sha256": "7416d6a2c6e4bd46effd78f9b651511e5255ac079964701c76f66b320a4e79dd",
+        "bytes": 12641
       },
       {
         "path": "tests/v249/test_release_checker.py",
