@@ -23,7 +23,7 @@ import sys
 import tempfile
 from pathlib import Path
 from types import ModuleType
-from typing import Any
+from typing import Any, Callable, Mapping
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -31,7 +31,69 @@ RECEIPT_SCHEMA = "goal-teams-skill-release-receipt-v1"
 VERSION_RE = re.compile(r"^V[0-9]+\.[0-9]+$")
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+POSITIVE_DECIMAL_RE = re.compile(r"^[1-9][0-9]*$")
 V249_REPOSITORY = "vibe-coding-era/goal-teams"
+V249_RUNTIME_STATIC_INPUT_PATHS = (
+    ".agents/skills/goal-teams/SKILL.md",
+    "AGENTS.md",
+    "RULES.md",
+    "SKILL.md",
+    "references/profiles/goal-teams-self-release-v2.49.md",
+    "references/release-profiles/v2.49.json",
+    "references/current/generations/V2.49/contracts/release-route-manifest.json",
+    "references/current/generations/V2.49/contracts/release-command-manifest.json",
+    "schemas/v2.49/runtime-transition-receipt.schema.json",
+    "scripts/checks/check-v249.py",
+    "scripts/v249/runtime_host_adapter.py",
+    "scripts/v249/runtime_transition.py",
+)
+V249_CONTINUATION_FORMAL_RECEIPTS = (
+    "authorization.json",
+    "controller-handoff.json",
+    "github-owner-key-validation.json",
+    "release-route-receipt.json",
+    "released-runtime-transition.json",
+    "s1-check.json",
+    "s2-build.json",
+    "asset-validation.json",
+    "repository-boundary.json",
+    "repository-boundary-pre-s4.json",
+    "s3.json",
+    "release-control.json",
+    "s4-authorized-operation-plan.json",
+)
+V249_CONTINUATION_DIAGNOSTIC_OUTPUTS = (
+    "preflight-output.json",
+    "plan-output.json",
+)
+V249_CONTINUATION_PHASE_ORDER = (
+    "identity",
+    "authorization",
+    "controller_handoff",
+    "release_route",
+    "github_owner_key",
+    "runtime_transition",
+    "s1",
+    "s2_build",
+    "asset_validation",
+    "repository_boundary",
+    "boundary_pre_s3",
+    "s3_prepare",
+    "s3_install",
+    "s3_bind",
+    "boundary_pre_s4",
+    "s4_plan",
+    "asset_verify",
+)
+V249_CONTINUATION_LARGE_ONLY_PHASES = frozenset(
+    {"boundary_pre_s3", "s3_prepare", "s3_install"}
+)
+V249_CONTINUATION_ASSET_NAMES = (
+    "SHA256SUMS",
+    "_files.sha256",
+    "_release.json",
+    "goal-teams-V2.49.tar.gz",
+)
 
 
 class SkillReleaseError(RuntimeError):
@@ -109,6 +171,79 @@ def _sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _validate_v249_runtime_external_anchor(
+    *,
+    runtime: dict[str, Any],
+    activation_path: str,
+    frozen_bytes: Callable[[str], bytes],
+) -> dict[str, str]:
+    """Bind the strict runtime's complete static and dynamic input closure."""
+
+    runtime_digests = runtime.get("input_digests")
+    loaded_paths = runtime.get("loaded_paths")
+    current_paths = runtime.get("current_loaded_paths")
+    current_digests = runtime.get("current_input_digests")
+    try:
+        activation = json.loads(frozen_bytes(activation_path))
+    except (KeyError, OSError, UnicodeDecodeError, json.JSONDecodeError, TypeError) as exc:
+        raise SkillReleaseError(
+            "E_V249_RUNTIME_EXTERNAL_ANCHOR",
+            "released runtime inputs differ from the exact commit",
+            command="preflight",
+        ) from exc
+    prompt_manifest_path = (
+        activation.get("prompt_manifest_path")
+        if isinstance(activation, dict)
+        else None
+    )
+    if (
+        not isinstance(runtime_digests, dict)
+        or not runtime_digests
+        or not all(isinstance(path, str) and path for path in runtime_digests)
+        or not isinstance(loaded_paths, list)
+        or not all(isinstance(path, str) and path for path in loaded_paths)
+        or loaded_paths != sorted(runtime_digests)
+        or not isinstance(current_paths, list)
+        or not current_paths
+        or not all(isinstance(path, str) and path for path in current_paths)
+        or len(current_paths) != len(set(current_paths))
+        or not isinstance(current_digests, dict)
+        or not isinstance(prompt_manifest_path, str)
+        or not prompt_manifest_path
+    ):
+        raise SkillReleaseError(
+            "E_V249_RUNTIME_EXTERNAL_ANCHOR",
+            "released runtime inputs differ from the exact commit",
+            command="preflight",
+        )
+    expected_paths = (
+        set(V249_RUNTIME_STATIC_INPUT_PATHS)
+        | {
+            "references/current/ACTIVE.json",
+            activation_path,
+            prompt_manifest_path,
+        }
+        | set(current_paths)
+    )
+    if (
+        set(runtime_digests) != expected_paths
+        or current_digests
+        != {path: runtime_digests.get(path) for path in current_paths}
+        or any(
+            not isinstance(digest, str)
+            or SHA256_RE.fullmatch(digest) is None
+            or digest != hashlib.sha256(frozen_bytes(path)).hexdigest()
+            for path, digest in runtime_digests.items()
+        )
+    ):
+        raise SkillReleaseError(
+            "E_V249_RUNTIME_EXTERNAL_ANCHOR",
+            "released runtime inputs differ from the exact commit",
+            command="preflight",
+        )
+    return runtime_digests
+
+
 def _validate_v249_external_anchors(
     *,
     commit: str,
@@ -183,34 +318,11 @@ def _validate_v249_external_anchors(
 
     active = json.loads(frozen_bytes("references/current/ACTIVE.json"))
     activation_path = active.get("activation_manifest")
-    runtime_required = {
-        ".agents/skills/goal-teams/SKILL.md",
-        "SKILL.md",
-        "RULES.md",
-        "references/current/ACTIVE.json",
-        "references/profiles/goal-teams-self-release-v2.49.md",
-        "references/current/generations/V2.49/contracts/release-route-manifest.json",
-        "references/current/generations/V2.49/contracts/release-command-manifest.json",
-        "scripts/checks/check-v249.py",
-        "scripts/v249/runtime_transition.py",
-        str(activation_path),
-    }
-    runtime_digests = runtime.get("input_digests") if isinstance(runtime, dict) else None
-    if (
-        not isinstance(runtime_digests, dict)
-        or set(runtime_digests) != runtime_required
-        or runtime.get("loaded_paths") != sorted(runtime_required)
-        or any(
-            runtime_digests[path] != hashlib.sha256(frozen_bytes(path)).hexdigest()
-            for path in runtime_required
-        )
-    ):
-        raise SkillReleaseError(
-            "E_V249_RUNTIME_EXTERNAL_ANCHOR",
-            "released runtime inputs differ from the exact commit",
-            command="preflight",
-            source_commit=commit,
-        )
+    runtime_digests = _validate_v249_runtime_external_anchor(
+        runtime=runtime if isinstance(runtime, dict) else {},
+        activation_path=str(activation_path),
+        frozen_bytes=frozen_bytes,
+    )
 
     security_digests = security.get("contract_digests") if isinstance(security, dict) else None
     expected_security_paths = {
@@ -1014,6 +1126,9 @@ def validate_v249_s4_control(
     version: str,
     commit: str,
     release_control_receipt: dict[str, Any],
+    *,
+    runtime_route_receipt_path: Path | str | None = None,
+    runtime_authorization_receipt_path: Path | str | None = None,
 ) -> dict[str, Any]:
     """Revalidate a complete control receipt against the exact frozen commit.
 
@@ -1039,6 +1154,10 @@ def validate_v249_s4_control(
         expected_tag=config["tag"],
         expected_source_commit=commit,
         expected_source_tree=identity["source_git_tree"],
+        runtime_route_receipt_path=runtime_route_receipt_path,
+        runtime_authorization_receipt_path=(
+            runtime_authorization_receipt_path
+        ),
     )
     try:
         recomputed_anchor = _validate_v249_external_anchors(
@@ -1176,6 +1295,545 @@ def publish(
     )
 
 
+def _checkpoint_file_record(path: Path) -> dict[str, Any] | None:
+    if not path.is_file() or path.is_symlink():
+        return None
+    return {"size": path.stat().st_size, "sha256": _sha256_file(path)}
+
+
+def _checkpoint_json(
+    path: Path,
+) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
+    record = _checkpoint_file_record(path)
+    if record is None:
+        return None, None
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return None, {**record, "json_state": "invalid"}
+    if not isinstance(value, dict):
+        return None, {**record, "json_state": "invalid"}
+    return value, {**record, "json_state": "valid_object"}
+
+
+def _v249_public_asset_paths(release_root: Path) -> dict[str, Path]:
+    snapshot = release_root / "V2.49"
+    return {
+        "SHA256SUMS": snapshot / "_artifacts" / "SHA256SUMS",
+        "_files.sha256": snapshot / "_files.sha256",
+        "_release.json": snapshot / "_release.json",
+        "goal-teams-V2.49.tar.gz": (
+            snapshot / "_artifacts" / "goal-teams-V2.49.tar.gz"
+        ),
+    }
+
+
+def _checkpoint_gate_errors(
+    *, project_size: str, gate_outcomes: Mapping[str, str]
+) -> list[str]:
+    if set(gate_outcomes) != set(V249_CONTINUATION_PHASE_ORDER):
+        return ["E_V249_CHECKPOINT_GATE_OUTCOME_SET"]
+    errors: list[str] = []
+    for phase in V249_CONTINUATION_PHASE_ORDER:
+        outcome = gate_outcomes[phase]
+        if outcome not in {"success", "failure", "skipped", "cancelled"}:
+            errors.append("E_V249_CHECKPOINT_GATE_OUTCOME_VALUE")
+            continue
+        if project_size != "large" and phase in V249_CONTINUATION_LARGE_ONLY_PHASES:
+            if outcome != "skipped":
+                errors.append("E_V249_CHECKPOINT_GATE_OUTCOME")
+        elif outcome != "success":
+            errors.append("E_V249_CHECKPOINT_GATE_OUTCOME")
+    return list(dict.fromkeys(errors))
+
+
+def _valid_v249_s4_plan(
+    plan: Mapping[str, Any],
+    *,
+    commit: str,
+    source_tree: str,
+    control: Mapping[str, Any],
+) -> bool:
+    authorization = control.get("authorization_receipt")
+    authorization_id = (
+        authorization.get("authorization_id")
+        if isinstance(authorization, Mapping)
+        else None
+    )
+    return (
+        plan.get("status") == "authorized_operation_plan_not_executed"
+        and plan.get("publish_state") == "authorized_not_executed"
+        and plan.get("external_side_effect_count") == 0
+        and plan.get("action_executed") is False
+        and plan.get("operation_plan_authorized") is True
+        and plan.get("source_commit") == commit
+        and plan.get("source_git_tree") == source_tree
+        and plan.get("release_control_sha256")
+        == control.get("release_control_sha256")
+        and plan.get("authorization_id") == authorization_id
+        and plan.get("asset_set_id") == control.get("asset_set_id")
+        and plan.get("asset_set_digest") == control.get("asset_set_digest")
+        and plan.get("check_state") == "not_started"
+        and plan.get("run_outcome") == "not_run"
+        and plan.get("evidence_state") == "not_created"
+        and plan.get("ok") is False
+        and plan.get("passed") is False
+        and plan.get("additional_user_confirmation_required") is False
+        and plan.get("https_git_fallback_allowed") is False
+    )
+
+
+def _v249_checkpoint_receipt_binding_errors(
+    receipt_values: Mapping[str, Mapping[str, Any]],
+    control: Mapping[str, Any],
+) -> list[str]:
+    s1_check = receipt_values.get("s1-check.json", {})
+    release_gate_receipts = s1_check.get("release_gate_receipts", {})
+    if not isinstance(release_gate_receipts, Mapping):
+        release_gate_receipts = {}
+    runtime = receipt_values.get("released-runtime-transition.json", {})
+    asset_validation = receipt_values.get("asset-validation.json", {})
+    bindings = {
+        "authorization_receipt": receipt_values.get("authorization.json"),
+        "released_runtime_transition": runtime,
+        "s0": s1_check.get("s0_receipt"),
+        "full_regression": release_gate_receipts.get("full_regression"),
+        "release_security_review": release_gate_receipts.get(
+            "release_security_review"
+        ),
+        "s1": s1_check.get("s1_receipt"),
+        "s2": asset_validation.get("s2_receipt"),
+        "asset_integrity_validation": asset_validation.get(
+            "asset_integrity_validation_receipt"
+        ),
+        "s3": receipt_values.get("s3.json"),
+        "repository_boundary": receipt_values.get(
+            "repository-boundary-pre-s4.json"
+        ),
+    }
+    errors: list[str] = []
+    if any(control.get(key) != value for key, value in bindings.items()):
+        errors.append("E_V249_CHECKPOINT_RECEIPT_BINDING")
+    if runtime.get("controller_handoff_receipt") != receipt_values.get(
+        "controller-handoff.json"
+    ):
+        errors.append("E_V249_CHECKPOINT_CONTROLLER_BINDING")
+    return errors
+
+
+def build_v249_continuation_checkpoint(
+    version: str,
+    commit: str,
+    *,
+    project_size: str,
+    job_status: str,
+    workflow_run_id: str,
+    workflow_run_attempt: str,
+    gate_outcomes: Mapping[str, str],
+    receipt_source_root: Path,
+    release_root: Path,
+) -> dict[str, Any]:
+    """Evaluate whether one exact S2 asset chain is safe to continue into S4."""
+
+    if version != "V2.49" or project_size not in {"small", "medium", "large"}:
+        raise SkillReleaseError(
+            "E_V249_CHECKPOINT_IDENTITY",
+            "continuation checkpoint identity is invalid",
+            command="checkpoint",
+        )
+    if job_status not in {"success", "failure", "cancelled"}:
+        raise SkillReleaseError(
+            "E_V249_CHECKPOINT_JOB_STATUS",
+            "continuation checkpoint job status is invalid",
+            command="checkpoint",
+        )
+    if (
+        POSITIVE_DECIMAL_RE.fullmatch(workflow_run_id) is None
+        or POSITIVE_DECIMAL_RE.fullmatch(workflow_run_attempt) is None
+    ):
+        raise SkillReleaseError(
+            "E_V249_CHECKPOINT_WORKFLOW_IDENTITY",
+            "workflow run ID and attempt must be positive decimal identities",
+            command="checkpoint",
+        )
+    identity = _read_identity(version, commit, _simple_config(version))
+    source_tree = identity["source_git_tree"]
+    release_flow = _v249_release_flow_module()
+    errors = _checkpoint_gate_errors(
+        project_size=project_size,
+        gate_outcomes=gate_outcomes,
+    )
+
+    receipt_values: dict[str, dict[str, Any]] = {}
+    observed_outputs: dict[str, dict[str, Any]] = {}
+    missing_files: list[str] = []
+    for name in V249_CONTINUATION_FORMAL_RECEIPTS:
+        value, record = _checkpoint_json(receipt_source_root / name)
+        if record is None:
+            missing_files.append(f"receipt:{name}")
+            continue
+        observed_outputs[name] = record
+        if value is not None:
+            receipt_values[name] = value
+        elif job_status == "success":
+            errors.append("E_V249_CHECKPOINT_RECEIPT_JSON")
+
+    diagnostic_files: dict[str, dict[str, Any]] = {}
+    for name in V249_CONTINUATION_DIAGNOSTIC_OUTPUTS:
+        _, record = _checkpoint_json(receipt_source_root / name)
+        if record is not None:
+            diagnostic_files[name] = record
+
+    public_assets: dict[str, dict[str, Any]] = {}
+    for name, path in _v249_public_asset_paths(release_root).items():
+        record = _checkpoint_file_record(path)
+        if record is None:
+            missing_files.append(f"asset:{name}")
+        else:
+            public_assets[name] = record
+
+    ready_candidate = job_status == "success" and not errors
+    required_receipts_present = (
+        set(receipt_values) == set(V249_CONTINUATION_FORMAL_RECEIPTS)
+    )
+    required_assets_present = set(public_assets) == set(
+        V249_CONTINUATION_ASSET_NAMES
+    )
+    if ready_candidate and not required_receipts_present:
+        errors.append("E_V249_CHECKPOINT_RECEIPT_SET")
+    if ready_candidate and not required_assets_present:
+        errors.append("E_V249_CHECKPOINT_ASSET_SET")
+
+    asset_validation = receipt_values.get("asset-validation.json", {})
+    s2 = asset_validation.get("s2_receipt", {})
+    if not isinstance(s2, dict):
+        s2 = {}
+    s3 = receipt_values.get("s3.json", {})
+    authorization = receipt_values.get("authorization.json", {})
+    control = receipt_values.get("release-control.json", {})
+    plan = receipt_values.get("s4-authorized-operation-plan.json", {})
+
+    if ready_candidate and not errors:
+        auth_verdict = release_flow.validate_project_start_authorization(
+            authorization,
+            repository=V249_REPOSITORY,
+            version=version,
+            candidate_branch="codex/v2.49-simplification",
+            tag="v2.49",
+        )
+        if not auth_verdict.get("ok"):
+            errors.extend(auth_verdict.get("errors", []))
+        s2_verdict = release_flow.validate_s2_receipt(
+            s2,
+            source_commit=commit,
+            source_tree=source_tree,
+        )
+        if not s2_verdict.get("ok"):
+            errors.extend(s2_verdict.get("errors", []))
+        expected_assets = [
+            {"name": name, **public_assets[name]}
+            for name in sorted(public_assets)
+        ]
+        if s2.get("assets") != expected_assets:
+            errors.append("E_V249_CHECKPOINT_ASSET_BINDING")
+        try:
+            control_verdict = validate_v249_s4_control(
+                version,
+                commit,
+                control,
+                runtime_route_receipt_path=(
+                    receipt_source_root / "release-route-receipt.json"
+                ),
+                runtime_authorization_receipt_path=(
+                    receipt_source_root / "authorization.json"
+                ),
+            )
+        except SkillReleaseError as exc:
+            control_verdict = {
+                "ok": False,
+                "errors": [exc.receipt.get("error_code")],
+            }
+        if not control_verdict.get("ok"):
+            errors.extend(control_verdict.get("errors", []))
+        if not _valid_v249_s4_plan(
+            plan,
+            commit=commit,
+            source_tree=source_tree,
+            control=control,
+        ):
+            errors.append("E_V249_CHECKPOINT_PLAN_CONTRACT")
+        errors.extend(
+            _v249_checkpoint_receipt_binding_errors(receipt_values, control)
+        )
+
+    errors = list(dict.fromkeys(str(error) for error in errors if error))
+    state = (
+        "ready_for_s4"
+        if job_status == "success"
+        and not errors
+        and not missing_files
+        and required_receipts_present
+        and required_assets_present
+        else "diagnostic_partial"
+    )
+    first_failed_phase = next(
+        (
+            phase
+            for phase in V249_CONTINUATION_PHASE_ORDER
+            if gate_outcomes.get(phase) in {"failure", "cancelled"}
+        ),
+        None,
+    )
+    if state == "diagnostic_partial" and first_failed_phase is None:
+        first_failed_phase = (
+            "checkpoint_validation"
+            if job_status == "success" and (errors or missing_files)
+            else "unclassified_workflow_failure"
+        )
+    failure_outcome = (
+        None
+        if first_failed_phase is None
+        else gate_outcomes.get(first_failed_phase, job_status)
+    )
+    formal_files = (
+        {
+            name: {
+                "size": observed_outputs[name]["size"],
+                "sha256": observed_outputs[name]["sha256"],
+            }
+            for name in V249_CONTINUATION_FORMAL_RECEIPTS
+        }
+        if state == "ready_for_s4"
+        else {}
+    )
+    checkpoint = {
+        "schema_version": "goal-teams-v2.49-continuation-checkpoint-v1",
+        "state": state,
+        "claim_scope": "release_asset_chain_only",
+        "repository": V249_REPOSITORY,
+        "version": version,
+        "project_size": project_size,
+        "source_commit": commit,
+        "source_tree": source_tree,
+        "workflow_run_id": workflow_run_id,
+        "workflow_run_attempt": workflow_run_attempt,
+        "gate_outcomes": {
+            phase: gate_outcomes.get(phase)
+            for phase in V249_CONTINUATION_PHASE_ORDER
+        },
+        "first_failed_phase": first_failed_phase,
+        "failure_outcome": failure_outcome,
+        "asset_set_id": s2.get("asset_set_id"),
+        "asset_set_digest": s2.get("asset_set_digest"),
+        "s2_receipt_sha256": s2.get("receipt_sha256"),
+        "authorization_receipt_sha256": (
+            release_flow.canonical_sha256(authorization)
+            if authorization
+            else None
+        ),
+        "release_control_sha256": control.get("release_control_sha256"),
+        "s2_build_invocation_count": s2.get(
+            "build_invocation_count_for_asset_set"
+        ),
+        "s3_process_invocation_count": s3.get("s3_process_invocation_count"),
+        "public_assets": public_assets if state == "ready_for_s4" else {},
+        "formal_files": formal_files,
+        "diagnostic_files": (
+            {} if state == "ready_for_s4" else diagnostic_files
+        ),
+        "observed_output_files": (
+            {} if state == "ready_for_s4" else observed_outputs
+        ),
+        "missing_files": [] if state == "ready_for_s4" else sorted(missing_files),
+        "validation_errors": [] if state == "ready_for_s4" else errors,
+        "s4_external_side_effect_count": 0,
+        "resumable_without_rebuild": state == "ready_for_s4",
+    }
+    checkpoint["checkpoint_sha256"] = release_flow.canonical_sha256(checkpoint)
+    return checkpoint
+
+
+def validate_v249_continuation_checkpoint(
+    version: str,
+    commit: str,
+    checkpoint: object,
+    *,
+    receipt_root: Path,
+    release_root: Path,
+    expected_workflow_run_id: str,
+    expected_workflow_run_attempt: str,
+) -> dict[str, Any]:
+    """Fail closed unless a staged continuation artifact exactly matches its checkpoint."""
+
+    value = checkpoint if isinstance(checkpoint, dict) else {}
+    errors: list[str] = []
+    release_flow = _v249_release_flow_module()
+    payload = dict(value)
+    claimed_digest = payload.pop("checkpoint_sha256", None)
+    if (
+        value.get("schema_version")
+        != "goal-teams-v2.49-continuation-checkpoint-v1"
+        or value.get("state") != "ready_for_s4"
+        or value.get("claim_scope") != "release_asset_chain_only"
+        or value.get("repository") != V249_REPOSITORY
+        or value.get("version") != version
+        or value.get("source_commit") != commit
+        or value.get("workflow_run_id") != expected_workflow_run_id
+        or value.get("workflow_run_attempt") != expected_workflow_run_attempt
+        or POSITIVE_DECIMAL_RE.fullmatch(expected_workflow_run_id) is None
+        or POSITIVE_DECIMAL_RE.fullmatch(expected_workflow_run_attempt) is None
+        or claimed_digest != release_flow.canonical_sha256(payload)
+    ):
+        errors.append("E_V249_CONTINUATION_CHECKPOINT_IDENTITY")
+    try:
+        identity = _read_identity(version, commit, _simple_config(version))
+    except SkillReleaseError:
+        identity = {}
+        errors.append("E_V249_CONTINUATION_CHECKPOINT_IDENTITY")
+    if value.get("source_tree") != identity.get("source_git_tree"):
+        errors.append("E_V249_CONTINUATION_CHECKPOINT_IDENTITY")
+    if (
+        value.get("first_failed_phase") is not None
+        or value.get("failure_outcome") is not None
+        or value.get("missing_files") != []
+        or value.get("validation_errors") != []
+        or value.get("diagnostic_files") != {}
+        or value.get("observed_output_files") != {}
+        or value.get("s4_external_side_effect_count") != 0
+        or value.get("resumable_without_rebuild") is not True
+    ):
+        errors.append("E_V249_CONTINUATION_CHECKPOINT_STATE")
+    project_size = value.get("project_size")
+    gate_outcomes = value.get("gate_outcomes")
+    if (
+        project_size not in {"small", "medium", "large"}
+        or not isinstance(gate_outcomes, dict)
+        or _checkpoint_gate_errors(
+            project_size=str(project_size), gate_outcomes=gate_outcomes
+        )
+    ):
+        errors.append("E_V249_CONTINUATION_GATE_OUTCOMES")
+
+    formal = value.get("formal_files")
+    if not isinstance(formal, dict) or set(formal) != set(
+        V249_CONTINUATION_FORMAL_RECEIPTS
+    ):
+        errors.append("E_V249_CONTINUATION_RECEIPT_SET")
+        formal = {}
+    actual_receipt_names = {
+        path.name
+        for path in receipt_root.iterdir()
+        if path.is_file() and not path.is_symlink()
+    } if receipt_root.is_dir() and not receipt_root.is_symlink() else set()
+    if actual_receipt_names != set(V249_CONTINUATION_FORMAL_RECEIPTS) | {
+        "_checkpoint.json"
+    }:
+        errors.append("E_V249_CONTINUATION_RECEIPT_SET")
+    for name in V249_CONTINUATION_FORMAL_RECEIPTS:
+        record = _checkpoint_file_record(receipt_root / name)
+        if record != formal.get(name):
+            errors.append("E_V249_CONTINUATION_RECEIPT_DIGEST")
+            break
+
+    assets = value.get("public_assets")
+    if not isinstance(assets, dict) or set(assets) != set(
+        V249_CONTINUATION_ASSET_NAMES
+    ):
+        errors.append("E_V249_CONTINUATION_ASSET_SET")
+        assets = {}
+    for name, path in _v249_public_asset_paths(release_root).items():
+        if _checkpoint_file_record(path) != assets.get(name):
+            errors.append("E_V249_CONTINUATION_ASSET_DIGEST")
+            break
+    receipt_values: dict[str, dict[str, Any]] = {}
+    try:
+        receipt_values = {
+            name: _read_receipt_file(receipt_root / name)
+            for name in V249_CONTINUATION_FORMAL_RECEIPTS
+        }
+    except SkillReleaseError:
+        errors.append("E_V249_CONTINUATION_RECEIPT_JSON")
+    authorization = receipt_values.get("authorization.json", {})
+    asset_validation = receipt_values.get("asset-validation.json", {})
+    s3 = receipt_values.get("s3.json", {})
+    control = receipt_values.get("release-control.json", {})
+    plan = receipt_values.get("s4-authorized-operation-plan.json", {})
+    s2 = asset_validation.get("s2_receipt", {})
+    if not isinstance(s2, dict):
+        s2 = {}
+    actual_assets = (
+        [{"name": name, **assets[name]} for name in sorted(assets)]
+        if set(assets) == set(V249_CONTINUATION_ASSET_NAMES)
+        else []
+    )
+    s2_verdict = release_flow.validate_s2_receipt(
+        s2,
+        source_commit=commit,
+        source_tree=str(value.get("source_tree", "")),
+    )
+    if not s2_verdict.get("ok"):
+        errors.extend(s2_verdict.get("errors", []))
+    if s2.get("assets") != actual_assets:
+        errors.append("E_V249_CONTINUATION_ASSET_BINDING")
+    if (
+        value.get("project_size") != control.get("project_size")
+        or value.get("asset_set_id") != s2.get("asset_set_id")
+        or value.get("asset_set_digest") != s2.get("asset_set_digest")
+        or value.get("s2_receipt_sha256") != s2.get("receipt_sha256")
+        or value.get("authorization_receipt_sha256")
+        != release_flow.canonical_sha256(authorization)
+        or value.get("release_control_sha256")
+        != control.get("release_control_sha256")
+        or value.get("s2_build_invocation_count")
+        != s2.get("build_invocation_count_for_asset_set")
+        or value.get("s3_process_invocation_count")
+        != s3.get("s3_process_invocation_count")
+    ):
+        errors.append("E_V249_CONTINUATION_SUMMARY_BINDING")
+    errors.extend(_v249_checkpoint_receipt_binding_errors(receipt_values, control))
+    try:
+        control_verdict = validate_v249_s4_control(
+            version,
+            commit,
+            control,
+            runtime_route_receipt_path=(
+                receipt_root / "release-route-receipt.json"
+            ),
+            runtime_authorization_receipt_path=(
+                receipt_root / "authorization.json"
+            ),
+        )
+    except SkillReleaseError as exc:
+        control_verdict = {
+            "ok": False,
+            "errors": [exc.receipt.get("error_code")],
+        }
+    if not control_verdict.get("ok"):
+        errors.extend(control_verdict.get("errors", []))
+    if not _valid_v249_s4_plan(
+        plan,
+        commit=commit,
+        source_tree=str(value.get("source_tree", "")),
+        control=control,
+    ):
+        errors.append("E_V249_CONTINUATION_PLAN_CONTRACT")
+    errors = list(dict.fromkeys(str(error) for error in errors if error))
+    return _base_receipt(
+        command="verify-continuation-checkpoint",
+        status=("continuation_checkpoint_passed" if not errors else "failed"),
+        error_code=(None if not errors else errors[0]),
+        version=version,
+        source_commit=commit,
+        source_tree=value.get("source_tree"),
+        checkpoint_sha256=value.get("checkpoint_sha256"),
+        claim_scope=value.get("claim_scope"),
+        errors=errors,
+        check_state="passed" if not errors else "failed",
+        run_outcome="passed" if not errors else "failed",
+        evidence_state="current" if not errors else "invalid",
+    )
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -1209,6 +1867,38 @@ def parse_args() -> argparse.Namespace:
     )
     preflight_parser.add_argument("--s3-receipt", type=Path, required=True)
     preflight_parser.add_argument("--boundary-receipt", type=Path, required=True)
+    checkpoint_parser = subparsers.add_parser("checkpoint")
+    checkpoint_parser.add_argument("--version", default="V2.49")
+    checkpoint_parser.add_argument("--commit", required=True)
+    checkpoint_parser.add_argument(
+        "--project-size", choices=("small", "medium", "large"), required=True
+    )
+    checkpoint_parser.add_argument(
+        "--job-status", choices=("success", "failure", "cancelled"), required=True
+    )
+    checkpoint_parser.add_argument("--workflow-run-id", required=True)
+    checkpoint_parser.add_argument("--workflow-run-attempt", required=True)
+    checkpoint_parser.add_argument(
+        "--gate-outcome", action="append", default=[], required=True
+    )
+    checkpoint_parser.add_argument(
+        "--receipt-source-root", type=Path, required=True
+    )
+    checkpoint_parser.add_argument("--release-root", type=Path, required=True)
+    verify_checkpoint_parser = subparsers.add_parser("verify-checkpoint")
+    verify_checkpoint_parser.add_argument("--version", default="V2.49")
+    verify_checkpoint_parser.add_argument("--commit", required=True)
+    verify_checkpoint_parser.add_argument(
+        "--checkpoint-receipt", type=Path, required=True
+    )
+    verify_checkpoint_parser.add_argument("--receipt-root", type=Path, required=True)
+    verify_checkpoint_parser.add_argument("--release-root", type=Path, required=True)
+    verify_checkpoint_parser.add_argument(
+        "--expected-workflow-run-id", required=True
+    )
+    verify_checkpoint_parser.add_argument(
+        "--expected-workflow-run-attempt", required=True
+    )
     for command_name in ("plan-s4", "publish"):
         publish_parser = subparsers.add_parser(command_name)
         publish_parser.add_argument("--version", default="V2.49")
@@ -1261,6 +1951,38 @@ def main() -> None:
                 s3_receipt=_read_receipt_file(args.s3_receipt),
                 boundary_receipt=_read_receipt_file(args.boundary_receipt),
             )
+        elif args.command == "checkpoint":
+            gate_outcomes: dict[str, str] = {}
+            for item in args.gate_outcome:
+                phase, separator, outcome = item.partition("=")
+                if not separator or not phase or not outcome or phase in gate_outcomes:
+                    raise SkillReleaseError(
+                        "E_V249_CHECKPOINT_GATE_OUTCOME_SET",
+                        "checkpoint gate outcomes must be unique phase=outcome pairs",
+                        command="checkpoint",
+                    )
+                gate_outcomes[phase] = outcome
+            receipt = build_v249_continuation_checkpoint(
+                args.version,
+                args.commit,
+                project_size=args.project_size,
+                job_status=args.job_status,
+                workflow_run_id=args.workflow_run_id,
+                workflow_run_attempt=args.workflow_run_attempt,
+                gate_outcomes=gate_outcomes,
+                receipt_source_root=args.receipt_source_root,
+                release_root=args.release_root,
+            )
+        elif args.command == "verify-checkpoint":
+            receipt = validate_v249_continuation_checkpoint(
+                args.version,
+                args.commit,
+                _read_receipt_file(args.checkpoint_receipt),
+                receipt_root=args.receipt_root,
+                release_root=args.release_root,
+                expected_workflow_run_id=args.expected_workflow_run_id,
+                expected_workflow_run_attempt=args.expected_workflow_run_attempt,
+            )
         else:
             receipt = publish(
                 args.version,
@@ -1276,6 +1998,8 @@ def main() -> None:
     if args.command in {"plan-s4", "publish"} and not receipt.get(
         "operation_plan_authorized"
     ):
+        raise SystemExit(1)
+    if args.command == "verify-checkpoint" and not receipt.get("passed"):
         raise SystemExit(1)
 
 

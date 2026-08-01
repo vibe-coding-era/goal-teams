@@ -133,6 +133,7 @@ jobs:
         if: steps.release-version.outputs.release != 'true'
         run: python3 scripts/checks/check-v249.py --phase development --project-size medium --stage candidate
       - name: Require exact clean released main identity
+        id: identity
         if: steps.release-version.outputs.release == 'true'
         run: |
           test "${GITHUB_REF}" = "refs/heads/main"
@@ -141,6 +142,7 @@ jobs:
           git diff --quiet "${GITHUB_SHA}" --
           git diff --cached --quiet "${GITHUB_SHA}" --
       - name: Materialize the existing project-start authorization receipt
+        id: authorization
         if: steps.release-version.outputs.release == 'true'
         env:
           AUTHORIZATION_RECEIPT_JSON: ${{ inputs.project_start_authorization_receipt_json }}
@@ -159,6 +161,7 @@ jobs:
           )
           PY
       - name: Materialize the externally issued V2.48 controller handoff
+        id: controller_handoff
         if: steps.release-version.outputs.release == 'true'
         env:
           CONTROLLER_HANDOFF_RECEIPT_JSON: ${{ inputs.controller_handoff_receipt_json }}
@@ -184,6 +187,7 @@ jobs:
           )
           PY
       - name: Materialize the exact trusted Release route receipt
+        id: release_route
         if: steps.release-version.outputs.release == 'true'
         env:
           PROJECT_SIZE: ${{ inputs.project_size }}
@@ -218,6 +222,7 @@ jobs:
           )
           PY
       - name: Verify the pinned GitHub owner public key before host launch
+        id: github_owner_key
         if: steps.release-version.outputs.release == 'true'
         run: |
           curl \
@@ -232,6 +237,7 @@ jobs:
             --github-keys "${RUNNER_TEMP}/github-owner-keys.json" \
             > "${RUNNER_TEMP}/github-owner-key-validation.json"
       - name: Launch fresh released runtime through the external host adapter before S0
+        id: runtime_transition
         if: steps.release-version.outputs.release == 'true'
         env:
           PYTHONDONTWRITEBYTECODE: '1'
@@ -249,6 +255,7 @@ jobs:
             --adapter-code scripts/v249/runtime_host_adapter.py \
             > "${RUNNER_TEMP}/released-runtime-transition.json"
       - name: Run exact Current full regression and separate-process security review once
+        id: s1
         if: steps.release-version.outputs.release == 'true'
         env:
           PYTHONDONTWRITEBYTECODE: '1'
@@ -265,6 +272,7 @@ jobs:
             --released-runtime-receipt "${RUNNER_TEMP}/released-runtime-transition.json" \
             > "${RUNNER_TEMP}/s1-check.json"
       - name: Build the exact released asset set once
+        id: s2_build
         if: steps.release-version.outputs.release == 'true'
         env:
           PYTHONDONTWRITEBYTECODE: '1'
@@ -276,6 +284,7 @@ jobs:
             --output-root release/versions \
             > "${RUNNER_TEMP}/s2-build.json"
       - name: Validate frozen-source integrity of the same built asset set
+        id: asset_validation
         if: steps.release-version.outputs.release == 'true'
         env:
           PYTHONDONTWRITEBYTECODE: '1'
@@ -287,6 +296,7 @@ jobs:
             --build-receipt "${RUNNER_TEMP}/s2-build.json" \
             > "${RUNNER_TEMP}/asset-validation.json"
       - name: Run independent repository and same-asset boundary gate
+        id: repository_boundary
         if: steps.release-version.outputs.release == 'true'
         env:
           PYTHONDONTWRITEBYTECODE: '1'
@@ -299,6 +309,7 @@ jobs:
             --release-root release/versions \
             > "${RUNNER_TEMP}/repository-boundary.json"
       - name: Revalidate frozen source and boundary before Large S3
+        id: boundary_pre_s3
         if: steps.release-version.outputs.release == 'true' && inputs.project_size == 'large'
         env:
           PYTHONDONTWRITEBYTECODE: '1'
@@ -312,6 +323,7 @@ jobs:
             --reuse-receipt "${RUNNER_TEMP}/repository-boundary.json" \
             > "${RUNNER_TEMP}/repository-boundary-pre-s3.json"
       - name: Prepare the isolated Large S3 input without rebuilding
+        id: s3_prepare
         if: steps.release-version.outputs.release == 'true' && inputs.project_size == 'large'
         run: |
           python3 - <<'PY'
@@ -335,6 +347,7 @@ jobs:
           )
           PY
       - name: Run Large-only isolated S3 install lifecycle once
+        id: s3_install
         if: steps.release-version.outputs.release == 'true' && inputs.project_size == 'large'
         env:
           GOAL_TEAMS_RELEASE_REHEARSAL: '1'
@@ -346,6 +359,7 @@ jobs:
             --release-bundle "${RUNNER_TEMP}/release-bundle" \
             --release-identity "${RUNNER_TEMP}/installer-identity.json"
       - name: Bind the Large-only or not-required S3 receipt
+        id: s3_bind
         if: steps.release-version.outputs.release == 'true'
         run: |
           if [ "${{ inputs.project_size }}" = "large" ]; then
@@ -361,6 +375,7 @@ jobs:
               > "${RUNNER_TEMP}/s3.json"
           fi
       - name: Revalidate frozen source and boundary before S4
+        id: boundary_pre_s4
         if: steps.release-version.outputs.release == 'true'
         env:
           PYTHONDONTWRITEBYTECODE: '1'
@@ -379,11 +394,29 @@ jobs:
             --reuse-receipt "${prior_boundary}" \
             > "${RUNNER_TEMP}/repository-boundary-pre-s4.json"
       - name: Create the S4 authorized-operation plan without external writes
+        id: s4_plan
         if: steps.release-version.outputs.release == 'true'
         env:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
-          python3 scripts/release/skill_release.py preflight \
+          report_failure() {
+            python3 - "$1" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          try:
+              value = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+              value = {}
+          summary = {
+              key: value.get(key)
+              for key in ("command", "status", "error_code")
+          }
+          print(json.dumps(summary, sort_keys=True), file=sys.stderr)
+          PY
+          }
+          if ! python3 scripts/release/skill_release.py preflight \
             --version V2.49 \
             --commit "${GITHUB_SHA}" \
             --project-size "${{ inputs.project_size }}" \
@@ -392,31 +425,40 @@ jobs:
             --asset-validation-receipt "${RUNNER_TEMP}/asset-validation.json" \
             --s3-receipt "${RUNNER_TEMP}/s3.json" \
             --boundary-receipt "${RUNNER_TEMP}/repository-boundary-pre-s4.json" \
-            > "${RUNNER_TEMP}/release-control.json"
-          python3 scripts/release/skill_release.py plan-s4 \
+            > "${RUNNER_TEMP}/preflight-output.json"; then
+            report_failure "${RUNNER_TEMP}/preflight-output.json"
+            exit 1
+          fi
+          if ! python3 scripts/release/skill_release.py plan-s4 \
             --version V2.49 \
             --commit "${GITHUB_SHA}" \
-            --release-control-receipt "${RUNNER_TEMP}/release-control.json" \
-            > "${RUNNER_TEMP}/s4-authorized-operation-plan.json"
+            --release-control-receipt "${RUNNER_TEMP}/preflight-output.json" \
+            > "${RUNNER_TEMP}/plan-output.json"; then
+            report_failure "${RUNNER_TEMP}/plan-output.json"
+            exit 1
+          fi
           python3 - <<'PY'
           import json
           import os
           from pathlib import Path
 
           plan = json.loads(
-              Path(os.environ["RUNNER_TEMP"], "s4-authorized-operation-plan.json").read_text(
+              Path(os.environ["RUNNER_TEMP"], "plan-output.json").read_text(
                   encoding="utf-8"
               )
           )
           if (
-              plan.get("status") != "authorized_operation_plan"
+              plan.get("status") != "authorized_operation_plan_not_executed"
               or plan.get("publish_state") != "authorized_not_executed"
               or plan.get("external_side_effect_count") != 0
               or plan.get("action_executed") is not False
           ):
               raise SystemExit("E_V249_WORKFLOW_PLAN_ONLY_ASSERTION")
           PY
+          cp "${RUNNER_TEMP}/preflight-output.json" "${RUNNER_TEMP}/release-control.json"
+          cp "${RUNNER_TEMP}/plan-output.json" "${RUNNER_TEMP}/s4-authorized-operation-plan.json"
       - name: Verify the same fixed four-asset identity without rebuilding
+        id: asset_verify
         if: steps.release-version.outputs.release == 'true'
         run: |
           test -f "release/versions/V2.49/_artifacts/goal-teams-V2.49.tar.gz"
@@ -426,35 +468,117 @@ jobs:
           cd "release/versions/V2.49/_artifacts"
           sha256sum -c SHA256SUMS
       - name: Stage exact receipts for cross-job S4 continuation without rebuilding
-        if: steps.release-version.outputs.release == 'true'
+        id: stage_receipts
+        if: always() && steps.release-version.outputs.release == 'true'
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
         run: |
           receipt_root="release/versions/V2.49/_receipts"
-          mkdir -p "${receipt_root}"
-          for name in \
-            authorization.json \
-            controller-handoff.json \
-            github-owner-key-validation.json \
-            release-route-receipt.json \
-            released-runtime-transition.json \
-            s1-check.json \
-            s2-build.json \
-            asset-validation.json \
-            repository-boundary.json \
-            repository-boundary-pre-s4.json \
-            s3.json \
-            release-control.json \
+          diagnostic_root="release/versions/V2.49/_diagnostics"
+          mkdir -p "${receipt_root}" "${diagnostic_root}/observed_outputs"
+          formal_receipt_names=(
+            authorization.json
+            controller-handoff.json
+            github-owner-key-validation.json
+            release-route-receipt.json
+            released-runtime-transition.json
+            s1-check.json
+            s2-build.json
+            asset-validation.json
+            repository-boundary.json
+            repository-boundary-pre-s4.json
+            s3.json
+            release-control.json
             s4-authorized-operation-plan.json
-          do
-            test -f "${RUNNER_TEMP}/${name}"
-            cp "${RUNNER_TEMP}/${name}" "${receipt_root}/${name}"
-          done
-          if [ -f "${RUNNER_TEMP}/repository-boundary-pre-s3.json" ]; then
-            cp \
-              "${RUNNER_TEMP}/repository-boundary-pre-s3.json" \
-              "${receipt_root}/repository-boundary-pre-s3.json"
+          )
+          diagnostic_output_names=(
+            preflight-output.json
+            plan-output.json
+          )
+          checkpoint_job_status="${{ job.status }}"
+          if [ "${{ job.status }}" = "success" ]; then
+            for name in "${formal_receipt_names[@]}"; do
+              if ! cp "${RUNNER_TEMP}/${name}" "${receipt_root}/${name}"; then
+                checkpoint_job_status="failure"
+              fi
+            done
           fi
-      - name: Persist the same asset set and receipt chain for authorized S4 continuation
-        if: steps.release-version.outputs.release == 'true'
+          if [ "${{ job.status }}" != "success" ]; then
+            for name in "${diagnostic_output_names[@]}"; do
+              if [ -f "${RUNNER_TEMP}/${name}" ]; then
+                cp \
+                  "${RUNNER_TEMP}/${name}" \
+                  "${diagnostic_root}/observed_outputs/${name}"
+              fi
+            done
+          fi
+          if [ "${checkpoint_job_status}" = "success" ]; then
+            checkpoint_source_root="${receipt_root}"
+          else
+            checkpoint_source_root="${RUNNER_TEMP}"
+          fi
+          python3 scripts/release/skill_release.py checkpoint \
+            --version V2.49 \
+            --commit "${GITHUB_SHA}" \
+            --project-size "${{ inputs.project_size }}" \
+            --job-status "${checkpoint_job_status}" \
+            --workflow-run-id "${GITHUB_RUN_ID}" \
+            --workflow-run-attempt "${GITHUB_RUN_ATTEMPT}" \
+            --gate-outcome "identity=${{ steps.identity.outcome }}" \
+            --gate-outcome "authorization=${{ steps.authorization.outcome }}" \
+            --gate-outcome "controller_handoff=${{ steps.controller_handoff.outcome }}" \
+            --gate-outcome "release_route=${{ steps.release_route.outcome }}" \
+            --gate-outcome "github_owner_key=${{ steps.github_owner_key.outcome }}" \
+            --gate-outcome "runtime_transition=${{ steps.runtime_transition.outcome }}" \
+            --gate-outcome "s1=${{ steps.s1.outcome }}" \
+            --gate-outcome "s2_build=${{ steps.s2_build.outcome }}" \
+            --gate-outcome "asset_validation=${{ steps.asset_validation.outcome }}" \
+            --gate-outcome "repository_boundary=${{ steps.repository_boundary.outcome }}" \
+            --gate-outcome "boundary_pre_s3=${{ steps.boundary_pre_s3.outcome }}" \
+            --gate-outcome "s3_prepare=${{ steps.s3_prepare.outcome }}" \
+            --gate-outcome "s3_install=${{ steps.s3_install.outcome }}" \
+            --gate-outcome "s3_bind=${{ steps.s3_bind.outcome }}" \
+            --gate-outcome "boundary_pre_s4=${{ steps.boundary_pre_s4.outcome }}" \
+            --gate-outcome "s4_plan=${{ steps.s4_plan.outcome }}" \
+            --gate-outcome "asset_verify=${{ steps.asset_verify.outcome }}" \
+            --receipt-source-root "${checkpoint_source_root}" \
+            --release-root release/versions \
+            > "${diagnostic_root}/checkpoint-output.json"
+          checkpoint_state="$(python3 - "${diagnostic_root}/checkpoint-output.json" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          value = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          state = value.get("state")
+          if state not in {"ready_for_s4", "diagnostic_partial"}:
+              raise SystemExit("E_V249_CHECKPOINT_STATE")
+          print(state)
+          PY
+          )"
+          echo "checkpoint_state=${checkpoint_state}" >> "${GITHUB_OUTPUT}"
+          if [ "${checkpoint_state}" = "ready_for_s4" ]; then
+            cp \
+              "${diagnostic_root}/checkpoint-output.json" \
+              "${receipt_root}/_checkpoint.json"
+            python3 scripts/release/skill_release.py verify-checkpoint \
+              --version V2.49 \
+              --commit "${GITHUB_SHA}" \
+              --checkpoint-receipt "${receipt_root}/_checkpoint.json" \
+              --receipt-root "${receipt_root}" \
+              --release-root release/versions \
+              --expected-workflow-run-id "${GITHUB_RUN_ID}" \
+              --expected-workflow-run-attempt "${GITHUB_RUN_ATTEMPT}" \
+              > "${diagnostic_root}/continuation-checkpoint-validation.json"
+          elif [ "${{ job.status }}" = "success" ]; then
+            exit 1
+          fi
+      - name: Persist the ready asset set and receipt chain for authorized S4 continuation
+        if: >-
+          always() &&
+          steps.release-version.outputs.release == 'true' &&
+          steps.stage_receipts.outcome == 'success' &&
+          steps.stage_receipts.outputs.checkpoint_state == 'ready_for_s4'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: goal-teams-v249-release-${{ github.sha }}
@@ -464,6 +588,19 @@ jobs:
             release/versions/V2.49/_release.json
             release/versions/V2.49/_files.sha256
             release/versions/V2.49/_receipts/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+      - name: Persist failure diagnostics without a continuation artifact
+        if: >-
+          always() &&
+          steps.release-version.outputs.release == 'true' &&
+          (steps.stage_receipts.outcome != 'success' ||
+          steps.stage_receipts.outputs.checkpoint_state != 'ready_for_s4')
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: goal-teams-v249-diagnostic-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release/versions/V2.49/_diagnostics/
           if-no-files-found: error
           compression-level: 0
           retention-days: 30

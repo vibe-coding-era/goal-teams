@@ -48,6 +48,69 @@ REQUIRED_AUTH_VALIDITY_CONDITIONS = {
     "run_state_running_replan_or_same_checkpoint_resumable_blocked",
     "not_revoked_by_user",
 }
+PROJECT_START_AUTHORIZATION_REQUIRED_KEYS = frozenset(
+    {
+        "schema_version",
+        "receipt_id",
+        "authorization_id",
+        "authorization_state",
+        "authorization_lineage_preserved",
+        "issued_at",
+        "expires_at",
+        "repository",
+        "version",
+        "candidate_branch",
+        "tag",
+        "locked_scope",
+        "action_allowlist",
+        "validity_conditions",
+        "intent",
+        "intent_sha256",
+    }
+)
+PROJECT_START_AUTHORIZATION_ALLOWED_KEYS = (
+    PROJECT_START_AUTHORIZATION_REQUIRED_KEYS
+    | {
+        "authorization_source",
+        "approver_identity",
+        "conversational_reconfirmation_required",
+        "credential_policy",
+        "idempotency_key",
+        "later_exact_identity_is_evidence_not_authorization",
+        "permitted_other_external_writes",
+        "revocation_conditions",
+        "revoked",
+        "revoked_at",
+    }
+)
+PROJECT_START_AUTHORIZATION_REPOSITORY_REQUIRED_KEYS = frozenset(
+    {
+        "id",
+        "name_with_owner",
+        "origin_fetch",
+        "origin_push",
+        "default_branch",
+    }
+)
+PROJECT_START_AUTHORIZATION_REPOSITORY_KEYS = (
+    PROJECT_START_AUTHORIZATION_REPOSITORY_REQUIRED_KEYS
+    | {
+        "base_sha",
+        "base_tree",
+    }
+)
+PROJECT_START_AUTHORIZATION_INTENT_KEYS = frozenset(
+    {
+        "repository_id",
+        "repository",
+        "version",
+        "candidate_branch",
+        "tag",
+        "locked_scope",
+        "action_allowlist",
+        "validity_conditions",
+    }
+)
 
 V249_SECURITY_CONTRACT_PATH = (
     "references/current/generations/V2.49/contracts/"
@@ -879,6 +942,8 @@ def _runtime_transition_errors(
     source_commit: str,
     source_tree: str,
     expected_host_execution_id: str | None = None,
+    route_receipt_path_override: Path | str | None = None,
+    authorization_receipt_path_override: Path | str | None = None,
 ) -> list[str]:
     try:
         verdict = validate_runtime_transition(
@@ -888,6 +953,10 @@ def _runtime_transition_errors(
             expected_source_commit=source_commit,
             expected_source_tree=source_tree,
             expected_host_execution_id=expected_host_execution_id,
+            route_receipt_path_override=route_receipt_path_override,
+            authorization_receipt_path_override=(
+                authorization_receipt_path_override
+            ),
         )
     except (OSError, UnicodeDecodeError, json.JSONDecodeError, ValueError):
         verdict = {"ok": False, "may_enter_s0": False, "errors": []}
@@ -987,6 +1056,68 @@ def validate_project_start_authorization(
         errors.append("E_V249_PROJECT_START_AUTHORIZATION_REQUIRED")
     repository_value = value.get("repository")
     if (
+        not PROJECT_START_AUTHORIZATION_REQUIRED_KEYS.issubset(value)
+        or not set(value).issubset(PROJECT_START_AUTHORIZATION_ALLOWED_KEYS)
+        or not isinstance(repository_value, dict)
+        or not PROJECT_START_AUTHORIZATION_REPOSITORY_REQUIRED_KEYS.issubset(
+            repository_value
+        )
+        or not set(repository_value).issubset(
+            PROJECT_START_AUTHORIZATION_REPOSITORY_KEYS
+        )
+    ):
+        errors.append("E_V249_AUTHORIZATION_UNEXPECTED_FIELD")
+    optional_string_fields = (
+        "authorization_source",
+        "approver_identity",
+        "credential_policy",
+        "idempotency_key",
+    )
+    optional_boolean_fields = (
+        "conversational_reconfirmation_required",
+        "later_exact_identity_is_evidence_not_authorization",
+        "revoked",
+    )
+    optional_string_list_fields = (
+        "permitted_other_external_writes",
+        "revocation_conditions",
+    )
+    if (
+        any(
+            field in value and not _nonempty(value.get(field))
+            for field in optional_string_fields
+        )
+        or any(
+            field in value and not isinstance(value.get(field), bool)
+            for field in optional_boolean_fields
+        )
+        or any(
+            field in value
+            and (
+                not isinstance(value.get(field), list)
+                or not all(_nonempty(item) for item in value.get(field, []))
+            )
+            for field in optional_string_list_fields
+        )
+        or (
+            "revoked_at" in value
+            and value.get("revoked_at") is not None
+            and not _nonempty(value.get("revoked_at"))
+        )
+        or (
+            isinstance(repository_value, dict)
+            and any(
+                field in repository_value
+                and (
+                    not isinstance(repository_value.get(field), str)
+                    or COMMIT_RE.fullmatch(repository_value[field]) is None
+                )
+                for field in ("base_sha", "base_tree")
+            )
+        )
+    ):
+        errors.append("E_V249_AUTHORIZATION_FIELD_TYPE")
+    if (
         value.get("schema_version") != "goal-teams-project-start-authorization-v2.49"
         or value.get("authorization_state") != "granted_once_at_project_start"
         or not _nonempty(value.get("authorization_id"))
@@ -995,7 +1126,9 @@ def validate_project_start_authorization(
         or value.get("version") != version
         or value.get("candidate_branch") != candidate_branch
         or value.get("tag") != tag
+        or not _nonempty(value.get("locked_scope"))
         or not isinstance(repository_value, dict)
+        or not _nonempty(repository_value.get("id"))
         or repository_value.get("name_with_owner") != repository
         or repository_value.get("origin_fetch") != f"git@github.com:{repository}.git"
         or repository_value.get("origin_push") != f"git@github.com:{repository}.git"
@@ -1005,6 +1138,7 @@ def validate_project_start_authorization(
     actions = value.get("action_allowlist")
     if (
         not isinstance(actions, list)
+        or not all(_nonempty(action) for action in actions)
         or len(actions) != len(set(actions))
         or not set(required_action_classes).issubset(set(actions))
     ):
@@ -1012,6 +1146,8 @@ def validate_project_start_authorization(
     conditions = value.get("validity_conditions")
     if (
         not isinstance(conditions, list)
+        or not all(_nonempty(condition) for condition in conditions)
+        or len(conditions) != len(set(conditions))
         or not REQUIRED_AUTH_VALIDITY_CONDITIONS.issubset(set(conditions))
     ):
         errors.append("E_V249_AUTHORIZATION_VALIDITY")
@@ -1028,6 +1164,7 @@ def validate_project_start_authorization(
     }
     if (
         not isinstance(intent, dict)
+        or set(intent) != PROJECT_START_AUTHORIZATION_INTENT_KEYS
         or intent != expected_intent
         or value.get("intent_sha256") != canonical_sha256(intent)
     ):
@@ -1051,7 +1188,7 @@ def validate_project_start_authorization(
             raise ValueError("authorization is outside validity window")
     except (TypeError, ValueError):
         errors.append("E_V249_AUTHORIZATION_EXPIRED")
-    if value.get("revoked_at") not in {None, ""} or value.get("revoked") is True:
+    if value.get("revoked_at") not in (None, "") or value.get("revoked") is True:
         errors.append("E_V249_AUTHORIZATION_REVOKED")
     errors = list(dict.fromkeys(errors))
     return {
@@ -1285,6 +1422,8 @@ def validate_release_control_receipt(
     expected_tag: str,
     expected_source_commit: str,
     expected_source_tree: str,
+    runtime_route_receipt_path: Path | str | None = None,
+    runtime_authorization_receipt_path: Path | str | None = None,
     validation_time: dt.datetime | None = None,
 ) -> dict[str, Any]:
     """Fail closed on any missing, stale, or cross-asset release receipt."""
@@ -1332,7 +1471,13 @@ def validate_release_control_receipt(
     transition_value = transition if isinstance(transition, dict) else {}
     errors.extend(
         _runtime_transition_errors(
-            transition, expected_source_commit, expected_source_tree
+            transition,
+            expected_source_commit,
+            expected_source_tree,
+            route_receipt_path_override=runtime_route_receipt_path,
+            authorization_receipt_path_override=(
+                runtime_authorization_receipt_path
+            ),
         )
     )
     s0 = value.get("s0")

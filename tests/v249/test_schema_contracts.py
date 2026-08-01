@@ -137,6 +137,13 @@ class TestV249SchemaContracts(unittest.TestCase):
         )
         authorization = control["properties"]["authorization_receipt"]
         self.assertTrue(set(authorization["required"]).issubset(authorization["properties"]))
+        self.assertFalse(authorization["additionalProperties"])
+        self.assertFalse(
+            authorization["properties"]["repository"]["additionalProperties"]
+        )
+        self.assertFalse(
+            authorization["properties"]["intent"]["additionalProperties"]
+        )
 
     def test_s4_outcome_has_three_strict_terminal_branches_and_exact_assets(self) -> None:
         control = json.loads(
