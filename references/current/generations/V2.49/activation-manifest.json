@@ -3,7 +3,7 @@
   "generation_id": "V2.49",
   "generation_state": "active",
   "baseline_generation_id": "V2.48",
-  "manifest_payload_sha256": "b1964f39334995f994ef82f129d43aa7e428ca44fb81f9493991100e937a4ece",
+  "manifest_payload_sha256": "a0b9178d9ca8809244521c0fb85162b67490aae28da280bc9145f092fadd98ef",
   "identity": {
     "loaded_runtime_product_version": "V2.49",
     "route_contract_schema_version": "goal-teams-project-route-v2.49",
@@ -532,8 +532,8 @@
       },
       {
         "path": "tests/v249/test_workflow_release_contract.py",
-        "sha256": "27262e1c2eeda75ebff15f0659638c338682e174f09295623ece4382026e622f",
-        "bytes": 17474
+        "sha256": "99f3f9939178698a15916dd81af9ef165f25e8272d97328e6bd2b7c4c217304c",
+        "bytes": 18762
       }
     ],
     "schemas_and_validators": [

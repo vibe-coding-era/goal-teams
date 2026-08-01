@@ -78,10 +78,46 @@ class TestWorkflowSSHContract(unittest.TestCase):
             combined.count("ssh-key: ${{ secrets.GOAL_TEAMS_CHECKOUT_SSH_KEY }}"),
         )
         self.assertEqual(3, combined.count("persist-credentials: false"))
+        self.assertEqual(3, combined.count("fetch-depth: 0"))
         self.assertEqual(3, combined.count("E_V249_CHECKOUT_SSH_KEY_REQUIRED"))
         self.assertEqual(3, combined.count("Assert exact SSH fetch and push transport"))
         self.assertEqual(3, combined.count('expected="git@github.com:${GITHUB_REPOSITORY}.git"'))
         self.assertNotIn("https://github.com/${GITHUB_REPOSITORY}", combined)
+
+    def test_full_history_and_pinned_draft_2020_validator_are_prepared_outside_worktree(
+        self,
+    ) -> None:
+        combined = "\n".join(
+            (
+                text(".github/workflows/check.yml"),
+                text(".github/workflows/release-gate.yml"),
+            )
+        )
+        self.assertEqual(
+            3,
+            combined.count("Prepare pinned Draft 2020 validator outside the worktree"),
+        )
+        self.assertEqual(
+            3,
+            combined.count(
+                "VALIDATOR_PYTHON_PREFIX: ${{ runner.temp }}/goal-teams-v249-python"
+            ),
+        )
+        self.assertEqual(3, combined.count("jsonschema==4.23.0"))
+        self.assertEqual(3, combined.count("--no-cache-dir"))
+        self.assertEqual(
+            3,
+            combined.count("from jsonschema import Draft202012Validator"),
+        )
+        self.assertEqual(
+            3,
+            combined.count(
+                'echo "PYTHONPATH=${VALIDATOR_PYTHON_PREFIX}${PYTHONPATH:+:${PYTHONPATH}}" >> "${GITHUB_ENV}"'
+            ),
+        )
+        self.assertNotIn("node_modules", combined)
+        self.assertNotIn("npm install", combined)
+        self.assertNotIn("NODE_PATH", combined)
 
     def test_secret_guard_precedes_each_checkout_and_transport_assertion_follows(self) -> None:
         for path in (".github/workflows/check.yml", ".github/workflows/release-gate.yml"):
