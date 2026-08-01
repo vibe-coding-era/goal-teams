@@ -8,12 +8,12 @@ Author: 肉山@TGO Hangzhou
 Current release: **V2.48** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.48) · [release/current/README.md](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-V2.48 uses a five-step release flow designed for a Skill bundle; local process material is excluded from the published package.
-As a Skill bundle, this repository uses a five-gate simple release: local validation needs no pre-approval, and external publication requires one explicit confirmation.
+V2.49 is currently an unreleased candidate. It isolates Current rules from Legacy Replay and loads rules by functional template. Medium/Large development blocks only on TDD and affected-scope checks; full regression and a security review run only when implementation is complete and a Release is being prepared.
+S2 builds each exact released asset set once, and S3 applies only to a Large Release. External writes are authorized once at project start; GitHub Git remotes use SSH only.
 
-Current version: `V2.48`
+Current version: `V2.49`
 
-Goal Teams is a cross-CodeAgent coordination Skill, with Codex as one available host. It turns one goal into a verifiable plan and lets a Goal Lead coordinate independent members across requirements, design, implementation, tests, evidence, and completion audit. V2.48 adds composable Agent-product development material and an independent Agent Product Manager; a complete adapter still requires host-specific runtime evidence.
+Goal Teams is a cross-CodeAgent coordination Skill, with Codex as one available host. It turns one goal into a verifiable plan and lets a Goal Lead coordinate independent members across requirements, design, implementation, tests, evidence, and completion audit. V2.49 uses a thin Bootstrap, an immutable Current generation, and explicit Replay so historical rules do not enter normal tasks. A complete adapter still requires host-specific runtime evidence.
 
 ## Core Mechanisms
 
@@ -109,7 +109,7 @@ These are planning ranges. Adjust them to actual scope, risk, and available runt
 Install into your local Codex skills directory:
 
 ```bash
-git clone https://github.com/vibe-coding-era/goal-teams.git ~/.codex/skills/goal-teams
+git clone git@github.com:vibe-coding-era/goal-teams.git ~/.codex/skills/goal-teams
 ```
 
 Install or refresh from this repository:
@@ -118,26 +118,45 @@ Install or refresh from this repository:
 ./scripts/install-local.sh --update-team-fallback
 ```
 
-Validate before maintenance or release:
+Run TDD and Current incremental checks during development:
 
 ```bash
-./scripts/check.sh
+./scripts/check.sh --phase development --project-size medium
 ```
 
-The standalone deterministic routing check is `scripts/checks/check-routing-fixtures.py` (compatibility entrypoint: `scripts/check-routing-fixtures.py`).
-
-`./scripts/check.sh` covers deterministic contract/mutation gates only; it is not real Behavior release evidence. Before RC, choose a new persistent directory outside the source repository, run the nine isolated blind scenarios, and pass their summary to the combined gate:
+After implementation is complete and the exact released commit/tree is frozen, first use a fresh process to produce a real runtime receipt bound to the Current prompt, trusted route, project-start authorization, and host adapter. Then run the final full regression and independent security review:
 
 ```bash
-BLIND_OUTPUT=/absolute/path/outside/goal-teams/blind-v23-<run-id>
-python3 scripts/benchmark/benchmark-runner.py --mode blind-agent --release-gate \
-  --manifest tests/v23/fixtures/behavior/blind-agent-codex.json \
-  --output-dir "$BLIND_OUTPUT"
-python3 scripts/v23/goalteams_v23.py release-gate examples/canonical-v23 \
-  --mode rc --blind-summary "$BLIND_OUTPUT/summary.json"
+EVIDENCE_DIR=docs/v2.49-release-runtime
+mkdir -p "$EVIDENCE_DIR"
+SOURCE_COMMIT="$(git rev-parse 'HEAD^{commit}')"
+SOURCE_TREE="$(git rev-parse "${SOURCE_COMMIT}^{tree}")"
+ROUTE_RECEIPT="$EVIDENCE_DIR/large-release-route.json"
+RUNTIME_RECEIPT="$EVIDENCE_DIR/released-runtime-transition.json"
+S1_CHECK_RECEIPT="$EVIDENCE_DIR/s1-check-result.json"
+AUTH_RECEIPT=docs/v2.49-execution/versions/V2.49/evidence/project-start-authorization-receipt.json
+HANDOFF_RECEIPT="${HANDOFF_RECEIPT:?set the handoff receipt issued by the installed V2.48 Codex host}"
+HOST_EXECUTION_ID="${HOST_EXECUTION_ID:?set the external host execution ID}"
+PYTHON_BIN="$(python3 -c 'import pathlib,sys; print(pathlib.Path(sys.executable).resolve())')"
+
+"$PYTHON_BIN" -c 'import json, pathlib, sys; from scripts.v249.generation_runtime import load_generation; from scripts.v249.route_closure import compile_route_closure; root=pathlib.Path(".").resolve(); pathlib.Path(sys.argv[1]).write_text(json.dumps(compile_route_closure(root, load_generation(root), "V249-ROUTE-LARGE-RELEASE"), ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8")' "$ROUTE_RECEIPT"
+
+"$PYTHON_BIN" scripts/v249/runtime_host_adapter.py launch \
+  --stage released --source-commit "$SOURCE_COMMIT" --source-tree "$SOURCE_TREE" \
+  --project-size large --route-receipt "$ROUTE_RECEIPT" \
+  --authorization-receipt "$AUTH_RECEIPT" \
+  --controller-handoff-receipt "$HANDOFF_RECEIPT" \
+  --host-execution-id "$HOST_EXECUTION_ID" \
+  --adapter-identity local-external-runtime-host \
+  --adapter-code scripts/v249/runtime_host_adapter.py > "$RUNTIME_RECEIPT"
+
+./scripts/check.sh --phase release --project-size large \
+  --source-commit "$SOURCE_COMMIT" --source-tree "$SOURCE_TREE" \
+  --expected-host-execution-id "$HOST_EXECUTION_ID" \
+  --released-runtime-receipt "$RUNTIME_RECEIPT" > "$S1_CHECK_RECEIPT"
 ```
 
-This eval invokes the Codex CLI resolved in the current environment and locks its local hash. Its trust level is `local_process_attested`, not a remote-model or code-signature attestation. Mocks/fixtures, reused directories, alternate manifests, incomplete scenarios, or a missing summary cannot satisfy RC. The combined gate rescans the fixed output/trace/evidence set and runs the full `scripts/check.sh` in the same call. A local License file is only a GA proposal until a trusted external owner attestation exists.
+The `controller-handoff-receipt` may only be issued outside the repository by the installed V2.48 Codex host; repository code never generates it. It binds the real previous run, one-time nonce, authorization, and exact commit/tree with the pinned owner SSH key. The adapter sends the launch receipt over stdin only after it knows the real child PID, then verifies the child acknowledgement. The resulting I1 receipt still proves correlated process and signed-handoff binding rather than external independence. `S1_CHECK_RECEIPT` closes only S0/S1; it is not proof that the Release is complete.
 
 Copy subagents manually:
 
@@ -178,7 +197,7 @@ Use $goal-teams。
 Use this identity line on an explicit Goal Teams invocation or when the session first needs to establish identity; do not repeat it when full context already exists:
 
 ```text
-我是 Goal Teams Lead V2.48。
+我是 Goal Teams Lead V2.49。
 ```
 
 Core language rule: user communication and governance documents default to Chinese; code, comments, test names, fixtures, and product strings follow the target repository's conventions; keep identifiers, commands, paths, API names, config keys, subagent IDs, and exact references unchanged.
@@ -304,9 +323,9 @@ GoalTeamsWork-<project_version>/
 
 ## Version Note
 
-The current product version is read from `VERSION`. On the V2.3 machine contract and V2.5 core policy, `V2.48` adds composable Agent-product development contracts while retaining V2.47 flow/document/runtime overlays and earlier verification contracts as compatibility inputs. Detailed contracts are loaded from `references/` by task type.
+The current product version is read from `VERSION`. V2.49 keeps the V2.5 portable core while loading one digest-bound Current generation; V2.3 and later historical contracts are available only through explicit Legacy Replay and do not enter default prompt or package closure.
 
-Ordinary Skill releases use five simple gates. Local verification needs no pre-approval; tag, GitHub Release, or formal installation requires one explicit confirmation bound to the exact candidate and operations.
+Medium/Large development blocks only on TDD and affected-scope checks. Final Release readiness runs full regression plus an independent security review, builds each exact released asset set once, runs S3 only for Large, and reuses the one project-start authorization for S4.
 
 See the [current release note](release/current/README.md) for the visible package inventory. It does not replace runtime rules, `VERSION`, or installation validation.
 
@@ -314,11 +333,11 @@ See [CHANGELOG.md](CHANGELOG.md) for the chronological version summary and compa
 
 ## License
 
-This repository does not currently declare an open-source license. The owner should first choose a license or internal sharing agreement; that local decision is only a proposal, and GA authorization additionally requires a trusted external host/signature attestation. The current technical deliverable is RC at most.
+This repository does not declare an open-source license. The V2.49 GitHub Release is a versioned distribution snapshot, not an open-source license or an additional grant of rights; licensing remains a separate repository-owner decision.
 
-## V2.3 Contract and Release Boundary
+## Legacy V2.3 Replay Boundary
 
-V2.3 adds deterministic machine contracts for closed state enums, a single-writer ledger, strict Evidence/Traceability, capability degradation, Profile routing, typed migration, and release gates. See `references/goal-teams-v2.3-contract.md` and run `./scripts/check.sh` before release. Technical RC and authorized GA distribution are evaluated separately; even with an owner License/internal-sharing decision, the GA gate must remain fail-closed until a trusted external host/signature attestation exists.
+V2.3 added deterministic machine contracts for closed state enums, a single-writer ledger, Evidence/Traceability, capability degradation, Profile routing, typed migration, and historical release gates. V2.49 retains those artifacts only for explicit Legacy Replay; they do not define Current release readiness or licensing.
 
 ## V2.44 Changes
 
@@ -339,6 +358,13 @@ V2.3 adds deterministic machine contracts for closed state enums, a single-write
 - Added traceable test contracts, risk-routed Grill me review, and adversarial testing while preserving V2.44 API/E2E contracts and the full risk denominator.
 - Added capability-derived Rust/Tauri desktop contracts. “100% replication” is split into complete coverage, same-environment zero-pixel difference, high fidelity, and native-semantic match; PRD-only work first creates an independently approved interactive HTML baseline.
 - Rust backend rules now cover crate/module DAGs, typed IPC, errors, concurrency, persistence, security, and executable fmt/clippy/test gates. Desktop Evidence separates L1 Rust, L2 mock/browser, L3 real app, and L4 production package per immutable platform tuple and is constrained by an externally frozen candidate/environment SSOT; browser tests and direct `tauri-driver` cannot impersonate macOS client Evidence.
+
+## V2.49 Changes
+
+- Added a digest-bound `ACTIVE.json` and immutable Current generation. Default routes, prompt closure, and installation exclude Legacy; historical contracts are available only through the explicit Replay manifest/runner.
+- Organized rules into functional templates for requirements, architecture/implementation, testing, UI/desktop, Agent runtime, and release operations. User output is constrained to five fixed fields plus exactly one terminal field.
+- Fixed the test chain as `RiskDenominator -> TestCase -> TestRunReceipt -> TestReviewReceipt`. Medium/Large development runs only TDD and incremental checks; final Release runs full regression and an independent security review.
+- Retired S2's second deterministic build and S2 security checks, made S3 Large-Release-only, reused project-start authorization in S4, and enforced SSH-only GitHub Git transport with exact readback.
 
 ## V2.48 Changes
 

@@ -1,168 +1,100 @@
-# Goal Teams 仓库维护指南
+# Goal Teams 仓库维护指南（V2.49）
 
-本仓库是 Codex Skill 包，不是业务应用。修改时优先保持规则一致、安装可用、示例可复盘。
+本仓库是 Codex Skill 包。维护目标是 Current 规则清晰、安装可用、历史可复盘、发行事实可验证。
 
 ## 工作区边界
 
-- Goal Teams 的开发、临时 worktree、版本过程目录和生成文件不得创建在仓库根目录之外；禁止在父目录建立 `goal-teams-*` 兄弟目录。
-- 所有开发过程版本和 Git worktree 统一放入根目录 `develops/<version-or-branch>/`；`develops/` 只在本地使用，禁止 Git 跟踪、安装、打包或上传 GitHub。
-- 非发行知识、测试报告、历史过程与凭证统一放入根目录 `docs/`；`docs/` 只在本地使用，禁止 Git 跟踪、安装、打包或上传 GitHub。
-- 正式发行快照统一放入 `release/versions/<VERSION>/`。GitHub Release 只能上传该目录经校验的资产；GitHub 分支可保留仓库治理与 CI 文件，但必须由 source-tree forbidden gate 排除所有非发行数据。
-- 新建或移动 worktree 必须以 `develops/` 为目标；发布前必须运行 workspace boundary、package manifest 和 release validator，任一出现 `docs/`、`develops/` 或父目录版本副本即 fail closed。
+- 所有开发 worktree、过程版本和生成物只能位于仓库根 `develops/`；禁止在父目录创建兄弟 worktree。
+- 非发行知识、测试报告和凭证只能位于根 `docs/`。`docs/`、`develops/` 均只在本地使用，禁止 Git 跟踪、安装、打包或上传。
+- 正式发行快照位于 `release/versions/<VERSION>/`；GitHub Release 只能上传该目录经验证的公开资产。
+- 发布前必须独立运行 workspace boundary、package manifest 和 release validator；任一发现越界路径即 fail closed。
 
-## 维护原则
+## Current、Execution 与 Replay
 
-- `goal-teams.md` 记录长期用户指定要求，是规则变更的上游依据。
-- `RULES.md` 承载 V2.02 Response Contract（响应规范），Goal Lead 和所有成员必须遵守。
-- `VERSION` 只记录当前产品版本 `V2.48`，需要和 `SKILL.md` 正文、用户确认的 README 版本投影、runtime 启动语保持一致；当前 GitHub Release 资产由 development version checker 按 `release/current/` 的 `V2.48` 投影校验；通用核心策略版本为 `V2.5`，legacy 机器数据 schema 版本为 `V2.3`，三者不得混用；`SKILL.md` frontmatter 只保留 `name` 和 `description`。
-- `SKILL.md` 是 Codex 发现和执行 skill 的主入口。
-- `references/invariants.md` 承载所有任务永远生效的不变量、硬边界和失败降级协议。
-- `references/compat.md` 集中声明 `TaskList.md`/`tasklist.md`、脚本兼容入口、成员包布局和版本同步口径。
-- `references/rules-ui.md` 承载 UI、页面规格卡、HTML Prototype MOCK、E2E 和像素对比的条件规则。
-- `references/rules-testing.md` 承载后端架构先行、TDD、API 集成 pytest、前端 E2E 和独立测试派发条件规则。
-- `references/verification-governance-protocol.md`、manifest/schema/validator 承载 V2.46 历史 Evidence、影响分析、正交状态、测试合同、Grill me 和对抗测试。
-- `references/desktop-engineering-protocol.md`、manifest/schema/validator 合并承载 V2.46 Rust/Tauri 前端复刻、Rust 后端工程和跨平台 L1–L4 桌面测试；主 `SKILL.md` 只保留条件入口。
-- `references/rules-loop.md` 承载 Lead LOOP、Loop Decision、Loop Gate、Budget Gate、Conflict Policy 和自动续跑边界。
-- `references/goal-teams-core-v2.5.md` 承载普通项目通用核心策略、`goal-teams-core-v2.5` policy profile 和自动 gate 派生契约。
-- `references/profiles/goal-teams-self-release-v2.48.md` 承载 V2.48 Skill 简单发行规则；V2.46 governed release engine 只保留兼容与历史 replay。
-- `references/agent-development/`、`references/agent-development-capability-manifest.json` 与 `schemas/v2.48/` 承载 Agent 产品、Prompt、上下文/记忆/缓存、工具/MCP、Browser/Computer Use/Playwright、三套可组合方案和声明状态；平台资料不等于 runtime adapter 或实机验证。
-- `references/flow-test-strategy.md`、manifest/schema/validator 承载 V2.47 small/medium/large 流程测试和产品 P0 冒烟分母；`references/incremental-document-ssot-protocol.md` 承载稳定前缀、动态尾部、增量 fragment 与最终投影；`references/codeagent-runtime-manifest.json`、官方来源索引和 runtime adapters 承载八类 CodeAgent 的渐进加载合同。
-- `references/rules-project-sizing.md` 承载项目规模、工作类型与安全/UI 覆盖的条件路由规则；V2.36 起 Lite/Standard 必须按实际风险和工作量保留轻量路径。
-- `references/rules-specialists.md` 承载 V2.35 安全、性能、重构和 SQA 四个只读提案专家及 Lead-only dispatch 边界。
-- `references/test-case-assertion-protocol.md` 承载 V2.35 测试输入、处理、期望输出与可执行断言契约。
-- `references/testing-capability-protocol.md`、`references/testing-capability-manifest.json` 与 `schemas/v2.44/` 承载 V2.44 API/E2E 测试计划、typed 用例、执行结果、风险分母、问题账本、真实行为 Benchmark 和 100 分门禁。
-- `references/goal-teams-runtime.md` 承载详细协议、模板和 CLI 示例。
-- `references/goal-teams-automation-protocol.md` 承载 V1.8 机器可读 Harness/Evidence/Pipeline 协议。
-- `references/goal-teams-production-pipeline.md` 承载 V1.9 生产流、Release Gate 和 safety gate 协议。
-- `references/goal-teams-scripted-tooling.md` 承载 V1.92 提示词 + 脚本混合边界、Budget Gate、Conflict Policy 和证据不足打回规则。
-- `references/prompt-cache-protocol.md` 承载 V2.38 兼容 route/runtime identity、observer telemetry，以及 V2.39/V2.40 fail-closed Cache Evidence 与 live probe 边界；`references/prompt-cache-manifest.json` 是 route-static 顺序、artifact compiler 与 budget 的机器 SSOT。
-- `references/engineering-metrics-protocol.md` 与 `references/engineering-metrics-manifest.json` 承载 V2.43 工程指标算法、事件、状态、历史窗口、benchmark 接入和 OKF 完成报告契约；schema 与 calculator 只能实现该 SSOT，不得私设第二套指标定义。
-- `scripts/v23/v236_security.py` 承载 V2.36 统一 secret redaction/detection；`scripts/v23/v236_trust.py` 承载宿主 attestation、route receipt、持久 challenge state 与受保护 Git tree snapshot；`scripts/v23/v236_acceptance.py` 承载 Audit/Review/Harness/Evidence 完成绑定。runtime 与归档路径不得各自维护更窄的 secret pattern。
-- `references/google-okf-bilingual-spec.md` 承载 V1.97 Google OKF 本地中英文规范、默认输出目录和 generated docs 格式规则。
-- `references/ui-e2e-pixel-protocol.md` 承载 V1.92 界面 E2E、截图和像素级对比协议。
-- `references/ui-visual-contract-protocol.md` 承载 UI 复刻防漏、视觉锁层、组件级视觉契约、交互状态矩阵和 Reviewer/Auditor 视觉风险门禁。
-- `references/subagent-dispatch-protocol.md` 承载 V1.92 成员派发、中文展示名、transport handle 和冲突策略。
-- `prompts/lead/*.md` 承载 V1.93 Goal Lead 核心、规划、派发、审计和完成提示词。
-- `prompts/lead/requirement-card.md` 承载 V1.95 Plan 模式需求卡片规则。
-- V1.96 起需求卡片、需求规格卡和 PRD 必须承接用户故事与功能验收标准，并让功能验收标准流向 tasklist、Harness、test plan 和 acceptance。
-- V1.97 起所有生成 Markdown 文档默认采用 Google OKF；未指定生成目录时输出到 `GoalTeamsWork-<project_version>/`；输出目录必须维护 `memory.md`；页面规格卡和 HTML 原型 MOCK 必须记录组件库信息。
-- V2.0 起所有 SSOT 产出物必须写入输出目录下的版本号子目录；每个项目先生成 `TaskList.md`；后端先架构设计再 TDD/实现；单元测试用例、单元测试执行、API 集成测试脚本/执行、E2E 用例/执行均由独立 subagent 负责。
-- V2.02 起 `RULES.md` 定义执行期响应规范：执行优先、事实优先、未验证不宣称成功、区分观察和结论、减少无关解释。
-- V2.36 起 `policy_profile`、产品版本、任务类型和 route facts 自动派生 `gate_profile`；调用方不得通过提交或省略 `state_gate_profile` 自选门禁。
-- V2.36 的 Lite/Standard 按风险、规模和任务类型生成必要任务与证据；只有高风险、跨模块、发布、安全、支付/认证、UI 复刻等覆盖事实才能升级到 Full/Regulated，不得因“存在代码/UI/测试”一律升级。
-- V2.36 的 Evidence 必须以受保护 Git tree snapshot 自动覆盖完整 Git 变更集；Agent 独立性必须绑定宿主 attestation，并通过仓库外持久 challenge state 拒绝跨调用重放。最终 acceptance 还必须验证 host-signed route receipt、snapshot baseline/target、Audit/Review/Harness 完整 binding 与 Evidence core binding。候选仓库 runtime 永远没有宿主验收权限，只能返回 `E_V236_HOST_ADAPTER_REQUIRED`；仓库外宿主必须冻结完整验收输入树并在自己的受信进程中验证、消费 challenge。不同 `agent_run_id`、调用方自选 key/state、无 state 诊断验证、自报身份或手填文件清单不能支撑独立验收。
-- V2.36 所有持久化、公开归档和运行时输出共用 secret redaction，并用 Authorization/Cookie、YAML/TOML、数据库 URI、`.netrc`、云凭证、协作工具 token 与非文本副本负向测试防回归。
-- V2.35 四专家只能输出 assessment/proposal/task patch/dispatch request，不得直接实现、测试、派发、写中央状态或自证 verified；由 Goal Lead 派发独立实现和验证。
-- `prompts/members/<role>/` 承载 V1.94 各角色成员包，每个目录包含 `prompt.md`、`template.md`、`workflow.md` 和 `scripts.md`。
-- `prompts/packets/*.md` 承载 V1.93 Member Goal Packet、Doc Capsule、Harness Contract 和 Teams 表格模板。
-- `prompts/packets/handoff-artifacts.md` 承载交接物 SSOT、Owner subagent、独立检查者、状态字段和 tasklist 账本规则。
-- `prompts/packets/requirement-card.md` 承载 V1.95 需求卡片模板。
-- `prompts/packets/page-spec-card.md` 承载 PRD 后、HTML 原型前的页面规格卡模板，覆盖组件级视觉契约、交互状态矩阵、视觉锁层策略和 UI Harness 证据。
-- `prompts/packets/memory.md` 承载输出目录 `memory.md` 的 OKF 时间线模板。
-- `prompts/packets/html-prototype-mock.md` 承载 HTML 原型 MOCK 的 OKF 元数据和组件库记录模板。
-- `prompts/members/unit-test-designer/`、`unit-test-runner/`、`api-integration-test-designer/`、`api-integration-test-runner/`、`e2e-test-designer/`、`e2e-test-runner/` 承载 V2.0 TDD/API/E2E 独立测试成员包。
-- `prompts/members/security/`、`performance/`、`refactor/`、`sqa/` 承载 V2.35 四专家标准四文件成员包。
-- `references/dual-review-protocol.md` 承载 V1.94 LLM + 脚本双重复核协议。
-- `scripts/checks/`、`scripts/harness/`、`scripts/review/`、`scripts/benchmark/`、`scripts/install/` 承载 V1.94 分目录脚本；根 `scripts/*.py` 和 `scripts/*.sh` 保留兼容入口。
-- `scripts/checks/check-routing-fixtures.py` 承载只规划/需求卡片、纯后端 CLI、UI 复刻和长任务续跑的渐进式加载路由 fixtures。
-- `subagents/goal-*.toml` 是实际可注册的成员 agent 配置。
-- `README.md` 和 `README.en.md` 只做介绍、安装、示例和发布说明，避免承载唯一规则。
-- 普通 Skill 发行读 `references/skill-release-simple-protocol.md`；高风险或历史 replay 才读 `references/release-packaging-protocol.md`。
-- V2.48 本地 S0–S3 无需批准；S4 外部写入前只接受一次明确确认。V2.46 governed engine 保留兼容。
-- `scripts/release/` 承载发行构建、验证与 GitHub 发布后复核脚本；不得绕过本地 release 门禁直接上传。
-- `scripts/checks/check-workspace-boundaries.py` 检查 worktree 不越出仓库、`docs/`/`develops/` 不被跟踪或安装、GitHub Release 资产只来自 `release/versions/`。
+- `references/current/ACTIVE.json` 是唯一代际切换指针；进程只读取一次并验证 activation manifest digest。
+- `references/current/generations/V2.49/` 按功能模板承载 Current 规则、Prompt plan 和合同。
+- `scripts/v249/`、`schemas/v2.49/`、route-aware checks 与当前成员配置是 Execution assets。
+- `references/legacy-replay/manifest.json` 是历史可达性的唯一 allowlist。未显式提供可信 `replay_version` 时，Current route、默认安装包和 Prompt closure 均不得包含 Legacy。
+- 历史 profile/schema/fixture/engine 首轮迁移保持字节不变；删除必须在观察窗口后另行批准。
 
-## 同步要求
+## 版本身份
 
-更新运行规则时，通常需要同步检查：
+- 产品版本：`V2.49`。
+- 通用核心策略：`V2.5`。
+- Legacy 机器数据 schema：`V2.3`。
+- `VERSION`、根/包装 Skill、README、release profile、release/current 与启动语必须同步；不得混用三种版本身份。
+- `SKILL.md` frontmatter 只保留 `name` 和 `description`。
 
-- `goal-teams.md`
-- `RULES.md`
-- `VERSION`
-- `SKILL.md`
-- `references/invariants.md`
-- `references/compat.md`
-- `references/rules-ui.md`
-- `references/rules-testing.md`
-- `references/rules-loop.md`
-- `references/goal-teams-core-v2.5.md`
-- `references/profiles/goal-teams-self-release-v2.48.md`
-- `references/agent-development/`
-- `references/profiles/goal-teams-self-release-v2.46.md`（历史 replay；当前公开发行）
-- `references/profiles/goal-teams-self-release-v2.44.md`
-- `references/profiles/goal-teams-self-release-v2.43.md`（历史 replay）
-- `references/profiles/goal-teams-self-release-v2.42.md`（历史 replay）
-- `references/profiles/goal-teams-self-release-v2.41.md`（历史 replay）
-- `references/profiles/goal-teams-self-release-v2.40.md`（历史 replay）
-- `references/profiles/goal-teams-self-release-v2.39.md`（历史 replay-only）
-- `references/profiles/goal-teams-self-release-v2.38.md`（历史 replay）
-- `references/rules-project-sizing.md`
-- `references/rules-specialists.md`
-- `references/test-case-assertion-protocol.md`
-- `references/testing-capability-protocol.md`
-- `references/testing-capability-manifest.json`
-- `references/verification-governance-protocol.md`
-- `references/verification-governance-manifest.json`
-- `references/desktop-engineering-protocol.md`
-- `references/desktop-capability-manifest.json`
-- `references/goal-teams-runtime.md`
-- `references/goal-teams-automation-protocol.md`
-- `references/goal-teams-production-pipeline.md`
-- `references/goal-teams-scripted-tooling.md`
-- `references/prompt-cache-protocol.md`
-- `references/prompt-cache-manifest.json`
-- `references/flow-test-strategy.md`
-- `references/flow-test-strategy-manifest.json`
-- `references/incremental-document-ssot-protocol.md`
-- `references/incremental-document-manifest.json`
-- `references/codeagent-official-source-index.md`
-- `references/codeagent-runtime-manifest.json`
-- `references/runtime-adapters/*.md`
-- `references/engineering-metrics-protocol.md`
-- `references/engineering-metrics-manifest.json`
-- `schemas/v2.43/engineering-metrics.schema.json`
-- `schemas/v2.44/`
-- `schemas/v2.46/`
-- `schemas/v2.47/`
-- `schemas/v2.48/`
-- `references/google-okf-bilingual-spec.md`
-- `references/ui-e2e-pixel-protocol.md`
-- `references/ui-visual-contract-protocol.md`
-- `references/subagent-dispatch-protocol.md`
-- `references/dual-review-protocol.md`
-- `prompts/lead/*.md`
-- `prompts/members/*/{prompt.md,template.md,workflow.md,scripts.md}`
-- `prompts/packets/*.md`
-- `references/default-AGENTS.md`
-- `scripts/*.py`
-- `scripts/install-local.sh`
-- `scripts/checks/*`
-- `scripts/harness/*`
-- `scripts/review/*`
-- `scripts/benchmark/*`
-- `scripts/install/*`
-- `subagents/goal-*.toml`
-- `README.md`
-- `README.en.md`
-- `examples/mini-goal-run/`
-- `benchmarks/`
+## Owner 文件
 
-如果只改拼写、链接或发布说明，可以只改相关文档，但要运行校验脚本确认没有破坏安装结构。
+- 根 `SKILL.md`：薄入口、路由和加载顺序。
+- `RULES.md`：用户可见六字段 Envelope。
+- `goal-teams.md`：当前用户指定的长期要求。
+- `references/current/generations/V2.49/functions/`：需求、架构实现、测试、UI/桌面、Agent runtime、发行操作。
+- `references/current/generations/V2.49/contracts/`：任务状态、测试门禁、Harness/Evidence、Review/Completion、授权/副作用与 Release manifests。
+- `references/profiles/goal-teams-self-release-v2.49.md` 与 `references/release-profiles/v2.49.json`：本仓当前发行规则。
+- `scripts/install/package-manifest.txt`：默认 Current 包 allowlist；`replay-package-manifest.txt`：可选 Replay 包。
 
-## 校验
+兼容入口只能转发，不得复制规范正文或把 Legacy 带回 Current prompt plan。
 
-提交前运行：
+## 开发与测试
+
+- 所有行为变更先观察真实 TDD Red，再实现 Green；TestCase/test-file digest 在 Red/Green 间保持不变，source digest 必须变化。
+- Small 按实际风险运行轻量检查；Medium/Large 开发期只阻断 TDD 与受影响面增量检查。
+- 全量回归与独立 `release_security_review` 只在全部实现完成、Release intent 为真且 source 冻结后运行。
+- 不得在开发 PR 中调用旧 monolithic full/security/install path。
+- 测试事实由 `RiskDenominator -> TestCase -> TestRunReceipt -> TestReviewReceipt` 绑定；Development/Release denominator 分离。
+
+## S0–S4
+
+- S2：每个 exact released asset set 单次构建；不执行第二构建、复现比较或 S2 安全检查。
+- S3：仅 Large Release 且 S1 passed/current；Small/Medium 与非 Release invocation 为 0。
+- S4：复用项目开始的一次授权，执行或恢复 tag/Release/资产上传/正式安装并 exact readback；不再次询问。
+- repository boundary 是独立只读门禁，不得表述成 S2 安全或可复现结果。
+- 正式 S0 前必须有 exact released SHA 的 fresh runtime transition receipt；receipt 必须绑定 root
+  `AGENTS.md`/`SKILL.md`、ACTIVE/activation、Prompt/release/route/command manifests、可信 route 与
+  `project_size`、项目起始授权 lineage、host adapter code digest、transition 前 controller product
+  version `V2.48`、fresh loaded runtime product version `V2.49`、前后 run ID、
+  `captured_at` 和实际 Current `loaded_paths`/digests。
+
+## Git 与外部写入
+
+- 项目开始授权锁定后，普通范围内 commit、SSH push、PR、merge、Actions、tag、Release、安装与恢复不重复询问。
+- GitHub Git remote 的 fetch/pull/ls-remote/push 只用 SSH，不得 HTTPS fallback。PR/Actions/Release 用已认证 API/CLI。
+- 不读取、复制或导出凭证，不关闭 GitHub/宿主平台强制保护。
+
+## 校验与发行
+
+开发增量：
 
 ```bash
-./scripts/check.sh
+python3 -m unittest discover -s tests/v249 -p 'test_*.py'
+python3 scripts/checks/check-v249.py --phase development
 ```
 
-该脚本会检查必需文件、Skill frontmatter、subagent TOML、README 发布清单、示例文档和关键规则关键词。
+最终 Release readiness：
 
-## 风格
+```bash
+python3 scripts/v249/runtime_host_adapter.py launch --stage released \
+  --source-commit <40-hex> --source-tree <40-hex> --project-size <small|medium|large> \
+  --route-receipt <trusted-route-receipt.json> \
+  --authorization-receipt <project-start-authorization-receipt.json> \
+  --controller-handoff-receipt <externally-issued-v248-handoff.json> \
+  --host-execution-id <external-host-execution-id> \
+  --adapter-identity <host-adapter-id> \
+  --adapter-code scripts/v249/runtime_host_adapter.py \
+  > <released-runtime-transition.json>
+./scripts/check.sh --phase release --project-size <small|medium|large> \
+  --source-commit <40-hex> --source-tree <40-hex> \
+  --expected-host-execution-id <external-host-execution-id> \
+  --released-runtime-receipt <released-runtime-transition.json>
+```
 
-- 默认中文说明；英文 README 与中文 README 保持信息等价。
-- 命令、路径、配置键、API 名称保持原文。
-- 不新增未验证的运行时能力描述。
-- 不为小改动引入复杂生成流程；优先使用标准库脚本。
-- 不擅自选择开源 License；发布前由仓库 owner 决定。
+旧 `./scripts/check.sh` 仅是兼容调度入口；V2.49 必须由 route-aware checker 决定实际命令。提交前验证 Skill frontmatter、subagent TOML、版本同步、Current/Replay closure、默认包和受影响测试。正式发行再运行 full regression、release security、boundary、单次 S2、适用 S3 与 S4 readback。
+
+## 风格与状态
+
+- 默认中文；英文 README 与中文 README 信息等价。命令、路径、API、配置键保留原文。
+- 不新增未验证的 runtime 能力，不把结构检查写成行为或宿主证明。
+- 用户可见回复只输出 `任务、成员、进度、结果、Banchmark`，以及恰好二选一的 `下一轮 LOOP` 或 `下一个任务`。
+- `not_run|not_required|blocked|failed|stale|invalid` 保持真实；候选、合并、Release、安装与外部验收不得混写。

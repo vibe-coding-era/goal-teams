@@ -27,16 +27,15 @@
     "external_writes_allowed": {"type": "boolean"},
     "release_mode": {"const": "skill_simple"},
     "approval_model": {
-      "const": "single_human_before_external_write"
+      "enum": [
+        "single_human_before_external_write",
+        "project_start_authorization_reused"
+      ]
     },
     "release_gates": {
-      "const": [
-        "source_freeze",
-        "checks",
-        "package",
-        "isolated_install",
-        "publish"
-      ]
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
     },
     "published_before": {
       "anyOf": [
@@ -78,6 +77,30 @@
     },
     "files_manifest_format": {
       "const": "sha256-mode-size-path-v1"
+    },
+    "required_status_checks": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "development_gate_policy": {"const": "tdd_and_incremental_only"},
+    "release_readiness_policy": {
+      "const": "released_identity_final_full_and_security_once"
+    },
+    "s2_policy": {
+      "const": "single_build_release_versions_no_reproducibility_or_security"
+    },
+    "s3_policy": {
+      "const": "large_release_only_after_current_s1_and_repository_boundary"
+    },
+    "s4_authorization_source": {
+      "const": "project_start_authorization_receipt"
+    },
+    "repository_boundary_gate": {"const": "repository_boundary_compliance"},
+    "runtime_transition_assurance": {"const": "I1_correlated"},
+    "git_transport": {"const": "ssh_only"},
+    "public_asset_map_path": {
+      "const": "references/current/generations/V2.49/contracts/public-asset-map.json"
     },
     "public_scan_baseline": {
       "type": "string",
@@ -127,12 +150,15 @@
   "allOf": [
     {
       "if": {
-        "properties": {"version": {"const": "V2.48"}},
+        "properties": {"version": {"enum": ["V2.48", "V2.49"]}},
         "required": ["version"]
       },
       "then": {
         "required": ["release_mode", "approval_model", "release_gates"],
         "properties": {
+          "release_mode": {},
+          "approval_model": {},
+          "release_gates": {},
           "external_writes_allowed": {"const": false}
         }
       },
@@ -148,7 +174,88 @@
           "public_scan_baseline",
           "close_schema_version",
           "host_acceptance"
-        ]
+        ],
+        "properties": {
+          "protocol_version": {},
+          "candidate_location": {},
+          "goal_teams_work": {},
+          "goal_teams_work_location": {},
+          "owner_run_id": {},
+          "workflow_display_prefix": {},
+          "legacy_recovery_required": {},
+          "public_scan_baseline": {},
+          "close_schema_version": {},
+          "host_acceptance": {}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"version": {"const": "V2.48"}},
+        "required": ["version"]
+      },
+      "then": {
+        "properties": {
+          "approval_model": {"const": "single_human_before_external_write"},
+          "release_gates": {
+            "const": [
+              "source_freeze",
+              "checks",
+              "package",
+              "isolated_install",
+              "publish"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"version": {"const": "V2.49"}},
+        "required": ["version"]
+      },
+      "then": {
+        "required": [
+          "required_status_checks",
+          "development_gate_policy",
+          "release_readiness_policy",
+          "s2_policy",
+          "s3_policy",
+          "s4_authorization_source",
+          "repository_boundary_gate",
+          "runtime_transition_assurance",
+          "git_transport",
+          "public_asset_map_path"
+        ],
+        "properties": {
+          "required_status_checks": {},
+          "development_gate_policy": {},
+          "release_readiness_policy": {},
+          "s2_policy": {},
+          "s3_policy": {},
+          "s4_authorization_source": {},
+          "repository_boundary_gate": {},
+          "runtime_transition_assurance": {},
+          "git_transport": {},
+          "public_asset_map_path": {},
+          "approval_model": {"const": "project_start_authorization_reused"},
+          "release_gates": {
+            "const": [
+              "source_freeze",
+              "release_readiness",
+              "single_build",
+              "repository_boundary_compliance",
+              "large_release_install",
+              "publish"
+            ]
+          },
+          "s2_policy": {
+            "const": "single_build_release_versions_no_reproducibility_or_security"
+          },
+          "s3_policy": {
+            "const": "large_release_only_after_current_s1_and_repository_boundary"
+          }
+        }
       }
     }
   ]

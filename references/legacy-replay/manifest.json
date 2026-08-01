@@ -1,0 +1,70 @@
+{
+  "schema_version": "goal-teams-legacy-replay-manifest-v2.49",
+  "manifest_id": "GT-LEGACY-REPLAY-001",
+  "manifest_state": "isolated_read_only",
+  "network_policy": "deny",
+  "write_policy": "deny_all",
+  "output_status_enum": ["historical_passed", "historical_failed", "replay_unavailable"],
+  "isolation_profile": {
+    "network": "deny",
+    "filesystem_write": "deny",
+    "subprocess": "deny",
+    "environment_inheritance": "deny"
+  },
+  "replays": [
+    {
+      "legacy_version": "V2.36",
+      "artifact_kinds": ["project_route_schema_snapshot", "policy_source_snapshot", "routing_fixture_snapshot"],
+      "schema_paths": ["schemas/v2.36/project-route.schema.json"],
+      "validator_paths": ["scripts/v23/v235_policy.py"],
+      "profile_path": "references/profiles/goal-teams-self-release-v2.36.md",
+      "transitive_dependency_paths": [],
+      "interpreter_and_tool_versions": {
+        "python": "3.11+",
+        "digest": "sha256_raw_file_bytes"
+      },
+      "argv": ["scripts/v249/replay_runner.py", "--legacy-version", "V2.36", "--operation", "content_digest_verify", "--explicit-intent"],
+      "cwd": ".",
+      "network_policy": "deny",
+      "write_policy": "deny_all",
+      "output_schema": {
+        "required": ["legacy_version", "operation", "status", "checked_paths", "errors"],
+        "status_enum": ["historical_passed", "historical_failed", "replay_unavailable"]
+      },
+      "isolation_profile": "digest_only_no_subprocess",
+      "supported_read_only_operations": ["content_digest_verify"],
+      "forbidden_current_routes": ["V249-ROUTE-*"],
+      "fixture_paths": ["tests/v23/fixtures/v236/routing.json"],
+      "expected_replay_status": "historical_passed",
+      "content_digests": [
+        {
+          "path": "schemas/v2.36/project-route.schema.json",
+          "sha256": "f5f250e7f6f4862c9e342b2081c44e45d76580a9a2cfdd1d1955aff6c7fa02b9"
+        },
+        {
+          "path": "references/profiles/goal-teams-self-release-v2.36.md",
+          "sha256": "75e71a6f380b41ee998c2314bb205b731ee593a72c8c541f6cb217fd5d0f8e07"
+        },
+        {
+          "path": "scripts/v23/v235_policy.py",
+          "sha256": "5d548ea664b34723d63f0bb2c1a1020ab2701b801346a97fc4f509148cb0d306"
+        },
+        {
+          "path": "tests/v23/fixtures/v236/routing.json",
+          "sha256": "dca87e0e7b6ac101ba584107bb8b1f96e31bcb8cbe997c896f603f7fe619417b"
+        }
+      ]
+    }
+  ],
+  "optional_replay_allowlist": [
+    "references/legacy-replay/INDEX.md",
+    "references/legacy-replay/manifest.json",
+    "references/profiles/goal-teams-self-release-v2.36.md",
+    "schemas/v2.36/project-route.schema.json",
+    "schemas/v2.49/legacy-replay-manifest.schema.json",
+    "scripts/v23/v235_policy.py",
+    "scripts/v249/replay_runner.py",
+    "tests/v23/fixtures/v236/routing.json"
+  ],
+  "optional_replay_allowlist_digest": "04b191ea778934f3ebe0e14a630e8feae679628549c8e3147dc850f2ad1e5d52"
+}

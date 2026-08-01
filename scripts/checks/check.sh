@@ -6,84 +6,100 @@ export PYTHONDONTWRITEBYTECODE=1
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 
-CHECK_MODE="full"
-if [[ "${1:-}" == "--installed-package" ]]; then
-  CHECK_MODE="installed-package"
-  shift
-fi
-if [[ "$#" -ne 0 ]]; then
-  echo "Usage: scripts/check.sh [--installed-package]" >&2
-  exit 2
-fi
+PHASE="development"
+PROJECT_SIZE="medium"
+CHECK_MODE="source"
+SOURCE_COMMIT=""
+SOURCE_TREE=""
+RELEASED_RUNTIME_RECEIPT=""
+EXPECTED_HOST_EXECUTION_ID=""
 
-if SOURCE_COMMIT="$(git rev-parse HEAD 2>/dev/null)"; then
-  echo "Goal Teams source commit: $SOURCE_COMMIT"
-else
-  echo "Goal Teams source commit: unavailable"
-fi
-
-PYTHON_CANDIDATES=()
-if [[ -n "${PYTHON:-}" ]]; then
-  PYTHON_CANDIDATES+=("$PYTHON")
-fi
-PYTHON_CANDIDATES+=(python3.13 python3.12 python3.11 python3)
-
-PYTHON_BIN=""
-for candidate in "${PYTHON_CANDIDATES[@]}"; do
-  if command -v "$candidate" >/dev/null 2>&1 && "$candidate" - <<'PY' >/dev/null 2>&1; then
-import tomllib
-PY
-    PYTHON_BIN="$candidate"
-    break
-  fi
+while [[ "$#" -gt 0 ]]; do
+  case "$1" in
+    --installed-package)
+      CHECK_MODE="installed-package"
+      shift
+      ;;
+    --phase)
+      PHASE="${2:-}"
+      shift 2
+      ;;
+    --project-size)
+      PROJECT_SIZE="${2:-}"
+      shift 2
+      ;;
+    --source-commit)
+      SOURCE_COMMIT="${2:-}"
+      shift 2
+      ;;
+    --source-tree)
+      SOURCE_TREE="${2:-}"
+      shift 2
+      ;;
+    --released-runtime-receipt)
+      RELEASED_RUNTIME_RECEIPT="${2:-}"
+      shift 2
+      ;;
+    --expected-host-execution-id)
+      EXPECTED_HOST_EXECUTION_ID="${2:-}"
+      shift 2
+      ;;
+    *)
+      echo "Usage: scripts/check.sh [--installed-package] [--phase development|release] [--project-size small|medium|large] [--source-commit SHA] [--source-tree SHA] [--released-runtime-receipt PATH] [--expected-host-execution-id ID]" >&2
+      exit 2
+      ;;
+  esac
 done
 
-if [[ -z "$PYTHON_BIN" ]]; then
-  echo "No Python with tomllib found. Install Python 3.11+ or set PYTHON to a compatible interpreter." >&2
+if [[ "$PHASE" != "development" && "$PHASE" != "release" ]]; then
+  echo "Invalid phase: $PHASE" >&2
+  exit 2
+fi
+if [[ "$PROJECT_SIZE" != "small" && "$PROJECT_SIZE" != "medium" && "$PROJECT_SIZE" != "large" ]]; then
+  echo "Invalid project size: $PROJECT_SIZE" >&2
   exit 2
 fi
 
-"$PYTHON_BIN" scripts/checks/validate.py
-PRODUCT_VERSION="$(<VERSION)"
-PUBLISHED_VERSION="$("$PYTHON_BIN" -c 'import json; print(json.load(open("release/current/manifest.json", encoding="utf-8"))["product_version"])')"
-if [[ "$PRODUCT_VERSION" == "$PUBLISHED_VERSION" ]]; then
-  "$PYTHON_BIN" scripts/checks/check-version-sync.py --mode candidate
-else
-  "$PYTHON_BIN" scripts/checks/check-version-sync.py --mode development --published-version "$PUBLISHED_VERSION"
+PYTHON_BIN="${PYTHON:-python3}"
+if ! command -v "$PYTHON_BIN" >/dev/null 2>&1; then
+  echo "Python 3.11+ is required." >&2
+  exit 2
 fi
-"$PYTHON_BIN" scripts/checks/check-v241-flow.py
-"$PYTHON_BIN" scripts/checks/check-workspace-boundaries.py
-"$PYTHON_BIN" scripts/checks/check-routing-fixtures.py
-"$PYTHON_BIN" scripts/checks/check-agent-names.py
-"$PYTHON_BIN" scripts/checks/check-member-layout.py
-"$PYTHON_BIN" scripts/checks/check-prompt-cache.py
-if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  "$PYTHON_BIN" scripts/checks/check-okf.py --root "$ROOT" --tracked
-  "$PYTHON_BIN" scripts/checks/check-okf.py --root "$ROOT" --preview-package-manifest
-else
-  "$PYTHON_BIN" scripts/checks/check-okf.py --root "$ROOT" --package-tree "$ROOT"
+
+if [[ "$(<VERSION)" != "V2.49" ]]; then
+  echo "This Current checker only accepts VERSION=V2.49." >&2
+  exit 2
 fi
-"$PYTHON_BIN" scripts/checks/check-okf.py --root "$ROOT" --bundle-root examples/canonical-v23
-"$PYTHON_BIN" scripts/checks/check-okf.py --root "$ROOT" --bundle-root examples/mini-goal-run/.codex/goal-teams
-"$PYTHON_BIN" scripts/checks/check-context-budget.py
-"$PYTHON_BIN" scripts/checks/check-progressive-loading.py
-"$PYTHON_BIN" scripts/checks/check-security-fixtures.py
-"$PYTHON_BIN" scripts/checks/validate-test-case-contract.py --self-test
-"$PYTHON_BIN" scripts/checks/validate-verification-governance.py --self-test
-"$PYTHON_BIN" scripts/checks/validate-desktop-engineering.py --self-test
-"$PYTHON_BIN" scripts/checks/validate-v247-flow-test-strategy.py
-"$PYTHON_BIN" scripts/checks/validate-v247-codeagent-runtime.py
-"$PYTHON_BIN" scripts/checks/validate-v247-incremental-document.py
-"$PYTHON_BIN" scripts/checks/validate-v248-agent-development.py
-if [[ -f .github/workflows/check.yml ]]; then
-  "$PYTHON_BIN" scripts/checks/check-ci-pins.py
+
+"$PYTHON_BIN" scripts/checks/validate-v249-generation.py --generation-id V2.49
+"$PYTHON_BIN" scripts/checks/validate-v249-test-gate.py --self-test
+"$PYTHON_BIN" scripts/checks/check-package-manifest.py
+"$PYTHON_BIN" scripts/v249/generate_subagents.py --check
+
+if [[ "$PHASE" == "development" ]]; then
+  "$PYTHON_BIN" -m unittest discover -s tests/v249 -p 'test_*.py'
+  "$PYTHON_BIN" scripts/checks/check-v249.py \
+    --phase development \
+    --project-size "$PROJECT_SIZE" \
+    --stage candidate
+  echo "Goal Teams V2.49 development checks passed (${CHECK_MODE})."
+  exit 0
 fi
-"$PYTHON_BIN" scripts/harness/validate-harness.py --self-test
-"$PYTHON_BIN" scripts/harness/pixel-diff.py --self-test
-"$PYTHON_BIN" scripts/review/compare-artifacts.py --self-test
-"$PYTHON_BIN" scripts/review/validate-dual-review.py --self-test
-if [[ "$CHECK_MODE" == "full" ]]; then
-  GOAL_TEAMS_INSTALL_VALIDATION=1 "$PYTHON_BIN" scripts/checks/check-v23.py
-  "$PYTHON_BIN" scripts/benchmark/benchmark-runner.py --check-only
-  "$PYTHON_BIN" scripts/checks/check-install-lifecycle.py
+
+if [[ -z "$SOURCE_COMMIT" || -z "$SOURCE_TREE" || -z "$RELEASED_RUNTIME_RECEIPT" || -z "$EXPECTED_HOST_EXECUTION_ID" ]]; then
+  echo "Release phase requires --source-commit, --source-tree, --released-runtime-receipt, and --expected-host-execution-id." >&2
+  exit 2
 fi
+
+"$PYTHON_BIN" scripts/checks/check-v249.py \
+  --phase release \
+  --project-size "$PROJECT_SIZE" \
+  --stage released \
+  --release-intent \
+  --implementation-scope-complete \
+  --source-commit "$SOURCE_COMMIT" \
+  --source-tree "$SOURCE_TREE" \
+  --expected-host-execution-id "$EXPECTED_HOST_EXECUTION_ID" \
+  --released-runtime-receipt "$RELEASED_RUNTIME_RECEIPT"
+
+echo "Goal Teams V2.49 final regression and release security review passed (${CHECK_MODE})."

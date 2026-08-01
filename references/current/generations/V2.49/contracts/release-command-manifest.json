@@ -1,0 +1,90 @@
+{
+  "schema_version": "goal-teams-v2.49-release-command-manifest-v1",
+  "generation_id": "V2.49",
+  "development": {
+    "allowed_gate_ids": ["tdd", "incremental"],
+    "release_gate_invocation_limit": 0
+  },
+  "release": {
+    "s1": {
+      "allowed_gate_ids": ["full_regression", "release_security_review"],
+      "invocation_limit_per_gate_per_released_identity": 1,
+      "requires_exact_clean_worktree": true,
+      "current_full_regression_denominator": {
+        "denominator_id": "V249-CURRENT-GENERATION-FULL",
+        "scope": "current_generation_full_regression",
+        "test_root": "tests/v249",
+        "test_pattern": "test_*.py",
+        "freeze_rule": "exact_released_commit_sorted_test_file_path_and_raw_sha256",
+        "test_count_rule": "single_full_regression_observed_discovery_count",
+        "legacy_roots_excluded": ["tests/v23"],
+        "legacy_test_invocation_limit": 0
+      }
+    },
+    "s2": {
+      "allowed_entrypoint": "scripts/release/build-release.py",
+      "output_root": "release/versions",
+      "build_invocation_limit_per_asset_set": 1,
+      "security_check_invocation_limit": 0,
+      "reproducibility_comparison_invocation_limit": 0,
+      "validation_kind": "same_built_asset_frozen_source_and_boundary_integrity",
+      "validation_build_invocation_limit": 0,
+      "validation_reproducibility_claim": false
+    },
+    "repository_boundary": {
+      "allowed_entrypoint": "scripts/v249/repository_boundary.py",
+      "required_after": "s2",
+      "required_before": ["s3", "s4"],
+      "receipt_modes": ["executed_now", "reused_receipt"],
+      "reused_receipt_requires_live_frozen_source_revalidation": true,
+      "asset_build_invocation_limit": 0
+    },
+    "s3": {
+      "allowed_entrypoint": "scripts/install/install-local.sh",
+      "required_project_size": "large",
+      "requires_current_s1": true,
+      "requires_current_repository_boundary": true,
+      "install_report_path_policy": "inside_exact_codex_home",
+      "invocation_limit_per_asset_set": 1
+    },
+    "s4": {
+      "git_transport": "ssh_only",
+      "github_cli_surfaces": ["pull_request", "actions_readback", "ruleset_readback", "release"],
+      "authorization_source": "project_start_authorization_receipt",
+      "release_control_receipt_required": true,
+      "workflow_effect": "authorized_operation_plan_only",
+      "external_write_invocation_count": 0,
+      "continuation_artifact": {
+        "uploader": "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+        "artifact_name_template": "goal-teams-v249-release-${GITHUB_SHA}",
+        "release_root": "release/versions/V2.49",
+        "public_asset_count": 4,
+        "receipt_chain_persisted": true,
+        "downstream_rebuild_invocation_limit": 0
+      },
+      "required_receipt_chain": [
+        "authorization_receipt",
+        "released_runtime_transition",
+        "s0",
+        "full_regression",
+        "release_security_review",
+        "s1",
+        "s2",
+        "asset_integrity_validation",
+        "repository_boundary",
+        "s3",
+        "external_anchor_validation",
+        "s4_preflight"
+      ]
+    }
+  },
+  "forbidden_entrypoints_outside_s1": [
+    "scripts/check.sh",
+    "scripts/checks/check-security-fixtures.py"
+  ],
+  "forbidden_s2_operations": [
+    "second_package_build",
+    "byte_for_byte_reproducibility_comparison",
+    "repository_owned_security_check"
+  ]
+}

@@ -548,7 +548,7 @@ def parse_release_file_manifest(data: bytes, version: str) -> dict[str, dict[str
             if size < 0:
                 raise InstallError(f"E_RELEASE_FILES_SIZE:{number}")
         else:
-            if version in {"V2.40", "V2.44", "V2.45", "V2.46", "V2.48"} or "  " not in line:
+            if version in {"V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49"} or "  " not in line:
                 raise InstallError(f"E_RELEASE_FILES_EXTENDED_REQUIRED:{number}")
             digest, raw_path = line.split("  ", 1)
             git_mode = "100644"
@@ -1073,6 +1073,73 @@ def prepare_release_source() -> list[str]:
 
 
 def compute_prompt_identity(root: Path) -> dict[str, Any]:
+    active_path = root / "references" / "current" / "ACTIVE.json"
+    if active_path.is_file() and not active_path.is_symlink():
+        try:
+            active = json.loads(active_path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise InstallError("E_PROMPT_IDENTITY_ACTIVE") from exc
+        if active.get("generation_id") == "V2.49":
+            generation_path = root / "scripts" / "v249" / "generation_runtime.py"
+            closure_path = root / "scripts" / "v249" / "route_closure.py"
+            if any(
+                not path.is_file() or path.is_symlink()
+                for path in (generation_path, closure_path)
+            ):
+                raise InstallError("E_PROMPT_IDENTITY_RUNTIME")
+            generation_module = load_python_module(
+                f"_goalteams_install_generation_{stamp}", generation_path
+            )
+            closure_module = load_python_module(
+                f"_goalteams_install_route_{stamp}", closure_path
+            )
+            try:
+                generation = generation_module.load_generation(root)
+                closure = closure_module.compile_route_closure(
+                    root,
+                    generation,
+                    route_id="V249-ROUTE-STARTUP",
+                )
+            except (OSError, TypeError, ValueError, RuntimeError) as exc:
+                raise InstallError("E_PROMPT_IDENTITY_INVALID") from exc
+            if (
+                generation.get("activation_digest_verified") is not True
+                or closure.get("legacy_intersection")
+            ):
+                raise InstallError("E_PROMPT_IDENTITY_BUDGET")
+            ordered_refs = closure.get("loaded_paths", [])
+            prefix_digest = str(generation.get("activation_manifest_sha256") or "")
+            route_digest = str(generation.get("prompt_manifest_sha256") or "")
+            if not SHA256_RE.fullmatch(prefix_digest) or not SHA256_RE.fullmatch(route_digest):
+                raise InstallError("E_PROMPT_IDENTITY_INVALID")
+            stable_digest = sha256_bytes(
+                json.dumps(ordered_refs, sort_keys=True, separators=(",", ":")).encode("utf-8")
+            )
+            runtime_digest = sha256_bytes(
+                json.dumps(
+                    {
+                        "generation_id": "V2.49",
+                        "activation_manifest_sha256": prefix_digest,
+                        "prompt_manifest_sha256": route_digest,
+                        "route_id": "V249-ROUTE-STARTUP",
+                        "loaded_paths": ordered_refs,
+                    },
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ).encode("utf-8")
+            )
+            return {
+                "passed": True,
+                "prompt_identity_version": "goal-teams-prompt-identity-v2.49",
+                "route_id": "V249-ROUTE-STARTUP",
+                "ordered_refs": ordered_refs,
+                "prefix_manifest_sha256": prefix_digest,
+                "route_static_digest": route_digest,
+                "manifest_status": "verified",
+                "digest_scope": "active_generation_and_route_closure",
+                "stable_prefix_digest": stable_digest,
+                "runtime_prompt_digest": runtime_digest,
+            }
     module_path = root / "scripts" / "v23" / "prompt_cache.py"
     if not module_path.is_file() or module_path.is_symlink():
         raise InstallError("E_PROMPT_IDENTITY_RUNTIME")
@@ -1347,18 +1414,50 @@ def validation_environment() -> dict[str, str]:
 
 
 def validate_skill(root: Path, phase: str) -> None:
-    checker = root / "scripts" / "check.sh"
-    if not checker.is_file():
+    active_path = root / "references" / "current" / "ACTIVE.json"
+    use_v249 = False
+    if active_path.is_file() and not active_path.is_symlink():
+        try:
+            use_v249 = (
+                json.loads(active_path.read_text(encoding="utf-8")).get("generation_id")
+                == "V2.49"
+            )
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise InstallError(f"E_VALIDATION_ACTIVE:{phase}") from exc
+    checker = (
+        root / "scripts" / "checks" / "check-v249.py"
+        if use_v249
+        else root / "scripts" / "check.sh"
+    )
+    if not checker.is_file() or checker.is_symlink():
         raise InstallError(f"E_VALIDATION_ENTRY:{phase}")
+    argv = (
+        [
+            sys.executable,
+            str(checker),
+            "--phase",
+            "development",
+            "--project-size",
+            "medium",
+            "--stage",
+            "candidate",
+        ]
+        if use_v249
+        else [str(checker), "--installed-package"]
+    )
     result = run(
-        [str(checker), "--installed-package"],
+        argv,
         cwd=root,
         env=validation_environment(),
     )
     combined = (result.stdout + result.stderr).encode("utf-8", errors="replace")
     validation_results.append({
         "phase": phase,
-        "command": "scripts/check.sh --installed-package",
+        "command": (
+            "scripts/checks/check-v249.py --phase development"
+            if use_v249
+            else "scripts/check.sh --installed-package"
+        ),
         "exit_code": result.returncode,
         "output_sha256": sha256_bytes(combined),
         "status": "passed" if result.returncode == 0 else "failed",
@@ -1380,7 +1479,11 @@ def validate_skill(root: Path, phase: str) -> None:
         raise InstallError(f"E_PROMPT_IDENTITY_DRIFT:{phase}")
     validation_results.append({
         "phase": f"prompt_identity_{phase}",
-        "command": "scripts/v23/prompt_cache.py:installed_startup",
+        "command": (
+            "scripts/v249/generation_runtime.py:V249-ROUTE-STARTUP"
+            if use_v249
+            else "scripts/v23/prompt_cache.py:installed_startup"
+        ),
         "exit_code": 0,
         "status": "passed",
         "prefix_manifest_sha256": prompt_identity["prefix_manifest_sha256"],
@@ -1424,7 +1527,7 @@ def copy_package(selected: list[str], destination: Path) -> None:
 def generate_okf_manifest(stage: Path) -> None:
     if generated_paths != {OKF_GENERATED_PATH}:
         raise InstallError("E_PACKAGE_MANIFEST_GENERATED")
-    runtime_path = stage / "scripts" / "v23" / "okf_conformance.py"
+    runtime_path = stage / "scripts" / "v249" / "okf_conformance.py"
     checker_path = stage / "scripts" / "checks" / "check-okf.py"
     if (
         not runtime_path.is_file()

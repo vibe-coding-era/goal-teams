@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.49/rule-manifest.schema.json",
+  "title": "Goal Teams V2.49 derived rule index",
+  "type": "object",
+  "required": ["schema_version", "generation_id", "manifest_state", "semantic_source", "source_digest_algorithm", "owners"],
+  "properties": {
+    "schema_version": {"const": "goal-teams-rule-manifest-v2.49"},
+    "generation_id": {"const": "V2.49"},
+    "manifest_state": {"const": "derived_projection"},
+    "semantic_source": {"const": "owner_markdown_only"},
+    "source_digest_algorithm": {"const": "sha256_raw_file_bytes"},
+    "owners": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/owner"}
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "repoPath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)[^\\u0000]+$"
+    },
+    "stableId": {"type": "string", "pattern": "^[A-Z][A-Z0-9-]+$"},
+    "owner": {
+      "type": "object",
+      "required": ["owner_id", "owner_kind", "path", "source_sha256", "dependencies", "route_membership", "owned_rule_ids"],
+      "properties": {
+        "owner_id": {"$ref": "#/$defs/stableId"},
+        "owner_kind": {"enum": ["core", "routing", "assurance", "function", "contract"]},
+        "path": {"$ref": "#/$defs/repoPath"},
+        "source_sha256": {"$ref": "#/$defs/sha256"},
+        "dependencies": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/stableId"}},
+        "route_membership": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^V249-ROUTE-[A-Z0-9-]+$"}},
+        "owned_rule_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^GT249-[A-Z0-9-]+$"}}
+      },
+      "additionalProperties": false
+    }
+  }
+}

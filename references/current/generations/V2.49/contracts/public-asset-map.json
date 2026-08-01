@@ -1,0 +1,29 @@
+{
+  "schema_version": "goal-teams-v2.49-public-asset-map-v1",
+  "version": "V2.49",
+  "asset_count": 4,
+  "assets": [
+    {
+      "name": "goal-teams-V2.49.tar.gz",
+      "path": "release/versions/V2.49/_artifacts/goal-teams-V2.49.tar.gz",
+      "kind": "skill_archive"
+    },
+    {
+      "name": "SHA256SUMS",
+      "path": "release/versions/V2.49/_artifacts/SHA256SUMS",
+      "kind": "archive_checksum"
+    },
+    {
+      "name": "_release.json",
+      "path": "release/versions/V2.49/_release.json",
+      "kind": "release_identity"
+    },
+    {
+      "name": "_files.sha256",
+      "path": "release/versions/V2.49/_files.sha256",
+      "kind": "payload_manifest"
+    }
+  ],
+  "source_root": "release/versions/V2.49",
+  "additional_public_assets_allowed": false
+}

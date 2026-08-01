@@ -1,0 +1,24 @@
+# Goal Teams install package allowlist: product V2.48, core policy V2.5, legacy data schema V2.3.
+# `file`/`prefix` select Git-tracked payload; `generated` declares the one
+# required staged asset, which must not exist in the frozen source tree.
+file AGENTS.md
+file .gitignore
+file README.en.md
+file README.md
+file RULES.md
+file SKILL.md
+file VERSION
+file goal-teams.md
+prefix agents/
+prefix benchmarks/
+prefix examples/
+prefix prompts/
+file release/current/README.md
+file release/current/manifest.json
+prefix references/
+generated references/okf-conformance-manifest.json
+prefix schemas/
+file scripts/checks/check-ci-pins.py
+prefix scripts/
+prefix subagents/
+prefix tests/v23/

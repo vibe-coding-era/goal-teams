@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.49/baseline-activation-manifest.schema.json",
+  "title": "Goal Teams isolated rollback baseline activation manifest",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generation_id",
+    "generation_state",
+    "manifest_payload_sha256",
+    "source_commit",
+    "source_tree",
+    "captured_at",
+    "snapshot_root",
+    "loaded_rule_bytes",
+    "loaded_path_deduplication_rule",
+    "byte_count_algorithm",
+    "rollback_supported",
+    "semantic_owner_paths",
+    "execution_identity_paths",
+    "subagent_config_digests",
+    "source_paths"
+  ],
+  "properties": {
+    "schema_version": {"const": "goal-teams-baseline-activation-manifest-v2.49"},
+    "generation_id": {"const": "V2.48"},
+    "generation_state": {"const": "baseline_rollback_only"},
+    "manifest_payload_sha256": {"$ref": "#/$defs/sha256"},
+    "source_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "source_tree": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "captured_at": {"type": "string", "minLength": 1},
+    "snapshot_root": {"const": "references/legacy-replay/generations/V2.48/snapshot"},
+    "loaded_rule_bytes": {"type": "integer", "minimum": 1},
+    "loaded_path_deduplication_rule": {"const": "repo_relative_posix_path_first_occurrence"},
+    "byte_count_algorithm": {"const": "sum_raw_file_bytes_after_path_deduplication"},
+    "rollback_supported": {"const": true},
+    "semantic_owner_paths": {"$ref": "#/$defs/digestedPaths"},
+    "execution_identity_paths": {"$ref": "#/$defs/digestedPaths"},
+    "subagent_config_digests": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"$ref": "#/$defs/sha256"}
+    },
+    "source_paths": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"$ref": "#/$defs/repoPath"}
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "repoPath": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)[^\\u0000]+$"},
+    "digestedPath": {
+      "type": "object",
+      "required": ["path", "sha256", "bytes"],
+      "properties": {
+        "path": {"$ref": "#/$defs/repoPath"},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "bytes": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "digestedPaths": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/digestedPath"}}
+  }
+}

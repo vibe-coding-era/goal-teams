@@ -8,12 +8,12 @@
 当前发行：**V2.48** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.48) · [发行说明](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-V2.48 使用面向 Skill 包的五步简单发行流程；发布包不携带本地过程资料。
-本仓库作为 Skill 包采用五步简单发行：本地验证无需预批准，外部发布前只需一次明确确认。
+V2.49 当前是待发布候选：它将 Current 与 Legacy Replay 隔离，并按功能模板加载规则。Medium/Large 开发期只阻断 TDD 与受影响面增量验证，全部实现完成且准备 Release 时才运行全量回归和安全审核。
+每个 exact released asset set 的 S2 只构建一次；S3 只用于 Large Release。外部写入在项目开始一次授权，GitHub Git remote 统一使用 SSH。
 
-当前版本：`V2.48`
+当前版本：`V2.49`
 
-Goal Teams 是一个跨 CodeAgent 的团队协作 Skill，Codex 是当前可用宿主之一。它会以一个 Goal Lead 的身份，把一个目标拆成可验证的计划，再协调多个独立成员完成需求、设计、实现、测试、证据记录和收尾审计。V2.48 新增可组合的 Agent 产品开发资料和独立 Agent 产品经理；既有八类宿主合同仍需各宿主实测才能成为完整 adapter。过程中会应用到：
+Goal Teams 是一个跨 CodeAgent 的团队协作 Skill，Codex 是当前可用宿主之一。它会以一个 Goal Lead 的身份，把目标拆成可验证计划，再协调独立成员完成需求、设计、实现、测试、Evidence 和收尾审计。V2.49 用薄 Bootstrap、Current generation 和显式 Replay 降低历史规则对当前任务的影响；宿主能力仍须真实 runtime Evidence 才能声明完整 adapter。过程中会应用到：
 - 应用Goal + Plan + Loop 模式
 - 构建和严格遵循 SPEC + Harness + SSOT 三大原则
 - 不同角色使用不同的 subagent（不同上下文执行）保持上下文独立性不被污染
@@ -114,7 +114,7 @@ flowchart TD
 安装到本地 Codex skills 目录：
 
 ```bash
-git clone https://github.com/vibe-coding-era/goal-teams.git ~/.codex/skills/goal-teams
+git clone git@github.com:vibe-coding-era/goal-teams.git ~/.codex/skills/goal-teams
 ```
 
 从本仓库安装或更新本地副本：
@@ -123,26 +123,49 @@ git clone https://github.com/vibe-coding-era/goal-teams.git ~/.codex/skills/goal
 ./scripts/install-local.sh --update-team-fallback
 ```
 
-维护或发布前运行检查：
+开发期运行 TDD 与 Current 增量检查：
 
 ```bash
-./scripts/check.sh
+./scripts/check.sh --phase development --project-size medium
 ```
 
-路由规则的独立确定性入口为 `scripts/checks/check-routing-fixtures.py`（兼容入口：`scripts/check-routing-fixtures.py`）。
-
-`./scripts/check.sh` 只覆盖确定性 contract/mutation gate，不构成真实 Behavior 发布证据。发布 RC 前在源码仓库外选择一个全新、持久目录，运行 9 场景隔离盲测，再把 summary 交给组合门禁：
+全部实现完成、冻结 exact released commit/tree 后，先由 fresh process 生成绑定 Current
+prompt、route、项目起始授权与 host adapter 的真实 runtime receipt，再运行最终全量回归与独立安全审核：
 
 ```bash
-BLIND_OUTPUT=/absolute/path/outside/goal-teams/blind-v23-<run-id>
-python3 scripts/benchmark/benchmark-runner.py --mode blind-agent --release-gate \
-  --manifest tests/v23/fixtures/behavior/blind-agent-codex.json \
-  --output-dir "$BLIND_OUTPUT"
-python3 scripts/v23/goalteams_v23.py release-gate examples/canonical-v23 \
-  --mode rc --blind-summary "$BLIND_OUTPUT/summary.json"
+EVIDENCE_DIR=docs/v2.49-release-runtime
+mkdir -p "$EVIDENCE_DIR"
+SOURCE_COMMIT="$(git rev-parse 'HEAD^{commit}')"
+SOURCE_TREE="$(git rev-parse "${SOURCE_COMMIT}^{tree}")"
+ROUTE_RECEIPT="$EVIDENCE_DIR/large-release-route.json"
+RUNTIME_RECEIPT="$EVIDENCE_DIR/released-runtime-transition.json"
+S1_CHECK_RECEIPT="$EVIDENCE_DIR/s1-check-result.json"
+AUTH_RECEIPT=docs/v2.49-execution/versions/V2.49/evidence/project-start-authorization-receipt.json
+HANDOFF_RECEIPT="${HANDOFF_RECEIPT:?请提供由已安装 V2.48 Codex 宿主签发的 handoff receipt}"
+HOST_EXECUTION_ID="${HOST_EXECUTION_ID:?请提供外部宿主 execution ID}"
+PYTHON_BIN="$(python3 -c 'import pathlib,sys; print(pathlib.Path(sys.executable).resolve())')"
+
+"$PYTHON_BIN" -c 'import json, pathlib, sys; from scripts.v249.generation_runtime import load_generation; from scripts.v249.route_closure import compile_route_closure; root=pathlib.Path(".").resolve(); pathlib.Path(sys.argv[1]).write_text(json.dumps(compile_route_closure(root, load_generation(root), "V249-ROUTE-LARGE-RELEASE"), ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8")' "$ROUTE_RECEIPT"
+
+"$PYTHON_BIN" scripts/v249/runtime_host_adapter.py launch \
+  --stage released --source-commit "$SOURCE_COMMIT" --source-tree "$SOURCE_TREE" \
+  --project-size large --route-receipt "$ROUTE_RECEIPT" \
+  --authorization-receipt "$AUTH_RECEIPT" \
+  --controller-handoff-receipt "$HANDOFF_RECEIPT" \
+  --host-execution-id "$HOST_EXECUTION_ID" \
+  --adapter-identity local-external-runtime-host \
+  --adapter-code scripts/v249/runtime_host_adapter.py > "$RUNTIME_RECEIPT"
+
+./scripts/check.sh --phase release --project-size large \
+  --source-commit "$SOURCE_COMMIT" --source-tree "$SOURCE_TREE" \
+  --expected-host-execution-id "$HOST_EXECUTION_ID" \
+  --released-runtime-receipt "$RUNTIME_RECEIPT" > "$S1_CHECK_RECEIPT"
 ```
 
-该盲测会调用当前环境解析并按 hash 锁定的 Codex CLI，信任级别为 `local_process_attested`，不等于远程模型或代码签名证明；mock/fixture、旧目录、非唯一官方 manifest、缺场景或缺 summary 均不能满足 RC。组合门禁会从固定 `output.txt`/trace/evidence 重评分，并在同一调用内执行完整 `scripts/check.sh`。GA 的本地 License 文件只算 proposal，仍需仓库外可信 owner attestation。
+`controller-handoff-receipt` 只能由已安装的 V2.48 Codex 宿主在仓库外签发；仓库代码不得生成。
+它以固定 owner SSH 公钥绑定真实 previous run、一次性 nonce、授权与 exact commit/tree。adapter 在
+获得真实 child PID 后才经 stdin 发送 launch receipt，并校验 child ack。上述 I1 receipt 仍只证明
+相关进程与签名 handoff 的绑定，不证明外部独立性；`S1_CHECK_RECEIPT` 只关闭 S0/S1，不等于 Release 完成。
 
 手动复制 subagents：
 
@@ -183,7 +206,7 @@ Use $goal-teams。
 显式调用 Goal Teams 或当前会话首次需要建立身份时汇报；已有完整上下文时不重复：
 
 ```text
-我是 Goal Teams Lead V2.48。
+我是 Goal Teams Lead V2.49。
 ```
 
 中文核心模型要点提示词：用户沟通和治理文档默认中文；代码、注释、测试名、fixture 和产品字符串遵循目标仓库约定；代码标识、命令、路径、API 名称、配置键、subagent ID 和精确引用保留原文。
@@ -299,7 +322,7 @@ GoalTeamsWork-<project_version>/
 | 10. 分级 Review 与完成审计 | 脚本检查机械事实，LLM Reviewer 检查语义和风险；最后由独立 Completion Auditor 判断闭环 | Required 任务、当前 Evidence 和最终审计全部通过，才能 `achieved` |
 | 11. 长任务 LOOP 与恢复 | 使用 `Gather → Reason → Act → Verify → Repeat`；支持 `continue / replan / stop`、四文件状态、CAS 和中断恢复 | 验证失败时补缺或重规划；状态不一致时失败关闭，不猜测继续 |
 | 12. 安全、预算与失败治理 | 管理凭证、破坏性操作、外部写入、预算、冲突、脱敏和不可信内容 | 可在任何阶段阻断流程；明确区分 `failed / blocked / partial` |
-| 13. 迁移、安装与发布治理 | 支持旧版本扫描迁移、原子安装、备份、回滚、卸载；普通 Skill 使用五步简单发行 | 本地验证无需预批准；外部发布前取得一次明确确认 |
+| 13. 迁移、安装与发布治理 | Current/Replay 隔离、原子安装、备份、回滚、卸载；S2 单次构建、S3 Large-only | 项目开始一次授权；锁定范围内不重复询问，Git remote 只用 SSH |
 | 14. Benchmark 与质量改进 | 对比不同 Prompt、Skill 版本和执行方式；记录评分、失败类型、分歧、回归与瓶颈 | 位于主交付流程之外，用于判断流程是否真的改进 |
 
 ## 设计依据和出处
@@ -327,7 +350,7 @@ GoalTeamsWork-<project_version>/
 
 ## License
 
-当前仓库还没有声明开源 License。owner 应先明确选择 License 或内部共享协议；该本地决定仅是 proposal，GA 授权还必须有仓库外可信 host/signature attestation，当前技术交付最多到 RC。
+当前仓库没有声明开源 License。V2.49 GitHub Release 是版本化分发快照，不构成开源许可或额外权利授予；License 仍由 repository owner 另行决定。
 
 ## V2.44 版本改动
 
@@ -348,6 +371,13 @@ GoalTeamsWork-<project_version>/
 - 新增可追溯测试合同、按风险路由的 Grill me 和对抗式测试，继续复用 V2.44 API/E2E 合同且不缩小风险分母。
 - 新增按能力派生的 Rust/Tauri 桌面工程合同：前端将“百分百复刻”拆成覆盖完整、同环境像素零差异、高保真与原生语义；PRD-only 先形成可独立批准的 HTML 基线。
 - Rust 后端统一 crate/module DAG、typed IPC、错误/并发/持久化/安全和 fmt/clippy/test 门；桌面测试按不可变 platform tuple 区分 L1 Rust、L2 mock/browser、L3 真实应用和 L4 生产包，并用外部冻结的 candidate/environment SSOT 约束 Evidence，macOS 不再用 browser 或 direct `tauri-driver` 冒充客户端 Evidence。
+
+## V2.49 版本改动
+
+- 新增 digest-bound `ACTIVE.json` 与不可变 Current generation；默认 route、Prompt closure 和安装包不加载 Legacy，历史合同只通过显式 Replay manifest/runner 使用。
+- 规则按需求、架构实现、测试、UI/桌面、Agent runtime、发行操作六类功能模板组织；用户输出收敛为五个固定字段加二选一末字段。
+- 测试门禁固定为 `RiskDenominator -> TestCase -> TestRunReceipt -> TestReviewReceipt`；Medium/Large 开发期只运行 TDD 与增量，最终 Release 才运行全量回归和独立安全审核。
+- 取消 S2 第二次确定性构建与 S2 安全检查；S3 仅 Large Release；S4 复用项目开始授权，GitHub Git transport 强制 SSH 并做 exact readback。
 
 ## V2.48 版本改动
 

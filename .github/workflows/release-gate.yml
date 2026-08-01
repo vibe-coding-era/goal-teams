@@ -1,17 +1,38 @@
-name: Goal Teams V2.48 Skill verification
-run-name: Goal Teams V2.48 Skill verification ${{ github.sha }}
+name: Goal Teams V2.49 phase-aware verification
+run-name: Goal Teams V2.49 phase-aware verification ${{ github.sha }}
 
 on:
   push:
-    branches: [main, codex/v2.48-release]
+    branches: [main, codex/v2.49-simplification]
   pull_request:
   workflow_dispatch:
+    inputs:
+      workflow_phase:
+        description: Development never enters S0-S4; release is exact-main only.
+        required: true
+        type: choice
+        default: development
+        options: [development, release]
+      project_size:
+        description: S3 is executed only for a Large Release.
+        required: true
+        type: choice
+        default: medium
+        options: [small, medium, large]
+      project_start_authorization_receipt_json:
+        description: Complete V2.49 project-start authorization receipt JSON; required only for release.
+        required: false
+        type: string
+      controller_handoff_receipt_json:
+        description: Externally issued and V2.48 host-signed controller handoff JSON; required only for release.
+        required: false
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: goal-teams-v248-release-${{ github.ref }}
+  group: goal-teams-v249-${{ github.ref }}-${{ inputs.workflow_phase || 'development' }}
   cancel-in-progress: false
 
 jobs:
@@ -20,58 +41,429 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 25
     steps:
+      - name: Require checkout SSH key
+        env:
+          CHECKOUT_SSH_KEY: ${{ secrets.GOAL_TEAMS_CHECKOUT_SSH_KEY }}
+        run: |
+          test -n "${CHECKOUT_SSH_KEY}" || {
+            echo "E_V249_CHECKOUT_SSH_KEY_REQUIRED" >&2
+            exit 1
+          }
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+          ssh-key: ${{ secrets.GOAL_TEAMS_CHECKOUT_SSH_KEY }}
+          persist-credentials: false
+      - name: Assert exact SSH fetch and push transport
+        run: |
+          expected="git@github.com:${GITHUB_REPOSITORY}.git"
+          test "$(git remote get-url origin)" = "${expected}"
+          test "$(git remote get-url --push origin)" = "${expected}"
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: '3.11'
-      - name: Full deterministic gate
+      - name: Prepare pinned Draft 2020 validator outside the worktree
         env:
-          GOAL_TEAMS_INSTALL_VALIDATION: '1'
+          VALIDATOR_PYTHON_PREFIX: ${{ runner.temp }}/goal-teams-v249-python
+        run: |
+          python3 -m pip install \
+            --target "${VALIDATOR_PYTHON_PREFIX}" \
+            --no-compile \
+            --no-cache-dir \
+            jsonschema==4.23.0
+          PYTHONPATH="${VALIDATOR_PYTHON_PREFIX}" python3 -c \
+            'from jsonschema import Draft202012Validator'
+          echo "PYTHONPATH=${VALIDATOR_PYTHON_PREFIX}${PYTHONPATH:+:${PYTHONPATH}}" >> "${GITHUB_ENV}"
+      - name: Development TDD and incremental gate
+        env:
           PYTHONDONTWRITEBYTECODE: '1'
-        run: ./scripts/check.sh
+        run: |
+          python3 -m unittest discover -s tests/v249 -p 'test_*.py'
+          python3 scripts/checks/check-v249.py --phase development --project-size medium --stage candidate
 
   release-asset-gate:
     name: release-asset-gate
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
+      - name: Require checkout SSH key
+        env:
+          CHECKOUT_SSH_KEY: ${{ secrets.GOAL_TEAMS_CHECKOUT_SSH_KEY }}
+        run: |
+          test -n "${CHECKOUT_SSH_KEY}" || {
+            echo "E_V249_CHECKOUT_SSH_KEY_REQUIRED" >&2
+            exit 1
+          }
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 0
+          ssh-key: ${{ secrets.GOAL_TEAMS_CHECKOUT_SSH_KEY }}
+          persist-credentials: false
+      - name: Assert exact SSH fetch and push transport
+        run: |
+          expected="git@github.com:${GITHUB_REPOSITORY}.git"
+          test "$(git remote get-url origin)" = "${expected}"
+          test "$(git remote get-url --push origin)" = "${expected}"
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: '3.11'
-      - name: Detect whether the V2.48 release gate applies
+      - name: Prepare pinned Draft 2020 validator outside the worktree
+        env:
+          VALIDATOR_PYTHON_PREFIX: ${{ runner.temp }}/goal-teams-v249-python
+        run: |
+          python3 -m pip install \
+            --target "${VALIDATOR_PYTHON_PREFIX}" \
+            --no-compile \
+            --no-cache-dir \
+            jsonschema==4.23.0
+          PYTHONPATH="${VALIDATOR_PYTHON_PREFIX}" python3 -c \
+            'from jsonschema import Draft202012Validator'
+          echo "PYTHONPATH=${VALIDATOR_PYTHON_PREFIX}${PYTHONPATH:+:${PYTHONPATH}}" >> "${GITHUB_ENV}"
+      - name: Detect the explicit V2.49 workflow phase
         id: release-version
         run: |
           product_version="$(tr -d '[:space:]' < VERSION)"
-          if [ "${product_version}" = "V2.48" ]; then
-            echo "build=true" >> "${GITHUB_OUTPUT}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.workflow_phase }}" = "release" ] && [ "${product_version}" = "V2.49" ]; then
+            echo "release=true" >> "${GITHUB_OUTPUT}"
           else
-            echo "build=false" >> "${GITHUB_OUTPUT}"
-            echo "V2.48 release asset gate is not applicable to product ${product_version}."
+            echo "release=false" >> "${GITHUB_OUTPUT}"
+            echo "Candidate/development run: S0-S4 and asset construction are not required."
           fi
-      - name: Build twice from the exact candidate commit
-        if: steps.release-version.outputs.build == 'true'
+      - name: Validate development contracts without release gates
+        if: steps.release-version.outputs.release != 'true'
+        run: python3 scripts/checks/check-v249.py --phase development --project-size medium --stage candidate
+      - name: Require exact clean released main identity
+        if: steps.release-version.outputs.release == 'true'
+        run: |
+          test "${GITHUB_REF}" = "refs/heads/main"
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+          git diff --quiet "${GITHUB_SHA}" --
+          git diff --cached --quiet "${GITHUB_SHA}" --
+      - name: Materialize the existing project-start authorization receipt
+        if: steps.release-version.outputs.release == 'true'
+        env:
+          AUTHORIZATION_RECEIPT_JSON: ${{ inputs.project_start_authorization_receipt_json }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          raw = os.environ.get("AUTHORIZATION_RECEIPT_JSON", "")
+          value = json.loads(raw)
+          if not isinstance(value, dict):
+              raise SystemExit("project-start authorization receipt must be an object")
+          Path(os.environ["RUNNER_TEMP"], "authorization.json").write_text(
+              json.dumps(value, ensure_ascii=False, sort_keys=True), encoding="utf-8"
+          )
+          PY
+      - name: Materialize the externally issued V2.48 controller handoff
+        if: steps.release-version.outputs.release == 'true'
+        env:
+          CONTROLLER_HANDOFF_RECEIPT_JSON: ${{ inputs.controller_handoff_receipt_json }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          raw = os.environ.get("CONTROLLER_HANDOFF_RECEIPT_JSON", "")
+          value = json.loads(raw)
+          if not isinstance(value, dict):
+              raise SystemExit("E_V249_CONTROLLER_HANDOFF_REQUIRED")
+          Path(os.environ["RUNNER_TEMP"], "controller-handoff.json").write_text(
+              json.dumps(
+                  value,
+                  ensure_ascii=False,
+                  sort_keys=True,
+                  separators=(",", ":"),
+              )
+              + "\n",
+              encoding="utf-8",
+          )
+          PY
+      - name: Materialize the exact trusted Release route receipt
+        if: steps.release-version.outputs.release == 'true'
+        env:
+          PROJECT_SIZE: ${{ inputs.project_size }}
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          from scripts.v249.generation_runtime import load_generation
+          from scripts.v249.route_closure import compile_route_closure
+
+          route_id = {
+              "small": "V249-ROUTE-MEDIUM-RELEASE",
+              "medium": "V249-ROUTE-MEDIUM-RELEASE",
+              "large": "V249-ROUTE-LARGE-RELEASE",
+          }.get(os.environ["PROJECT_SIZE"])
+          if route_id is None:
+              raise SystemExit("E_V249_WORKFLOW_RELEASE_ROUTE")
+          root = Path.cwd()
+          receipt = compile_route_closure(root, load_generation(root), route_id)
+          Path(os.environ["RUNNER_TEMP"], "release-route-receipt.json").write_text(
+              json.dumps(
+                  receipt,
+                  ensure_ascii=False,
+                  sort_keys=True,
+                  separators=(",", ":"),
+              )
+              + "\n",
+              encoding="utf-8",
+          )
+          PY
+      - name: Verify the pinned GitHub owner public key before host launch
+        if: steps.release-version.outputs.release == 'true'
+        run: |
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --header 'Accept: application/vnd.github+json' \
+            --header 'X-GitHub-Api-Version: 2022-11-28' \
+            https://api.github.com/users/vibe-coding-era/keys \
+            > "${RUNNER_TEMP}/github-owner-keys.json"
+          python3 scripts/v249/runtime_host_adapter.py verify-github-key \
+            --github-keys "${RUNNER_TEMP}/github-owner-keys.json" \
+            > "${RUNNER_TEMP}/github-owner-key-validation.json"
+      - name: Launch fresh released runtime through the external host adapter before S0
+        if: steps.release-version.outputs.release == 'true'
         env:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
-          python3 scripts/release/build-release.py --version V2.48 --commit "${GITHUB_SHA}" --source-ref "${GITHUB_REF}" --output-root "${RUNNER_TEMP}/release-a"
-          python3 scripts/release/build-release.py --version V2.48 --commit "${GITHUB_SHA}" --source-ref "${GITHUB_REF}" --output-root "${RUNNER_TEMP}/release-b"
-          diff -rq "${RUNNER_TEMP}/release-a/V2.48" "${RUNNER_TEMP}/release-b/V2.48"
-      - name: Independently validate both isolated release trees
-        if: steps.release-version.outputs.build == 'true'
+          python3 scripts/v249/runtime_host_adapter.py launch \
+            --stage released \
+            --source-commit "${GITHUB_SHA}" \
+            --source-tree "$(git rev-parse "${GITHUB_SHA}^{tree}")" \
+            --project-size "${{ inputs.project_size }}" \
+            --route-receipt "${RUNNER_TEMP}/release-route-receipt.json" \
+            --authorization-receipt "${RUNNER_TEMP}/authorization.json" \
+            --controller-handoff-receipt "${RUNNER_TEMP}/controller-handoff.json" \
+            --host-execution-id "${GITHUB_RUN_ID}" \
+            --adapter-identity github-actions-release-host-adapter \
+            --adapter-code scripts/v249/runtime_host_adapter.py \
+            > "${RUNNER_TEMP}/released-runtime-transition.json"
+      - name: Run exact Current full regression and separate-process security review once
+        if: steps.release-version.outputs.release == 'true'
         env:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
-          python3 scripts/release/validate-release.py --version V2.48 --release-root "${RUNNER_TEMP}/release-a" --isolated-no-docs-archive
-          python3 scripts/release/validate-release.py --version V2.48 --release-root "${RUNNER_TEMP}/release-b" --isolated-no-docs-archive
-      - name: Verify fixed four-asset identity
-        if: steps.release-version.outputs.build == 'true'
+          python3 scripts/checks/check-v249.py \
+            --phase release \
+            --project-size "${{ inputs.project_size }}" \
+            --stage released \
+            --release-intent \
+            --implementation-scope-complete \
+            --source-commit "${GITHUB_SHA}" \
+            --source-tree "$(git rev-parse "${GITHUB_SHA}^{tree}")" \
+            --expected-host-execution-id "${GITHUB_RUN_ID}" \
+            --released-runtime-receipt "${RUNNER_TEMP}/released-runtime-transition.json" \
+            > "${RUNNER_TEMP}/s1-check.json"
+      - name: Build the exact released asset set once
+        if: steps.release-version.outputs.release == 'true'
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
         run: |
-          test -f "${RUNNER_TEMP}/release-a/V2.48/_artifacts/goal-teams-V2.48.tar.gz"
-          test -f "${RUNNER_TEMP}/release-a/V2.48/_artifacts/SHA256SUMS"
-          test -f "${RUNNER_TEMP}/release-a/V2.48/_release.json"
-          test -f "${RUNNER_TEMP}/release-a/V2.48/_files.sha256"
-          cd "${RUNNER_TEMP}/release-a/V2.48/_artifacts"
+          python3 scripts/release/build-release.py \
+            --version V2.49 \
+            --commit "${GITHUB_SHA}" \
+            --source-ref "${GITHUB_REF}" \
+            --output-root release/versions \
+            > "${RUNNER_TEMP}/s2-build.json"
+      - name: Validate frozen-source integrity of the same built asset set
+        if: steps.release-version.outputs.release == 'true'
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 scripts/release/skill_release.py validate \
+            --version V2.49 \
+            --commit "${GITHUB_SHA}" \
+            --release-root release/versions \
+            --build-receipt "${RUNNER_TEMP}/s2-build.json" \
+            > "${RUNNER_TEMP}/asset-validation.json"
+      - name: Run independent repository and same-asset boundary gate
+        if: steps.release-version.outputs.release == 'true'
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 scripts/v249/repository_boundary.py \
+            --source-commit "${GITHUB_SHA}" \
+            --source-tree "$(git rev-parse "${GITHUB_SHA}^{tree}")" \
+            --s2-receipt "${RUNNER_TEMP}/asset-validation.json" \
+            --asset-validation-receipt "${RUNNER_TEMP}/asset-validation.json" \
+            --release-root release/versions \
+            > "${RUNNER_TEMP}/repository-boundary.json"
+      - name: Revalidate frozen source and boundary before Large S3
+        if: steps.release-version.outputs.release == 'true' && inputs.project_size == 'large'
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 scripts/v249/repository_boundary.py \
+            --source-commit "${GITHUB_SHA}" \
+            --source-tree "$(git rev-parse "${GITHUB_SHA}^{tree}")" \
+            --s2-receipt "${RUNNER_TEMP}/asset-validation.json" \
+            --asset-validation-receipt "${RUNNER_TEMP}/asset-validation.json" \
+            --release-root release/versions \
+            --reuse-receipt "${RUNNER_TEMP}/repository-boundary.json" \
+            > "${RUNNER_TEMP}/repository-boundary-pre-s3.json"
+      - name: Prepare the isolated Large S3 input without rebuilding
+        if: steps.release-version.outputs.release == 'true' && inputs.project_size == 'large'
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import shutil
+          from pathlib import Path
+
+          temp = Path(os.environ["RUNNER_TEMP"])
+          receipt = json.loads((temp / "asset-validation.json").read_text(encoding="utf-8"))
+          release_root = Path("release/versions/V2.49").resolve()
+          bundle = temp / "release-bundle"
+          bundle.mkdir()
+          for name, source in receipt["public_asset_sources"].items():
+              source_path = Path(source).resolve()
+              source_path.relative_to(release_root)
+              shutil.copy2(source_path, bundle / name)
+          (temp / "installer-identity.json").write_text(
+              json.dumps(receipt["installer_release_identity"], ensure_ascii=False, sort_keys=True),
+              encoding="utf-8",
+          )
+          PY
+      - name: Run Large-only isolated S3 install lifecycle once
+        if: steps.release-version.outputs.release == 'true' && inputs.project_size == 'large'
+        env:
+          GOAL_TEAMS_RELEASE_REHEARSAL: '1'
+          GOAL_TEAMS_INSTALL_TEST_VALIDATION: '1'
+        run: |
+          CODEX_HOME="${RUNNER_TEMP}/codex-home" \
+          INSTALL_REPORT="${RUNNER_TEMP}/codex-home/state/goal-teams/reports/s3-install-report.json" \
+          ./scripts/install/install-local.sh \
+            --release-bundle "${RUNNER_TEMP}/release-bundle" \
+            --release-identity "${RUNNER_TEMP}/installer-identity.json"
+      - name: Bind the Large-only or not-required S3 receipt
+        if: steps.release-version.outputs.release == 'true'
+        run: |
+          if [ "${{ inputs.project_size }}" = "large" ]; then
+            python3 scripts/release/skill_release.py s3-receipt \
+              --project-size large \
+              --s2-receipt "${RUNNER_TEMP}/asset-validation.json" \
+              --install-report "${RUNNER_TEMP}/codex-home/state/goal-teams/reports/s3-install-report.json" \
+              > "${RUNNER_TEMP}/s3.json"
+          else
+            python3 scripts/release/skill_release.py s3-receipt \
+              --project-size "${{ inputs.project_size }}" \
+              --s2-receipt "${RUNNER_TEMP}/asset-validation.json" \
+              > "${RUNNER_TEMP}/s3.json"
+          fi
+      - name: Revalidate frozen source and boundary before S4
+        if: steps.release-version.outputs.release == 'true'
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          if [ "${{ inputs.project_size }}" = "large" ]; then
+            prior_boundary="${RUNNER_TEMP}/repository-boundary-pre-s3.json"
+          else
+            prior_boundary="${RUNNER_TEMP}/repository-boundary.json"
+          fi
+          python3 scripts/v249/repository_boundary.py \
+            --source-commit "${GITHUB_SHA}" \
+            --source-tree "$(git rev-parse "${GITHUB_SHA}^{tree}")" \
+            --s2-receipt "${RUNNER_TEMP}/asset-validation.json" \
+            --asset-validation-receipt "${RUNNER_TEMP}/asset-validation.json" \
+            --release-root release/versions \
+            --reuse-receipt "${prior_boundary}" \
+            > "${RUNNER_TEMP}/repository-boundary-pre-s4.json"
+      - name: Create the S4 authorized-operation plan without external writes
+        if: steps.release-version.outputs.release == 'true'
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 scripts/release/skill_release.py preflight \
+            --version V2.49 \
+            --commit "${GITHUB_SHA}" \
+            --project-size "${{ inputs.project_size }}" \
+            --authorization-receipt "${RUNNER_TEMP}/authorization.json" \
+            --s1-check-receipt "${RUNNER_TEMP}/s1-check.json" \
+            --asset-validation-receipt "${RUNNER_TEMP}/asset-validation.json" \
+            --s3-receipt "${RUNNER_TEMP}/s3.json" \
+            --boundary-receipt "${RUNNER_TEMP}/repository-boundary-pre-s4.json" \
+            > "${RUNNER_TEMP}/release-control.json"
+          python3 scripts/release/skill_release.py plan-s4 \
+            --version V2.49 \
+            --commit "${GITHUB_SHA}" \
+            --release-control-receipt "${RUNNER_TEMP}/release-control.json" \
+            > "${RUNNER_TEMP}/s4-authorized-operation-plan.json"
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          plan = json.loads(
+              Path(os.environ["RUNNER_TEMP"], "s4-authorized-operation-plan.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          if (
+              plan.get("status") != "authorized_operation_plan"
+              or plan.get("publish_state") != "authorized_not_executed"
+              or plan.get("external_side_effect_count") != 0
+              or plan.get("action_executed") is not False
+          ):
+              raise SystemExit("E_V249_WORKFLOW_PLAN_ONLY_ASSERTION")
+          PY
+      - name: Verify the same fixed four-asset identity without rebuilding
+        if: steps.release-version.outputs.release == 'true'
+        run: |
+          test -f "release/versions/V2.49/_artifacts/goal-teams-V2.49.tar.gz"
+          test -f "release/versions/V2.49/_artifacts/SHA256SUMS"
+          test -f "release/versions/V2.49/_release.json"
+          test -f "release/versions/V2.49/_files.sha256"
+          cd "release/versions/V2.49/_artifacts"
           sha256sum -c SHA256SUMS
+      - name: Stage exact receipts for cross-job S4 continuation without rebuilding
+        if: steps.release-version.outputs.release == 'true'
+        run: |
+          receipt_root="release/versions/V2.49/_receipts"
+          mkdir -p "${receipt_root}"
+          for name in \
+            authorization.json \
+            controller-handoff.json \
+            github-owner-key-validation.json \
+            release-route-receipt.json \
+            released-runtime-transition.json \
+            s1-check.json \
+            s2-build.json \
+            asset-validation.json \
+            repository-boundary.json \
+            repository-boundary-pre-s4.json \
+            s3.json \
+            release-control.json \
+            s4-authorized-operation-plan.json
+          do
+            test -f "${RUNNER_TEMP}/${name}"
+            cp "${RUNNER_TEMP}/${name}" "${receipt_root}/${name}"
+          done
+          if [ -f "${RUNNER_TEMP}/repository-boundary-pre-s3.json" ]; then
+            cp \
+              "${RUNNER_TEMP}/repository-boundary-pre-s3.json" \
+              "${receipt_root}/repository-boundary-pre-s3.json"
+          fi
+      - name: Persist the same asset set and receipt chain for authorized S4 continuation
+        if: steps.release-version.outputs.release == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: goal-teams-v249-release-${{ github.sha }}
+          path: |
+            release/versions/V2.49/_artifacts/goal-teams-V2.49.tar.gz
+            release/versions/V2.49/_artifacts/SHA256SUMS
+            release/versions/V2.49/_release.json
+            release/versions/V2.49/_files.sha256
+            release/versions/V2.49/_receipts/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30

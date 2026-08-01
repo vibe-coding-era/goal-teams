@@ -1,0 +1,38 @@
+{
+  "schema_version": "goal-teams-release-engine-profile-v1",
+  "version": "V2.49",
+  "status": "active",
+  "external_writes_allowed": false,
+  "release_mode": "skill_simple",
+  "approval_model": "project_start_authorization_reused",
+  "release_gates": [
+    "source_freeze",
+    "release_readiness",
+    "single_build",
+    "repository_boundary_compliance",
+    "large_release_install",
+    "publish"
+  ],
+  "required_status_checks": [
+    "check-macos",
+    "release-asset-gate"
+  ],
+  "published_before": "V2.48",
+  "tag": "v2.49",
+  "candidate_branch": "codex/v2.49-simplification",
+  "profile_path": "references/profiles/goal-teams-self-release-v2.49.md",
+  "release_title": "Goal Teams V2.49",
+  "release_body": "Goal Teams V2.49. See release/current/README.md in the tagged source.",
+  "tag_message": "Goal Teams V2.49",
+  "snapshot_schema_version": "goal-teams-release-snapshot-v2.40",
+  "files_manifest_format": "sha256-mode-size-path-v1",
+  "development_gate_policy": "tdd_and_incremental_only",
+  "release_readiness_policy": "released_identity_final_full_and_security_once",
+  "s2_policy": "single_build_release_versions_no_reproducibility_or_security",
+  "s3_policy": "large_release_only_after_current_s1_and_repository_boundary",
+  "s4_authorization_source": "project_start_authorization_receipt",
+  "repository_boundary_gate": "repository_boundary_compliance",
+  "runtime_transition_assurance": "I1_correlated",
+  "git_transport": "ssh_only",
+  "public_asset_map_path": "references/current/generations/V2.49/contracts/public-asset-map.json"
+}

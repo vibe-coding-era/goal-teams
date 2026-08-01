@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Load closed, Git-tracked release identities.
 
-V2.48 is a Skill simple-release profile used by ``skill_release.py``.
+V2.49 is the active Skill release profile used by ``skill_release.py``.
+V2.48 remains the published rollback baseline until formal V2.49 publication.
 V2.46 keeps the governed CP00-CP18 engine; earlier versions are replay-only.
 """
 
@@ -17,7 +18,8 @@ from typing import Any
 
 SCHEMA_VERSION = "goal-teams-release-engine-profile-v1"
 PROTOCOL_VERSION = "V2.40"
-ACTIVE_VERSION = "V2.48"
+ACTIVE_VERSION = "V2.49"
+NEXT_VERSION = None
 ROOT = Path(__file__).resolve().parents[2]
 PROFILE_BY_VERSION = {
     "V2.40": ROOT / "references" / "release-profiles" / "v2.40.json",
@@ -25,6 +27,7 @@ PROFILE_BY_VERSION = {
     "V2.45": ROOT / "references" / "release-profiles" / "v2.45.json",
     "V2.46": ROOT / "references" / "release-profiles" / "v2.46.json",
     "V2.48": ROOT / "references" / "release-profiles" / "v2.48.json",
+    "V2.49": ROOT / "references" / "release-profiles" / "v2.49.json",
 }
 PREDECESSOR_BY_VERSION = {
     "V2.40": None,
@@ -32,6 +35,7 @@ PREDECESSOR_BY_VERSION = {
     "V2.45": "V2.44",
     "V2.46": "V2.45",
     "V2.48": "V2.46",
+    "V2.49": "V2.48",
 }
 HOST_ACCEPTANCE_VERSIONS = {"V2.44", "V2.45", "V2.46"}
 REQUIRED_FIELDS = {
@@ -78,11 +82,30 @@ SIMPLE_FIELDS = {
     "snapshot_schema_version",
     "files_manifest_format",
 }
+V249_FIELDS = SIMPLE_FIELDS | {
+    "development_gate_policy",
+    "release_readiness_policy",
+    "s2_policy",
+    "s3_policy",
+    "s4_authorization_source",
+    "repository_boundary_gate",
+    "runtime_transition_assurance",
+    "git_transport",
+    "public_asset_map_path",
+}
 SIMPLE_GATES = [
     "source_freeze",
     "checks",
     "package",
     "isolated_install",
+    "publish",
+]
+V249_GATES = [
+    "source_freeze",
+    "release_readiness",
+    "single_build",
+    "repository_boundary_compliance",
+    "large_release_install",
     "publish",
 ]
 VERSION_RE = re.compile(r"^V[0-9]+\.[0-9]+$")
@@ -108,14 +131,20 @@ def _load_profile(version: str) -> dict[str, Any]:
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise ValueError(f"release profile is unreadable: {version}") from exc
     simple_mode = (
-        version == "V2.48"
+        version in {"V2.48", "V2.49"}
         and isinstance(value, dict)
         and value.get("release_mode") == "skill_simple"
     )
-    expected_fields = SIMPLE_FIELDS if simple_mode else REQUIRED_FIELDS
+    expected_fields = (
+        V249_FIELDS
+        if simple_mode and version == "V2.49"
+        else SIMPLE_FIELDS
+        if simple_mode
+        else REQUIRED_FIELDS
+    )
     if not isinstance(value, dict) or set(value) != expected_fields:
         raise ValueError(f"release profile fields drift: {version}")
-    if simple_mode:
+    if simple_mode and version == "V2.48":
         if (
             value["schema_version"] != SCHEMA_VERSION
             or value["version"] != version
@@ -155,6 +184,74 @@ def _load_profile(version: str) -> dict[str, Any]:
             raise ValueError(
                 f"release profile dependency is unsafe: {value['profile_path']}"
             )
+        projected = deepcopy(value)
+        projected["closure_state"] = "ready_for_local_validation"
+        return {
+            **projected,
+            "config_path": path.relative_to(ROOT).as_posix(),
+            "config_sha256": hashlib.sha256(raw).hexdigest(),
+            "config_canonical_sha256": hashlib.sha256(
+                _canonical_bytes(value)
+            ).hexdigest(),
+        }
+    if simple_mode and version == "V2.49":
+        if (
+            value["schema_version"] != SCHEMA_VERSION
+            or value["version"] != version
+            or value["status"] != "active"
+            or value["external_writes_allowed"] is not False
+            or value["approval_model"] != "project_start_authorization_reused"
+            or value["release_gates"] != V249_GATES
+            or value["required_status_checks"]
+            != ["check-macos", "release-asset-gate"]
+            or value["published_before"] != "V2.48"
+            or value["tag"] != "v2.49"
+            or value["candidate_branch"] != "codex/v2.49-simplification"
+            or value["profile_path"]
+            != "references/profiles/goal-teams-self-release-v2.49.md"
+            or value["release_title"] != "Goal Teams V2.49"
+            or value["release_body"]
+            != (
+                "Goal Teams V2.49. "
+                "See release/current/README.md in the tagged source."
+            )
+            or value["tag_message"] != "Goal Teams V2.49"
+            or value["snapshot_schema_version"]
+            != "goal-teams-release-snapshot-v2.40"
+            or value["files_manifest_format"] != "sha256-mode-size-path-v1"
+            or value["development_gate_policy"]
+            != "tdd_and_incremental_only"
+            or value["release_readiness_policy"]
+            != "released_identity_final_full_and_security_once"
+            or value["s2_policy"]
+            != "single_build_release_versions_no_reproducibility_or_security"
+            or value["s3_policy"]
+            != "large_release_only_after_current_s1_and_repository_boundary"
+            or value["s4_authorization_source"]
+            != "project_start_authorization_receipt"
+            or value["repository_boundary_gate"]
+            != "repository_boundary_compliance"
+            or value["runtime_transition_assurance"] != "I1_correlated"
+            or value["git_transport"] != "ssh_only"
+            or value["public_asset_map_path"]
+            != (
+                "references/current/generations/V2.49/contracts/"
+                "public-asset-map.json"
+            )
+        ):
+            raise ValueError(f"release simple policy drift: {version}")
+        for relative in (value["profile_path"], value["public_asset_map_path"]):
+            dependency = (ROOT / relative).resolve()
+            try:
+                dependency.relative_to(ROOT)
+            except ValueError as exc:
+                raise ValueError(
+                    f"release profile path escapes root: {version}"
+                ) from exc
+            if not dependency.is_file() or dependency.is_symlink():
+                raise ValueError(
+                    f"release profile dependency is unsafe: {relative}"
+                )
         projected = deepcopy(value)
         projected["closure_state"] = "ready_for_local_validation"
         return {

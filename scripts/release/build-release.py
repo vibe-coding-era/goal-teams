@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a reproducible release snapshot before any GitHub publication."""
+"""Build one sealed release snapshot before any GitHub publication."""
 
 from __future__ import annotations
 
@@ -195,10 +195,11 @@ KNOWN_RELEASES = {
     "V2.45": "codex/v2.45-release-engineer",
     "V2.46": "codex/v2.46-verification-governance",
     "V2.48": "codex/v2.48-release",
+    "V2.49": "codex/v2.49-simplification",
 }
 OKF_GENERATED_PATH = "references/okf-conformance-manifest.json"
-OKF_RELEASE_VERSIONS = {"V2.39", "V2.40", "V2.44", "V2.45", "V2.46", "V2.48"}
-STRICT_SNAPSHOT_VERSIONS = {"V2.40", "V2.44", "V2.45", "V2.46", "V2.48"}
+OKF_RELEASE_VERSIONS = {"V2.39", "V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49"}
+STRICT_SNAPSHOT_VERSIONS = {"V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49"}
 FROZEN_COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 
 
@@ -385,7 +386,7 @@ def generate_okf_manifest(
 ) -> tuple[dict[str, object], dict[str, object]]:
     """Generate and replay the canonical staged OKF package asset."""
 
-    runtime_path = target / "scripts" / "v23" / "okf_conformance.py"
+    runtime_path = target / "scripts" / "v249" / "okf_conformance.py"
     checker_path = target / "scripts" / "checks" / "check-okf.py"
     if not runtime_path.is_file() or runtime_path.is_symlink() or not checker_path.is_file():
         raise RuntimeError("OKF runtime/checker is missing from the staged payload")
@@ -509,6 +510,9 @@ def build(
 
     if not re.fullmatch(r"V[0-9]+\.[0-9]+", version):
         raise RuntimeError(f"invalid release version: {version}")
+    version_result = validate_release_version(version)
+    if version_result["ok"] is not True:
+        raise RuntimeError(f"unsupported release version: {version}")
     commit = require_frozen_commit(commit)
     entries = tree(commit)
     forbidden_source = [path for path in entries if nonrelease_reason(path)]
