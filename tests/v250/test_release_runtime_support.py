@@ -217,6 +217,52 @@ class V250ReleaseRuntimeSupportTests(unittest.TestCase):
         self.assertEqual("codex/v2.50-release", profile["candidate_branch"])
         self.assertEqual("ssh_only", profile["git_transport"])
 
+    def test_security_external_anchor_paths_follow_the_frozen_manifest(self) -> None:
+        manifest = json.loads(
+            (
+                ROOT
+                / "references/current/generations/V2.50/contracts/"
+                "release-security-review-manifest.json"
+            ).read_text(encoding="utf-8")
+        )
+        expected = {
+            target["path"]
+            for target in manifest["review_targets"]
+            if "contract" in target["categories"]
+        }
+        self.assertIn("scripts/v250/refresh_generation_manifests.py", expected)
+        self.assertEqual(
+            expected,
+            skill_release._security_external_anchor_paths(manifest),
+        )
+
+        historical = json.loads(
+            (
+                ROOT
+                / "references/current/generations/V2.49/contracts/"
+                "release-security-review-manifest.json"
+            ).read_text(encoding="utf-8")
+        )
+        historical_expected = {
+            target["path"]
+            for target in historical["review_targets"]
+            if "contract" in target["categories"]
+        }
+        self.assertEqual(6, len(historical_expected))
+        self.assertEqual(
+            historical_expected,
+            skill_release._security_external_anchor_paths(historical),
+        )
+
+        for malformed in (
+            {},
+            {"review_targets": []},
+            {"review_targets": [{"path": "contract.json"}]},
+        ):
+            with self.subTest(malformed=malformed):
+                with self.assertRaises(ValueError):
+                    skill_release._security_external_anchor_paths(malformed)
+
 
 if __name__ == "__main__":
     unittest.main()

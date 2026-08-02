@@ -339,6 +339,28 @@ def _validate_v250_runtime_external_anchor(
     )
 
 
+def _security_external_anchor_paths(manifest: object) -> set[str]:
+    """Derive the security contract denominator from its frozen manifest."""
+
+    if not isinstance(manifest, dict) or not isinstance(
+        manifest.get("review_targets"), list
+    ):
+        raise ValueError("security review manifest is malformed")
+    paths: set[str] = set()
+    for target in manifest["review_targets"]:
+        if (
+            not isinstance(target, dict)
+            or not isinstance(target.get("path"), str)
+            or not isinstance(target.get("categories"), list)
+        ):
+            raise ValueError("security review target is malformed")
+        if "contract" in target["categories"]:
+            paths.add(target["path"])
+    if not paths:
+        raise ValueError("security review contract denominator is empty")
+    return paths
+
+
 def _validate_v249_external_anchors(
     *,
     commit: str,
@@ -424,14 +446,21 @@ def _validate_v249_external_anchors(
     )
 
     security_digests = security.get("contract_digests") if isinstance(security, dict) else None
-    expected_security_paths = {
-        f"references/current/generations/{version}/contracts/public-asset-map.json",
-        f"references/current/generations/{version}/contracts/release-command-manifest.json",
-        f"references/current/generations/{version}/contracts/release-route-manifest.json",
-        f"references/current/generations/{version}/contracts/release-security-review-manifest.json",
-        f"schemas/{lower}/project-route.schema.json",
-        f"schemas/{lower}/release-control.schema.json",
-    }
+    security_manifest_path = (
+        f"references/current/generations/{version}/contracts/"
+        "release-security-review-manifest.json"
+    )
+    try:
+        expected_security_paths = _security_external_anchor_paths(
+            json.loads(frozen_bytes(security_manifest_path))
+        )
+    except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
+        raise SkillReleaseError(
+            _version_error(version, "SECURITY_EXTERNAL_ANCHOR"),
+            "security denominator or runner differs from the exact commit",
+            command="preflight",
+            source_commit=commit,
+        ) from exc
     reviewer = security.get("reviewer_identity") if isinstance(security, dict) else None
     if (
         not isinstance(security_digests, dict)
