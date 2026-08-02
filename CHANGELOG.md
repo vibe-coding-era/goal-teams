@@ -2,8 +2,15 @@
 
 ## Unreleased
 
+### V2.50
+
+- Carried the V2.49 simplification work into a fresh Current generation and release identity because the protected `v2.49` tag and its unpublished Draft Release could not be moved or reused safely.
+- Hardened S4 Draft Release discovery, full pagination, stable asset identity comparison, terminal drift evidence, and reconciliation without replaying external side effects.
+- Bound the fresh runtime and formal release predecessor to the actually published and installed V2.48 identity; V2.49 release receipts remain historical and cannot satisfy V2.50 gates.
+
 ### V2.49
 
+- Historical partial release only: the protected tag and unpublished Draft Release are retained as evidence and were never promoted or installed.
 - Added a digest-bound Current generation, functional-rule templates, explicit Legacy Replay, and zero-Legacy route/package closure checks.
 - Added the immutable four-object test chain and separated Development from Release denominators; Medium/Large development now blocks only on TDD and affected-scope checks.
 - Moved full regression and the independent security review to final Release readiness, retired S2 double-build/security gates, and made S3 Large-Release-only.

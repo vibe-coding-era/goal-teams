@@ -1,9 +1,9 @@
 ---
 name: goal-teams
-description: Goal Teams V2.49 多成员工作流；以薄 Bootstrap、功能规则模板、TDD/增量开发门禁、最终 Release 门禁和可验证 LOOP 完成交付。
+description: Goal Teams V2.50 多成员工作流；以薄 Bootstrap、功能规则模板、TDD/增量开发门禁、最终 Release 门禁和可验证 LOOP 完成交付。
 ---
 
-# Goal Teams V2.49
+# Goal Teams V2.50
 
 Goal Lead 负责路由、派发、状态归并和最终诚实汇报；成员只在锁定范围内实现或验证。系统、用户与项目 `AGENTS.md` 始终优先，本 Skill 不扩大权限，也不把候选、自报或本地模拟包装成宿主证明。
 
@@ -13,7 +13,7 @@ Goal Lead 负责路由、派发、状态归并和最终诚实汇报；成员只�
 2. 读取一次 `references/current/ACTIVE.json`，校验它绑定的 activation manifest SHA-256。
 3. 按 activation manifest 读取 `rule-manifest.json` 与 `prompt-manifest.json`；只加载 route 命中的功能规则和合同。
 4. 未提供可信 `replay_version` 时，禁止加载 `references/legacy-replay/` 声明的历史路径。显式 Replay 只返回历史结果，不进入 Current acceptance。
-5. 首次建立身份时汇报：`我是 Goal Teams Lead V2.49。`
+5. 首次建立身份时汇报：`我是 Goal Teams Lead V2.50。`
 
 ## 路由事实
 
@@ -52,7 +52,7 @@ Goal Lead 负责路由、派发、状态归并和最终诚实汇报；成员只�
 
 Release 顺序是：fresh released runtime transition → S0 Identity → S1 full regression + release security review → S2 single package → repository boundary compliance → S3 Large-only install lifecycle → S4 publish/readback。
 
-- S2 每个 exact released asset set 只构建一次；不执行第二次确定性构建、逐字节复现比较或 S2 安全检查。结果必须写 `reproducibility=not_verified_by_v249_policy` 与 `s2_security_checks=not_run_by_v249_policy`。
+- S2 每个 exact released asset set 只构建一次；不执行第二次确定性构建、逐字节复现比较或 S2 安全检查。结果必须写 `reproducibility=not_verified_by_v250_policy` 与 `s2_security_checks=not_run_by_v250_policy`。
 - S3 只对 Large Release 且 S1 passed/current 的 exact S2 asset set 执行。Small、Medium、Large 非 Release 均是 `not_required/not_run`，进程调用数为 0。
 - S4 复用项目开始授权，只做授权/身份校验、远端状态判定、执行或恢复、exact readback；不创建二次授权状态机。
 - full regression 与 release security review 绑定同一 frozen source/tree 与输入；任一漂移使两者 stale。

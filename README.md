@@ -8,12 +8,12 @@
 当前发行：**V2.48** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.48) · [发行说明](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-V2.49 当前是待发布候选：它将 Current 与 Legacy Replay 隔离，并按功能模板加载规则。Medium/Large 开发期只阻断 TDD 与受影响面增量验证，全部实现完成且准备 Release 时才运行全量回归和安全审核。
+V2.50 当前是待发布候选：它将 Current 与 Legacy Replay 隔离，并按功能模板加载规则。Medium/Large 开发期只阻断 TDD 与受影响面增量验证，全部实现完成且准备 Release 时才运行全量回归和安全审核。
 每个 exact released asset set 的 S2 只构建一次；S3 只用于 Large Release。外部写入在项目开始一次授权，GitHub Git remote 统一使用 SSH。
 
-当前版本：`V2.49`
+当前版本：`V2.50`
 
-Goal Teams 是一个跨 CodeAgent 的团队协作 Skill，Codex 是当前可用宿主之一。它会以一个 Goal Lead 的身份，把目标拆成可验证计划，再协调独立成员完成需求、设计、实现、测试、Evidence 和收尾审计。V2.49 用薄 Bootstrap、Current generation 和显式 Replay 降低历史规则对当前任务的影响；宿主能力仍须真实 runtime Evidence 才能声明完整 adapter。过程中会应用到：
+Goal Teams 是一个跨 CodeAgent 的团队协作 Skill，Codex 是当前可用宿主之一。它会以一个 Goal Lead 的身份，把目标拆成可验证计划，再协调独立成员完成需求、设计、实现、测试、Evidence 和收尾审计。V2.50 用薄 Bootstrap、Current generation 和显式 Replay 降低历史规则对当前任务的影响；宿主能力仍须真实 runtime Evidence 才能声明完整 adapter。过程中会应用到：
 - 应用Goal + Plan + Loop 模式
 - 构建和严格遵循 SPEC + Harness + SSOT 三大原则
 - 不同角色使用不同的 subagent（不同上下文执行）保持上下文独立性不被污染
@@ -133,28 +133,28 @@ git clone git@github.com:vibe-coding-era/goal-teams.git ~/.codex/skills/goal-tea
 prompt、route、项目起始授权与 host adapter 的真实 runtime receipt，再运行最终全量回归与独立安全审核：
 
 ```bash
-EVIDENCE_DIR=docs/v2.49-release-runtime
+EVIDENCE_DIR=docs/v2.50-release-runtime
 mkdir -p "$EVIDENCE_DIR"
 SOURCE_COMMIT="$(git rev-parse 'HEAD^{commit}')"
 SOURCE_TREE="$(git rev-parse "${SOURCE_COMMIT}^{tree}")"
 ROUTE_RECEIPT="$EVIDENCE_DIR/large-release-route.json"
 RUNTIME_RECEIPT="$EVIDENCE_DIR/released-runtime-transition.json"
 S1_CHECK_RECEIPT="$EVIDENCE_DIR/s1-check-result.json"
-AUTH_RECEIPT=docs/v2.49-execution/versions/V2.49/evidence/project-start-authorization-receipt.json
+AUTH_RECEIPT=docs/v2.50-execution/versions/V2.50/evidence/project-start-authorization-receipt.json
 HANDOFF_RECEIPT="${HANDOFF_RECEIPT:?请提供由已安装 V2.48 Codex 宿主签发的 handoff receipt}"
 HOST_EXECUTION_ID="${HOST_EXECUTION_ID:?请提供外部宿主 execution ID}"
 PYTHON_BIN="$(python3 -c 'import pathlib,sys; print(pathlib.Path(sys.executable).resolve())')"
 
-"$PYTHON_BIN" -c 'import json, pathlib, sys; from scripts.v249.generation_runtime import load_generation; from scripts.v249.route_closure import compile_route_closure; root=pathlib.Path(".").resolve(); pathlib.Path(sys.argv[1]).write_text(json.dumps(compile_route_closure(root, load_generation(root), "V249-ROUTE-LARGE-RELEASE"), ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8")' "$ROUTE_RECEIPT"
+"$PYTHON_BIN" -c 'import json, pathlib, sys; from scripts.v250.generation_runtime import load_generation; from scripts.v250.route_closure import compile_route_closure; root=pathlib.Path(".").resolve(); pathlib.Path(sys.argv[1]).write_text(json.dumps(compile_route_closure(root, load_generation(root), "V250-ROUTE-LARGE-RELEASE"), ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8")' "$ROUTE_RECEIPT"
 
-"$PYTHON_BIN" scripts/v249/runtime_host_adapter.py launch \
+"$PYTHON_BIN" scripts/v250/runtime_host_adapter.py launch \
   --stage released --source-commit "$SOURCE_COMMIT" --source-tree "$SOURCE_TREE" \
   --project-size large --route-receipt "$ROUTE_RECEIPT" \
   --authorization-receipt "$AUTH_RECEIPT" \
   --controller-handoff-receipt "$HANDOFF_RECEIPT" \
   --host-execution-id "$HOST_EXECUTION_ID" \
   --adapter-identity local-external-runtime-host \
-  --adapter-code scripts/v249/runtime_host_adapter.py > "$RUNTIME_RECEIPT"
+  --adapter-code scripts/v250/runtime_host_adapter.py > "$RUNTIME_RECEIPT"
 
 ./scripts/check.sh --phase release --project-size large \
   --source-commit "$SOURCE_COMMIT" --source-tree "$SOURCE_TREE" \
@@ -206,7 +206,7 @@ Use $goal-teams。
 显式调用 Goal Teams 或当前会话首次需要建立身份时汇报；已有完整上下文时不重复：
 
 ```text
-我是 Goal Teams Lead V2.49。
+我是 Goal Teams Lead V2.50。
 ```
 
 中文核心模型要点提示词：用户沟通和治理文档默认中文；代码、注释、测试名、fixture 和产品字符串遵循目标仓库约定；代码标识、命令、路径、API 名称、配置键、subagent ID 和精确引用保留原文。
@@ -350,7 +350,7 @@ GoalTeamsWork-<project_version>/
 
 ## License
 
-当前仓库没有声明开源 License。V2.49 GitHub Release 是版本化分发快照，不构成开源许可或额外权利授予；License 仍由 repository owner 另行决定。
+当前仓库没有声明开源 License。V2.50 GitHub Release 是版本化分发快照，不构成开源许可或额外权利授予；License 仍由 repository owner 另行决定。
 
 ## V2.44 版本改动
 
@@ -372,12 +372,15 @@ GoalTeamsWork-<project_version>/
 - 新增按能力派生的 Rust/Tauri 桌面工程合同：前端将“百分百复刻”拆成覆盖完整、同环境像素零差异、高保真与原生语义；PRD-only 先形成可独立批准的 HTML 基线。
 - Rust 后端统一 crate/module DAG、typed IPC、错误/并发/持久化/安全和 fmt/clippy/test 门；桌面测试按不可变 platform tuple 区分 L1 Rust、L2 mock/browser、L3 真实应用和 L4 生产包，并用外部冻结的 candidate/environment SSOT 约束 Evidence，macOS 不再用 browser 或 direct `tauri-driver` 冒充客户端 Evidence。
 
-## V2.49 版本改动
+## V2.50 版本改动
 
+- V2.50 继承 V2.49 的规则简化实现，但使用全新的 Current generation、source identity 与 `v2.50` 标签；受保护的 `v2.49` 标签和未发布 Draft 只保留为历史证据。
+- 正式前驱绑定实际已发布并安装的 V2.48，不复用 V2.49 的 S1–S4 回执。
 - 新增 digest-bound `ACTIVE.json` 与不可变 Current generation；默认 route、Prompt closure 和安装包不加载 Legacy，历史合同只通过显式 Replay manifest/runner 使用。
 - 规则按需求、架构实现、测试、UI/桌面、Agent runtime、发行操作六类功能模板组织；用户输出收敛为五个固定字段加二选一末字段。
 - 测试门禁固定为 `RiskDenominator -> TestCase -> TestRunReceipt -> TestReviewReceipt`；Medium/Large 开发期只运行 TDD 与增量，最终 Release 才运行全量回归和独立安全审核。
 - 取消 S2 第二次确定性构建与 S2 安全检查；S3 仅 Large Release；S4 复用项目开始授权，GitHub Git transport 强制 SSH 并做 exact readback。
+- S4 增加 Draft Release 全分页发现、稳定资产身份比较和终态漂移/reconciliation Evidence，避免重放已发生的外部写入。
 
 ## V2.48 版本改动
 

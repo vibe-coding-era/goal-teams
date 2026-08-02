@@ -18,7 +18,7 @@ jobs:
           CHECKOUT_SSH_KEY: ${{ secrets.GOAL_TEAMS_CHECKOUT_SSH_KEY }}
         run: |
           test -n "${CHECKOUT_SSH_KEY}" || {
-            echo "E_V249_CHECKOUT_SSH_KEY_REQUIRED" >&2
+            echo "E_V250_CHECKOUT_SSH_KEY_REQUIRED" >&2
             exit 1
           }
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -36,7 +36,7 @@ jobs:
           python-version: '3.11'
       - name: Prepare pinned Draft 2020 validator outside the worktree
         env:
-          VALIDATOR_PYTHON_PREFIX: ${{ runner.temp }}/goal-teams-v249-python
+          VALIDATOR_PYTHON_PREFIX: ${{ runner.temp }}/goal-teams-v250-python
         run: |
           python3 -m pip install \
             --target "${VALIDATOR_PYTHON_PREFIX}" \
@@ -46,10 +46,10 @@ jobs:
           PYTHONPATH="${VALIDATOR_PYTHON_PREFIX}" python3 -c \
             'from jsonschema import Draft202012Validator'
           echo "PYTHONPATH=${VALIDATOR_PYTHON_PREFIX}${PYTHONPATH:+:${PYTHONPATH}}" >> "${GITHUB_ENV}"
-      - name: V2.49 TDD and affected-surface incremental checks
+      - name: V2.50 TDD and affected-surface incremental checks
         env:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
-          python3 -m unittest discover -s tests/v249 -p 'test_*.py'
-          python3 scripts/checks/check-v249.py --phase development --project-size medium --stage candidate
+          python3 -m unittest discover -s tests/v250 -p 'test_*.py'
+          python3 scripts/checks/check-v250.py --phase development --project-size medium --stage candidate
           python3 scripts/checks/check-package-manifest.py

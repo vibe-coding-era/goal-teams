@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.50/legacy-replay-manifest.schema.json",
+  "title": "Goal Teams isolated legacy replay manifest",
+  "type": "object",
+  "required": ["schema_version", "manifest_id", "manifest_state", "network_policy", "write_policy", "output_status_enum", "isolation_profile", "replays", "optional_replay_allowlist", "optional_replay_allowlist_digest"],
+  "properties": {
+    "schema_version": {"const": "goal-teams-legacy-replay-manifest-v2.50"},
+    "manifest_id": {"type": "string", "minLength": 1},
+    "manifest_state": {"const": "isolated_read_only"},
+    "network_policy": {"const": "deny"},
+    "write_policy": {"const": "deny_all"},
+    "output_status_enum": {
+      "const": ["historical_passed", "historical_failed", "replay_unavailable"]
+    },
+    "isolation_profile": {
+      "type": "object",
+      "required": ["network", "filesystem_write", "subprocess", "environment_inheritance"],
+      "properties": {
+        "network": {"const": "deny"},
+        "filesystem_write": {"const": "deny"},
+        "subprocess": {"const": "deny"},
+        "environment_inheritance": {"const": "deny"}
+      },
+      "additionalProperties": false
+    },
+    "replays": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/replay"}},
+    "optional_replay_allowlist": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/repoPath"}},
+    "optional_replay_allowlist_digest": {"$ref": "#/$defs/sha256"}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "repoPath": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)[^\\u0000]+$"},
+    "digestedPath": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "properties": {"path": {"$ref": "#/$defs/repoPath"}, "sha256": {"$ref": "#/$defs/sha256"}},
+      "additionalProperties": false
+    },
+    "replay": {
+      "type": "object",
+      "required": ["legacy_version", "artifact_kinds", "schema_paths", "validator_paths", "profile_path", "transitive_dependency_paths", "interpreter_and_tool_versions", "argv", "cwd", "network_policy", "write_policy", "output_schema", "isolation_profile", "supported_read_only_operations", "forbidden_current_routes", "fixture_paths", "expected_replay_status", "content_digests"],
+      "properties": {
+        "legacy_version": {"type": "string", "pattern": "^V[0-9]+\\.[0-9]+$"},
+        "artifact_kinds": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "schema_paths": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/repoPath"}},
+        "validator_paths": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/repoPath"}},
+        "profile_path": {"$ref": "#/$defs/repoPath"},
+        "transitive_dependency_paths": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/repoPath"}},
+        "interpreter_and_tool_versions": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "string", "minLength": 1}},
+        "argv": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "cwd": {"$ref": "#/$defs/repoPath"},
+        "network_policy": {"const": "deny"},
+        "write_policy": {"const": "deny_all"},
+        "output_schema": {"type": "object"},
+        "isolation_profile": {"const": "digest_only_no_subprocess"},
+        "supported_read_only_operations": {"const": ["content_digest_verify"]},
+        "forbidden_current_routes": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "fixture_paths": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/repoPath"}},
+        "expected_replay_status": {"enum": ["historical_passed", "historical_failed", "replay_unavailable"]},
+        "content_digests": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/digestedPath"}}
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CLI for Goal Teams V2.49 Current Google OKF conformance gates."""
+"""CLI for Goal Teams V2.50 Current Google OKF conformance gates."""
 
 from __future__ import annotations
 
@@ -14,9 +14,9 @@ from typing import Any
 
 SCRIPT = Path(__file__).resolve()
 PRODUCT_ROOT = SCRIPT.parents[2]
-V249 = PRODUCT_ROOT / "scripts" / "v249"
-if str(V249) not in sys.path:
-    sys.path.insert(0, str(V249))
+V250 = PRODUCT_ROOT / "scripts" / "v250"
+if str(V250) not in sys.path:
+    sys.path.insert(0, str(V250))
 
 _previous_dont_write_bytecode = sys.dont_write_bytecode
 sys.dont_write_bytecode = True

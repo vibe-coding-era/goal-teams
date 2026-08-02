@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Load closed, Git-tracked release identities.
 
-V2.49 is the active Skill release profile used by ``skill_release.py``.
-V2.48 remains the published rollback baseline until formal V2.49 publication.
+V2.50 is the active Skill release profile used by ``skill_release.py``.
+V2.48 remains the published rollback baseline; V2.49 is retained as history.
 V2.46 keeps the governed CP00-CP18 engine; earlier versions are replay-only.
 """
 
@@ -18,7 +18,7 @@ from typing import Any
 
 SCHEMA_VERSION = "goal-teams-release-engine-profile-v1"
 PROTOCOL_VERSION = "V2.40"
-ACTIVE_VERSION = "V2.49"
+ACTIVE_VERSION = "V2.50"
 NEXT_VERSION = None
 ROOT = Path(__file__).resolve().parents[2]
 PROFILE_BY_VERSION = {
@@ -28,6 +28,7 @@ PROFILE_BY_VERSION = {
     "V2.46": ROOT / "references" / "release-profiles" / "v2.46.json",
     "V2.48": ROOT / "references" / "release-profiles" / "v2.48.json",
     "V2.49": ROOT / "references" / "release-profiles" / "v2.49.json",
+    "V2.50": ROOT / "references" / "release-profiles" / "v2.50.json",
 }
 PREDECESSOR_BY_VERSION = {
     "V2.40": None,
@@ -36,6 +37,7 @@ PREDECESSOR_BY_VERSION = {
     "V2.46": "V2.45",
     "V2.48": "V2.46",
     "V2.49": "V2.48",
+    "V2.50": "V2.48",
 }
 HOST_ACCEPTANCE_VERSIONS = {"V2.44", "V2.45", "V2.46"}
 REQUIRED_FIELDS = {
@@ -93,6 +95,7 @@ V249_FIELDS = SIMPLE_FIELDS | {
     "git_transport",
     "public_asset_map_path",
 }
+V250_FIELDS = V249_FIELDS
 SIMPLE_GATES = [
     "source_freeze",
     "checks",
@@ -108,6 +111,8 @@ V249_GATES = [
     "large_release_install",
     "publish",
 ]
+V250_GATES = V249_GATES
+CURRENT_SIMPLE_VERSIONS = {"V2.49", "V2.50"}
 VERSION_RE = re.compile(r"^V[0-9]+\.[0-9]+$")
 CANDIDATE_RE = re.compile(r"^develops/[a-z0-9][a-z0-9._-]*$")
 BRANCH_RE = re.compile(r"^codex/[A-Za-z0-9._/-]+$")
@@ -131,13 +136,13 @@ def _load_profile(version: str) -> dict[str, Any]:
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise ValueError(f"release profile is unreadable: {version}") from exc
     simple_mode = (
-        version in {"V2.48", "V2.49"}
+        version in {"V2.48", *CURRENT_SIMPLE_VERSIONS}
         and isinstance(value, dict)
         and value.get("release_mode") == "skill_simple"
     )
     expected_fields = (
         V249_FIELDS
-        if simple_mode and version == "V2.49"
+        if simple_mode and version in CURRENT_SIMPLE_VERSIONS
         else SIMPLE_FIELDS
         if simple_mode
         else REQUIRED_FIELDS
@@ -194,7 +199,12 @@ def _load_profile(version: str) -> dict[str, Any]:
                 _canonical_bytes(value)
             ).hexdigest(),
         }
-    if simple_mode and version == "V2.49":
+    if simple_mode and version in CURRENT_SIMPLE_VERSIONS:
+        expected_branch = {
+            "V2.49": "codex/v2.49-simplification",
+            "V2.50": "codex/v2.50-release",
+        }[version]
+        lowercase_version = version.lower()
         if (
             value["schema_version"] != SCHEMA_VERSION
             or value["version"] != version
@@ -205,17 +215,17 @@ def _load_profile(version: str) -> dict[str, Any]:
             or value["required_status_checks"]
             != ["check-macos", "release-asset-gate"]
             or value["published_before"] != "V2.48"
-            or value["tag"] != "v2.49"
-            or value["candidate_branch"] != "codex/v2.49-simplification"
+            or value["tag"] != lowercase_version
+            or value["candidate_branch"] != expected_branch
             or value["profile_path"]
-            != "references/profiles/goal-teams-self-release-v2.49.md"
-            or value["release_title"] != "Goal Teams V2.49"
+            != f"references/profiles/goal-teams-self-release-{lowercase_version}.md"
+            or value["release_title"] != f"Goal Teams {version}"
             or value["release_body"]
             != (
-                "Goal Teams V2.49. "
+                f"Goal Teams {version}. "
                 "See release/current/README.md in the tagged source."
             )
-            or value["tag_message"] != "Goal Teams V2.49"
+            or value["tag_message"] != f"Goal Teams {version}"
             or value["snapshot_schema_version"]
             != "goal-teams-release-snapshot-v2.40"
             or value["files_manifest_format"] != "sha256-mode-size-path-v1"
@@ -235,7 +245,7 @@ def _load_profile(version: str) -> dict[str, Any]:
             or value["git_transport"] != "ssh_only"
             or value["public_asset_map_path"]
             != (
-                "references/current/generations/V2.49/contracts/"
+                f"references/current/generations/{version}/contracts/"
                 "public-asset-map.json"
             )
         ):

@@ -1,10 +1,10 @@
-# Goal Teams V2.48 Release / V2.49 Candidate
+# Goal Teams V2.48 Release / V2.50 Candidate
 
-V2.48 remains the current published GitHub Release. V2.49 is an unreleased candidate and does not become the current release until its tag, four public assets, remote readback, and formal installation have completed.
+V2.48 remains the current published GitHub Release. V2.50 is an unreleased candidate and does not become the current release until its tag, four public assets, remote readback, and formal installation have completed.
 
-The V2.49 candidate replaces version-stacked hot paths with a digest-bound Current generation and explicit, isolated Legacy Replay. Its default prompt plan and installation package are intended to contain only V2.49 Current rules plus exact execution dependencies.
+The V2.50 candidate replaces version-stacked hot paths with a digest-bound Current generation and explicit, isolated Legacy Replay. Its default prompt plan and installation package are intended to contain only V2.50 Current rules plus exact execution dependencies.
 
-## V2.49 candidate changes
+## V2.50 candidate changes
 
 - Bootstrap is thin; requirements, architecture/implementation, testing, UI/desktop, Agent runtime, and release operations each have one functional Owner template.
 - Current route closure is verified against an explicit Legacy classification and a fixed 72,194-byte ceiling.
@@ -16,9 +16,9 @@ The V2.49 candidate replaces version-stacked hot paths with a digest-bound Curre
 
 ## Planned public assets
 
-If V2.49 passes Release Readiness, its fixed public set will be:
+If V2.50 passes Release Readiness, its fixed public set will be:
 
-- `goal-teams-V2.49.tar.gz`
+- `goal-teams-V2.50.tar.gz`
 - `SHA256SUMS`
 - `_release.json`
 - `_files.sha256`

@@ -1,0 +1,63 @@
+from __future__ import annotations
+
+import json
+import unittest
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+class TestV250VersionMigration(unittest.TestCase):
+    def test_v250_current_identity_is_complete_and_v249_is_not_default(self) -> None:
+        self.assertEqual(
+            "V2.50",
+            (ROOT / "VERSION").read_text(encoding="utf-8").strip(),
+        )
+
+        active = json.loads(
+            (ROOT / "references/current/ACTIVE.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual("V2.50", active["generation_id"])
+        self.assertEqual(
+            "references/current/generations/V2.50/activation-manifest.json",
+            active["activation_manifest"],
+        )
+
+        profile = json.loads(
+            (ROOT / "references/release-profiles/v2.50.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual("V2.50", profile["version"])
+        self.assertEqual("v2.50", profile["tag"])
+        self.assertEqual("V2.48", profile["published_before"])
+        self.assertEqual("codex/v2.50-release", profile["candidate_branch"])
+
+        for relative in (
+            "references/current/generations/V2.50/activation-manifest.json",
+            "schemas/v2.50/release-control.schema.json",
+            "scripts/v250/s4_executor.py",
+            "tests/v250/test_s4_executor.py",
+        ):
+            self.assertTrue((ROOT / relative).is_file(), relative)
+
+        package_manifest = (
+            ROOT / "scripts/install/package-manifest.txt"
+        ).read_text(encoding="utf-8")
+        self.assertIn("prefix references/current/generations/V2.50/", package_manifest)
+        self.assertIn("prefix schemas/v2.50/", package_manifest)
+        self.assertIn("prefix scripts/v250/", package_manifest)
+        self.assertIn("prefix tests/v250/", package_manifest)
+        self.assertNotIn(
+            "prefix references/current/generations/V2.49/",
+            package_manifest,
+        )
+        self.assertNotIn("prefix scripts/v249/", package_manifest)
+        self.assertNotIn("prefix tests/v249/", package_manifest)
+
+
+if __name__ == "__main__":
+    unittest.main()

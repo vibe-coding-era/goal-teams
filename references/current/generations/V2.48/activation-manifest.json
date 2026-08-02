@@ -1,8 +1,8 @@
 {
-  "schema_version": "goal-teams-baseline-activation-manifest-v2.49",
+  "schema_version": "goal-teams-baseline-activation-manifest-v2.50",
   "generation_id": "V2.48",
   "generation_state": "baseline_rollback_only",
-  "manifest_payload_sha256": "f3a50e1d4bf4703811a6d6ab79249270fc495b2ac0b4aa0e2a592e0467f4d33b",
+  "manifest_payload_sha256": "58acb4a3ccedd33e2a1e272196fe27f5b92821080c78c8d79f2d26aaa69a288b",
   "source_commit": "23720434b38976c7242735925a3514012283c486",
   "source_tree": "b21f65db96419cef200ce130befa557c5122ce25",
   "captured_at": "2026-08-01T12:05:34+08:00",

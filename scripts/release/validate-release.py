@@ -182,12 +182,12 @@ WORKSPACE_ROOT = workspace_root()
 RELEASE_ROOT = WORKSPACE_ROOT / "release" / "versions"
 META = {"_release.json", "_files.sha256", "_artifacts/SHA256SUMS"}
 OKF_GENERATED_PATH = "references/okf-conformance-manifest.json"
-OKF_RELEASE_VERSIONS = {"V2.39", "V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49"}
+OKF_RELEASE_VERSIONS = {"V2.39", "V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49", "V2.50"}
 STRICT_SNAPSHOT_SCHEMA = "goal-teams-release-snapshot-v2.40"
-STRICT_SNAPSHOT_VERSIONS = {"V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49"}
+STRICT_SNAPSHOT_VERSIONS = {"V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49", "V2.50"}
 SUPPORTED_RELEASE_VERSIONS = {
     "V2.33", "V2.34", "V2.35", "V2.36", "V2.37", "V2.38", "V2.39",
-    "V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49",
+    "V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49", "V2.50",
 }
 MAX_TAR_MEMBERS = 2048
 MAX_TAR_PATH_BYTES = 240
@@ -221,17 +221,25 @@ def release_projection_state(
         return "invalid"
     if current.get("product_version") == version:
         return "final"
-    if (
-        allow_candidate
-        and version in {"V2.48", "V2.49"}
-        and current.get("product_version")
-        == ("V2.46" if version == "V2.48" else "V2.48")
-        and current.get("candidate_product_version") == version
-        and current.get("candidate_release_state")
-        in {
+    candidate_predecessors = {
+        "V2.48": "V2.46",
+        "V2.49": "V2.48",
+        "V2.50": "V2.48",
+    }
+    candidate_states = {
+        "V2.48": {"skill_simple_local_validation"},
+        "V2.49": {
             "skill_simple_local_validation",
             "v249_release_readiness",
-        }
+        },
+        "V2.50": {"v250_release_readiness"},
+    }
+    if (
+        allow_candidate
+        and version in candidate_predecessors
+        and current.get("product_version") == candidate_predecessors[version]
+        and current.get("candidate_product_version") == version
+        and current.get("candidate_release_state") in candidate_states[version]
     ):
         return "candidate"
     return "invalid"
@@ -302,6 +310,50 @@ def validate_v249_release_identity(
             "ok": False,
             "passed": False,
             "error_code": "E_V249_RELEASE_IDENTITY_DRIFT",
+            "mutation_count": 0,
+            "external_mutation_count": 0,
+            "external_side_effect_count": 0,
+        }
+    return {
+        "ok": True,
+        "passed": True,
+        "error_code": None,
+        "identity_sha256": hashlib.sha256(
+            json.dumps(
+                expected, sort_keys=True, separators=(",", ":")
+            ).encode("utf-8")
+        ).hexdigest(),
+        "mutation_count": 0,
+        "external_mutation_count": 0,
+        "external_side_effect_count": 0,
+    }
+
+
+def validate_v250_release_identity(
+    expected: object, observed: object
+) -> dict[str, object]:
+    """Compare an exact V2.50 released identity and its single asset set."""
+
+    required = {
+        "version",
+        "source_commit",
+        "source_tree",
+        "profile_sha256",
+        "asset_set_digest",
+        "asset_set_id",
+    }
+    if (
+        not isinstance(expected, dict)
+        or not isinstance(observed, dict)
+        or set(expected) != required
+        or set(observed) != required
+        or expected.get("version") != "V2.50"
+        or observed != expected
+    ):
+        return {
+            "ok": False,
+            "passed": False,
+            "error_code": "E_V250_RELEASE_IDENTITY_DRIFT",
             "mutation_count": 0,
             "external_mutation_count": 0,
             "external_side_effect_count": 0,
@@ -487,6 +539,12 @@ def write_expected_file(root: Path, relative: str, mode: str, data: bytes) -> No
     target.chmod(0o755 if mode == "100755" else 0o644)
 
 
+def okf_runtime_generation(version: str) -> str:
+    """Return the packaged OKF runtime generation for a release version."""
+
+    return "v250" if version == "V2.50" else "v249"
+
+
 def materialize_expected_payload_map(
     commit: str,
 ) -> tuple[dict[str, tuple[str, bytes]], set[str], str, dict[str, object] | None]:
@@ -509,7 +567,12 @@ def materialize_expected_payload_map(
         stage = Path(directory)
         for relative, (mode, data) in trusted.items():
             write_expected_file(stage, relative, mode, data)
-        runtime_path = stage / "scripts" / "v249" / "okf_conformance.py"
+        runtime_path = (
+            stage
+            / "scripts"
+            / okf_runtime_generation(source_version)
+            / "okf_conformance.py"
+        )
         spec = importlib.util.spec_from_file_location(
             f"_goalteams_validate_okf_{commit[:16]}", runtime_path
         )
