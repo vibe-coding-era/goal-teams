@@ -66,23 +66,23 @@ if ! command -v "$PYTHON_BIN" >/dev/null 2>&1; then
   exit 2
 fi
 
-if [[ "$(<VERSION)" != "V2.49" ]]; then
-  echo "This Current checker only accepts VERSION=V2.49." >&2
+if [[ "$(<VERSION)" != "V2.50" ]]; then
+  echo "This Current checker only accepts VERSION=V2.50." >&2
   exit 2
 fi
 
-"$PYTHON_BIN" scripts/checks/validate-v249-generation.py --generation-id V2.49
-"$PYTHON_BIN" scripts/checks/validate-v249-test-gate.py --self-test
+"$PYTHON_BIN" scripts/checks/validate-v250-generation.py --generation-id V2.50
+"$PYTHON_BIN" scripts/checks/validate-v250-test-gate.py --self-test
 "$PYTHON_BIN" scripts/checks/check-package-manifest.py
-"$PYTHON_BIN" scripts/v249/generate_subagents.py --check
+"$PYTHON_BIN" scripts/v250/generate_subagents.py --check
 
 if [[ "$PHASE" == "development" ]]; then
-  "$PYTHON_BIN" -m unittest discover -s tests/v249 -p 'test_*.py'
-  "$PYTHON_BIN" scripts/checks/check-v249.py \
+  "$PYTHON_BIN" -m unittest discover -s tests/v250 -p 'test_*.py'
+  "$PYTHON_BIN" scripts/checks/check-v250.py \
     --phase development \
     --project-size "$PROJECT_SIZE" \
     --stage candidate
-  echo "Goal Teams V2.49 development checks passed (${CHECK_MODE})."
+  echo "Goal Teams V2.50 development checks passed (${CHECK_MODE})."
   exit 0
 fi
 
@@ -91,7 +91,7 @@ if [[ -z "$SOURCE_COMMIT" || -z "$SOURCE_TREE" || -z "$RELEASED_RUNTIME_RECEIPT"
   exit 2
 fi
 
-"$PYTHON_BIN" scripts/checks/check-v249.py \
+"$PYTHON_BIN" scripts/checks/check-v250.py \
   --phase release \
   --project-size "$PROJECT_SIZE" \
   --stage released \
@@ -102,4 +102,4 @@ fi
   --expected-host-execution-id "$EXPECTED_HOST_EXECUTION_ID" \
   --released-runtime-receipt "$RELEASED_RUNTIME_RECEIPT"
 
-echo "Goal Teams V2.49 final regression and release security review passed (${CHECK_MODE})."
+echo "Goal Teams V2.50 final regression and release security review passed (${CHECK_MODE})."

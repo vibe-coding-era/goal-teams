@@ -2,8 +2,8 @@
 """Fail-closed local release helper for the Goal Teams Skill package.
 
 This helper intentionally has no GitHub, installation, tag, or publication
-side effect. ``plan`` is read-only. V2.49 ``validate`` checks the same asset set
-created by the single explicit S2 build; it never starts another build or makes
+side effect. ``plan`` is read-only. V2.49/V2.50 ``validate`` checks the same asset
+set created by the single explicit S2 build; it never starts another build or makes
 a reproducibility claim. ``preflight`` and ``plan-s4`` require the complete
 project-start-authorization and S0-S4 receipt chain. The compatibility command
 ``publish`` is also only an authorization plan and can never report execution.
@@ -32,21 +32,76 @@ VERSION_RE = re.compile(r"^V[0-9]+\.[0-9]+$")
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 POSITIVE_DECIMAL_RE = re.compile(r"^[1-9][0-9]*$")
+ACTIVE_SIMPLE_VERSION = "V2.50"
+SINGLE_BUILD_VERSIONS = frozenset({"V2.49", "V2.50"})
 V249_REPOSITORY = "vibe-coding-era/goal-teams"
-V249_RUNTIME_STATIC_INPUT_PATHS = (
+V250_REPOSITORY = V249_REPOSITORY
+_RUNTIME_COMMON_STATIC_INPUT_PATHS = (
     ".agents/skills/goal-teams/SKILL.md",
     "AGENTS.md",
     "RULES.md",
     "SKILL.md",
-    "references/profiles/goal-teams-self-release-v2.49.md",
-    "references/release-profiles/v2.49.json",
-    "references/current/generations/V2.49/contracts/release-route-manifest.json",
-    "references/current/generations/V2.49/contracts/release-command-manifest.json",
-    "schemas/v2.49/runtime-transition-receipt.schema.json",
-    "scripts/checks/check-v249.py",
-    "scripts/v249/runtime_host_adapter.py",
-    "scripts/v249/runtime_transition.py",
 )
+
+
+def _version_digits(version: str) -> str:
+    if version not in SINGLE_BUILD_VERSIONS:
+        raise SkillReleaseError(
+            "E_SKILL_RELEASE_VERSION",
+            "release flow is defined only for V2.49 and V2.50",
+            version=version,
+        )
+    return version.removeprefix("V").replace(".", "")
+
+
+def _version_lower(version: str) -> str:
+    return version.lower()
+
+
+def _version_error(version: str, suffix: str) -> str:
+    return f"E_V{_version_digits(version)}_{suffix}"
+
+
+def runtime_static_input_paths(version: str) -> tuple[str, ...]:
+    digits = _version_digits(version)
+    lower = _version_lower(version)
+    return _RUNTIME_COMMON_STATIC_INPUT_PATHS + (
+        f"references/profiles/goal-teams-self-release-{lower}.md",
+        f"references/release-profiles/{lower}.json",
+        f"references/current/generations/{version}/contracts/release-route-manifest.json",
+        f"references/current/generations/{version}/contracts/release-command-manifest.json",
+        f"schemas/{lower}/runtime-transition-receipt.schema.json",
+        f"scripts/checks/check-v{digits}.py",
+        f"scripts/v{digits}/runtime_host_adapter.py",
+        f"scripts/v{digits}/runtime_transition.py",
+    )
+
+
+def continuation_asset_names(version: str) -> tuple[str, ...]:
+    _version_digits(version)
+    return (
+        "SHA256SUMS",
+        "_files.sha256",
+        "_release.json",
+        f"goal-teams-{version}.tar.gz",
+    )
+
+
+def _receipt_version(receipt: Mapping[str, Any]) -> str:
+    schema = receipt.get("schema_version")
+    for version in sorted(SINGLE_BUILD_VERSIONS):
+        if isinstance(schema, str) and schema.startswith(
+            f"goal-teams-{_version_lower(version)}-"
+        ):
+            return version
+    raise SkillReleaseError(
+        "E_SKILL_RELEASE_RECEIPT_VERSION",
+        "receipt does not identify a supported release generation",
+    )
+
+
+V249_RUNTIME_STATIC_INPUT_PATHS = runtime_static_input_paths("V2.49")
+V250_RUNTIME_STATIC_INPUT_PATHS = runtime_static_input_paths("V2.50")
 V249_CONTINUATION_FORMAL_RECEIPTS = (
     "authorization.json",
     "controller-handoff.json",
@@ -94,6 +149,11 @@ V249_CONTINUATION_ASSET_NAMES = (
     "_release.json",
     "goal-teams-V2.49.tar.gz",
 )
+V250_CONTINUATION_FORMAL_RECEIPTS = V249_CONTINUATION_FORMAL_RECEIPTS
+V250_CONTINUATION_DIAGNOSTIC_OUTPUTS = V249_CONTINUATION_DIAGNOSTIC_OUTPUTS
+V250_CONTINUATION_PHASE_ORDER = V249_CONTINUATION_PHASE_ORDER
+V250_CONTINUATION_LARGE_ONLY_PHASES = V249_CONTINUATION_LARGE_ONLY_PHASES
+V250_CONTINUATION_ASSET_NAMES = continuation_asset_names("V2.50")
 
 
 class SkillReleaseError(RuntimeError):
@@ -143,6 +203,26 @@ def _v249_release_flow_module() -> ModuleType:
     )
 
 
+def _release_flow_path(version: str) -> Path:
+    return ROOT / "scripts" / f"v{_version_digits(version)}" / "release_flow.py"
+
+
+def _v250_release_flow_module() -> ModuleType:
+    return _load_module(
+        "_goal_teams_v250_release_flow",
+        _release_flow_path("V2.50"),
+    )
+
+
+def _release_flow_module(version: str) -> ModuleType:
+    if version == "V2.49":
+        return _v249_release_flow_module()
+    if version == "V2.50":
+        return _v250_release_flow_module()
+    _version_digits(version)
+    raise AssertionError("unreachable")
+
+
 def _read_receipt_file(path: Path) -> dict[str, Any]:
     if not path.is_file() or path.is_symlink() or path.stat().st_size > 16 * 1024 * 1024:
         raise SkillReleaseError(
@@ -176,6 +256,7 @@ def _validate_v249_runtime_external_anchor(
     runtime: dict[str, Any],
     activation_path: str,
     frozen_bytes: Callable[[str], bytes],
+    version: str = "V2.49",
 ) -> dict[str, str]:
     """Bind the strict runtime's complete static and dynamic input closure."""
 
@@ -187,7 +268,7 @@ def _validate_v249_runtime_external_anchor(
         activation = json.loads(frozen_bytes(activation_path))
     except (KeyError, OSError, UnicodeDecodeError, json.JSONDecodeError, TypeError) as exc:
         raise SkillReleaseError(
-            "E_V249_RUNTIME_EXTERNAL_ANCHOR",
+            _version_error(version, "RUNTIME_EXTERNAL_ANCHOR"),
             "released runtime inputs differ from the exact commit",
             command="preflight",
         ) from exc
@@ -212,12 +293,12 @@ def _validate_v249_runtime_external_anchor(
         or not prompt_manifest_path
     ):
         raise SkillReleaseError(
-            "E_V249_RUNTIME_EXTERNAL_ANCHOR",
+            _version_error(version, "RUNTIME_EXTERNAL_ANCHOR"),
             "released runtime inputs differ from the exact commit",
             command="preflight",
         )
     expected_paths = (
-        set(V249_RUNTIME_STATIC_INPUT_PATHS)
+        set(runtime_static_input_paths(version))
         | {
             "references/current/ACTIVE.json",
             activation_path,
@@ -237,11 +318,25 @@ def _validate_v249_runtime_external_anchor(
         )
     ):
         raise SkillReleaseError(
-            "E_V249_RUNTIME_EXTERNAL_ANCHOR",
+            _version_error(version, "RUNTIME_EXTERNAL_ANCHOR"),
             "released runtime inputs differ from the exact commit",
             command="preflight",
         )
     return runtime_digests
+
+
+def _validate_v250_runtime_external_anchor(
+    *,
+    runtime: dict[str, Any],
+    activation_path: str,
+    frozen_bytes: Callable[[str], bytes],
+) -> dict[str, str]:
+    return _validate_v249_runtime_external_anchor(
+        runtime=runtime,
+        activation_path=activation_path,
+        frozen_bytes=frozen_bytes,
+        version="V2.50",
+    )
 
 
 def _validate_v249_external_anchors(
@@ -250,6 +345,7 @@ def _validate_v249_external_anchors(
     source_tree: str,
     s1_check_receipt: dict[str, Any],
     asset_validation_receipt: dict[str, Any],
+    version: str = "V2.49",
 ) -> dict[str, Any]:
     """Recompute Current/runtime/security anchors from the exact Git commit."""
 
@@ -260,7 +356,7 @@ def _validate_v249_external_anchors(
         row = entries.get(relative)
         if row is None:
             raise SkillReleaseError(
-                "E_V249_EXTERNAL_ANCHOR_PATH",
+                _version_error(version, "EXTERNAL_ANCHOR_PATH"),
                 f"required frozen path is missing: {relative}",
                 command="preflight",
                 source_commit=commit,
@@ -277,20 +373,22 @@ def _validate_v249_external_anchors(
         integrity = asset_validation_receipt["asset_integrity_validation_receipt"]
     except (KeyError, TypeError) as exc:
         raise SkillReleaseError(
-            "E_V249_EXTERNAL_ANCHOR_RECEIPT",
+            _version_error(version, "EXTERNAL_ANCHOR_RECEIPT"),
             "raw S1/runtime/S2/integrity receipts are required",
             command="preflight",
             source_commit=commit,
         ) from exc
 
-    release_flow = _v249_release_flow_module()
+    digits = _version_digits(version)
+    lower = _version_lower(version)
+    release_flow = _release_flow_module(version)
     expected_test_files = [
         {
             "path": path,
             "sha256": hashlib.sha256(frozen_bytes(path)).hexdigest(),
         }
         for path in sorted(entries)
-        if path.startswith("tests/v249/test_") and path.endswith(".py")
+        if path.startswith(f"tests/v{digits}/test_") and path.endswith(".py")
     ]
     denominator = full.get("denominator") if isinstance(full, dict) else None
     if (
@@ -305,12 +403,12 @@ def _validate_v249_external_anchors(
         or denominator.get("contract_sha256")
         != hashlib.sha256(
             frozen_bytes(
-                "references/current/generations/V2.49/contracts/release-command-manifest.json"
+                f"references/current/generations/{version}/contracts/release-command-manifest.json"
             )
         ).hexdigest()
     ):
         raise SkillReleaseError(
-            "E_V249_CURRENT_DENOMINATOR_EXTERNAL_ANCHOR",
+            _version_error(version, "CURRENT_DENOMINATOR_EXTERNAL_ANCHOR"),
             "Current full-regression denominator differs from the exact commit",
             command="preflight",
             source_commit=commit,
@@ -322,16 +420,17 @@ def _validate_v249_external_anchors(
         runtime=runtime if isinstance(runtime, dict) else {},
         activation_path=str(activation_path),
         frozen_bytes=frozen_bytes,
+        version=version,
     )
 
     security_digests = security.get("contract_digests") if isinstance(security, dict) else None
     expected_security_paths = {
-        "references/current/generations/V2.49/contracts/public-asset-map.json",
-        "references/current/generations/V2.49/contracts/release-command-manifest.json",
-        "references/current/generations/V2.49/contracts/release-route-manifest.json",
-        "references/current/generations/V2.49/contracts/release-security-review-manifest.json",
-        "schemas/v2.49/project-route.schema.json",
-        "schemas/v2.49/release-control.schema.json",
+        f"references/current/generations/{version}/contracts/public-asset-map.json",
+        f"references/current/generations/{version}/contracts/release-command-manifest.json",
+        f"references/current/generations/{version}/contracts/release-route-manifest.json",
+        f"references/current/generations/{version}/contracts/release-security-review-manifest.json",
+        f"schemas/{lower}/project-route.schema.json",
+        f"schemas/{lower}/release-control.schema.json",
     }
     reviewer = security.get("reviewer_identity") if isinstance(security, dict) else None
     if (
@@ -344,11 +443,11 @@ def _validate_v249_external_anchors(
         or not isinstance(reviewer, dict)
         or reviewer.get("runner_sha256")
         != hashlib.sha256(
-            frozen_bytes("scripts/checks/run-v249-release-security-review.py")
+            frozen_bytes(f"scripts/checks/run-v{digits}-release-security-review.py")
         ).hexdigest()
     ):
         raise SkillReleaseError(
-            "E_V249_SECURITY_EXTERNAL_ANCHOR",
+            _version_error(version, "SECURITY_EXTERNAL_ANCHOR"),
             "security denominator or runner differs from the exact commit",
             command="preflight",
             source_commit=commit,
@@ -378,13 +477,13 @@ def _validate_v249_external_anchors(
         )
     ):
         raise SkillReleaseError(
-            "E_V249_ASSET_EXTERNAL_ANCHOR",
+            _version_error(version, "ASSET_EXTERNAL_ANCHOR"),
             "S2 or same-built-asset integrity receipt is inconsistent",
             command="preflight",
             source_commit=commit,
         )
     anchor = {
-        "schema_version": "goal-teams-v2.49-external-anchor-validation-v1",
+        "schema_version": f"goal-teams-{lower}-external-anchor-validation-v1",
         "source_commit": commit,
         "source_tree": source_tree,
         "current_test_file_set_sha256": release_flow.canonical_sha256(
@@ -400,6 +499,31 @@ def _validate_v249_external_anchors(
     }
     anchor["receipt_sha256"] = release_flow.canonical_sha256(anchor)
     return anchor
+
+
+def _validate_v250_external_anchors(
+    *,
+    commit: str,
+    source_tree: str,
+    s1_check_receipt: dict[str, Any],
+    asset_validation_receipt: dict[str, Any],
+) -> dict[str, Any]:
+    return _validate_v249_external_anchors(
+        commit=commit,
+        source_tree=source_tree,
+        s1_check_receipt=s1_check_receipt,
+        asset_validation_receipt=asset_validation_receipt,
+        version="V2.50",
+    )
+
+
+def _validate_external_anchors(version: str, **kwargs: Any) -> dict[str, Any]:
+    if version == "V2.49":
+        return _validate_v249_external_anchors(**kwargs)
+    if version == "V2.50":
+        return _validate_v250_external_anchors(**kwargs)
+    _version_digits(version)
+    raise AssertionError("unreachable")
 
 
 def _base_receipt(
@@ -442,10 +566,10 @@ def _simple_config(version: str) -> dict[str, Any]:
         ) from exc
     expected_approval = (
         "project_start_authorization_reused"
-        if version == "V2.49"
+        if version in SINGLE_BUILD_VERSIONS
         else "single_human_before_external_write"
     )
-    expected_gate_count = 6 if version == "V2.49" else 5
+    expected_gate_count = 6 if version in SINGLE_BUILD_VERSIONS else 5
     if (
         config.get("release_mode") != "skill_simple"
         or config.get("approval_model") != expected_approval
@@ -532,7 +656,7 @@ def plan(
 
     config = _simple_config(version)
     identity = _read_identity(version, commit, config)
-    if version == "V2.49":
+    if version in SINGLE_BUILD_VERSIONS:
         route_value = route or {
             "project_size": "medium",
             "workflow_phase": "development",
@@ -540,7 +664,7 @@ def plan(
             "implementation_scope_complete": False,
             "stage": "candidate",
         }
-        release_plan = _v249_release_flow_module().derive_release_plan(route_value)
+        release_plan = _release_flow_module(version).derive_release_plan(route_value)
         gate_states = {
             gate: "not_run" for gate in config["release_gates"]
         }
@@ -609,17 +733,17 @@ def _run_structure_gate(snapshot: Path) -> dict[str, Any]:
 def verify(version: str, commit: str) -> dict[str, Any]:
     """Legacy simple-release verifier.
 
-    V2.49 requires the explicit ``build-release.py`` S2 entrypoint followed by
-    ``validate_existing_asset_set``.  Refusing V2.49 here prevents this helper
+    V2.49/V2.50 requires the explicit ``build-release.py`` S2 entrypoint followed by
+    ``validate_existing_asset_set``.  Refusing it here prevents this helper
     from accidentally becoming a second build path.
     """
 
     config = _simple_config(version)
     identity = _read_identity(version, commit, config)
-    if version == "V2.49":
+    if version in SINGLE_BUILD_VERSIONS:
         raise SkillReleaseError(
-            "E_V249_EXPLICIT_SINGLE_BUILD_REQUIRED",
-            "V2.49 S2 must use build-release.py once, then validate the same asset set",
+            _version_error(version, "EXPLICIT_SINGLE_BUILD_REQUIRED"),
+            f"{version} S2 must use build-release.py once, then validate the same asset set",
             command="verify",
             version=version,
             source_commit=commit,
@@ -648,10 +772,10 @@ def verify(version: str, commit: str) -> dict[str, Any]:
         snapshot = release_root / version
         structure = (
             {
-                "status": "not_run_by_v249_policy",
+                "status": f"not_run_by_v{_version_digits(version)}_policy",
                 "reason": "repository_boundary_compliance_is_independent",
             }
-            if version == "V2.49"
+            if version in SINGLE_BUILD_VERSIONS
             else _run_structure_gate(snapshot)
         )
         try:
@@ -681,7 +805,7 @@ def verify(version: str, commit: str) -> dict[str, Any]:
                 version=version,
                 source_commit=commit,
             )
-    if version == "V2.49":
+    if version in SINGLE_BUILD_VERSIONS:
         return _base_receipt(
             command="verify",
             status="s2_single_build_complete",
@@ -703,8 +827,12 @@ def verify(version: str, commit: str) -> dict[str, Any]:
                 "s2": {
                     "build_invocation_count_for_asset_set": 1,
                     "second_build_comparison_attempted": False,
-                    "reproducibility": "not_verified_by_v249_policy",
-                    "s2_security_checks": "not_run_by_v249_policy",
+                    "reproducibility": (
+                        f"not_verified_by_v{_version_digits(version)}_policy"
+                    ),
+                    "s2_security_checks": (
+                        f"not_run_by_v{_version_digits(version)}_policy"
+                    ),
                 },
                 "repository_boundary_compliance": "not_run",
                 "large_release_install": "not_run",
@@ -753,17 +881,17 @@ def validate_existing_asset_set(
     release_root: Path,
     build_receipt: dict[str, Any],
 ) -> dict[str, Any]:
-    """Validate the asset set from the one explicit V2.49 S2 build.
+    """Validate the asset set from one explicit V2.49 or V2.50 S2 build.
 
     This function never calls the builder.  ``validate-release.py`` validates
     frozen-source and boundary integrity for the same bytes and modes already
     present under ``release_root``; this is not a reproducibility comparison.
     """
 
-    if version != "V2.49":
+    if version not in SINGLE_BUILD_VERSIONS:
         raise SkillReleaseError(
-            "E_V249_VALIDATE_VERSION",
-            "same-built-asset validation is defined for V2.49",
+            "E_SKILL_RELEASE_VALIDATE_VERSION",
+            "same-built-asset validation is defined for V2.49 and V2.50",
             command="validate",
             version=version,
         )
@@ -774,8 +902,8 @@ def validate_existing_asset_set(
     record_path = snapshot / "_release.json"
     if not snapshot.is_dir() or not record_path.is_file() or record_path.is_symlink():
         raise SkillReleaseError(
-            "E_V249_EXISTING_ASSET_SET_REQUIRED",
-            "the already-built V2.49 snapshot is missing or unsafe",
+            _version_error(version, "EXISTING_ASSET_SET_REQUIRED"),
+            f"the already-built {version} snapshot is missing or unsafe",
             command="validate",
             version=version,
             source_commit=commit,
@@ -785,7 +913,7 @@ def validate_existing_asset_set(
         record = json.loads(record_path.read_text(encoding="utf-8"))
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise SkillReleaseError(
-            "E_V249_EXISTING_ASSET_SET_RECORD",
+            _version_error(version, "EXISTING_ASSET_SET_RECORD"),
             "the already-built release record is invalid",
             command="validate",
             version=version,
@@ -803,7 +931,7 @@ def validate_existing_asset_set(
         or record.get("source_git_tree_id") != identity["source_git_tree"]
     ):
         raise SkillReleaseError(
-            "E_V249_S2_BUILD_RECEIPT_DRIFT",
+            _version_error(version, "S2_BUILD_RECEIPT_DRIFT"),
             "build receipt, frozen identity, and existing release record differ",
             command="validate",
             version=version,
@@ -821,7 +949,7 @@ def validate_existing_asset_set(
     }
     if any(not path.is_file() or path.is_symlink() for path in asset_paths.values()):
         raise SkillReleaseError(
-            "E_V249_PUBLIC_ASSET_SET",
+            _version_error(version, "PUBLIC_ASSET_SET"),
             "the exact existing four-asset set is incomplete",
             command="validate",
             version=version,
@@ -832,15 +960,17 @@ def validate_existing_asset_set(
         {"name": name, "size": path.stat().st_size, "sha256": _sha256_file(path)}
         for name, path in sorted(asset_paths.items())
     ]
-    release_flow = _v249_release_flow_module()
+    digits = _version_digits(version)
+    lower = _version_lower(version)
+    release_flow = _release_flow_module(version)
     asset_set_digest = release_flow.canonical_sha256(assets)
-    asset_set_id = f"V249-ASSET-{asset_set_digest[:20]}"
+    asset_set_id = f"V{digits}-ASSET-{asset_set_digest[:20]}"
     s2_receipt = release_flow.build_s2_receipt(
         source_commit=commit,
         source_tree=identity["source_git_tree"],
         asset_set_id=asset_set_id,
         assets=assets,
-        build_run_id=f"V249-S2-{commit[:12]}-{asset_set_digest[:12]}",
+        build_run_id=f"V{digits}-S2-{commit[:12]}-{asset_set_digest[:12]}",
     )
 
     validator = ROOT / "scripts/release/validate-release.py"
@@ -869,7 +999,7 @@ def validate_existing_asset_set(
         validation = {}
     if result.returncode != 0 or validation.get("passed") is not True:
         raise SkillReleaseError(
-            "E_V249_SAME_ASSET_INTEGRITY_VALIDATION",
+            _version_error(version, "SAME_ASSET_INTEGRITY_VALIDATION"),
             "frozen-source and boundary integrity validation failed",
             command="validate",
             version=version,
@@ -880,7 +1010,7 @@ def validate_existing_asset_set(
             validator_output_sha256=hashlib.sha256(output).hexdigest(),
         )
     validation_receipt = {
-        "schema_version": "goal-teams-v2.49-same-asset-validation-receipt-v1",
+        "schema_version": f"goal-teams-{lower}-same-asset-validation-receipt-v1",
         "gate_id": "same_built_asset_integrity_validation",
         "source_commit": commit,
         "source_tree": identity["source_git_tree"],
@@ -909,7 +1039,7 @@ def validate_existing_asset_set(
         "repository": V249_REPOSITORY,
         "version": version,
         "release_tag": config["tag"],
-        "release_id": f"v249-s3-{asset_set_digest[:16]}",
+        "release_id": f"v{digits}-s3-{asset_set_digest[:16]}",
         "release_state": "rehearsal",
         "source_commit": commit,
         "source_git_tree_id": identity["source_git_tree"],
@@ -936,7 +1066,7 @@ def validate_existing_asset_set(
         installer_release_identity=installer_identity,
         asset_build_invocation_count=0,
         second_build_comparison_attempted=False,
-        reproducibility="not_verified_by_v249_policy",
+        reproducibility=f"not_verified_by_v{digits}_policy",
         temporary_local_mutation_count=0,
         publish_state="release_control_receipt_required",
     )
@@ -950,7 +1080,10 @@ def build_s3_receipt(
 ) -> dict[str, Any]:
     """Bind a Large-only isolated install report to the exact S2 asset set."""
 
-    release_flow = _v249_release_flow_module()
+    version = _receipt_version(s2_receipt)
+    digits = _version_digits(version)
+    lower = _version_lower(version)
+    release_flow = _release_flow_module(version)
     verdict = release_flow.validate_s2_receipt(
         s2_receipt,
         source_commit=str(s2_receipt.get("source_commit", "")),
@@ -963,7 +1096,7 @@ def build_s3_receipt(
             command="s3-receipt",
         )
     base = {
-        "schema_version": "goal-teams-v2.49-s3-receipt-v1",
+        "schema_version": f"goal-teams-{lower}-s3-receipt-v1",
         "source_commit": s2_receipt["source_commit"],
         "source_tree": s2_receipt["source_tree"],
         "asset_set_id": s2_receipt["asset_set_id"],
@@ -998,13 +1131,13 @@ def build_s3_receipt(
             not isinstance(install_report, dict)
             or install_report.get("status") != "installed"
             or not isinstance(source, dict)
-            or source.get("version") != "V2.49"
+            or source.get("version") != version
             or source.get("commit") != s2_receipt["source_commit"]
             or source.get("git_tree_id") != s2_receipt["source_tree"]
             or observed_assets != expected_assets
         ):
             raise SkillReleaseError(
-                "E_V249_S3_INSTALL_REPORT_DRIFT",
+                _version_error(version, "S3_INSTALL_REPORT_DRIFT"),
                 "Large S3 install report does not bind the exact S2 asset set",
                 command="s3-receipt",
                 asset_set_id=s2_receipt["asset_set_id"],
@@ -1040,10 +1173,10 @@ def preflight_release_control(
 
     config = _simple_config(version)
     identity = _read_identity(version, commit, config)
-    if version != "V2.49":
+    if version not in SINGLE_BUILD_VERSIONS:
         raise SkillReleaseError(
-            "E_V249_RELEASE_CONTROL_VERSION",
-            "release-control preflight is defined for V2.49",
+            "E_SKILL_RELEASE_CONTROL_VERSION",
+            "release-control preflight is defined for V2.49 and V2.50",
             command="preflight",
             version=version,
         )
@@ -1061,7 +1194,7 @@ def preflight_release_control(
         ]
     except (KeyError, TypeError) as exc:
         raise SkillReleaseError(
-            "E_V249_RELEASE_CONTROL_RECEIPT_MISSING",
+            _version_error(version, "RELEASE_CONTROL_RECEIPT_MISSING"),
             "S0, S1, or S2 input receipt is missing",
             command="preflight",
             version=version,
@@ -1075,15 +1208,16 @@ def preflight_release_control(
         != "s1_passed_release_control_incomplete"
     ):
         raise SkillReleaseError(
-            "E_V249_S1_NOT_CURRENT",
+            _version_error(version, "S1_NOT_CURRENT"),
             "S1 checker receipt is not passed/current",
             command="preflight",
             version=version,
             source_commit=commit,
         )
-    release_flow = _v249_release_flow_module()
+    release_flow = _release_flow_module(version)
     try:
-        external_anchor = _validate_v249_external_anchors(
+        external_anchor = _validate_external_anchors(
+            version,
             commit=commit,
             source_tree=identity["source_git_tree"],
             s1_check_receipt=s1_check_receipt,
@@ -1122,7 +1256,7 @@ def preflight_release_control(
     return control
 
 
-def validate_v249_s4_control(
+def _validate_s4_control(
     version: str,
     commit: str,
     release_control_receipt: dict[str, Any],
@@ -1137,16 +1271,16 @@ def validate_v249_s4_control(
     denominator, runtime summary, or security summary from authorizing S4.
     """
 
-    if version != "V2.49":
+    if version not in SINGLE_BUILD_VERSIONS:
         return {
             "ok": False,
             "passed": False,
-            "errors": ["E_V249_RELEASE_CONTROL_VERSION"],
+            "errors": ["E_SKILL_RELEASE_CONTROL_VERSION"],
         }
     config = _simple_config(version)
     identity = _read_identity(version, commit, config)
     control = release_control_receipt
-    verdict = _v249_release_flow_module().validate_release_control_receipt(
+    verdict = _release_flow_module(version).validate_release_control_receipt(
         control,
         expected_repository=V249_REPOSITORY,
         expected_version=version,
@@ -1160,7 +1294,8 @@ def validate_v249_s4_control(
         ),
     )
     try:
-        recomputed_anchor = _validate_v249_external_anchors(
+        recomputed_anchor = _validate_external_anchors(
+            version,
             commit=commit,
             source_tree=identity["source_git_tree"],
             s1_check_receipt={
@@ -1194,11 +1329,11 @@ def validate_v249_s4_control(
         # Put the public-boundary failure first. A low-level receipt error is
         # useful detail, but must not hide that exact Git anchors did not match.
         verdict["errors"] = [
-            "E_V249_EXTERNAL_ANCHOR_REVALIDATION",
+            _version_error(version, "EXTERNAL_ANCHOR_REVALIDATION"),
             *[
                 error
                 for error in verdict.get("errors", [])
-                if error != "E_V249_EXTERNAL_ANCHOR_REVALIDATION"
+                if error != _version_error(version, "EXTERNAL_ANCHOR_REVALIDATION")
             ],
         ]
     verdict["errors"] = list(dict.fromkeys(verdict.get("errors", [])))
@@ -1208,6 +1343,70 @@ def validate_v249_s4_control(
     verdict["source_identity"] = identity
     verdict["release_config"] = config
     return verdict
+
+
+def validate_v249_s4_control(
+    version: str,
+    commit: str,
+    release_control_receipt: dict[str, Any],
+    *,
+    runtime_route_receipt_path: Path | str | None = None,
+    runtime_authorization_receipt_path: Path | str | None = None,
+) -> dict[str, Any]:
+    if version != "V2.49":
+        return {
+            "ok": False,
+            "passed": False,
+            "errors": ["E_V249_RELEASE_CONTROL_VERSION"],
+        }
+    return _validate_s4_control(
+        version,
+        commit,
+        release_control_receipt,
+        runtime_route_receipt_path=runtime_route_receipt_path,
+        runtime_authorization_receipt_path=runtime_authorization_receipt_path,
+    )
+
+
+def validate_v250_s4_control(
+    version: str,
+    commit: str,
+    release_control_receipt: dict[str, Any],
+    *,
+    runtime_route_receipt_path: Path | str | None = None,
+    runtime_authorization_receipt_path: Path | str | None = None,
+) -> dict[str, Any]:
+    if version != "V2.50":
+        return {
+            "ok": False,
+            "passed": False,
+            "errors": ["E_V250_RELEASE_CONTROL_VERSION"],
+        }
+    return _validate_s4_control(
+        version,
+        commit,
+        release_control_receipt,
+        runtime_route_receipt_path=runtime_route_receipt_path,
+        runtime_authorization_receipt_path=runtime_authorization_receipt_path,
+    )
+
+
+def _validate_version_s4_control(
+    version: str,
+    commit: str,
+    release_control_receipt: dict[str, Any],
+    **kwargs: Any,
+) -> dict[str, Any]:
+    if version == "V2.49":
+        return validate_v249_s4_control(
+            version, commit, release_control_receipt, **kwargs
+        )
+    if version == "V2.50":
+        return validate_v250_s4_control(
+            version, commit, release_control_receipt, **kwargs
+        )
+    _version_digits(version)
+    raise AssertionError("unreachable")
 
 
 def publish(
@@ -1221,14 +1420,14 @@ def publish(
 
     config = _simple_config(version)
     identity = _read_identity(version, commit, config)
-    if version == "V2.49":
+    if version in SINGLE_BUILD_VERSIONS:
         if project_start_authorization_receipt is not None:
             # A bare authorization receipt is intentionally insufficient.  It
             # is accepted only as a compatibility input that still fails
             # closed until the complete release-control chain is provided.
             release_control_receipt = None
         control = release_control_receipt or {}
-        verdict = validate_v249_s4_control(version, commit, control)
+        verdict = _validate_version_s4_control(version, commit, control)
         authorized = bool(verdict["ok"])
         return _base_receipt(
             command="authorize_s4_plan",
@@ -1243,7 +1442,7 @@ def publish(
                 else (
                     verdict["errors"][0]
                     if verdict.get("errors")
-                    else "E_V249_RELEASE_CONTROL_REQUIRED"
+                    else _version_error(version, "RELEASE_CONTROL_REQUIRED")
                 )
             ),
             version=version,
@@ -1317,34 +1516,66 @@ def _checkpoint_json(
 
 
 def _v249_public_asset_paths(release_root: Path) -> dict[str, Path]:
-    snapshot = release_root / "V2.49"
+    return _public_asset_paths("V2.49", release_root)
+
+
+def _v250_public_asset_paths(release_root: Path) -> dict[str, Path]:
+    return _public_asset_paths("V2.50", release_root)
+
+
+def _public_asset_paths(version: str, release_root: Path) -> dict[str, Path]:
+    _version_digits(version)
+    snapshot = release_root / version
     return {
         "SHA256SUMS": snapshot / "_artifacts" / "SHA256SUMS",
         "_files.sha256": snapshot / "_files.sha256",
         "_release.json": snapshot / "_release.json",
-        "goal-teams-V2.49.tar.gz": (
-            snapshot / "_artifacts" / "goal-teams-V2.49.tar.gz"
+        f"goal-teams-{version}.tar.gz": (
+            snapshot / "_artifacts" / f"goal-teams-{version}.tar.gz"
         ),
     }
 
 
 def _checkpoint_gate_errors(
-    *, project_size: str, gate_outcomes: Mapping[str, str]
+    *,
+    project_size: str,
+    gate_outcomes: Mapping[str, str],
+    version: str = "V2.49",
 ) -> list[str]:
     if set(gate_outcomes) != set(V249_CONTINUATION_PHASE_ORDER):
-        return ["E_V249_CHECKPOINT_GATE_OUTCOME_SET"]
+        return [_version_error(version, "CHECKPOINT_GATE_OUTCOME_SET")]
     errors: list[str] = []
     for phase in V249_CONTINUATION_PHASE_ORDER:
         outcome = gate_outcomes[phase]
         if outcome not in {"success", "failure", "skipped", "cancelled"}:
-            errors.append("E_V249_CHECKPOINT_GATE_OUTCOME_VALUE")
+            errors.append(_version_error(version, "CHECKPOINT_GATE_OUTCOME_VALUE"))
             continue
         if project_size != "large" and phase in V249_CONTINUATION_LARGE_ONLY_PHASES:
             if outcome != "skipped":
-                errors.append("E_V249_CHECKPOINT_GATE_OUTCOME")
+                errors.append(_version_error(version, "CHECKPOINT_GATE_OUTCOME"))
         elif outcome != "success":
-            errors.append("E_V249_CHECKPOINT_GATE_OUTCOME")
+            errors.append(_version_error(version, "CHECKPOINT_GATE_OUTCOME"))
     return list(dict.fromkeys(errors))
+
+
+def _v249_checkpoint_gate_errors(
+    *, project_size: str, gate_outcomes: Mapping[str, str]
+) -> list[str]:
+    return _checkpoint_gate_errors(
+        project_size=project_size,
+        gate_outcomes=gate_outcomes,
+        version="V2.49",
+    )
+
+
+def _v250_checkpoint_gate_errors(
+    *, project_size: str, gate_outcomes: Mapping[str, str]
+) -> list[str]:
+    return _checkpoint_gate_errors(
+        project_size=project_size,
+        gate_outcomes=gate_outcomes,
+        version="V2.50",
+    )
 
 
 def _valid_v249_s4_plan(
@@ -1383,9 +1614,26 @@ def _valid_v249_s4_plan(
     )
 
 
+def _valid_v250_s4_plan(
+    plan: Mapping[str, Any],
+    *,
+    commit: str,
+    source_tree: str,
+    control: Mapping[str, Any],
+) -> bool:
+    return _valid_v249_s4_plan(
+        plan,
+        commit=commit,
+        source_tree=source_tree,
+        control=control,
+    )
+
+
 def _v249_checkpoint_receipt_binding_errors(
     receipt_values: Mapping[str, Mapping[str, Any]],
     control: Mapping[str, Any],
+    *,
+    version: str = "V2.49",
 ) -> list[str]:
     s1_check = receipt_values.get("s1-check.json", {})
     release_gate_receipts = s1_check.get("release_gate_receipts", {})
@@ -1413,12 +1661,23 @@ def _v249_checkpoint_receipt_binding_errors(
     }
     errors: list[str] = []
     if any(control.get(key) != value for key, value in bindings.items()):
-        errors.append("E_V249_CHECKPOINT_RECEIPT_BINDING")
+        errors.append(_version_error(version, "CHECKPOINT_RECEIPT_BINDING"))
     if runtime.get("controller_handoff_receipt") != receipt_values.get(
         "controller-handoff.json"
     ):
-        errors.append("E_V249_CHECKPOINT_CONTROLLER_BINDING")
+        errors.append(_version_error(version, "CHECKPOINT_CONTROLLER_BINDING"))
     return errors
+
+
+def _v250_checkpoint_receipt_binding_errors(
+    receipt_values: Mapping[str, Mapping[str, Any]],
+    control: Mapping[str, Any],
+) -> list[str]:
+    return _v249_checkpoint_receipt_binding_errors(
+        receipt_values,
+        control,
+        version="V2.50",
+    )
 
 
 def build_v249_continuation_checkpoint(
@@ -1435,15 +1694,19 @@ def build_v249_continuation_checkpoint(
 ) -> dict[str, Any]:
     """Evaluate whether one exact S2 asset chain is safe to continue into S4."""
 
-    if version != "V2.49" or project_size not in {"small", "medium", "large"}:
+    if version not in SINGLE_BUILD_VERSIONS or project_size not in {
+        "small",
+        "medium",
+        "large",
+    }:
         raise SkillReleaseError(
-            "E_V249_CHECKPOINT_IDENTITY",
+            "E_SKILL_RELEASE_CHECKPOINT_IDENTITY",
             "continuation checkpoint identity is invalid",
             command="checkpoint",
         )
     if job_status not in {"success", "failure", "cancelled"}:
         raise SkillReleaseError(
-            "E_V249_CHECKPOINT_JOB_STATUS",
+            _version_error(version, "CHECKPOINT_JOB_STATUS"),
             "continuation checkpoint job status is invalid",
             command="checkpoint",
         )
@@ -1452,16 +1715,19 @@ def build_v249_continuation_checkpoint(
         or POSITIVE_DECIMAL_RE.fullmatch(workflow_run_attempt) is None
     ):
         raise SkillReleaseError(
-            "E_V249_CHECKPOINT_WORKFLOW_IDENTITY",
+            _version_error(version, "CHECKPOINT_WORKFLOW_IDENTITY"),
             "workflow run ID and attempt must be positive decimal identities",
             command="checkpoint",
         )
-    identity = _read_identity(version, commit, _simple_config(version))
+    config = _simple_config(version)
+    identity = _read_identity(version, commit, config)
     source_tree = identity["source_git_tree"]
-    release_flow = _v249_release_flow_module()
+    lower = _version_lower(version)
+    release_flow = _release_flow_module(version)
     errors = _checkpoint_gate_errors(
         project_size=project_size,
         gate_outcomes=gate_outcomes,
+        version=version,
     )
 
     receipt_values: dict[str, dict[str, Any]] = {}
@@ -1476,7 +1742,7 @@ def build_v249_continuation_checkpoint(
         if value is not None:
             receipt_values[name] = value
         elif job_status == "success":
-            errors.append("E_V249_CHECKPOINT_RECEIPT_JSON")
+            errors.append(_version_error(version, "CHECKPOINT_RECEIPT_JSON"))
 
     diagnostic_files: dict[str, dict[str, Any]] = {}
     for name in V249_CONTINUATION_DIAGNOSTIC_OUTPUTS:
@@ -1485,7 +1751,7 @@ def build_v249_continuation_checkpoint(
             diagnostic_files[name] = record
 
     public_assets: dict[str, dict[str, Any]] = {}
-    for name, path in _v249_public_asset_paths(release_root).items():
+    for name, path in _public_asset_paths(version, release_root).items():
         record = _checkpoint_file_record(path)
         if record is None:
             missing_files.append(f"asset:{name}")
@@ -1497,12 +1763,12 @@ def build_v249_continuation_checkpoint(
         set(receipt_values) == set(V249_CONTINUATION_FORMAL_RECEIPTS)
     )
     required_assets_present = set(public_assets) == set(
-        V249_CONTINUATION_ASSET_NAMES
+        continuation_asset_names(version)
     )
     if ready_candidate and not required_receipts_present:
-        errors.append("E_V249_CHECKPOINT_RECEIPT_SET")
+        errors.append(_version_error(version, "CHECKPOINT_RECEIPT_SET"))
     if ready_candidate and not required_assets_present:
-        errors.append("E_V249_CHECKPOINT_ASSET_SET")
+        errors.append(_version_error(version, "CHECKPOINT_ASSET_SET"))
 
     asset_validation = receipt_values.get("asset-validation.json", {})
     s2 = asset_validation.get("s2_receipt", {})
@@ -1518,8 +1784,8 @@ def build_v249_continuation_checkpoint(
             authorization,
             repository=V249_REPOSITORY,
             version=version,
-            candidate_branch="codex/v2.49-simplification",
-            tag="v2.49",
+            candidate_branch=config["candidate_branch"],
+            tag=config["tag"],
         )
         if not auth_verdict.get("ok"):
             errors.extend(auth_verdict.get("errors", []))
@@ -1535,9 +1801,9 @@ def build_v249_continuation_checkpoint(
             for name in sorted(public_assets)
         ]
         if s2.get("assets") != expected_assets:
-            errors.append("E_V249_CHECKPOINT_ASSET_BINDING")
+            errors.append(_version_error(version, "CHECKPOINT_ASSET_BINDING"))
         try:
-            control_verdict = validate_v249_s4_control(
+            control_verdict = _validate_version_s4_control(
                 version,
                 commit,
                 control,
@@ -1561,9 +1827,11 @@ def build_v249_continuation_checkpoint(
             source_tree=source_tree,
             control=control,
         ):
-            errors.append("E_V249_CHECKPOINT_PLAN_CONTRACT")
+            errors.append(_version_error(version, "CHECKPOINT_PLAN_CONTRACT"))
         errors.extend(
-            _v249_checkpoint_receipt_binding_errors(receipt_values, control)
+            _v249_checkpoint_receipt_binding_errors(
+                receipt_values, control, version=version
+            )
         )
 
     errors = list(dict.fromkeys(str(error) for error in errors if error))
@@ -1607,7 +1875,7 @@ def build_v249_continuation_checkpoint(
         else {}
     )
     checkpoint = {
-        "schema_version": "goal-teams-v2.49-continuation-checkpoint-v1",
+        "schema_version": f"goal-teams-{lower}-continuation-checkpoint-v1",
         "state": state,
         "claim_scope": "release_asset_chain_only",
         "repository": V249_REPOSITORY,
@@ -1653,6 +1921,20 @@ def build_v249_continuation_checkpoint(
     return checkpoint
 
 
+def build_v250_continuation_checkpoint(
+    version: str,
+    commit: str,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    if version != "V2.50":
+        raise SkillReleaseError(
+            "E_V250_CHECKPOINT_IDENTITY",
+            "V2.50 continuation checkpoint identity is invalid",
+            command="checkpoint",
+        )
+    return build_v249_continuation_checkpoint(version, commit, **kwargs)
+
+
 def validate_v249_continuation_checkpoint(
     version: str,
     commit: str,
@@ -1665,14 +1947,27 @@ def validate_v249_continuation_checkpoint(
 ) -> dict[str, Any]:
     """Fail closed unless a staged continuation artifact exactly matches its checkpoint."""
 
+    if version not in SINGLE_BUILD_VERSIONS:
+        return _base_receipt(
+            command="verify-continuation-checkpoint",
+            status="failed",
+            error_code="E_SKILL_RELEASE_CHECKPOINT_IDENTITY",
+            version=version,
+            source_commit=commit,
+            errors=["E_SKILL_RELEASE_CHECKPOINT_IDENTITY"],
+            check_state="failed",
+            run_outcome="failed",
+            evidence_state="invalid",
+        )
     value = checkpoint if isinstance(checkpoint, dict) else {}
     errors: list[str] = []
-    release_flow = _v249_release_flow_module()
+    lower = _version_lower(version)
+    release_flow = _release_flow_module(version)
     payload = dict(value)
     claimed_digest = payload.pop("checkpoint_sha256", None)
     if (
         value.get("schema_version")
-        != "goal-teams-v2.49-continuation-checkpoint-v1"
+        != f"goal-teams-{lower}-continuation-checkpoint-v1"
         or value.get("state") != "ready_for_s4"
         or value.get("claim_scope") != "release_asset_chain_only"
         or value.get("repository") != V249_REPOSITORY
@@ -1684,14 +1979,14 @@ def validate_v249_continuation_checkpoint(
         or POSITIVE_DECIMAL_RE.fullmatch(expected_workflow_run_attempt) is None
         or claimed_digest != release_flow.canonical_sha256(payload)
     ):
-        errors.append("E_V249_CONTINUATION_CHECKPOINT_IDENTITY")
+        errors.append(_version_error(version, "CONTINUATION_CHECKPOINT_IDENTITY"))
     try:
         identity = _read_identity(version, commit, _simple_config(version))
     except SkillReleaseError:
         identity = {}
-        errors.append("E_V249_CONTINUATION_CHECKPOINT_IDENTITY")
+        errors.append(_version_error(version, "CONTINUATION_CHECKPOINT_IDENTITY"))
     if value.get("source_tree") != identity.get("source_git_tree"):
-        errors.append("E_V249_CONTINUATION_CHECKPOINT_IDENTITY")
+        errors.append(_version_error(version, "CONTINUATION_CHECKPOINT_IDENTITY"))
     if (
         value.get("first_failed_phase") is not None
         or value.get("failure_outcome") is not None
@@ -1702,23 +1997,25 @@ def validate_v249_continuation_checkpoint(
         or value.get("s4_external_side_effect_count") != 0
         or value.get("resumable_without_rebuild") is not True
     ):
-        errors.append("E_V249_CONTINUATION_CHECKPOINT_STATE")
+        errors.append(_version_error(version, "CONTINUATION_CHECKPOINT_STATE"))
     project_size = value.get("project_size")
     gate_outcomes = value.get("gate_outcomes")
     if (
         project_size not in {"small", "medium", "large"}
         or not isinstance(gate_outcomes, dict)
         or _checkpoint_gate_errors(
-            project_size=str(project_size), gate_outcomes=gate_outcomes
+            project_size=str(project_size),
+            gate_outcomes=gate_outcomes,
+            version=version,
         )
     ):
-        errors.append("E_V249_CONTINUATION_GATE_OUTCOMES")
+        errors.append(_version_error(version, "CONTINUATION_GATE_OUTCOMES"))
 
     formal = value.get("formal_files")
     if not isinstance(formal, dict) or set(formal) != set(
         V249_CONTINUATION_FORMAL_RECEIPTS
     ):
-        errors.append("E_V249_CONTINUATION_RECEIPT_SET")
+        errors.append(_version_error(version, "CONTINUATION_RECEIPT_SET"))
         formal = {}
     actual_receipt_names = {
         path.name
@@ -1728,22 +2025,22 @@ def validate_v249_continuation_checkpoint(
     if actual_receipt_names != set(V249_CONTINUATION_FORMAL_RECEIPTS) | {
         "_checkpoint.json"
     }:
-        errors.append("E_V249_CONTINUATION_RECEIPT_SET")
+        errors.append(_version_error(version, "CONTINUATION_RECEIPT_SET"))
     for name in V249_CONTINUATION_FORMAL_RECEIPTS:
         record = _checkpoint_file_record(receipt_root / name)
         if record != formal.get(name):
-            errors.append("E_V249_CONTINUATION_RECEIPT_DIGEST")
+            errors.append(_version_error(version, "CONTINUATION_RECEIPT_DIGEST"))
             break
 
     assets = value.get("public_assets")
     if not isinstance(assets, dict) or set(assets) != set(
-        V249_CONTINUATION_ASSET_NAMES
+        continuation_asset_names(version)
     ):
-        errors.append("E_V249_CONTINUATION_ASSET_SET")
+        errors.append(_version_error(version, "CONTINUATION_ASSET_SET"))
         assets = {}
-    for name, path in _v249_public_asset_paths(release_root).items():
+    for name, path in _public_asset_paths(version, release_root).items():
         if _checkpoint_file_record(path) != assets.get(name):
-            errors.append("E_V249_CONTINUATION_ASSET_DIGEST")
+            errors.append(_version_error(version, "CONTINUATION_ASSET_DIGEST"))
             break
     receipt_values: dict[str, dict[str, Any]] = {}
     try:
@@ -1752,7 +2049,7 @@ def validate_v249_continuation_checkpoint(
             for name in V249_CONTINUATION_FORMAL_RECEIPTS
         }
     except SkillReleaseError:
-        errors.append("E_V249_CONTINUATION_RECEIPT_JSON")
+        errors.append(_version_error(version, "CONTINUATION_RECEIPT_JSON"))
     authorization = receipt_values.get("authorization.json", {})
     asset_validation = receipt_values.get("asset-validation.json", {})
     s3 = receipt_values.get("s3.json", {})
@@ -1763,7 +2060,7 @@ def validate_v249_continuation_checkpoint(
         s2 = {}
     actual_assets = (
         [{"name": name, **assets[name]} for name in sorted(assets)]
-        if set(assets) == set(V249_CONTINUATION_ASSET_NAMES)
+        if set(assets) == set(continuation_asset_names(version))
         else []
     )
     s2_verdict = release_flow.validate_s2_receipt(
@@ -1774,7 +2071,7 @@ def validate_v249_continuation_checkpoint(
     if not s2_verdict.get("ok"):
         errors.extend(s2_verdict.get("errors", []))
     if s2.get("assets") != actual_assets:
-        errors.append("E_V249_CONTINUATION_ASSET_BINDING")
+        errors.append(_version_error(version, "CONTINUATION_ASSET_BINDING"))
     if (
         value.get("project_size") != control.get("project_size")
         or value.get("asset_set_id") != s2.get("asset_set_id")
@@ -1789,10 +2086,14 @@ def validate_v249_continuation_checkpoint(
         or value.get("s3_process_invocation_count")
         != s3.get("s3_process_invocation_count")
     ):
-        errors.append("E_V249_CONTINUATION_SUMMARY_BINDING")
-    errors.extend(_v249_checkpoint_receipt_binding_errors(receipt_values, control))
+        errors.append(_version_error(version, "CONTINUATION_SUMMARY_BINDING"))
+    errors.extend(
+        _v249_checkpoint_receipt_binding_errors(
+            receipt_values, control, version=version
+        )
+    )
     try:
-        control_verdict = validate_v249_s4_control(
+        control_verdict = _validate_version_s4_control(
             version,
             commit,
             control,
@@ -1816,7 +2117,7 @@ def validate_v249_continuation_checkpoint(
         source_tree=str(value.get("source_tree", "")),
         control=control,
     ):
-        errors.append("E_V249_CONTINUATION_PLAN_CONTRACT")
+        errors.append(_version_error(version, "CONTINUATION_PLAN_CONTRACT"))
     errors = list(dict.fromkeys(str(error) for error in errors if error))
     return _base_receipt(
         command="verify-continuation-checkpoint",
@@ -1834,17 +2135,40 @@ def validate_v249_continuation_checkpoint(
     )
 
 
+def validate_v250_continuation_checkpoint(
+    version: str,
+    commit: str,
+    checkpoint: object,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    if version != "V2.50":
+        return _base_receipt(
+            command="verify-continuation-checkpoint",
+            status="failed",
+            error_code="E_V250_CONTINUATION_CHECKPOINT_IDENTITY",
+            version=version,
+            source_commit=commit,
+            errors=["E_V250_CONTINUATION_CHECKPOINT_IDENTITY"],
+            check_state="failed",
+            run_outcome="failed",
+            evidence_state="invalid",
+        )
+    return validate_v249_continuation_checkpoint(
+        version, commit, checkpoint, **kwargs
+    )
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
     plan_parser = subparsers.add_parser("plan")
-    plan_parser.add_argument("--version", default="V2.49")
+    plan_parser.add_argument("--version", default=ACTIVE_SIMPLE_VERSION)
     plan_parser.add_argument("--commit", required=True)
     verify_parser = subparsers.add_parser("verify")
-    verify_parser.add_argument("--version", default="V2.49")
+    verify_parser.add_argument("--version", default=ACTIVE_SIMPLE_VERSION)
     verify_parser.add_argument("--commit", required=True)
     validate_parser = subparsers.add_parser("validate")
-    validate_parser.add_argument("--version", default="V2.49")
+    validate_parser.add_argument("--version", default=ACTIVE_SIMPLE_VERSION)
     validate_parser.add_argument("--commit", required=True)
     validate_parser.add_argument("--release-root", type=Path, required=True)
     validate_parser.add_argument("--build-receipt", type=Path, required=True)
@@ -1855,7 +2179,7 @@ def parse_args() -> argparse.Namespace:
     s3_parser.add_argument("--s2-receipt", type=Path, required=True)
     s3_parser.add_argument("--install-report", type=Path)
     preflight_parser = subparsers.add_parser("preflight")
-    preflight_parser.add_argument("--version", default="V2.49")
+    preflight_parser.add_argument("--version", default=ACTIVE_SIMPLE_VERSION)
     preflight_parser.add_argument("--commit", required=True)
     preflight_parser.add_argument(
         "--project-size", choices=("small", "medium", "large"), required=True
@@ -1868,7 +2192,7 @@ def parse_args() -> argparse.Namespace:
     preflight_parser.add_argument("--s3-receipt", type=Path, required=True)
     preflight_parser.add_argument("--boundary-receipt", type=Path, required=True)
     checkpoint_parser = subparsers.add_parser("checkpoint")
-    checkpoint_parser.add_argument("--version", default="V2.49")
+    checkpoint_parser.add_argument("--version", default=ACTIVE_SIMPLE_VERSION)
     checkpoint_parser.add_argument("--commit", required=True)
     checkpoint_parser.add_argument(
         "--project-size", choices=("small", "medium", "large"), required=True
@@ -1886,7 +2210,7 @@ def parse_args() -> argparse.Namespace:
     )
     checkpoint_parser.add_argument("--release-root", type=Path, required=True)
     verify_checkpoint_parser = subparsers.add_parser("verify-checkpoint")
-    verify_checkpoint_parser.add_argument("--version", default="V2.49")
+    verify_checkpoint_parser.add_argument("--version", default=ACTIVE_SIMPLE_VERSION)
     verify_checkpoint_parser.add_argument("--commit", required=True)
     verify_checkpoint_parser.add_argument(
         "--checkpoint-receipt", type=Path, required=True
@@ -1901,7 +2225,7 @@ def parse_args() -> argparse.Namespace:
     )
     for command_name in ("plan-s4", "publish"):
         publish_parser = subparsers.add_parser(command_name)
-        publish_parser.add_argument("--version", default="V2.49")
+        publish_parser.add_argument("--version", default=ACTIVE_SIMPLE_VERSION)
         publish_parser.add_argument("--commit", required=True)
         publish_parser.add_argument(
             "--release-control-receipt", type=Path, required=True
@@ -1957,12 +2281,19 @@ def main() -> None:
                 phase, separator, outcome = item.partition("=")
                 if not separator or not phase or not outcome or phase in gate_outcomes:
                     raise SkillReleaseError(
-                        "E_V249_CHECKPOINT_GATE_OUTCOME_SET",
+                        _version_error(
+                            args.version, "CHECKPOINT_GATE_OUTCOME_SET"
+                        ),
                         "checkpoint gate outcomes must be unique phase=outcome pairs",
                         command="checkpoint",
                     )
                 gate_outcomes[phase] = outcome
-            receipt = build_v249_continuation_checkpoint(
+            checkpoint_builder = (
+                build_v250_continuation_checkpoint
+                if args.version == "V2.50"
+                else build_v249_continuation_checkpoint
+            )
+            receipt = checkpoint_builder(
                 args.version,
                 args.commit,
                 project_size=args.project_size,
@@ -1974,7 +2305,12 @@ def main() -> None:
                 release_root=args.release_root,
             )
         elif args.command == "verify-checkpoint":
-            receipt = validate_v249_continuation_checkpoint(
+            checkpoint_validator = (
+                validate_v250_continuation_checkpoint
+                if args.version == "V2.50"
+                else validate_v249_continuation_checkpoint
+            )
+            receipt = checkpoint_validator(
                 args.version,
                 args.commit,
                 _read_receipt_file(args.checkpoint_receipt),

@@ -18,15 +18,21 @@ FORBIDDEN_CURRENT_PATH_MARKERS = (
     "references/legacy-replay/",
     "references/profiles/goal-teams-self-release-v2.36.md",
     "references/profiles/goal-teams-self-release-v2.48.md",
+    "references/profiles/goal-teams-self-release-v2.49.md",
     "references/release-profiles/v2.48.json",
+    "references/release-profiles/v2.49.json",
+    "references/current/generations/V2.49/",
     "schemas/v2.36/",
     "schemas/v2.48/",
+    "schemas/v2.49/",
     "scripts/v23/",
+    "scripts/v249/",
     "tests/v23/",
+    "tests/v249/",
 )
 ALLOWED_REPLAY_SHARED_PATHS = {
-    "schemas/v2.49/legacy-replay-manifest.schema.json",
-    "scripts/v249/replay_runner.py",
+    "schemas/v2.50/legacy-replay-manifest.schema.json",
+    "scripts/v250/replay_runner.py",
 }
 
 
@@ -82,14 +88,14 @@ def _selected_paths(root: Path, rules: list[tuple[str, str]]) -> tuple[set[str],
 
 
 def _legacy_intersection(root: Path, selected: set[str]) -> list[str]:
-    activation = root / "references/current/generations/V2.49/activation-manifest.json"
+    activation = root / "references/current/generations/V2.50/activation-manifest.json"
     try:
         value = json.loads(activation.read_text(encoding="utf-8"))
         classification = value["legacy_classification"]
         prefixes = classification["path_prefixes"]
         exact = set(classification["exact_paths"])
     except (OSError, UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError):
-        return ["E_V249_LEGACY_CLASSIFICATION_UNAVAILABLE"]
+        return ["E_V250_LEGACY_CLASSIFICATION_UNAVAILABLE"]
     return sorted(
         path
         for path in selected
@@ -147,7 +153,7 @@ def _replay_required_paths(root: Path) -> tuple[set[str], list[str]]:
                 encoding="utf-8"
             )
         )
-        if baseline.get("schema_version") != "goal-teams-baseline-activation-manifest-v2.49":
+        if baseline.get("schema_version") != "goal-teams-baseline-activation-manifest-v2.50":
             raise TypeError("baseline schema")
         for field in ("semantic_owner_paths", "execution_identity_paths"):
             for item in baseline[field]:
@@ -196,11 +202,11 @@ def validate_manifest(path: Path, *, replay: bool) -> dict[str, object]:
             path
             for path in selected
             if (
-                path.startswith("references/current/generations/V2.49/")
-                or path.startswith("references/profiles/goal-teams-self-release-v2.49")
-                or path.startswith("references/release-profiles/v2.49")
-                or path.startswith("scripts/v249/")
-                or path.startswith("schemas/v2.49/")
+                path.startswith("references/current/generations/V2.50/")
+                or path.startswith("references/profiles/goal-teams-self-release-v2.50")
+                or path.startswith("references/release-profiles/v2.50")
+                or path.startswith("scripts/v250/")
+                or path.startswith("schemas/v2.50/")
             )
             and path not in ALLOWED_REPLAY_SHARED_PATHS
         )
@@ -209,9 +215,9 @@ def validate_manifest(path: Path, *, replay: bool) -> dict[str, object]:
     else:
         required_rules = {
             ("file", "references/current/ACTIVE.json"),
-            ("prefix", "references/current/generations/V2.49/"),
-            ("prefix", "scripts/v249/"),
-            ("prefix", "schemas/v2.49/"),
+            ("prefix", "references/current/generations/V2.50/"),
+            ("prefix", "scripts/v250/"),
+            ("prefix", "schemas/v2.50/"),
         }
         for required in sorted(required_rules):
             if required not in rules:
@@ -225,9 +231,9 @@ def validate_manifest(path: Path, *, replay: bool) -> dict[str, object]:
             ):
                 errors.append(f"E_CURRENT_PACKAGE_MANIFEST_LEGACY:{value}")
         for required_path in (
-            "references/profiles/goal-teams-self-release-v2.49.md",
-            "references/release-profiles/v2.49.json",
-            "scripts/checks/check-v249.py",
+            "references/profiles/goal-teams-self-release-v2.50.md",
+            "references/release-profiles/v2.50.json",
+            "scripts/checks/check-v250.py",
             "scripts/install/install-local.sh",
         ):
             if ("file", required_path) not in rules:
@@ -242,7 +248,7 @@ def validate_manifest(path: Path, *, replay: bool) -> dict[str, object]:
             activation = json.loads(
                 (
                     ROOT
-                    / "references/current/generations/V2.49/activation-manifest.json"
+                    / "references/current/generations/V2.50/activation-manifest.json"
                 ).read_text(encoding="utf-8")
             )
             required_current = set(activation["current_default_allowlist"])
@@ -253,7 +259,7 @@ def validate_manifest(path: Path, *, replay: bool) -> dict[str, object]:
         except (OSError, UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError):
             errors.append("E_CURRENT_PACKAGE_ACTIVATION_UNAVAILABLE")
     return {
-        "schema_version": "goal-teams-package-manifest-check-v2.49",
+        "schema_version": "goal-teams-package-manifest-check-v2.50",
         "passed": not errors,
         "errors": errors,
         "manifest": path.relative_to(ROOT).as_posix(),

@@ -549,7 +549,7 @@ def parse_release_file_manifest(data: bytes, version: str) -> dict[str, dict[str
             if size < 0:
                 raise InstallError(f"E_RELEASE_FILES_SIZE:{number}")
         else:
-            if version in {"V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49"} or "  " not in line:
+            if version in {"V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49", "V2.50"} or "  " not in line:
                 raise InstallError(f"E_RELEASE_FILES_EXTENDED_REQUIRED:{number}")
             digest, raw_path = line.split("  ", 1)
             git_mode = "100644"
@@ -1141,7 +1141,7 @@ def load_python_module(
     return module
 
 
-def load_v249_prompt_modules(root: Path) -> tuple[Any, Any]:
+def load_v250_prompt_modules(root: Path) -> tuple[Any, Any]:
     try:
         safe_root = validate_no_symlink_ancestors(
             root, "E_PROMPT_IDENTITY_RUNTIME"
@@ -1152,28 +1152,28 @@ def load_v249_prompt_modules(root: Path) -> tuple[Any, Any]:
         raise InstallError("E_PROMPT_IDENTITY_RUNTIME") from exc
     module_names = (
         "scripts",
-        "scripts.v249",
-        "scripts.v249.generation_runtime",
-        "scripts.v249.route_closure",
+        "scripts.v250",
+        "scripts.v250.generation_runtime",
+        "scripts.v250.route_closure",
     )
     missing = object()
     prior_modules = {name: sys.modules.get(name, missing) for name in module_names}
     scripts_package = type(sys)("scripts")
     scripts_package.__package__ = "scripts"
     scripts_package.__path__ = [str(safe_root / "scripts")]
-    v249_package = type(sys)("scripts.v249")
-    v249_package.__package__ = "scripts.v249"
-    v249_package.__path__ = [str(safe_root / "scripts" / "v249")]
-    scripts_package.v249 = v249_package
+    v250_package = type(sys)("scripts.v250")
+    v250_package.__package__ = "scripts.v250"
+    v250_package.__path__ = [str(safe_root / "scripts" / "v250")]
+    scripts_package.v250 = v250_package
     sys.modules["scripts"] = scripts_package
-    sys.modules["scripts.v249"] = v249_package
-    sys.modules.pop("scripts.v249.generation_runtime", None)
-    sys.modules.pop("scripts.v249.route_closure", None)
+    sys.modules["scripts.v250"] = v250_package
+    sys.modules.pop("scripts.v250.generation_runtime", None)
+    sys.modules.pop("scripts.v250.route_closure", None)
     try:
         generation_module = load_python_module(
-            "scripts.v249.generation_runtime",
+            "scripts.v250.generation_runtime",
             safe_root,
-            "scripts/v249/generation_runtime.py",
+            "scripts/v250/generation_runtime.py",
             (
                 "canonical_json_digest",
                 "load_generation",
@@ -1182,9 +1182,9 @@ def load_v249_prompt_modules(root: Path) -> tuple[Any, Any]:
             ),
         )
         closure_module = load_python_module(
-            "scripts.v249.route_closure",
+            "scripts.v250.route_closure",
             safe_root,
-            "scripts/v249/route_closure.py",
+            "scripts/v250/route_closure.py",
             ("compile_route_closure",),
         )
         imported_helpers = (
@@ -1215,21 +1215,21 @@ def compute_prompt_identity(root: Path) -> dict[str, Any]:
             active = json.loads(active_path.read_text(encoding="utf-8"))
         except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
             raise InstallError("E_PROMPT_IDENTITY_ACTIVE") from exc
-        if active.get("generation_id") == "V2.49":
-            generation_path = root / "scripts" / "v249" / "generation_runtime.py"
-            closure_path = root / "scripts" / "v249" / "route_closure.py"
+        if active.get("generation_id") == "V2.50":
+            generation_path = root / "scripts" / "v250" / "generation_runtime.py"
+            closure_path = root / "scripts" / "v250" / "route_closure.py"
             if any(
                 not path.is_file() or path.is_symlink()
                 for path in (generation_path, closure_path)
             ):
                 raise InstallError("E_PROMPT_IDENTITY_RUNTIME")
-            generation_module, closure_module = load_v249_prompt_modules(root)
+            generation_module, closure_module = load_v250_prompt_modules(root)
             try:
                 generation = generation_module.load_generation(root)
                 closure = closure_module.compile_route_closure(
                     root,
                     generation,
-                    route_id="V249-ROUTE-STARTUP",
+                    route_id="V250-ROUTE-STARTUP",
                 )
                 if not isinstance(generation, dict) or not isinstance(closure, dict):
                     raise InstallError("E_PROMPT_IDENTITY_INVALID")
@@ -1251,10 +1251,10 @@ def compute_prompt_identity(root: Path) -> dict[str, Any]:
             runtime_digest = sha256_bytes(
                 json.dumps(
                     {
-                        "generation_id": "V2.49",
+                        "generation_id": "V2.50",
                         "activation_manifest_sha256": prefix_digest,
                         "prompt_manifest_sha256": route_digest,
-                        "route_id": "V249-ROUTE-STARTUP",
+                        "route_id": "V250-ROUTE-STARTUP",
                         "loaded_paths": ordered_refs,
                     },
                     sort_keys=True,
@@ -1263,8 +1263,8 @@ def compute_prompt_identity(root: Path) -> dict[str, Any]:
             )
             return {
                 "passed": True,
-                "prompt_identity_version": "goal-teams-prompt-identity-v2.49",
-                "route_id": "V249-ROUTE-STARTUP",
+                "prompt_identity_version": "goal-teams-prompt-identity-v2.50",
+                "route_id": "V250-ROUTE-STARTUP",
                 "ordered_refs": ordered_refs,
                 "prefix_manifest_sha256": prefix_digest,
                 "route_static_digest": route_digest,
@@ -1548,18 +1548,18 @@ def validation_environment() -> dict[str, str]:
 
 def validate_skill(root: Path, phase: str) -> None:
     active_path = root / "references" / "current" / "ACTIVE.json"
-    use_v249 = False
+    use_v250 = False
     if active_path.is_file() and not active_path.is_symlink():
         try:
-            use_v249 = (
+            use_v250 = (
                 json.loads(active_path.read_text(encoding="utf-8")).get("generation_id")
-                == "V2.49"
+                == "V2.50"
             )
         except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
             raise InstallError(f"E_VALIDATION_ACTIVE:{phase}") from exc
     checker = (
-        root / "scripts" / "checks" / "check-v249.py"
-        if use_v249
+        root / "scripts" / "checks" / "check-v250.py"
+        if use_v250
         else root / "scripts" / "check.sh"
     )
     if not checker.is_file() or checker.is_symlink():
@@ -1575,7 +1575,7 @@ def validate_skill(root: Path, phase: str) -> None:
             "--stage",
             "candidate",
         ]
-        if use_v249
+        if use_v250
         else [str(checker), "--installed-package"]
     )
     result = run(
@@ -1587,8 +1587,8 @@ def validate_skill(root: Path, phase: str) -> None:
     validation_results.append({
         "phase": phase,
         "command": (
-            "scripts/checks/check-v249.py --phase development"
-            if use_v249
+            "scripts/checks/check-v250.py --phase development"
+            if use_v250
             else "scripts/check.sh --installed-package"
         ),
         "exit_code": result.returncode,
@@ -1613,8 +1613,8 @@ def validate_skill(root: Path, phase: str) -> None:
     validation_results.append({
         "phase": f"prompt_identity_{phase}",
         "command": (
-            "scripts/v249/generation_runtime.py:V249-ROUTE-STARTUP"
-            if use_v249
+            "scripts/v250/generation_runtime.py:V250-ROUTE-STARTUP"
+            if use_v250
             else "scripts/v23/prompt_cache.py:installed_startup"
         ),
         "exit_code": 0,
@@ -1660,7 +1660,7 @@ def copy_package(selected: list[str], destination: Path) -> None:
 def generate_okf_manifest(stage: Path) -> None:
     if generated_paths != {OKF_GENERATED_PATH}:
         raise InstallError("E_PACKAGE_MANIFEST_GENERATED")
-    runtime_path = stage / "scripts" / "v249" / "okf_conformance.py"
+    runtime_path = stage / "scripts" / "v250" / "okf_conformance.py"
     checker_path = stage / "scripts" / "checks" / "check-okf.py"
     if (
         not runtime_path.is_file()

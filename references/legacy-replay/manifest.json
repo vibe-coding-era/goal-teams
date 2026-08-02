@@ -1,5 +1,5 @@
 {
-  "schema_version": "goal-teams-legacy-replay-manifest-v2.49",
+  "schema_version": "goal-teams-legacy-replay-manifest-v2.50",
   "manifest_id": "GT-LEGACY-REPLAY-001",
   "manifest_state": "isolated_read_only",
   "network_policy": "deny",
@@ -23,7 +23,7 @@
         "python": "3.11+",
         "digest": "sha256_raw_file_bytes"
       },
-      "argv": ["scripts/v249/replay_runner.py", "--legacy-version", "V2.36", "--operation", "content_digest_verify", "--explicit-intent"],
+      "argv": ["scripts/v250/replay_runner.py", "--legacy-version", "V2.36", "--operation", "content_digest_verify", "--explicit-intent"],
       "cwd": ".",
       "network_policy": "deny",
       "write_policy": "deny_all",
@@ -33,7 +33,7 @@
       },
       "isolation_profile": "digest_only_no_subprocess",
       "supported_read_only_operations": ["content_digest_verify"],
-      "forbidden_current_routes": ["V249-ROUTE-*"],
+      "forbidden_current_routes": ["V250-ROUTE-*"],
       "fixture_paths": ["tests/v23/fixtures/v236/routing.json"],
       "expected_replay_status": "historical_passed",
       "content_digests": [
@@ -61,10 +61,10 @@
     "references/legacy-replay/manifest.json",
     "references/profiles/goal-teams-self-release-v2.36.md",
     "schemas/v2.36/project-route.schema.json",
-    "schemas/v2.49/legacy-replay-manifest.schema.json",
+    "schemas/v2.50/legacy-replay-manifest.schema.json",
     "scripts/v23/v235_policy.py",
-    "scripts/v249/replay_runner.py",
+    "scripts/v250/replay_runner.py",
     "tests/v23/fixtures/v236/routing.json"
   ],
-  "optional_replay_allowlist_digest": "04b191ea778934f3ebe0e14a630e8feae679628549c8e3147dc850f2ad1e5d52"
+  "optional_replay_allowlist_digest": "cdd978bd498e7b8fe5966a60fce5c4dec1624f8231f7f4d410924f5cc3779f26"
 }

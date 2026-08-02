@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.50/test-gate.schema.json",
+  "title": "Goal Teams V2.50 test gate objects",
+  "oneOf": [
+    {"$ref": "#/$defs/riskDenominator"},
+    {"$ref": "#/$defs/testCase"},
+    {"$ref": "#/$defs/testRunReceipt"},
+    {"$ref": "#/$defs/testReviewReceipt"}
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "riskDenominator": {
+      "type": "object",
+      "required": ["object_type", "denominator_id", "revision", "workflow_phase", "activation_condition", "items", "digest"],
+      "properties": {
+        "object_type": {"const": "RiskDenominator"},
+        "denominator_id": {"type": "string", "minLength": 1},
+        "revision": {"type": "integer", "minimum": 1},
+        "workflow_phase": {"enum": ["development", "release"]},
+        "activation_condition": {"type": "object"},
+        "items": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+        "digest": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": true
+    },
+    "testCase": {
+      "type": "object",
+      "required": ["object_type", "test_case_id", "denominator_id", "denominator_digest", "case_digest", "test_file_digest", "assertions"],
+      "properties": {
+        "object_type": {"const": "TestCase"},
+        "test_case_id": {"type": "string", "minLength": 1},
+        "denominator_id": {"type": "string", "minLength": 1},
+        "denominator_digest": {"$ref": "#/$defs/sha256"},
+        "case_digest": {"$ref": "#/$defs/sha256"},
+        "test_file_digest": {"$ref": "#/$defs/sha256"},
+        "assertions": {"type": "array", "minItems": 1, "items": {"type": "object"}}
+      },
+      "additionalProperties": true
+    },
+    "testRunReceipt": {
+      "type": "object",
+      "required": ["object_type", "run_id", "run_role", "denominator_id", "denominator_digest", "case_digest", "test_file_digest", "source_digest", "environment_digest", "run_outcome", "digest"],
+      "properties": {
+        "object_type": {"const": "TestRunReceipt"},
+        "run_id": {"type": "string", "minLength": 1},
+        "run_role": {"enum": ["tdd_red", "tdd_green", "verification"]},
+        "denominator_id": {"type": "string", "minLength": 1},
+        "denominator_digest": {"$ref": "#/$defs/sha256"},
+        "case_digest": {"$ref": "#/$defs/sha256"},
+        "test_file_digest": {"$ref": "#/$defs/sha256"},
+        "source_digest": {"$ref": "#/$defs/sha256"},
+        "environment_digest": {"$ref": "#/$defs/sha256"},
+        "run_outcome": {"enum": ["passed", "failed", "blocked", "flaky"]},
+        "digest": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": true
+    },
+    "testReviewReceipt": {
+      "type": "object",
+      "required": ["object_type", "review_id", "denominator_id", "denominator_digest", "run_receipt_digests", "validator_identity", "coverage_projection", "check_state", "assurance", "digest"],
+      "properties": {
+        "object_type": {"const": "TestReviewReceipt"},
+        "review_id": {"type": "string", "minLength": 1},
+        "denominator_id": {"type": "string", "minLength": 1},
+        "denominator_digest": {"$ref": "#/$defs/sha256"},
+        "run_receipt_digests": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/sha256"}},
+        "validator_identity": {"type": "object"},
+        "coverage_projection": {"type": "object"},
+        "check_state": {"enum": ["passed", "failed", "blocked", "not_required", "not_started", "stale", "invalid"]},
+        "assurance": {"type": "object"},
+        "digest": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": true
+    }
+  }
+}

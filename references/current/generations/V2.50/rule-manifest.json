@@ -1,0 +1,419 @@
+{
+  "schema_version": "goal-teams-rule-manifest-v2.50",
+  "generation_id": "V2.50",
+  "manifest_state": "derived_projection",
+  "semantic_source": "owner_markdown_only",
+  "source_digest_algorithm": "sha256_raw_file_bytes",
+  "owners": [
+    {
+      "owner_id": "CORE-V250",
+      "owner_kind": "core",
+      "path": "references/current/generations/V2.50/core.md",
+      "source_sha256": "d250cf59e3be004fd6ab33b18435e3cf8e20c9b2cb43767236a4309e466f1c64",
+      "dependencies": [
+        "ROUTING-V250",
+        "ASSURANCE-V250",
+        "CONTRACT-TASK-STATE-V250",
+        "CONTRACT-HARNESS-EVIDENCE-V250",
+        "CONTRACT-REVIEW-COMPLETION-V250",
+        "CONTRACT-APPROVAL-SIDE-EFFECTS-V250"
+      ],
+      "route_membership": [
+        "V250-ROUTE-STARTUP",
+        "V250-ROUTE-DISCUSSION",
+        "V250-ROUTE-SMALL-DEVELOPMENT",
+        "V250-ROUTE-MEDIUM-DEVELOPMENT",
+        "V250-ROUTE-LARGE-DEVELOPMENT",
+        "V250-ROUTE-UI-DESKTOP",
+        "V250-ROUTE-AGENT-RUNTIME",
+        "V250-ROUTE-MEDIUM-RELEASE",
+        "V250-ROUTE-LARGE-RELEASE"
+      ],
+      "owned_rule_ids": [
+        "GT250-CORE-SCOPE",
+        "GT250-CORE-AUTHORITY",
+        "GT250-CORE-TRUTH",
+        "GT250-CORE-SSOT",
+        "GT250-CORE-EVIDENCE",
+        "GT250-CORE-INDEPENDENCE",
+        "GT250-CORE-SAFETY",
+        "GT250-CORE-LOOP"
+      ]
+    },
+    {
+      "owner_id": "ROUTING-V250",
+      "owner_kind": "routing",
+      "path": "references/current/generations/V2.50/routing.md",
+      "source_sha256": "cad517375a5222deba50cd1b3c28bc154c3578bc1b6c2deea634c001977de2b1",
+      "dependencies": [
+        "CORE-V250",
+        "ASSURANCE-V250",
+        "CONTRACT-TASK-STATE-V250",
+        "CONTRACT-APPROVAL-SIDE-EFFECTS-V250"
+      ],
+      "route_membership": [
+        "V250-ROUTE-STARTUP",
+        "V250-ROUTE-DISCUSSION",
+        "V250-ROUTE-SMALL-DEVELOPMENT",
+        "V250-ROUTE-MEDIUM-DEVELOPMENT",
+        "V250-ROUTE-LARGE-DEVELOPMENT",
+        "V250-ROUTE-UI-DESKTOP",
+        "V250-ROUTE-AGENT-RUNTIME",
+        "V250-ROUTE-MEDIUM-RELEASE",
+        "V250-ROUTE-LARGE-RELEASE"
+      ],
+      "owned_rule_ids": [
+        "GT250-ROUTE-TRUSTED-FACTS",
+        "GT250-ROUTE-SIZE",
+        "GT250-ROUTE-ASSURANCE",
+        "GT250-ROUTE-PHASE",
+        "GT250-ROUTE-REPLAY",
+        "GT250-ROUTE-EXPLAIN"
+      ]
+    },
+    {
+      "owner_id": "ASSURANCE-V250",
+      "owner_kind": "assurance",
+      "path": "references/current/generations/V2.50/assurance-levels.md",
+      "source_sha256": "151ad6cad9ead6f417aa17d2617c89ba9b43c67dfe7ca151e7eeda6156083a4e",
+      "dependencies": [
+        "CORE-V250",
+        "ROUTING-V250",
+        "CONTRACT-HARNESS-EVIDENCE-V250",
+        "CONTRACT-REVIEW-COMPLETION-V250"
+      ],
+      "route_membership": [
+        "V250-ROUTE-STARTUP",
+        "V250-ROUTE-DISCUSSION",
+        "V250-ROUTE-SMALL-DEVELOPMENT",
+        "V250-ROUTE-MEDIUM-DEVELOPMENT",
+        "V250-ROUTE-LARGE-DEVELOPMENT",
+        "V250-ROUTE-UI-DESKTOP",
+        "V250-ROUTE-AGENT-RUNTIME",
+        "V250-ROUTE-MEDIUM-RELEASE",
+        "V250-ROUTE-LARGE-RELEASE"
+      ],
+      "owned_rule_ids": [
+        "GT250-ASSURE-DISCUSSION",
+        "GT250-ASSURE-LITE",
+        "GT250-ASSURE-STANDARD",
+        "GT250-ASSURE-FULL",
+        "GT250-ASSURE-REGULATED",
+        "GT250-ASSURE-NONESCALATION"
+      ]
+    },
+    {
+      "owner_id": "FUNCTION-REQUIREMENTS-V250",
+      "owner_kind": "function",
+      "path": "references/current/generations/V2.50/functions/requirements.md",
+      "source_sha256": "27803631133b6cdf131c93c4f3d4062e1791ef76ad4ff01e57604dc1568d9965",
+      "dependencies": [
+        "CORE-V250",
+        "ROUTING-V250",
+        "CONTRACT-TASK-STATE-V250",
+        "CONTRACT-TEST-CASE-GATE-V250"
+      ],
+      "route_membership": [
+        "V250-ROUTE-DISCUSSION",
+        "V250-ROUTE-SMALL-DEVELOPMENT",
+        "V250-ROUTE-MEDIUM-DEVELOPMENT",
+        "V250-ROUTE-LARGE-DEVELOPMENT",
+        "V250-ROUTE-UI-DESKTOP",
+        "V250-ROUTE-AGENT-RUNTIME",
+        "V250-ROUTE-MEDIUM-RELEASE",
+        "V250-ROUTE-LARGE-RELEASE"
+      ],
+      "owned_rule_ids": [
+        "GT250-REQ-TRACEABILITY",
+        "GT250-REQ-AC",
+        "GT250-REQ-SCOPE",
+        "GT250-REQ-CHANGE",
+        "GT250-REQ-DENOMINATOR-SEED"
+      ]
+    },
+    {
+      "owner_id": "FUNCTION-ARCHITECTURE-IMPLEMENTATION-V250",
+      "owner_kind": "function",
+      "path": "references/current/generations/V2.50/functions/architecture-implementation.md",
+      "source_sha256": "48be477a611277a107f23b0680fef76f3d8f9ac284c470fd496f0db7b54e3089",
+      "dependencies": [
+        "FUNCTION-REQUIREMENTS-V250",
+        "FUNCTION-TESTING-V250",
+        "CONTRACT-TEST-CASE-GATE-V250",
+        "CONTRACT-HARNESS-EVIDENCE-V250",
+        "CONTRACT-TASK-STATE-V250"
+      ],
+      "route_membership": [
+        "V250-ROUTE-SMALL-DEVELOPMENT",
+        "V250-ROUTE-MEDIUM-DEVELOPMENT",
+        "V250-ROUTE-LARGE-DEVELOPMENT",
+        "V250-ROUTE-UI-DESKTOP",
+        "V250-ROUTE-AGENT-RUNTIME",
+        "V250-ROUTE-MEDIUM-RELEASE",
+        "V250-ROUTE-LARGE-RELEASE"
+      ],
+      "owned_rule_ids": [
+        "GT250-ARCH-TRIGGER",
+        "GT250-ARCH-ENVIRONMENT",
+        "GT250-IMPL-TDD",
+        "GT250-IMPL-INCREMENTAL",
+        "GT250-IMPL-IDENTITY"
+      ]
+    },
+    {
+      "owner_id": "FUNCTION-TESTING-V250",
+      "owner_kind": "function",
+      "path": "references/current/generations/V2.50/functions/testing.md",
+      "source_sha256": "0a336f2204ad35117e412a194e097d7649a59f43eb75d92637161ba384fec82d",
+      "dependencies": [
+        "FUNCTION-REQUIREMENTS-V250",
+        "CORE-V250",
+        "CONTRACT-TEST-CASE-GATE-V250",
+        "CONTRACT-HARNESS-EVIDENCE-V250",
+        "CONTRACT-REVIEW-COMPLETION-V250"
+      ],
+      "route_membership": [
+        "V250-ROUTE-SMALL-DEVELOPMENT",
+        "V250-ROUTE-MEDIUM-DEVELOPMENT",
+        "V250-ROUTE-LARGE-DEVELOPMENT",
+        "V250-ROUTE-UI-DESKTOP",
+        "V250-ROUTE-AGENT-RUNTIME",
+        "V250-ROUTE-MEDIUM-RELEASE",
+        "V250-ROUTE-LARGE-RELEASE"
+      ],
+      "owned_rule_ids": [
+        "GT250-TEST-DENOMINATOR",
+        "GT250-TEST-PHASES",
+        "GT250-TEST-DEVELOPMENT",
+        "GT250-TEST-RELEASE",
+        "GT250-TEST-ORACLE",
+        "GT250-TEST-DEFECT",
+        "GT250-TEST-COVERAGE"
+      ]
+    },
+    {
+      "owner_id": "FUNCTION-UI-DESKTOP-V250",
+      "owner_kind": "function",
+      "path": "references/current/generations/V2.50/functions/ui-desktop.md",
+      "source_sha256": "b0bfa0b4a9e90a7a2c2f7ca599ec2008e94983931ceb122dc6b3d991f0cc8d27",
+      "dependencies": [
+        "FUNCTION-REQUIREMENTS-V250",
+        "FUNCTION-TESTING-V250",
+        "FUNCTION-AGENT-RUNTIME-V250",
+        "CONTRACT-TEST-CASE-GATE-V250",
+        "CONTRACT-HARNESS-EVIDENCE-V250"
+      ],
+      "route_membership": [
+        "V250-ROUTE-UI-DESKTOP"
+      ],
+      "owned_rule_ids": [
+        "GT250-UI-TRIGGER",
+        "GT250-UI-STATE-MATRIX",
+        "GT250-UI-E2E",
+        "GT250-UI-PIXEL",
+        "GT250-DESKTOP-CAPABILITY"
+      ]
+    },
+    {
+      "owner_id": "FUNCTION-AGENT-RUNTIME-V250",
+      "owner_kind": "function",
+      "path": "references/current/generations/V2.50/functions/agent-runtime.md",
+      "source_sha256": "235225a15d5692b19184c68a5dec5730a293f19ad464d89c2f97e9d19ba21f0b",
+      "dependencies": [
+        "CORE-V250",
+        "ROUTING-V250",
+        "CONTRACT-TASK-STATE-V250",
+        "CONTRACT-HARNESS-EVIDENCE-V250",
+        "CONTRACT-REVIEW-COMPLETION-V250"
+      ],
+      "route_membership": [
+        "V250-ROUTE-LARGE-DEVELOPMENT",
+        "V250-ROUTE-UI-DESKTOP",
+        "V250-ROUTE-AGENT-RUNTIME",
+        "V250-ROUTE-MEDIUM-RELEASE",
+        "V250-ROUTE-LARGE-RELEASE"
+      ],
+      "owned_rule_ids": [
+        "GT250-RUNTIME-CAPABILITY",
+        "GT250-RUNTIME-PROMPT",
+        "GT250-RUNTIME-DISPATCH",
+        "GT250-RUNTIME-ASSURANCE",
+        "GT250-RUNTIME-TRANSITION"
+      ]
+    },
+    {
+      "owner_id": "FUNCTION-RELEASE-OPERATIONS-V250",
+      "owner_kind": "function",
+      "path": "references/current/generations/V2.50/functions/release-operations.md",
+      "source_sha256": "491680d3dea014d108acda08c9c15a8186fe854ae9849ee949d522166dc5307a",
+      "dependencies": [
+        "FUNCTION-TESTING-V250",
+        "FUNCTION-AGENT-RUNTIME-V250",
+        "CONTRACT-TEST-CASE-GATE-V250",
+        "CONTRACT-HARNESS-EVIDENCE-V250",
+        "CONTRACT-REVIEW-COMPLETION-V250",
+        "CONTRACT-APPROVAL-SIDE-EFFECTS-V250"
+      ],
+      "route_membership": [
+        "V250-ROUTE-MEDIUM-RELEASE",
+        "V250-ROUTE-LARGE-RELEASE"
+      ],
+      "owned_rule_ids": [
+        "GT250-RELEASE-ENTRY",
+        "GT250-RELEASE-S1",
+        "GT250-RELEASE-S2",
+        "GT250-RELEASE-BOUNDARY",
+        "GT250-RELEASE-S3",
+        "GT250-RELEASE-S4",
+        "GT250-RELEASE-SSH",
+        "GT250-RELEASE-REPAIR"
+      ]
+    },
+    {
+      "owner_id": "CONTRACT-TASK-STATE-V250",
+      "owner_kind": "contract",
+      "path": "references/current/generations/V2.50/contracts/task-state.md",
+      "source_sha256": "445db827fc2f29140ce5125aa9257326a12d67a64a5db6f232fe9133c5e1ad5e",
+      "dependencies": [
+        "CORE-V250",
+        "CONTRACT-HARNESS-EVIDENCE-V250",
+        "CONTRACT-REVIEW-COMPLETION-V250"
+      ],
+      "route_membership": [
+        "V250-ROUTE-STARTUP",
+        "V250-ROUTE-DISCUSSION",
+        "V250-ROUTE-SMALL-DEVELOPMENT",
+        "V250-ROUTE-MEDIUM-DEVELOPMENT",
+        "V250-ROUTE-LARGE-DEVELOPMENT",
+        "V250-ROUTE-UI-DESKTOP",
+        "V250-ROUTE-AGENT-RUNTIME",
+        "V250-ROUTE-MEDIUM-RELEASE",
+        "V250-ROUTE-LARGE-RELEASE"
+      ],
+      "owned_rule_ids": [
+        "GT250-STATE-ORTHOGONAL",
+        "GT250-STATE-VOCABULARY",
+        "GT250-STATE-EVENTS",
+        "GT250-STATE-TRANSITION",
+        "GT250-STATE-OUTPUT",
+        "GT250-STATE-REPLAY-SEPARATION"
+      ]
+    },
+    {
+      "owner_id": "CONTRACT-TEST-CASE-GATE-V250",
+      "owner_kind": "contract",
+      "path": "references/current/generations/V2.50/contracts/test-case-gate.md",
+      "source_sha256": "ce5d7a3518282a415ffcfca78732b4580eb6ac47deef5c4aed2fb31b6e84a124",
+      "dependencies": [
+        "CORE-V250",
+        "CONTRACT-HARNESS-EVIDENCE-V250",
+        "CONTRACT-REVIEW-COMPLETION-V250"
+      ],
+      "route_membership": [
+        "V250-ROUTE-SMALL-DEVELOPMENT",
+        "V250-ROUTE-MEDIUM-DEVELOPMENT",
+        "V250-ROUTE-LARGE-DEVELOPMENT",
+        "V250-ROUTE-UI-DESKTOP",
+        "V250-ROUTE-AGENT-RUNTIME",
+        "V250-ROUTE-MEDIUM-RELEASE",
+        "V250-ROUTE-LARGE-RELEASE"
+      ],
+      "owned_rule_ids": [
+        "GT250-TESTCASE-CHAIN",
+        "GT250-TESTCASE-IMMUTABLE",
+        "GT250-TESTCASE-TDD",
+        "GT250-TESTCASE-GATE-STATE",
+        "GT250-TESTCASE-NOT-REQUIRED",
+        "GT250-TESTCASE-REVIEW"
+      ]
+    },
+    {
+      "owner_id": "CONTRACT-HARNESS-EVIDENCE-V250",
+      "owner_kind": "contract",
+      "path": "references/current/generations/V2.50/contracts/harness-evidence.md",
+      "source_sha256": "6595adb92fceb9f961f5ce80a4632efb2e57d9f80e076738037c35f130d158f8",
+      "dependencies": [
+        "CORE-V250",
+        "CONTRACT-TASK-STATE-V250",
+        "CONTRACT-TEST-CASE-GATE-V250"
+      ],
+      "route_membership": [
+        "V250-ROUTE-SMALL-DEVELOPMENT",
+        "V250-ROUTE-MEDIUM-DEVELOPMENT",
+        "V250-ROUTE-LARGE-DEVELOPMENT",
+        "V250-ROUTE-UI-DESKTOP",
+        "V250-ROUTE-AGENT-RUNTIME",
+        "V250-ROUTE-MEDIUM-RELEASE",
+        "V250-ROUTE-LARGE-RELEASE"
+      ],
+      "owned_rule_ids": [
+        "GT250-HARNESS-ASSERTION",
+        "GT250-HARNESS-EXECUTION",
+        "GT250-EVIDENCE-BINDING",
+        "GT250-EVIDENCE-VALIDITY",
+        "GT250-EVIDENCE-SIDE-EFFECT",
+        "GT250-EVIDENCE-APPEND-ONLY"
+      ]
+    },
+    {
+      "owner_id": "CONTRACT-REVIEW-COMPLETION-V250",
+      "owner_kind": "contract",
+      "path": "references/current/generations/V2.50/contracts/review-completion.md",
+      "source_sha256": "fb66a6bf9461fa454f926597ea69f29124fe9013d51405700112cc4087bbc7a7",
+      "dependencies": [
+        "CORE-V250",
+        "CONTRACT-TASK-STATE-V250",
+        "CONTRACT-TEST-CASE-GATE-V250",
+        "CONTRACT-HARNESS-EVIDENCE-V250"
+      ],
+      "route_membership": [
+        "V250-ROUTE-SMALL-DEVELOPMENT",
+        "V250-ROUTE-MEDIUM-DEVELOPMENT",
+        "V250-ROUTE-LARGE-DEVELOPMENT",
+        "V250-ROUTE-UI-DESKTOP",
+        "V250-ROUTE-AGENT-RUNTIME",
+        "V250-ROUTE-MEDIUM-RELEASE",
+        "V250-ROUTE-LARGE-RELEASE"
+      ],
+      "owned_rule_ids": [
+        "GT250-REVIEW-SEMANTIC",
+        "GT250-REVIEW-BEHAVIOR",
+        "GT250-REVIEW-ASSURANCE",
+        "GT250-COMPLETE-DEVELOPMENT",
+        "GT250-COMPLETE-RELEASE",
+        "GT250-COMPLETE-GOAL",
+        "GT250-COMPLETE-FAIL-CLOSED"
+      ]
+    },
+    {
+      "owner_id": "CONTRACT-APPROVAL-SIDE-EFFECTS-V250",
+      "owner_kind": "contract",
+      "path": "references/current/generations/V2.50/contracts/approval-side-effects.md",
+      "source_sha256": "0f6f0269bf7cdc76d8e6c534c0e9bf09cc52f4f601918b2555943bd8a42da151",
+      "dependencies": [
+        "CORE-V250",
+        "CONTRACT-TASK-STATE-V250",
+        "CONTRACT-HARNESS-EVIDENCE-V250"
+      ],
+      "route_membership": [
+        "V250-ROUTE-STARTUP",
+        "V250-ROUTE-SMALL-DEVELOPMENT",
+        "V250-ROUTE-MEDIUM-DEVELOPMENT",
+        "V250-ROUTE-LARGE-DEVELOPMENT",
+        "V250-ROUTE-UI-DESKTOP",
+        "V250-ROUTE-AGENT-RUNTIME",
+        "V250-ROUTE-MEDIUM-RELEASE",
+        "V250-ROUTE-LARGE-RELEASE"
+      ],
+      "owned_rule_ids": [
+        "GT250-AUTH-START",
+        "GT250-AUTH-NO-REPROMPT",
+        "GT250-AUTH-DRIFT",
+        "GT250-AUTH-EXECUTE-ONCE",
+        "GT250-AUTH-READBACK",
+        "GT250-AUTH-SSH",
+        "GT250-AUTH-PLATFORM"
+      ]
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-# Goal Teams 仓库维护指南（V2.49）
+# Goal Teams 仓库维护指南（V2.50）
 
 本仓库是 Codex Skill 包。维护目标是 Current 规则清晰、安装可用、历史可复盘、发行事实可验证。
 
@@ -12,14 +12,14 @@
 ## Current、Execution 与 Replay
 
 - `references/current/ACTIVE.json` 是唯一代际切换指针；进程只读取一次并验证 activation manifest digest。
-- `references/current/generations/V2.49/` 按功能模板承载 Current 规则、Prompt plan 和合同。
-- `scripts/v249/`、`schemas/v2.49/`、route-aware checks 与当前成员配置是 Execution assets。
+- `references/current/generations/V2.50/` 按功能模板承载 Current 规则、Prompt plan 和合同。
+- `scripts/v250/`、`schemas/v2.50/`、route-aware checks 与当前成员配置是 Execution assets。
 - `references/legacy-replay/manifest.json` 是历史可达性的唯一 allowlist。未显式提供可信 `replay_version` 时，Current route、默认安装包和 Prompt closure 均不得包含 Legacy。
 - 历史 profile/schema/fixture/engine 首轮迁移保持字节不变；删除必须在观察窗口后另行批准。
 
 ## 版本身份
 
-- 产品版本：`V2.49`。
+- 产品版本：`V2.50`。
 - 通用核心策略：`V2.5`。
 - Legacy 机器数据 schema：`V2.3`。
 - `VERSION`、根/包装 Skill、README、release profile、release/current 与启动语必须同步；不得混用三种版本身份。
@@ -30,9 +30,9 @@
 - 根 `SKILL.md`：薄入口、路由和加载顺序。
 - `RULES.md`：用户可见六字段 Envelope。
 - `goal-teams.md`：当前用户指定的长期要求。
-- `references/current/generations/V2.49/functions/`：需求、架构实现、测试、UI/桌面、Agent runtime、发行操作。
-- `references/current/generations/V2.49/contracts/`：任务状态、测试门禁、Harness/Evidence、Review/Completion、授权/副作用与 Release manifests。
-- `references/profiles/goal-teams-self-release-v2.49.md` 与 `references/release-profiles/v2.49.json`：本仓当前发行规则。
+- `references/current/generations/V2.50/functions/`：需求、架构实现、测试、UI/桌面、Agent runtime、发行操作。
+- `references/current/generations/V2.50/contracts/`：任务状态、测试门禁、Harness/Evidence、Review/Completion、授权/副作用与 Release manifests。
+- `references/profiles/goal-teams-self-release-v2.50.md` 与 `references/release-profiles/v2.50.json`：本仓当前发行规则。
 - `scripts/install/package-manifest.txt`：默认 Current 包 allowlist；`replay-package-manifest.txt`：可选 Replay 包。
 
 兼容入口只能转发，不得复制规范正文或把 Legacy 带回 Current prompt plan。
@@ -54,7 +54,7 @@
 - 正式 S0 前必须有 exact released SHA 的 fresh runtime transition receipt；receipt 必须绑定 root
   `AGENTS.md`/`SKILL.md`、ACTIVE/activation、Prompt/release/route/command manifests、可信 route 与
   `project_size`、项目起始授权 lineage、host adapter code digest、transition 前 controller product
-  version `V2.48`、fresh loaded runtime product version `V2.49`、前后 run ID、
+  version `V2.48`、fresh loaded runtime product version `V2.50`、前后 run ID、
   `captured_at` 和实际 Current `loaded_paths`/digests。
 
 ## Git 与外部写入
@@ -68,21 +68,21 @@
 开发增量：
 
 ```bash
-python3 -m unittest discover -s tests/v249 -p 'test_*.py'
-python3 scripts/checks/check-v249.py --phase development
+python3 -m unittest discover -s tests/v250 -p 'test_*.py'
+python3 scripts/checks/check-v250.py --phase development
 ```
 
 最终 Release readiness：
 
 ```bash
-python3 scripts/v249/runtime_host_adapter.py launch --stage released \
+python3 scripts/v250/runtime_host_adapter.py launch --stage released \
   --source-commit <40-hex> --source-tree <40-hex> --project-size <small|medium|large> \
   --route-receipt <trusted-route-receipt.json> \
   --authorization-receipt <project-start-authorization-receipt.json> \
   --controller-handoff-receipt <externally-issued-v248-handoff.json> \
   --host-execution-id <external-host-execution-id> \
   --adapter-identity <host-adapter-id> \
-  --adapter-code scripts/v249/runtime_host_adapter.py \
+  --adapter-code scripts/v250/runtime_host_adapter.py \
   > <released-runtime-transition.json>
 ./scripts/check.sh --phase release --project-size <small|medium|large> \
   --source-commit <40-hex> --source-tree <40-hex> \
@@ -90,7 +90,7 @@ python3 scripts/v249/runtime_host_adapter.py launch --stage released \
   --released-runtime-receipt <released-runtime-transition.json>
 ```
 
-旧 `./scripts/check.sh` 仅是兼容调度入口；V2.49 必须由 route-aware checker 决定实际命令。提交前验证 Skill frontmatter、subagent TOML、版本同步、Current/Replay closure、默认包和受影响测试。正式发行再运行 full regression、release security、boundary、单次 S2、适用 S3 与 S4 readback。
+旧 `./scripts/check.sh` 仅是兼容调度入口；V2.50 必须由 route-aware checker 决定实际命令。提交前验证 Skill frontmatter、subagent TOML、版本同步、Current/Replay closure、默认包和受影响测试。正式发行再运行 full regression、release security、boundary、单次 S2、适用 S3 与 S4 readback。
 
 ## 风格与状态
 
