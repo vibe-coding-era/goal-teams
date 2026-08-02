@@ -5,10 +5,10 @@
 Author: 肉山@TGO Hangzhou
 
 <!-- goal-teams-release:start -->
-Current release: **V2.48** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.48) · [release/current/README.md](release/current/README.md)
+Current release: **V2.50** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.50) · [release/current/README.md](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-V2.50 is currently an unreleased candidate. It isolates Current rules from Legacy Replay and loads rules by functional template. Medium/Large development blocks only on TDD and affected-scope checks; full regression and a security review run only when implementation is complete and a Release is being prepared.
+V2.50 is the current published release. It isolates Current rules from Legacy Replay and loads rules by functional template. Medium/Large development blocks only on TDD and affected-scope checks; full regression and a security review run only when implementation is complete and a Release is being prepared.
 S2 builds each exact released asset set once, and S3 applies only to a Large Release. External writes are authorized once at project start; GitHub Git remotes use SSH only.
 
 Current version: `V2.50`
