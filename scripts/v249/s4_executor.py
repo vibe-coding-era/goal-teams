@@ -19,6 +19,7 @@ import re
 import shutil
 import stat
 import subprocess
+import sys
 import tempfile
 import unicodedata
 from dataclasses import dataclass
@@ -462,7 +463,7 @@ class S4Backend(Protocol):
 
     def read_tag(self, tag: str) -> dict[str, object] | None: ...
 
-    def push_tag(self, tag: str) -> None: ...
+    def push_tag(self, tag: str, object_sha: str) -> None: ...
 
     def read_release(
         self, repository: str, tag: str
@@ -607,16 +608,24 @@ class CommandBackend:
         return _parse_annotated_tag(raw, object_sha=object_sha, expected_tag=tag)
 
     def read_local_tag(self, tag: str) -> dict[str, object] | None:
-        result = self.runner.run(
-            ["git", "show-ref", "--verify", "--hash", f"refs/tags/{tag}"],
+        reference = f"refs/tags/{tag}"
+        presence = self.runner.run(
+            ["git", "show-ref", "--verify", "--quiet", reference],
             cwd=self.root,
         )
-        if result.returncode == 1:
+        if presence.returncode == 1:
             return None
-        if result.returncode != 0 or COMMIT_RE.fullmatch(result.stdout.strip()) is None:
+        if presence.returncode != 0:
             raise S4ExecutionError("E_V249_S4_LOCAL_TAG_READ")
-        object_sha = result.stdout.strip()
-        return self._read_tag_object(f"refs/tags/{tag}", object_sha, tag)
+        object_sha = _checked(
+            self.runner,
+            ["git", "rev-parse", "--verify", reference],
+            cwd=self.root,
+            code="E_V249_S4_LOCAL_TAG_READ",
+        ).stdout.strip()
+        if COMMIT_RE.fullmatch(object_sha) is None:
+            raise S4ExecutionError("E_V249_S4_LOCAL_TAG_READ")
+        return self._read_tag_object(object_sha, object_sha, tag)
 
     def create_annotated_tag(self, tag: str, commit: str, title: str) -> None:
         if tag != TAG or title != TITLE or COMMIT_RE.fullmatch(commit) is None:
@@ -664,12 +673,12 @@ class CommandBackend:
             raise S4ExecutionError("E_V249_S4_TAG_DRIFT")
         return value
 
-    def push_tag(self, tag: str) -> None:
-        if tag != TAG:
+    def push_tag(self, tag: str, object_sha: str) -> None:
+        if tag != TAG or COMMIT_RE.fullmatch(object_sha) is None:
             raise S4ExecutionError("E_V249_S4_TAG_PUSH_INPUT")
         _checked(
             self.runner,
-            ["git", "push", "origin", f"refs/tags/{tag}:refs/tags/{tag}"],
+            ["git", "push", "origin", f"{object_sha}:refs/tags/{tag}"],
             cwd=self.root,
             code="E_V249_S4_TAG_PUSH",
         )
@@ -2289,6 +2298,8 @@ def execute_s4(
     context: dict[str, Any] = {"commit": commit}
     validator: OutcomeValidator | None = None
     try:
+        if sys.version_info < (3, 11):
+            raise S4ExecutionError("E_V249_S4_PYTHON_VERSION")
         validator = outcome_validator or load_outcome_validator()
         if version != VERSION or COMMIT_RE.fullmatch(commit) is None:
             raise S4ExecutionError("E_V249_S4_IDENTITY")
@@ -2405,13 +2416,13 @@ def execute_s4(
                 journal.attempt("tag_local_create")
                 selected_backend.create_annotated_tag(TAG, commit, TITLE)
                 local_tag = selected_backend.read_local_tag(TAG)
-                _validate_tag(local_tag, commit)
+                local_tag = _validate_tag(local_tag, commit)
                 journal.observe("tag_local_create", "exact")
             else:
-                _validate_tag(local_tag, commit)
+                local_tag = _validate_tag(local_tag, commit)
                 journal.observe("tag_local_create", "exact")
             journal.attempt("tag_push")
-            selected_backend.push_tag(TAG)
+            selected_backend.push_tag(TAG, str(local_tag["object_sha"]))
             remote_tag = selected_backend.read_tag(TAG)
             tag_readback = _validate_tag(remote_tag, commit)
             journal.observe("tag_push", "exact")

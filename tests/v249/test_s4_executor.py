@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -321,11 +322,12 @@ class FakeBackend:
         if self.fail_after_mutation == "tag_local_create":
             raise OSError("simulated local tag create response failure")
 
-    def push_tag(self, tag: str) -> None:
+    def push_tag(self, tag: str, object_sha: str) -> None:
         self.write_counts["tag_push"] += 1
         if self.fail_without_mutation == "tag_push":
             raise OSError("simulated tag push failure")
         assert self.local_tag is not None
+        assert object_sha == self.local_tag["object_sha"]
         self.tag = dict(self.local_tag)
         if self.fail_after_mutation == "tag_push":
             raise OSError("simulated tag push response failure")
@@ -475,6 +477,35 @@ class TestV249S4Executor(unittest.TestCase):
         kwargs.setdefault("expected_workflow_run_attempt", "1")
         kwargs.setdefault("checkpoint_validator", accepted_checkpoint)
         return s4_executor.execute_s4(**kwargs)
+
+    def test_python_below_311_blocks_before_checkpoint_or_backend(self) -> None:
+        checkpoint_validator = mock.Mock(
+            side_effect=AssertionError("checkpoint validator must not be called")
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            release_root, assets = make_release_tree(root)
+            backend = FakeBackend()
+            with (
+                mock.patch.object(s4_executor.sys, "version_info", (3, 10, 14)),
+                self.assertRaises(s4_executor.S4ExecutionError) as caught,
+            ):
+                self.execute_s4(
+                    version=VERSION,
+                    commit=SOURCE,
+                    release_control=make_control(assets),
+                    release_root=release_root,
+                    repository_root=root,
+                    backend=backend,
+                    checkpoint_validator=checkpoint_validator,
+                )
+
+        self.assertEqual("E_V249_S4_PYTHON_VERSION", caught.exception.code)
+        self.assertEqual(0, caught.exception.receipt["write_attempt_count"])
+        self.assertEqual(
+            {key: 0 for key in backend.write_counts}, backend.write_counts
+        )
+        checkpoint_validator.assert_not_called()
 
     @staticmethod
     def write_checkpoint_inputs(
@@ -1490,20 +1521,102 @@ class TestV249CommandBackend(unittest.TestCase):
         backend = s4_executor.CommandBackend(Path.cwd(), runner)
 
         backend.create_annotated_tag(TAG, SOURCE, "Goal Teams V2.49")
-        backend.push_tag(TAG)
+        backend.push_tag(TAG, "6" * 40)
 
         self.assertEqual(
             ["git", "tag", "-a", TAG, SOURCE, "-m", "Goal Teams V2.49"],
             runner.argv[0],
         )
         self.assertEqual(
-            ["git", "push", "origin", "refs/tags/v2.49:refs/tags/v2.49"],
+            ["git", "push", "origin", f"{'6' * 40}:refs/tags/v2.49"],
             runner.argv[1],
         )
         flattened = " ".join(item for argv in runner.argv for item in argv).lower()
         self.assertNotIn("https://", flattened)
         self.assertNotIn("token", flattened)
         self.assertNotIn("authorization", flattened)
+
+    def test_push_tag_uses_validated_oid_when_local_ref_drifts(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            repository = root / "repository"
+            remote = root / "remote.git"
+            repository.mkdir()
+
+            def git(*args: str, bare: bool = False) -> str:
+                cwd = root if bare else repository
+                result = subprocess.run(
+                    ["git", *args],
+                    cwd=cwd,
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                return result.stdout.strip()
+
+            git("init", "--quiet")
+            git("init", "--bare", "--quiet", str(remote), bare=True)
+            (repository / "payload.txt").write_text("payload\n", encoding="utf-8")
+            git("add", "payload.txt")
+            git(
+                "-c",
+                "user.name=Goal Teams",
+                "-c",
+                "user.email=goal-teams@example.invalid",
+                "commit",
+                "--quiet",
+                "-m",
+                "fixture",
+            )
+            commit = git("rev-parse", "HEAD")
+            git(
+                "-c",
+                "user.name=Goal Teams",
+                "-c",
+                "user.email=goal-teams@example.invalid",
+                "tag",
+                "-a",
+                TAG,
+                commit,
+                "-m",
+                "Goal Teams V2.49",
+            )
+            validated_oid = git("rev-parse", f"refs/tags/{TAG}")
+            git("tag", "--delete", TAG)
+            git(
+                "-c",
+                "user.name=Goal Teams",
+                "-c",
+                "user.email=goal-teams@example.invalid",
+                "tag",
+                "-a",
+                TAG,
+                commit,
+                "-m",
+                "drifted tag",
+            )
+            self.assertNotEqual(
+                validated_oid, git("rev-parse", f"refs/tags/{TAG}")
+            )
+            git("remote", "add", "origin", str(remote))
+
+            backend = s4_executor.CommandBackend(repository)
+            backend.push_tag(TAG, validated_oid)
+
+            rows = {
+                reference: oid
+                for oid, reference in (
+                    line.split("\t", 1)
+                    for line in git(
+                        "ls-remote",
+                        "origin",
+                        f"refs/tags/{TAG}",
+                        f"refs/tags/{TAG}^{{}}",
+                    ).splitlines()
+                )
+            }
+            self.assertEqual(validated_oid, rows[f"refs/tags/{TAG}"])
+            self.assertEqual(commit, rows[f"refs/tags/{TAG}^{{}}"])
 
     def test_only_an_explicit_github_404_is_treated_as_absent(self) -> None:
         not_found = s4_executor.CommandResult(
@@ -1584,24 +1697,30 @@ class TestV249CommandBackend(unittest.TestCase):
             "tagger Goal Teams <noreply@example.invalid> 0 +0000\n\n"
             "Goal Teams V2.49\n"
         )
-        backend = s4_executor.CommandBackend(
-            Path.cwd(),
-            RecordingRunner(
-                [
-                    s4_executor.CommandResult(0, "6" * 40 + "\n"),
-                    s4_executor.CommandResult(0, "tag\n"),
-                    s4_executor.CommandResult(0, tag_object),
-                ]
-            ),
+        runner = RecordingRunner(
+            [
+                s4_executor.CommandResult(0),
+                s4_executor.CommandResult(0, "6" * 40 + "\n"),
+                s4_executor.CommandResult(0, "tag\n"),
+                s4_executor.CommandResult(0, tag_object),
+            ]
         )
+        backend = s4_executor.CommandBackend(Path.cwd(), runner)
         value = backend.read_local_tag(TAG)
         self.assertEqual("Goal Teams V2.49", value["message"])
+        self.assertEqual(
+            ["git", "cat-file", "-t", "6" * 40], runner.argv[2]
+        )
+        self.assertEqual(
+            ["git", "cat-file", "tag", "6" * 40], runner.argv[3]
+        )
 
         wrong = tag_object.replace("Goal Teams V2.49\n", "wrong title\n")
         backend = s4_executor.CommandBackend(
             Path.cwd(),
             RecordingRunner(
                 [
+                    s4_executor.CommandResult(0),
                     s4_executor.CommandResult(0, "6" * 40 + "\n"),
                     s4_executor.CommandResult(0, "tag\n"),
                     s4_executor.CommandResult(0, wrong),
@@ -1611,6 +1730,36 @@ class TestV249CommandBackend(unittest.TestCase):
         with self.assertRaises(s4_executor.S4ExecutionError) as caught:
             backend.read_local_tag(TAG)
         self.assertEqual("E_V249_S4_TAG_MESSAGE_DRIFT", caught.exception.code)
+
+    def test_missing_local_tag_is_absent_with_real_git(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            subprocess.run(
+                ["git", "init", "--quiet"],
+                cwd=root,
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            backend = s4_executor.CommandBackend(root)
+
+            self.assertIsNone(backend.read_local_tag(TAG))
+
+    def test_local_tag_probe_only_treats_exit_one_as_absent(self) -> None:
+        absent_runner = RecordingRunner([s4_executor.CommandResult(1)])
+        backend = s4_executor.CommandBackend(Path.cwd(), absent_runner)
+        self.assertIsNone(backend.read_local_tag(TAG))
+        self.assertEqual(
+            ["git", "show-ref", "--verify", "--quiet", "refs/tags/v2.49"],
+            absent_runner.argv[0],
+        )
+
+        backend = s4_executor.CommandBackend(
+            Path.cwd(), RecordingRunner([s4_executor.CommandResult(128)])
+        )
+        with self.assertRaises(s4_executor.S4ExecutionError) as caught:
+            backend.read_local_tag(TAG)
+        self.assertEqual("E_V249_S4_LOCAL_TAG_READ", caught.exception.code)
 
     def test_formal_installer_receives_only_canonical_target_environment(self) -> None:
         runner = RecordingRunner([s4_executor.CommandResult(0)])
