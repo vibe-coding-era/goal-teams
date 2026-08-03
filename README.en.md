@@ -8,12 +8,19 @@ Author: 肉山@TGO Hangzhou
 Current release: **V2.50** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.50) · [release/current/README.md](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-V2.50 is the current published release. It isolates Current rules from Legacy Replay and loads rules by functional template. Medium/Large development blocks only on TDD and affected-scope checks; full regression and a security review run only when implementation is complete and a Release is being prepared.
-S2 builds each exact released asset set once, and S3 applies only to a Large Release. External writes are authorized once at project start; GitHub Git remotes use SSH only.
+Goal Teams is an AgentTeams Skill for team collaboration across CodeAgents, with Codex as one of the currently available hosts. It operates as a Goal Lead: it breaks a goal into a verifiable plan, then coordinates independent members to complete requirements, design, implementation, testing, Evidence, and completion audits. Along the way, it:
 
-Current version: `V2.50`
+- Applies the Goal + Plan + Loop model to keep long-running tasks moving to completion;
+- Establishes and strictly follows the three core principles of SPEC + Harness + SSOT, keeping the process rigorous and improving LLM cache-hit rates;
+- Assigns different roles to different Subagents (running in separate contexts), keeping their contexts independent and free from cross-contamination while tasks run concurrently;
+- Establishes in-process Benchmark baselines to provide data support for each LOOP;
+- Provides a complete development team and can coexist with tools such as OpenSpec and Superpowers;
+- Includes a substantial script library to reduce LLM token consumption;
+- Automatically selects, or lets you manually choose, the appropriate workflow based on your request type:
 
-Goal Teams is a cross-CodeAgent coordination Skill, with Codex as one available host. It turns one goal into a verifiable plan and lets a Goal Lead coordinate independent members across requirements, design, implementation, tests, evidence, and completion audit. V2.50 uses a thin Bootstrap, an immutable Current generation, and explicit Replay so historical rules do not enter normal tasks. A complete adapter still requires host-specific runtime evidence.
+1. Small Request/BugFix: simple design and TDD only;
+2. Medium Project: a relatively complete flow covering product definition, prototyping, architecture, TDD, development, and incremental testing; whether to run a full regression requires manual confirmation;
+3. Large System: the complete workflow and all gates, including quality and security audits.
 
 ## Core Mechanisms
 
@@ -334,57 +341,3 @@ See [CHANGELOG.md](CHANGELOG.md) for the chronological version summary and compa
 ## License
 
 This repository does not declare an open-source license. The V2.50 GitHub Release is a versioned distribution snapshot, not an open-source license or an additional grant of rights; licensing remains a separate repository-owner decision.
-
-## Legacy V2.3 Replay Boundary
-
-V2.3 added deterministic machine contracts for closed state enums, a single-writer ledger, Evidence/Traceability, capability degradation, Profile routing, typed migration, and historical release gates. V2.50 retains those artifacts only for explicit Legacy Replay; they do not define Current release readiness or licensing.
-
-## V2.44 Changes
-
-- Added machine contracts for `integration-test-plan`, typed V2.44 `test-case`, and `test-run-result`, including risk denominators, file identity, attempts, business oracles, cleanup, and replay.
-- Aligned API/E2E designers, runners, QA, and Reviewer around typed protocol fields, real file discovery, failure-preserving retries, and independent run identities.
-- Added a seven-dimension 100-point capability gate, 12 stable issue IDs, an append-only issue ledger, and a real API/E2E benchmark; `blocked`, `not_run`, and `unavailable` never earn points.
-
-## V2.45 Changes
-
-- Added a standalone, progressively loaded Release Engineer covering Java, Rust, Go, Python, Node.js, five environments, and application, container, WeChat Mini Program, and GitHub Skill releases. It ships in the package without joining the main Skill route.
-- Fixed the minimum final-Evidence denominator and bound both human approvals, least privilege, and database-safety attestations to an external trusted-host signature; plain JSON and self-reported approvers cannot authorize script generation or live execution.
-- Production releases require backup, restore proof, rollback, benchmark baseline, and post-release readback. Destructive database operations, indirect database clients, and unclosed helper scripts fail closed.
-
-## V2.46 Changes
-
-- Historical test results are retained permanently while Evidence integrity, current applicability, and revalidation obligations are tracked independently through itemized impact analysis.
-- Added orthogonal state machines and an intent → execute → exact readback → CAS transaction contract; completion states are derived only from predicates, valid Evidence, and independent audit.
-- Added traceable test contracts, risk-routed Grill me review, and adversarial testing while preserving V2.44 API/E2E contracts and the full risk denominator.
-- Added capability-derived Rust/Tauri desktop contracts. “100% replication” is split into complete coverage, same-environment zero-pixel difference, high fidelity, and native-semantic match; PRD-only work first creates an independently approved interactive HTML baseline.
-- Rust backend rules now cover crate/module DAGs, typed IPC, errors, concurrency, persistence, security, and executable fmt/clippy/test gates. Desktop Evidence separates L1 Rust, L2 mock/browser, L3 real app, and L4 production package per immutable platform tuple and is constrained by an externally frozen candidate/environment SSOT; browser tests and direct `tauri-driver` cannot impersonate macOS client Evidence.
-
-## V2.50 Changes
-
-- V2.50 carries the V2.49 simplification implementation into a fresh Current generation, source identity, and `v2.50` tag. The protected `v2.49` tag and unpublished Draft remain historical evidence only.
-- The formal predecessor is the actually published and installed V2.48 identity; no V2.49 S1-S4 receipt is reused.
-- Added a digest-bound `ACTIVE.json` and immutable Current generation. Default routes, prompt closure, and installation exclude Legacy; historical contracts are available only through the explicit Replay manifest/runner.
-- Organized rules into functional templates for requirements, architecture/implementation, testing, UI/desktop, Agent runtime, and release operations. User output is constrained to five fixed fields plus exactly one terminal field.
-- Fixed the test chain as `RiskDenominator -> TestCase -> TestRunReceipt -> TestReviewReceipt`. Medium/Large development runs only TDD and incremental checks; final Release runs full regression and an independent security review.
-- Retired S2's second deterministic build and S2 security checks, made S3 Large-Release-only, reused project-start authorization in S4, and enforced SSH-only GitHub Git transport with exact readback.
-- Hardened S4 with fully paginated Draft Release discovery, stable asset identity comparison, and terminal drift/reconciliation evidence without replaying external writes.
-
-## V2.48 Changes
-
-- Added an independent Agent Product Manager and a shared capability contract for product, frontend, backend, and testing roles: prompt programming, context and memory, cache boundaries, external tools, Browser, Computer Use, Playwright, and approval boundaries are independently scoped.
-- Added an official-source matrix for Codex, Claude Cowork, QoderWork, WorkBuddy, and TRAE/TraeWork. It separates documented capability, unknown capability, and unsupported inference; product material is not runtime-adapter or live-Evidence proof.
-- Added three decomposable product patterns (controlled task execution, context-workflow collaboration, and browser/desktop execution) plus a five-layer composable architecture. The action ladder is API/MCP → Playwright/DOM → Browser → Computer Use.
-- Added a V2.48 schema, manifest, standalone validator, and regression tests. V2.47 flow/document/runtime contracts remain historical compatibility inputs, while the V2.46 governed release engine remains available only as a compatibility path.
-
-## V2.47 Changes
-
-- Added a flow-test SSOT: small runs use incremental and P0 smoke tests only; medium runs ask the user whether to run final full regression; large runs execute a fresh full denominator that cannot reuse earlier results.
-- Process documents now use append-only fragments/ledger, stable contract prefixes, and a dynamic instance tail; final deterministic documents are projected only at project completion. Cache-hit improvement is not claimed without host usage evidence.
-- User-visible execution updates are limited to task, member, progress, result, Banchmark, and next LOOP/task. Out-of-scope discoveries remain proposals until the requested work is finished and the user chooses.
-- Added official-source mappings, common rules, separate overlays, a machine manifest, and fail-closed selection for Codex, Claude Code, Cursor, Kimi Code, GLM, Qwen Code, Qoder, and TRAE. This is contract mapping, not proof that eight complete runtime adapters have passed.
-
-## V2.43 Changes
-
-- Task completion and Benchmark runs now share one deterministic calculator for FPAR, LCC, HER, SAR, CPAC, DER, RRR, CWR, SDI, RFR, ARCR, and MRT.
-- Metric events, algorithm manifest, JSON Schema, comparable-history windows, and availability states use one contract; missing collection, open observation windows, not-applicable cases, and insufficient samples are never reported as zero.
-- User-facing engineering-metrics reports are self-contained Google OKF documents with the four-column table, algorithms, Evidence, and coverage. The chat response links to the report and reminds the user to open it.
