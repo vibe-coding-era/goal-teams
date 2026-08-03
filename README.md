@@ -5,10 +5,10 @@
 作者：肉山@TGO 杭州
 
 <!-- goal-teams-release:start -->
-当前发行：**V2.48** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.48) · [发行说明](release/current/README.md)
+当前发行：**V2.50** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.50) · [发行说明](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-V2.50 当前是待发布候选：它将 Current 与 Legacy Replay 隔离，并按功能模板加载规则。Medium/Large 开发期只阻断 TDD 与受影响面增量验证，全部实现完成且准备 Release 时才运行全量回归和安全审核。
+V2.50 已正式发布：它将 Current 与 Legacy Replay 隔离，并按功能模板加载规则。Medium/Large 开发期只阻断 TDD 与受影响面增量验证，全部实现完成且准备 Release 时才运行全量回归和安全审核。
 每个 exact released asset set 的 S2 只构建一次；S3 只用于 Large Release。外部写入在项目开始一次授权，GitHub Git remote 统一使用 SSH。
 
 当前版本：`V2.50`

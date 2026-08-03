@@ -3,7 +3,7 @@
   "generation_id": "V2.50",
   "generation_state": "active",
   "baseline_generation_id": "V2.48",
-  "manifest_payload_sha256": "befee0216d19b1bfaac248dfb622f4e2263fe9f445926a28cf4faa13d3005fa0",
+  "manifest_payload_sha256": "2560969936a6f3609c58d5b236f4f7ad3b7780a8b30c26c1d27697828529b4b9",
   "identity": {
     "loaded_runtime_product_version": "V2.50",
     "route_contract_schema_version": "goal-teams-project-route-v2.50",
@@ -182,8 +182,8 @@
     "execution": [
       {
         "path": "release/current/manifest.json",
-        "sha256": "f411f88edc06215eb98222386e8d55ee0bcea34e31bcd80e0500cf9e6e89991d",
-        "bytes": 1588
+        "sha256": "f09da2e460c736605910e3aca2982b04bc2416f30049229e8f39bf493c62d2ca",
+        "bytes": 1475
       },
       {
         "path": "scripts/check.sh",

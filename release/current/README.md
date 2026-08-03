@@ -1,10 +1,10 @@
-# Goal Teams V2.48 Release / V2.50 Candidate
+# Goal Teams V2.50 Release
 
-V2.48 remains the current published GitHub Release. V2.50 is an unreleased candidate and does not become the current release until its tag, four public assets, remote readback, and formal installation have completed.
+V2.50 is the current published GitHub Release. Its tag, four public assets, remote readback, and formal installation have completed.
 
-The V2.50 candidate replaces version-stacked hot paths with a digest-bound Current generation and explicit, isolated Legacy Replay. Its default prompt plan and installation package are intended to contain only V2.50 Current rules plus exact execution dependencies.
+V2.50 replaces version-stacked hot paths with a digest-bound Current generation and explicit, isolated Legacy Replay. Its default prompt plan and installation package contain V2.50 Current rules plus exact execution dependencies.
 
-## V2.50 candidate changes
+## V2.50 changes
 
 - Bootstrap is thin; requirements, architecture/implementation, testing, UI/desktop, Agent runtime, and release operations each have one functional Owner template.
 - Current route closure is verified against an explicit Legacy classification and a fixed 72,194-byte ceiling.
@@ -14,9 +14,9 @@ The V2.50 candidate replaces version-stacked hot paths with a digest-bound Curre
 - S3 runs only for a Large Release after S1 is passed/current. S4 reuses project-start authorization and performs exact remote/readback recovery without a second authorization flow.
 - GitHub Git remotes are SSH-only; PR, Actions, ruleset, and Release operations use authenticated GitHub API/CLI surfaces.
 
-## Planned public assets
+## Public assets
 
-If V2.50 passes Release Readiness, its fixed public set will be:
+The fixed V2.50 public asset set is:
 
 - `goal-teams-V2.50.tar.gz`
 - `SHA256SUMS`
