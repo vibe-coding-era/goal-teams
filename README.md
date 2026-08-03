@@ -8,17 +8,18 @@
 当前发行：**V2.50** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.50) · [发行说明](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-V2.50 已正式发布：它将 Current 与 Legacy Replay 隔离，并按功能模板加载规则。Medium/Large 开发期只阻断 TDD 与受影响面增量验证，全部实现完成且准备 Release 时才运行全量回归和安全审核。
-每个 exact released asset set 的 S2 只构建一次；S3 只用于 Large Release。外部写入在项目开始一次授权，GitHub Git remote 统一使用 SSH。
+Goal Teams 是一个跨 CodeAgent 的团队协作 AgentTeams Skill，Codex 是当前可用宿主之一。它会以一个 Goal Lead 的身份，把目标拆成可验证计划，再协调独立成员完成需求、设计、实现、测试、Evidence 和收尾审计，过程中会应用到：
+- 应用 Goal + Plan + Loop 模式，能够保持长时间完成任务；
+- 构建和严格遵循 SPEC + Harness + SSOT 三大原则，保持过程严谨性及 提升 LLM 缓存命中率；
+- 不同角色使用不同的 Subagent（不同上下文执行）保持上下文独立性不被污染，同时任务并发执行；
+- 建立过程 Benchmark 基准，为 LOOP 提供数据支持；
+- 有完备的开发团队，也能够与 OpenSpec 和 Superpowers 这类共存；
+- 沉淀大量的脚本，减少 LLM Tokens 消耗；
+- 会根据你的需求类型，自动判断或人工选择相应的流程：
+1. 小型需求/BugFix，只做简单设计和 TDD；
+2. 中型项目，相对完整的产品、原型、架构、TDD、开发、增量测试，是否需要全量回归，需要人工确认；
+3. 大型系统，完整的走全量流程及门禁，包括质量、安全审计；
 
-当前版本：`V2.50`
-
-Goal Teams 是一个跨 CodeAgent 的团队协作 Skill，Codex 是当前可用宿主之一。它会以一个 Goal Lead 的身份，把目标拆成可验证计划，再协调独立成员完成需求、设计、实现、测试、Evidence 和收尾审计。V2.50 用薄 Bootstrap、Current generation 和显式 Replay 降低历史规则对当前任务的影响；宿主能力仍须真实 runtime Evidence 才能声明完整 adapter。过程中会应用到：
-- 应用Goal + Plan + Loop 模式
-- 构建和严格遵循 SPEC + Harness + SSOT 三大原则
-- 不同角色使用不同的 subagent（不同上下文执行）保持上下文独立性不被污染
-- 建立过程 Benchmark 基准
-- 与 OpenSpec 和 Superpowers 共存；完整 adapter 进入 V2.4
 
 ## 核心机制
 
@@ -351,53 +352,3 @@ GoalTeamsWork-<project_version>/
 ## License
 
 当前仓库没有声明开源 License。V2.50 GitHub Release 是版本化分发快照，不构成开源许可或额外权利授予；License 仍由 repository owner 另行决定。
-
-## V2.44 版本改动
-
-- 新增 `integration-test-plan`、V2.44 typed `test-case` 和 `test-run-result` 三类机器合同，绑定风险分母、文件 identity、执行 attempts、业务 oracle、cleanup 与 replay。
-- API/E2E 设计、执行、QA 与 Reviewer 成员包统一要求 typed protocol fields、真实文件 discovery、失败不洗绿和独立 run identity。
-- 新增七维 100 分测试能力门禁、12 个稳定问题 ID、append-only 问题账本和真实 API/E2E Benchmark；`blocked|not_run|unavailable` 不计分。
-
-## V2.45 版本改动
-
-- 新增独立、渐进加载的 Release Engineer 成员，覆盖 Java、Rust、Go、Python、Node.js、五类环境与应用、容器、微信小程序、GitHub Skill 发布面；它随包发布但不接入主 Skill 路由。
-- 固定最终 Evidence 分母，并以仓库外 trusted-host 签名绑定两次人类确认、最小权限与数据库安全 attestation；普通 JSON 或自报 approver 不能授权生成脚本或线上执行。
-- 生产发布强制备份、restore proof、rollback、Benchmark 基线和发布后回读；数据库破坏性操作、间接数据库客户端与未闭合辅助脚本 fail closed。
-
-## V2.46 版本改动
-
-- 历史测试结果永久保留；规则变化后独立记录 Evidence 完整性、当前适用性和复验义务，并用逐项影响分析禁止无依据清零。
-- 新增正交状态机与 intent → execute → exact readback → CAS 事务合同；完成状态只能由完成谓词、有效 Evidence 和独立审计推导。
-- 新增可追溯测试合同、按风险路由的 Grill me 和对抗式测试，继续复用 V2.44 API/E2E 合同且不缩小风险分母。
-- 新增按能力派生的 Rust/Tauri 桌面工程合同：前端将“百分百复刻”拆成覆盖完整、同环境像素零差异、高保真与原生语义；PRD-only 先形成可独立批准的 HTML 基线。
-- Rust 后端统一 crate/module DAG、typed IPC、错误/并发/持久化/安全和 fmt/clippy/test 门；桌面测试按不可变 platform tuple 区分 L1 Rust、L2 mock/browser、L3 真实应用和 L4 生产包，并用外部冻结的 candidate/environment SSOT 约束 Evidence，macOS 不再用 browser 或 direct `tauri-driver` 冒充客户端 Evidence。
-
-## V2.50 版本改动
-
-- V2.50 继承 V2.49 的规则简化实现，但使用全新的 Current generation、source identity 与 `v2.50` 标签；受保护的 `v2.49` 标签和未发布 Draft 只保留为历史证据。
-- 正式前驱绑定实际已发布并安装的 V2.48，不复用 V2.49 的 S1–S4 回执。
-- 新增 digest-bound `ACTIVE.json` 与不可变 Current generation；默认 route、Prompt closure 和安装包不加载 Legacy，历史合同只通过显式 Replay manifest/runner 使用。
-- 规则按需求、架构实现、测试、UI/桌面、Agent runtime、发行操作六类功能模板组织；用户输出收敛为五个固定字段加二选一末字段。
-- 测试门禁固定为 `RiskDenominator -> TestCase -> TestRunReceipt -> TestReviewReceipt`；Medium/Large 开发期只运行 TDD 与增量，最终 Release 才运行全量回归和独立安全审核。
-- 取消 S2 第二次确定性构建与 S2 安全检查；S3 仅 Large Release；S4 复用项目开始授权，GitHub Git transport 强制 SSH 并做 exact readback。
-- S4 增加 Draft Release 全分页发现、稳定资产身份比较和终态漂移/reconciliation Evidence，避免重放已发生的外部写入。
-
-## V2.48 版本改动
-
-- 新增独立 Agent 产品经理成员，并让产品、前端、后端与测试成员按同一能力合同协作：Prompt 编程、上下文与记忆、缓存边界、外部工具、Browser、Computer Use、Playwright 和安全审批各自有可验证边界。
-- 新增 Codex、Claude Cowork、QoderWork、WorkBuddy、TRAE/TraeWork 的官方来源矩阵；资料把已文档化能力、未知项和不可推断的能力分开，不把产品介绍写成运行时适配或实机 Evidence。
-- 内置受控任务执行、上下文工作流协作、浏览器/桌面执行三套可拆分产品方案，以及 Product/API、编排、上下文、工具、证据五层可组合架构方案；动作升级固定为 API/MCP → Playwright/DOM → Browser → Computer Use。
-- 新增 V2.48 schema、manifest、独立校验器与回归测试；V2.47 flow/document/runtime 合同保持历史兼容，V2.46 governed release engine 保留为历史兼容路径。
-
-## V2.47 版本改动
-
-- 新增流程测试 SSOT：小流程只做增量与 P0 冒烟；中流程最终由用户选择是否全量回归；大流程最终以新的完整分母全量回归，禁止复用前序结果抵扣。
-- 过程文档改为 append-only fragment/ledger，保持稳定合同前缀和动态实例尾部；项目完成后才生成最终确定性投影。没有宿主 usage Evidence 时不宣称缓存命中率提高。
-- 用户可见执行输出固定为任务、成员、进度、结果、Banchmark 和下一轮 LOOP/下一个任务；范围外发现先作为 proposal，完成当前指定任务后再由用户选择。
-- 新增 Codex、Claude Code、Cursor、Kimi Code、GLM、Qwen Code、Qoder、TRAE 的官方来源索引、公共规则、独立 overlay、机器清单和 fail-closed 选择器；这表示合同映射，不表示八个完整 adapter 已通过运行时验证。
-
-## V2.43 版本改动
-
-- 任务完成与 Benchmark 共用一套确定性工程指标计算器，覆盖 FPAR、LCC、HER、SAR、CPAC、DER、RRR、CWR、SDI、RFR、ARCR 和 MRT。
-- 指标事件、算法 manifest、JSON Schema、历史可比窗口和不可用状态统一定义；未采集、观察未结束、不适用或样本不足不会被写成 `0`。
-- 给用户生成自包含 Google OKF 工程指标报告，包含四列表格、算法、Evidence 和数据覆盖；聊天回复只提供报告链接并提醒查看。
