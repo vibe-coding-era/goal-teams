@@ -1,19 +1,19 @@
-# Goal Teams V2.50 Release / V2.51 Candidate
+# Goal Teams V2.51 Release
 
-V2.50 remains the current published GitHub Release. V2.51 is an unreleased candidate and does not become current until its tag, four public assets, remote readback, and formal installation have completed.
+V2.51 is the current published GitHub Release. Its tag, four public assets, remote readback, and formal installation have completed.
 
-The V2.51 candidate keeps the V2.50 execution protocol and adds a limited source-available license, current/total LOOP iteration reporting, and evidence-based final LOOP improvement suggestions.
+V2.51 keeps the V2.50 execution protocol and adds a limited source-available license, current/total LOOP iteration reporting, and evidence-based final LOOP improvement suggestions.
 
-## V2.51 candidate changes
+## V2.51 changes
 
 - `LICENSE` grants source viewing for personal evaluation; all other use requires the author's prior written permission and is not OSI open source.
 - Every visible LOOP progress report includes the current iteration and total iterations.
 - Final output includes evidence-based LOOP improvement suggestions in addition to the Benchmark report.
 - V2.50 schemas, `scripts/v250/`, error-code family, and release protocol remain the compatible execution layer for this small declarative iteration.
 
-## Planned public assets
+## Public assets
 
-If V2.51 passes Release Readiness, its fixed public set will be:
+The fixed V2.51 public asset set is:
 
 - `goal-teams-V2.51.tar.gz`
 - `SHA256SUMS`
