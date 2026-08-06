@@ -188,16 +188,16 @@ def _handoff(authorization_path: Path) -> dict:
             authorization_path.read_bytes()
         ).hexdigest(),
         "authorization_intent_sha256": authorization["intent_sha256"],
-        "previous_controller_product_version": "V2.50",
-        "previous_run_id": "V248-HOST-RUN-0001",
+        "previous_controller_product_version": "V2.51",
+        "previous_run_id": "V251-HOST-RUN-0001",
         "nonce": HANDOFF_NONCE,
         "issued_at": "2026-08-01T08:00:00+00:00",
         "expires_at": "2026-08-01T08:10:00+00:00",
-        "installed_v250_current_state": {
+        "installed_v251_current_state": {
             "state_sha256": "3" * 64,
             "source_commit": "4" * 40,
             "source_tree": "5" * 40,
-            "tag": "v2.50",
+            "tag": "v2.51",
             "release_id": 362135071,
         },
         "github_signing_identity": {
@@ -294,7 +294,7 @@ class TestV250RuntimeTransition(unittest.TestCase):
         self.assertTrue(verdict["ok"], verdict["errors"])
         self.assertTrue(verdict["may_enter_s0"])
         self.assertEqual(
-            "V2.50",
+            "V2.51",
             value["controller_handoff_receipt"]["signed_payload"][
                 "previous_controller_product_version"
             ],
@@ -395,7 +395,7 @@ class TestV250RuntimeTransition(unittest.TestCase):
             ("parent_pid", 999999),
             ("expected_child_pid", 999998),
             ("host_execution_id", "GITHUB-RUN-DRIFT"),
-            ("new_run_id", "V248-HOST-RUN-0001"),
+            ("new_run_id", "V251-HOST-RUN-0001"),
         )
         for field, replacement in drift_cases:
             with self.subTest(field=field), tempfile.TemporaryDirectory() as directory:
@@ -464,7 +464,7 @@ class TestV250RuntimeTransition(unittest.TestCase):
                 "E_V250_CONTROLLER_HANDOFF_AUTHORIZATION_DRIFT",
             ),
             (
-                lambda payload: payload["installed_v250_current_state"].__setitem__(
+                lambda payload: payload["installed_v251_current_state"].__setitem__(
                     "tag", "v2.47"
                 ),
                 "E_V250_CONTROLLER_HANDOFF_INSTALLED_STATE",

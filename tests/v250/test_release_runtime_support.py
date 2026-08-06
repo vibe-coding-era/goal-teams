@@ -50,7 +50,7 @@ class V250ReleaseRuntimeSupportTests(unittest.TestCase):
 
         active = release_config.active_release_config()
         self.assertEqual("V2.52", active["version"])
-        self.assertEqual("V2.50", active["published_before"])
+        self.assertEqual("V2.51", active["published_before"])
         self.assertEqual("codex/v2.52-small", active["candidate_branch"])
         self.assertEqual("v2.52", active["tag"])
         self.assertEqual(
@@ -80,7 +80,7 @@ class V250ReleaseRuntimeSupportTests(unittest.TestCase):
         self.assertIn("V2.52", validator.SUPPORTED_RELEASE_VERSIONS)
         candidate = {
             "status": "release",
-            "product_version": "V2.50",
+            "product_version": "V2.51",
             "candidate_product_version": "V2.52",
             "candidate_release_state": "v250_release_readiness",
         }
@@ -213,7 +213,7 @@ class V250ReleaseRuntimeSupportTests(unittest.TestCase):
                 encoding="utf-8"
             )
         )
-        self.assertEqual("V2.50", profile["published_before"])
+        self.assertEqual("V2.51", profile["published_before"])
         self.assertEqual("codex/v2.52-small", profile["candidate_branch"])
         self.assertEqual("ssh_only", profile["git_transport"])
 

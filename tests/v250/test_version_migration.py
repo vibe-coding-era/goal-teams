@@ -33,7 +33,7 @@ class TestV250VersionMigration(unittest.TestCase):
         )
         self.assertEqual("V2.52", profile["version"])
         self.assertEqual("v2.52", profile["tag"])
-        self.assertEqual("V2.50", profile["published_before"])
+        self.assertEqual("V2.51", profile["published_before"])
         self.assertEqual("codex/v2.52-small", profile["candidate_branch"])
 
         for relative in (

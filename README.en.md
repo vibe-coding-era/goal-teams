@@ -144,7 +144,7 @@ ROUTE_RECEIPT="$EVIDENCE_DIR/large-release-route.json"
 RUNTIME_RECEIPT="$EVIDENCE_DIR/released-runtime-transition.json"
 S1_CHECK_RECEIPT="$EVIDENCE_DIR/s1-check-result.json"
 AUTH_RECEIPT=docs/v2.52-execution/versions/V2.52/evidence/project-start-authorization-receipt.json
-HANDOFF_RECEIPT="${HANDOFF_RECEIPT:?set the handoff receipt issued by the installed V2.50 Codex host}"
+HANDOFF_RECEIPT="${HANDOFF_RECEIPT:?set the handoff receipt issued by the installed V2.51 Codex host}"
 HOST_EXECUTION_ID="${HOST_EXECUTION_ID:?set the external host execution ID}"
 PYTHON_BIN="$(python3 -c 'import pathlib,sys; print(pathlib.Path(sys.executable).resolve())')"
 
@@ -165,7 +165,7 @@ PYTHON_BIN="$(python3 -c 'import pathlib,sys; print(pathlib.Path(sys.executable)
   --released-runtime-receipt "$RUNTIME_RECEIPT" > "$S1_CHECK_RECEIPT"
 ```
 
-The `controller-handoff-receipt` may only be issued outside the repository by the installed V2.50 Codex host; repository code never generates it. It binds the real previous run, one-time nonce, authorization, and exact commit/tree with the pinned owner SSH key. The adapter sends the launch receipt over stdin only after it knows the real child PID, then verifies the child acknowledgement. The resulting I1 receipt still proves correlated process and signed-handoff binding rather than external independence. `S1_CHECK_RECEIPT` closes only S0/S1; it is not proof that the Release is complete.
+The `controller-handoff-receipt` may only be issued outside the repository by the installed V2.51 Codex host; repository code never generates it. It binds the real previous run, one-time nonce, authorization, and exact commit/tree with the pinned owner SSH key. The adapter sends the launch receipt over stdin only after it knows the real child PID, then verifies the child acknowledgement. The resulting I1 receipt still proves correlated process and signed-handoff binding rather than external independence. `S1_CHECK_RECEIPT` closes only S0/S1; it is not proof that the Release is complete.
 
 Copy subagents manually:
 

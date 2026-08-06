@@ -17,7 +17,7 @@
     "check-macos",
     "release-asset-gate"
   ],
-  "published_before": "V2.50",
+  "published_before": "V2.51",
   "tag": "v2.52",
   "candidate_branch": "codex/v2.52-small",
   "profile_path": "references/profiles/goal-teams-self-release-v2.52.md",
