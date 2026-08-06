@@ -2,7 +2,7 @@
 """Load closed, Git-tracked release identities.
 
 V2.52 is the active Skill release profile used by ``skill_release.py``.
-V2.50 remains the published rollback baseline; V2.49 is retained as history.
+V2.51 is the published predecessor; V2.50 remains the rollback baseline.
 V2.46 keeps the governed CP00-CP18 engine; earlier versions are replay-only.
 """
 
@@ -39,7 +39,7 @@ PREDECESSOR_BY_VERSION = {
     "V2.48": "V2.46",
     "V2.49": "V2.48",
     "V2.50": "V2.48",
-    "V2.52": "V2.50",
+    "V2.52": "V2.51",
 }
 HOST_ACCEPTANCE_VERSIONS = {"V2.44", "V2.45", "V2.46"}
 REQUIRED_FIELDS = {

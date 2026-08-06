@@ -51,7 +51,7 @@
   },
   "runtime_transition": {
     "released_receipt_required_before_s0": true,
-    "controller_handoff_source": "externally_issued_by_installed_v2.50_codex_host",
+    "controller_handoff_source": "externally_issued_by_installed_v2.51_codex_host",
     "controller_handoff_generation_inside_repository": "forbidden",
     "controller_handoff_signature": {
       "github_account": "vibe-coding-era",

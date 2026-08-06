@@ -225,7 +225,7 @@ def release_projection_state(
         "V2.48": "V2.46",
         "V2.49": "V2.48",
         "V2.50": "V2.48",
-        "V2.52": "V2.50",
+        "V2.52": "V2.51",
     }
     candidate_states = {
         "V2.48": {"skill_simple_local_validation"},

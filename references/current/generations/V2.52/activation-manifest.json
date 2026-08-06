@@ -3,7 +3,7 @@
   "generation_id": "V2.52",
   "generation_state": "active",
   "baseline_generation_id": "V2.48",
-  "manifest_payload_sha256": "5af3b1d4c8085d09d25139267af5b72a478fb79f836b94a051994e1041c4e157",
+  "manifest_payload_sha256": "94e1de69fbd19b61a4e9973c8a20eb877ed418dfb2d4582c0579dbc7a1a8dae5",
   "identity": {
     "loaded_runtime_product_version": "V2.52",
     "route_contract_schema_version": "goal-teams-project-route-v2.50",
@@ -18,7 +18,7 @@
       },
       {
         "path": "AGENTS.md",
-        "sha256": "7ac04dc2653fa258f8e4e581313217a9addb5646180981f713b74a35ba600c33",
+        "sha256": "cd074ff106d941a9955f27e6898a9ba8f258762e88679eeb5e848d8c0113cf17",
         "bytes": 6786
       },
       {
@@ -155,7 +155,7 @@
       },
       {
         "path": "references/release-profiles/v2.52.json",
-        "sha256": "f1b9d65adf966cf4681be84c632bc22310d54986adfb0928cd19552b9b4d59e6",
+        "sha256": "bcd462478a248336358f3d1cd9217b3e1776ed07fb669faf7d6b5953ddc745f6",
         "bytes": 1548
       },
       {
@@ -170,7 +170,7 @@
       },
       {
         "path": "references/current/generations/V2.52/contracts/release-route-manifest.json",
-        "sha256": "ddd1a0ebbf568f495f98e8f3f33674cab58c86096552b9d1c25ee0d03e78347c",
+        "sha256": "bc0f8254cd845abad633f46a0ef60f837fc96113bd19006c45d6f505c4b534f5",
         "bytes": 2567
       },
       {
@@ -257,8 +257,8 @@
       },
       {
         "path": "scripts/release/release_config.py",
-        "sha256": "4d629c432993bd1c2d2a958a27266af958775588f888e00042dd8ff09a3e2014",
-        "bytes": 15179
+        "sha256": "0c7a68ef8e03701e98699c33cf605a5f457bde0e52713f603649eaf067c6c34c",
+        "bytes": 15175
       },
       {
         "path": "scripts/release/skill_release.py",
@@ -267,7 +267,7 @@
       },
       {
         "path": "scripts/release/validate-release.py",
-        "sha256": "1c66f78917829086df10008c4b29f0db4cdf275c9776847e6dd50895f7c0807f",
+        "sha256": "e9309203e93891e672e72b812898ec60c859b1670fd00b63a763ec8ebfbaf2a3",
         "bytes": 39611
       },
       {
@@ -322,12 +322,12 @@
       },
       {
         "path": "scripts/v250/runtime_host_adapter.py",
-        "sha256": "10d98a3c9b92364227f6cf04e5e871d3f45b3d558d1f5d7cb7a815718c5a5d8f",
+        "sha256": "fc53e60bb133e7b5bd0bec7f47497b4400d9d209863c95c86adcebf6c360265b",
         "bytes": 12925
       },
       {
         "path": "scripts/v250/runtime_transition.py",
-        "sha256": "28bedddb70aed8a8e74602f34c689b4a867fdfda733021dfdee499c103d3682f",
+        "sha256": "8379572872c31df77d0716df7ae48a0dd1f8095c514c151bc47b86994078cdd0",
         "bytes": 53961
       },
       {
@@ -492,7 +492,7 @@
       },
       {
         "path": "tests/v250/test_release_control.py",
-        "sha256": "d6573123efc08e6efdc8ba30793bb23bd9b61384e3626cf77e224d975d634e5d",
+        "sha256": "5e853f795d4cb8b1966e64767b89182056cbcca984fb75fabdbd109e4caa8928",
         "bytes": 58881
       },
       {
@@ -502,7 +502,7 @@
       },
       {
         "path": "tests/v250/test_release_runtime_support.py",
-        "sha256": "0c33fd4da6b9e197b3c1a0123bb14385a7fc43641a10eae320e88a28ba2ed186",
+        "sha256": "a02083789fcb7cff1954ed74a573c68eb719cb84c8d6744e1af784163cfbf051",
         "bytes": 9649
       },
       {
@@ -527,12 +527,12 @@
       },
       {
         "path": "tests/v250/test_runtime_host_adapter.py",
-        "sha256": "c0cf947b876598921d197f254a0ae1252c9ab42e1ba6ba8e5c4521340d558237",
+        "sha256": "cf181a19bed4d9af602c5d322a643e9e1d550bc5394081c446d9c026b7e24975",
         "bytes": 9242
       },
       {
         "path": "tests/v250/test_runtime_transition.py",
-        "sha256": "5def194ac59d46c894e15406ade06fa1a7dccf2b98c80f6042459cab556cd813",
+        "sha256": "31183e2820d55682fbc728254279942bee7963fbe2aae6550300da0cc3d71bac",
         "bytes": 24253
       },
       {
@@ -542,8 +542,8 @@
       },
       {
         "path": "tests/v250/test_schema_contracts.py",
-        "sha256": "09d9e6eda104942a760ca568387ed0269d0fce86b5f22e4a992f8f34b8efd859",
-        "bytes": 8352
+        "sha256": "b35fff96cddd8d2debcd03d34a41c46634d258f7b310f20b7a31cf0fc1179201",
+        "bytes": 8521
       },
       {
         "path": "tests/v250/test_subagents.py",
@@ -582,12 +582,12 @@
       },
       {
         "path": "tests/v250/test_version_migration.py",
-        "sha256": "b80ca252ee1fd2af3dbeb05c160fb1815dcfe040b01677bc263eee2cdedeb578",
+        "sha256": "03066623a2f3b3488ac04119a8efcfef5cd322361fb1f91a9ba98d5e16f00a6b",
         "bytes": 2208
       },
       {
         "path": "tests/v250/test_workflow_release_contract.py",
-        "sha256": "f91ae1ca394102237923ab6d496b53941795e22321e26bc81287422fff9d0629",
+        "sha256": "fc8d8b0e51a1c2e37eae82d6bb989dca2002e5cbfa35e8683d4d704682009570",
         "bytes": 21124
       }
     ],
@@ -629,7 +629,7 @@
       },
       {
         "path": "schemas/v2.50/runtime-transition-receipt.schema.json",
-        "sha256": "557d44fda7d694ebad35306d9f70233daacf64bd986628d59364a7af835b5ac6",
+        "sha256": "5374b3efd8b4e72a2ff057dbc3c9388891333cf14f92ee0ece49c48fa5e485a2",
         "bytes": 10336
       },
       {
@@ -649,7 +649,7 @@
   "semantic_owner_set_digest": "95b671eeb79b61755677b58bd7d382c26c3cb20ae30d64c1ac279b8f18018881",
   "rule_index_digest": "0526a6e97d5701d0542c7fa943fc5cfad3bbb76e8b6d45017dfa0decc3fe1b20",
   "prompt_plan_digest": "7980d92a734ef3f6f6009044b61b235a97d4ab6e1b505aa8da1a207dad980a0a",
-  "schema_and_validator_digest": "04754321fc6902ccc3667233525248c6e37226cf03a1473c42638c0d37624b98",
+  "schema_and_validator_digest": "37ceae0ae5149755ec9ea6a4afaf3fd36c4d996eb91cbcd4f6f4242c2b9b52d6",
   "current_default_allowlist": [
     ".agents/skills/goal-teams/SKILL.md",
     "AGENTS.md",
@@ -853,7 +853,7 @@
     "scripts/v250/refresh_generation_manifests.py"
   ],
   "projection_writer_allowlist_digest": "6013892aaf766bf73fbf750cb1836da333ee7c58caee199bbbf96571c6eebbfb",
-  "fixture_and_completion_contract_digest": "845fe825654cafcbf7384ab3b2da9c6500d4a701491e2551f37e9ff45c525d1b",
+  "fixture_and_completion_contract_digest": "08a59c64d14ccaaeb7e288840e52325f9223de8142b37fc608fc84df3897ef74",
   "repository_control_exclusions": [
     {
       "path_prefix": ".github/workflows/",

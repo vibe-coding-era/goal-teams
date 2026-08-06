@@ -144,7 +144,7 @@ ROUTE_RECEIPT="$EVIDENCE_DIR/large-release-route.json"
 RUNTIME_RECEIPT="$EVIDENCE_DIR/released-runtime-transition.json"
 S1_CHECK_RECEIPT="$EVIDENCE_DIR/s1-check-result.json"
 AUTH_RECEIPT=docs/v2.52-execution/versions/V2.52/evidence/project-start-authorization-receipt.json
-HANDOFF_RECEIPT="${HANDOFF_RECEIPT:?请提供由已安装 V2.50 Codex 宿主签发的 handoff receipt}"
+HANDOFF_RECEIPT="${HANDOFF_RECEIPT:?请提供由已安装 V2.51 Codex 宿主签发的 handoff receipt}"
 HOST_EXECUTION_ID="${HOST_EXECUTION_ID:?请提供外部宿主 execution ID}"
 PYTHON_BIN="$(python3 -c 'import pathlib,sys; print(pathlib.Path(sys.executable).resolve())')"
 
@@ -165,7 +165,7 @@ PYTHON_BIN="$(python3 -c 'import pathlib,sys; print(pathlib.Path(sys.executable)
   --released-runtime-receipt "$RUNTIME_RECEIPT" > "$S1_CHECK_RECEIPT"
 ```
 
-`controller-handoff-receipt` 只能由已安装的 V2.50 Codex 宿主在仓库外签发；仓库代码不得生成。
+`controller-handoff-receipt` 只能由已安装的 V2.51 Codex 宿主在仓库外签发；仓库代码不得生成。
 它以固定 owner SSH 公钥绑定真实 previous run、一次性 nonce、授权与 exact commit/tree。adapter 在
 获得真实 child PID 后才经 stdin 发送 launch receipt，并校验 child ack。上述 I1 receipt 仍只证明
 相关进程与签名 handoff 的绑定，不证明外部独立性；`S1_CHECK_RECEIPT` 只关闭 S0/S1，不等于 Release 完成。

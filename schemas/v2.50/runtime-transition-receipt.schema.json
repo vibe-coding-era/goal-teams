@@ -24,7 +24,7 @@
             "nonce",
             "issued_at",
             "expires_at",
-            "installed_v250_current_state",
+            "installed_v251_current_state",
             "github_signing_identity"
           ],
           "properties": {
@@ -34,19 +34,19 @@
             "authorization_id": {"type": "string", "minLength": 1},
             "authorization_receipt_sha256": {"$ref": "#/$defs/sha256"},
             "authorization_intent_sha256": {"$ref": "#/$defs/sha256"},
-            "previous_controller_product_version": {"const": "V2.50"},
+            "previous_controller_product_version": {"const": "V2.51"},
             "previous_run_id": {"$ref": "#/$defs/runId"},
             "nonce": {"type": "string", "pattern": "^[A-Za-z0-9_-]{32,128}$"},
             "issued_at": {"type": "string", "format": "date-time"},
             "expires_at": {"type": "string", "format": "date-time"},
-            "installed_v250_current_state": {
+            "installed_v251_current_state": {
               "type": "object",
               "required": ["state_sha256", "source_commit", "source_tree", "tag", "release_id"],
               "properties": {
                 "state_sha256": {"$ref": "#/$defs/sha256"},
                 "source_commit": {"$ref": "#/$defs/gitIdentity"},
                 "source_tree": {"$ref": "#/$defs/gitIdentity"},
-                "tag": {"const": "v2.50"},
+                "tag": {"const": "v2.51"},
                 "release_id": {"type": "integer", "minimum": 1}
               },
               "additionalProperties": false

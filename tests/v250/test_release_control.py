@@ -330,16 +330,16 @@ def transition() -> dict:
         "authorization_id": "AUTH-V250-TEST",
         "authorization_receipt_sha256": "7" * 64,
         "authorization_intent_sha256": "8" * 64,
-        "previous_controller_product_version": "V2.48",
-        "previous_run_id": "V248-HOST-RUN-1",
+        "previous_controller_product_version": "V2.51",
+        "previous_run_id": "V251-HOST-RUN-1",
         "nonce": "nonce-v250-controller-handoff-000001",
         "issued_at": "2026-08-01T07:55:00+00:00",
         "expires_at": "2026-08-01T08:05:00+00:00",
-        "installed_v248_current_state": {
+        "installed_v251_current_state": {
             "state_sha256": "9" * 64,
             "source_commit": "3" * 40,
             "source_tree": "4" * 40,
-            "tag": "v2.48",
+            "tag": "v2.51",
             "release_id": 362135071,
         },
         "github_signing_identity": {
@@ -420,7 +420,7 @@ def fixture_runtime_validation(receipt: object, **kwargs: object) -> dict:
         and value.get("source_commit") == kwargs.get("expected_source_commit", SOURCE)
         and value.get("source_tree") == kwargs.get("expected_source_tree", TREE)
         and value.get("loaded_runtime_product_version") == "V2.52"
-        and payload.get("previous_controller_product_version") == "V2.48"
+        and payload.get("previous_controller_product_version") == "V2.51"
         and payload.get("previous_run_id")
         and launch.get("new_run_id")
         and payload.get("previous_run_id") != launch.get("new_run_id")

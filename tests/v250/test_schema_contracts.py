@@ -62,10 +62,12 @@ class TestV250SchemaContracts(unittest.TestCase):
         handoff = runtime["$defs"]["controllerHandoffReceipt"]
         signed_payload = handoff["properties"]["signed_payload"]
         self.assertEqual(
-            {"const": "V2.50"},
+            {"const": "V2.51"},
             signed_payload["properties"]["previous_controller_product_version"],
         )
         self.assertIn("previous_run_id", signed_payload["required"])
+        self.assertIn("installed_v251_current_state", signed_payload["required"])
+        self.assertNotIn("installed_v250_current_state", signed_payload["properties"])
         self.assertNotIn("controller_version", signed_payload["properties"])
 
     def test_required_fields_are_locally_declared_for_strict_draft202012_compilers(self) -> None:

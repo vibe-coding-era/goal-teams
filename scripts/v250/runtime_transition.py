@@ -29,7 +29,7 @@ COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 RUN_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$")
 NONCE_RE = re.compile(r"^[A-Za-z0-9_-]{32,128}$")
-PREVIOUS_CONTROLLER_PRODUCT_VERSION = "V2.50"
+PREVIOUS_CONTROLLER_PRODUCT_VERSION = "V2.51"
 LOADED_RUNTIME_PRODUCT_VERSION = "V2.52"
 REPOSITORY = "vibe-coding-era/goal-teams"
 HANDOFF_SCHEMA_VERSION = "goal-teams-v2.52-controller-handoff-receipt-v1"
@@ -414,7 +414,7 @@ def _validation_clock(value: dt.datetime | None) -> dt.datetime:
 def _verify_handoff_signature(
     signed_payload: Mapping[str, Any], signature: str
 ) -> bool:
-    """Verify the V2.50 handoff with the one pinned owner SSH public key."""
+    """Verify the V2.51 handoff with the one pinned owner SSH public key."""
 
     if not isinstance(signature, str) or not signature.strip():
         return False
@@ -462,7 +462,7 @@ def validate_controller_handoff(
     expected_authorization_intent_sha256: str | None = None,
     validation_time: dt.datetime | None = None,
 ) -> dict[str, Any]:
-    """Validate the externally issued, host-signed V2.50 handoff."""
+    """Validate the externally issued, host-signed V2.51 handoff."""
 
     errors: list[str] = []
     if not isinstance(receipt, dict):
@@ -501,7 +501,7 @@ def validate_controller_handoff(
         "nonce",
         "issued_at",
         "expires_at",
-        "installed_v250_current_state",
+        "installed_v251_current_state",
         "github_signing_identity",
     }
     _append_if(
@@ -579,7 +579,7 @@ def validate_controller_handoff(
         "E_V250_CONTROLLER_HANDOFF_AUTHORIZATION_DRIFT",
     )
 
-    installed = payload.get("installed_v250_current_state")
+    installed = payload.get("installed_v251_current_state")
     expected_installed_fields = {
         "state_sha256",
         "source_commit",
@@ -594,7 +594,7 @@ def validate_controller_handoff(
         or SHA256_RE.fullmatch(str(installed.get("state_sha256", ""))) is None
         or COMMIT_RE.fullmatch(str(installed.get("source_commit", ""))) is None
         or COMMIT_RE.fullmatch(str(installed.get("source_tree", ""))) is None
-        or installed.get("tag") != "v2.50"
+        or installed.get("tag") != "v2.51"
         or not isinstance(installed.get("release_id"), int)
         or isinstance(installed.get("release_id"), bool)
         or installed.get("release_id", 0) < 1,

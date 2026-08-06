@@ -55,7 +55,7 @@
 - 正式 S0 前必须有 exact released SHA 的 fresh runtime transition receipt；receipt 必须绑定 root
   `AGENTS.md`/`SKILL.md`、ACTIVE/activation、Prompt/release/route/command manifests、可信 route 与
   `project_size`、项目起始授权 lineage、host adapter code digest、transition 前 controller product
-  version `V2.50`、fresh loaded runtime product version `V2.52`、前后 run ID、
+  version `V2.51`、fresh loaded runtime product version `V2.52`、前后 run ID、
   `captured_at` 和实际 Current `loaded_paths`/digests。
 
 ## Git 与外部写入
