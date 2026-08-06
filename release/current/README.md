@@ -2,7 +2,7 @@
 
 V2.51 is the current published GitHub Release. V2.52 is an unreleased candidate and does not become current until its tag, four public assets, remote readback, and formal installation have completed.
 
-The V2.52 candidate is fully open source under the MIT License. It keeps the V2.5 execution protocol and adds a machine-checkable first-round LOOP bootstrap plus independent development-environment reuse and version-branch rules.
+The V2.52 candidate is fully open source under the OSI-approved MIT License. It keeps the V2.5 execution protocol and adds a machine-checkable first-round LOOP bootstrap plus independent development-environment reuse and version-branch rules.
 
 ## V2.52 candidate changes
 
