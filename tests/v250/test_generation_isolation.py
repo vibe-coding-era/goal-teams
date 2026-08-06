@@ -85,7 +85,7 @@ class TestV250GenerationIsolation(unittest.TestCase):
 
             resumed = load_generation(root)
 
-            self.assertEqual("V2.51", resumed["generation_id"])
+            self.assertEqual("V2.52", resumed["generation_id"])
             self.assertTrue(resumed["selected_via_active_pointer"])
 
     def test_active_generation_binds_all_declared_current_control_assets(self) -> None:

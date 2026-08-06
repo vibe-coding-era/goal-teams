@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run and validate the V2.51 repository-boundary integrity gate.
+"""Run and validate the V2.52 repository-boundary integrity gate.
 
 The gate validates the already-built S2 asset set against frozen source and
 repository/package boundaries.  It performs zero asset builds and makes no
@@ -144,7 +144,7 @@ def resolve_release_directory(
     root = (repository_root or ROOT).resolve()
     observed_root = release_root.resolve()
     expected_root = (root / "release/versions").resolve()
-    release_directory = observed_root / "V2.51"
+    release_directory = observed_root / "V2.52"
     if observed_root != expected_root or not release_directory.is_dir():
         raise ValueError("E_V250_REPOSITORY_BOUNDARY_RELEASE_ROOT")
     return release_directory
@@ -207,7 +207,7 @@ def build_boundary_receipt(
     """Describe an already-observed read-only boundary invocation."""
 
     receipt: dict[str, Any] = {
-        "schema_version": "goal-teams-v2.51-repository-boundary-receipt-v1",
+        "schema_version": "goal-teams-v2.52-repository-boundary-receipt-v1",
         "gate_id": "repository_boundary_compliance",
         "source_commit": source_commit,
         "source_tree": source_tree,
@@ -554,7 +554,7 @@ def main() -> int:
         print(
             json.dumps(
                 {
-                    "schema_version": "goal-teams-v2.51-repository-boundary-receipt-v1",
+                    "schema_version": "goal-teams-v2.52-repository-boundary-receipt-v1",
                     "passed": False,
                     "error_code": str(exc),
                     "asset_build_invocation_count": 0,

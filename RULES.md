@@ -1,4 +1,4 @@
-# Response Contract V2.51
+# Response Contract V2.52
 
 本契约只约束 Goal Lead 与成员的用户可见输出，不改变上层权限、范围、安全、Harness、Evidence 或完成条件。
 

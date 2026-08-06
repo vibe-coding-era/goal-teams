@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Refresh the deterministic V2.51 Current projection and activation digests."""
+"""Refresh the deterministic V2.52 Current projection and activation digests."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[2]
-GENERATION_ROOT = Path("references/current/generations/V2.51")
+GENERATION_ROOT = Path("references/current/generations/V2.52")
 RULE_PATH = GENERATION_ROOT / "rule-manifest.json"
 PROMPT_PATH = GENERATION_ROOT / "prompt-manifest.json"
 ACTIVATION_PATH = GENERATION_ROOT / "activation-manifest.json"
@@ -107,6 +107,11 @@ def _ensure_execution_members(value: dict[str, Any]) -> None:
         for path in ROOT.glob(pattern)
         if path.is_file() and not path.is_symlink()
     }
+    dynamic.update(
+        path.relative_to(ROOT).as_posix()
+        for path in ROOT.glob("subagents/goal-*.toml")
+        if path.is_file() and not path.is_symlink()
+    )
     for relative in sorted(dynamic - declared - bootstrap):
         execution.append({"path": relative, "sha256": "", "bytes": 0})
     execution.sort(key=lambda item: str(item.get("path", "")))
@@ -117,13 +122,13 @@ def _refreshed_activation(
 ) -> dict[str, Any]:
     value = _load(ACTIVATION_PATH)
     value["schema_version"] = "goal-teams-activation-manifest-v2.50"
-    value["generation_id"] = "V2.51"
+    value["generation_id"] = "V2.52"
     value["generation_state"] = "active"
     value["baseline_generation_id"] = "V2.48"
     value["identity"] = {
-        "loaded_runtime_product_version": "V2.51",
+        "loaded_runtime_product_version": "V2.52",
         "route_contract_schema_version": "goal-teams-project-route-v2.50",
-        "target_policy_generation": "V2.51",
+        "target_policy_generation": "V2.52",
     }
     _ensure_execution_members(value)
 
@@ -174,7 +179,7 @@ def _refreshed_activation(
             item
             for item in root_sets["current"]
             if item["path"].startswith(
-                "references/current/generations/V2.51/contracts/"
+                "references/current/generations/V2.52/contracts/"
             )
             and item["path"].endswith(".json")
         ),
@@ -195,9 +200,10 @@ def _refreshed_activation(
     if not isinstance(legacy, dict):
         raise ValueError("legacy classification must be an object")
     prefixes = set(legacy.get("path_prefixes", []))
-    prefixes.discard("references/current/generations/V2.51/")
+    prefixes.discard("references/current/generations/V2.52/")
     prefixes.update(
         {
+            "references/current/generations/V2.51/",
             "references/current/generations/V2.50/",
             "references/current/generations/V2.49/",
             "schemas/v2.49/",
@@ -206,10 +212,12 @@ def _refreshed_activation(
         }
     )
     exact = set(legacy.get("exact_paths", []))
-    exact.discard("references/profiles/goal-teams-self-release-v2.51.md")
-    exact.discard("references/release-profiles/v2.51.json")
+    exact.discard("references/profiles/goal-teams-self-release-v2.52.md")
+    exact.discard("references/release-profiles/v2.52.json")
     exact.update(
         {
+            "references/profiles/goal-teams-self-release-v2.51.md",
+            "references/release-profiles/v2.51.json",
             "references/profiles/goal-teams-self-release-v2.50.md",
             "references/release-profiles/v2.50.json",
             "references/profiles/goal-teams-self-release-v2.49.md",
@@ -252,7 +260,7 @@ def _refreshed_activation(
 def _refreshed_active(activation: dict[str, Any]) -> dict[str, Any]:
     return {
         "schema_version": "goal-teams-active-generation-v1",
-        "generation_id": "V2.51",
+        "generation_id": "V2.52",
         "activation_manifest": ACTIVATION_PATH.as_posix(),
         "activation_manifest_sha256": _sha256(_json_bytes(activation)),
         "state": "active_current",

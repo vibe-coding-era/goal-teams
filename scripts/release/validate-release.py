@@ -182,12 +182,12 @@ WORKSPACE_ROOT = workspace_root()
 RELEASE_ROOT = WORKSPACE_ROOT / "release" / "versions"
 META = {"_release.json", "_files.sha256", "_artifacts/SHA256SUMS"}
 OKF_GENERATED_PATH = "references/okf-conformance-manifest.json"
-OKF_RELEASE_VERSIONS = {"V2.39", "V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49", "V2.50", "V2.51"}
+OKF_RELEASE_VERSIONS = {"V2.39", "V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49", "V2.50", "V2.52"}
 STRICT_SNAPSHOT_SCHEMA = "goal-teams-release-snapshot-v2.40"
-STRICT_SNAPSHOT_VERSIONS = {"V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49", "V2.50", "V2.51"}
+STRICT_SNAPSHOT_VERSIONS = {"V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49", "V2.50", "V2.52"}
 SUPPORTED_RELEASE_VERSIONS = {
     "V2.33", "V2.34", "V2.35", "V2.36", "V2.37", "V2.38", "V2.39",
-    "V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49", "V2.50", "V2.51",
+    "V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49", "V2.50", "V2.52",
 }
 MAX_TAR_MEMBERS = 2048
 MAX_TAR_PATH_BYTES = 240
@@ -225,7 +225,7 @@ def release_projection_state(
         "V2.48": "V2.46",
         "V2.49": "V2.48",
         "V2.50": "V2.48",
-        "V2.51": "V2.50",
+        "V2.52": "V2.50",
     }
     candidate_states = {
         "V2.48": {"skill_simple_local_validation"},
@@ -234,7 +234,7 @@ def release_projection_state(
             "v249_release_readiness",
         },
         "V2.50": {"v250_release_readiness"},
-        "V2.51": {"v250_release_readiness"},
+        "V2.52": {"v250_release_readiness"},
     }
     if (
         allow_candidate
@@ -334,7 +334,7 @@ def validate_v249_release_identity(
 def validate_v250_release_identity(
     expected: object, observed: object
 ) -> dict[str, object]:
-    """Compare an exact V2.50/V2.51 released identity and asset set."""
+    """Compare an exact V2.50/V2.52 released identity and asset set."""
 
     required = {
         "version",
@@ -349,7 +349,7 @@ def validate_v250_release_identity(
         or not isinstance(observed, dict)
         or set(expected) != required
         or set(observed) != required
-        or expected.get("version") not in {"V2.50", "V2.51"}
+        or expected.get("version") not in {"V2.50", "V2.52"}
         or observed != expected
     ):
         return {
@@ -544,7 +544,7 @@ def write_expected_file(root: Path, relative: str, mode: str, data: bytes) -> No
 def okf_runtime_generation(version: str) -> str:
     """Return the packaged OKF runtime generation for a release version."""
 
-    return "v250" if version in {"V2.50", "V2.51"} else "v249"
+    return "v250" if version in {"V2.50", "V2.52"} else "v249"
 
 
 def materialize_expected_payload_map(

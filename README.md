@@ -8,7 +8,7 @@
 当前发行：**V2.50** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.50) · [发行说明](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-V2.51 当前是待发布候选：新增受限源码开放许可、每轮当前/总轮次反馈，以及终局 Benchmark 之外的 LOOP 改进建议。
+V2.52 当前是待发布候选：项目改用 MIT License 完全开源；所有执行型 LOOP 第一轮先建立 TaskList、分配任务并由独立成员检查环境；中大型或用户指定的开发环境优先复用，不能复用时使用版本化 develop 分支。
 
 Goal Teams 是一个跨 CodeAgent 的团队协作 AgentTeams Skill，Codex 是当前可用宿主之一。它会以一个 Goal Lead 的身份，把目标拆成可验证计划，再协调独立成员完成需求、设计、实现、测试、Evidence 和收尾审计，过程中会应用到：
 - 应用 Goal + Plan + Loop 模式，能够保持长时间完成任务；
@@ -136,14 +136,14 @@ git clone git@github.com:vibe-coding-era/goal-teams.git ~/.codex/skills/goal-tea
 prompt、route、项目起始授权与 host adapter 的真实 runtime receipt，再运行最终全量回归与独立安全审核：
 
 ```bash
-EVIDENCE_DIR=docs/v2.51-release-runtime
+EVIDENCE_DIR=docs/v2.52-release-runtime
 mkdir -p "$EVIDENCE_DIR"
 SOURCE_COMMIT="$(git rev-parse 'HEAD^{commit}')"
 SOURCE_TREE="$(git rev-parse "${SOURCE_COMMIT}^{tree}")"
 ROUTE_RECEIPT="$EVIDENCE_DIR/large-release-route.json"
 RUNTIME_RECEIPT="$EVIDENCE_DIR/released-runtime-transition.json"
 S1_CHECK_RECEIPT="$EVIDENCE_DIR/s1-check-result.json"
-AUTH_RECEIPT=docs/v2.51-execution/versions/V2.51/evidence/project-start-authorization-receipt.json
+AUTH_RECEIPT=docs/v2.52-execution/versions/V2.52/evidence/project-start-authorization-receipt.json
 HANDOFF_RECEIPT="${HANDOFF_RECEIPT:?请提供由已安装 V2.50 Codex 宿主签发的 handoff receipt}"
 HOST_EXECUTION_ID="${HOST_EXECUTION_ID:?请提供外部宿主 execution ID}"
 PYTHON_BIN="$(python3 -c 'import pathlib,sys; print(pathlib.Path(sys.executable).resolve())')"
@@ -209,7 +209,7 @@ Use $goal-teams。
 显式调用 Goal Teams 或当前会话首次需要建立身份时汇报；已有完整上下文时不重复：
 
 ```text
-我是 Goal Teams Lead V2.51。
+我是 Goal Teams Lead V2.52。
 ```
 
 中文核心模型要点提示词：用户沟通和治理文档默认中文；代码、注释、测试名、fixture 和产品字符串遵循目标仓库约定；代码标识、命令、路径、API 名称、配置键、subagent ID 和精确引用保留原文。
@@ -233,12 +233,12 @@ Use $goal-teams。
 
 ## 工作流
 
-1. 把用户目标转成 Done Criteria。
-2. 确认项目版本、artifact version 和输出目录。
-3. 若用户明确要求聊天内 `plan_preview` / no-write，只在响应中给出方案，不创建文件、ledger、TaskList 或 subagent；其他模式才创建或更新 `GoalTeamsWork-<project_version>/memory.md`，建立版本目录 append-only ledger，并由 reducer 生成 `TaskList.md`。
-4. 非 `plan_preview` 的 Plan 模式先写 `spec/requirement-card.md`，再按适用范围补齐 PRD、架构、测试计划和验收文档。
-5. 按任务类型加载 UI、测试或 LOOP 条件规则。
-6. 展示四列 `Teams 规划表`，然后派发独立成员。
+1. 把用户目标转成 Done Criteria，并确认项目版本、artifact version 和输出目录。
+2. 若用户明确要求聊天内 `plan_preview` / no-write，只在响应中给出方案，不创建文件、ledger、TaskList 或 subagent。
+3. 其他执行型 LOOP 的第一轮先创建或更新 `GoalTeamsWork-<project_version>/memory.md`，建立版本化 append-only ledger，由 reducer 生成 `TaskList.md`，再分配 Owner 与 Validator；实现不得先行。
+4. 同一第一轮派发独立 `goal_release_engineer` 的 `environment_preflight` 模式。Small 做轻量 preflight，可不创建版本分支；Medium、Large 或用户指定时正式检查开发环境，优先复用 identity 匹配且 current 的既有环境，否则创建仓库内 `develops/v<major.minor>` worktree 与逻辑分支 `develop-v<major.minor>`；宿主要求 namespace 时添加前缀，本仓为 `codex/develop-v<major.minor>`。
+5. 非 `plan_preview` 的 Plan 模式先写 `spec/requirement-card.md`，再按适用范围补齐 PRD、架构、测试计划和验收文档。
+6. 按任务类型加载 UI、测试或 LOOP 条件规则，展示四列 `Teams 规划表`，然后派发其余独立成员。
 7. 每个成员只在自己的 locked scope 内执行，并提交带 revision 的 event/patch、Harness 和 Evidence；成员不直接编辑中央 TaskList。
 8. ledger owner 合并事件并生成 TaskList 投影；Goal Lead 分别记录 `loop_decision` 与 `run_outcome`。
 9. 完成前启动新的只读 `goal_completion_auditor`。仅在当前会话且宿主支持时续跑已确认范围内缺口；新范围、高风险或授权问题停下问用户。
@@ -309,13 +309,18 @@ GoalTeamsWork-<project_version>/
 | `goal_docs` | acceptance、README、报告和发布说明；TaskList 变化以 event/patch 交接。 |
 | `goal_reviewer` | 只读评审、架构边界、安全、覆盖率、兼容性和风险。 |
 | `goal_completion_auditor` | 收尾审计、未完成工作检查和会话内续跑建议。 |
+| `goal_security` | 只读安全评估和修复 proposal；不修改产品或自证安全通过。 |
+| `goal_performance` | 只读性能评估、基线与优化 proposal；不直接实现或自证收益。 |
+| `goal_refactor` | 只读重构与等价性评估，提交最小任务补丁建议。 |
+| `goal_sqa` | 只读质量体系评估，检查门禁价值、状态诚实和 Evidence 链。 |
+| `goal_release_engineer` | 双模式独立成员：首轮 `environment_preflight` 检查并复用开发环境；Release 模式复核最终 Evidence 并形成受控发行计划，不自批发布。 |
 
 ## 核心能力
 | 核心能力 | 作用 | 流程关系 |
 | --- | --- | --- |
 | 1. 目标与计划建模 | 把模糊目标转成 Done Criteria、需求卡片、用户故事、验收标准和 SPEC | 整个流程的起点，先定义“什么算完成” |
 | 2. 风险路由与渐进加载 | 按任务选择 `Lite / Standard / Full / Regulated`，只加载 UI、后端、测试、LOOP 等适用规则 | 决定任务需要多严格，避免小任务也走完整重流程 |
-| 3. 多 Agent 角色编排 | 内置需求、Agent 产品、产品、前后端、单测、API、E2E、QA、文档、Reviewer、Auditor 等 15 类角色，也可接入外部 Skill | 根据依赖关系串行或并行派发任务 |
+| 3. 多 Agent 角色编排 | 内置需求、Agent 产品、产品、前后端、单测、API、E2E、QA、文档、四类只读专家、Release Engineer、Reviewer 与 Auditor 等 20 类角色，也可接入外部 Skill | 根据依赖关系串行或并行派发任务 |
 | 4. 范围与职责隔离 | 每个成员获得 `locked_scope`；Owner、测试者、Reviewer、Auditor 使用不同身份，禁止自我批准 | 防止多人覆盖同一文件、范围失控和“自己证明自己正确” |
 | 5. SSOT、Ledger 与项目记忆 | append-only ledger 保存事实，reducer 生成 `TaskList.md`；产物按版本保存，根目录维护 `memory.md` | 贯穿全流程，保证状态可重放、可恢复、可追踪 |
 | 6. Contract-first 工程门禁 | 顺序为：合同冻结并独立评审 → 架构通过 → 开发环境 Evidence 就绪 → 独立测试准备 → 实现 | 防止需求、架构或环境尚未稳定就开始编码 |
@@ -353,4 +358,4 @@ GoalTeamsWork-<project_version>/
 
 ## License
 
-本仓库采用 Goal Teams Limited Source-Available License 1.0，全文见 [LICENSE](LICENSE)。源码仅开放阅读和个人评估；任何使用、复制、修改、分发、部署、衍生或商业/非商业利用均须事先取得作者书面同意。该许可是受限的 source-available 许可，不是 OSI 定义的开源协议。
+本仓库采用 MIT License 完全开源，完整条款见 [LICENSE](LICENSE)。任何人均可在保留版权与许可声明的条件下使用、复制、修改、合并、发布、分发、再许可和销售本软件。

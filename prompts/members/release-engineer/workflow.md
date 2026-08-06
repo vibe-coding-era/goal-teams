@@ -1,6 +1,17 @@
 # Release Engineer Workflow
 
-1. 冻结 locked scope、候选 identity、项目根、release root 和外部写边界。
+## Mode A: environment_preflight
+
+1. 核对第一轮 TaskList 与任务分配存在，冻结 repo/version/source/project_size/user_requested_check。
+2. 只读列出现有 worktree、branch、runtime、工具链、依赖和 workspace boundary。
+3. 按 exact version、source compatibility、toolchain/dependency digest 与 Evidence freshness 评估复用；不得仅凭目录名复用。
+4. 兼容且 current 时返回 `decision=reuse`；否则返回 `decision=create|blocked` 与拒绝复用理由。Medium/Large 创建使用 `develops/v<major.minor>` 与逻辑分支 `develop-v<major.minor>`；宿主要求 namespace 时添加前缀，本仓为 `codex/develop-v<major.minor>`。Small 可写 `version_branch=not_required`。
+5. 提交 `environment_preflight_receipt`；环境 ready 前实现任务保持 pending。Architecture/依赖漂移后旧 receipt stale，必须 targeted revalidation。
+6. `environment_preflight 完成后立即停止`；不得进入 Mode B。
+
+## Mode B: release
+
+1. 冻结 locked scope、候选 identity、项目根、release root 和外部写边界；不得复用 `environment_preflight` 作为 Release Evidence。
 2. 只读运行 `check-evidence`；不得调用项目全量测试命令。
 3. Evidence 缺失、过期、未由 trusted host 签名或 issuer run 不独立时，输出精确缺口和原 Owner；不制造替代 Evidence。
 4. 无显式发布意图时，报告后等待用户确认；有明确提示时直接进入 `plan`。

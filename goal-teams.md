@@ -1,4 +1,4 @@
-# Goal Teams 用户指定要求（Current V2.51）
+# Goal Teams 用户指定要求（Current V2.52）
 
 本文件记录当前代际的长期用户要求。规范语义由 `references/current/ACTIVE.json` 指向的功能 Owner 文档承载；历史版本只通过 Legacy Replay 查询，不参与 Current 优先级。
 
@@ -11,10 +11,11 @@
 
 ## 流程
 
+- 所有非 Discussion、非 `plan_preview` LOOP 的第一轮先建立 TaskList、分配任务并由独立成员检查环境，未闭合前不进入实现。
 - Discussion：只讨论，不落工程状态。
-- Small：小流程，按实际风险使用 Lite 基线，只做目标相关的 TDD/受影响面检查。
-- Medium：开发过程只确保 TDD 和增量；所有实现完成且准备 Release 时，才执行全量回归与安全审核。
-- Large：开发过程同样只确保 TDD 和增量；最终 Release 才执行全量回归与安全审核，并在 S1 passed/current 后执行 S3。
+- Small：小流程，按实际风险使用 Lite 基线，首轮做独立轻量环境 preflight，可不创建版本开发分支，只做目标相关的 TDD/受影响面检查。
+- Medium：首轮由独立 `goal_release_engineer/environment_preflight` 正式检查开发环境；已有 identity 匹配且 current 的环境先复用，否则创建 `develops/v<major.minor>` worktree 与逻辑分支 `develop-v<major.minor>`，并按宿主要求添加 namespace。开发过程只确保 TDD 和增量；所有实现完成且准备 Release 时，才执行全量回归与安全审核。
+- Large：环境检查与分支规则同 Medium；开发过程同样只确保 TDD 和增量；最终 Release 才执行全量回归与安全审核，并在 S1 passed/current 后执行 S3。
 - 项目规模、风险、任务类型、release intent 和 workflow phase 必须分开记录，不能用单一 Full/Regulated 标签恢复所有历史门禁。
 
 ## 测试合同
@@ -53,6 +54,6 @@
 ## Runtime 与可信边界
 
 - Candidate 可由候选外 fresh process 做 cutover/incremental transition，但不得启动正式 S0–S4。
-- 合并后必须从 exact released commit/tree 再启动 fresh V2.51 runtime；只有 released transition receipt 可进入 S0。
+- 合并后必须从 exact released commit/tree 再启动 fresh V2.52 runtime；只有 released transition receipt 可进入 S0。
 - 本地宿主适配器最多证明 I1 correlated fresh-process observation；不得冒充独立外部验收、密码学 attestation 或 Provider prompt 签名。
 - 若宿主 transition 不可用，记录 `fresh_runtime_transition_unavailable` 和可恢复 checkpoint，不回退旧 V2.48/V2.36 发行门禁，也不重复向用户授权。

@@ -1,35 +1,21 @@
-Goal Teams Limited Source-Available License 1.0
+MIT License
 
-Copyright (c) 2026 肉山@TGO 杭州. All rights reserved.
+Copyright (c) 2026 肉山@TGO 杭州
 
-1. Permission to view
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-You may access and read the publicly available source code solely for personal
-evaluation and review.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-2. Prior permission required
-
-Any use, reproduction, copying, modification, adaptation, translation,
-distribution, publication, sublicensing, sale, commercial or non-commercial
-deployment, creation of derivative works, or incorporation into another work
-requires the author's prior written permission.
-
-3. No implied grant
-
-No patent, trademark, copyright, or other license is granted by implication.
-GitHub Releases and other distributed artifacts are covered by the same terms.
-
-4. Classification
-
-This is a limited source-available license and is not an Open Source license as
-defined by the Open Source Initiative. Do not describe the project or an
-artifact distributed under these terms as open source.
-
-5. Disclaimer
-
-THE SOFTWARE AND SOURCE CODE ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. IN NO
-EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR
-IN CONNECTION WITH THE SOFTWARE OR SOURCE CODE OR THEIR USE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

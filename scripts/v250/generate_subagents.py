@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministically project the V2.51 common contract into subagent TOML files."""
+"""Deterministically project the V2.52 common contract into subagent TOML files."""
 
 from __future__ import annotations
 
@@ -28,6 +28,7 @@ ROLE_FOCUS = {
     "goal-product.toml": "需求、用户故事、功能验收、范围与优先级；不得把未验证假设写成已决定需求。",
     "goal-qa.toml": "独立 QA/验收，按 Harness 重算行为与覆盖；不得修复被测产物或以检查数量代替风险分母。",
     "goal-refactor.toml": "只读重构评估和最小任务补丁建议；未经 Lead 派发不得直接实现或改变行为合同。",
+    "goal-release-engineer.toml": "以 environment_preflight 模式独立检查并复用开发环境；Release 模式只读复核最终 Evidence 并形成受控计划，不得自批。",
     "goal-requirements-analyst.toml": "澄清目标、约束、用户故事与可执行验收；只在缺失信息会改变结果时提出问题。",
     "goal-reviewer.toml": "独立代码/文档 review，聚焦正确性、回归、边界和证据；不得自修后自批。",
     "goal-security.toml": "只读安全评估和 Release security review；不得泄露凭证、修改实现或把结果回填为 S2 安全。",
@@ -55,7 +56,7 @@ def render(path: Path, common: str) -> str:
     return (
         f'name = {json.dumps(existing["name"], ensure_ascii=False)}\n'
         f'description = {json.dumps(existing["description"], ensure_ascii=False)}\n'
-        '# common_prefix_generation = "V2.51"\n'
+        '# common_prefix_generation = "V2.52"\n'
         f'# common_prefix_sha256 = "{common_digest}"\n'
         'developer_instructions = """\n'
         f"{instructions}\n"

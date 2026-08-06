@@ -19,7 +19,7 @@ TREE = "2" * 40
 def _authorization(path: Path) -> dict:
     intent = {
         "repository": "vibe-coding-era/goal-teams",
-        "version": "V2.51",
+        "version": "V2.52",
         "action_allowlist": ["fresh_runtime_transition"],
     }
     value = {
@@ -29,7 +29,7 @@ def _authorization(path: Path) -> dict:
         "authorization_state": "granted_once_at_project_start",
         "authorization_lineage_preserved": True,
         "repository": {"name_with_owner": "vibe-coding-era/goal-teams"},
-        "version": "V2.51",
+        "version": "V2.52",
         "action_allowlist": ["fresh_runtime_transition"],
         "intent": intent,
         "intent_sha256": _canonical_sha256(intent),
@@ -67,7 +67,7 @@ def _handoff() -> dict:
         },
     }
     return {
-        "schema_version": "goal-teams-v2.51-controller-handoff-receipt-v1",
+        "schema_version": "goal-teams-v2.52-controller-handoff-receipt-v1",
         "signed_payload": payload,
         "payload_sha256": _canonical_sha256(payload),
         "ssh_signature": "signed-externally",
@@ -87,7 +87,7 @@ class _FakeProcess:
         launch = self.stdin_payload["runtime_launch_receipt"]
         runtime_receipt = {"receipt_sha256": "d" * 64}
         ack = {
-            "schema_version": "goal-teams-v2.51-runtime-child-ack-v1",
+            "schema_version": "goal-teams-v2.52-runtime-child-ack-v1",
             "acknowledged": True,
             "child_pid": launch["expected_child_pid"],
             "parent_pid": launch["parent_pid"],

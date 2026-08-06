@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed GitHub SSH transport helpers for V2.51.
+"""Fail-closed GitHub SSH transport helpers for V2.52.
 
 The helpers only validate identities and construct argv.  They never execute
 Git, ``gh``, or a network operation.

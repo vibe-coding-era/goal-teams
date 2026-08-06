@@ -5,6 +5,7 @@ Goal Teams 工作总是先规划，再派发或编辑实现文件。直接执行
 规划步骤：
 
 1. 检查项目指南：`AGENTS.md`、`agents.md`、`agent.md`、`CLAUDE.md`、`claude.md`；都没有时读取 `references/default-AGENTS.md`。
+1a. 任意非 `plan_preview` LOOP 的第一轮先建立 TaskList、分配 Owner/Validator，再派发独立 `goal_release_engineer/environment_preflight`。Medium/Large 或用户指定时检查正式开发环境，优先复用 current 的兼容环境；否则使用版本化 develop 分支。Small 仍做轻量 preflight，但不要求版本分支。
 2. 读取 `references/flow-clarification-protocol.md`；用户需要选择项、数字选择、成员/Subagent 编制参考或直接改时，再读取 `references/project-flow-selection.md`。给出小型需求/BugFix、中型项目或大型系统的 `Proposal`、Markdown 流程图、节点和选择原因；流程澄清已确认前禁止生成正式 Plan、Teams 表或派发成员。用户选 `4` 时补齐自定义节点，用户选 `5` 时只完成最小修改。
 3. 将用户确认的目标和流程转成可验证 Done Criteria。
 4. 确认或推断项目版本号；无法推断时询问。

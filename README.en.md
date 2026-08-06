@@ -8,7 +8,7 @@ Author: 肉山@TGO Hangzhou
 Current release: **V2.50** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.50) · [release/current/README.md](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-V2.51 is an unreleased candidate. It adds a limited source-available license, current/total iteration reporting in every LOOP, and evidence-based LOOP improvement suggestions alongside the final Benchmark.
+V2.52 is an unreleased candidate. The project is now fully open source under the MIT License. Every execution LOOP starts by creating the TaskList, assigning work, and running an independent environment check; medium/large or user-requested development environments are reused when current and compatible, otherwise they use a versioned develop branch.
 
 Goal Teams is an AgentTeams Skill for team collaboration across CodeAgents, with Codex as one of the currently available hosts. It operates as a Goal Lead: it breaks a goal into a verifiable plan, then coordinates independent members to complete requirements, design, implementation, testing, Evidence, and completion audits. Along the way, it:
 
@@ -136,14 +136,14 @@ Run TDD and Current incremental checks during development:
 After implementation is complete and the exact released commit/tree is frozen, first use a fresh process to produce a real runtime receipt bound to the Current prompt, trusted route, project-start authorization, and host adapter. Then run the final full regression and independent security review:
 
 ```bash
-EVIDENCE_DIR=docs/v2.51-release-runtime
+EVIDENCE_DIR=docs/v2.52-release-runtime
 mkdir -p "$EVIDENCE_DIR"
 SOURCE_COMMIT="$(git rev-parse 'HEAD^{commit}')"
 SOURCE_TREE="$(git rev-parse "${SOURCE_COMMIT}^{tree}")"
 ROUTE_RECEIPT="$EVIDENCE_DIR/large-release-route.json"
 RUNTIME_RECEIPT="$EVIDENCE_DIR/released-runtime-transition.json"
 S1_CHECK_RECEIPT="$EVIDENCE_DIR/s1-check-result.json"
-AUTH_RECEIPT=docs/v2.51-execution/versions/V2.51/evidence/project-start-authorization-receipt.json
+AUTH_RECEIPT=docs/v2.52-execution/versions/V2.52/evidence/project-start-authorization-receipt.json
 HANDOFF_RECEIPT="${HANDOFF_RECEIPT:?set the handoff receipt issued by the installed V2.50 Codex host}"
 HOST_EXECUTION_ID="${HOST_EXECUTION_ID:?set the external host execution ID}"
 PYTHON_BIN="$(python3 -c 'import pathlib,sys; print(pathlib.Path(sys.executable).resolve())')"
@@ -206,7 +206,7 @@ Use $goal-teams。
 Use this identity line on an explicit Goal Teams invocation or when the session first needs to establish identity; do not repeat it when full context already exists:
 
 ```text
-我是 Goal Teams Lead V2.51。
+我是 Goal Teams Lead V2.52。
 ```
 
 Core language rule: user communication and governance documents default to Chinese; code, comments, test names, fixtures, and product strings follow the target repository's conventions; keep identifiers, commands, paths, API names, config keys, subagent IDs, and exact references unchanged.
@@ -230,12 +230,12 @@ Core language rule: user communication and governance documents default to Chine
 
 ## Workflow
 
-1. Convert the user goal into Done Criteria.
-2. Confirm project version, artifact version, and output directory.
-3. If the user explicitly requests an in-chat `plan_preview` / no-write result, return the plan without creating files, a ledger, TaskList, or subagents. Other modes create or update `GoalTeamsWork-<project_version>/memory.md`, establish the versioned append-only ledger, and generate `TaskList.md` through the reducer.
-4. Outside `plan_preview`, Plan Mode writes `spec/requirement-card.md` before the applicable PRD, architecture, test-plan, and acceptance artifacts.
-5. Load UI, testing, or LOOP conditional rules as needed.
-6. Show the four-column `Teams 规划表`, then dispatch independent members.
+1. Convert the user goal into Done Criteria, then confirm the project version, artifact version, and output directory.
+2. If the user explicitly requests an in-chat `plan_preview` / no-write result, return the plan without creating files, a ledger, TaskList, or subagents.
+3. Every other execution LOOP uses its first round to create or update `GoalTeamsWork-<project_version>/memory.md`, establish the versioned append-only ledger, render `TaskList.md`, and assign Owners and Validators; implementation cannot start first.
+4. In that same first round, dispatch an independent `goal_release_engineer` in `environment_preflight` mode. Small uses a lightweight preflight and may omit a version branch. Medium, Large, or an explicit user request performs a formal development-environment check, reuses an identity-matched current environment when available, and otherwise creates `develops/v<major.minor>` with the logical branch `develop-v<major.minor>`. Add a host namespace when required; this repository uses `codex/develop-v<major.minor>`.
+5. Outside `plan_preview`, Plan Mode writes `spec/requirement-card.md` before the applicable PRD, architecture, test-plan, and acceptance artifacts.
+6. Load UI, testing, or LOOP conditional rules as needed, show the four-column `Teams 规划表`, then dispatch the remaining independent members.
 7. Each member works inside its locked scope and submits revision-bound events/patches, Harness, and Evidence; members do not edit the central TaskList.
 8. The ledger owner merges events and renders the TaskList projection; the Goal Lead records `loop_decision` and `run_outcome` separately.
 9. Before completion, launch a fresh read-only `goal_completion_auditor`. Gaps inside confirmed scope continue only in the current session when the host supports it; new scope, high-risk work, or authorization issues stop for the user.
@@ -306,6 +306,11 @@ GoalTeamsWork-<project_version>/
 | `goal_docs` | Acceptance, README, reports, and release notes; TaskList changes are handed off as events/patches. |
 | `goal_reviewer` | Read-only review, architecture boundaries, security, coverage, compatibility, and risk. |
 | `goal_completion_auditor` | Completion audit, unfinished-work checks, and session-scoped continuation suggestions. |
+| `goal_security` | Read-only security assessment and remediation proposals; it does not modify the product or self-certify security. |
+| `goal_performance` | Read-only performance assessment, baselines, and optimization proposals; it does not implement or self-certify gains. |
+| `goal_refactor` | Read-only refactoring and equivalence assessment with minimal task-patch proposals. |
+| `goal_sqa` | Read-only quality-system assessment covering gate value, honest state, and the Evidence chain. |
+| `goal_release_engineer` | Dual-mode independent member: first-round `environment_preflight` checks and reuses the development environment; Release mode reviews final Evidence and prepares controlled plans without self-approval. |
 
 ## Design Sources
 
@@ -332,7 +337,7 @@ GoalTeamsWork-<project_version>/
 
 ## Version Note
 
-The current product version is read from `VERSION`. V2.51 keeps the V2.5 portable core while loading one digest-bound Current generation; V2.3 and later historical contracts are available only through explicit Legacy Replay and do not enter default prompt or package closure.
+The current product version is read from `VERSION`. V2.52 keeps the V2.5 portable core while loading one digest-bound Current generation; V2.3 and later historical contracts are available only through explicit Legacy Replay and do not enter default prompt or package closure.
 
 Medium/Large development blocks only on TDD and affected-scope checks. Final Release readiness runs full regression plus an independent security review, builds each exact released asset set once, runs S3 only for Large, and reuses the one project-start authorization for S4.
 
@@ -342,4 +347,4 @@ See [CHANGELOG.md](CHANGELOG.md) for the chronological version summary and compa
 
 ## License
 
-This repository uses the Goal Teams Limited Source-Available License 1.0; see [LICENSE](LICENSE). The source may be read for personal evaluation. Any use, copying, modification, distribution, deployment, derivative work, or commercial or non-commercial exploitation requires the author's prior written permission. This is a limited source-available license, not an OSI Open Source license.
+This repository is fully open source under the MIT License; see [LICENSE](LICENSE) for the complete terms. Anyone may use, copy, modify, merge, publish, distribute, sublicense, and sell the software subject to retaining the copyright and permission notice.

@@ -1,6 +1,6 @@
 # Release Engineer Scripts
 
-确定性入口均位于本成员 `runtime/`：
+仓库级 `scripts/` 只承载 Goal Teams 通用校验；本成员的确定性入口均位于隔离的 `runtime/`：
 
 - `runtime/release_member.py check-evidence`：只读校验已有 Evidence，不运行测试。
 - `runtime/release_member.py discover-scripts`：只读发现本地历史 bundle；输出准确版本、digest 和状态，供用户确认复用方式。

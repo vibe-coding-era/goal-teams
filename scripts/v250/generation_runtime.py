@@ -32,13 +32,13 @@ V250_CONTROL_SCHEMA_PATHS = (
 )
 V250_REQUIRED_CONTROL_PATHS = (
     "VERSION",
-    "references/current/generations/V2.51/contracts/public-asset-map.json",
-    "references/current/generations/V2.51/contracts/release-command-manifest.json",
-    "references/current/generations/V2.51/contracts/release-route-manifest.json",
-    "references/current/generations/V2.51/contracts/release-security-review-manifest.json",
+    "references/current/generations/V2.52/contracts/public-asset-map.json",
+    "references/current/generations/V2.52/contracts/release-command-manifest.json",
+    "references/current/generations/V2.52/contracts/release-route-manifest.json",
+    "references/current/generations/V2.52/contracts/release-security-review-manifest.json",
     "references/okf-conformance-policy.json",
-    "references/profiles/goal-teams-self-release-v2.51.md",
-    "references/release-profiles/v2.51.json",
+    "references/profiles/goal-teams-self-release-v2.52.md",
+    "references/release-profiles/v2.52.json",
     "release/current/manifest.json",
     "schemas/release-engine-profile.schema.json",
     "scripts/check.sh",
@@ -104,7 +104,7 @@ V250_REQUIRED_CONTROL_PATHS = (
     *V250_CONTROL_SCHEMA_PATHS,
 )
 V250_DYNAMIC_CONTROL_GLOBS = (
-    "references/current/generations/V2.51/contracts/*.json",
+    "references/current/generations/V2.52/contracts/*.json",
     "schemas/v2.50/*.json",
     "scripts/checks/*v250*.py",
     "scripts/v250/*.py",
@@ -186,7 +186,7 @@ def _activation_payload_digest(manifest: dict[str, Any]) -> str:
 
 
 def _iter_manifest_members(manifest: dict[str, Any]) -> Iterable[tuple[str, str, int | None]]:
-    """Yield path/digest/size for both V2.51 and frozen baseline formats."""
+    """Yield path/digest/size for both V2.52 and frozen baseline formats."""
 
     root_sets = manifest.get("root_sets")
     if isinstance(root_sets, dict):
@@ -334,7 +334,7 @@ def _validate_v250_projection_digests(
             for entry in current_entries
             if isinstance(entry, dict)
             and str(entry.get("path", "")).startswith(
-                "references/current/generations/V2.51/contracts/"
+                "references/current/generations/V2.52/contracts/"
             )
             and str(entry.get("path", "")).endswith(".json")
         ),
