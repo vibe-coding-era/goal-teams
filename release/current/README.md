@@ -1,6 +1,6 @@
-# Goal Teams V2.50 Release / V2.52 Candidate
+# Goal Teams V2.51 Release / V2.52 Candidate
 
-V2.50 remains the current published GitHub Release. V2.52 is an unreleased candidate and does not become current until its tag, four public assets, remote readback, and formal installation have completed.
+V2.51 is the current published GitHub Release. V2.52 is an unreleased candidate and does not become current until its tag, four public assets, remote readback, and formal installation have completed.
 
 The V2.52 candidate is fully open source under the MIT License. It keeps the V2.5 execution protocol and adds a machine-checkable first-round LOOP bootstrap plus independent development-environment reuse and version-branch rules.
 
@@ -13,7 +13,7 @@ The V2.52 candidate is fully open source under the MIT License. It keeps the V2.
 - The bilingual README member tables now include Security, Performance, Refactor, SQA, and Release Engineer.
 - V2.50 schemas, `scripts/v250/`, route IDs, error-code family, and release protocol remain the compatible V2.5 execution layer.
 
-## Planned public assets
+## Public assets
 
 If V2.52 passes Release Readiness, its fixed public set will be:
 

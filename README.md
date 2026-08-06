@@ -5,7 +5,7 @@
 作者：肉山@TGO 杭州
 
 <!-- goal-teams-release:start -->
-当前发行：**V2.50** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.50) · [发行说明](release/current/README.md)
+当前发行：**V2.51** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.51) · [发行说明](release/current/README.md)
 <!-- goal-teams-release:end -->
 
 V2.52 当前是待发布候选：项目改用 MIT License 完全开源；所有执行型 LOOP 第一轮先建立 TaskList、分配任务并由独立成员检查环境；中大型或用户指定的开发环境优先复用，不能复用时使用版本化 develop 分支。

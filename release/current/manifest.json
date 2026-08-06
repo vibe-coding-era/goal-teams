@@ -1,6 +1,6 @@
 {
-  "schema_version": "goal-teams-release-manifest-v2.50",
-  "product_version": "V2.50",
+  "schema_version": "goal-teams-release-manifest-v2.51",
+  "product_version": "V2.51",
   "core_policy_version": "V2.5",
   "legacy_data_schema_version": "V2.3",
   "docs_policy": "local-only",
