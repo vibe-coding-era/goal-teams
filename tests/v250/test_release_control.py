@@ -728,6 +728,26 @@ def checkpoint_fixture(root: Path) -> tuple[Path, Path, dict[str, str]]:
 
 
 class TestV250ReleaseControl(unittest.TestCase):
+    def test_s4_revalidates_handoff_at_recorded_transition_time(self) -> None:
+        captured_at = "2026-08-01T08:00:00+00:00"
+        receipt = {"captured_at": captured_at}
+        with mock.patch.object(
+            release_flow,
+            "validate_runtime_transition",
+            return_value={"ok": True, "may_enter_s0": True, "errors": []},
+        ) as validator:
+            errors = release_flow._runtime_transition_errors(
+                receipt,
+                SOURCE,
+                TREE,
+            )
+
+        self.assertEqual([], errors)
+        self.assertEqual(
+            dt.datetime.fromisoformat(captured_at),
+            validator.call_args.kwargs["validation_time"],
+        )
+
     def test_runtime_external_anchor_tracks_the_complete_dynamic_input_set(self) -> None:
         activation_path = (
             "references/current/generations/V2.51/activation-manifest.json"

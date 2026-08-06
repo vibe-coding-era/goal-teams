@@ -946,6 +946,23 @@ def _runtime_transition_errors(
     route_receipt_path_override: Path | str | None = None,
     authorization_receipt_path_override: Path | str | None = None,
 ) -> list[str]:
+    transition_validation_time: dt.datetime | None = None
+    if isinstance(receipt, dict):
+        captured_at = receipt.get("captured_at")
+        if isinstance(captured_at, str):
+            try:
+                normalized_captured_at = (
+                    f"{captured_at[:-1]}+00:00"
+                    if captured_at.endswith("Z")
+                    else captured_at
+                )
+                parsed = dt.datetime.fromisoformat(
+                    normalized_captured_at
+                )
+            except ValueError:
+                parsed = None
+            if parsed is not None and parsed.tzinfo is not None:
+                transition_validation_time = parsed
     try:
         verdict = validate_runtime_transition(
             receipt,
@@ -958,6 +975,7 @@ def _runtime_transition_errors(
             authorization_receipt_path_override=(
                 authorization_receipt_path_override
             ),
+            validation_time=transition_validation_time,
         )
     except (OSError, UnicodeDecodeError, json.JSONDecodeError, ValueError):
         verdict = {"ok": False, "may_enter_s0": False, "errors": []}
