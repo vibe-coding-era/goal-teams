@@ -8,6 +8,8 @@
 当前发行：**V2.50** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.50) · [发行说明](release/current/README.md)
 <!-- goal-teams-release:end -->
 
+V2.51 当前是待发布候选：新增受限源码开放许可、每轮当前/总轮次反馈，以及终局 Benchmark 之外的 LOOP 改进建议。
+
 Goal Teams 是一个跨 CodeAgent 的团队协作 AgentTeams Skill，Codex 是当前可用宿主之一。它会以一个 Goal Lead 的身份，把目标拆成可验证计划，再协调独立成员完成需求、设计、实现、测试、Evidence 和收尾审计，过程中会应用到：
 - 应用 Goal + Plan + Loop 模式，能够保持长时间完成任务；
 - 构建和严格遵循 SPEC + Harness + SSOT 三大原则，保持过程严谨性及 提升 LLM 缓存命中率；
@@ -134,15 +136,15 @@ git clone git@github.com:vibe-coding-era/goal-teams.git ~/.codex/skills/goal-tea
 prompt、route、项目起始授权与 host adapter 的真实 runtime receipt，再运行最终全量回归与独立安全审核：
 
 ```bash
-EVIDENCE_DIR=docs/v2.50-release-runtime
+EVIDENCE_DIR=docs/v2.51-release-runtime
 mkdir -p "$EVIDENCE_DIR"
 SOURCE_COMMIT="$(git rev-parse 'HEAD^{commit}')"
 SOURCE_TREE="$(git rev-parse "${SOURCE_COMMIT}^{tree}")"
 ROUTE_RECEIPT="$EVIDENCE_DIR/large-release-route.json"
 RUNTIME_RECEIPT="$EVIDENCE_DIR/released-runtime-transition.json"
 S1_CHECK_RECEIPT="$EVIDENCE_DIR/s1-check-result.json"
-AUTH_RECEIPT=docs/v2.50-execution/versions/V2.50/evidence/project-start-authorization-receipt.json
-HANDOFF_RECEIPT="${HANDOFF_RECEIPT:?请提供由已安装 V2.48 Codex 宿主签发的 handoff receipt}"
+AUTH_RECEIPT=docs/v2.51-execution/versions/V2.51/evidence/project-start-authorization-receipt.json
+HANDOFF_RECEIPT="${HANDOFF_RECEIPT:?请提供由已安装 V2.50 Codex 宿主签发的 handoff receipt}"
 HOST_EXECUTION_ID="${HOST_EXECUTION_ID:?请提供外部宿主 execution ID}"
 PYTHON_BIN="$(python3 -c 'import pathlib,sys; print(pathlib.Path(sys.executable).resolve())')"
 
@@ -163,7 +165,7 @@ PYTHON_BIN="$(python3 -c 'import pathlib,sys; print(pathlib.Path(sys.executable)
   --released-runtime-receipt "$RUNTIME_RECEIPT" > "$S1_CHECK_RECEIPT"
 ```
 
-`controller-handoff-receipt` 只能由已安装的 V2.48 Codex 宿主在仓库外签发；仓库代码不得生成。
+`controller-handoff-receipt` 只能由已安装的 V2.50 Codex 宿主在仓库外签发；仓库代码不得生成。
 它以固定 owner SSH 公钥绑定真实 previous run、一次性 nonce、授权与 exact commit/tree。adapter 在
 获得真实 child PID 后才经 stdin 发送 launch receipt，并校验 child ack。上述 I1 receipt 仍只证明
 相关进程与签名 handoff 的绑定，不证明外部独立性；`S1_CHECK_RECEIPT` 只关闭 S0/S1，不等于 Release 完成。
@@ -207,7 +209,7 @@ Use $goal-teams。
 显式调用 Goal Teams 或当前会话首次需要建立身份时汇报；已有完整上下文时不重复：
 
 ```text
-我是 Goal Teams Lead V2.50。
+我是 Goal Teams Lead V2.51。
 ```
 
 中文核心模型要点提示词：用户沟通和治理文档默认中文；代码、注释、测试名、fixture 和产品字符串遵循目标仓库约定；代码标识、命令、路径、API 名称、配置键、subagent ID 和精确引用保留原文。
@@ -351,4 +353,4 @@ GoalTeamsWork-<project_version>/
 
 ## License
 
-当前仓库没有声明开源 License。V2.50 GitHub Release 是版本化分发快照，不构成开源许可或额外权利授予；License 仍由 repository owner 另行决定。
+本仓库采用 Goal Teams Limited Source-Available License 1.0，全文见 [LICENSE](LICENSE)。源码仅开放阅读和个人评估；任何使用、复制、修改、分发、部署、衍生或商业/非商业利用均须事先取得作者书面同意。该许可是受限的 source-available 许可，不是 OSI 定义的开源协议。

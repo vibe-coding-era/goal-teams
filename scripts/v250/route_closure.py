@@ -1,4 +1,4 @@
-"""Compile and verify a V2.50 Current route closure."""
+"""Compile and verify a V2.51 Current route closure."""
 
 from __future__ import annotations
 
@@ -42,8 +42,8 @@ def compile_route_closure(
 ) -> dict[str, Any]:
     """Compile a route from ordered refs and fail closed on drift."""
 
-    if generation.get("generation_id") != "V2.50":
-        raise RouteClosureError("E_V250_ROUTE_GENERATION", "V2.50 route compiler received another generation")
+    if generation.get("generation_id") != "V2.51":
+        raise RouteClosureError("E_V250_ROUTE_GENERATION", "V2.51 route compiler received another generation")
     if not generation.get("activation_digest_verified") or not generation.get("member_digests_verified"):
         raise RouteClosureError("E_V250_ROUTE_UNVERIFIED_GENERATION", "generation digests are not verified")
 
@@ -147,7 +147,7 @@ def compile_route_closure(
         raise RouteClosureError("E_V250_ROUTE_BUDGET", f"route {route_id} uses {loaded_bytes} bytes")
 
     result = {
-        "generation_id": "V2.50",
+        "generation_id": "V2.51",
         "route_id": route_id,
         "loaded_paths": loaded_paths,
         "loaded_rule_files": list(loaded_paths),

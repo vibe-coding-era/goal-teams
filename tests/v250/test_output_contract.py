@@ -10,7 +10,7 @@ class TestV250OutputContract(unittest.TestCase):
         value = {
             "任务": "任务",
             "成员": "成员",
-            "进度": "进度",
+            "进度": "进度（第 1 轮/共 2 轮）",
             "结果": "结果",
             "Banchmark": "指标",
             "下一轮 LOOP": "继续",
@@ -29,8 +29,8 @@ class TestV250OutputContract(unittest.TestCase):
         value = {
             "任务": "任务",
             "成员": "成员",
-            "进度": "进度",
-            "结果": "结果",
+            "进度": "进度（第 2 轮/共 2 轮）",
+            "结果": "结果；LOOP 改进建议：暂无新增建议",
             "Banchmark": "指标",
             "下一个任务": "停止",
         }
@@ -40,7 +40,7 @@ class TestV250OutputContract(unittest.TestCase):
         value = {
             "任务": "任务",
             "成员": "成员",
-            "进度": "进度",
+            "进度": "进度（第 1 轮/共 2 轮）",
             "结果": "结果",
             "Banchmark": "指标",
             "下一轮 LOOP": "继续",

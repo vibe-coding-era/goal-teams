@@ -141,7 +141,7 @@ class TestReleaseWorkflowSequence(unittest.TestCase):
         self.assertIn("V250-ROUTE-LARGE-RELEASE", workflow)
         self.assertIn("V250-ROUTE-MEDIUM-RELEASE", workflow)
         self.assertIn("controller_handoff_receipt_json", workflow)
-        self.assertIn("Materialize the externally issued V2.48 controller handoff", workflow)
+        self.assertIn("Materialize the externally issued V2.50 controller handoff", workflow)
         self.assertIn("Verify the pinned GitHub owner public key before host launch", workflow)
         self.assertIn("https://api.github.com/users/vibe-coding-era/keys", workflow)
         self.assertIn("scripts/v250/runtime_host_adapter.py verify-github-key", workflow)
@@ -225,11 +225,11 @@ class TestReleaseWorkflowSequence(unittest.TestCase):
             workflow,
         )
         for relative in (
-            "release/versions/V2.50/_artifacts/goal-teams-V2.50.tar.gz",
-            "release/versions/V2.50/_artifacts/SHA256SUMS",
-            "release/versions/V2.50/_release.json",
-            "release/versions/V2.50/_files.sha256",
-            "release/versions/V2.50/_receipts/",
+            "release/versions/V2.51/_artifacts/goal-teams-V2.51.tar.gz",
+            "release/versions/V2.51/_artifacts/SHA256SUMS",
+            "release/versions/V2.51/_release.json",
+            "release/versions/V2.51/_files.sha256",
+            "release/versions/V2.51/_receipts/",
         ):
             self.assertIn(relative, workflow)
         for receipt in (
@@ -257,7 +257,7 @@ class TestReleaseWorkflowSequence(unittest.TestCase):
         self.assertNotIn('> "${diagnostic_root}/_checkpoint.json"', workflow)
         self.assertNotIn('"${diagnostic_root}/_checkpoint.json"', workflow)
         self.assertIn("steps.stage_receipts.outputs.checkpoint_state == 'ready_for_s4'", workflow)
-        self.assertIn("path: release/versions/V2.50/_diagnostics/", workflow)
+        self.assertIn("path: release/versions/V2.51/_diagnostics/", workflow)
         self.assertIn('claim_scope', text("scripts/release/skill_release.py"))
         self.assertLess(
             workflow.index("Create the S4 authorized-operation plan without external writes"),
@@ -315,7 +315,7 @@ class TestReleaseWorkflowSequence(unittest.TestCase):
         )
         command = json.loads(
             text(
-                "references/current/generations/V2.50/contracts/release-command-manifest.json"
+                "references/current/generations/V2.51/contracts/release-command-manifest.json"
             )
         )
         chain = command["release"]["s4"]["required_receipt_chain"]
@@ -327,11 +327,11 @@ class TestReleaseWorkflowSequence(unittest.TestCase):
             command["release"]["s4"]["workflow_effect"],
         )
         continuation = command["release"]["s4"]["continuation_artifact"]
-        self.assertEqual("release/versions/V2.50", continuation["release_root"])
+        self.assertEqual("release/versions/V2.51", continuation["release_root"])
         self.assertEqual(4, continuation["public_asset_count"])
         self.assertEqual(0, continuation["downstream_rebuild_invocation_limit"])
 
-        profile = json.loads(text("references/release-profiles/v2.50.json"))
+        profile = json.loads(text("references/release-profiles/v2.51.json"))
         gates = profile["release_gates"]
         self.assertLess(gates.index("single_build"), gates.index("repository_boundary_compliance"))
         self.assertLess(gates.index("repository_boundary_compliance"), gates.index("large_release_install"))
@@ -339,7 +339,7 @@ class TestReleaseWorkflowSequence(unittest.TestCase):
         self.assertFalse(profile["external_writes_allowed"])
 
     def test_v250_profile_loader_accepts_the_boundary_before_s3_projection(self) -> None:
-        profile = release_config("V2.50")
+        profile = release_config("V2.51")
         gates = profile["release_gates"]
         self.assertLess(gates.index("single_build"), gates.index("repository_boundary_compliance"))
         self.assertLess(gates.index("repository_boundary_compliance"), gates.index("large_release_install"))
@@ -416,12 +416,12 @@ class TestBoundaryReceiptMode(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             expected = root / "release/versions"
-            (expected / "V2.50").mkdir(parents=True)
+            (expected / "V2.51").mkdir(parents=True)
             alternate = root / "alternate"
-            (alternate / "V2.50").mkdir(parents=True)
+            (alternate / "V2.51").mkdir(parents=True)
             with mock.patch.object(repository_boundary, "ROOT", root):
                 self.assertEqual(
-                    (expected / "V2.50").resolve(),
+                    (expected / "V2.51").resolve(),
                     repository_boundary.resolve_release_directory(expected),
                 )
                 with self.assertRaisesRegex(

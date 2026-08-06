@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://goal-teams.local/schemas/v2.50/rule-manifest.schema.json",
-  "title": "Goal Teams V2.50 derived rule index",
+  "title": "Goal Teams V2.51 derived rule index",
   "type": "object",
   "required": ["schema_version", "generation_id", "manifest_state", "semantic_source", "source_digest_algorithm", "owners"],
   "properties": {
     "schema_version": {"const": "goal-teams-rule-manifest-v2.50"},
-    "generation_id": {"const": "V2.50"},
+    "generation_id": {"const": "V2.51"},
     "manifest_state": {"const": "derived_projection"},
     "semantic_source": {"const": "owner_markdown_only"},
     "source_digest_algorithm": {"const": "sha256_raw_file_bytes"},

@@ -1,4 +1,4 @@
-# Optional V2.50 historical Replay supplement. The default installer does not
+# Optional V2.51 historical Replay supplement. The default installer does not
 # read this file. An explicit Replay or rollback workflow combines this narrow
 # supplement with Current and records the selected historical generation.
 file references/legacy-replay/INDEX.md

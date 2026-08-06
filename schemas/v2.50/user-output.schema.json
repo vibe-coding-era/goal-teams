@@ -6,7 +6,10 @@
   "properties": {
     "任务": {"type": "string"},
     "成员": {"type": "string"},
-    "进度": {"type": "string"},
+    "进度": {
+      "type": "string",
+      "pattern": "第\\s*[1-9][0-9]*\\s*轮\\s*/\\s*(共|总)\\s*[1-9][0-9]*\\s*轮"
+    },
     "结果": {"type": "string"},
     "Banchmark": {"type": "string"},
     "下一轮 LOOP": {"type": "string"},
@@ -19,7 +22,11 @@
     },
     {
       "required": ["下一个任务"],
-      "properties": {"下一个任务": {}, "下一轮 LOOP": false}
+      "properties": {
+        "结果": {"type": "string", "pattern": "LOOP 改进建议"},
+        "下一个任务": {},
+        "下一轮 LOOP": false
+      }
     }
   ],
   "additionalProperties": false

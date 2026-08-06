@@ -8,6 +8,8 @@ Author: 肉山@TGO Hangzhou
 Current release: **V2.50** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.50) · [release/current/README.md](release/current/README.md)
 <!-- goal-teams-release:end -->
 
+V2.51 is an unreleased candidate. It adds a limited source-available license, current/total iteration reporting in every LOOP, and evidence-based LOOP improvement suggestions alongside the final Benchmark.
+
 Goal Teams is an AgentTeams Skill for team collaboration across CodeAgents, with Codex as one of the currently available hosts. It operates as a Goal Lead: it breaks a goal into a verifiable plan, then coordinates independent members to complete requirements, design, implementation, testing, Evidence, and completion audits. Along the way, it:
 
 - Applies the Goal + Plan + Loop model to keep long-running tasks moving to completion;
@@ -134,15 +136,15 @@ Run TDD and Current incremental checks during development:
 After implementation is complete and the exact released commit/tree is frozen, first use a fresh process to produce a real runtime receipt bound to the Current prompt, trusted route, project-start authorization, and host adapter. Then run the final full regression and independent security review:
 
 ```bash
-EVIDENCE_DIR=docs/v2.50-release-runtime
+EVIDENCE_DIR=docs/v2.51-release-runtime
 mkdir -p "$EVIDENCE_DIR"
 SOURCE_COMMIT="$(git rev-parse 'HEAD^{commit}')"
 SOURCE_TREE="$(git rev-parse "${SOURCE_COMMIT}^{tree}")"
 ROUTE_RECEIPT="$EVIDENCE_DIR/large-release-route.json"
 RUNTIME_RECEIPT="$EVIDENCE_DIR/released-runtime-transition.json"
 S1_CHECK_RECEIPT="$EVIDENCE_DIR/s1-check-result.json"
-AUTH_RECEIPT=docs/v2.50-execution/versions/V2.50/evidence/project-start-authorization-receipt.json
-HANDOFF_RECEIPT="${HANDOFF_RECEIPT:?set the handoff receipt issued by the installed V2.48 Codex host}"
+AUTH_RECEIPT=docs/v2.51-execution/versions/V2.51/evidence/project-start-authorization-receipt.json
+HANDOFF_RECEIPT="${HANDOFF_RECEIPT:?set the handoff receipt issued by the installed V2.50 Codex host}"
 HOST_EXECUTION_ID="${HOST_EXECUTION_ID:?set the external host execution ID}"
 PYTHON_BIN="$(python3 -c 'import pathlib,sys; print(pathlib.Path(sys.executable).resolve())')"
 
@@ -163,7 +165,7 @@ PYTHON_BIN="$(python3 -c 'import pathlib,sys; print(pathlib.Path(sys.executable)
   --released-runtime-receipt "$RUNTIME_RECEIPT" > "$S1_CHECK_RECEIPT"
 ```
 
-The `controller-handoff-receipt` may only be issued outside the repository by the installed V2.48 Codex host; repository code never generates it. It binds the real previous run, one-time nonce, authorization, and exact commit/tree with the pinned owner SSH key. The adapter sends the launch receipt over stdin only after it knows the real child PID, then verifies the child acknowledgement. The resulting I1 receipt still proves correlated process and signed-handoff binding rather than external independence. `S1_CHECK_RECEIPT` closes only S0/S1; it is not proof that the Release is complete.
+The `controller-handoff-receipt` may only be issued outside the repository by the installed V2.50 Codex host; repository code never generates it. It binds the real previous run, one-time nonce, authorization, and exact commit/tree with the pinned owner SSH key. The adapter sends the launch receipt over stdin only after it knows the real child PID, then verifies the child acknowledgement. The resulting I1 receipt still proves correlated process and signed-handoff binding rather than external independence. `S1_CHECK_RECEIPT` closes only S0/S1; it is not proof that the Release is complete.
 
 Copy subagents manually:
 
@@ -204,7 +206,7 @@ Use $goal-teams。
 Use this identity line on an explicit Goal Teams invocation or when the session first needs to establish identity; do not repeat it when full context already exists:
 
 ```text
-我是 Goal Teams Lead V2.50。
+我是 Goal Teams Lead V2.51。
 ```
 
 Core language rule: user communication and governance documents default to Chinese; code, comments, test names, fixtures, and product strings follow the target repository's conventions; keep identifiers, commands, paths, API names, config keys, subagent IDs, and exact references unchanged.
@@ -330,7 +332,7 @@ GoalTeamsWork-<project_version>/
 
 ## Version Note
 
-The current product version is read from `VERSION`. V2.50 keeps the V2.5 portable core while loading one digest-bound Current generation; V2.3 and later historical contracts are available only through explicit Legacy Replay and do not enter default prompt or package closure.
+The current product version is read from `VERSION`. V2.51 keeps the V2.5 portable core while loading one digest-bound Current generation; V2.3 and later historical contracts are available only through explicit Legacy Replay and do not enter default prompt or package closure.
 
 Medium/Large development blocks only on TDD and affected-scope checks. Final Release readiness runs full regression plus an independent security review, builds each exact released asset set once, runs S3 only for Large, and reuses the one project-start authorization for S4.
 
@@ -340,4 +342,4 @@ See [CHANGELOG.md](CHANGELOG.md) for the chronological version summary and compa
 
 ## License
 
-This repository does not declare an open-source license. The V2.50 GitHub Release is a versioned distribution snapshot, not an open-source license or an additional grant of rights; licensing remains a separate repository-owner decision.
+This repository uses the Goal Teams Limited Source-Available License 1.0; see [LICENSE](LICENSE). The source may be read for personal evaluation. Any use, copying, modification, distribution, deployment, derivative work, or commercial or non-commercial exploitation requires the author's prior written permission. This is a limited source-available license, not an OSI Open Source license.
