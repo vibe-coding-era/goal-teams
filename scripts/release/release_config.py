@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Load closed, Git-tracked release identities.
 
-V2.51 is the active Skill release profile used by ``skill_release.py``.
+V2.52 is the active Skill release profile used by ``skill_release.py``.
 V2.50 remains the published rollback baseline; V2.49 is retained as history.
 V2.46 keeps the governed CP00-CP18 engine; earlier versions are replay-only.
 """
@@ -18,7 +18,7 @@ from typing import Any
 
 SCHEMA_VERSION = "goal-teams-release-engine-profile-v1"
 PROTOCOL_VERSION = "V2.40"
-ACTIVE_VERSION = "V2.51"
+ACTIVE_VERSION = "V2.52"
 NEXT_VERSION = None
 ROOT = Path(__file__).resolve().parents[2]
 PROFILE_BY_VERSION = {
@@ -29,7 +29,7 @@ PROFILE_BY_VERSION = {
     "V2.48": ROOT / "references" / "release-profiles" / "v2.48.json",
     "V2.49": ROOT / "references" / "release-profiles" / "v2.49.json",
     "V2.50": ROOT / "references" / "release-profiles" / "v2.50.json",
-    "V2.51": ROOT / "references" / "release-profiles" / "v2.51.json",
+    "V2.52": ROOT / "references" / "release-profiles" / "v2.52.json",
 }
 PREDECESSOR_BY_VERSION = {
     "V2.40": None,
@@ -39,7 +39,7 @@ PREDECESSOR_BY_VERSION = {
     "V2.48": "V2.46",
     "V2.49": "V2.48",
     "V2.50": "V2.48",
-    "V2.51": "V2.50",
+    "V2.52": "V2.50",
 }
 HOST_ACCEPTANCE_VERSIONS = {"V2.44", "V2.45", "V2.46"}
 REQUIRED_FIELDS = {
@@ -114,7 +114,7 @@ V249_GATES = [
     "publish",
 ]
 V250_GATES = V249_GATES
-CURRENT_SIMPLE_VERSIONS = {"V2.49", "V2.50", "V2.51"}
+CURRENT_SIMPLE_VERSIONS = {"V2.49", "V2.50", "V2.52"}
 VERSION_RE = re.compile(r"^V[0-9]+\.[0-9]+$")
 CANDIDATE_RE = re.compile(r"^develops/[a-z0-9][a-z0-9._-]*$")
 BRANCH_RE = re.compile(r"^codex/[A-Za-z0-9._/-]+$")
@@ -205,7 +205,7 @@ def _load_profile(version: str) -> dict[str, Any]:
         expected_branch = {
             "V2.49": "codex/v2.49-simplification",
             "V2.50": "codex/v2.50-release",
-            "V2.51": "codex/v2.51-small",
+            "V2.52": "codex/v2.52-small",
         }[version]
         lowercase_version = version.lower()
         if (

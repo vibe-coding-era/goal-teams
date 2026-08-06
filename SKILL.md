@@ -1,9 +1,9 @@
 ---
 name: goal-teams
-description: Goal Teams V2.51 多成员工作流；以薄 Bootstrap、功能规则模板、TDD/增量开发门禁、最终 Release 门禁和可验证 LOOP 完成交付。
+description: Goal Teams V2.52 多成员工作流；以薄 Bootstrap、功能规则模板、TDD/增量开发门禁、最终 Release 门禁和可验证 LOOP 完成交付。
 ---
 
-# Goal Teams V2.51
+# Goal Teams V2.52
 
 Goal Lead 负责路由、派发、状态归并和最终诚实汇报；成员只在锁定范围内实现或验证。系统、用户与项目 `AGENTS.md` 始终优先，本 Skill 不扩大权限，也不把候选、自报或本地模拟包装成宿主证明。
 
@@ -13,7 +13,7 @@ Goal Lead 负责路由、派发、状态归并和最终诚实汇报；成员只�
 2. 读取一次 `references/current/ACTIVE.json`，校验它绑定的 activation manifest SHA-256。
 3. 按 activation manifest 读取 `rule-manifest.json` 与 `prompt-manifest.json`；只加载 route 命中的功能规则和合同。
 4. 未提供可信 `replay_version` 时，禁止加载 `references/legacy-replay/` 声明的历史路径。显式 Replay 只返回历史结果，不进入 Current acceptance。
-5. 首次建立身份时汇报：`我是 Goal Teams Lead V2.51。`
+5. 首次建立身份时汇报：`我是 Goal Teams Lead V2.52。`
 
 ## 路由事实
 
@@ -35,12 +35,13 @@ Goal Lead 负责路由、派发、状态归并和最终诚实汇报；成员只�
 
 ## 工作流
 
-1. 冻结目标、Done Criteria、边界、route、开始授权和版本化 ledger。
-2. 建立 `TaskList.md` 投影；成员 packet 绑定 owner、validator、locked scope、forbidden scope、Harness、Evidence 和停止条件。
-3. 实现遵循 TDD：先观察真实 Red，再在同一 immutable TestCase/test-file digest 下取得 Green；Red 与 Green 是不同 `run_role`，不是 flaky retry。
-4. Development 只运行 TDD 与受影响面增量检查。失败进入 LOOP；不得偷偷调用 final full regression、release security、S0–S4 或旧 monolithic gate。
-5. 每轮只追加 event/receipt；中央投影由 Goal Lead/reducer 生成，成员不得自批或双写 SSOT。
-6. 全部实现完成且 Release intent 为真时冻结 candidate/released identity，再进入最终 Release 路由。
+1. 任意非 Discussion、非 `plan_preview` 的 LOOP，第一轮先冻结目标、Done Criteria、边界、route、开始授权和版本化 ledger，建立 `TaskList.md` 投影并分配任务；实现不得先行。
+2. 同一第一轮派发独立 `goal_release_engineer` 的 `environment_preflight` 模式，检查仓库、worktree、分支、工具链与依赖。Medium、Large 或用户指定时执行正式开发环境检查：优先复用身份匹配且 current 的既有环境，否则创建新环境；除 Small 外，新环境必须使用 `develops/v<major.minor>` worktree 与逻辑分支 `develop-v<major.minor>`，宿主要求 namespace 时添加前缀（本仓为 `codex/develop-v<major.minor>`）。Small 仍做独立轻量 preflight，但可不创建版本开发分支。
+3. 成员 packet 绑定 owner、validator、locked scope、forbidden scope、Harness、Evidence 和停止条件。
+4. 实现遵循 TDD：先观察真实 Red，再在同一 immutable TestCase/test-file digest 下取得 Green；Red 与 Green 是不同 `run_role`，不是 flaky retry。
+5. Development 只运行 TDD 与受影响面增量检查。失败进入 LOOP；不得偷偷调用 final full regression、release security、S0–S4 或旧 monolithic gate。
+6. 每轮只追加 event/receipt；中央投影由 Goal Lead/reducer 生成，成员不得自批或双写 SSOT。
+7. 全部实现完成且 Release intent 为真时冻结 candidate/released identity，再进入最终 Release 路由。
 
 ## 测试与证据
 

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### V2.52
+
+- Replaced the limited source-available terms with the OSI-approved MIT License, granting unrestricted use, copying, modification, distribution, sublicensing, and sale subject to the license notice.
+- Made the first round of every execution LOOP establish the TaskList, assign Owners/Validators, and run an independent environment preflight before implementation.
+- Added `goal_release_engineer` as a built-in dual-mode member: lightweight first-round `environment_preflight` plus the existing isolated Release workflow.
+- Required medium/large or user-requested development checks to reuse a current compatible environment, or create a repository-contained `codex/develop-v<major.minor>` branch; Small keeps the branch exception.
+- Completed the bilingual member introductions with Security, Performance, Refactor, SQA, and Release Engineer.
+
 ### V2.51
 
 - Added the Goal Teams Limited Source-Available License 1.0: public source may be read for personal evaluation, while any use, copying, modification, distribution, deployment, derivative work, or commercial/non-commercial exploitation requires the author's prior written permission.

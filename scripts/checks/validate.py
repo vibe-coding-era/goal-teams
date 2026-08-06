@@ -371,6 +371,7 @@ EXPECTED_SUBAGENTS = {
     "goal-security.toml": "goal_security",
     "goal-performance.toml": "goal_performance",
     "goal-refactor.toml": "goal_refactor",
+    "goal-release-engineer.toml": "goal_release_engineer",
     "goal-sqa.toml": "goal_sqa",
     "goal-unit-test-designer.toml": "goal_unit_test_designer",
     "goal-unit-test-runner.toml": "goal_unit_test_runner",
@@ -393,6 +394,7 @@ EXPECTED_ROLE_PREFIXES = {
     "goal_security": "安全",
     "goal_performance": "性能",
     "goal_refactor": "重构",
+    "goal_release_engineer": "发布",
     "goal_sqa": "质量保证",
     "goal_unit_test_designer": "单测设计",
     "goal_unit_test_runner": "单测执行",
@@ -1552,16 +1554,16 @@ def check_example() -> None:
 
 
 def main() -> None:
-    if CURRENT_VERSION == "V2.51":
+    if CURRENT_VERSION == "V2.52":
         commands = [
-            [sys.executable, "scripts/checks/validate-v250-generation.py", "--generation-id", "V2.51"],
+            [sys.executable, "scripts/checks/validate-v250-generation.py", "--generation-id", "V2.52"],
             [sys.executable, "scripts/checks/validate-v250-test-gate.py", "--self-test"],
             [sys.executable, "scripts/checks/check-package-manifest.py"],
             [sys.executable, "scripts/v250/generate_subagents.py", "--check"],
         ]
         for command in commands:
             subprocess.run(command, cwd=ROOT, check=True)
-        print("Goal Teams V2.51 structural validation passed.")
+        print("Goal Teams V2.52 structural validation passed.")
         return
     check_required_files()
     check_skill_frontmatter()

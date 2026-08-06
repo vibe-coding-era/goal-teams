@@ -16,7 +16,8 @@
     "development_denominator_id": {"type": "string", "minLength": 1},
     "release_denominator_id": {"type": "string", "minLength": 1},
     "risk": {"enum": ["low", "medium", "high"]},
-    "external_write": {"type": "boolean"}
+    "external_write": {"type": "boolean"},
+    "environment_check_requested": {"type": "boolean"}
   },
   "additionalProperties": false
 }

@@ -27,6 +27,7 @@ ROLES = [
     "security",
     "performance",
     "refactor",
+    "release-engineer",
     "sqa",
 ]
 REQUIRED_MEMBER_FILES = ["INDEX.md", "prompt.md", "template.md", "workflow.md", "scripts.md"]

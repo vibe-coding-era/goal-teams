@@ -1,21 +1,23 @@
-# Goal Teams V2.50 Release / V2.51 Candidate
+# Goal Teams V2.51 Release / V2.52 Candidate
 
-V2.50 remains the current published GitHub Release. V2.51 is an unreleased candidate and does not become current until its tag, four public assets, remote readback, and formal installation have completed.
+V2.51 is the current published GitHub Release. V2.52 is an unreleased candidate and does not become current until its tag, four public assets, remote readback, and formal installation have completed.
 
-The V2.51 candidate keeps the V2.50 execution protocol and adds a limited source-available license, current/total LOOP iteration reporting, and evidence-based final LOOP improvement suggestions.
+The V2.52 candidate is fully open source under the OSI-approved MIT License. It keeps the V2.5 execution protocol and adds a machine-checkable first-round LOOP bootstrap plus independent development-environment reuse and version-branch rules.
 
-## V2.51 candidate changes
+## V2.52 candidate changes
 
-- `LICENSE` grants source viewing for personal evaluation; all other use requires the author's prior written permission and is not OSI open source.
-- Every visible LOOP progress report includes the current iteration and total iterations.
-- Final output includes evidence-based LOOP improvement suggestions in addition to the Benchmark report.
-- V2.50 schemas, `scripts/v250/`, error-code family, and release protocol remain the compatible execution layer for this small declarative iteration.
+- Replaced the limited source-available terms with the MIT License, allowing use, copying, modification, distribution, sublicensing, and sale subject to the license notice.
+- Every execution LOOP first establishes TaskList state, task assignments, and an independent environment preflight before implementation.
+- `goal_release_engineer` is a built-in dual-mode member: first-round `environment_preflight` remains isolated from its existing Release workflow.
+- Medium/Large or user-requested development checks reuse compatible current environments; otherwise they bind a repository-contained `codex/develop-v<major.minor>` branch. Small keeps the branch exception.
+- The bilingual README member tables now include Security, Performance, Refactor, SQA, and Release Engineer.
+- V2.50 schemas, `scripts/v250/`, route IDs, error-code family, and release protocol remain the compatible V2.5 execution layer.
 
-## Planned public assets
+## Public assets
 
-If V2.51 passes Release Readiness, its fixed public set will be:
+If V2.52 passes Release Readiness, its fixed public set will be:
 
-- `goal-teams-V2.51.tar.gz`
+- `goal-teams-V2.52.tar.gz`
 - `SHA256SUMS`
 - `_release.json`
 - `_files.sha256`

@@ -1,4 +1,4 @@
-# Goal Teams 仓库维护指南（V2.51）
+# Goal Teams 仓库维护指南（V2.52）
 
 本仓库是 Codex Skill 包。维护目标是 Current 规则清晰、安装可用、历史可复盘、发行事实可验证。
 
@@ -12,14 +12,14 @@
 ## Current、Execution 与 Replay
 
 - `references/current/ACTIVE.json` 是唯一代际切换指针；进程只读取一次并验证 activation manifest digest。
-- `references/current/generations/V2.51/` 按功能模板承载 Current 规则、Prompt plan 和合同。
+- `references/current/generations/V2.52/` 按功能模板承载 Current 规则、Prompt plan 和合同。
 - `scripts/v250/`、`schemas/v2.50/`、route-aware checks 与当前成员配置是 Execution assets。
 - `references/legacy-replay/manifest.json` 是历史可达性的唯一 allowlist。未显式提供可信 `replay_version` 时，Current route、默认安装包和 Prompt closure 均不得包含 Legacy。
 - 历史 profile/schema/fixture/engine 首轮迁移保持字节不变；删除必须在观察窗口后另行批准。
 
 ## 版本身份
 
-- 产品版本：`V2.51`。
+- 产品版本：`V2.52`。
 - 通用核心策略：`V2.5`。
 - Legacy 机器数据 schema：`V2.3`。
 - `VERSION`、根/包装 Skill、README、release profile、release/current 与启动语必须同步；不得混用三种版本身份。
@@ -30,15 +30,16 @@
 - 根 `SKILL.md`：薄入口、路由和加载顺序。
 - `RULES.md`：用户可见六字段 Envelope。
 - `goal-teams.md`：当前用户指定的长期要求。
-- `references/current/generations/V2.51/functions/`：需求、架构实现、测试、UI/桌面、Agent runtime、发行操作。
-- `references/current/generations/V2.51/contracts/`：任务状态、测试门禁、Harness/Evidence、Review/Completion、授权/副作用与 Release manifests。
-- `references/profiles/goal-teams-self-release-v2.51.md` 与 `references/release-profiles/v2.51.json`：本仓当前发行规则。
+- `references/current/generations/V2.52/functions/`：需求、架构实现、测试、UI/桌面、Agent runtime、发行操作。
+- `references/current/generations/V2.52/contracts/`：任务状态、测试门禁、Harness/Evidence、Review/Completion、授权/副作用与 Release manifests。
+- `references/profiles/goal-teams-self-release-v2.52.md` 与 `references/release-profiles/v2.52.json`：本仓当前发行规则。
 - `scripts/install/package-manifest.txt`：默认 Current 包 allowlist；`replay-package-manifest.txt`：可选 Replay 包。
 
 兼容入口只能转发，不得复制规范正文或把 Legacy 带回 Current prompt plan。
 
 ## 开发与测试
 
+- 所有执行型 LOOP 第一轮先建立 TaskList、分配任务并派发独立 `goal_release_engineer/environment_preflight`；Medium/Large 或用户指定时正式检查开发环境，优先复用 current 的兼容环境，否则创建 `develops/v<major.minor>` worktree 与逻辑分支 `develop-v<major.minor>`。宿主要求 namespace 时添加前缀，本仓为 `codex/develop-v<major.minor>`；Small 可不创建版本分支。
 - 所有行为变更先观察真实 TDD Red，再实现 Green；TestCase/test-file digest 在 Red/Green 间保持不变，source digest 必须变化。
 - Small 按实际风险运行轻量检查；Medium/Large 开发期只阻断 TDD 与受影响面增量检查。
 - 全量回归与独立 `release_security_review` 只在全部实现完成、Release intent 为真且 source 冻结后运行。
@@ -54,7 +55,7 @@
 - 正式 S0 前必须有 exact released SHA 的 fresh runtime transition receipt；receipt 必须绑定 root
   `AGENTS.md`/`SKILL.md`、ACTIVE/activation、Prompt/release/route/command manifests、可信 route 与
   `project_size`、项目起始授权 lineage、host adapter code digest、transition 前 controller product
-  version `V2.50`、fresh loaded runtime product version `V2.51`、前后 run ID、
+  version `V2.50`、fresh loaded runtime product version `V2.52`、前后 run ID、
   `captured_at` 和实际 Current `loaded_paths`/digests。
 
 ## Git 与外部写入
@@ -90,7 +91,7 @@ python3 scripts/v250/runtime_host_adapter.py launch --stage released \
   --released-runtime-receipt <released-runtime-transition.json>
 ```
 
-旧 `./scripts/check.sh` 仅是兼容调度入口；V2.51 必须由 route-aware checker 决定实际命令。提交前验证 Skill frontmatter、subagent TOML、版本同步、Current/Replay closure、默认包和受影响测试。正式发行再运行 full regression、release security、boundary、单次 S2、适用 S3 与 S4 readback。
+旧 `./scripts/check.sh` 仅是兼容调度入口；V2.52 必须由 route-aware checker 决定实际命令。提交前验证 Skill frontmatter、subagent TOML、版本同步、Current/Replay closure、默认包和受影响测试。正式发行再运行 full regression、release security、boundary、单次 S2、适用 S3 与 S4 readback。
 
 ## 风格与状态
 

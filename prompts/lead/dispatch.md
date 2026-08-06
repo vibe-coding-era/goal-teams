@@ -27,6 +27,7 @@
 - 每个交付物或 lane 只有一个 Owner。
 - 每个交接物必须使用 `prompts/packets/handoff-artifacts.md` 中的类型和状态字段。
 - 派发前，Lead 必须确认 ledger 已登记交接物、具体 Owner/Validator、状态、Harness 和 Evidence 占位，并由 reducer 生成版本子目录 TaskList。
+- 第一轮先派发独立 `goal_release_engineer/environment_preflight`，确认环境复用或版本化 develop 分支；环境 receipt ready 前不派发实现成员。
 - 每个实现成员必须有 `locked_scope`。
 - 验证必须由独立测试成员或 testing skill/subagent 负责。
 - `max_depth = 1`，成员不能创建嵌套团队。

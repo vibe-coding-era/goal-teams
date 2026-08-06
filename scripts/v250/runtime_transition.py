@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Observe and validate V2.51 fresh-runtime transition receipts.
+"""Observe and validate V2.52 fresh-runtime transition receipts.
 
 The observer must be launched as a fresh process for the exact candidate or
 released identity.  It binds the approved Current prompt closure, trusted
@@ -30,11 +30,11 @@ SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 RUN_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$")
 NONCE_RE = re.compile(r"^[A-Za-z0-9_-]{32,128}$")
 PREVIOUS_CONTROLLER_PRODUCT_VERSION = "V2.50"
-LOADED_RUNTIME_PRODUCT_VERSION = "V2.51"
+LOADED_RUNTIME_PRODUCT_VERSION = "V2.52"
 REPOSITORY = "vibe-coding-era/goal-teams"
-HANDOFF_SCHEMA_VERSION = "goal-teams-v2.51-controller-handoff-receipt-v1"
-LAUNCH_SCHEMA_VERSION = "goal-teams-v2.51-runtime-launch-receipt-v1"
-CHILD_ACK_SCHEMA_VERSION = "goal-teams-v2.51-runtime-child-ack-v1"
+HANDOFF_SCHEMA_VERSION = "goal-teams-v2.52-controller-handoff-receipt-v1"
+LAUNCH_SCHEMA_VERSION = "goal-teams-v2.52-runtime-launch-receipt-v1"
+CHILD_ACK_SCHEMA_VERSION = "goal-teams-v2.52-runtime-child-ack-v1"
 PINNED_GITHUB_ACCOUNT = "vibe-coding-era"
 PINNED_GITHUB_KEY_ID = 152596014
 PINNED_GITHUB_PUBLIC_KEY = (
@@ -44,15 +44,15 @@ PINNED_GITHUB_PUBLIC_KEY = (
 PINNED_GITHUB_FINGERPRINT = (
     "SHA256:fEM2bYLJFOSvNA78soiWLvrSUaWxANVr1HIVl6AAirE"
 )
-HANDOFF_SIGNATURE_NAMESPACE = "goal-teams-v2.51-controller-handoff"
+HANDOFF_SIGNATURE_NAMESPACE = "goal-teams-v2.52-controller-handoff"
 ACTIVE_PATH = "references/current/ACTIVE.json"
-POLICY_PROFILE_PATH = "references/profiles/goal-teams-self-release-v2.51.md"
-RELEASE_PROFILE_PATH = "references/release-profiles/v2.51.json"
+POLICY_PROFILE_PATH = "references/profiles/goal-teams-self-release-v2.52.md"
+RELEASE_PROFILE_PATH = "references/release-profiles/v2.52.json"
 RELEASE_ROUTE_MANIFEST_PATH = (
-    "references/current/generations/V2.51/contracts/release-route-manifest.json"
+    "references/current/generations/V2.52/contracts/release-route-manifest.json"
 )
 RELEASE_COMMAND_MANIFEST_PATH = (
-    "references/current/generations/V2.51/contracts/release-command-manifest.json"
+    "references/current/generations/V2.52/contracts/release-command-manifest.json"
 )
 RUNTIME_TRANSITION_SCHEMA_PATH = (
     "schemas/v2.50/runtime-transition-receipt.schema.json"
@@ -76,7 +76,7 @@ ROUTE_BY_STAGE_AND_SIZE = {
     ("candidate", "small"): "V250-ROUTE-SMALL-DEVELOPMENT",
     ("candidate", "medium"): "V250-ROUTE-MEDIUM-DEVELOPMENT",
     ("candidate", "large"): "V250-ROUTE-LARGE-DEVELOPMENT",
-    # V2.51 has no separate Small Release prompt route.  Small Release uses
+    # V2.52 has no separate Small Release prompt route.  Small Release uses
     # the stricter Medium Release prompt closure rather than inventing one.
     ("released", "small"): "V250-ROUTE-MEDIUM-RELEASE",
     ("released", "medium"): "V250-ROUTE-MEDIUM-RELEASE",
@@ -248,7 +248,7 @@ def _load_route_context(
     active, active_raw = _read_repo_json(root, ACTIVE_PATH)
     if (
         active.get("schema_version") != "goal-teams-active-generation-v1"
-        or active.get("generation_id") != "V2.51"
+        or active.get("generation_id") != "V2.52"
         or active.get("state") != "active_current"
     ):
         raise ValueError("E_V250_RUNTIME_TRANSITION_ACTIVE")
@@ -262,7 +262,7 @@ def _load_route_context(
     if (
         activation.get("schema_version")
         != "goal-teams-activation-manifest-v2.50"
-        or activation.get("generation_id") != "V2.51"
+        or activation.get("generation_id") != "V2.52"
         or activation.get("generation_state") != "active"
         or activation.get("manifest_payload_sha256")
         != _canonical_sha256(activation, digest_field="manifest_payload_sha256")
@@ -275,7 +275,7 @@ def _load_route_context(
         != loaded_runtime_product_version
         or identity.get("route_contract_schema_version")
         != "goal-teams-project-route-v2.50"
-        or identity.get("target_policy_generation") != "V2.51"
+        or identity.get("target_policy_generation") != "V2.52"
         or "controller_product_version" in identity
     ):
         raise ValueError("E_V250_RUNTIME_TRANSITION_VERSION_AXIS")
@@ -288,7 +288,7 @@ def _load_route_context(
     if (
         prompt_manifest.get("schema_version")
         != "goal-teams-prompt-manifest-v2.50"
-        or prompt_manifest.get("generation_id") != "V2.51"
+        or prompt_manifest.get("generation_id") != "V2.52"
         or prompt_manifest.get("manifest_state") != "active_current"
     ):
         raise ValueError("E_V250_RUNTIME_TRANSITION_PROMPT_MANIFEST")
@@ -306,7 +306,7 @@ def _load_route_context(
     route_loaded_paths = route_receipt.get("loaded_paths")
     route_digests = route_receipt.get("path_digests")
     if (
-        route_receipt.get("generation_id") != "V2.51"
+        route_receipt.get("generation_id") != "V2.52"
         or not isinstance(expected_current_paths, list)
         or not expected_current_paths
         or not all(isinstance(item, str) and item for item in expected_current_paths)
@@ -375,7 +375,7 @@ def _load_authorization(
         or value.get("authorization_state")
         != "granted_once_at_project_start"
         or value.get("authorization_lineage_preserved") is not True
-        or value.get("version") != "V2.51"
+        or value.get("version") != "V2.52"
         or not isinstance(repository, dict)
         or repository.get("name_with_owner") != "vibe-coding-era/goal-teams"
         or not isinstance(actions, list)
@@ -842,12 +842,12 @@ def observe_transition(
     )
     input_digests = route["input_digests"]
     receipt: dict[str, Any] = {
-        "schema_version": "goal-teams-v2.51-runtime-transition-receipt-v1",
+        "schema_version": "goal-teams-v2.52-runtime-transition-receipt-v1",
         "transition_id": transition_id or f"V250-TRANSITION-{uuid.uuid4().hex}",
         "stage": stage,
         "source_commit": source_commit,
         "source_tree": source_tree,
-        "generation_id": "V2.51",
+        "generation_id": "V2.52",
         "loaded_runtime_product_version": LOADED_RUNTIME_PRODUCT_VERSION,
         "project_size": project_size,
         "route_id": route["route_id"],
@@ -948,7 +948,7 @@ def validate_transition(
     _append_if(
         errors,
         value.get("schema_version")
-        != "goal-teams-v2.51-runtime-transition-receipt-v1",
+        != "goal-teams-v2.52-runtime-transition-receipt-v1",
         "E_V250_RUNTIME_TRANSITION_SCHEMA",
     )
     _append_if(
@@ -986,7 +986,7 @@ def validate_transition(
     )
     _append_if(
         errors,
-        value.get("generation_id") != "V2.51"
+        value.get("generation_id") != "V2.52"
         or value.get("loaded_runtime_product_version")
         != LOADED_RUNTIME_PRODUCT_VERSION,
         "E_V250_RUNTIME_TRANSITION_VERSION_AXIS",

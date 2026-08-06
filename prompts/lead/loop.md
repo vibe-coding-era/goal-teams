@@ -6,6 +6,7 @@ Lead LOOP 是 Goal Lead 的执行期闭环协议。它不代表新的 runtime、
 
 实现类/长任务的每轮内环固定为 `Gather → Reason → Act → Verify → Repeat`，不可跳过 `Reason` 直接写实现。进入 `Act` 前，Lead 必须确认 route 派生的 required gates：
 
+- 第一轮已经按序建立 TaskList、分配任务并取得独立 `goal_release_engineer/environment_preflight` receipt；后续轮引用该 receipt，环境/Architecture/依赖漂移时 targeted revalidation；
 - scoped contract current，并有当前验证方式；
 - Lite/Standard 只要求命中的 Architecture/Environment/independent test gates；
 - Full/Regulated 的 Architecture 已 accepted、`development_environment_check=ready` 且独立测试已写入；

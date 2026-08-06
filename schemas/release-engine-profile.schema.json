@@ -103,7 +103,7 @@
       "enum": [
         "references/current/generations/V2.49/contracts/public-asset-map.json",
         "references/current/generations/V2.50/contracts/public-asset-map.json",
-        "references/current/generations/V2.51/contracts/public-asset-map.json"
+        "references/current/generations/V2.52/contracts/public-asset-map.json"
       ]
     },
     "public_scan_baseline": {
@@ -154,7 +154,7 @@
   "allOf": [
     {
       "if": {
-        "properties": {"version": {"enum": ["V2.48", "V2.49", "V2.50", "V2.51"]}},
+        "properties": {"version": {"enum": ["V2.48", "V2.49", "V2.50", "V2.52"]}},
         "required": ["version"]
       },
       "then": {
@@ -215,7 +215,7 @@
     },
     {
       "if": {
-        "properties": {"version": {"enum": ["V2.49", "V2.50", "V2.51"]}},
+        "properties": {"version": {"enum": ["V2.49", "V2.50", "V2.52"]}},
         "required": ["version"]
       },
       "then": {

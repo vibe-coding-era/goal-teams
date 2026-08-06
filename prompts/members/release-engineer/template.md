@@ -1,5 +1,23 @@
 # Release Engineer Result Template
 
+## Environment preflight receipt
+
+```text
+mode: environment_preflight
+agent_type: goal_release_engineer
+member_id / agent_run_id
+project_size / user_requested_check
+repository_root / source_commit / source_tree
+decision: reuse | create | blocked
+reuse_candidate / reuse_identity / freshness
+worktree: <repository-root/develops/vmajor.minor-or-existing>
+logical_branch: develop-v<major.minor> | not_required
+branch: <host-namespace>/develop-v<major.minor> | develop-v<major.minor> | not_required
+toolchain / dependency digests / workspace boundary
+environment_state: ready | failed | blocked
+evidence_refs / revalidation_trigger
+```
+
 ## Final release evidence report
 
 ```text

@@ -32,7 +32,7 @@ def public_assets() -> list[dict]:
         {"name": "SHA256SUMS", "size": 10, "sha256": "a" * 64},
         {"name": "_files.sha256", "size": 20, "sha256": "b" * 64},
         {"name": "_release.json", "size": 30, "sha256": "c" * 64},
-        {"name": "goal-teams-V2.51.tar.gz", "size": 42, "sha256": "d" * 64},
+        {"name": "goal-teams-V2.52.tar.gz", "size": 42, "sha256": "d" * 64},
     ]
 
 

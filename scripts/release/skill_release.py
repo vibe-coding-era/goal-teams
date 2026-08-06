@@ -2,7 +2,7 @@
 """Fail-closed local release helper for the Goal Teams Skill package.
 
 This helper intentionally has no GitHub, installation, tag, or publication
-side effect. ``plan`` is read-only. V2.49/V2.50/V2.51 ``validate`` checks the same asset
+side effect. ``plan`` is read-only. V2.49/V2.50/V2.52 ``validate`` checks the same asset
 set created by the single explicit S2 build; it never starts another build or makes
 a reproducibility claim. ``preflight`` and ``plan-s4`` require the complete
 project-start-authorization and S0-S4 receipt chain. The compatibility command
@@ -32,8 +32,8 @@ VERSION_RE = re.compile(r"^V[0-9]+\.[0-9]+$")
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 POSITIVE_DECIMAL_RE = re.compile(r"^[1-9][0-9]*$")
-ACTIVE_SIMPLE_VERSION = "V2.51"
-SINGLE_BUILD_VERSIONS = frozenset({"V2.49", "V2.50", "V2.51"})
+ACTIVE_SIMPLE_VERSION = "V2.52"
+SINGLE_BUILD_VERSIONS = frozenset({"V2.49", "V2.50", "V2.52"})
 V249_REPOSITORY = "vibe-coding-era/goal-teams"
 V250_REPOSITORY = V249_REPOSITORY
 _RUNTIME_COMMON_STATIC_INPUT_PATHS = (
@@ -48,7 +48,7 @@ def _version_digits(version: str) -> str:
     if version not in SINGLE_BUILD_VERSIONS:
         raise SkillReleaseError(
             "E_SKILL_RELEASE_VERSION",
-            "release flow is defined only for V2.49, V2.50, and V2.51",
+            "release flow is defined only for V2.49, V2.50, and V2.52",
             version=version,
         )
     return version.removeprefix("V").replace(".", "")
@@ -61,11 +61,11 @@ def _version_lower(version: str) -> str:
 def _protocol_digits(version: str) -> str:
     """Return the compatible execution-protocol directory generation."""
 
-    return "250" if version == "V2.51" else _version_digits(version)
+    return "250" if version == "V2.52" else _version_digits(version)
 
 
 def _protocol_lower(version: str) -> str:
-    return "v2.50" if version == "V2.51" else _version_lower(version)
+    return "v2.50" if version == "V2.52" else _version_lower(version)
 
 
 def _version_error(version: str, suffix: str) -> str:
@@ -112,7 +112,7 @@ def _receipt_version(receipt: Mapping[str, Any]) -> str:
 
 
 V249_RUNTIME_STATIC_INPUT_PATHS = runtime_static_input_paths("V2.49")
-V250_RUNTIME_STATIC_INPUT_PATHS = runtime_static_input_paths("V2.51")
+V250_RUNTIME_STATIC_INPUT_PATHS = runtime_static_input_paths("V2.52")
 V251_RUNTIME_STATIC_INPUT_PATHS = V250_RUNTIME_STATIC_INPUT_PATHS
 V249_CONTINUATION_FORMAL_RECEIPTS = (
     "authorization.json",
@@ -166,7 +166,7 @@ V250_CONTINUATION_DIAGNOSTIC_OUTPUTS = V249_CONTINUATION_DIAGNOSTIC_OUTPUTS
 V250_CONTINUATION_PHASE_ORDER = V249_CONTINUATION_PHASE_ORDER
 V250_CONTINUATION_LARGE_ONLY_PHASES = V249_CONTINUATION_LARGE_ONLY_PHASES
 V250_CONTINUATION_ASSET_NAMES = continuation_asset_names("V2.50")
-V251_CONTINUATION_ASSET_NAMES = continuation_asset_names("V2.51")
+V251_CONTINUATION_ASSET_NAMES = continuation_asset_names("V2.52")
 
 
 class SkillReleaseError(RuntimeError):
@@ -230,7 +230,7 @@ def _v250_release_flow_module() -> ModuleType:
 def _release_flow_module(version: str) -> ModuleType:
     if version == "V2.49":
         return _v249_release_flow_module()
-    if version in {"V2.50", "V2.51"}:
+    if version in {"V2.50", "V2.52"}:
         return _v250_release_flow_module()
     _version_digits(version)
     raise AssertionError("unreachable")
@@ -348,7 +348,7 @@ def _validate_v250_runtime_external_anchor(
         runtime=runtime,
         activation_path=activation_path,
         frozen_bytes=frozen_bytes,
-        version="V2.51",
+        version="V2.52",
     )
 
 
@@ -555,14 +555,14 @@ def _validate_v250_external_anchors(
         source_tree=source_tree,
         s1_check_receipt=s1_check_receipt,
         asset_validation_receipt=asset_validation_receipt,
-        version="V2.51",
+        version="V2.52",
     )
 
 
 def _validate_external_anchors(version: str, **kwargs: Any) -> dict[str, Any]:
     if version == "V2.49":
         return _validate_v249_external_anchors(**kwargs)
-    if version in {"V2.50", "V2.51"}:
+    if version in {"V2.50", "V2.52"}:
         return _validate_v250_external_anchors(**kwargs)
     _version_digits(version)
     raise AssertionError("unreachable")
@@ -1418,7 +1418,7 @@ def validate_v250_s4_control(
     runtime_route_receipt_path: Path | str | None = None,
     runtime_authorization_receipt_path: Path | str | None = None,
 ) -> dict[str, Any]:
-    if version not in {"V2.50", "V2.51"}:
+    if version not in {"V2.50", "V2.52"}:
         return {
             "ok": False,
             "passed": False,
@@ -1443,7 +1443,7 @@ def _validate_version_s4_control(
         return validate_v249_s4_control(
             version, commit, release_control_receipt, **kwargs
         )
-    if version in {"V2.50", "V2.51"}:
+    if version in {"V2.50", "V2.52"}:
         return validate_v250_s4_control(
             version, commit, release_control_receipt, **kwargs
         )
@@ -1968,7 +1968,7 @@ def build_v250_continuation_checkpoint(
     commit: str,
     **kwargs: Any,
 ) -> dict[str, Any]:
-    if version not in {"V2.50", "V2.51"}:
+    if version not in {"V2.50", "V2.52"}:
         raise SkillReleaseError(
             "E_V250_CHECKPOINT_IDENTITY",
             "V2.50 continuation checkpoint identity is invalid",
@@ -2183,7 +2183,7 @@ def validate_v250_continuation_checkpoint(
     checkpoint: object,
     **kwargs: Any,
 ) -> dict[str, Any]:
-    if version not in {"V2.50", "V2.51"}:
+    if version not in {"V2.50", "V2.52"}:
         return _base_receipt(
             command="verify-continuation-checkpoint",
             status="failed",
@@ -2332,7 +2332,7 @@ def main() -> None:
                 gate_outcomes[phase] = outcome
             checkpoint_builder = (
                 build_v250_continuation_checkpoint
-                if args.version in {"V2.50", "V2.51"}
+                if args.version in {"V2.50", "V2.52"}
                 else build_v249_continuation_checkpoint
             )
             receipt = checkpoint_builder(
@@ -2349,7 +2349,7 @@ def main() -> None:
         elif args.command == "verify-checkpoint":
             checkpoint_validator = (
                 validate_v250_continuation_checkpoint
-                if args.version in {"V2.50", "V2.51"}
+                if args.version in {"V2.50", "V2.52"}
                 else validate_v249_continuation_checkpoint
             )
             receipt = checkpoint_validator(

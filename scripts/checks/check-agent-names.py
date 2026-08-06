@@ -34,6 +34,7 @@ ROLE_PREFIXES = {
     "goal_security": "安全",
     "goal_performance": "性能",
     "goal_refactor": "重构",
+    "goal_release_engineer": "发布",
     "goal_sqa": "质量保证",
 }
 SPECIALIST_NAMES = {"goal_security", "goal_performance", "goal_refactor", "goal_sqa"}
