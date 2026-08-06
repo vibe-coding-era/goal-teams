@@ -29,12 +29,12 @@
     "release_control_sha256"
   ],
   "properties": {
-    "schema_version": {"const": "goal-teams-v2.50-release-control-receipt-v1"},
+    "schema_version": {"const": "goal-teams-v2.51-release-control-receipt-v1"},
     "repository": {"const": "vibe-coding-era/goal-teams"},
-    "version": {"const": "V2.50"},
+    "version": {"const": "V2.51"},
     "project_size": {"enum": ["small", "medium", "large"]},
-    "candidate_branch": {"const": "codex/v2.50-release"},
-    "tag": {"const": "v2.50"},
+    "candidate_branch": {"const": "codex/v2.51-small"},
+    "tag": {"const": "v2.51"},
     "source_commit": {"$ref": "#/$defs/git_sha"},
     "source_tree": {"$ref": "#/$defs/git_sha"},
     "asset_set_id": {"type": "string", "minLength": 1},
@@ -72,9 +72,9 @@
           },
           "additionalProperties": false
         },
-        "version": {"const": "V2.50"},
-        "candidate_branch": {"const": "codex/v2.50-release"},
-        "tag": {"const": "v2.50"},
+        "version": {"const": "V2.51"},
+        "candidate_branch": {"const": "codex/v2.51-small"},
+        "tag": {"const": "v2.51"},
         "locked_scope": {"type": "string", "minLength": 1},
         "action_allowlist": {
           "type": "array",
@@ -94,9 +94,9 @@
           "properties": {
             "repository_id": {"type": "string", "minLength": 1},
             "repository": {"const": "vibe-coding-era/goal-teams"},
-            "version": {"const": "V2.50"},
-            "candidate_branch": {"const": "codex/v2.50-release"},
-            "tag": {"const": "v2.50"},
+            "version": {"const": "V2.51"},
+            "candidate_branch": {"const": "codex/v2.51-small"},
+            "tag": {"const": "v2.51"},
             "locked_scope": {"type": "string", "minLength": 1},
             "action_allowlist": {
               "type": "array",
@@ -234,11 +234,11 @@
         "install_readback", "schema_validation", "receipt_sha256"
       ],
       "properties": {
-        "schema_version": {"const": "goal-teams-v2.50-s4-outcome-receipt-v2"},
+        "schema_version": {"const": "goal-teams-v2.51-s4-outcome-receipt-v2"},
         "gate_id": {"const": "s4_publish_install_readback"},
         "repository": {"enum": ["vibe-coding-era/goal-teams", null]},
-        "version": {"enum": ["V2.50", null]},
-        "tag": {"enum": ["v2.50", null]},
+        "version": {"enum": ["V2.51", null]},
+        "tag": {"enum": ["v2.51", null]},
         "source_commit": {"anyOf": [{"$ref": "#/$defs/git_sha"}, {"type": "null"}]},
         "source_tree": {"anyOf": [{"$ref": "#/$defs/git_sha"}, {"type": "null"}]},
         "asset_set_id": {"anyOf": [{"type": "string", "minLength": 1}, {"type": "null"}]},
@@ -281,19 +281,19 @@
             {
               "allOf": [
                 {"$ref": "#/$defs/operation_journal_entry"},
-                {"type": "object", "properties": {"step_id": {"const": "tag_local_create"}, "operation": {"const": "tag_local_create"}, "target": {"const": "refs/tags/v2.50"}, "scope": {"const": "local_repository"}}}
+                {"type": "object", "properties": {"step_id": {"const": "tag_local_create"}, "operation": {"const": "tag_local_create"}, "target": {"const": "refs/tags/v2.51"}, "scope": {"const": "local_repository"}}}
               ]
             },
             {
               "allOf": [
                 {"$ref": "#/$defs/operation_journal_entry"},
-                {"type": "object", "properties": {"step_id": {"const": "tag_push"}, "operation": {"const": "tag_push"}, "target": {"const": "refs/tags/v2.50"}, "scope": {"const": "external_service"}}}
+                {"type": "object", "properties": {"step_id": {"const": "tag_push"}, "operation": {"const": "tag_push"}, "target": {"const": "refs/tags/v2.51"}, "scope": {"const": "external_service"}}}
               ]
             },
             {
               "allOf": [
                 {"$ref": "#/$defs/operation_journal_entry"},
-                {"type": "object", "properties": {"step_id": {"const": "release_create"}, "operation": {"const": "release_create"}, "target": {"const": "v2.50"}, "scope": {"const": "external_service"}}}
+                {"type": "object", "properties": {"step_id": {"const": "release_create"}, "operation": {"const": "release_create"}, "target": {"const": "v2.51"}, "scope": {"const": "external_service"}}}
               ]
             },
             {
@@ -317,13 +317,13 @@
             {
               "allOf": [
                 {"$ref": "#/$defs/operation_journal_entry"},
-                {"type": "object", "properties": {"step_id": {"const": "asset_upload:goal-teams-V2.50.tar.gz"}, "operation": {"const": "asset_upload"}, "target": {"const": "goal-teams-V2.50.tar.gz"}, "scope": {"const": "external_service"}}}
+                {"type": "object", "properties": {"step_id": {"const": "asset_upload:goal-teams-V2.51.tar.gz"}, "operation": {"const": "asset_upload"}, "target": {"const": "goal-teams-V2.51.tar.gz"}, "scope": {"const": "external_service"}}}
               ]
             },
             {
               "allOf": [
                 {"$ref": "#/$defs/operation_journal_entry"},
-                {"type": "object", "properties": {"step_id": {"const": "release_publish"}, "operation": {"const": "release_publish"}, "target": {"const": "v2.50"}, "scope": {"const": "external_service"}}}
+                {"type": "object", "properties": {"step_id": {"const": "release_publish"}, "operation": {"const": "release_publish"}, "target": {"const": "v2.51"}, "scope": {"const": "external_service"}}}
               ]
             },
             {
@@ -356,11 +356,11 @@
               "type": "object",
               "required": ["tag", "object_sha", "peeled_commit", "annotated", "message"],
               "properties": {
-                "tag": {"const": "v2.50"},
+                "tag": {"const": "v2.51"},
                 "object_sha": {"$ref": "#/$defs/git_sha"},
                 "peeled_commit": {"$ref": "#/$defs/git_sha"},
                 "annotated": {"const": true},
-                "message": {"const": "Goal Teams V2.50"}
+                "message": {"const": "Goal Teams V2.51"}
               },
               "additionalProperties": false
             }
@@ -374,7 +374,7 @@
               "required": ["release_id", "url", "state", "draft", "prerelease"],
               "properties": {
                 "release_id": {"type": "integer", "minimum": 1},
-                "url": {"const": "https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.50"},
+                "url": {"const": "https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.51"},
                 "state": {"const": "published"},
                 "draft": {"const": false},
                 "prerelease": {"const": false}
@@ -428,7 +428,7 @@
               "type": "object",
               "required": ["name", "asset_id", "size", "sha256", "download_sha256"],
               "properties": {
-                "name": {"const": "goal-teams-V2.50.tar.gz"},
+                "name": {"const": "goal-teams-V2.51.tar.gz"},
                 "asset_id": {"anyOf": [{"type": "integer", "minimum": 1}, {"type": "null"}]},
                 "size": {"anyOf": [{"type": "integer", "minimum": 0}, {"type": "null"}]},
                 "sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
@@ -449,7 +449,7 @@
               "properties": {
                 "installed_state_sha256": {"$ref": "#/$defs/sha256"},
                 "release_identity_sha256": {"$ref": "#/$defs/sha256"},
-                "version": {"const": "V2.50"},
+                "version": {"const": "V2.51"},
                 "source_commit": {"$ref": "#/$defs/git_sha"},
                 "source_tree": {"$ref": "#/$defs/git_sha"},
                 "installation_performed": {"type": "boolean"},
@@ -492,8 +492,8 @@
             "error_code": {"type": "null"},
             "execution_mode": {"enum": ["executed_and_verified", "reconciled_existing"]},
             "repository": {"const": "vibe-coding-era/goal-teams"},
-            "version": {"const": "V2.50"},
-            "tag": {"const": "v2.50"},
+            "version": {"const": "V2.51"},
+            "tag": {"const": "v2.51"},
             "source_commit": {"$ref": "#/$defs/git_sha"},
             "source_tree": {"$ref": "#/$defs/git_sha"},
             "asset_set_id": {"type": "string", "minLength": 1},

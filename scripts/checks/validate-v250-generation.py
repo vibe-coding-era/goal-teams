@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate V2.50 owner projections, route closures, budgets, and replay isolation."""
+"""Validate V2.51 owner projections, route closures, budgets, and replay isolation."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ from scripts.v250.route_closure import RouteClosureError, compile_route_closure
 RULE_RE = re.compile(r"^- \x60(GT250-[A-Z0-9-]+)\x60:", re.MULTILINE)
 
 
-def validate_generation(repo_root: Path | str, generation_id: str = "V2.50") -> dict[str, Any]:
+def validate_generation(repo_root: Path | str, generation_id: str = "V2.51") -> dict[str, Any]:
     root = Path(repo_root).resolve()
     errors: list[str] = []
     closures: dict[str, Any] = {}
@@ -115,7 +115,7 @@ def validate_generation(repo_root: Path | str, generation_id: str = "V2.50") -> 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", default=str(REPO_ROOT))
-    parser.add_argument("--generation-id", default="V2.50")
+    parser.add_argument("--generation-id", default="V2.51")
     parser.add_argument("--json", action="store_true")
     return parser.parse_args()
 
@@ -127,11 +127,11 @@ def main() -> int:
         print(json.dumps(result, ensure_ascii=False, sort_keys=True))
     elif result["ok"]:
         print(
-            f"V2.50 generation validation passed: "
+            f"V2.51 generation validation passed: "
             f"{result['route_count']} routes, {result['rule_count']} unique rules"
         )
     else:
-        print("V2.50 generation validation failed: " + ", ".join(result["errors"]))
+        print("V2.51 generation validation failed: " + ", ".join(result["errors"]))
     return 0 if result["ok"] else 1
 
 

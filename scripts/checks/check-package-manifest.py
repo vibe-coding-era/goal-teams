@@ -21,7 +21,10 @@ FORBIDDEN_CURRENT_PATH_MARKERS = (
     "references/profiles/goal-teams-self-release-v2.49.md",
     "references/release-profiles/v2.48.json",
     "references/release-profiles/v2.49.json",
+    "references/profiles/goal-teams-self-release-v2.50.md",
+    "references/release-profiles/v2.50.json",
     "references/current/generations/V2.49/",
+    "references/current/generations/V2.50/",
     "schemas/v2.36/",
     "schemas/v2.48/",
     "schemas/v2.49/",
@@ -88,7 +91,7 @@ def _selected_paths(root: Path, rules: list[tuple[str, str]]) -> tuple[set[str],
 
 
 def _legacy_intersection(root: Path, selected: set[str]) -> list[str]:
-    activation = root / "references/current/generations/V2.50/activation-manifest.json"
+    activation = root / "references/current/generations/V2.51/activation-manifest.json"
     try:
         value = json.loads(activation.read_text(encoding="utf-8"))
         classification = value["legacy_classification"]
@@ -202,9 +205,9 @@ def validate_manifest(path: Path, *, replay: bool) -> dict[str, object]:
             path
             for path in selected
             if (
-                path.startswith("references/current/generations/V2.50/")
-                or path.startswith("references/profiles/goal-teams-self-release-v2.50")
-                or path.startswith("references/release-profiles/v2.50")
+                path.startswith("references/current/generations/V2.51/")
+                or path.startswith("references/profiles/goal-teams-self-release-v2.51")
+                or path.startswith("references/release-profiles/v2.51")
                 or path.startswith("scripts/v250/")
                 or path.startswith("schemas/v2.50/")
             )
@@ -215,7 +218,7 @@ def validate_manifest(path: Path, *, replay: bool) -> dict[str, object]:
     else:
         required_rules = {
             ("file", "references/current/ACTIVE.json"),
-            ("prefix", "references/current/generations/V2.50/"),
+            ("prefix", "references/current/generations/V2.51/"),
             ("prefix", "scripts/v250/"),
             ("prefix", "schemas/v2.50/"),
         }
@@ -231,8 +234,8 @@ def validate_manifest(path: Path, *, replay: bool) -> dict[str, object]:
             ):
                 errors.append(f"E_CURRENT_PACKAGE_MANIFEST_LEGACY:{value}")
         for required_path in (
-            "references/profiles/goal-teams-self-release-v2.50.md",
-            "references/release-profiles/v2.50.json",
+            "references/profiles/goal-teams-self-release-v2.51.md",
+            "references/release-profiles/v2.51.json",
             "scripts/checks/check-v250.py",
             "scripts/install/install-local.sh",
         ):
@@ -248,7 +251,7 @@ def validate_manifest(path: Path, *, replay: bool) -> dict[str, object]:
             activation = json.loads(
                 (
                     ROOT
-                    / "references/current/generations/V2.50/activation-manifest.json"
+                    / "references/current/generations/V2.51/activation-manifest.json"
                 ).read_text(encoding="utf-8")
             )
             required_current = set(activation["current_default_allowlist"])

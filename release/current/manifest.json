@@ -27,17 +27,18 @@
     },
     "claim_policy": "no_estimation_without_trusted_host_usage_evidence"
   },
-  "release_state": "published",
-  "active_generation": "V2.50",
-  "release_mode": "skill_simple_v2.50",
-  "required_status_checks": ["check-macos", "release-asset-gate"],
-  "public_assets": [
-    "goal-teams-V2.50.tar.gz",
+  "candidate_product_version": "V2.51",
+  "candidate_release_state": "v250_release_readiness",
+  "candidate_active_generation": "V2.51",
+  "candidate_release_mode": "skill_simple_v2.50",
+  "candidate_required_status_checks": ["check-macos", "release-asset-gate"],
+  "candidate_public_assets": [
+    "goal-teams-V2.51.tar.gz",
     "SHA256SUMS",
     "_release.json",
     "_files.sha256"
   ],
-  "assurance_limits": {
+  "candidate_assurance_limits": {
     "reproducibility": "not_verified_by_v250_policy",
     "s2_security_checks": "not_run_by_v250_policy",
     "fresh_runtime_transition": "I1_correlated_not_external_independence"

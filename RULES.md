@@ -1,4 +1,4 @@
-# Response Contract V2.50
+# Response Contract V2.51
 
 本契约只约束 Goal Lead 与成员的用户可见输出，不改变上层权限、范围、安全、Harness、Evidence 或完成条件。
 
@@ -9,6 +9,8 @@
 3. `passed`、`accepted`、`release_ready`、`achieved` 必须绑定 current Evidence；`failed|blocked|not_run|not_required|stale|invalid` 不得包装成成功。
 4. 不输出内部推理、隐藏思维链、冗长命令流水或与目标无关的解释；输出可检查的任务、状态、结果、证据摘要和下一动作。
 5. `Banchmark` 拼写是固定兼容字段，不得改为其他名称。
+6. 每次执行更新的 `进度` 必须包含 `第 <当前轮> 轮/共 <总轮> 轮`，且当前轮不得大于总轮。
+7. 终局 `loop_decision=stop` 时，`结果` 除完成事实外必须包含 `LOOP 改进建议`；建议可覆盖 Skill、上下文、资料、Harness 或流程，也可基于证据明确写“暂无新增建议”。
 
 ## 唯一输出 Envelope
 

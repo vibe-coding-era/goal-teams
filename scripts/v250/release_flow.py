@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Pure V2.50 release routing and receipt-chain helpers.
+"""Pure V2.51 release routing and receipt-chain helpers.
 
 The helpers in this module do not launch tests, build assets, install files, or
 perform a network write.  They validate and bind receipts produced by the
-dedicated V2.50 runners.  A consistent receipt chain is evidence correlation;
+dedicated V2.51 runners.  A consistent receipt chain is evidence correlation;
 it is not a cryptographic host attestation or external-independence proof.
 """
 
@@ -32,7 +32,7 @@ COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 PROJECT_SIZES = {"discussion", "small", "medium", "large"}
 PUBLIC_ASSET_NAMES = {
-    "goal-teams-V2.50.tar.gz",
+    "goal-teams-V2.51.tar.gz",
     "SHA256SUMS",
     "_release.json",
     "_files.sha256",
@@ -113,16 +113,16 @@ PROJECT_START_AUTHORIZATION_INTENT_KEYS = frozenset(
 )
 
 V250_SECURITY_CONTRACT_PATH = (
-    "references/current/generations/V2.50/contracts/"
+    "references/current/generations/V2.51/contracts/"
     "release-security-review-manifest.json"
 )
 V250_SECURITY_REQUIRED_TARGET_PATHS = frozenset(
     {
         ".github/workflows/check.yml",
         ".github/workflows/release-gate.yml",
-        "references/current/generations/V2.50/contracts/public-asset-map.json",
-        "references/current/generations/V2.50/contracts/release-command-manifest.json",
-        "references/current/generations/V2.50/contracts/release-route-manifest.json",
+        "references/current/generations/V2.51/contracts/public-asset-map.json",
+        "references/current/generations/V2.51/contracts/release-command-manifest.json",
+        "references/current/generations/V2.51/contracts/release-route-manifest.json",
         V250_SECURITY_CONTRACT_PATH,
         "schemas/v2.50/project-route.schema.json",
         "schemas/v2.50/release-control.schema.json",
@@ -147,7 +147,7 @@ V250_SECURITY_REQUIRED_TARGET_PATHS = frozenset(
 
 
 def canonical_sha256(value: Any) -> str:
-    """Return the canonical JSON SHA-256 used by V2.50 receipt bindings."""
+    """Return the canonical JSON SHA-256 used by V2.51 receipt bindings."""
 
     return hashlib.sha256(
         json.dumps(
@@ -205,7 +205,7 @@ def _release_ready(route: dict[str, Any]) -> bool:
 
 
 def derive_release_plan(route: dict[str, Any]) -> dict[str, Any]:
-    """Derive V2.50 S0-S4 without executing child processes."""
+    """Derive V2.51 S0-S4 without executing child processes."""
 
     if not isinstance(route, dict):
         raise TypeError("route must be an object")
@@ -221,7 +221,7 @@ def derive_release_plan(route: dict[str, Any]) -> dict[str, Any]:
             gates[gate_id] = _not_required(reason)
         gates["s3"].update({"s3_process_invocation_count": 0, "child_argv": []})
         return {
-            "generation_id": "V2.50",
+            "generation_id": "V2.51",
             "workflow_phase": route.get("workflow_phase"),
             "release_ready": False,
             "s1_gates": [],
@@ -280,7 +280,7 @@ def derive_release_plan(route: dict[str, Any]) -> dict[str, Any]:
         "additional_user_confirmation_required": False,
     }
     return {
-        "generation_id": "V2.50",
+        "generation_id": "V2.51",
         "workflow_phase": "release",
         "release_ready": True,
         "s1_gates": ["full_regression", "release_security_review"],
@@ -312,7 +312,7 @@ def build_s2_receipt(
     if not _nonempty(asset_set_id) or not _nonempty(build_run_id):
         raise ValueError("asset_set_id and build_run_id are required")
     if {asset.get("name") for asset in asset_rows} != PUBLIC_ASSET_NAMES:
-        raise ValueError("the exact V2.50 four-asset set is required")
+        raise ValueError("the exact V2.51 four-asset set is required")
     if len(asset_rows) != len(PUBLIC_ASSET_NAMES):
         raise ValueError("duplicate public asset identity")
     for asset in asset_rows:
@@ -330,7 +330,7 @@ def build_s2_receipt(
     asset_set_digest = canonical_sha256(asset_rows)
     return _seal_receipt(
         {
-            "schema_version": "goal-teams-v2.50-s2-receipt-v1",
+            "schema_version": "goal-teams-v2.51-s2-receipt-v1",
             "gate_id": "s2_single_build",
             "stage": "released",
             "source_commit": source_commit,
@@ -433,14 +433,14 @@ def _validate_full_regression_receipt(
     case_count = denominator.get("test_case_count")
     if (
         denominator.get("denominator_id") != "V250-CURRENT-GENERATION-FULL"
-        or denominator.get("generation_id") != "V2.50"
+        or denominator.get("generation_id") != "V2.51"
         or denominator.get("scope") != "current_generation_full_regression"
         or denominator.get("source_commit") != source_commit
         or denominator.get("source_tree") != source_tree
         or denominator.get("test_root") != "tests/v250"
         or denominator.get("test_pattern") != "test_*.py"
         or denominator.get("contract_path")
-        != "references/current/generations/V2.50/contracts/release-command-manifest.json"
+        != "references/current/generations/V2.51/contracts/release-command-manifest.json"
         or not isinstance(denominator.get("contract_sha256"), str)
         or SHA256_RE.fullmatch(denominator["contract_sha256"]) is None
         or denominator.get("legacy_roots_excluded") != ["tests/v23", "tests/v249"]
@@ -577,7 +577,7 @@ def _security_review_git_snapshot(
         not isinstance(targets, list)
         or not targets
         or manifest.get("schema_version")
-        != "goal-teams-v2.50-release-security-review-v2"
+        != "goal-teams-v2.51-release-security-review-v2"
         or manifest.get("denominator_id")
         != "V250-RELEASE-SECURITY-IMPLEMENTATION"
         or manifest.get("unknown_or_missing_policy") != "fail_closed"
@@ -822,11 +822,11 @@ def _validate_security_review_receipt(
         isinstance(denominator, dict)
         and denominator.get("denominator_id")
         == "V250-RELEASE-SECURITY-IMPLEMENTATION"
-        and denominator.get("generation_id") == "V2.50"
+        and denominator.get("generation_id") == "V2.51"
         and denominator.get("source_commit") == source_commit
         and denominator.get("source_tree") == source_tree
         and denominator.get("manifest_path")
-        == "references/current/generations/V2.50/contracts/release-security-review-manifest.json"
+        == "references/current/generations/V2.51/contracts/release-security-review-manifest.json"
         and denominator.get("manifest_sha256") == manifest_sha256
         and denominator.get("target_count") == len(expected_target_paths)
         and denominator.get("target_paths") == expected_target_paths
@@ -993,7 +993,7 @@ def build_s0_receipt(
         raise ValueError(transition_errors[0])
     return _seal_receipt(
         {
-            "schema_version": "goal-teams-v2.50-s0-receipt-v1",
+            "schema_version": "goal-teams-v2.51-s0-receipt-v1",
             "gate_id": "s0_identity",
             "source_commit": source_commit,
             "source_tree": source_tree,
@@ -1024,7 +1024,7 @@ def build_s1_receipt(
         raise ValueError(str(verdict["errors"][0]))
     return _seal_receipt(
         {
-            "schema_version": "goal-teams-v2.50-s1-receipt-v1",
+            "schema_version": "goal-teams-v2.51-s1-receipt-v1",
             "gate_id": "s1_release_readiness",
             "source_commit": source_commit,
             "source_tree": source_tree,
@@ -1339,7 +1339,7 @@ def build_release_control_receipt(
     }
     s4_preflight = _seal_receipt(
         {
-            "schema_version": "goal-teams-v2.50-s4-preflight-receipt-v1",
+            "schema_version": "goal-teams-v2.51-s4-preflight-receipt-v1",
             "gate_id": "s4_preflight",
             "repository": repository,
             "version": version,
@@ -1374,7 +1374,7 @@ def build_release_control_receipt(
         }
     )
     control: dict[str, Any] = {
-        "schema_version": "goal-teams-v2.50-release-control-receipt-v1",
+        "schema_version": "goal-teams-v2.51-release-control-receipt-v1",
         "repository": repository,
         "version": version,
         "project_size": project_size,
@@ -1438,7 +1438,7 @@ def validate_release_control_receipt(
             "publish_allowed": False,
             "errors": ["E_V250_RELEASE_CONTROL_REQUIRED"],
         }
-    if value.get("schema_version") != "goal-teams-v2.50-release-control-receipt-v1":
+    if value.get("schema_version") != "goal-teams-v2.51-release-control-receipt-v1":
         errors.append("E_V250_RELEASE_CONTROL_SCHEMA")
     if (
         value.get("release_control_sha256") != _receipt_sha256(value)
@@ -1580,7 +1580,7 @@ def validate_release_control_receipt(
     if (
         not _valid_receipt_digest(anchor)
         or anchor_value.get("schema_version")
-        != "goal-teams-v2.50-external-anchor-validation-v1"
+        != "goal-teams-v2.51-external-anchor-validation-v1"
         or anchor_value.get("source_commit") != expected_source_commit
         or anchor_value.get("source_tree") != expected_source_tree
         or anchor_value.get("asset_set_digest") != value.get("asset_set_digest")

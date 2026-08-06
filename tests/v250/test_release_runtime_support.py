@@ -1,4 +1,4 @@
-"""Focused contract tests for the shared V2.50 release runtime."""
+"""Focused contract tests for the shared V2.51 release runtime."""
 
 from __future__ import annotations
 
@@ -44,22 +44,22 @@ skill_release = load(
 
 class V250ReleaseRuntimeSupportTests(unittest.TestCase):
     def test_active_profile_is_v250_with_published_v248_predecessor(self) -> None:
-        self.assertEqual("V2.50", release_config.ACTIVE_VERSION)
+        self.assertEqual("V2.51", release_config.ACTIVE_VERSION)
         self.assertIn("V2.49", release_config.supported_versions())
-        self.assertIn("V2.50", release_config.supported_versions())
+        self.assertIn("V2.51", release_config.supported_versions())
 
         active = release_config.active_release_config()
-        self.assertEqual("V2.50", active["version"])
-        self.assertEqual("V2.48", active["published_before"])
-        self.assertEqual("codex/v2.50-release", active["candidate_branch"])
-        self.assertEqual("v2.50", active["tag"])
+        self.assertEqual("V2.51", active["version"])
+        self.assertEqual("V2.50", active["published_before"])
+        self.assertEqual("codex/v2.51-small", active["candidate_branch"])
+        self.assertEqual("v2.51", active["tag"])
         self.assertEqual(
             "project_start_authorization_reused",
             active["approval_model"],
         )
         self.assertEqual("ssh_only", active["git_transport"])
         self.assertEqual(
-            "references/current/generations/V2.50/contracts/public-asset-map.json",
+            "references/current/generations/V2.51/contracts/public-asset-map.json",
             active["public_asset_map_path"],
         )
 
@@ -69,36 +69,36 @@ class V250ReleaseRuntimeSupportTests(unittest.TestCase):
 
     def test_builder_and_validator_close_over_v250(self) -> None:
         self.assertEqual(
-            "codex/v2.50-release",
-            builder.KNOWN_RELEASES["V2.50"],
+            "codex/v2.51-small",
+            builder.KNOWN_RELEASES["V2.51"],
         )
         self.assertIn("V2.49", builder.STRICT_SNAPSHOT_VERSIONS)
-        self.assertIn("V2.50", builder.STRICT_SNAPSHOT_VERSIONS)
-        self.assertTrue(builder.validate_release_version("V2.50")["passed"])
+        self.assertIn("V2.51", builder.STRICT_SNAPSHOT_VERSIONS)
+        self.assertTrue(builder.validate_release_version("V2.51")["passed"])
 
         self.assertIn("V2.49", validator.SUPPORTED_RELEASE_VERSIONS)
-        self.assertIn("V2.50", validator.SUPPORTED_RELEASE_VERSIONS)
+        self.assertIn("V2.51", validator.SUPPORTED_RELEASE_VERSIONS)
         candidate = {
             "status": "release",
-            "product_version": "V2.48",
-            "candidate_product_version": "V2.50",
+            "product_version": "V2.50",
+            "candidate_product_version": "V2.51",
             "candidate_release_state": "v250_release_readiness",
         }
         self.assertEqual(
             "candidate",
             validator.release_projection_state(
-                "V2.50", candidate, allow_candidate=True
+                "V2.51", candidate, allow_candidate=True
             ),
         )
         self.assertEqual(
             "invalid",
             validator.release_projection_state(
-                "V2.50", candidate, allow_candidate=False
+                "V2.51", candidate, allow_candidate=False
             ),
         )
 
         identity = {
-            "version": "V2.50",
+            "version": "V2.51",
             "source_commit": SOURCE,
             "source_tree": TREE,
             "profile_sha256": "3" * 64,
@@ -118,13 +118,13 @@ class V250ReleaseRuntimeSupportTests(unittest.TestCase):
 
     def test_okf_runtime_selection_tracks_current_generation(self) -> None:
         self.assertEqual("v249", builder.okf_runtime_generation("V2.49"))
-        self.assertEqual("v250", builder.okf_runtime_generation("V2.50"))
+        self.assertEqual("v250", builder.okf_runtime_generation("V2.51"))
         self.assertEqual("v249", validator.okf_runtime_generation("V2.49"))
-        self.assertEqual("v250", validator.okf_runtime_generation("V2.50"))
+        self.assertEqual("v250", validator.okf_runtime_generation("V2.51"))
 
     def test_skill_release_uses_v250_contract_and_keeps_v249_module(self) -> None:
-        config = skill_release._simple_config("V2.50")
-        self.assertEqual("V2.50", config["version"])
+        config = skill_release._simple_config("V2.51")
+        self.assertEqual("V2.51", config["version"])
         self.assertEqual("project_start_authorization_reused", config["approval_model"])
         self.assertEqual("ssh_only", config["git_transport"])
 
@@ -134,24 +134,24 @@ class V250ReleaseRuntimeSupportTests(unittest.TestCase):
             )
         )
         self.assertTrue(
-            str(skill_release._release_flow_path("V2.50")).endswith(
+            str(skill_release._release_flow_path("V2.51")).endswith(
                 "scripts/v250/release_flow.py"
             )
         )
         self.assertIn(
-            "references/current/generations/V2.50/contracts/release-command-manifest.json",
-            skill_release.runtime_static_input_paths("V2.50"),
+            "references/current/generations/V2.51/contracts/release-command-manifest.json",
+            skill_release.runtime_static_input_paths("V2.51"),
         )
         self.assertNotIn(
             "references/current/generations/V2.49/contracts/release-command-manifest.json",
-            skill_release.runtime_static_input_paths("V2.50"),
+            skill_release.runtime_static_input_paths("V2.51"),
         )
 
     def test_v250_plan_reuses_start_authorization_and_single_build(self) -> None:
         identity = {
             "source_commit": SOURCE,
             "source_git_tree": TREE,
-            "tag": "v2.50",
+            "tag": "v2.51",
             "tag_state": "absent",
             "tag_target_commit": None,
         }
@@ -168,8 +168,8 @@ class V250ReleaseRuntimeSupportTests(unittest.TestCase):
                 return_value=release_flow,
             ) as flow_loader,
         ):
-            receipt = skill_release.plan("V2.50", SOURCE)
-        flow_loader.assert_called_once_with("V2.50")
+            receipt = skill_release.plan("V2.51", SOURCE)
+        flow_loader.assert_called_once_with("V2.51")
         self.assertEqual("release_readiness_not_met", receipt["status"])
         self.assertEqual(
             "uses_project_start_authorization_receipt",
@@ -182,9 +182,9 @@ class V250ReleaseRuntimeSupportTests(unittest.TestCase):
 
         with mock.patch.object(skill_release, "_read_identity", return_value=identity):
             with self.assertRaises(skill_release.SkillReleaseError) as caught:
-                skill_release.verify("V2.50", SOURCE)
+                skill_release.verify("V2.51", SOURCE)
         self.assertEqual(
-            "E_V250_EXPLICIT_SINGLE_BUILD_REQUIRED",
+            "E_V251_EXPLICIT_SINGLE_BUILD_REQUIRED",
             caught.exception.receipt["error_code"],
         )
         self.assertEqual(0, caught.exception.receipt["s2_build_invocation_count"])
@@ -196,7 +196,7 @@ class V250ReleaseRuntimeSupportTests(unittest.TestCase):
             ["skill_release.py", "plan", "--commit", SOURCE],
         ):
             args = skill_release.parse_args()
-        self.assertEqual("V2.50", args.version)
+        self.assertEqual("V2.51", args.version)
 
     def test_public_asset_names_are_version_specific(self) -> None:
         self.assertIn(
@@ -204,24 +204,24 @@ class V250ReleaseRuntimeSupportTests(unittest.TestCase):
             skill_release.continuation_asset_names("V2.49"),
         )
         self.assertIn(
-            "goal-teams-V2.50.tar.gz",
-            skill_release.continuation_asset_names("V2.50"),
+            "goal-teams-V2.51.tar.gz",
+            skill_release.continuation_asset_names("V2.51"),
         )
 
         profile = json.loads(
-            (ROOT / "references/release-profiles/v2.50.json").read_text(
+            (ROOT / "references/release-profiles/v2.51.json").read_text(
                 encoding="utf-8"
             )
         )
-        self.assertEqual("V2.48", profile["published_before"])
-        self.assertEqual("codex/v2.50-release", profile["candidate_branch"])
+        self.assertEqual("V2.50", profile["published_before"])
+        self.assertEqual("codex/v2.51-small", profile["candidate_branch"])
         self.assertEqual("ssh_only", profile["git_transport"])
 
     def test_security_external_anchor_paths_follow_the_frozen_manifest(self) -> None:
         manifest = json.loads(
             (
                 ROOT
-                / "references/current/generations/V2.50/contracts/"
+                / "references/current/generations/V2.51/contracts/"
                 "release-security-review-manifest.json"
             ).read_text(encoding="utf-8")
         )

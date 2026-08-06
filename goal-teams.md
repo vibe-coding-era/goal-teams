@@ -1,4 +1,4 @@
-# Goal Teams 用户指定要求（Current V2.50）
+# Goal Teams 用户指定要求（Current V2.51）
 
 本文件记录当前代际的长期用户要求。规范语义由 `references/current/ACTIVE.json` 指向的功能 Owner 文档承载；历史版本只通过 Legacy Replay 查询，不参与 Current 优先级。
 
@@ -46,12 +46,13 @@
 - Harness 只保留高信息密度断言：SPEC/route、输入身份、命令/环境、预期观察、错误码、Evidence freshness 和 Owner/Validator。
 - 状态正交：task/check/audit/run/evidence/release/installation 各自记录，不以自然语言“完成”覆盖。
 - 首个失败必须保留；修复、重跑和 successor receipt 追加记录，不覆盖历史。
-- LOOP 每轮只输出任务、成员、进度、结果、Banchmark，以及按状态二选一的下一轮 LOOP/下一个任务。
+- LOOP 每轮只输出任务、成员、进度、结果、Banchmark，以及按状态二选一的下一轮 LOOP/下一个任务；`进度` 固定反馈 `第 <当前轮> 轮/共 <总轮> 轮`。
+- 全部运行结束后，除 Banchmark 报告外，`结果` 还要包含基于本次证据的 `LOOP 改进建议`，可针对 Skill、上下文、资料、Harness 或流程提出方案；确无新增项时明确写明。
 - 减少展示推理过程不等于降低模型内部推理；只压缩用户可见噪声。
 
 ## Runtime 与可信边界
 
 - Candidate 可由候选外 fresh process 做 cutover/incremental transition，但不得启动正式 S0–S4。
-- 合并后必须从 exact released commit/tree 再启动 fresh V2.50 runtime；只有 released transition receipt 可进入 S0。
+- 合并后必须从 exact released commit/tree 再启动 fresh V2.51 runtime；只有 released transition receipt 可进入 S0。
 - 本地宿主适配器最多证明 I1 correlated fresh-process observation；不得冒充独立外部验收、密码学 attestation 或 Provider prompt 签名。
 - 若宿主 transition 不可用，记录 `fresh_runtime_transition_unavailable` 和可恢复 checkpoint，不回退旧 V2.48/V2.36 发行门禁，也不重复向用户授权。

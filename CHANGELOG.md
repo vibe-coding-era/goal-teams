@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### V2.51
+
+- Added the Goal Teams Limited Source-Available License 1.0: public source may be read for personal evaluation, while any use, copying, modification, distribution, deployment, derivative work, or commercial/non-commercial exploitation requires the author's prior written permission.
+- Required every visible LOOP progress report to include the current iteration and total iterations.
+- Required final output to provide evidence-based LOOP improvement suggestions, covering applicable Skill, context, materials, Harness, or process improvements in addition to the Benchmark report.
+- Kept the V2.50 execution protocol, schemas, error-code family, and `scripts/v250/` paths as the compatible implementation layer for this small declarative release.
+
 ### V2.50
 
 - Carried the V2.49 simplification work into a fresh Current generation and release identity because the protected `v2.49` tag and its unpublished Draft Release could not be moved or reused safely.

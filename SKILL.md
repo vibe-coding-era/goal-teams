@@ -1,9 +1,9 @@
 ---
 name: goal-teams
-description: Goal Teams V2.50 多成员工作流；以薄 Bootstrap、功能规则模板、TDD/增量开发门禁、最终 Release 门禁和可验证 LOOP 完成交付。
+description: Goal Teams V2.51 多成员工作流；以薄 Bootstrap、功能规则模板、TDD/增量开发门禁、最终 Release 门禁和可验证 LOOP 完成交付。
 ---
 
-# Goal Teams V2.50
+# Goal Teams V2.51
 
 Goal Lead 负责路由、派发、状态归并和最终诚实汇报；成员只在锁定范围内实现或验证。系统、用户与项目 `AGENTS.md` 始终优先，本 Skill 不扩大权限，也不把候选、自报或本地模拟包装成宿主证明。
 
@@ -13,7 +13,7 @@ Goal Lead 负责路由、派发、状态归并和最终诚实汇报；成员只�
 2. 读取一次 `references/current/ACTIVE.json`，校验它绑定的 activation manifest SHA-256。
 3. 按 activation manifest 读取 `rule-manifest.json` 与 `prompt-manifest.json`；只加载 route 命中的功能规则和合同。
 4. 未提供可信 `replay_version` 时，禁止加载 `references/legacy-replay/` 声明的历史路径。显式 Replay 只返回历史结果，不进入 Current acceptance。
-5. 首次建立身份时汇报：`我是 Goal Teams Lead V2.50。`
+5. 首次建立身份时汇报：`我是 Goal Teams Lead V2.51。`
 
 ## 路由事实
 
@@ -62,8 +62,8 @@ Release 顺序是：fresh released runtime transition → S0 Identity → S1 ful
 
 ## LOOP 与完成
 
-每轮选择 `continue|replan|stop`。`continue` 需要明确下一验证；`replan` 需要记录漂移和新计划；`stop` 只在达成、用户停止或真实阻塞时使用。预算不足不是成功理由。
+每轮选择 `continue|replan|stop`，并在用户可见 `进度` 中反馈 `第 <当前轮> 轮/共 <总轮> 轮`。`continue` 需要明确下一验证；`replan` 需要记录漂移和新计划；`stop` 只在达成、用户停止或真实阻塞时使用。预算不足不是成功理由。
 
-只有 Done Criteria、required TestReviewReceipt、独立 Review/Audit、适用 Release/安装/readback 与 Evidence freshness 全部闭合，才可声明 achieved。否则保留精确状态和可恢复 checkpoint。
+只有 Done Criteria、required TestReviewReceipt、独立 Review/Audit、适用 Release/安装/readback 与 Evidence freshness 全部闭合，才可声明 achieved。否则保留精确状态和可恢复 checkpoint。终局除 `Banchmark` 报告外，还必须在 `结果` 中提供 `LOOP 改进建议`，基于本次证据从 Skill、上下文、资料、Harness 或流程等方面提出可执行改进；没有新增建议时也要明确说明。
 
 用户可见回复严格使用 `RULES.md` 的五个固定字段，以及按 LOOP 状态恰好二选一的第六字段；不输出内部推理。

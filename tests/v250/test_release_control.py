@@ -36,10 +36,10 @@ def authorization() -> dict:
     intent = {
         "repository_id": "R_GOAL_TEAMS",
         "repository": "vibe-coding-era/goal-teams",
-        "version": "V2.50",
-        "candidate_branch": "codex/v2.50-release",
-        "tag": "v2.50",
-        "locked_scope": "V2.50 release test fixture",
+        "version": "V2.51",
+        "candidate_branch": "codex/v2.51-small",
+        "tag": "v2.51",
+        "locked_scope": "V2.51 release test fixture",
         "action_allowlist": actions,
         "validity_conditions": conditions,
     }
@@ -60,10 +60,10 @@ def authorization() -> dict:
             "origin_push": "git@github.com:vibe-coding-era/goal-teams.git",
             "default_branch": "main",
         },
-        "version": "V2.50",
-        "candidate_branch": "codex/v2.50-release",
-        "tag": "v2.50",
-        "locked_scope": "V2.50 release test fixture",
+        "version": "V2.51",
+        "candidate_branch": "codex/v2.51-small",
+        "tag": "v2.51",
+        "locked_scope": "V2.51 release test fixture",
         "action_allowlist": actions,
         "validity_conditions": conditions,
         "intent": intent,
@@ -76,13 +76,13 @@ def full_regression() -> dict:
     files = [{"path": "tests/v250/test_release_control.py", "sha256": "a" * 64}]
     denominator = {
         "denominator_id": "V250-CURRENT-GENERATION-FULL",
-        "generation_id": "V2.50",
+        "generation_id": "V2.51",
         "scope": "current_generation_full_regression",
         "source_commit": SOURCE,
         "source_tree": TREE,
         "test_root": "tests/v250",
         "test_pattern": "test_*.py",
-        "contract_path": "references/current/generations/V2.50/contracts/release-command-manifest.json",
+        "contract_path": "references/current/generations/V2.51/contracts/release-command-manifest.json",
         "contract_sha256": "e" * 64,
         "test_files": files,
         "test_file_count": 1,
@@ -141,7 +141,7 @@ def security_git_snapshot() -> dict:
     root = Path(__file__).resolve().parents[2]
     manifest_path = (
         root
-        / "references/current/generations/V2.50/contracts/"
+        / "references/current/generations/V2.51/contracts/"
         "release-security-review-manifest.json"
     )
     manifest_bytes = manifest_path.read_bytes()
@@ -193,10 +193,10 @@ def security_review() -> dict:
     reviewed_file_set_sha256 = release_flow.canonical_sha256(reviewed_files)
     denominator = {
         "denominator_id": manifest["denominator_id"],
-        "generation_id": "V2.50",
+        "generation_id": "V2.51",
         "source_commit": SOURCE,
         "source_tree": TREE,
-        "manifest_path": "references/current/generations/V2.50/contracts/release-security-review-manifest.json",
+        "manifest_path": "references/current/generations/V2.51/contracts/release-security-review-manifest.json",
         "manifest_sha256": snapshot["manifest_sha256"],
         "target_count": len(reviewed_files),
         "target_paths": [item["path"] for item in reviewed_files],
@@ -347,18 +347,18 @@ def transition() -> dict:
             "key_id": 152596014,
             "public_key": "ssh-ed25519 test-fixture",
             "public_key_fingerprint": "SHA256:test-fixture",
-            "ssh_signature_namespace": "goal-teams-v2.50-controller-handoff",
+            "ssh_signature_namespace": "goal-teams-v2.51-controller-handoff",
         },
     }
     handoff = {
-        "schema_version": "goal-teams-v2.50-controller-handoff-receipt-v1",
+        "schema_version": "goal-teams-v2.51-controller-handoff-receipt-v1",
         "signed_payload": signed_payload,
         "payload_sha256": release_flow.canonical_sha256(signed_payload),
         "ssh_signature": "external-test-fixture",
     }
     launch = seal(
         {
-            "schema_version": "goal-teams-v2.50-runtime-launch-receipt-v1",
+            "schema_version": "goal-teams-v2.51-runtime-launch-receipt-v1",
             "controller_handoff_receipt_sha256": release_flow.canonical_sha256(
                 handoff
             ),
@@ -375,13 +375,13 @@ def transition() -> dict:
     )
     return seal(
         {
-            "schema_version": "goal-teams-v2.50-runtime-transition-receipt-v1",
+            "schema_version": "goal-teams-v2.51-runtime-transition-receipt-v1",
             "transition_id": "TRANSITION-RELEASED",
             "stage": "released",
             "source_commit": SOURCE,
             "source_tree": TREE,
-            "generation_id": "V2.50",
-            "loaded_runtime_product_version": "V2.50",
+            "generation_id": "V2.51",
+            "loaded_runtime_product_version": "V2.51",
             "controller_handoff_receipt": handoff,
             "controller_handoff_receipt_sha256": release_flow.canonical_sha256(
                 handoff
@@ -419,7 +419,7 @@ def fixture_runtime_validation(receipt: object, **kwargs: object) -> dict:
         value.get("stage") == "released"
         and value.get("source_commit") == kwargs.get("expected_source_commit", SOURCE)
         and value.get("source_tree") == kwargs.get("expected_source_tree", TREE)
-        and value.get("loaded_runtime_product_version") == "V2.50"
+        and value.get("loaded_runtime_product_version") == "V2.51"
         and payload.get("previous_controller_product_version") == "V2.48"
         and payload.get("previous_run_id")
         and launch.get("new_run_id")
@@ -455,7 +455,7 @@ def s2_receipt() -> dict:
             {"name": "SHA256SUMS", "size": 1, "sha256": "a" * 64},
             {"name": "_files.sha256", "size": 2, "sha256": "b" * 64},
             {"name": "_release.json", "size": 3, "sha256": "c" * 64},
-            {"name": "goal-teams-V2.50.tar.gz", "size": 4, "sha256": "d" * 64},
+            {"name": "goal-teams-V2.51.tar.gz", "size": 4, "sha256": "d" * 64},
         ],
     )
 
@@ -546,7 +546,7 @@ def control_receipt() -> dict:
     )
     anchor = seal(
         {
-            "schema_version": "goal-teams-v2.50-external-anchor-validation-v1",
+            "schema_version": "goal-teams-v2.51-external-anchor-validation-v1",
             "source_commit": SOURCE,
             "source_tree": TREE,
             "current_test_file_set_sha256": "4" * 64,
@@ -571,10 +571,10 @@ def control_receipt() -> dict:
     ):
         return release_flow.build_release_control_receipt(
             repository="vibe-coding-era/goal-teams",
-            version="V2.50",
+            version="V2.51",
             project_size="medium",
-            candidate_branch="codex/v2.50-release",
-            tag="v2.50",
+            candidate_branch="codex/v2.51-small",
+            tag="v2.51",
             source_commit=SOURCE,
             source_tree=TREE,
             authorization_receipt=authorization(),
@@ -608,9 +608,9 @@ def validate(control: dict) -> dict:
         return release_flow.validate_release_control_receipt(
             control,
             expected_repository="vibe-coding-era/goal-teams",
-            expected_version="V2.50",
-            expected_candidate_branch="codex/v2.50-release",
-            expected_tag="v2.50",
+            expected_version="V2.51",
+            expected_candidate_branch="codex/v2.51-small",
+            expected_tag="v2.51",
             expected_source_commit=SOURCE,
             expected_source_tree=TREE,
             validation_time=NOW,
@@ -620,14 +620,14 @@ def validate(control: dict) -> dict:
 def checkpoint_fixture(root: Path) -> tuple[Path, Path, dict[str, str]]:
     receipt_root = root / "receipts"
     release_root = root / "release"
-    artifact_root = release_root / "V2.50" / "_artifacts"
+    artifact_root = release_root / "V2.51" / "_artifacts"
     receipt_root.mkdir(parents=True)
     artifact_root.mkdir(parents=True)
     asset_paths = {
         "SHA256SUMS": artifact_root / "SHA256SUMS",
-        "_files.sha256": release_root / "V2.50" / "_files.sha256",
-        "_release.json": release_root / "V2.50" / "_release.json",
-        "goal-teams-V2.50.tar.gz": artifact_root / "goal-teams-V2.50.tar.gz",
+        "_files.sha256": release_root / "V2.51" / "_files.sha256",
+        "_release.json": release_root / "V2.51" / "_release.json",
+        "goal-teams-V2.51.tar.gz": artifact_root / "goal-teams-V2.51.tar.gz",
     }
     for index, (name, path) in enumerate(sorted(asset_paths.items()), start=1):
         path.write_bytes(f"{index}:{name}\n".encode())
@@ -730,14 +730,14 @@ def checkpoint_fixture(root: Path) -> tuple[Path, Path, dict[str, str]]:
 class TestV250ReleaseControl(unittest.TestCase):
     def test_runtime_external_anchor_tracks_the_complete_dynamic_input_set(self) -> None:
         activation_path = (
-            "references/current/generations/V2.50/activation-manifest.json"
+            "references/current/generations/V2.51/activation-manifest.json"
         )
         prompt_manifest_path = (
-            "references/current/generations/V2.50/prompt-manifest.json"
+            "references/current/generations/V2.51/prompt-manifest.json"
         )
         current_paths = [
-            "references/current/generations/V2.50/core.md",
-            "references/current/generations/V2.50/functions/release-operations.md",
+            "references/current/generations/V2.51/core.md",
+            "references/current/generations/V2.51/functions/release-operations.md",
         ]
         self.assertEqual(
             set(runtime_transition.REQUIRED_STATIC_INPUT_PATHS),
@@ -780,7 +780,7 @@ class TestV250ReleaseControl(unittest.TestCase):
 
         runtime["loaded_paths"] = sorted(digests)[:-1]
         with self.assertRaisesRegex(
-            skill_release.SkillReleaseError, "E_V250_RUNTIME_EXTERNAL_ANCHOR"
+            skill_release.SkillReleaseError, "E_V251_RUNTIME_EXTERNAL_ANCHOR"
         ):
             skill_release._validate_v250_runtime_external_anchor(
                 runtime=runtime,
@@ -866,7 +866,7 @@ class TestV250ReleaseControl(unittest.TestCase):
 
     def test_s0_rejects_swapped_runtime_version_axes(self) -> None:
         runtime = transition()
-        runtime["previous_controller_product_version"] = "V2.50"
+        runtime["previous_controller_product_version"] = "V2.51"
         runtime["loaded_runtime_product_version"] = "V2.48"
         runtime["receipt_sha256"] = release_flow._receipt_sha256(runtime)
         with self.assertRaisesRegex(ValueError, "E_V250_RELEASED_RUNTIME_S0_REQUIRED"):
@@ -925,9 +925,9 @@ class TestV250ReleaseControl(unittest.TestCase):
                 verdict = release_flow.validate_project_start_authorization(
                     value,
                     repository="vibe-coding-era/goal-teams",
-                    version="V2.50",
-                    candidate_branch="codex/v2.50-release",
-                    tag="v2.50",
+                    version="V2.51",
+                    candidate_branch="codex/v2.51-small",
+                    tag="v2.51",
                     validation_time=NOW,
                 )
                 self.assertFalse(verdict["ok"])
@@ -942,9 +942,9 @@ class TestV250ReleaseControl(unittest.TestCase):
         verdict = release_flow.validate_project_start_authorization(
             value,
             repository="vibe-coding-era/goal-teams",
-            version="V2.50",
-            candidate_branch="codex/v2.50-release",
-            tag="v2.50",
+            version="V2.51",
+            candidate_branch="codex/v2.51-small",
+            tag="v2.51",
             validation_time=NOW,
         )
         self.assertFalse(verdict["ok"])
@@ -960,9 +960,9 @@ class TestV250ReleaseControl(unittest.TestCase):
         verdict = release_flow.validate_project_start_authorization(
             malformed,
             repository="vibe-coding-era/goal-teams",
-            version="V2.50",
-            candidate_branch="codex/v2.50-release",
-            tag="v2.50",
+            version="V2.51",
+            candidate_branch="codex/v2.51-small",
+            tag="v2.51",
             validation_time=NOW,
         )
         self.assertFalse(verdict["ok"])
@@ -974,9 +974,9 @@ class TestV250ReleaseControl(unittest.TestCase):
         verdict = release_flow.validate_project_start_authorization(
             nested_secret,
             repository="vibe-coding-era/goal-teams",
-            version="V2.50",
-            candidate_branch="codex/v2.50-release",
-            tag="v2.50",
+            version="V2.51",
+            candidate_branch="codex/v2.51-small",
+            tag="v2.51",
             validation_time=NOW,
         )
         self.assertFalse(verdict["ok"])
@@ -998,7 +998,7 @@ class TestV250ReleaseControl(unittest.TestCase):
                 ),
             ):
                 checkpoint = skill_release.build_v250_continuation_checkpoint(
-                    "V2.50",
+                    "V2.51",
                     SOURCE,
                     project_size="large",
                     job_status="success",
@@ -1028,7 +1028,7 @@ class TestV250ReleaseControl(unittest.TestCase):
                 return_value={"source_git_tree": TREE},
             ):
                 partial = skill_release.build_v250_continuation_checkpoint(
-                    "V2.50",
+                    "V2.51",
                     SOURCE,
                     project_size="large",
                     job_status="success",
@@ -1063,7 +1063,7 @@ class TestV250ReleaseControl(unittest.TestCase):
                 return_value={"source_git_tree": TREE},
             ):
                 checkpoint = skill_release.build_v250_continuation_checkpoint(
-                    "V2.50",
+                    "V2.51",
                     SOURCE,
                     project_size="large",
                     job_status="failure",
@@ -1095,7 +1095,7 @@ class TestV250ReleaseControl(unittest.TestCase):
                 ),
             ):
                 checkpoint = skill_release.build_v250_continuation_checkpoint(
-                    "V2.50",
+                    "V2.51",
                     SOURCE,
                     project_size="large",
                     job_status="success",
@@ -1109,7 +1109,7 @@ class TestV250ReleaseControl(unittest.TestCase):
                     json.dumps(checkpoint, sort_keys=True), encoding="utf-8"
                 )
                 verdict = skill_release.validate_v250_continuation_checkpoint(
-                    "V2.50",
+                    "V2.51",
                     SOURCE,
                     checkpoint,
                     receipt_root=receipt_root,
@@ -1127,7 +1127,7 @@ class TestV250ReleaseControl(unittest.TestCase):
                 )
                 summary_verdict = (
                     skill_release.validate_v250_continuation_checkpoint(
-                        "V2.50",
+                        "V2.51",
                         SOURCE,
                         forged_summary,
                         receipt_root=receipt_root,
@@ -1137,7 +1137,7 @@ class TestV250ReleaseControl(unittest.TestCase):
                     )
                 )
                 self.assertIn(
-                    "E_V250_CONTINUATION_SUMMARY_BINDING",
+            "E_V251_CONTINUATION_SUMMARY_BINDING",
                     summary_verdict["errors"],
                 )
 
@@ -1155,7 +1155,7 @@ class TestV250ReleaseControl(unittest.TestCase):
                 )
                 route_verdict = (
                     skill_release.validate_v250_continuation_checkpoint(
-                        "V2.50",
+                        "V2.51",
                         SOURCE,
                         forged_route,
                         receipt_root=receipt_root,
@@ -1165,11 +1165,11 @@ class TestV250ReleaseControl(unittest.TestCase):
                     )
                 )
                 self.assertIn(
-                    "E_V250_CONTINUATION_GATE_OUTCOMES",
+            "E_V251_CONTINUATION_GATE_OUTCOMES",
                     route_verdict["errors"],
                 )
                 self.assertIn(
-                    "E_V250_CONTINUATION_CHECKPOINT_IDENTITY",
+                    "E_V251_CONTINUATION_CHECKPOINT_IDENTITY",
                     route_verdict["errors"],
                 )
 
@@ -1197,7 +1197,7 @@ class TestV250ReleaseControl(unittest.TestCase):
                     release_flow.canonical_sha256(forged_plan_checkpoint)
                 )
                 plan_verdict = skill_release.validate_v250_continuation_checkpoint(
-                    "V2.50",
+                    "V2.51",
                     SOURCE,
                     forged_plan_checkpoint,
                     receipt_root=receipt_root,
@@ -1206,7 +1206,7 @@ class TestV250ReleaseControl(unittest.TestCase):
                     expected_workflow_run_attempt="1",
                 )
                 self.assertIn(
-                    "E_V250_CONTINUATION_PLAN_CONTRACT", plan_verdict["errors"]
+                    "E_V251_CONTINUATION_PLAN_CONTRACT", plan_verdict["errors"]
                 )
                 plan_path.write_text(original_plan, encoding="utf-8")
 
@@ -1226,7 +1226,7 @@ class TestV250ReleaseControl(unittest.TestCase):
                     release_flow.canonical_sha256(forged_auth_checkpoint)
                 )
                 auth_verdict = skill_release.validate_v250_continuation_checkpoint(
-                    "V2.50",
+                    "V2.51",
                     SOURCE,
                     forged_auth_checkpoint,
                     receipt_root=receipt_root,
@@ -1235,20 +1235,20 @@ class TestV250ReleaseControl(unittest.TestCase):
                     expected_workflow_run_attempt="1",
                 )
                 self.assertIn(
-                    "E_V250_CHECKPOINT_RECEIPT_BINDING", auth_verdict["errors"]
+                    "E_V251_CHECKPOINT_RECEIPT_BINDING", auth_verdict["errors"]
                 )
                 auth_path.write_text(original_auth, encoding="utf-8")
 
                 tar_path = (
                     release_root
-                    / "V2.50"
+                    / "V2.51"
                     / "_artifacts"
-                    / "goal-teams-V2.50.tar.gz"
+                    / "goal-teams-V2.51.tar.gz"
                 )
                 original_tar = tar_path.read_bytes()
                 tar_path.write_bytes(b"tampered-asset")
                 forged_assets = copy.deepcopy(checkpoint)
-                forged_assets["public_assets"]["goal-teams-V2.50.tar.gz"] = {
+                forged_assets["public_assets"]["goal-teams-V2.51.tar.gz"] = {
                     "size": tar_path.stat().st_size,
                     "sha256": hashlib.sha256(tar_path.read_bytes()).hexdigest(),
                 }
@@ -1257,7 +1257,7 @@ class TestV250ReleaseControl(unittest.TestCase):
                     forged_assets
                 )
                 asset_verdict = skill_release.validate_v250_continuation_checkpoint(
-                    "V2.50",
+                    "V2.51",
                     SOURCE,
                     forged_assets,
                     receipt_root=receipt_root,
@@ -1266,13 +1266,13 @@ class TestV250ReleaseControl(unittest.TestCase):
                     expected_workflow_run_attempt="1",
                 )
                 self.assertIn(
-                    "E_V250_CONTINUATION_ASSET_BINDING", asset_verdict["errors"]
+                    "E_V251_CONTINUATION_ASSET_BINDING", asset_verdict["errors"]
                 )
                 tar_path.write_bytes(original_tar)
 
                 (receipt_root / "s1-check.json").write_text("{}", encoding="utf-8")
                 tampered = skill_release.validate_v250_continuation_checkpoint(
-                    "V2.50",
+                    "V2.51",
                     SOURCE,
                     checkpoint,
                     receipt_root=receipt_root,
@@ -1282,7 +1282,7 @@ class TestV250ReleaseControl(unittest.TestCase):
                 )
             self.assertFalse(tampered["passed"])
             self.assertIn(
-                "E_V250_CONTINUATION_RECEIPT_DIGEST", tampered["errors"]
+                "E_V251_CONTINUATION_RECEIPT_DIGEST", tampered["errors"]
             )
 
     def test_non_large_checkpoint_requires_large_s3_steps_to_be_skipped(self) -> None:
@@ -1291,11 +1291,11 @@ class TestV250ReleaseControl(unittest.TestCase):
             for phase in skill_release.V250_CONTINUATION_PHASE_ORDER
         }
         self.assertIn(
-            "E_V250_CHECKPOINT_GATE_OUTCOME",
+            "E_V251_CHECKPOINT_GATE_OUTCOME",
             skill_release._checkpoint_gate_errors(
                 project_size="medium",
                 gate_outcomes=outcomes,
-                version="V2.50",
+                version="V2.51",
             ),
         )
         for phase in skill_release.V250_CONTINUATION_LARGE_ONLY_PHASES:
@@ -1305,7 +1305,7 @@ class TestV250ReleaseControl(unittest.TestCase):
             skill_release._checkpoint_gate_errors(
                 project_size="medium",
                 gate_outcomes=outcomes,
-                version="V2.50",
+                version="V2.51",
             ),
         )
 
@@ -1377,8 +1377,8 @@ class TestV250ReleaseControl(unittest.TestCase):
     def test_authorized_publish_command_is_only_a_not_run_plan(self) -> None:
         control = control_receipt()
         config = {
-            "candidate_branch": "codex/v2.50-release",
-            "tag": "v2.50",
+            "candidate_branch": "codex/v2.51-small",
+            "tag": "v2.51",
             "release_mode": "skill_simple",
             "approval_model": "project_start_authorization_reused",
         }
@@ -1410,7 +1410,7 @@ class TestV250ReleaseControl(unittest.TestCase):
             ),
         ):
             receipt = skill_release.publish(
-                "V2.50", SOURCE, release_control_receipt=control
+                "V2.51", SOURCE, release_control_receipt=control
             )
 
         self.assertEqual("authorize_s4_plan", receipt["command"])
@@ -1429,8 +1429,8 @@ class TestV250ReleaseControl(unittest.TestCase):
         control["external_anchor_validation"] = forged
         control["release_control_sha256"] = release_flow._receipt_sha256(control)
         config = {
-            "candidate_branch": "codex/v2.50-release",
-            "tag": "v2.50",
+            "candidate_branch": "codex/v2.51-small",
+            "tag": "v2.51",
             "release_mode": "skill_simple",
             "approval_model": "project_start_authorization_reused",
         }
@@ -1449,13 +1449,13 @@ class TestV250ReleaseControl(unittest.TestCase):
             ),
         ):
             receipt = skill_release.publish(
-                "V2.50", SOURCE, release_control_receipt=control
+                "V2.51", SOURCE, release_control_receipt=control
             )
 
         self.assertFalse(receipt["ok"])
         self.assertFalse(receipt["passed"])
         self.assertEqual("blocked", receipt["publish_state"])
-        self.assertEqual("E_V250_EXTERNAL_ANCHOR_REVALIDATION", receipt["error_code"])
+        self.assertEqual("E_V251_EXTERNAL_ANCHOR_REVALIDATION", receipt["error_code"])
 
 
 if __name__ == "__main__":
