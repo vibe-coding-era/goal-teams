@@ -1,6 +1,6 @@
 {
-  "schema_version": "goal-teams-release-manifest-v2.52",
-  "product_version": "V2.52",
+  "schema_version": "goal-teams-release-manifest-v2.6",
+  "product_version": "V2.6",
   "core_policy_version": "V2.5",
   "legacy_data_schema_version": "V2.3",
   "docs_policy": "local-only",
@@ -27,33 +27,14 @@
     },
     "claim_policy": "no_estimation_without_trusted_host_usage_evidence"
   },
-  "candidate_product_version": "V2.6",
-  "candidate_release_state": "v250_release_readiness",
-  "candidate_active_generation": "V2.6",
-  "candidate_release_mode": "skill_simple_v2.50",
-  "candidate_required_status_checks": [
-    "check-macos",
-    "release-asset-gate"
-  ],
-  "candidate_public_assets": [
-    "goal-teams-V2.6.tar.gz",
-    "SHA256SUMS",
-    "_release.json",
-    "_files.sha256"
-  ],
-  "candidate_assurance_limits": {
-    "reproducibility": "not_verified_by_v250_policy",
-    "s2_security_checks": "not_run_by_v250_policy",
-    "fresh_runtime_transition": "I1_correlated_not_external_independence"
-  },
   "release_identity": {
-    "tag": "v2.52",
-    "release_id": 366435625,
+    "tag": "v2.6",
+    "release_id": 366574904,
     "state": "published",
-    "source_commit": "b135ebb17bf3eb2535f7056bba00ea56cc6ac8e0",
-    "source_tree": "7130ef29b8c3ab3d0ddaf3dd251ada3af3bb8121",
+    "source_commit": "a4add2687e5b057aa9a73263788c4115ba3d0512",
+    "source_tree": "e7a8ad82c3171d73c66ec13f88efceccf2e2519c",
     "public_assets": [
-      "goal-teams-V2.52.tar.gz",
+      "goal-teams-V2.6.tar.gz",
       "SHA256SUMS",
       "_release.json",
       "_files.sha256"

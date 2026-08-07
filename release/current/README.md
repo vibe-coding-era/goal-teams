@@ -1,23 +1,22 @@
-# Goal Teams V2.52 Release
+# Goal Teams V2.6 Release
 
-V2.52 is the current published GitHub Release. Its annotated tag, fixed four public assets, remote readback, and formal local installation have completed.
+V2.6 is the current published product release. Its annotated tag, fixed four public assets, remote readback, and formal canonical local installation have completed.
 
-V2.52 is fully open source under the OSI-approved MIT License. It keeps the V2.5 execution protocol and adds a machine-checkable first-round LOOP bootstrap plus independent development-environment reuse and version-branch rules.
+V2.6 is a compatibility-policy release under the OSI-approved MIT License. It keeps the V2.5 portable execution core and V2.3 Legacy data schema while adding typed compatibility routing without creating a V2.53 product identity.
 
-## V2.52 changes
+## V2.6 changes
 
-- Replaced the limited source-available terms with the MIT License, allowing use, copying, modification, distribution, sublicensing, and sale subject to the license notice.
-- Every execution LOOP first establishes TaskList state, task assignments, and an independent environment preflight before implementation.
-- `goal_release_engineer` is a built-in dual-mode member: first-round `environment_preflight` remains isolated from its existing Release workflow.
-- Medium/Large or user-requested development checks reuse compatible current environments; otherwise they bind a repository-contained `codex/develop-v<major.minor>` branch. Small keeps the branch exception.
-- The bilingual README member tables now include Security, Performance, Refactor, SQA, and Release Engineer.
-- V2.50 schemas, `scripts/v250/`, route IDs, error-code family, and release protocol remain the compatible V2.5 execution layer.
+- Added a fail-closed compatibility chain: `Portable Core -> Host -> Provider -> Model -> optional Bridge -> Role -> Task`.
+- Added explicit Codex and Claude Code host overlays, DeepSeek provider metadata, and Kimi K3 model routing.
+- Added deterministic thin role projections for Codex TOML and Claude Code Markdown, including missing, drift, and managed-orphan checks.
+- Kept provider and model runtime claims unverified unless a trusted runtime-binding receipt exists; structural compatibility does not imply live provider success.
+- Kept Legacy out of Current routing and the default package unless an explicit trusted Replay request is supplied.
 
 ## Public assets
 
 The fixed public set is:
 
-- `goal-teams-V2.52.tar.gz`
+- `goal-teams-V2.6.tar.gz`
 - `SHA256SUMS`
 - `_release.json`
 - `_files.sha256`

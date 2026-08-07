@@ -1,6 +1,6 @@
 # Changelog
 
-## V2.6 — development
+## V2.6 — 2026-08-07
 
 - Added a typed, fail-closed compatibility graph for `Portable Core -> Host -> Provider -> Model -> optional Bridge -> Role -> Task` while retaining the V2.5 portable core and V2.3 Legacy data schema.
 - Added explicit Codex and Claude Code host overlays, DeepSeek and Kimi K3 route metadata, deterministic resolution, and runtime-binding receipt validation without claiming unobserved provider runtime success.
