@@ -141,7 +141,11 @@ class TestReleaseWorkflowSequence(unittest.TestCase):
         self.assertIn("V250-ROUTE-LARGE-RELEASE", workflow)
         self.assertIn("V250-ROUTE-MEDIUM-RELEASE", workflow)
         self.assertIn("controller_handoff_receipt_json", workflow)
-        self.assertIn("Materialize the externally issued V2.6 controller handoff", workflow)
+        self.assertIn(
+            "Materialize the installed V2.52 host-issued V2.6 controller handoff",
+            workflow,
+        )
+        self.assertNotIn("V2.6 host-signed controller handoff", workflow)
         self.assertIn("Verify the pinned GitHub owner public key before host launch", workflow)
         self.assertIn("https://api.github.com/users/vibe-coding-era/keys", workflow)
         self.assertIn("scripts/v250/runtime_host_adapter.py verify-github-key", workflow)

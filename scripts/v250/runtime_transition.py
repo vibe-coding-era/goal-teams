@@ -414,7 +414,7 @@ def _validation_clock(value: dt.datetime | None) -> dt.datetime:
 def _verify_handoff_signature(
     signed_payload: Mapping[str, Any], signature: str
 ) -> bool:
-    """Verify the V2.6 handoff with the one pinned owner SSH public key."""
+    """Verify the V2.52 host-issued V2.6 handoff with the pinned owner key."""
 
     if not isinstance(signature, str) or not signature.strip():
         return False
@@ -462,7 +462,7 @@ def validate_controller_handoff(
     expected_authorization_intent_sha256: str | None = None,
     validation_time: dt.datetime | None = None,
 ) -> dict[str, Any]:
-    """Validate the externally issued, host-signed V2.6 handoff."""
+    """Validate the installed V2.52 host-issued V2.6 handoff."""
 
     errors: list[str] = []
     if not isinstance(receipt, dict):

@@ -24,7 +24,7 @@ on:
         required: false
         type: string
       controller_handoff_receipt_json:
-        description: Externally issued and V2.6 host-signed controller handoff JSON; required only for release.
+        description: Installed V2.52 host-issued V2.6 controller handoff JSON; required only for release.
         required: false
         type: string
 
@@ -160,7 +160,7 @@ jobs:
               json.dumps(value, ensure_ascii=False, sort_keys=True), encoding="utf-8"
           )
           PY
-      - name: Materialize the externally issued V2.6 controller handoff
+      - name: Materialize the installed V2.52 host-issued V2.6 controller handoff
         id: controller_handoff
         if: steps.release-version.outputs.release == 'true'
         env:
