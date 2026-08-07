@@ -3,7 +3,7 @@
   "generation_id": "V2.6",
   "generation_state": "active",
   "baseline_generation_id": "V2.48",
-  "manifest_payload_sha256": "b5f92a0badf8870cf8c59540b553a51e9b793768194fa073742a72213d54a7b0",
+  "manifest_payload_sha256": "0cba8ca266ce7f12c95fdf04784a08e9f4a8251f23557113d7681e70ecc69349",
   "identity": {
     "loaded_runtime_product_version": "V2.6",
     "route_contract_schema_version": "goal-teams-project-route-v2.50",
@@ -182,13 +182,13 @@
     "execution": [
       {
         "path": "references/compatibility/v2.6/hosts/claude-code/overlay.md",
-        "sha256": "3f4f3b18f66aec79ab36a9dea27ee12749cdfadae13517238c1e8ea0a4f27c48",
-        "bytes": 176
+        "sha256": "d340c6c8abfa95cfb0b28a34bcfb2b7cfffd7d354b1baaaa13df93d027ccae7c",
+        "bytes": 436
       },
       {
         "path": "references/compatibility/v2.6/hosts/codex/overlay.md",
-        "sha256": "cda942e3be5cfdf6a80ec88b4d7ed0c4037b463854841e24c29ed47370951a4e",
-        "bytes": 188
+        "sha256": "7f29e8e20e8b2f80decfaec0f074b9a9708f5cea217fda0423f301b74dea924f",
+        "bytes": 430
       },
       {
         "path": "references/compatibility/v2.6/manifest.json",
@@ -202,13 +202,13 @@
       },
       {
         "path": "references/compatibility/v2.6/projections/claude-code/.claude/agents/goal-lead.md",
-        "sha256": "8bfb02461753dcdc95d9843f65ca3c893d46cbe721a7656e7a9fbaa3e5ec0bd9",
-        "bytes": 247
+        "sha256": "808fe3b88e7ec0f15cc4c7a4a8be29f99a15aa3ee6c8d95fe15018a15d567dce",
+        "bytes": 475
       },
       {
         "path": "references/compatibility/v2.6/projections/claude-code/.claude/agents/goal-reviewer.md",
-        "sha256": "62a6aeca63cb0b3363d61d1378cde61030b9f73f323be4a3c6cb98f1f2871ceb",
-        "bytes": 259
+        "sha256": "f5bbdd5cb3175d22904841891730a7e076e018139662a6dffd55bde26ac17ea4",
+        "bytes": 495
       },
       {
         "path": "references/compatibility/v2.6/projections/codex/subagents/goal-lead.toml",
@@ -237,13 +237,13 @@
       },
       {
         "path": "references/compatibility/v2.6/roles/goal-lead.md",
-        "sha256": "efb0856fdae49ac8f26305955c87896246a2e25c6aa1bda0e2e14d672d09b9a0",
-        "bytes": 215
+        "sha256": "1f307174f912239ea2c3b07467cb0c1900119a90a5c66f0da664f19206a7d0f8",
+        "bytes": 483
       },
       {
         "path": "references/compatibility/v2.6/roles/goal-reviewer.md",
-        "sha256": "3b473c8c5c1b76fe70470b925b8370ed398761db2eb76db275fe2e8614b08c56",
-        "bytes": 221
+        "sha256": "35646ccaaff0c5a36baa5cff832742cbf39a718568392e9bcc3746a335127f13",
+        "bytes": 501
       },
       {
         "path": "release/current/manifest.json",
@@ -422,8 +422,8 @@
       },
       {
         "path": "scripts/v26/role_projections.py",
-        "sha256": "e11b955fcba5b4ce88db4e06f5a33035bed770b29d7828ca8544962512976c6a",
-        "bytes": 4265
+        "sha256": "1365f85fed04fc6f99295c4ac76f1d85492990e0ebbeaa10b2bf321669aee121",
+        "bytes": 4500
       },
       {
         "path": "subagents/common-developer-instructions.txt",
@@ -687,8 +687,8 @@
       },
       {
         "path": "tests/v26/test_delivery_closure.py",
-        "sha256": "dba3535dc08d56ac97477cfa7ef42d2d1da5ed13fe2fde87f87327793c1eb293",
-        "bytes": 3097
+        "sha256": "a720e56e4cb7053e245a8e54b92211975825ea554e418a46aca5e4a38781cfa3",
+        "bytes": 3596
       },
       {
         "path": "tests/v26/test_development_checker_identity.py",

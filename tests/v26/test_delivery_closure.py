@@ -6,6 +6,7 @@ import pathlib
 import unittest
 
 from scripts.v26.role_projections import check_role_projections
+from scripts.v250 import okf_conformance
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -55,6 +56,16 @@ class TestV26DeliveryClosure(unittest.TestCase):
             ROOT / "scripts/install/package-manifest.txt", replay=False
         )
         self.assertTrue(verdict["passed"], verdict)
+
+    def test_default_package_markdown_passes_okf_preview(self) -> None:
+        policy = okf_conformance.load_policy(ROOT)
+        package_paths = okf_conformance._payload_paths(ROOT, policy)
+        verdict = okf_conformance.scan_paths(
+            [path for path in package_paths if path.suffix == ".md"],
+            policy,
+            {"root": ROOT, "mode": "package-preview"},
+        )
+        self.assertTrue(verdict["passed"], verdict["findings"])
 
     def test_non_readme_current_identity_surfaces_are_v26(self) -> None:
         expected = {
