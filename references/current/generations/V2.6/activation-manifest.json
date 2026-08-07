@@ -3,7 +3,7 @@
   "generation_id": "V2.6",
   "generation_state": "active",
   "baseline_generation_id": "V2.48",
-  "manifest_payload_sha256": "7b526ff0422fa9e1c8a2c04dc508299b2d2dc2601dc8045220691776b33cc707",
+  "manifest_payload_sha256": "b5f92a0badf8870cf8c59540b553a51e9b793768194fa073742a72213d54a7b0",
   "identity": {
     "loaded_runtime_product_version": "V2.6",
     "route_contract_schema_version": "goal-teams-project-route-v2.50",
@@ -387,12 +387,12 @@
       },
       {
         "path": "scripts/v250/runtime_host_adapter.py",
-        "sha256": "6ac9061d556f4f83dd1fd07b72de7865b2e7507e8c5ee73f73852ea37485ea1a",
-        "bytes": 12921
+        "sha256": "7dd642577529b0e8d81f32d70dda4040eb8811893ab387ad48d6ffb3a483780d",
+        "bytes": 12950
       },
       {
         "path": "scripts/v250/runtime_transition.py",
-        "sha256": "b67b5d4df0785c8dfe6adc60214e2f69e004d2b01d26233d8b5e073abab2fbbb",
+        "sha256": "c06684ee6fdf0efa8ffe53b6060ea7041775d879e54e53e098fd9f6f407e6b2c",
         "bytes": 53938
       },
       {
@@ -607,18 +607,18 @@
       },
       {
         "path": "tests/v250/test_runtime_cli.py",
-        "sha256": "dd6657fd24f6f29036b6b95c9451684a78f1212e511a95f7fc670f9869e7419c",
-        "bytes": 3564
+        "sha256": "97e2bbb5f266ebe3e9e7462d62f36e58a83a936ed7e82c7b146ab0fcf3c06c1a",
+        "bytes": 3910
       },
       {
         "path": "tests/v250/test_runtime_host_adapter.py",
-        "sha256": "493339f8e31317c145909f995a206c2899f352f5926c2cd8771b32425c924989",
-        "bytes": 9238
+        "sha256": "fbd7c4ad691dc54337c2eb71afdd38e2cb68bdec68f5052e94d07c58143b55d2",
+        "bytes": 11162
       },
       {
         "path": "tests/v250/test_runtime_transition.py",
-        "sha256": "3459a091a8e95b4622aaa4910cf0f439416b0cb699922e69caf3ace184286d5e",
-        "bytes": 24228
+        "sha256": "ce74e335814e4b3d2aa0dad48c0cadbf73ed359da8b1e0346fd1a8599331c53a",
+        "bytes": 24448
       },
       {
         "path": "tests/v250/test_s4_executor.py",
@@ -672,8 +672,8 @@
       },
       {
         "path": "tests/v250/test_workflow_release_contract.py",
-        "sha256": "66b348f2cce74035baf69a5e75388d9129c56dfb0e68cb0620076dbc0a7fa32a",
-        "bytes": 21109
+        "sha256": "2b3796e496dc4d5bec41722fbb84a0abdcb1bd37963fdb9b0a13228546a0341d",
+        "bytes": 21228
       },
       {
         "path": "tests/v26/__init__.py",

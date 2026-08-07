@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""External host adapter for the V2.6 -> V2.6 runtime handoff.
+"""External host adapter for the V2.52 -> V2.6 runtime handoff.
 
 This module never creates or signs a controller handoff.  It accepts the
-externally issued V2.6 receipt, verifies the pinned owner key, launches a
-fresh V2.6 child with ``Popen``, sends the launch contract only after the
-child PID exists, and verifies the child's acknowledgement.
+V2.6 receipt externally issued by the installed V2.52 host, verifies the
+pinned owner key, launches a fresh V2.6 child with ``Popen``, sends the
+launch contract only after the child PID exists, and verifies the child's
+acknowledgement.
 """
 
 from __future__ import annotations

@@ -456,6 +456,12 @@ class TestV250RuntimeTransition(unittest.TestCase):
     def test_handoff_source_authorization_installed_state_and_signer_drift_fail(self) -> None:
         cases = (
             (
+                lambda payload: payload.__setitem__(
+                    "previous_controller_product_version", "V2.6"
+                ),
+                "E_V250_CONTROLLER_HANDOFF_VERSION",
+            ),
+            (
                 lambda payload: payload.__setitem__("source_commit", "f" * 40),
                 "E_V250_CONTROLLER_HANDOFF_IDENTITY_DRIFT",
             ),

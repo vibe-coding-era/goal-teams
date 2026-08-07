@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 import subprocess
 import tempfile
@@ -8,7 +9,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from scripts.v250 import runtime_host_adapter
+from scripts.v250 import runtime_host_adapter, runtime_transition
 from scripts.v250.runtime_transition import _canonical_sha256, object_sha256
 
 
@@ -180,6 +181,44 @@ class TestRuntimeHostAdapter(unittest.TestCase):
         launch = process.stdin_payload["runtime_launch_receipt"]
         self.assertEqual(process.pid, launch["expected_child_pid"])
         self.assertEqual("987654321", launch["host_execution_id"])
+
+    def test_v26_self_handoff_is_rejected_before_popen(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            authorization_path = root / "authorization.json"
+            authorization = _authorization(authorization_path)
+            handoff = _handoff()
+            payload = handoff["signed_payload"]
+            payload["authorization_receipt_sha256"] = hashlib.sha256(
+                authorization_path.read_bytes()
+            ).hexdigest()
+            payload["authorization_intent_sha256"] = authorization["intent_sha256"]
+            payload["previous_controller_product_version"] = "V2.6"
+            handoff["payload_sha256"] = _canonical_sha256(payload)
+            popen_factory = mock.Mock(side_effect=AssertionError("unexpected Popen"))
+
+            with mock.patch.object(
+                runtime_transition, "_verify_handoff_signature", return_value=True
+            ):
+                with self.assertRaisesRegex(
+                    ValueError, "E_V250_CONTROLLER_HANDOFF_VERSION"
+                ):
+                    runtime_host_adapter.launch_runtime_transition(
+                        stage="released",
+                        source_commit=SOURCE,
+                        source_tree=TREE,
+                        project_size="medium",
+                        route_receipt_path=root / "unused-route.json",
+                        authorization_receipt_path=authorization_path,
+                        adapter_identity="github-actions-release-host-adapter",
+                        adapter_code_path=root / "unused-adapter.py",
+                        controller_handoff_receipt=handoff,
+                        host_execution_id="987654321",
+                        root=root,
+                        popen_factory=popen_factory,
+                    )
+
+        popen_factory.assert_not_called()
 
     def test_child_ack_pid_or_lineage_drift_is_terminal(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
