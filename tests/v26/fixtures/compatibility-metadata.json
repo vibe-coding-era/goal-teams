@@ -1,0 +1,20 @@
+{
+  "schema_version": "goal-teams-compatibility-v2.6-v1",
+  "nodes": [
+    {"id":"portable-core","kind":"portable_core","path":"references/runtime-adapters/common.md","depends_on":[],"capabilities":["workflow_protocol","evidence_contract"],"state":"available"},
+    {"id":"host.codex","kind":"host","path":"references/runtime-adapters/codex.md","depends_on":["portable-core"],"capabilities":["skill_entrypoint","agents_md"],"state":"contract_mapped_not_runtime_verified"},
+    {"id":"host.claude-code","kind":"host","path":"references/runtime-adapters/claude-code.md","depends_on":["portable-core"],"capabilities":["skill_entrypoint","claude_md"],"state":"contract_mapped_not_runtime_verified"},
+    {"id":"provider.deepseek","kind":"provider","path":"references/compatibility/v2.6/providers/deepseek.md","depends_on":["portable-core"],"capabilities":["flash","pro"],"state":"metadata_only"},
+    {"id":"model.deepseek-flash","kind":"model","path":"references/compatibility/v2.6/models/deepseek-flash.md","depends_on":["provider.deepseek"],"capabilities":["model_metadata"],"state":"metadata_only"},
+    {"id":"model.deepseek-pro","kind":"model","path":"references/compatibility/v2.6/models/deepseek-pro.md","depends_on":["provider.deepseek"],"capabilities":["model_metadata"],"state":"metadata_only"},
+    {"id":"model.kimi-k3","kind":"model","path":"references/compatibility/v2.6/models/kimi-k3.md","depends_on":["portable-core"],"capabilities":["model_metadata"],"state":"metadata_only"}
+  ],
+  "routes": [
+    {"host_id":"host.codex","requested_model":"provider.deepseek/flash","resolved_model":"provider.deepseek/flash","connection_class":"direct_responses","verification_state":"contract_mapped_not_runtime_verified","route_refs":["portable-core","host.codex","provider.deepseek","model.deepseek-flash"]},
+    {"host_id":"host.codex","requested_model":"provider.deepseek/pro","resolved_model":"provider.deepseek/pro","connection_class":"unsupported_direct","verification_state":"blocked","route_refs":["portable-core","host.codex","provider.deepseek","model.deepseek-pro"]},
+    {"host_id":"host.claude-code","requested_model":"provider.deepseek/flash","resolved_model":"provider.deepseek/flash","connection_class":"direct_anthropic","verification_state":"contract_mapped_not_runtime_verified","route_refs":["portable-core","host.claude-code","provider.deepseek","model.deepseek-flash"]},
+    {"host_id":"host.claude-code","requested_model":"provider.deepseek/pro","resolved_model":"provider.deepseek/pro","connection_class":"direct_anthropic","verification_state":"contract_mapped_not_runtime_verified","route_refs":["portable-core","host.claude-code","provider.deepseek","model.deepseek-pro"]},
+    {"host_id":"host.claude-code","requested_model":"model.kimi-k3","resolved_model":"model.kimi-k3","connection_class":"direct_anthropic","verification_state":"contract_mapped_not_runtime_verified","route_refs":["portable-core","host.claude-code","model.kimi-k3"]},
+    {"host_id":"host.codex","requested_model":"model.kimi-k3","resolved_model":"model.kimi-k3","connection_class":"bridge_required","verification_state":"blocked","route_refs":["portable-core","host.codex","model.kimi-k3"]}
+  ]
+}

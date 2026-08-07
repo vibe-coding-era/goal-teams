@@ -1,9 +1,9 @@
 ---
 name: goal-teams
-description: Goal Teams V2.52 多成员工作流；以薄 Bootstrap、功能规则模板、TDD/增量开发门禁、最终 Release 门禁和可验证 LOOP 完成交付。
+description: Goal Teams V2.6 多成员工作流；以薄 Bootstrap、功能规则模板、TDD/增量开发门禁、最终 Release 门禁和可验证 LOOP 完成交付。
 ---
 
-# Goal Teams V2.52
+# Goal Teams V2.6
 
 Goal Lead 负责路由、派发、状态归并和最终诚实汇报；成员只在锁定范围内实现或验证。系统、用户与项目 `AGENTS.md` 始终优先，本 Skill 不扩大权限，也不把候选、自报或本地模拟包装成宿主证明。
 
@@ -13,7 +13,7 @@ Goal Lead 负责路由、派发、状态归并和最终诚实汇报；成员只�
 2. 读取一次 `references/current/ACTIVE.json`，校验它绑定的 activation manifest SHA-256。
 3. 按 activation manifest 读取 `rule-manifest.json` 与 `prompt-manifest.json`；只加载 route 命中的功能规则和合同。
 4. 未提供可信 `replay_version` 时，禁止加载 `references/legacy-replay/` 声明的历史路径。显式 Replay 只返回历史结果，不进入 Current acceptance。
-5. 首次建立身份时汇报：`我是 Goal Teams Lead V2.52。`
+5. 首次建立身份时汇报：`我是 Goal Teams Lead V2.6。`
 
 ## 路由事实
 

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://goal-teams.local/schemas/v2.50/test-gate.schema.json",
-  "title": "Goal Teams V2.52 test gate objects",
+  "title": "Goal Teams V2.6 test gate objects",
   "oneOf": [
     {"$ref": "#/$defs/riskDenominator"},
     {"$ref": "#/$defs/testCase"},

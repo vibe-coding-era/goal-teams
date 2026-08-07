@@ -18,7 +18,7 @@ class TestV252LoopBootstrapHardening(unittest.TestCase):
         facts: dict[str, object] = {
             "loop_id": "LOOP-V252-HARDEN",
             "round": 1,
-            "product_version": "V2.52",
+            "product_version": "V2.6",
             "project_size": "medium",
             "plan_preview": False,
             "environment_check_requested": False,
@@ -48,9 +48,9 @@ class TestV252LoopBootstrapHardening(unittest.TestCase):
             "lead_run_id": "RUN-LEAD",
             "implementation_owner_run_id": "RUN-IMPL",
             "project_size": "medium",
-            "product_version": "V2.52",
+            "product_version": "V2.6",
             "branch_namespace": "codex",
-            "development_branch": "codex/develop-v2.52",
+            "development_branch": "codex/develop-v2.6",
             "environment_action": "create",
             "compatible_existing_environment": False,
         }
@@ -65,7 +65,7 @@ class TestV252LoopBootstrapHardening(unittest.TestCase):
 
         with self.assertRaises(LoopBootstrapError) as caught:
             validate_loop_bootstrap_receipt(receipt)
-        self.assertEqual("E_V252_LOOP_BOOTSTRAP_ORDER", caught.exception.code)
+        self.assertEqual("E_V26_LOOP_BOOTSTRAP_ORDER", caught.exception.code)
 
     def test_plan_preview_has_no_execution_bootstrap(self) -> None:
         plan = plan_loop_round(self._facts(plan_preview=True))
@@ -94,11 +94,11 @@ class TestV252LoopBootstrapHardening(unittest.TestCase):
 
     def test_reuse_requires_exact_environment_identity(self) -> None:
         existing = {
-            "path": "/repo/develops/v2.52",
+            "path": "/repo/develops/v2.6",
             "identity": "ENV-252",
             "current": True,
             "compatible": True,
-            "product_version": "V2.52",
+            "product_version": "V2.6",
             "source_commit": "1" * 40,
             "toolchain_digest": "2" * 64,
             "dependency_digest": "3" * 64,
@@ -116,10 +116,10 @@ class TestV252LoopBootstrapHardening(unittest.TestCase):
     def test_branch_namespace_and_worktree_templates_are_separate(self) -> None:
         plan = plan_loop_round(self._facts())
 
-        self.assertEqual("develop-v2.52", plan["logical_development_branch"])
+        self.assertEqual("develop-v2.6", plan["logical_development_branch"])
         self.assertEqual("codex", plan["branch_namespace"])
-        self.assertEqual("codex/develop-v2.52", plan["development_branch"])
-        self.assertEqual("develops/v2.52", plan["development_worktree"])
+        self.assertEqual("codex/develop-v2.6", plan["development_branch"])
+        self.assertEqual("develops/v2.6", plan["development_worktree"])
 
     def test_environment_mode_stops_before_release_workflow(self) -> None:
         index = (ROOT / "prompts/members/release-engineer/INDEX.md").read_text(

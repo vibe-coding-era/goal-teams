@@ -1,5 +1,12 @@
 # Changelog
 
+## V2.6 — development
+
+- Added a typed, fail-closed compatibility graph for `Portable Core -> Host -> Provider -> Model -> optional Bridge -> Role -> Task` while retaining the V2.5 portable core and V2.3 Legacy data schema.
+- Added explicit Codex and Claude Code host overlays, DeepSeek and Kimi K3 route metadata, deterministic resolution, and runtime-binding receipt validation without claiming unobserved provider runtime success.
+- Added canonical roles plus deterministic thin Codex TOML and Claude Code Markdown projections with missing, drift, and managed-orphan checks.
+- Migrated the Current generation, default package closure, active release profile, and compatible V2.5 execution layer to the V2.6 product identity; Legacy Replay remains explicit and root READMEs remain human-maintained.
+
 ## V2.52 — 2026-08-07
 
 - Replaced the limited source-available terms with the OSI-approved MIT License, granting unrestricted use, copying, modification, distribution, sublicensing, and sale subject to the license notice.

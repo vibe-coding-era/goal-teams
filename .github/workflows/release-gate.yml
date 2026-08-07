@@ -1,9 +1,9 @@
-name: Goal Teams V2.52 phase-aware verification
-run-name: Goal Teams V2.52 phase-aware verification ${{ github.sha }}
+name: Goal Teams V2.6 phase-aware verification
+run-name: Goal Teams V2.6 phase-aware verification ${{ github.sha }}
 
 on:
   push:
-    branches: [main, codex/v2.52-small]
+    branches: [main, codex/develop-v2.6]
   pull_request:
   workflow_dispatch:
     inputs:
@@ -20,11 +20,11 @@ on:
         default: medium
         options: [small, medium, large]
       project_start_authorization_receipt_json:
-        description: Complete V2.52 project-start authorization receipt JSON; required only for release.
+        description: Complete V2.6 project-start authorization receipt JSON; required only for release.
         required: false
         type: string
       controller_handoff_receipt_json:
-        description: Externally issued and V2.51 host-signed controller handoff JSON; required only for release.
+        description: Externally issued and V2.6 host-signed controller handoff JSON; required only for release.
         required: false
         type: string
 
@@ -119,11 +119,11 @@ jobs:
           PYTHONPATH="${VALIDATOR_PYTHON_PREFIX}" python3 -c \
             'from jsonschema import Draft202012Validator'
           echo "PYTHONPATH=${VALIDATOR_PYTHON_PREFIX}${PYTHONPATH:+:${PYTHONPATH}}" >> "${GITHUB_ENV}"
-      - name: Detect the explicit V2.52 workflow phase
+      - name: Detect the explicit V2.6 workflow phase
         id: release-version
         run: |
           product_version="$(tr -d '[:space:]' < VERSION)"
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.workflow_phase }}" = "release" ] && [ "${product_version}" = "V2.52" ]; then
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.workflow_phase }}" = "release" ] && [ "${product_version}" = "V2.6" ]; then
             echo "release=true" >> "${GITHUB_OUTPUT}"
           else
             echo "release=false" >> "${GITHUB_OUTPUT}"
@@ -160,7 +160,7 @@ jobs:
               json.dumps(value, ensure_ascii=False, sort_keys=True), encoding="utf-8"
           )
           PY
-      - name: Materialize the externally issued V2.51 controller handoff
+      - name: Materialize the externally issued V2.6 controller handoff
         id: controller_handoff
         if: steps.release-version.outputs.release == 'true'
         env:
@@ -278,7 +278,7 @@ jobs:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
           python3 scripts/release/build-release.py \
-            --version V2.52 \
+            --version V2.6 \
             --commit "${GITHUB_SHA}" \
             --source-ref "${GITHUB_REF}" \
             --output-root release/versions \
@@ -290,7 +290,7 @@ jobs:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
           python3 scripts/release/skill_release.py validate \
-            --version V2.52 \
+            --version V2.6 \
             --commit "${GITHUB_SHA}" \
             --release-root release/versions \
             --build-receipt "${RUNNER_TEMP}/s2-build.json" \
@@ -334,7 +334,7 @@ jobs:
 
           temp = Path(os.environ["RUNNER_TEMP"])
           receipt = json.loads((temp / "asset-validation.json").read_text(encoding="utf-8"))
-          release_root = Path("release/versions/V2.52").resolve()
+          release_root = Path("release/versions/V2.6").resolve()
           bundle = temp / "release-bundle"
           bundle.mkdir()
           for name, source in receipt["public_asset_sources"].items():
@@ -417,7 +417,7 @@ jobs:
           PY
           }
           if ! python3 scripts/release/skill_release.py preflight \
-            --version V2.52 \
+            --version V2.6 \
             --commit "${GITHUB_SHA}" \
             --project-size "${{ inputs.project_size }}" \
             --authorization-receipt "${RUNNER_TEMP}/authorization.json" \
@@ -430,7 +430,7 @@ jobs:
             exit 1
           fi
           if ! python3 scripts/release/skill_release.py plan-s4 \
-            --version V2.52 \
+            --version V2.6 \
             --commit "${GITHUB_SHA}" \
             --release-control-receipt "${RUNNER_TEMP}/preflight-output.json" \
             > "${RUNNER_TEMP}/plan-output.json"; then
@@ -461,11 +461,11 @@ jobs:
         id: asset_verify
         if: steps.release-version.outputs.release == 'true'
         run: |
-          test -f "release/versions/V2.52/_artifacts/goal-teams-V2.52.tar.gz"
-          test -f "release/versions/V2.52/_artifacts/SHA256SUMS"
-          test -f "release/versions/V2.52/_release.json"
-          test -f "release/versions/V2.52/_files.sha256"
-          cd "release/versions/V2.52/_artifacts"
+          test -f "release/versions/V2.6/_artifacts/goal-teams-V2.6.tar.gz"
+          test -f "release/versions/V2.6/_artifacts/SHA256SUMS"
+          test -f "release/versions/V2.6/_release.json"
+          test -f "release/versions/V2.6/_files.sha256"
+          cd "release/versions/V2.6/_artifacts"
           sha256sum -c SHA256SUMS
       - name: Stage exact receipts for cross-job S4 continuation without rebuilding
         id: stage_receipts
@@ -473,8 +473,8 @@ jobs:
         env:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
-          receipt_root="release/versions/V2.52/_receipts"
-          diagnostic_root="release/versions/V2.52/_diagnostics"
+          receipt_root="release/versions/V2.6/_receipts"
+          diagnostic_root="release/versions/V2.6/_diagnostics"
           mkdir -p "${receipt_root}" "${diagnostic_root}/observed_outputs"
           formal_receipt_names=(
             authorization.json
@@ -518,7 +518,7 @@ jobs:
             checkpoint_source_root="${RUNNER_TEMP}"
           fi
           python3 scripts/release/skill_release.py checkpoint \
-            --version V2.52 \
+            --version V2.6 \
             --commit "${GITHUB_SHA}" \
             --project-size "${{ inputs.project_size }}" \
             --job-status "${checkpoint_job_status}" \
@@ -562,7 +562,7 @@ jobs:
               "${diagnostic_root}/checkpoint-output.json" \
               "${receipt_root}/_checkpoint.json"
             python3 scripts/release/skill_release.py verify-checkpoint \
-              --version V2.52 \
+              --version V2.6 \
               --commit "${GITHUB_SHA}" \
               --checkpoint-receipt "${receipt_root}/_checkpoint.json" \
               --receipt-root "${receipt_root}" \
@@ -583,11 +583,11 @@ jobs:
         with:
           name: goal-teams-v250-release-${{ github.sha }}
           path: |
-            release/versions/V2.52/_artifacts/goal-teams-V2.52.tar.gz
-            release/versions/V2.52/_artifacts/SHA256SUMS
-            release/versions/V2.52/_release.json
-            release/versions/V2.52/_files.sha256
-            release/versions/V2.52/_receipts/
+            release/versions/V2.6/_artifacts/goal-teams-V2.6.tar.gz
+            release/versions/V2.6/_artifacts/SHA256SUMS
+            release/versions/V2.6/_release.json
+            release/versions/V2.6/_files.sha256
+            release/versions/V2.6/_receipts/
           if-no-files-found: error
           compression-level: 0
           retention-days: 30
@@ -600,7 +600,7 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: goal-teams-v250-diagnostic-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
-          path: release/versions/V2.52/_diagnostics/
+          path: release/versions/V2.6/_diagnostics/
           if-no-files-found: error
           compression-level: 0
           retention-days: 30

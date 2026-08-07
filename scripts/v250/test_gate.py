@@ -1,4 +1,4 @@
-"""V2.52 current-generation test-gate primitives.
+"""V2.6 current-generation test-gate primitives.
 
 This module deliberately keeps routing, immutable test receipts, and lightweight
 policy checks in one dependency-free place.  It does not execute domain tests;
