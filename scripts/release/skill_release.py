@@ -1044,6 +1044,11 @@ def validate_existing_asset_set(
         validation = json.loads(result.stdout)
     except json.JSONDecodeError:
         validation = {}
+    validator_errors = validation.get("errors") if isinstance(validation, dict) else []
+    if not isinstance(validator_errors, list) or not all(
+        isinstance(error, str) for error in validator_errors
+    ):
+        validator_errors = []
     if result.returncode != 0 or validation.get("passed") is not True:
         raise SkillReleaseError(
             _version_error(version, "SAME_ASSET_INTEGRITY_VALIDATION"),
@@ -1055,6 +1060,7 @@ def validate_existing_asset_set(
             asset_build_invocation_count=0,
             validator_returncode=result.returncode,
             validator_output_sha256=hashlib.sha256(output).hexdigest(),
+            validator_errors=validator_errors,
         )
     validation_receipt = {
         "schema_version": f"goal-teams-{lower}-same-asset-validation-receipt-v1",

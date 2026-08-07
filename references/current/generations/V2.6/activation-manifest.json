@@ -3,7 +3,7 @@
   "generation_id": "V2.6",
   "generation_state": "active",
   "baseline_generation_id": "V2.48",
-  "manifest_payload_sha256": "0cba8ca266ce7f12c95fdf04784a08e9f4a8251f23557113d7681e70ecc69349",
+  "manifest_payload_sha256": "b5a19fdafac9fa9acf7f9ba22b5a9e4297a950771e17dc62d5a3d8b698437017",
   "identity": {
     "loaded_runtime_product_version": "V2.6",
     "route_contract_schema_version": "goal-teams-project-route-v2.50",
@@ -247,8 +247,8 @@
       },
       {
         "path": "release/current/manifest.json",
-        "sha256": "d7913c6c4d073e5845ddbd6be5416279b6e8b5c85913e30e4238296ca7de1419",
-        "bytes": 1547
+        "sha256": "282fc8aaff8fe48b452a57b69ca8343ec08e147c08252eded07dbe9215d96977",
+        "bytes": 2165
       },
       {
         "path": "scripts/check.sh",
@@ -327,8 +327,8 @@
       },
       {
         "path": "scripts/release/skill_release.py",
-        "sha256": "d5d44c2255914a01fb2f1717dce91f4fbe6a970657799d9e517699d427ecd5d9",
-        "bytes": 89341
+        "sha256": "705337d98e583d989f856a937903cd2f7656ee5327be5657b8023f2f21dcea8c",
+        "bytes": 89632
       },
       {
         "path": "scripts/release/validate-release.py",
@@ -587,8 +587,8 @@
       },
       {
         "path": "tests/v250/test_release_runtime_support.py",
-        "sha256": "bfb84ce9b04e35e1be7710fbe8e497a634dad673e04ecfce7c691fa6ce236506",
-        "bytes": 9620
+        "sha256": "147129b9538397d25fd7aa9dda11abeab5272f10a30e6dbab109e457f4e36637",
+        "bytes": 11956
       },
       {
         "path": "tests/v250/test_release_security_review.py",
@@ -672,8 +672,8 @@
       },
       {
         "path": "tests/v250/test_workflow_release_contract.py",
-        "sha256": "2b3796e496dc4d5bec41722fbb84a0abdcb1bd37963fdb9b0a13228546a0341d",
-        "bytes": 21228
+        "sha256": "e757deb22da0e89eb74c8daff2fbdefbb617e749815c1c51edbe4f3ae1cf10df",
+        "bytes": 21577
       },
       {
         "path": "tests/v26/__init__.py",

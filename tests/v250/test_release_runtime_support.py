@@ -5,6 +5,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
@@ -94,6 +95,15 @@ class V250ReleaseRuntimeSupportTests(unittest.TestCase):
             "invalid",
             validator.release_projection_state(
                 "V2.6", candidate, allow_candidate=False
+            ),
+        )
+        current = json.loads(
+            (ROOT / "release/current/manifest.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            "candidate",
+            validator.release_projection_state(
+                "V2.6", current, allow_candidate=True
             ),
         )
 
@@ -216,6 +226,57 @@ class V250ReleaseRuntimeSupportTests(unittest.TestCase):
         self.assertEqual("V2.52", profile["published_before"])
         self.assertEqual("codex/develop-v2.6", profile["candidate_branch"])
         self.assertEqual("ssh_only", profile["git_transport"])
+
+    def test_same_asset_failure_preserves_validator_errors(self) -> None:
+        record = {
+            "version": "V2.6",
+            "source_commit": SOURCE,
+            "source_git_tree_id": TREE,
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            release_root = Path(directory)
+            snapshot = release_root / "V2.6"
+            artifacts = snapshot / "_artifacts"
+            artifacts.mkdir(parents=True)
+            (snapshot / "_release.json").write_text(
+                json.dumps(record), encoding="utf-8"
+            )
+            (snapshot / "_files.sha256").write_text("files\n", encoding="utf-8")
+            (artifacts / "SHA256SUMS").write_text("sums\n", encoding="utf-8")
+            (artifacts / "goal-teams-V2.6.tar.gz").write_bytes(b"asset")
+            validation = {
+                "passed": False,
+                "errors": ["V2.6: current release manifest is not final"],
+            }
+            with (
+                mock.patch.object(
+                    skill_release,
+                    "_read_identity",
+                    return_value={
+                        "source_commit": SOURCE,
+                        "source_git_tree": TREE,
+                    },
+                ),
+                mock.patch.object(
+                    skill_release.subprocess,
+                    "run",
+                    return_value=SimpleNamespace(
+                        returncode=1,
+                        stdout=json.dumps(validation),
+                        stderr="",
+                    ),
+                ),
+                self.assertRaises(skill_release.SkillReleaseError) as caught,
+            ):
+                skill_release.validate_existing_asset_set(
+                    "V2.6",
+                    SOURCE,
+                    release_root=release_root,
+                    build_receipt={"built": [record]},
+                )
+        self.assertEqual(
+            validation["errors"], caught.exception.receipt["validator_errors"]
+        )
 
     def test_security_external_anchor_paths_follow_the_frozen_manifest(self) -> None:
         manifest = json.loads(
