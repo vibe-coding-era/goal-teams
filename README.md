@@ -5,10 +5,8 @@
 作者：肉山@TGO 杭州
 
 <!-- goal-teams-release:start -->
-当前发行：**V2.51** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.51) · [发行说明](release/current/README.md)
+当前发行：**V2.52** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.52) · [发行说明](release/current/README.md)
 <!-- goal-teams-release:end -->
-
-V2.52 当前是待发布候选：项目改用 MIT License 完全开源；所有执行型 LOOP 第一轮先建立 TaskList、分配任务并由独立成员检查环境；中大型或用户指定的开发环境优先复用，不能复用时使用版本化 develop 分支。
 
 Goal Teams 是一个跨 CodeAgent 的团队协作 AgentTeams Skill，Codex 是当前可用宿主之一。它会以一个 Goal Lead 的身份，把目标拆成可验证计划，再协调独立成员完成需求、设计、实现、测试、Evidence 和收尾审计，过程中会应用到：
 - 应用 Goal + Plan + Loop 模式，能够保持长时间完成任务；

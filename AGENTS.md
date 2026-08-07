@@ -22,7 +22,7 @@
 - 产品版本：`V2.52`。
 - 通用核心策略：`V2.5`。
 - Legacy 机器数据 schema：`V2.3`。
-- `VERSION`、根/包装 Skill、README、release profile、release/current 与启动语必须同步；不得混用三种版本身份。
+- `VERSION`、根/包装 Skill、release profile、release/current 与启动语必须同步；不得混用三种版本身份。根 `README.md` 与 `README.en.md` 仅允许人类维护，AI 不得更新。
 - `SKILL.md` frontmatter 只保留 `name` 和 `description`。
 
 ## Owner 文件
@@ -96,6 +96,7 @@ python3 scripts/v250/runtime_host_adapter.py launch --stage released \
 ## 风格与状态
 
 - 默认中文；英文 README 与中文 README 信息等价。命令、路径、API、配置键保留原文。
+- 根 `README.md` 与 `README.en.md` 为人类维护内容；AI 不得修改其正文、发行标记或版本说明。版本技术事实只记录在 `CHANGELOG.md`、`release/current/` 与正式发行快照中。
 - 不新增未验证的 runtime 能力，不把结构检查写成行为或宿主证明。
 - 用户可见回复只输出 `任务、成员、进度、结果、Banchmark`，以及恰好二选一的 `下一轮 LOOP` 或 `下一个任务`。
 - `not_run|not_required|blocked|failed|stale|invalid` 保持真实；候选、合并、Release、安装与外部验收不得混写。
