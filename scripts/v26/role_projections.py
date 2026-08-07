@@ -39,7 +39,7 @@ def _render(target: dict[str, Any], role: dict[str, Any], portable_core_ref: str
     if format_name == "toml":
         return f'name = "{role_id}"\ndescription = "V2.6 thin compatibility projection for {role_id}"\ncanonical_ref = "{canonical_ref}"\nportable_core_ref = "{portable_core_ref}"\n'
     if format_name == "markdown":
-        return f"---\nname: {role_id}\ncanonical_ref: {canonical_ref}\nportable_core_ref: {portable_core_ref}\n---\n\n# {role_id}\n\nThin V2.6 host projection; canonical role content is loaded from `canonical_ref`.\n"
+        return f"---\ntype: Goal Teams Host Role Projection\ntitle: V2.6 {role_id} Claude Code Projection\ndescription: Thin Claude Code projection for the canonical {role_id} compatibility role.\ntimestamp: 2026-08-07T00:00:00+08:00\nokf_version: \"0.1\"\nname: {role_id}\ncanonical_ref: {canonical_ref}\nportable_core_ref: {portable_core_ref}\n---\n\n# {role_id}\n\nThin V2.6 host projection; canonical role content is loaded from `canonical_ref`.\n"
     raise ValueError(f"E_V26_PROJECTION_FORMAT:{path}")
 
 
