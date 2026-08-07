@@ -1,8 +1,6 @@
 # Changelog
 
-## Unreleased
-
-### V2.52
+## V2.52 — 2026-08-07
 
 - Replaced the limited source-available terms with the OSI-approved MIT License, granting unrestricted use, copying, modification, distribution, sublicensing, and sale subject to the license notice.
 - Made the first round of every execution LOOP establish the TaskList, assign Owners/Validators, and run an independent environment preflight before implementation.

@@ -9,6 +9,11 @@
 - 规则按功能模板组织，测试用例、门禁、合同、Evidence 与 Completion 有单一 Owner，不随产品版本重复复制。
 - 先简化复杂度，再逐步删除历史；迁移首轮零删除，Legacy 只保留可复盘 fixture 和显式 runner。
 
+## README 人类维护边界
+
+- 根 `README.md` 与 `README.en.md` 只允许人类更新；AI 不得修改其正文、发行标记或版本说明。
+- 版本技术事实、候选状态与发行说明仅记录在 `CHANGELOG.md`、`release/current/` 和正式发行快照中。
+
 ## 流程
 
 - 所有非 Discussion、非 `plan_preview` LOOP 的第一轮先建立 TaskList、分配任务并由独立成员检查环境，未闭合前不进入实现。

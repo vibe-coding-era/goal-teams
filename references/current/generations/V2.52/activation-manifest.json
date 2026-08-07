@@ -3,7 +3,7 @@
   "generation_id": "V2.52",
   "generation_state": "active",
   "baseline_generation_id": "V2.48",
-  "manifest_payload_sha256": "94e1de69fbd19b61a4e9973c8a20eb877ed418dfb2d4582c0579dbc7a1a8dae5",
+  "manifest_payload_sha256": "36943ac579cefdf922e16f71680b2aa31c105e54ca5f8b50c9ff914d2e3fbb28",
   "identity": {
     "loaded_runtime_product_version": "V2.52",
     "route_contract_schema_version": "goal-teams-project-route-v2.50",
@@ -18,8 +18,8 @@
       },
       {
         "path": "AGENTS.md",
-        "sha256": "cd074ff106d941a9955f27e6898a9ba8f258762e88679eeb5e848d8c0113cf17",
-        "bytes": 6786
+        "sha256": "331cd4f4bcaaed59e63fb2d5b2abf3cdc0a82cb5580660f0487c70a59f315b3e",
+        "bytes": 7067
       },
       {
         "path": "RULES.md",
@@ -43,8 +43,8 @@
       },
       {
         "path": "goal-teams.md",
-        "sha256": "fb0ade19a59a1d90389161f7ef09479942c40d0d79b18b66dfb441e6d0469d66",
-        "bytes": 5700
+        "sha256": "f2a68cfc2bce327e3e5e3bea0fbc0f37fcba16fe820c401e4ef9e8abdcef971e",
+        "bytes": 5977
       },
       {
         "path": "references/current/generations/V2.52/INDEX.md",
@@ -182,8 +182,8 @@
     "execution": [
       {
         "path": "release/current/manifest.json",
-        "sha256": "993815675be50fd8553a248f751a3ecf5d0a552ddfd1a80cd4ab8508380df7fe",
-        "bytes": 1588
+        "sha256": "d7913c6c4d073e5845ddbd6be5416279b6e8b5c85913e30e4238296ca7de1419",
+        "bytes": 1547
       },
       {
         "path": "scripts/check.sh",

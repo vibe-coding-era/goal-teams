@@ -5,10 +5,8 @@
 Author: 肉山@TGO Hangzhou
 
 <!-- goal-teams-release:start -->
-Current release: **V2.51** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.51) · [release/current/README.md](release/current/README.md)
+Current release: **V2.52** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.52) · [release/current/README.md](release/current/README.md)
 <!-- goal-teams-release:end -->
-
-V2.52 is an unreleased candidate. The project is now fully open source under the MIT License. Every execution LOOP starts by creating the TaskList, assigning work, and running an independent environment check; medium/large or user-requested development environments are reused when current and compatible, otherwise they use a versioned develop branch.
 
 Goal Teams is an AgentTeams Skill for team collaboration across CodeAgents, with Codex as one of the currently available hosts. It operates as a Goal Lead: it breaks a goal into a verifiable plan, then coordinates independent members to complete requirements, design, implementation, testing, Evidence, and completion audits. Along the way, it:
 

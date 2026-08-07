@@ -1,10 +1,10 @@
-# Goal Teams V2.51 Release / V2.52 Candidate
+# Goal Teams V2.52 Release
 
-V2.51 is the current published GitHub Release. V2.52 is an unreleased candidate and does not become current until its tag, four public assets, remote readback, and formal installation have completed.
+V2.52 is the current published GitHub Release. Its annotated tag, fixed four public assets, remote readback, and formal local installation have completed.
 
-The V2.52 candidate is fully open source under the OSI-approved MIT License. It keeps the V2.5 execution protocol and adds a machine-checkable first-round LOOP bootstrap plus independent development-environment reuse and version-branch rules.
+V2.52 is fully open source under the OSI-approved MIT License. It keeps the V2.5 execution protocol and adds a machine-checkable first-round LOOP bootstrap plus independent development-environment reuse and version-branch rules.
 
-## V2.52 candidate changes
+## V2.52 changes
 
 - Replaced the limited source-available terms with the MIT License, allowing use, copying, modification, distribution, sublicensing, and sale subject to the license notice.
 - Every execution LOOP first establishes TaskList state, task assignments, and an independent environment preflight before implementation.
@@ -15,7 +15,7 @@ The V2.52 candidate is fully open source under the OSI-approved MIT License. It 
 
 ## Public assets
 
-If V2.52 passes Release Readiness, its fixed public set will be:
+The fixed public set is:
 
 - `goal-teams-V2.52.tar.gz`
 - `SHA256SUMS`
@@ -23,6 +23,11 @@ If V2.52 passes Release Readiness, its fixed public set will be:
 - `_files.sha256`
 
 No `docs/`, `develops/`, local Evidence, credentials, or optional Replay supplement is part of the default asset.
+
+## Completion telemetry
+
+- Tokens consumed: Unavailable / 未获取到
+- Cache hit rate: Unavailable / 未获取到
 
 ## Assurance boundary
 
