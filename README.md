@@ -8,7 +8,7 @@
 当前发行：**V2.6** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.6) · [发行说明](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-Goal Teams 是一个跨 CodeAgent 的团队协作 AgentTeams Skill，Codex 是当前可用宿主之一。它会以一个 Goal Lead 的身份，把目标拆成可验证计划，再协调独立成员完成需求、设计、实现、测试、Evidence 和收尾审计，过程中会应用到：
+Goal Teams 是一个跨 CodeAgent 的团队协作 AgentTeams Skill，支持多 CodeAgent 及 LLM ，特别针对 Codex / Claude Code / K3 + kimicode / DeepSeek V4 做为优化兼容。它会以一个 Goal Lead 的身份，把目标拆成可验证计划，再协调独立成员完成需求、设计、实现、测试、Evidence 和收尾审计，过程中会应用到：
 - 应用 Goal + Plan + Loop 模式，能够保持长时间完成任务；
 - 构建和严格遵循 SPEC + Harness + SSOT 三大原则，保持过程严谨性及 提升 LLM 缓存命中率；
 - 不同角色使用不同的 Subagent（不同上下文执行）保持上下文独立性不被污染，同时任务并发执行；
@@ -16,9 +16,9 @@ Goal Teams 是一个跨 CodeAgent 的团队协作 AgentTeams Skill，Codex 是�
 - 有完备的开发团队，也能够与 OpenSpec 和 Superpowers 这类共存；
 - 沉淀大量的脚本，减少 LLM Tokens 消耗；
 - 会根据你的需求类型，自动判断或人工选择相应的流程：
-1. 小型需求/BugFix，只做简单设计和 TDD；
-2. 中型项目，相对完整的产品、原型、架构、TDD、开发、增量测试，是否需要全量回归，需要人工确认；
-3. 大型系统，完整的走全量流程及门禁，包括质量、安全审计；
+ 1. 小型需求/BugFix，只做简单设计、TDD、增量；
+ 2. 中型项目，相对完整的产品、原型、架构、TDD、开发、增量测试，是否需要全量回归，需要人工确认；
+ 3. 大型系统，完整的走全量流程及门禁，包括质量、安全审计；
 
 
 ## 核心机制
