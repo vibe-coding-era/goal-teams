@@ -492,6 +492,8 @@ jobs:
             s4-authorized-operation-plan.json
           )
           diagnostic_output_names=(
+            s2-build.json
+            asset-validation.json
             preflight-output.json
             plan-output.json
           )

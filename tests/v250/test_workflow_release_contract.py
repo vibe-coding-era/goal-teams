@@ -258,6 +258,13 @@ class TestReleaseWorkflowSequence(unittest.TestCase):
         self.assertIn("scripts/release/skill_release.py checkpoint", workflow)
         self.assertIn("scripts/release/skill_release.py verify-checkpoint", workflow)
         self.assertIn('> "${diagnostic_root}/checkpoint-output.json"', workflow)
+        diagnostic_outputs = workflow[
+            workflow.index("diagnostic_output_names=(") : workflow.index(
+                "checkpoint_job_status=", workflow.index("diagnostic_output_names=(")
+            )
+        ]
+        self.assertIn("s2-build.json", diagnostic_outputs)
+        self.assertIn("asset-validation.json", diagnostic_outputs)
         self.assertNotIn('> "${diagnostic_root}/_checkpoint.json"', workflow)
         self.assertNotIn('"${diagnostic_root}/_checkpoint.json"', workflow)
         self.assertIn("steps.stage_receipts.outputs.checkpoint_state == 'ready_for_s4'", workflow)
