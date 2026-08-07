@@ -1,1 +1,1 @@
-"""V2.52 current-generation contract tests."""
+"""V2.6 current-generation contract tests."""

@@ -1,4 +1,4 @@
-"""V2.52 first-round LOOP bootstrap planning and receipt validation."""
+"""V2.6 first-round LOOP bootstrap planning and receipt validation."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ ENVIRONMENT_MODE = "environment_preflight"
 
 
 class LoopBootstrapError(ValueError):
-    """Fail-closed error with a stable V2.52 contract code."""
+    """Fail-closed error with a stable V2.6 contract code."""
 
     def __init__(self, code: str, message: str) -> None:
         super().__init__(message)
@@ -20,14 +20,14 @@ class LoopBootstrapError(ValueError):
 
 def _required_text(value: object, field: str) -> str:
     if not isinstance(value, str) or not value.strip():
-        raise LoopBootstrapError("E_V252_LOOP_FACTS", f"{field} must be non-empty")
+        raise LoopBootstrapError("E_V26_LOOP_FACTS", f"{field} must be non-empty")
     return value.strip()
 
 
 def _logical_version_branch(product_version: str) -> str:
     if not product_version.startswith("V") or len(product_version) < 2:
         raise LoopBootstrapError(
-            "E_V252_LOOP_FACTS", "product_version must use V<major.minor>"
+            "E_V26_LOOP_FACTS", "product_version must use V<major.minor>"
         )
     return f"develop-v{product_version[1:].lower()}"
 
@@ -42,11 +42,11 @@ def plan_loop_round(facts: Mapping[str, Any]) -> dict[str, Any]:
 
     round_number = facts.get("round")
     if not isinstance(round_number, int) or isinstance(round_number, bool) or round_number < 1:
-        raise LoopBootstrapError("E_V252_LOOP_FACTS", "round must be a positive integer")
+        raise LoopBootstrapError("E_V26_LOOP_FACTS", "round must be a positive integer")
 
     plan_preview = facts.get("plan_preview", False)
     if not isinstance(plan_preview, bool):
-        raise LoopBootstrapError("E_V252_LOOP_FACTS", "plan_preview must be boolean")
+        raise LoopBootstrapError("E_V26_LOOP_FACTS", "plan_preview must be boolean")
     if plan_preview:
         return {
             "loop_id": _required_text(facts.get("loop_id"), "loop_id"),
@@ -59,7 +59,7 @@ def plan_loop_round(facts: Mapping[str, Any]) -> dict[str, Any]:
         receipt_ref = facts.get("bootstrap_receipt_ref")
         if not isinstance(receipt_ref, str) or not receipt_ref.strip():
             raise LoopBootstrapError(
-                "E_V252_LOOP_BOOTSTRAP_RECEIPT_REQUIRED",
+                "E_V26_LOOP_BOOTSTRAP_RECEIPT_REQUIRED",
                 "later rounds must reference the first-round bootstrap receipt",
             )
         return {
@@ -72,7 +72,7 @@ def plan_loop_round(facts: Mapping[str, Any]) -> dict[str, Any]:
     project_size = facts.get("project_size")
     if project_size not in PROJECT_SIZES:
         raise LoopBootstrapError(
-            "E_V252_LOOP_FACTS", "project_size must be small, medium, or large"
+            "E_V26_LOOP_FACTS", "project_size must be small, medium, or large"
         )
     product_version = _required_text(facts.get("product_version"), "product_version")
     source_commit = _required_text(facts.get("source_commit"), "source_commit")
@@ -84,12 +84,12 @@ def plan_loop_round(facts: Mapping[str, Any]) -> dict[str, Any]:
     )
     namespace = facts.get("branch_namespace", "codex")
     if not isinstance(namespace, str):
-        raise LoopBootstrapError("E_V252_LOOP_FACTS", "branch_namespace must be text")
+        raise LoopBootstrapError("E_V26_LOOP_FACTS", "branch_namespace must be text")
     namespace = namespace.strip().strip("/")
     user_requested = facts.get("environment_check_requested", False)
     if not isinstance(user_requested, bool):
         raise LoopBootstrapError(
-            "E_V252_LOOP_FACTS", "environment_check_requested must be boolean"
+            "E_V26_LOOP_FACTS", "environment_check_requested must be boolean"
         )
 
     formal_check = project_size in {"medium", "large"} or user_requested
@@ -106,7 +106,7 @@ def plan_loop_round(facts: Mapping[str, Any]) -> dict[str, Any]:
     if existing is not None:
         if not isinstance(existing, Mapping):
             raise LoopBootstrapError(
-                "E_V252_LOOP_FACTS", "existing_environment must be an object or null"
+                "E_V26_LOOP_FACTS", "existing_environment must be an object or null"
             )
         if existing.get("current") is not True:
             reuse_rejected_reasons.append("not_current")
@@ -155,7 +155,7 @@ def validate_loop_bootstrap_receipt(receipt: Mapping[str, Any]) -> dict[str, Any
     expected_steps = ["tasklist", "task_assignment", "environment_preflight"]
     if not isinstance(events, list) or len(events) < len(expected_steps):
         raise LoopBootstrapError(
-            "E_V252_LOOP_BOOTSTRAP_ORDER",
+            "E_V26_LOOP_BOOTSTRAP_ORDER",
             "bootstrap_events must prove TaskList, assignment, then environment preflight",
         )
     steps: list[object] = []
@@ -163,7 +163,7 @@ def validate_loop_bootstrap_receipt(receipt: Mapping[str, Any]) -> dict[str, Any
     for event in events[: len(expected_steps)]:
         if not isinstance(event, Mapping):
             raise LoopBootstrapError(
-                "E_V252_LOOP_BOOTSTRAP_ORDER", "bootstrap event must be an object"
+                "E_V26_LOOP_BOOTSTRAP_ORDER", "bootstrap event must be an object"
             )
         steps.append(event.get("step"))
         revisions.append(event.get("revision"))
@@ -172,14 +172,14 @@ def validate_loop_bootstrap_receipt(receipt: Mapping[str, Any]) -> dict[str, Any
         for revision in revisions
     ) or revisions != sorted(set(revisions)):
         raise LoopBootstrapError(
-            "E_V252_LOOP_BOOTSTRAP_ORDER",
+            "E_V26_LOOP_BOOTSTRAP_ORDER",
             "bootstrap event steps and revisions must be strictly ordered",
         )
 
     required_flags = (
-        ("tasklist_created", "E_V252_LOOP_ROUND_ONE_TASKLIST"),
-        ("tasks_assigned", "E_V252_LOOP_ROUND_ONE_ASSIGNMENT"),
-        ("environment_checked", "E_V252_LOOP_ROUND_ONE_ENVIRONMENT_CHECK"),
+        ("tasklist_created", "E_V26_LOOP_ROUND_ONE_TASKLIST"),
+        ("tasks_assigned", "E_V26_LOOP_ROUND_ONE_ASSIGNMENT"),
+        ("environment_checked", "E_V26_LOOP_ROUND_ONE_ENVIRONMENT_CHECK"),
     )
     for field, code in required_flags:
         if receipt.get(field) is not True:
@@ -187,7 +187,7 @@ def validate_loop_bootstrap_receipt(receipt: Mapping[str, Any]) -> dict[str, Any
 
     if receipt.get("checker_agent_type") != ENVIRONMENT_CHECKER:
         raise LoopBootstrapError(
-            "E_V252_ENV_CHECKER_INDEPENDENT",
+            "E_V26_ENV_CHECKER_INDEPENDENT",
             "environment preflight must be owned by goal_release_engineer",
         )
     checker_run = _required_text(receipt.get("checker_run_id"), "checker_run_id")
@@ -199,23 +199,23 @@ def validate_loop_bootstrap_receipt(receipt: Mapping[str, Any]) -> dict[str, Any
     }
     if checker_run in disallowed_runs:
         raise LoopBootstrapError(
-            "E_V252_ENV_CHECKER_INDEPENDENT",
+            "E_V26_ENV_CHECKER_INDEPENDENT",
             "environment checker run must differ from Lead and implementation owner",
         )
 
     project_size = receipt.get("project_size")
     if project_size not in PROJECT_SIZES:
-        raise LoopBootstrapError("E_V252_LOOP_FACTS", "invalid project_size")
+        raise LoopBootstrapError("E_V26_LOOP_FACTS", "invalid project_size")
     product_version = _required_text(receipt.get("product_version"), "product_version")
     namespace = receipt.get("branch_namespace", "codex")
     if not isinstance(namespace, str):
-        raise LoopBootstrapError("E_V252_LOOP_FACTS", "branch_namespace must be text")
+        raise LoopBootstrapError("E_V26_LOOP_FACTS", "branch_namespace must be text")
     namespace = namespace.strip().strip("/")
     if project_size != "small" and receipt.get(
         "development_branch"
     ) != _namespaced_branch(product_version, namespace):
         raise LoopBootstrapError(
-            "E_V252_DEVELOPMENT_BRANCH",
+            "E_V26_DEVELOPMENT_BRANCH",
             "non-Small environment must bind the exact versioned develop branch",
         )
     if project_size == "small" and receipt.get("development_branch") not in {
@@ -223,26 +223,26 @@ def validate_loop_bootstrap_receipt(receipt: Mapping[str, Any]) -> dict[str, Any
         "not_required",
     }:
         raise LoopBootstrapError(
-            "E_V252_DEVELOPMENT_BRANCH",
+            "E_V26_DEVELOPMENT_BRANCH",
             "Small may omit the versioned develop branch",
         )
 
     action = receipt.get("environment_action")
     if receipt.get("compatible_existing_environment") is True and action != "reuse":
         raise LoopBootstrapError(
-            "E_V252_EXISTING_ENV_REUSE_REQUIRED",
+            "E_V26_EXISTING_ENV_REUSE_REQUIRED",
             "a compatible current environment must be reused",
         )
     if action not in {"reuse", "create"}:
         raise LoopBootstrapError(
-            "E_V252_LOOP_FACTS", "environment_action must be reuse or create"
+            "E_V26_LOOP_FACTS", "environment_action must be reuse or create"
         )
 
     if action == "reuse":
         reused = receipt.get("reused_environment")
         if not isinstance(reused, Mapping):
             raise LoopBootstrapError(
-                "E_V252_EXISTING_ENV_IDENTITY",
+                "E_V26_EXISTING_ENV_IDENTITY",
                 "reuse receipt must include the observed environment identity",
             )
         expected_identity = {
@@ -259,7 +259,7 @@ def validate_loop_bootstrap_receipt(receipt: Mapping[str, Any]) -> dict[str, Any
         }
         if any(reused.get(field) != value for field, value in expected_identity.items()):
             raise LoopBootstrapError(
-                "E_V252_EXISTING_ENV_IDENTITY",
+                "E_V26_EXISTING_ENV_IDENTITY",
                 "reused environment identity must exactly match the receipt baseline",
             )
 

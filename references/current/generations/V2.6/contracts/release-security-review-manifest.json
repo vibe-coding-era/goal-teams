@@ -1,0 +1,298 @@
+{
+  "schema_version": "goal-teams-v2.6-release-security-review-v2",
+  "generation_id": "V2.6",
+  "gate_id": "release_security_review",
+  "denominator_id": "V250-RELEASE-SECURITY-IMPLEMENTATION",
+  "workflow_phase": "release",
+  "stage": "released",
+  "required": true,
+  "independent_reviewer_required": true,
+  "implementation_member_may_self_approve": false,
+  "fresh_separate_process_required": true,
+  "minimum_actor_assurance": "I1",
+  "actor_relationship": "correlated",
+  "external_independence_required": false,
+  "independence_claim": false,
+  "unknown_or_missing_policy": "fail_closed",
+  "binding_fields": [
+    "source_commit",
+    "source_tree",
+    "identity_binding",
+    "review_denominator",
+    "reviewed_files",
+    "reviewed_file_set_sha256",
+    "reviewer_identity",
+    "review_run_id",
+    "check_state",
+    "evidence_state"
+  ],
+  "accepted_check_state": "passed",
+  "accepted_evidence_state": "current",
+  "invocation_limit_per_released_identity": 1,
+  "s2_security_substitute": false,
+  "runner_path": "scripts/checks/run-v250-release-security-review.py",
+  "required_categories": [
+    "boundary",
+    "command_execution",
+    "contract",
+    "dependency",
+    "git_ssh",
+    "installer",
+    "packaging",
+    "release_checker",
+    "release_flow",
+    "runtime",
+    "s4",
+    "security_review_runner",
+    "workflow"
+  ],
+  "review_targets": [
+    {
+      "path": ".github/workflows/check.yml",
+      "content_kind": "yaml",
+      "categories": ["command_execution", "dependency", "git_ssh", "workflow"]
+    },
+    {
+      "path": ".github/workflows/release-gate.yml",
+      "content_kind": "yaml",
+      "categories": ["command_execution", "dependency", "git_ssh", "workflow"]
+    },
+    {
+      "path": "references/current/generations/V2.6/contracts/public-asset-map.json",
+      "content_kind": "json",
+      "categories": ["contract", "packaging"]
+    },
+    {
+      "path": "references/current/generations/V2.6/contracts/release-command-manifest.json",
+      "content_kind": "json",
+      "categories": ["command_execution", "contract", "release_flow"]
+    },
+    {
+      "path": "references/current/generations/V2.6/contracts/release-route-manifest.json",
+      "content_kind": "json",
+      "categories": ["contract", "release_flow"]
+    },
+    {
+      "path": "references/current/generations/V2.6/contracts/release-security-review-manifest.json",
+      "content_kind": "json",
+      "categories": ["contract", "security_review_runner"]
+    },
+    {
+      "path": "schemas/v2.50/project-route.schema.json",
+      "content_kind": "json",
+      "categories": ["contract", "release_flow"]
+    },
+    {
+      "path": "schemas/v2.50/release-control.schema.json",
+      "content_kind": "json",
+      "categories": ["contract", "release_flow", "s4"]
+    },
+    {
+      "path": "scripts/checks/check-package-manifest.py",
+      "content_kind": "python",
+      "categories": ["boundary", "packaging"]
+    },
+    {
+      "path": "scripts/checks/check-v250.py",
+      "content_kind": "python",
+      "categories": ["command_execution", "release_checker"]
+    },
+    {
+      "path": "scripts/checks/check-workspace-boundaries.py",
+      "content_kind": "python",
+      "categories": ["boundary", "command_execution"]
+    },
+    {
+      "path": "scripts/checks/run-v250-release-security-review.py",
+      "content_kind": "python",
+      "categories": ["command_execution", "dependency", "security_review_runner"]
+    },
+    {
+      "path": "scripts/install/install-local.sh",
+      "content_kind": "python_heredoc",
+      "categories": ["command_execution", "dependency", "installer"]
+    },
+    {
+      "path": "scripts/release/build-release.py",
+      "content_kind": "python",
+      "categories": ["command_execution", "packaging"]
+    },
+    {
+      "path": "scripts/release/release_config.py",
+      "content_kind": "python",
+      "categories": ["packaging", "release_flow"]
+    },
+    {
+      "path": "scripts/release/skill_release.py",
+      "content_kind": "python",
+      "categories": ["command_execution", "release_flow", "s4"]
+    },
+    {
+      "path": "scripts/release/validate-release.py",
+      "content_kind": "python",
+      "categories": ["command_execution", "packaging"]
+    },
+    {
+      "path": "scripts/v250/github_ssh.py",
+      "content_kind": "python",
+      "categories": ["git_ssh"]
+    },
+    {
+      "path": "scripts/v250/refresh_generation_manifests.py",
+      "content_kind": "python",
+      "categories": ["contract", "release_flow"]
+    },
+    {
+      "path": "scripts/v250/release_flow.py",
+      "content_kind": "python",
+      "categories": ["release_flow"]
+    },
+    {
+      "path": "scripts/v250/repository_boundary.py",
+      "content_kind": "python",
+      "categories": ["boundary", "command_execution"]
+    },
+    {
+      "path": "scripts/v250/runtime_host_adapter.py",
+      "content_kind": "python",
+      "categories": ["command_execution", "runtime"]
+    },
+    {
+      "path": "scripts/v250/runtime_transition.py",
+      "content_kind": "python",
+      "categories": ["command_execution", "runtime"]
+    },
+    {
+      "path": "scripts/v250/s4_executor.py",
+      "content_kind": "python",
+      "categories": ["command_execution", "dependency", "git_ssh", "installer", "s4"]
+    }
+  ],
+  "declared_dependency_files": [],
+  "allowed_external_python_imports": ["jsonschema"],
+  "dangerous_operation_allowlist": {
+    "allowed_callsite_fingerprints": [
+      "00c2d2f81a60f9de5585e2dd1b96e87bcba51494a15dd229ccbf1482417ca2be",
+      "040a900a243ddb0eae0ea5e9314fc38b8f705fca73a630f771618ef7412e558b",
+      "05c45ce3b4517e2b829a871fe90000ad7ec3eeb9cf528d500dc9e94a12cb726c",
+      "0aff61d585d4cf44a35ec7f8dad238918a20ce17555e9b94ebb61a98f5ae3db5",
+      "0d06d6fdf2eac0b80dc23d46b8923ee935eb376a3439bb13f5459013bc7dca7a",
+      "0e496fe7073503bc4dd59d308b301b29f8a884230d7194d1f6fa29c059effc6a",
+      "0eb6c2a67d6cec47502faa0561e45e5e3dc62ad0ec8f0a606559ad05a2d6ce30",
+      "11bc0348d43b7c9c55f926b6b030ace4920868cae25cb425316f8805d328d897",
+      "15863a9af8d8e27442bc35e9c284561efbdaf862c88527be2ef90f89ea23cf03",
+      "162e81f5d1364e78f539926922f292148ab52fb98e3a8db96655edbc08b973ad",
+      "18e888ed8197586323fb522f781755b49382fe24f90162dffce6d0de5c6a956f",
+      "1b32485c249f809ebd9a57b75c37a353a8879a9e7b50d740a00c49ce26ecfacc",
+      "1f7600526c77ca463144e36a02e6bda8d9cd99226b1c8f3dae1e10b6a37f4768",
+      "20cc64cd4c728382a9be3ca29b149bc99f2f00be21c2abc1ad316a3270f473f1",
+      "2257fbdc45618472cbdea5ed165ea4cac6afdccdd95160d1632cde11d7409ce8",
+      "24366e12f95719f55159ffe004d0f7f972ee2bcb20bba2a43544125932360262",
+      "260309bd3137e6e35a1ab3abf194e40d6d191185cb009a5b561664fbcb2560fd",
+      "27513922cb109561b427aa067390ea1a81fdafacfdcd3743310d5787ab8f70d9",
+      "28bdeeac2cd2d9b3c6f3e7de7b638d8486ebfd3ff4cf69d2279b8925216407f0",
+      "292bd3c60cbc294e661b42b4c44b2d570a40861d8e5b29b7adf1812143c4085a",
+      "2ba428818b61562bee1a291c9ed723a180edf6259d9d297ecf2f14c85354105d",
+      "2eed650914437614e4b4a80e54b9bc659cd06b46ebad40caf26aa1737a2545db",
+      "331ec59ddce73f9149352f2d2dde50e78ec99cc431509bde73f7da2aec4cdf45",
+      "349222e7aa7406cf634b53f4efed7d66a4b9e51eb80d31ae23581b687fed9ef7",
+      "358b99984b5a31ca444e74213b695ebe55dcde6b245acc486c58d504d3ceb7a5",
+      "3c36abf118d0a73ba84fd6db36cf7681dfc5789a018e049733548d8c85a887d0",
+      "3d3d26b52d8c6e8e5cb3791d14de20415c63d2a972191f097d1c175cd364866d",
+      "3d656b0b50ca222c53b24a32f6c9267d354ad2bc9741498b69d1dd461bdec5c9",
+      "41b3d0fc3c1307fe4f62fa9d892a115110ee36f62450fac75d8f906c38d90a23",
+      "42a3cb9e5a5a96399ccc2a2dbdda00469e33da4a70d11a10e6377b307788e871",
+      "43d5d46904dacc0e256e1d97e8f9899c18f3c2ae604d6fef3b165e8f41258c45",
+      "4529bed51d5653b90d4c41b6f0e3b33e7d8c5ea89219d2027a259c4ad7531374",
+      "478d31cf7b8a348d2b16ff8cf5e913d79dbb341699568ee47bc0837ded1ccdb3",
+      "48dc8035093f5ee934aa26812437992a310a628f98c4b4070b5ce05bfb6c54f0",
+      "4c4f0901f7697ab68cdfee2d539201fc0ca8f9f7252fc916b88c7400f3f91afc",
+      "54ca140d75af9f3bcd33ffdf02ed69a9bf9c9842bc5441a9c2f4e16d71311ef4",
+      "54da13b295edd4d136dea2808828361a349d753f96fefcdfcb1fbace8f191093",
+      "58cb7086d913dc052c06701b09b484186eae8ef3e94d96f2ade4d7143a958c64",
+      "5a2635aa583e8211acd0fd80e78fa3f142bf85e42bf1f6a2955b4c20060605f1",
+      "5aef43881532900e5a37609d836a0d5dc0ba817cfbb3aa1a99d6cd10ef0f14eb",
+      "5ba6e8e79aaeae9149ac2ac351fd5a48b1c32f099513c856c9e035019203fb4f",
+      "5f323960d04cfb3017c3083d83d272c3481ac4e10b44c7a8b6d3bcf39a23b134",
+      "6184aab3727e68006523fc836f5ca654a0e841f61c2b4e0e6025dfb0d82bfa50",
+      "652c01d9d7312214c7b7e2515284fa1df0af5604c51894f8edd57dce3eff513f",
+      "66cb2d149117b0e86059ec7e0e687a88fe63ebd1c816ad96e12617976da25447",
+      "66f2d1b78c12ff59b511fe0d540dd03212cb49e2fea611e4c966956bd8a44aae",
+      "67c6c05c49bbc33187a66fea1e6b8547e3a13c2baf27733bddf8e908698997b7",
+      "680ded0cbf7325a95441fcad13a91a738895123af950510502f27c5fa2fa007d",
+      "6966b5971ce0732aa0b80ebb44b1d2a796e9d85d8b283d6eda3219d2dbeaac45",
+      "6da04a13977d9fb42ddef5169b583e1eed12227f92b967458256769397673a4a",
+      "7056508a0b5107360f2e79fe009d0206881c29f8b395ef7cf4d238470a854cf3",
+      "7376a2b26524cf46ea0f9927259bdadbc6246f978f3a503c9b224f0f3d01af41",
+      "74c389dc067585f108be482fc14e92cd5b7b1116d26b7caf769185f6a9e9c2a4",
+      "7aa0fc21b3bb2cd7d17758b517a0b45644b54f3727087e31f24b7f1daa8b9863",
+      "7add34c224dcd94010f531abe3351ee461df86f71fa3838bdcc37b175a3168d6",
+      "7b805ffd81e3799e896bfce79b7b3f7a6dba34af6c528d2af9995caf0c257724",
+      "7c8b961ea9b1b7207107d2b7a22412da52a6ed4e9ea1303df7996a70b8b5b1a9",
+      "7e02f0a27dd564c1052a1dfb1863387c178ff1dd9d791441ffcd21f3ede46059",
+      "80db05cbf5090aa8874e83401ffd6da52e3a2481b399be21784f38e1ec1f165f",
+      "8211491a1c0ad93d08853ded9195cef1c1503075d92fb9cafe8c041f18cda7e5",
+      "846427c68b2549c5e4b021a9bfcd3a96e3718339143d00c26e1570c64f22afda",
+      "87295ff57558307d7f89a37a30e3b4327f7f3a7eaa45954675f941fefb3cd328",
+      "8c5872faa154be20ec6e0901dc935d1ce3c2f12abdf35e12693f34ea99b6bf18",
+      "8c7d6bb57d0034b68991c15f6cd93b68d8191d913ecda168e82e423d208c8db3",
+      "90e488318f2d2b9d2e7a85041b314da7154abe72c50eb8e36f380cbfdbde1074",
+      "980e6daf2871aa26fdd47d1db860739d93b99c08cf14e8153ff483e4e72053f2",
+      "9eb482c58e8f430a851b4432403ba98fa6ba4d06409c1c03962e1c6d4e7b1eb7",
+      "a1071e4ecf37761de66c4ca62a8c0fa6914834fda1d3146ec33c56f9a29d6944",
+      "a2e07332656008d77263cf741873af924a825fb9fa21a976f1515d7b9b80e843",
+      "aae1723bf2f938c7dce4c031c02908ec7afabfb3f788c210d7c362ecf0ca940c",
+      "baffe4fb90e66d708e289d2b905d0a109d9ecfd1c5ba2ac6a36aedf86669883f",
+      "bde464aa90dbf57e2c4b8060d126ae9902048a6eb2716340d8e57928f433408c",
+      "bef30c246cef67ca05434e20850d54cc5103423f0eb6124efbaa9a30314b5da1",
+      "c27cdb542149dbb4a98c063d050fa5a0196f7305e2b6c3976d5c038610edb6af",
+      "c3d6c7979ff754b95d1bff5a1bc3c5214f8aabfa2e9e172526be173b4e0f04da",
+      "c6757f2e7e78b86ef313654e2d9670f0dcfb872de2efeea210080c3aded71da7",
+      "c83efb86590517d370fc9829ac1f4b8c09afbb15dd4ba8b9e9447fbd5849d9a1",
+      "c97a6a2c8972720e6313fb2110f7818e475054a3e0386d390361a6d1f02c448f",
+      "ce2750357a7402cf38d597c0b165ebb94394ceb56e10b4ff0c2b7f9a1e622dc9",
+      "d12b0b1565e0913291f44f4e2ed7074b474bedbd0c5ce281215935ea616898f7",
+      "d54db15ca5d38625afb35c5f500e0886f6257eb37ec806c3c68c4491cfaa6b0a",
+      "d5f8e26f99f89ef9eaad14587687615f41fdf595ccf84dc3d18333349a11fe01",
+      "de01594a2bc19283c4417f576fc370344366ea6c129fffb121de050fb7070fdd",
+      "df349648b0d5fe43420a5d4ea6e5dbe1dffda2394b6476b49346a56b1d04316e",
+      "e647b179f796d288a2b0302ee53d9f2f42b18194243622aec1a44f37979425b8",
+      "e7612bdef0de2c31e27f0e8fb2bcba7754f2f8e26591abe37784cab7805bc27b",
+      "f0679af4ea172a7b0cb4826e171f6642e0635bd08a295cbb082f62a45eef405f",
+      "f3b0888f3c016ee3dba19e2f2cde62989fb399e66c3ce5536b6104c5404f257f",
+      "f78dbf7145b32eebbf32e8830be7a03e23929ecd6efb84bce72fe4c91fbe04ae"
+    ],
+    "allowed_inventory_count": 89,
+    "allowed_inventory_sha256": "25228dfb65537ff5585bf6d242c3b1207b217e85566f3dd12cf49831b2314d67"
+  },
+  "assertion_denominator": [
+    "V250-SEC-EXACT-GIT-IDENTITY",
+    "V250-SEC-DENOMINATOR-COMPLETE",
+    "V250-SEC-GIT-OBJECT-FILESYSTEM",
+    "V250-SEC-PATH-SYMLINK-MODE",
+    "V250-SEC-DEPENDENCY-SURFACE",
+    "V250-SEC-SECRET-NEGATIVE-SCAN",
+    "V250-SEC-DANGEROUS-OPERATION-ALLOWLIST",
+    "V250-SEC-COMMAND-EXECUTION-BOUNDARIES",
+    "V250-SEC-GITHUB-GIT-SSH-ONLY",
+    "V250-SEC-WORKFLOW-ACTION-PINS",
+    "V250-SEC-S2-SECURITY-SEPARATION",
+    "V250-SEC-FRESH-CORRELATED-PROCESS"
+  ],
+  "required_receipt_fields": [
+    "identity_binding",
+    "review_denominator",
+    "reviewed_files",
+    "reviewed_file_set_sha256",
+    "reviewer_identity",
+    "review_run_id",
+    "fresh_process_observed",
+    "fresh_separate_process",
+    "actor_assurance",
+    "actor_relationship",
+    "external_independence",
+    "independence_claim",
+    "findings",
+    "receipt_sha256"
+  ]
+}

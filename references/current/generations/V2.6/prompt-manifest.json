@@ -1,0 +1,308 @@
+{
+  "schema_version": "goal-teams-prompt-manifest-v2.50",
+  "generation_id": "V2.6",
+  "manifest_state": "active_current",
+  "ordering_rule": "core_then_routing_then_assurance_then_functions_then_contracts",
+  "path_deduplication_rule": "repo_relative_posix_path_first_occurrence",
+  "byte_count_algorithm": "sum_raw_file_bytes_after_path_deduplication",
+  "current_rule_allowlist": [
+    "references/current/generations/V2.6/core.md",
+    "references/current/generations/V2.6/routing.md",
+    "references/current/generations/V2.6/assurance-levels.md",
+    "references/current/generations/V2.6/functions/requirements.md",
+    "references/current/generations/V2.6/functions/architecture-implementation.md",
+    "references/current/generations/V2.6/functions/testing.md",
+    "references/current/generations/V2.6/functions/ui-desktop.md",
+    "references/current/generations/V2.6/functions/agent-runtime.md",
+    "references/current/generations/V2.6/functions/release-operations.md",
+    "references/current/generations/V2.6/contracts/task-state.md",
+    "references/current/generations/V2.6/contracts/test-case-gate.md",
+    "references/current/generations/V2.6/contracts/harness-evidence.md",
+    "references/current/generations/V2.6/contracts/review-completion.md",
+    "references/current/generations/V2.6/contracts/approval-side-effects.md"
+  ],
+  "routes": {
+    "V250-ROUTE-STARTUP": {
+      "assurance_level": "Lite",
+      "workflow_phase": "startup",
+      "ordered_refs": [
+        "references/current/generations/V2.6/core.md",
+        "references/current/generations/V2.6/routing.md",
+        "references/current/generations/V2.6/assurance-levels.md",
+        "references/current/generations/V2.6/contracts/task-state.md",
+        "references/current/generations/V2.6/contracts/approval-side-effects.md"
+      ],
+      "required_gates": [],
+      "conditional_gates": [
+        "project_start_authorization"
+      ],
+      "manual_artifact_count": 0,
+      "governance_time": "minimal",
+      "max_loaded_rule_bytes": 72194,
+      "expected_loaded_rule_bytes": 14369
+    },
+    "V250-ROUTE-DISCUSSION": {
+      "assurance_level": "Discussion",
+      "workflow_phase": "discussion",
+      "ordered_refs": [
+        "references/current/generations/V2.6/core.md",
+        "references/current/generations/V2.6/routing.md",
+        "references/current/generations/V2.6/assurance-levels.md",
+        "references/current/generations/V2.6/functions/requirements.md",
+        "references/current/generations/V2.6/contracts/task-state.md"
+      ],
+      "required_gates": [],
+      "conditional_gates": [],
+      "manual_artifact_count": 0,
+      "governance_time": "discussion_only",
+      "max_loaded_rule_bytes": 72194,
+      "expected_loaded_rule_bytes": 13793
+    },
+    "V250-ROUTE-SMALL-DEVELOPMENT": {
+      "assurance_level": "Lite",
+      "workflow_phase": "development",
+      "ordered_refs": [
+        "references/current/generations/V2.6/core.md",
+        "references/current/generations/V2.6/routing.md",
+        "references/current/generations/V2.6/assurance-levels.md",
+        "references/current/generations/V2.6/functions/requirements.md",
+        "references/current/generations/V2.6/functions/architecture-implementation.md",
+        "references/current/generations/V2.6/functions/testing.md",
+        "references/current/generations/V2.6/contracts/task-state.md",
+        "references/current/generations/V2.6/contracts/test-case-gate.md",
+        "references/current/generations/V2.6/contracts/harness-evidence.md",
+        "references/current/generations/V2.6/contracts/review-completion.md",
+        "references/current/generations/V2.6/contracts/approval-side-effects.md"
+      ],
+      "required_gates": [
+        "loop_bootstrap",
+        "environment_preflight",
+        "tdd",
+        "incremental"
+      ],
+      "conditional_gates": [
+        "development_environment_check",
+        "project_start_authorization"
+      ],
+      "manual_artifact_count": 1,
+      "governance_time": "light",
+      "max_loaded_rule_bytes": 72194,
+      "expected_loaded_rule_bytes": 30211
+    },
+    "V250-ROUTE-MEDIUM-DEVELOPMENT": {
+      "assurance_level": "Standard",
+      "workflow_phase": "development",
+      "ordered_refs": [
+        "references/current/generations/V2.6/core.md",
+        "references/current/generations/V2.6/routing.md",
+        "references/current/generations/V2.6/assurance-levels.md",
+        "references/current/generations/V2.6/functions/requirements.md",
+        "references/current/generations/V2.6/functions/architecture-implementation.md",
+        "references/current/generations/V2.6/functions/testing.md",
+        "references/current/generations/V2.6/contracts/task-state.md",
+        "references/current/generations/V2.6/contracts/test-case-gate.md",
+        "references/current/generations/V2.6/contracts/harness-evidence.md",
+        "references/current/generations/V2.6/contracts/review-completion.md",
+        "references/current/generations/V2.6/contracts/approval-side-effects.md"
+      ],
+      "required_gates": [
+        "loop_bootstrap",
+        "environment_preflight",
+        "development_environment_check",
+        "tdd",
+        "incremental"
+      ],
+      "conditional_gates": [
+        "semantic_review",
+        "behavior_review",
+        "project_start_authorization"
+      ],
+      "manual_artifact_count": 2,
+      "governance_time": "standard",
+      "max_loaded_rule_bytes": 72194,
+      "expected_loaded_rule_bytes": 30211
+    },
+    "V250-ROUTE-LARGE-DEVELOPMENT": {
+      "assurance_level": "Full",
+      "workflow_phase": "development",
+      "ordered_refs": [
+        "references/current/generations/V2.6/core.md",
+        "references/current/generations/V2.6/routing.md",
+        "references/current/generations/V2.6/assurance-levels.md",
+        "references/current/generations/V2.6/functions/requirements.md",
+        "references/current/generations/V2.6/functions/architecture-implementation.md",
+        "references/current/generations/V2.6/functions/testing.md",
+        "references/current/generations/V2.6/functions/agent-runtime.md",
+        "references/current/generations/V2.6/contracts/task-state.md",
+        "references/current/generations/V2.6/contracts/test-case-gate.md",
+        "references/current/generations/V2.6/contracts/harness-evidence.md",
+        "references/current/generations/V2.6/contracts/review-completion.md",
+        "references/current/generations/V2.6/contracts/approval-side-effects.md"
+      ],
+      "required_gates": [
+        "loop_bootstrap",
+        "environment_preflight",
+        "development_environment_check",
+        "tdd",
+        "incremental"
+      ],
+      "conditional_gates": [
+        "semantic_review",
+        "behavior_review",
+        "completion_audit",
+        "project_start_authorization"
+      ],
+      "manual_artifact_count": 3,
+      "governance_time": "full_development",
+      "max_loaded_rule_bytes": 72194,
+      "expected_loaded_rule_bytes": 32916
+    },
+    "V250-ROUTE-UI-DESKTOP": {
+      "assurance_level": "Full",
+      "workflow_phase": "development",
+      "ordered_refs": [
+        "references/current/generations/V2.6/core.md",
+        "references/current/generations/V2.6/routing.md",
+        "references/current/generations/V2.6/assurance-levels.md",
+        "references/current/generations/V2.6/functions/requirements.md",
+        "references/current/generations/V2.6/functions/architecture-implementation.md",
+        "references/current/generations/V2.6/functions/testing.md",
+        "references/current/generations/V2.6/functions/ui-desktop.md",
+        "references/current/generations/V2.6/functions/agent-runtime.md",
+        "references/current/generations/V2.6/contracts/task-state.md",
+        "references/current/generations/V2.6/contracts/test-case-gate.md",
+        "references/current/generations/V2.6/contracts/harness-evidence.md",
+        "references/current/generations/V2.6/contracts/review-completion.md",
+        "references/current/generations/V2.6/contracts/approval-side-effects.md"
+      ],
+      "required_gates": [
+        "loop_bootstrap",
+        "environment_preflight",
+        "development_environment_check",
+        "tdd",
+        "incremental",
+        "ui_e2e"
+      ],
+      "conditional_gates": [
+        "pixel_comparison",
+        "desktop_runtime",
+        "completion_audit",
+        "project_start_authorization"
+      ],
+      "manual_artifact_count": 3,
+      "governance_time": "full_ui",
+      "max_loaded_rule_bytes": 72194,
+      "expected_loaded_rule_bytes": 35147
+    },
+    "V250-ROUTE-AGENT-RUNTIME": {
+      "assurance_level": "Full",
+      "workflow_phase": "development",
+      "ordered_refs": [
+        "references/current/generations/V2.6/core.md",
+        "references/current/generations/V2.6/routing.md",
+        "references/current/generations/V2.6/assurance-levels.md",
+        "references/current/generations/V2.6/functions/requirements.md",
+        "references/current/generations/V2.6/functions/architecture-implementation.md",
+        "references/current/generations/V2.6/functions/testing.md",
+        "references/current/generations/V2.6/functions/agent-runtime.md",
+        "references/current/generations/V2.6/contracts/task-state.md",
+        "references/current/generations/V2.6/contracts/test-case-gate.md",
+        "references/current/generations/V2.6/contracts/harness-evidence.md",
+        "references/current/generations/V2.6/contracts/review-completion.md",
+        "references/current/generations/V2.6/contracts/approval-side-effects.md"
+      ],
+      "required_gates": [
+        "loop_bootstrap",
+        "environment_preflight",
+        "development_environment_check",
+        "tdd",
+        "incremental",
+        "runtime_capability"
+      ],
+      "conditional_gates": [
+        "fresh_runtime_transition",
+        "completion_audit",
+        "project_start_authorization"
+      ],
+      "manual_artifact_count": 3,
+      "governance_time": "full_runtime",
+      "max_loaded_rule_bytes": 72194,
+      "expected_loaded_rule_bytes": 32916
+    },
+    "V250-ROUTE-MEDIUM-RELEASE": {
+      "assurance_level": "Full",
+      "workflow_phase": "release",
+      "ordered_refs": [
+        "references/current/generations/V2.6/core.md",
+        "references/current/generations/V2.6/routing.md",
+        "references/current/generations/V2.6/assurance-levels.md",
+        "references/current/generations/V2.6/functions/requirements.md",
+        "references/current/generations/V2.6/functions/architecture-implementation.md",
+        "references/current/generations/V2.6/functions/testing.md",
+        "references/current/generations/V2.6/functions/agent-runtime.md",
+        "references/current/generations/V2.6/functions/release-operations.md",
+        "references/current/generations/V2.6/contracts/task-state.md",
+        "references/current/generations/V2.6/contracts/test-case-gate.md",
+        "references/current/generations/V2.6/contracts/harness-evidence.md",
+        "references/current/generations/V2.6/contracts/review-completion.md",
+        "references/current/generations/V2.6/contracts/approval-side-effects.md"
+      ],
+      "required_gates": [
+        "loop_bootstrap",
+        "environment_preflight",
+        "development_environment_check",
+        "s0",
+        "final_full_regression",
+        "release_security_review",
+        "s2",
+        "repository_boundary_compliance",
+        "s4"
+      ],
+      "conditional_gates": [
+        "fresh_runtime_transition"
+      ],
+      "manual_artifact_count": 4,
+      "governance_time": "release_medium",
+      "max_loaded_rule_bytes": 72194,
+      "expected_loaded_rule_bytes": 35958
+    },
+    "V250-ROUTE-LARGE-RELEASE": {
+      "assurance_level": "Full",
+      "workflow_phase": "release",
+      "ordered_refs": [
+        "references/current/generations/V2.6/core.md",
+        "references/current/generations/V2.6/routing.md",
+        "references/current/generations/V2.6/assurance-levels.md",
+        "references/current/generations/V2.6/functions/requirements.md",
+        "references/current/generations/V2.6/functions/architecture-implementation.md",
+        "references/current/generations/V2.6/functions/testing.md",
+        "references/current/generations/V2.6/functions/agent-runtime.md",
+        "references/current/generations/V2.6/functions/release-operations.md",
+        "references/current/generations/V2.6/contracts/task-state.md",
+        "references/current/generations/V2.6/contracts/test-case-gate.md",
+        "references/current/generations/V2.6/contracts/harness-evidence.md",
+        "references/current/generations/V2.6/contracts/review-completion.md",
+        "references/current/generations/V2.6/contracts/approval-side-effects.md"
+      ],
+      "required_gates": [
+        "loop_bootstrap",
+        "environment_preflight",
+        "development_environment_check",
+        "s0",
+        "final_full_regression",
+        "release_security_review",
+        "s2",
+        "repository_boundary_compliance",
+        "s3",
+        "s4"
+      ],
+      "conditional_gates": [
+        "fresh_runtime_transition"
+      ],
+      "manual_artifact_count": 5,
+      "governance_time": "release_large",
+      "max_loaded_rule_bytes": 72194,
+      "expected_loaded_rule_bytes": 35958
+    }
+  }
+}
