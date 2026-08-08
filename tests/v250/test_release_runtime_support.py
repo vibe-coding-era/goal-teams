@@ -102,26 +102,26 @@ class V250ReleaseRuntimeSupportTests(unittest.TestCase):
             (ROOT / "release/current/manifest.json").read_text(encoding="utf-8")
         )
         self.assertEqual(
-            "candidate",
+            "final",
             validator.release_projection_state(
                 "V2.62", current, allow_candidate=True
             ),
         )
         self.assertEqual(
-            "invalid",
+            "final",
             validator.release_projection_state(
                 "V2.62", current, allow_candidate=False
             ),
         )
         self.assertEqual(
             {
-                "tag": "v2.6",
-                "release_id": 366574904,
+                "tag": "v2.62",
+                "release_id": 367112913,
                 "state": "published",
-                "source_commit": "a4add2687e5b057aa9a73263788c4115ba3d0512",
-                "source_tree": "e7a8ad82c3171d73c66ec13f88efceccf2e2519c",
+                "source_commit": "bd4eedfc0623e74b74efeaf157edf92ce2be1e74",
+                "source_tree": "58d11881eeda2f0a018fcc4273ce2f3982977f94",
                 "public_assets": [
-                    "goal-teams-V2.6.tar.gz",
+                    "goal-teams-V2.62.tar.gz",
                     "SHA256SUMS",
                     "_release.json",
                     "_files.sha256",
