@@ -478,18 +478,46 @@ def _validate_full_regression_receipt(
         or value.get("legacy_test_invocation_count") != 0
     ):
         errors.append("E_V250_CURRENT_DENOMINATOR_INCOMPLETE")
+    valid_test_paths: list[str] = []
+    seen_test_paths: set[str] = set()
     for item in files if isinstance(files, list) else []:
+        path = item.get("path") if isinstance(item, dict) else None
+        pure_path = PurePosixPath(path) if isinstance(path, str) else None
+        path_is_current_test = (
+            pure_path is not None
+            and "\x00" not in path
+            and "\\" not in path
+            and path == pure_path.as_posix()
+            and not pure_path.is_absolute()
+            and pure_path.parts[:2] in (("tests", "v250"), ("tests", "v262"))
+            and len(pure_path.parts) >= 3
+            and ".." not in pure_path.parts
+            and pure_path.name.startswith("test_")
+            and pure_path.suffix == ".py"
+        )
         if (
             not isinstance(item, dict)
             or set(item) != {"path", "sha256"}
-            or not isinstance(item.get("path"), str)
-            or not item["path"].startswith("tests/v250/test_")
-            or not item["path"].endswith(".py")
+            or not path_is_current_test
             or not isinstance(item.get("sha256"), str)
             or SHA256_RE.fullmatch(item["sha256"]) is None
         ):
             errors.append("E_V250_CURRENT_DENOMINATOR_FILE")
             break
+        if path in seen_test_paths:
+            errors.append("E_V250_CURRENT_DENOMINATOR_FILE_DUPLICATE")
+            break
+        seen_test_paths.add(path)
+        valid_test_paths.append(path)
+    declared_test_roots = denominator.get("test_roots")
+    observed_test_roots = {
+        "/".join(PurePosixPath(path).parts[:2]) for path in valid_test_paths
+    }
+    if (
+        isinstance(declared_test_roots, list)
+        and set(declared_test_roots) != observed_test_roots
+    ):
+        errors.append("E_V250_CURRENT_DENOMINATOR_ROOT_COVERAGE")
     if isinstance(files, list) and denominator.get("test_file_set_sha256") != canonical_sha256(files):
         errors.append("E_V250_CURRENT_DENOMINATOR_DIGEST")
     denominator_payload = dict(denominator)
@@ -497,6 +525,10 @@ def _validate_full_regression_receipt(
     if claimed_denominator_digest != canonical_sha256(denominator_payload):
         errors.append("E_V250_CURRENT_DENOMINATOR_DIGEST")
     argv = value.get("argv")
+    expected_modules = [
+        PurePosixPath(path).with_suffix("").as_posix().replace("/", ".")
+        for path in valid_test_paths
+    ]
     worktree = value.get("worktree_binding")
     if (
         value.get("runner_role") != "current_generation_full_regression"
@@ -507,12 +539,8 @@ def _validate_full_regression_receipt(
         != [
             "-m",
             "unittest",
-            "discover",
             "-v",
-            "-s",
-            "tests/v250",
-            "-p",
-            "test_*.py",
+            *expected_modules,
         ]
         or value.get("cwd") != "."
         or value.get("returncode") != 0

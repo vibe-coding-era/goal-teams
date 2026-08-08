@@ -73,7 +73,10 @@ def authorization() -> dict:
 
 
 def full_regression() -> dict:
-    files = [{"path": "tests/v250/test_release_control.py", "sha256": "a" * 64}]
+    files = [
+        {"path": "tests/v250/test_release_control.py", "sha256": "a" * 64},
+        {"path": "tests/v262/test_delivery_closure.py", "sha256": "b" * 64},
+    ]
     denominator = {
         "denominator_id": "V250-CURRENT-GENERATION-FULL",
         "generation_id": "V2.62",
@@ -85,9 +88,9 @@ def full_regression() -> dict:
         "contract_path": "references/current/generations/V2.62/contracts/release-command-manifest.json",
         "contract_sha256": "e" * 64,
         "test_files": files,
-        "test_file_count": 1,
+        "test_file_count": 2,
         "test_file_set_sha256": release_flow.canonical_sha256(files),
-        "test_case_count": 1,
+        "test_case_count": 2,
         "legacy_roots_excluded": ["tests/v23", "tests/v249", "tests/v26"],
     }
     denominator["denominator_sha256"] = release_flow.canonical_sha256(denominator)
@@ -108,7 +111,7 @@ def full_regression() -> dict:
                 "untracked_entry_count": 0,
             },
             "denominator": denominator,
-            "discovered_test_count": 1,
+            "discovered_test_count": 2,
             "legacy_test_invocation_count": 0,
             "check_state": "passed",
             "run_outcome": "passed",
@@ -118,12 +121,9 @@ def full_regression() -> dict:
                 "python3",
                 "-m",
                 "unittest",
-                "discover",
                 "-v",
-                "-s",
-                "tests/v250",
-                "-p",
-                "test_*.py",
+                "tests.v250.test_release_control",
+                "tests.v262.test_delivery_closure",
             ],
             "cwd": ".",
             "returncode": 0,

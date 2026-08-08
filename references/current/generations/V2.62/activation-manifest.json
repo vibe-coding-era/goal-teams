@@ -3,7 +3,7 @@
   "generation_id": "V2.62",
   "generation_state": "active",
   "baseline_generation_id": "V2.48",
-  "manifest_payload_sha256": "4e16134980241a5534ed45caa01f5a53b9e18a52a4de29916c531cc304556116",
+  "manifest_payload_sha256": "6ad98d8f1a7c789317b2cceaf5f6ab77f498a551d1e39f1c0a899a7564fc3643",
   "identity": {
     "loaded_runtime_product_version": "V2.62",
     "route_contract_schema_version": "goal-teams-project-route-v2.50",
@@ -95,8 +95,8 @@
       },
       {
         "path": "references/current/generations/V2.62/contracts/release-security-review-manifest.json",
-        "sha256": "71984fb6e4f05f99f6654fc481d0500b2f4a919df1653f934349268a71499e88",
-        "bytes": 17736
+        "sha256": "b26b3db6d180b1143fdecf8137b70cc2670ccf630ed5f17b4f1e9e9662291b78",
+        "bytes": 17810
       },
       {
         "path": "references/current/generations/V2.62/contracts/review-completion.md",
@@ -387,8 +387,8 @@
       },
       {
         "path": "scripts/v250/release_flow.py",
-        "sha256": "f0dbbf4dc6ac0f43467d091eb52d36109e644689e6e138e0efe6d924616ad98e",
-        "bytes": 66853
+        "sha256": "6f0a35908f21b0f0b665f147c009d5099b16e6933d0dead50dbca3cba67497ef",
+        "bytes": 68051
       },
       {
         "path": "scripts/v250/replay_runner.py",
@@ -602,8 +602,8 @@
       },
       {
         "path": "tests/v250/test_release_control.py",
-        "sha256": "fd61ba1f697763081ea67f827f498e02fd3b4fdb08806e24f686522cf11473f9",
-        "bytes": 58927
+        "sha256": "aa3a9de053d4ea5e2d88bdcb16fd6c4b84dfebb677bd6c0dd243ac847bb44cf6",
+        "bytes": 58991
       },
       {
         "path": "tests/v250/test_release_flow.py",
@@ -839,6 +839,11 @@
         "path": "tests/v250/test_v262_release_surfaces.py",
         "sha256": "c6beeaf1a83144d3615d7915f9bdf95c6f9e1f6ff41d515730ad2c8098d40792",
         "bytes": 5730
+      },
+      {
+        "path": "tests/v250/test_v262_s1_denominator_validator.py",
+        "sha256": "11fd0f76cc23572c574303a6536c93dd7c926d1d20d25911de918af0b4a49f1e",
+        "bytes": 7209
       },
       {
         "path": "tests/v250/test_v262_version_migration.py",
@@ -1151,6 +1156,7 @@
     "tests/v250/test_v262_release_error_receipts.py",
     "tests/v250/test_v262_release_flow_identity_isolation.py",
     "tests/v250/test_v262_release_surfaces.py",
+    "tests/v250/test_v262_s1_denominator_validator.py",
     "tests/v250/test_v262_version_migration.py",
     "tests/v250/test_version_migration.py",
     "tests/v250/test_workflow_release_contract.py",
@@ -1163,7 +1169,7 @@
     "tests/v262/test_runtime_binding_contract.py",
     "tests/v262/test_v262_compatibility_policy.py"
   ],
-  "current_default_allowlist_digest": "d268c4518a56a5dc6d2effcdb1940188c570e46064e7e11e1bed5f19180714e7",
+  "current_default_allowlist_digest": "2afdd834a9e50f78610d33d38e9f483c87f56913e4949474c30136b32355afb4",
   "optional_replay_allowlist_digest": "cdd978bd498e7b8fe5966a60fce5c4dec1624f8231f7f4d410924f5cc3779f26",
   "legacy_classification": {
     "path_prefixes": [
@@ -1247,7 +1253,7 @@
     "scripts/v250/refresh_generation_manifests.py"
   ],
   "projection_writer_allowlist_digest": "6013892aaf766bf73fbf750cb1836da333ee7c58caee199bbbf96571c6eebbfb",
-  "fixture_and_completion_contract_digest": "169505efc07eaf75b6f3350130e0f6700937aeacd42aab8af0420e3b3fec1b13",
+  "fixture_and_completion_contract_digest": "cecd5909fb3b597ac6dc98e698ad252bec946286cc432d43117d1040516e7f66",
   "repository_control_exclusions": [
     {
       "path_prefix": ".github/workflows/",
