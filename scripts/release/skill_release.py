@@ -2,11 +2,16 @@
 """Fail-closed local release helper for the Goal Teams Skill package.
 
 This helper intentionally has no GitHub, installation, tag, or publication
-side effect. ``plan`` is read-only. V2.49/V2.50/V2.52/V2.6 ``validate`` checks the same asset
+side effect. ``plan`` is read-only. V2.62 ``validate`` checks the same asset
 set created by the single explicit S2 build; it never starts another build or makes
 a reproducibility claim. ``preflight`` and ``plan-s4`` require the complete
 project-start-authorization and S0-S4 receipt chain. The compatibility command
 ``publish`` is also only an authorization plan and can never report execution.
+
+The in-place v250 flow is generation-specific.  Published predecessors that
+shared that path must be operated from their exact tagged helper; this Current
+helper rejects them before identity resolution so it cannot mix their version
+with V2.62 contracts or assets.
 """
 
 from __future__ import annotations
@@ -32,8 +37,9 @@ VERSION_RE = re.compile(r"^V[0-9]+\.[0-9]+$")
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 POSITIVE_DECIMAL_RE = re.compile(r"^[1-9][0-9]*$")
-ACTIVE_SIMPLE_VERSION = "V2.6"
-SINGLE_BUILD_VERSIONS = frozenset({"V2.49", "V2.50", "V2.52", "V2.6"})
+ACTIVE_SIMPLE_VERSION = "V2.62"
+SINGLE_BUILD_VERSIONS = frozenset({"V2.49", "V2.50", "V2.52", "V2.6", "V2.62"})
+SHARED_FLOW_PREDECESSORS = frozenset({"V2.50", "V2.52", "V2.6"})
 V249_REPOSITORY = "vibe-coding-era/goal-teams"
 V250_REPOSITORY = V249_REPOSITORY
 _RUNTIME_COMMON_STATIC_INPUT_PATHS = (
@@ -48,7 +54,7 @@ def _version_digits(version: str) -> str:
     if version not in SINGLE_BUILD_VERSIONS:
         raise SkillReleaseError(
             "E_SKILL_RELEASE_VERSION",
-            "release flow is defined only for V2.49, V2.50, V2.52, and V2.6",
+            "release flow is defined only for V2.49, V2.50, V2.52, V2.6, and V2.62",
             version=version,
         )
     return version.removeprefix("V").replace(".", "")
@@ -61,11 +67,11 @@ def _version_lower(version: str) -> str:
 def _protocol_digits(version: str) -> str:
     """Return the compatible execution-protocol directory generation."""
 
-    return "250" if version in {"V2.52", "V2.6"} else _version_digits(version)
+    return "250" if version in {"V2.52", "V2.6", "V2.62"} else _version_digits(version)
 
 
 def _protocol_lower(version: str) -> str:
-    return "v2.50" if version in {"V2.52", "V2.6"} else _version_lower(version)
+    return "v2.50" if version in {"V2.52", "V2.6", "V2.62"} else _version_lower(version)
 
 
 def _version_error(version: str, suffix: str) -> str:
@@ -113,9 +119,10 @@ def _receipt_version(receipt: Mapping[str, Any]) -> str:
 
 V249_RUNTIME_STATIC_INPUT_PATHS = runtime_static_input_paths("V2.49")
 V252_RUNTIME_STATIC_INPUT_PATHS = runtime_static_input_paths("V2.52")
-V250_RUNTIME_STATIC_INPUT_PATHS = runtime_static_input_paths("V2.6")
+V250_RUNTIME_STATIC_INPUT_PATHS = runtime_static_input_paths("V2.62")
 V251_RUNTIME_STATIC_INPUT_PATHS = V250_RUNTIME_STATIC_INPUT_PATHS
-V26_RUNTIME_STATIC_INPUT_PATHS = V250_RUNTIME_STATIC_INPUT_PATHS
+V26_RUNTIME_STATIC_INPUT_PATHS = runtime_static_input_paths("V2.6")
+V262_RUNTIME_STATIC_INPUT_PATHS = V250_RUNTIME_STATIC_INPUT_PATHS
 V249_CONTINUATION_FORMAL_RECEIPTS = (
     "authorization.json",
     "controller-handoff.json",
@@ -170,6 +177,7 @@ V250_CONTINUATION_LARGE_ONLY_PHASES = V249_CONTINUATION_LARGE_ONLY_PHASES
 V250_CONTINUATION_ASSET_NAMES = continuation_asset_names("V2.50")
 V251_CONTINUATION_ASSET_NAMES = continuation_asset_names("V2.52")
 V26_CONTINUATION_ASSET_NAMES = continuation_asset_names("V2.6")
+V262_CONTINUATION_ASSET_NAMES = continuation_asset_names("V2.62")
 
 
 class SkillReleaseError(RuntimeError):
@@ -231,9 +239,15 @@ def _v250_release_flow_module() -> ModuleType:
 
 
 def _release_flow_module(version: str) -> ModuleType:
+    if version in SHARED_FLOW_PREDECESSORS:
+        raise SkillReleaseError(
+            "E_SKILL_RELEASE_PREDECESSOR_FLOW_UNAVAILABLE",
+            "published predecessor requires its exact tagged release helper",
+            version=version,
+        )
     if version == "V2.49":
         return _v249_release_flow_module()
-    if version in {"V2.50", "V2.52", "V2.6"}:
+    if version in {"V2.50", "V2.52", "V2.6", "V2.62"}:
         return _v250_release_flow_module()
     _version_digits(version)
     raise AssertionError("unreachable")
@@ -346,7 +360,7 @@ def _validate_v250_runtime_external_anchor(
     runtime: dict[str, Any],
     activation_path: str,
     frozen_bytes: Callable[[str], bytes],
-    version: str = "V2.6",
+    version: str = "V2.62",
 ) -> dict[str, str]:
     return _validate_v249_runtime_external_anchor(
         runtime=runtime,
@@ -421,18 +435,51 @@ def _validate_v249_external_anchors(
     digits = _protocol_digits(version)
     lower = _version_lower(version)
     release_flow = _release_flow_module(version)
+    command_manifest_path = (
+        f"references/current/generations/{version}/contracts/"
+        "release-command-manifest.json"
+    )
+    command_manifest_bytes = frozen_bytes(command_manifest_path)
+    if version == "V2.62":
+        try:
+            command_manifest = json.loads(command_manifest_bytes)
+            expected_test_roots = command_manifest["release"]["s1"][
+                "current_full_regression_denominator"
+            ]["test_roots"]
+        except (KeyError, TypeError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise SkillReleaseError(
+                _version_error(version, "CURRENT_DENOMINATOR_EXTERNAL_ANCHOR"),
+                "Current test roots are missing from the exact release contract",
+                command="preflight",
+                source_commit=commit,
+            ) from exc
+        if expected_test_roots != ["tests/v250", "tests/v262"]:
+            raise SkillReleaseError(
+                _version_error(version, "CURRENT_DENOMINATOR_EXTERNAL_ANCHOR"),
+                "Current test roots differ from the V2.62 release contract",
+                command="preflight",
+                source_commit=commit,
+            )
+    else:
+        expected_test_roots = [f"tests/v{digits}"]
     expected_test_files = [
         {
             "path": path,
             "sha256": hashlib.sha256(frozen_bytes(path)).hexdigest(),
         }
         for path in sorted(entries)
-        if path.startswith(f"tests/v{digits}/test_") and path.endswith(".py")
+        if any(path.startswith(root + "/") for root in expected_test_roots)
+        and Path(path).name.startswith("test_")
+        and path.endswith(".py")
     ]
     denominator = full.get("denominator") if isinstance(full, dict) else None
     if (
         not expected_test_files
         or not isinstance(denominator, dict)
+        or (
+            version == "V2.62"
+            and denominator.get("test_roots") != expected_test_roots
+        )
         or denominator.get("test_files") != expected_test_files
         or denominator.get("test_file_count") != len(expected_test_files)
         or denominator.get("test_file_set_sha256")
@@ -440,11 +487,7 @@ def _validate_v249_external_anchors(
         or denominator.get("source_commit") != commit
         or denominator.get("source_tree") != source_tree
         or denominator.get("contract_sha256")
-        != hashlib.sha256(
-            frozen_bytes(
-                f"references/current/generations/{version}/contracts/release-command-manifest.json"
-            )
-        ).hexdigest()
+        != hashlib.sha256(command_manifest_bytes).hexdigest()
     ):
         raise SkillReleaseError(
             _version_error(version, "CURRENT_DENOMINATOR_EXTERNAL_ANCHOR"),
@@ -553,7 +596,7 @@ def _validate_v250_external_anchors(
     source_tree: str,
     s1_check_receipt: dict[str, Any],
     asset_validation_receipt: dict[str, Any],
-    version: str = "V2.6",
+    version: str = "V2.62",
 ) -> dict[str, Any]:
     return _validate_v249_external_anchors(
         commit=commit,
@@ -567,7 +610,7 @@ def _validate_v250_external_anchors(
 def _validate_external_anchors(version: str, **kwargs: Any) -> dict[str, Any]:
     if version == "V2.49":
         return _validate_v249_external_anchors(**kwargs)
-    if version in {"V2.50", "V2.52", "V2.6"}:
+    if version in {"V2.50", "V2.52", "V2.6", "V2.62"}:
         return _validate_v250_external_anchors(version=version, **kwargs)
     _version_digits(version)
     raise AssertionError("unreachable")
@@ -599,6 +642,12 @@ def _simple_config(version: str) -> dict[str, Any]:
         raise SkillReleaseError(
             "E_SKILL_RELEASE_VERSION",
             "version must match V<major>.<minor>",
+            version=version,
+        )
+    if version in SHARED_FLOW_PREDECESSORS:
+        raise SkillReleaseError(
+            "E_SKILL_RELEASE_PREDECESSOR_FLOW_UNAVAILABLE",
+            "published predecessor requires its exact tagged release helper",
             version=version,
         )
     config_module = _release_config_module()
@@ -1429,7 +1478,7 @@ def validate_v250_s4_control(
     runtime_route_receipt_path: Path | str | None = None,
     runtime_authorization_receipt_path: Path | str | None = None,
 ) -> dict[str, Any]:
-    if version not in {"V2.50", "V2.52", "V2.6"}:
+    if version not in {"V2.50", "V2.52", "V2.6", "V2.62"}:
         return {
             "ok": False,
             "passed": False,
@@ -1454,7 +1503,7 @@ def _validate_version_s4_control(
         return validate_v249_s4_control(
             version, commit, release_control_receipt, **kwargs
         )
-    if version in {"V2.50", "V2.52", "V2.6"}:
+    if version in {"V2.50", "V2.52", "V2.6", "V2.62"}:
         return validate_v250_s4_control(
             version, commit, release_control_receipt, **kwargs
         )
@@ -1979,7 +2028,7 @@ def build_v250_continuation_checkpoint(
     commit: str,
     **kwargs: Any,
 ) -> dict[str, Any]:
-    if version not in {"V2.50", "V2.52", "V2.6"}:
+    if version not in {"V2.50", "V2.52", "V2.6", "V2.62"}:
         raise SkillReleaseError(
             "E_V250_CHECKPOINT_IDENTITY",
             "V2.50 continuation checkpoint identity is invalid",
@@ -2194,7 +2243,7 @@ def validate_v250_continuation_checkpoint(
     checkpoint: object,
     **kwargs: Any,
 ) -> dict[str, Any]:
-    if version not in {"V2.50", "V2.52", "V2.6"}:
+    if version not in {"V2.50", "V2.52", "V2.6", "V2.62"}:
         return _base_receipt(
             command="verify-continuation-checkpoint",
             status="failed",
@@ -2343,7 +2392,7 @@ def main() -> None:
                 gate_outcomes[phase] = outcome
             checkpoint_builder = (
                 build_v250_continuation_checkpoint
-                if args.version in {"V2.50", "V2.52", "V2.6"}
+                if args.version in {"V2.50", "V2.52", "V2.6", "V2.62"}
                 else build_v249_continuation_checkpoint
             )
             receipt = checkpoint_builder(
@@ -2360,7 +2409,7 @@ def main() -> None:
         elif args.command == "verify-checkpoint":
             checkpoint_validator = (
                 validate_v250_continuation_checkpoint
-                if args.version in {"V2.50", "V2.52", "V2.6"}
+                if args.version in {"V2.50", "V2.52", "V2.6", "V2.62"}
                 else validate_v249_continuation_checkpoint
             )
             receipt = checkpoint_validator(
@@ -2381,7 +2430,9 @@ def main() -> None:
                 ),
             )
     except SkillReleaseError as exc:
-        print(json.dumps(exc.receipt, ensure_ascii=False, sort_keys=True))
+        error_receipt = dict(exc.receipt)
+        error_receipt["command"] = args.command
+        print(json.dumps(error_receipt, ensure_ascii=False, sort_keys=True))
         raise SystemExit(1) from exc
     print(json.dumps(receipt, ensure_ascii=False, sort_keys=True))
     if args.command in {"plan-s4", "publish"} and not receipt.get(

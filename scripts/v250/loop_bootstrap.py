@@ -1,4 +1,4 @@
-"""V2.6 first-round LOOP bootstrap planning and receipt validation."""
+"""V2.62 first-round LOOP bootstrap planning and receipt validation."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ ENVIRONMENT_MODE = "environment_preflight"
 
 
 class LoopBootstrapError(ValueError):
-    """Fail-closed error with a stable V2.6 contract code."""
+    """Fail-closed error with a stable V2.62 contract code."""
 
     def __init__(self, code: str, message: str) -> None:
         super().__init__(message)

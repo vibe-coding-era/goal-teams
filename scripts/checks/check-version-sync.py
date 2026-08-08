@@ -8,6 +8,7 @@ reconstructed by the independent live release auditor.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import subprocess
@@ -39,6 +40,10 @@ STALE_ACTIVE_CURRENT_PATTERNS = (
 )
 REPLAY_PROFILE_LINE = "V2.47 及更早 Profile 只用于历史 replay"
 REPLAY_RUNTIME_LINE = "V2.47 及更早只读 replay"
+V262_README_SHA256 = {
+    "README.md": "eb1a9737261e68431a7e91b2104aca5575d47eb5b52498e836e4be8378b71820",
+    "README.en.md": "e0fabc8a00a009eb75bddf68a71adc4b048126ede44ed8c5449a3b12df7c166e",
+}
 
 
 def fail(message: str) -> None:
@@ -331,6 +336,110 @@ def validate_candidate_commit(commit: str | None) -> None:
             fail("--candidate-commit does not resolve to a commit object")
 
 
+def validate_v262_current(args: argparse.Namespace) -> None:
+    """Validate the V2.62 Current projection without invoking Legacy checks."""
+
+    product = "V2.62"
+    startup = "我是 Goal Teams Lead V2.62。"
+    identity_markers = {
+        "SKILL.md": ("Goal Teams V2.62", startup),
+        ".agents/skills/goal-teams/SKILL.md": ("Goal Teams V2.62",),
+        "AGENTS.md": (
+            "产品版本：`V2.62`",
+            "通用核心策略：`V2.5`",
+            "Legacy 机器数据 schema：`V2.3`",
+            "scripts/v250/",
+            "schemas/v2.50/",
+        ),
+        "agents/openai.yaml": ("Goal Teams V2.62", startup),
+    }
+    for path, markers in identity_markers.items():
+        text = read(path)
+        for marker in markers:
+            if marker not in text:
+                fail(f"{path} missing V2.62 Current identity marker: {marker}")
+
+    for path, expected in V262_README_SHA256.items():
+        observed = hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
+        if observed != expected:
+            fail(f"human-owned {path} changed from its protected V2.62 baseline")
+
+    active = json.loads(read("references/current/ACTIVE.json"))
+    expected_activation = "references/current/generations/V2.62/activation-manifest.json"
+    if (
+        active.get("generation_id") != product
+        or active.get("activation_manifest") != expected_activation
+        or active.get("state") != "active_current"
+    ):
+        fail("ACTIVE does not select the exact V2.62 Current generation")
+    activation_raw = (ROOT / expected_activation).read_bytes()
+    if hashlib.sha256(activation_raw).hexdigest() != active.get(
+        "activation_manifest_sha256"
+    ):
+        fail("ACTIVE activation manifest digest mismatch")
+    activation = json.loads(activation_raw)
+    identity = activation.get("identity", {})
+    if (
+        activation.get("generation_id") != product
+        or identity.get("loaded_runtime_product_version") != product
+        or identity.get("target_policy_generation") != product
+        or identity.get("route_contract_schema_version")
+        != "goal-teams-project-route-v2.50"
+    ):
+        fail("activation manifest mixes product, policy, or execution identity")
+
+    for path in (
+        "references/profiles/goal-teams-self-release-v2.62.md",
+        "references/release-profiles/v2.62.json",
+    ):
+        if not (ROOT / path).is_file():
+            fail(f"missing V2.62 release profile: {path}")
+
+    package = read("scripts/install/package-manifest.txt")
+    for marker in (
+        "prefix references/current/generations/V2.62/",
+        "prefix references/compatibility/v2.62/",
+        "references/profiles/goal-teams-self-release-v2.62.md",
+        "references/release-profiles/v2.62.json",
+        "prefix scripts/v250/",
+        "prefix schemas/v2.50/",
+        "prefix scripts/v262/",
+        "prefix schemas/v2.62/",
+        "prefix tests/v262/",
+    ):
+        if marker not in package:
+            fail(f"package manifest missing V2.62 Current marker: {marker}")
+    for forbidden in ("docs/", "develops/", "references/legacy-replay"):
+        if forbidden in package:
+            fail(f"package manifest includes forbidden Current path: {forbidden}")
+
+    release = json.loads(read("release/current/manifest.json"))
+    if (
+        release.get("core_policy_version") != CORE
+        or release.get("legacy_data_schema_version") != LEGACY
+    ):
+        fail("release/current mixes core or Legacy data identity")
+    published = release.get("product_version")
+    if published == product:
+        if release.get("release_identity", {}).get("state") != "published":
+            fail("final V2.62 release/current identity is not published")
+    elif not (
+        published == "V2.6"
+        and release.get("candidate_product_version") == product
+        and release.get("candidate_release_state") == "v250_release_readiness"
+    ):
+        fail("release/current is neither the V2.62 candidate nor final projection")
+    if product not in read("release/current/README.md"):
+        fail("release/current README does not describe V2.62")
+
+    if args.mode == "development":
+        if args.published_version != published:
+            fail("development --published-version must match release/current")
+    elif args.published_version is not None:
+        fail("--published-version is only valid in development mode")
+    validate_candidate_commit(args.candidate_commit)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Validate VERSION-derived development or candidate identity."
@@ -361,6 +470,16 @@ def main() -> None:
             f"live audit for {product}; local version sync cannot pass it."
         )
         raise SystemExit(2)
+
+    if product == "V2.62":
+        validate_v262_current(args)
+        print(
+            "Version synchronization passed: "
+            "mode="
+            f"{args.mode}, product=V2.62, core=V2.5, execution=v2.50, "
+            "legacy=V2.3, docs=local-only."
+        )
+        return
 
     validate_runtime_identity(product)
     validate_package_boundary(product)

@@ -9,7 +9,7 @@
       "type": "object",
       "required": ["schema_version", "signed_payload", "payload_sha256", "ssh_signature"],
       "properties": {
-        "schema_version": {"const": "goal-teams-v2.6-controller-handoff-receipt-v1"},
+        "schema_version": {"const": "goal-teams-v2.62-controller-handoff-receipt-v1"},
         "signed_payload": {
           "type": "object",
           "required": [
@@ -24,7 +24,7 @@
             "nonce",
             "issued_at",
             "expires_at",
-            "installed_v252_current_state",
+            "installed_v26_current_state",
             "github_signing_identity"
           ],
           "properties": {
@@ -34,19 +34,19 @@
             "authorization_id": {"type": "string", "minLength": 1},
             "authorization_receipt_sha256": {"$ref": "#/$defs/sha256"},
             "authorization_intent_sha256": {"$ref": "#/$defs/sha256"},
-            "previous_controller_product_version": {"const": "V2.52"},
+            "previous_controller_product_version": {"const": "V2.6"},
             "previous_run_id": {"$ref": "#/$defs/runId"},
             "nonce": {"type": "string", "pattern": "^[A-Za-z0-9_-]{32,128}$"},
             "issued_at": {"type": "string", "format": "date-time"},
             "expires_at": {"type": "string", "format": "date-time"},
-            "installed_v252_current_state": {
+            "installed_v26_current_state": {
               "type": "object",
               "required": ["state_sha256", "source_commit", "source_tree", "tag", "release_id"],
               "properties": {
                 "state_sha256": {"$ref": "#/$defs/sha256"},
                 "source_commit": {"$ref": "#/$defs/gitIdentity"},
                 "source_tree": {"$ref": "#/$defs/gitIdentity"},
-                "tag": {"const": "v2.52"},
+                "tag": {"const": "v2.6"},
                 "release_id": {"type": "integer", "minimum": 1}
               },
               "additionalProperties": false
@@ -59,7 +59,7 @@
                 "key_id": {"const": 152596014},
                 "public_key": {"const": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJ7qqfn52U2nhALTYS8ofXEwJwIq6GispivX9W/NG2Ot"},
                 "public_key_fingerprint": {"const": "SHA256:fEM2bYLJFOSvNA78soiWLvrSUaWxANVr1HIVl6AAirE"},
-                "ssh_signature_namespace": {"const": "goal-teams-v2.6-controller-handoff"}
+                "ssh_signature_namespace": {"const": "goal-teams-v2.62-controller-handoff"}
               },
               "additionalProperties": false
             }
@@ -88,7 +88,7 @@
         "receipt_sha256"
       ],
       "properties": {
-        "schema_version": {"const": "goal-teams-v2.6-runtime-launch-receipt-v1"},
+        "schema_version": {"const": "goal-teams-v2.62-runtime-launch-receipt-v1"},
         "controller_handoff_receipt_sha256": {"$ref": "#/$defs/sha256"},
         "controller_handoff_payload_sha256": {"$ref": "#/$defs/sha256"},
         "nonce": {"type": "string", "pattern": "^[A-Za-z0-9_-]{32,128}$"},
@@ -165,13 +165,13 @@
     "receipt_sha256"
   ],
   "properties": {
-    "schema_version": {"const": "goal-teams-v2.6-runtime-transition-receipt-v1"},
+    "schema_version": {"const": "goal-teams-v2.62-runtime-transition-receipt-v1"},
     "transition_id": {"type": "string", "minLength": 1},
     "stage": {"enum": ["candidate", "released"]},
     "source_commit": {"$ref": "#/$defs/gitIdentity"},
     "source_tree": {"$ref": "#/$defs/gitIdentity"},
-    "generation_id": {"const": "V2.6"},
-    "loaded_runtime_product_version": {"const": "V2.6"},
+    "generation_id": {"const": "V2.62"},
+    "loaded_runtime_product_version": {"const": "V2.62"},
     "project_size": {"enum": ["discussion", "small", "medium", "large"]},
     "route_id": {"type": "string", "pattern": "^V250-ROUTE-[A-Z-]+$"},
     "route_receipt_path": {"type": "string", "minLength": 1},
@@ -203,10 +203,10 @@
     "cryptographic_host_attestation": {"const": false},
     "activation_manifest_path": {"type": "string", "minLength": 1},
     "prompt_manifest_path": {"type": "string", "minLength": 1},
-    "release_profile_path": {"const": "references/release-profiles/v2.50.json"},
-    "policy_profile_path": {"const": "references/profiles/goal-teams-self-release-v2.50.md"},
-    "release_route_manifest_path": {"const": "references/current/generations/V2.6/contracts/release-route-manifest.json"},
-    "release_command_manifest_path": {"const": "references/current/generations/V2.6/contracts/release-command-manifest.json"},
+    "release_profile_path": {"const": "references/release-profiles/v2.62.json"},
+    "policy_profile_path": {"const": "references/profiles/goal-teams-self-release-v2.62.md"},
+    "release_route_manifest_path": {"const": "references/current/generations/V2.62/contracts/release-route-manifest.json"},
+    "release_command_manifest_path": {"const": "references/current/generations/V2.62/contracts/release-command-manifest.json"},
     "root_agents_sha256": {"$ref": "#/$defs/sha256"},
     "root_skill_sha256": {"$ref": "#/$defs/sha256"},
     "active_pointer_sha256": {"$ref": "#/$defs/sha256"},

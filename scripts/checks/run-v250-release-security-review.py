@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit the exact V2.6 released implementation in a fresh process.
+"""Audit the exact V2.62 released implementation in a fresh process.
 
 This is an S1 release-security review, not an S2 security check.  It binds a
 declared implementation denominator to one clean Git commit/tree, compares
@@ -27,7 +27,7 @@ from typing import Any, Iterable, Mapping, Sequence
 
 ROOT = Path(__file__).resolve().parents[2]
 CONTRACT_PATH = (
-    "references/current/generations/V2.6/contracts/"
+    "references/current/generations/V2.62/contracts/"
     "release-security-review-manifest.json"
 )
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -74,28 +74,49 @@ MANDATORY_REVIEW_TARGETS = frozenset(
     {
         ".github/workflows/check.yml",
         ".github/workflows/release-gate.yml",
-        "references/current/generations/V2.6/contracts/public-asset-map.json",
-        "references/current/generations/V2.6/contracts/release-command-manifest.json",
-        "references/current/generations/V2.6/contracts/release-route-manifest.json",
+        "references/current/generations/V2.62/contracts/public-asset-map.json",
+        "references/current/generations/V2.62/contracts/release-command-manifest.json",
+        "references/current/generations/V2.62/contracts/release-route-manifest.json",
         CONTRACT_PATH,
+        "references/current/generations/V2.62/functions/knowledge-graph.md",
+        "schemas/v2.50/okf-document-graph.schema.json",
         "schemas/v2.50/project-route.schema.json",
         "schemas/v2.50/release-control.schema.json",
         "scripts/checks/check-package-manifest.py",
+        "scripts/checks/check.sh",
         "scripts/checks/check-v250.py",
+        "scripts/checks/check-version-sync.py",
         "scripts/checks/check-workspace-boundaries.py",
         "scripts/checks/run-v250-release-security-review.py",
+        "scripts/checks/validate-v250-generation.py",
+        "scripts/checks/validate-v250-test-gate.py",
+        "scripts/checks/validate.py",
         "scripts/install/install-local.sh",
         "scripts/release/build-release.py",
         "scripts/release/release_config.py",
         "scripts/release/skill_release.py",
         "scripts/release/validate-release.py",
         "scripts/v250/github_ssh.py",
+        "scripts/v250/generate_subagents.py",
+        "scripts/v250/generate_unicode17_nfc.py",
+        "scripts/v250/generation_runtime.py",
+        "scripts/v250/loop_bootstrap.py",
+        "scripts/v250/okf_conformance.py",
+        "scripts/v250/okf_document_graph.py",
+        "scripts/v250/output_contract.py",
         "scripts/v250/refresh_generation_manifests.py",
         "scripts/v250/release_flow.py",
         "scripts/v250/repository_boundary.py",
+        "scripts/v250/route_closure.py",
         "scripts/v250/runtime_host_adapter.py",
         "scripts/v250/runtime_transition.py",
         "scripts/v250/s4_executor.py",
+        "scripts/v250/test_gate.py",
+        "scripts/v250/unicode17_data.py",
+        "scripts/v250/unicode17_nfc.py",
+        "scripts/v262/compatibility.py",
+        "scripts/v262/project_host_assets.py",
+        "scripts/v262/role_projections.py",
     }
 )
 
@@ -340,7 +361,7 @@ def _load_manifest(
 
 
 def _validate_manifest(manifest: Mapping[str, Any]) -> list[dict[str, Any]]:
-    if manifest.get("schema_version") != "goal-teams-v2.6-release-security-review-v2":
+    if manifest.get("schema_version") != "goal-teams-v2.62-release-security-review-v2":
         raise SecurityReviewError("E_V250_SECURITY_DENOMINATOR_SCHEMA")
     if manifest.get("denominator_id") != "V250-RELEASE-SECURITY-IMPLEMENTATION":
         raise SecurityReviewError("E_V250_SECURITY_DENOMINATOR_ID")
@@ -354,7 +375,14 @@ def _validate_manifest(manifest: Mapping[str, Any]) -> list[dict[str, Any]]:
     normalized: list[dict[str, Any]] = []
     seen: set[str] = set()
     observed_categories: set[str] = set()
-    allowed_kinds = {"json", "python", "python_heredoc", "shell", "yaml"}
+    allowed_kinds = {
+        "json",
+        "markdown",
+        "python",
+        "python_heredoc",
+        "shell",
+        "yaml",
+    }
     for target in targets:
         if not isinstance(target, dict) or set(target) != {"path", "content_kind", "categories"}:
             raise SecurityReviewError("E_V250_SECURITY_DENOMINATOR_TARGET")
@@ -903,7 +931,7 @@ def run_review(
     )
     workflows, git_ssh = _scan_workflows_and_ssh(texts)
 
-    command_contract = json.loads(texts["references/current/generations/V2.6/contracts/release-command-manifest.json"])
+    command_contract = json.loads(texts["references/current/generations/V2.62/contracts/release-command-manifest.json"])
     s2 = command_contract.get("release", {}).get("s2", {})
     s2_separation = bool(
         s2.get("security_check_invocation_limit") == 0
@@ -916,7 +944,7 @@ def run_review(
     reviewed_file_set_sha256 = _sha256(_canonical_bytes(reviewed_files))
     denominator: dict[str, Any] = {
         "denominator_id": manifest["denominator_id"],
-        "generation_id": "V2.6",
+        "generation_id": "V2.62",
         "source_commit": source_commit,
         "source_tree": source_tree,
         "manifest_path": CONTRACT_PATH,
@@ -960,7 +988,7 @@ def run_review(
         "dangerous_operation_inventory_sha256": dangerous["inventory_sha256"],
     }
     receipt: dict[str, Any] = {
-        "schema_version": "goal-teams-v2.6-release-gate-receipt-v1",
+        "schema_version": "goal-teams-v2.62-release-gate-receipt-v1",
         "gate_id": "release_security_review",
         "run_id": review_run_id,
         "review_run_id": review_run_id,
@@ -1033,7 +1061,7 @@ def main() -> int:
         print(
             json.dumps(
                 {
-                    "schema_version": "goal-teams-v2.6-release-gate-receipt-v1",
+                    "schema_version": "goal-teams-v2.62-release-gate-receipt-v1",
                     "gate_id": "release_security_review",
                     "passed": False,
                     "check_state": "failed",

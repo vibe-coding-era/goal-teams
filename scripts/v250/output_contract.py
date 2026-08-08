@@ -1,4 +1,4 @@
-"""Validate the concise V2.6 user-visible six-field response envelope."""
+"""Validate the concise V2.62 user-visible six-field response envelope."""
 
 from __future__ import annotations
 

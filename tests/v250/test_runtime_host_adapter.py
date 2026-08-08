@@ -20,7 +20,7 @@ TREE = "2" * 40
 def _authorization(path: Path) -> dict:
     intent = {
         "repository": "vibe-coding-era/goal-teams",
-        "version": "V2.6",
+        "version": "V2.62",
         "action_allowlist": ["fresh_runtime_transition"],
     }
     value = {
@@ -30,7 +30,7 @@ def _authorization(path: Path) -> dict:
         "authorization_state": "granted_once_at_project_start",
         "authorization_lineage_preserved": True,
         "repository": {"name_with_owner": "vibe-coding-era/goal-teams"},
-        "version": "V2.6",
+        "version": "V2.62",
         "action_allowlist": ["fresh_runtime_transition"],
         "intent": intent,
         "intent_sha256": _canonical_sha256(intent),
@@ -47,16 +47,16 @@ def _handoff() -> dict:
         "authorization_id": "AUTH-V250-HOST",
         "authorization_receipt_sha256": "a" * 64,
         "authorization_intent_sha256": "b" * 64,
-        "previous_controller_product_version": "V2.52",
+        "previous_controller_product_version": "V2.6",
         "previous_run_id": "V251-HOST-RUN",
         "nonce": "nonce-v250-controller-handoff-000001",
         "issued_at": "2026-08-01T08:00:00+00:00",
         "expires_at": "2026-08-01T08:10:00+00:00",
-        "installed_v252_current_state": {
+        "installed_v26_current_state": {
             "state_sha256": "c" * 64,
             "source_commit": "3" * 40,
             "source_tree": "4" * 40,
-            "tag": "v2.52",
+            "tag": "v2.6",
             "release_id": 362135071,
         },
         "github_signing_identity": {
@@ -68,7 +68,7 @@ def _handoff() -> dict:
         },
     }
     return {
-        "schema_version": "goal-teams-v2.6-controller-handoff-receipt-v1",
+        "schema_version": "goal-teams-v2.62-controller-handoff-receipt-v1",
         "signed_payload": payload,
         "payload_sha256": _canonical_sha256(payload),
         "ssh_signature": "signed-externally",
@@ -88,7 +88,7 @@ class _FakeProcess:
         launch = self.stdin_payload["runtime_launch_receipt"]
         runtime_receipt = {"receipt_sha256": "d" * 64}
         ack = {
-            "schema_version": "goal-teams-v2.6-runtime-child-ack-v1",
+            "schema_version": "goal-teams-v2.62-runtime-child-ack-v1",
             "acknowledged": True,
             "child_pid": launch["expected_child_pid"],
             "parent_pid": launch["parent_pid"],
@@ -193,7 +193,7 @@ class TestRuntimeHostAdapter(unittest.TestCase):
                 authorization_path.read_bytes()
             ).hexdigest()
             payload["authorization_intent_sha256"] = authorization["intent_sha256"]
-            payload["previous_controller_product_version"] = "V2.6"
+            payload["previous_controller_product_version"] = "V2.62"
             handoff["payload_sha256"] = _canonical_sha256(payload)
             popen_factory = mock.Mock(side_effect=AssertionError("unexpected Popen"))
 
