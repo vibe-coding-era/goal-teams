@@ -5,7 +5,7 @@
 作者：肉山@TGO 杭州
 
 <!-- goal-teams-release:start -->
-当前发行：**V2.6** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.6) · [发行说明](release/current/README.md)
+当前发行：**V2.62** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.62) · [发行说明](release/current/README.md)
 <!-- goal-teams-release:end -->
 
 Goal Teams 是一个跨 CodeAgent 的团队协作 AgentTeams Skill，Codex 是当前可用宿主之一。它会以一个 Goal Lead 的身份，把目标拆成可验证计划，再协调独立成员完成需求、设计、实现、测试、Evidence 和收尾审计，过程中会应用到：
@@ -22,6 +22,8 @@ Goal Teams 是一个跨 CodeAgent 的团队协作 AgentTeams Skill，Codex 是�
 
 
 ## 核心机制
+
+V2.62 的核心机制是在不引入数据库、向量库或持久化图存储的前提下，把受控 OKF/Markdown 文档编译为内存 RDF-compatible 知识图谱，通过稳定 IRI、版本与证据关系、Current/Replay 隔离和 Observe-only 质量记录，提升知识复用与检索效率，减少歧义和幻觉。
 
 ### Goal + Plan + Loop
 

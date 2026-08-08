@@ -5,7 +5,7 @@
 Author: 肉山@TGO Hangzhou
 
 <!-- goal-teams-release:start -->
-Current release: **V2.52** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.52) · [release/current/README.md](release/current/README.md)
+Current release: **V2.62** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.62) · [release/current/README.md](release/current/README.md)
 <!-- goal-teams-release:end -->
 
 Goal Teams is an AgentTeams Skill for team collaboration across CodeAgents, with Codex as one of the currently available hosts. It operates as a Goal Lead: it breaks a goal into a verifiable plan, then coordinates independent members to complete requirements, design, implementation, testing, Evidence, and completion audits. Along the way, it:
@@ -23,6 +23,8 @@ Goal Teams is an AgentTeams Skill for team collaboration across CodeAgents, with
 3. Large System: the complete workflow and all gates, including quality and security audits.
 
 ## Core Mechanisms
+
+V2.62's core mechanism compiles controlled OKF/Markdown documents into an in-memory RDF-compatible knowledge graph without a database, vector store, or persistent graph storage; stable IRIs, revision and evidence links, Current/Replay isolation, and Observe-only quality findings improve reuse and retrieval while reducing ambiguity and hallucination risk.
 
 ### Goal + Plan + Loop
 
