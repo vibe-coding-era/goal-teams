@@ -8,9 +8,9 @@
 当前发行：**V2.62** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.62) · [发行说明](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-Goal Teams 是一个跨 CodeAgent 的团队协作 AgentTeams Skill，Codex 是当前可用宿主之一。它会以一个 Goal Lead 的身份，把目标拆成可验证计划，再协调独立成员完成需求、设计、实现、测试、Evidence 和收尾审计，过程中会应用到：
+Goal Teams 是一个跨 CodeAgent 的团队协作 AgentTeams Skill，支持多个 LLM 及 CodeAgent 平台。它会以一个 Goal Lead 的身份，把目标拆成可验证计划，再协调独立成员完成需求、设计、实现、测试、Evidence 和收尾审计，过程中会应用到：
 - 应用 Goal + Plan + Loop 模式，能够保持长时间完成任务；
-- 构建和严格遵循 SPEC + Harness + SSOT 三大原则，保持过程严谨性及 提升 LLM 缓存命中率；
+- 构建和严格遵循 SPEC + Harness + SSOT 三大原则，保持过程严谨性及 增强 LLM 缓存命中率；
 - 不同角色使用不同的 Subagent（不同上下文执行）保持上下文独立性不被污染，同时任务并发执行；
 - 建立过程 Benchmark 基准，为 LOOP 提供数据支持；
 - 有完备的开发团队，也能够与 OpenSpec 和 Superpowers 这类共存；
@@ -22,8 +22,6 @@ Goal Teams 是一个跨 CodeAgent 的团队协作 AgentTeams Skill，Codex 是�
 
 
 ## 核心机制
-
-V2.62 的核心机制是在不引入数据库、向量库或持久化图存储的前提下，把受控 OKF/Markdown 文档编译为内存 RDF-compatible 知识图谱，通过稳定 IRI、版本与证据关系、Current/Replay 隔离和 Observe-only 质量记录，提升知识复用与检索效率，减少歧义和幻觉。
 
 ### Goal + Plan + Loop
 
@@ -56,6 +54,10 @@ Benchmark 的价值是把“感觉变好了”变成可复盘的比较：同一�
 Goal Teams 不要求所有能力都来自内置 subagent。Plan 阶段可以把外部 skill、项目已有脚本、浏览器工具、测试工具或用户指定 subagent 纳入 `Teams 规划表`，并为它们定义 locked scope、输入、输出、Harness 和 validator。
 
 这种开放性让 Goal Teams 更像一个协作编排层：它负责目标、计划、交接物和证据的一致性；具体能力可以来自 `goal_*` subagent，也可以来自外部 skill，例如 browser 验证、文档生成、安全审查、PDF/表格处理或项目自定义工具。外部能力进入团队后仍遵守 SSOT、Harness 和独立校验规则。
+
+### 支持 OKF/Markdown 文档编译为内存 RDF-compatible 知识图谱
+通过稳定 IRI、版本与证据关系、Current/Replay 隔离和 Observe-only 质量记录，提升知识复用与检索效率，减少歧义和幻觉。
+
 
 ## 项目流程选择
 
