@@ -1554,16 +1554,21 @@ def check_example() -> None:
 
 
 def main() -> None:
-    if CURRENT_VERSION == "V2.52":
+    if CURRENT_VERSION in {"V2.52", "V2.6", "V2.62"}:
         commands = [
-            [sys.executable, "scripts/checks/validate-v250-generation.py", "--generation-id", "V2.52"],
+            [
+                sys.executable,
+                "scripts/checks/validate-v250-generation.py",
+                "--generation-id",
+                CURRENT_VERSION,
+            ],
             [sys.executable, "scripts/checks/validate-v250-test-gate.py", "--self-test"],
             [sys.executable, "scripts/checks/check-package-manifest.py"],
             [sys.executable, "scripts/v250/generate_subagents.py", "--check"],
         ]
         for command in commands:
             subprocess.run(command, cwd=ROOT, check=True)
-        print("Goal Teams V2.52 structural validation passed.")
+        print(f"Goal Teams {CURRENT_VERSION} structural validation passed.")
         return
     check_required_files()
     check_skill_frontmatter()

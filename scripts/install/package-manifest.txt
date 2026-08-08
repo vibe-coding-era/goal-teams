@@ -1,4 +1,4 @@
-# Goal Teams V2.6 Current install allowlist.
+# Goal Teams V2.62 Current install allowlist.
 # Default installation contains one active generation plus its exact execution
 # dependencies. Legacy Replay is a separate, explicit supplement.
 file .agents/skills/goal-teams/SKILL.md
@@ -15,15 +15,15 @@ prefix agents/
 file release/current/README.md
 file release/current/manifest.json
 file references/current/ACTIVE.json
-prefix references/current/generations/V2.6/
-prefix references/compatibility/v2.6/
+prefix references/current/generations/V2.62/
+prefix references/compatibility/v2.62/
 file references/okf-conformance-policy.json
-file references/profiles/goal-teams-self-release-v2.6.md
-file references/release-profiles/v2.6.json
+file references/profiles/goal-teams-self-release-v2.62.md
+file references/release-profiles/v2.62.json
 generated references/okf-conformance-manifest.json
 file schemas/release-engine-profile.schema.json
 prefix schemas/v2.50/
-prefix schemas/v2.6/
+prefix schemas/v2.62/
 file scripts/check.sh
 file scripts/checks/check.sh
 file scripts/checks/check-okf.py
@@ -43,7 +43,7 @@ file scripts/release/release_config.py
 file scripts/release/skill_release.py
 file scripts/release/validate-release.py
 prefix scripts/v250/
-prefix scripts/v26/
+prefix scripts/v262/
 prefix subagents/
 prefix tests/v250/
-prefix tests/v26/
+prefix tests/v262/

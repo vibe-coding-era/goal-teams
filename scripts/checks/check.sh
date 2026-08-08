@@ -66,23 +66,24 @@ if ! command -v "$PYTHON_BIN" >/dev/null 2>&1; then
   exit 2
 fi
 
-if [[ "$(<VERSION)" != "V2.6" ]]; then
-  echo "This Current checker only accepts VERSION=V2.6." >&2
+if [[ "$(<VERSION)" != "V2.62" ]]; then
+  echo "This Current checker only accepts VERSION=V2.62." >&2
   exit 2
 fi
 
-"$PYTHON_BIN" scripts/checks/validate-v250-generation.py --generation-id V2.6
+"$PYTHON_BIN" scripts/checks/validate-v250-generation.py --generation-id V2.62
 "$PYTHON_BIN" scripts/checks/validate-v250-test-gate.py --self-test
 "$PYTHON_BIN" scripts/checks/check-package-manifest.py
 "$PYTHON_BIN" scripts/v250/generate_subagents.py --check
 
 if [[ "$PHASE" == "development" ]]; then
   "$PYTHON_BIN" -m unittest discover -s tests/v250 -p 'test_*.py'
+  "$PYTHON_BIN" -m unittest discover -s tests/v262 -p 'test_*.py'
   "$PYTHON_BIN" scripts/checks/check-v250.py \
     --phase development \
     --project-size "$PROJECT_SIZE" \
     --stage candidate
-  echo "Goal Teams V2.6 development checks passed (${CHECK_MODE})."
+  echo "Goal Teams V2.62 development checks passed (${CHECK_MODE})."
   exit 0
 fi
 
@@ -102,4 +103,4 @@ fi
   --expected-host-execution-id "$EXPECTED_HOST_EXECUTION_ID" \
   --released-runtime-receipt "$RELEASED_RUNTIME_RECEIPT"
 
-echo "Goal Teams V2.6 final regression and release security review passed (${CHECK_MODE})."
+echo "Goal Teams V2.62 final regression and release security review passed (${CHECK_MODE})."

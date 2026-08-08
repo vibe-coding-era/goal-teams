@@ -4,6 +4,21 @@ V2.6 is the current published product release. Its annotated tag, fixed four pub
 
 V2.6 is a compatibility-policy release under the OSI-approved MIT License. It keeps the V2.5 portable execution core and V2.3 Legacy data schema while adding typed compatibility routing without creating a V2.53 product identity.
 
+## V2.62 release candidate
+
+V2.62 is the active release-readiness candidate; V2.6 remains the published predecessor until the V2.62 tag, fixed four-asset set, remote readback, and formal local installation are independently complete.
+
+- Adds the OKF Document Graph as a read-only, in-memory RDF 1.1 projection over tracked OKF and Markdown documents.
+- Keeps Markdown as the SSOT with no database, cache, network access, or document mutation.
+- Records graph-quality findings as Observe-only without adding a Knowledge Graph quality Gate.
+- Reports SPARQL and SHACL engine capabilities as `not_implemented`.
+- Binds a deterministic graph-input manifest digest, not an RDF dataset digest; the compatible parser identity denotes a controlled Markdown lexical subset, not full CommonMark/GFM conformance.
+- Leaves the generic isolated-entity detector and compile-size budgets `not_implemented`; absence of those findings is not a validation pass.
+- When `trace` is truncated, its `match_count` is the number of edges discovered before the traversal bound, not the total reachable-edge cardinality.
+- Retains core policy V2.5, Execution assets v2.50, and Legacy data schema V2.3.
+
+The candidate public asset names are `goal-teams-V2.62.tar.gz`, `SHA256SUMS`, `_release.json`, and `_files.sha256`; candidate status is not a published Release claim.
+
 ## V2.6 changes
 
 - Added a fail-closed compatibility chain: `Portable Core -> Host -> Provider -> Model -> optional Bridge -> Role -> Task`.

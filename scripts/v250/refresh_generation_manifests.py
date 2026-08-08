@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Refresh the deterministic V2.6 Current projection and activation digests."""
+"""Refresh the deterministic V2.62 Current projection and activation digests."""
 
 from __future__ import annotations
 
@@ -11,14 +11,14 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[2]
-GENERATION_ROOT = Path("references/current/generations/V2.6")
+GENERATION_ROOT = Path("references/current/generations/V2.62")
 RULE_PATH = GENERATION_ROOT / "rule-manifest.json"
 PROMPT_PATH = GENERATION_ROOT / "prompt-manifest.json"
 ACTIVATION_PATH = GENERATION_ROOT / "activation-manifest.json"
 ACTIVE_PATH = Path("references/current/ACTIVE.json")
 BASELINE_PATH = Path("references/current/generations/V2.48/activation-manifest.json")
 REPLAY_PATH = Path("references/legacy-replay/manifest.json")
-ACTIVATED_AT = "2026-08-06T12:00:00+08:00"
+ACTIVATED_AT = "2026-08-07T18:00:00+08:00"
 
 
 def _json_bytes(value: Any) -> bytes:
@@ -106,9 +106,9 @@ def _ensure_execution_members(value: dict[str, Any]) -> None:
         for pattern in (
             "scripts/v250/*.py",
             "tests/v250/*.py",
-            "scripts/v26/*.py",
-            "tests/v26/*.py",
-            "references/compatibility/v2.6/**/*",
+            "scripts/v262/*.py",
+            "tests/v262/*.py",
+            "references/compatibility/v2.62/**/*",
         )
         for path in ROOT.glob(pattern)
         if path.is_file() and not path.is_symlink()
@@ -123,19 +123,45 @@ def _ensure_execution_members(value: dict[str, Any]) -> None:
     execution.sort(key=lambda item: str(item.get("path", "")))
 
 
+def _ensure_current_members(
+    value: dict[str, Any], rule_manifest: dict[str, Any]
+) -> None:
+    root_sets = value.get("root_sets")
+    if not isinstance(root_sets, dict):
+        raise ValueError("activation root_sets must be an object")
+    current = root_sets.get("current")
+    owners = rule_manifest.get("owners")
+    if not isinstance(current, list) or not isinstance(owners, list):
+        raise ValueError("activation current root and owners must be arrays")
+    declared = {
+        item.get("path") for item in current if isinstance(item, dict)
+    }
+    required = {
+        RULE_PATH.as_posix(),
+        PROMPT_PATH.as_posix(),
+        *(owner.get("path") for owner in owners if isinstance(owner, dict)),
+    }
+    if any(not isinstance(path, str) or not path for path in required):
+        raise ValueError("invalid current owner path")
+    for relative in sorted(required - declared):
+        current.append({"path": relative, "sha256": "", "bytes": 0})
+    current.sort(key=lambda item: str(item.get("path", "")))
+
+
 def _refreshed_activation(
     rule_manifest: dict[str, Any], prompt_manifest: dict[str, Any]
 ) -> dict[str, Any]:
     value = _load(ACTIVATION_PATH)
     value["schema_version"] = "goal-teams-activation-manifest-v2.50"
-    value["generation_id"] = "V2.6"
+    value["generation_id"] = "V2.62"
     value["generation_state"] = "active"
     value["baseline_generation_id"] = "V2.48"
     value["identity"] = {
-        "loaded_runtime_product_version": "V2.6",
+        "loaded_runtime_product_version": "V2.62",
         "route_contract_schema_version": "goal-teams-project-route-v2.50",
-        "target_policy_generation": "V2.6",
+        "target_policy_generation": "V2.62",
     }
+    _ensure_current_members(value, rule_manifest)
     _ensure_execution_members(value)
 
     rule_raw = _json_bytes(rule_manifest)
@@ -154,7 +180,7 @@ def _refreshed_activation(
         ),
         *(
             path.relative_to(ROOT).as_posix()
-            for path in ROOT.glob("schemas/v2.6/*.json")
+            for path in ROOT.glob("schemas/v2.62/*.json")
             if path.is_file() and not path.is_symlink()
         ),
     }
@@ -190,7 +216,7 @@ def _refreshed_activation(
             item
             for item in root_sets["current"]
             if item["path"].startswith(
-                "references/current/generations/V2.6/contracts/"
+                "references/current/generations/V2.62/contracts/"
             )
             and item["path"].endswith(".json")
         ),
@@ -211,23 +237,30 @@ def _refreshed_activation(
     if not isinstance(legacy, dict):
         raise ValueError("legacy classification must be an object")
     prefixes = set(legacy.get("path_prefixes", []))
-    prefixes.discard("references/current/generations/V2.6/")
+    prefixes.discard("references/current/generations/V2.62/")
     prefixes.update(
         {
+            "references/current/generations/V2.6/",
             "references/current/generations/V2.52/",
             "references/current/generations/V2.51/",
             "references/current/generations/V2.50/",
             "references/current/generations/V2.49/",
             "schemas/v2.49/",
+            "schemas/v2.6/",
             "scripts/v249/",
+            "scripts/v26/",
             "tests/v249/",
+            "tests/v26/",
+            "references/compatibility/v2.6/",
         }
     )
     exact = set(legacy.get("exact_paths", []))
-    exact.discard("references/profiles/goal-teams-self-release-v2.6.md")
-    exact.discard("references/release-profiles/v2.6.json")
+    exact.discard("references/profiles/goal-teams-self-release-v2.62.md")
+    exact.discard("references/release-profiles/v2.62.json")
     exact.update(
         {
+            "references/profiles/goal-teams-self-release-v2.6.md",
+            "references/release-profiles/v2.6.json",
             "references/profiles/goal-teams-self-release-v2.52.md",
             "references/release-profiles/v2.52.json",
             "references/profiles/goal-teams-self-release-v2.51.md",
@@ -274,7 +307,7 @@ def _refreshed_activation(
 def _refreshed_active(activation: dict[str, Any]) -> dict[str, Any]:
     return {
         "schema_version": "goal-teams-active-generation-v1",
-        "generation_id": "V2.6",
+        "generation_id": "V2.62",
         "activation_manifest": ACTIVATION_PATH.as_posix(),
         "activation_manifest_sha256": _sha256(_json_bytes(activation)),
         "state": "active_current",

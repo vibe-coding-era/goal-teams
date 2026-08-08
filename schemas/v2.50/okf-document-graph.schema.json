@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.50/okf-document-graph.schema.json",
+  "title": "OKF Document Graph v0.4 transient runtime contracts",
+  "description": "Machine contract for exact graph inputs and document-only in-memory query receipts. It defines no persistent RDF or database artifact.",
+  "oneOf": [
+    {"$ref": "#/$defs/graph_input"},
+    {"$ref": "#/$defs/graph_receipt"},
+    {"$ref": "#/$defs/query_receipt"}
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "route_identity": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "member": {
+      "type": "object",
+      "required": ["canonical_path", "qualified_ref", "source_sha256", "compile_state"],
+      "properties": {
+        "canonical_path": {"type": "string"},
+        "qualified_ref": {"type": ["string", "null"]},
+        "source_sha256": {
+          "oneOf": [
+            {"$ref": "#/$defs/sha256"},
+            {"type": "null"}
+          ]
+        },
+        "compile_state": {"enum": ["parsed", "partial", "unreadable"]}
+      },
+      "additionalProperties": false
+    },
+    "graph_input": {
+      "type": "object",
+      "required": [
+        "schema",
+        "profile_id",
+        "profile_document_sha256",
+        "parser_contract_id",
+        "kg_base_iri",
+        "graph_role",
+        "route_identity",
+        "entry_map_ref",
+        "entry_map_sha256",
+        "members"
+      ],
+      "properties": {
+        "schema": {"const": "okf-docgraph-graph-input-v0.4"},
+        "profile_id": {"const": "okf-document-graph-v0.4-rdf-mapping"},
+        "profile_document_sha256": {"$ref": "#/$defs/sha256"},
+        "parser_contract_id": {"const": "okf-frontmatter-commonmark-gfm-table-v0.4"},
+        "kg_base_iri": {
+          "type": "string",
+          "pattern": "^https://[^/?#]+(?:/[^?#]*)?[^/?#]$"
+        },
+        "graph_role": {"enum": ["current", "replay"]},
+        "route_identity": {"$ref": "#/$defs/route_identity"},
+        "entry_map_ref": {"type": "string", "minLength": 1},
+        "entry_map_sha256": {"$ref": "#/$defs/sha256"},
+        "members": {"type": "array", "items": {"$ref": "#/$defs/member"}},
+        "replay_version": {"type": "string", "minLength": 1},
+        "snapshot_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"graph_role": {"const": "current"}}},
+          "then": {
+            "properties": {
+              "replay_version": false,
+              "snapshot_sha256": false
+            }
+          }
+        },
+        {
+          "if": {"properties": {"graph_role": {"const": "replay"}}},
+          "then": {
+            "required": ["replay_version", "snapshot_sha256"],
+            "properties": {
+              "replay_version": {"type": "string", "minLength": 1},
+              "snapshot_sha256": {"$ref": "#/$defs/sha256"}
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "capabilities": {
+      "type": "object",
+      "required": ["rdf_view", "sparql_state", "shacl_engine_state", "rdfs_owl_reasoning_state"],
+      "properties": {
+        "rdf_view": {"const": "implemented"},
+        "sparql_state": {"const": "not_implemented"},
+        "shacl_engine_state": {"const": "not_implemented"},
+        "rdfs_owl_reasoning_state": {"const": "not_implemented"}
+      },
+      "additionalProperties": false
+    },
+    "graph_receipt": {
+      "type": "object",
+      "required": [
+        "schema",
+        "graph_role",
+        "graph_iri",
+        "graph_input_sha256",
+        "route_identity",
+        "acceptance_eligible",
+        "coverage_state",
+        "capabilities",
+        "persistence_state",
+        "document_count",
+        "triple_count",
+        "statement_count",
+        "observation_count"
+      ],
+      "properties": {
+        "schema": {"const": "okf-docgraph-receipt-v0.4"},
+        "graph_role": {"enum": ["current", "replay"]},
+        "graph_iri": {"type": "string", "format": "uri"},
+        "graph_input_sha256": {"$ref": "#/$defs/sha256"},
+        "route_identity": {"$ref": "#/$defs/route_identity"},
+        "acceptance_eligible": {"type": "boolean"},
+        "coverage_state": {"enum": ["complete", "partial"]},
+        "capabilities": {"$ref": "#/$defs/capabilities"},
+        "persistence_state": {"const": "not_run"},
+        "document_count": {"type": "integer", "minimum": 0},
+        "triple_count": {"type": "integer", "minimum": 0},
+        "statement_count": {"type": "integer", "minimum": 0},
+        "observation_count": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "query_result": {
+      "type": "object",
+      "required": ["result_kind"],
+      "properties": {
+        "result_kind": {
+          "enum": ["observation", "document", "claim", "search_hit", "edge", "explanation"]
+        }
+      },
+      "additionalProperties": true
+    },
+    "query_receipt": {
+      "type": "object",
+      "required": [
+        "query_kind",
+        "graph_role",
+        "graph_iri",
+        "graph_input_sha256",
+        "route_identity",
+        "acceptance_eligible",
+        "coverage_state",
+        "run_status",
+        "current_action",
+        "persistence",
+        "match_state",
+        "match_count",
+        "ambiguity_state",
+        "limit",
+        "truncated",
+        "results"
+      ],
+      "properties": {
+        "query_kind": {"enum": ["observe", "resolve", "search", "neighbors", "trace", "explain"]},
+        "graph_role": {"enum": ["current", "replay"]},
+        "graph_iri": {"type": "string", "format": "uri"},
+        "graph_input_sha256": {"$ref": "#/$defs/sha256"},
+        "route_identity": {"$ref": "#/$defs/route_identity"},
+        "acceptance_eligible": {"type": "boolean"},
+        "coverage_state": {"enum": ["complete", "partial"]},
+        "run_status": {"const": "completed"},
+        "current_action": {"const": "record"},
+        "future_action": {"const": "undecided"},
+        "persistence": {"const": "not_run"},
+        "match_state": {"enum": ["none", "unique", "multiple", "not_applicable"]},
+        "match_count": {"type": "integer", "minimum": 0},
+        "ambiguity_state": {"enum": ["unambiguous", "ambiguous", "not_applicable"]},
+        "limit": {"type": "integer", "minimum": 1, "maximum": 10000},
+        "truncated": {"type": "boolean"},
+        "results": {"type": "array", "items": {"$ref": "#/$defs/query_result"}}
+      },
+      "additionalProperties": false
+    }
+  }
+}

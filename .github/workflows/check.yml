@@ -46,10 +46,11 @@ jobs:
           PYTHONPATH="${VALIDATOR_PYTHON_PREFIX}" python3 -c \
             'from jsonschema import Draft202012Validator'
           echo "PYTHONPATH=${VALIDATOR_PYTHON_PREFIX}${PYTHONPATH:+:${PYTHONPATH}}" >> "${GITHUB_ENV}"
-      - name: V2.6 TDD and affected-surface incremental checks
+      - name: V2.62 TDD and affected-surface incremental checks
         env:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
           python3 -m unittest discover -s tests/v250 -p 'test_*.py'
+          python3 -m unittest discover -s tests/v262 -p 'test_*.py'
           python3 scripts/checks/check-v250.py --phase development --project-size medium --stage candidate
           python3 scripts/checks/check-package-manifest.py

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic Google OKF conformance primitives for Goal Teams V2.6 Current.
+"""Deterministic Google OKF conformance primitives for Goal Teams V2.62 Current.
 
 The implementation intentionally uses only the Python standard library.  It
 parses a small, documented YAML subset instead of constructing arbitrary YAML
@@ -327,7 +327,7 @@ def _parse_frontmatter(lines: Sequence[str]) -> dict[str, Any]:
 
 
 def parse_okf_document(path: str | Path, *, max_bytes: int = 65536) -> dict[str, Any]:
-    """Safely parse the V2.6 Current-supported OKF Markdown subset."""
+    """Safely parse the V2.62 Current-supported OKF Markdown subset."""
 
     target = Path(path)
     if target.is_symlink():
@@ -1071,12 +1071,12 @@ def build_package_manifest(
     product_version = (
         version_path.read_text(encoding="utf-8").strip()
         if version_path.is_file()
-        else "V2.6"
+        else "V2.62"
     )
-    builder_version = "V2.6" if product_version == "V2.6" else "V2.39"
+    builder_version = "V2.62" if product_version == "V2.62" else "V2.39"
     runtime_path = (
         "scripts/v250/okf_conformance.py"
-        if product_version == "V2.6"
+        if product_version == "V2.62"
         else "scripts/v23/okf_conformance.py"
     )
     checker_paths = [runtime_path, "scripts/checks/check-okf.py"]
@@ -1217,7 +1217,7 @@ def validate_manifest(
                 else None
             )
             expected_builder_version = (
-                "V2.6" if installed_product_version == "V2.6" else "V2.39"
+                "V2.62" if installed_product_version == "V2.62" else "V2.39"
             )
             expected_top_fields = {
                 "schema_version",

@@ -98,12 +98,12 @@ class TestV250RuntimeCLI(unittest.TestCase):
         self.assertIn("launch", result.stdout)
         self.assertIn("verify-github-key", result.stdout)
 
-    def test_host_adapter_declares_v252_to_v26_runtime_handoff(self) -> None:
+    def test_host_adapter_declares_v26_to_v262_runtime_handoff(self) -> None:
         adapter_source = (ROOT / "scripts/v250/runtime_host_adapter.py").read_text(
             encoding="utf-8"
         )
-        self.assertIn("V2.52 -> V2.6 runtime handoff", adapter_source)
-        self.assertNotIn("V2.6 -> V2.6 runtime handoff", adapter_source)
+        self.assertIn("V2.6 -> V2.62 runtime handoff", adapter_source)
+        self.assertNotIn("V2.62 -> V2.62 runtime handoff", adapter_source)
 
 
 if __name__ == "__main__":

@@ -36,7 +36,7 @@ class TestV250SchemaContracts(unittest.TestCase):
             set(identity["required"]),
         )
         self.assertEqual(
-            {"const": "V2.6"},
+            {"const": "V2.62"},
             identity["properties"]["loaded_runtime_product_version"],
         )
         self.assertNotIn("controller_product_version", identity["properties"])
@@ -56,23 +56,23 @@ class TestV250SchemaContracts(unittest.TestCase):
             self.assertNotIn(forbidden, runtime["required"])
             self.assertNotIn(forbidden, runtime["properties"])
         self.assertEqual(
-            {"const": "V2.6"},
+            {"const": "V2.62"},
             runtime["properties"]["loaded_runtime_product_version"],
         )
         handoff = runtime["$defs"]["controllerHandoffReceipt"]
         signed_payload = handoff["properties"]["signed_payload"]
         self.assertEqual(
-            {"const": "V2.52"},
+            {"const": "V2.6"},
             signed_payload["properties"]["previous_controller_product_version"],
         )
         self.assertIn("previous_run_id", signed_payload["required"])
-        self.assertIn("installed_v252_current_state", signed_payload["required"])
+        self.assertIn("installed_v26_current_state", signed_payload["required"])
         self.assertNotIn("installed_v250_current_state", signed_payload["properties"])
         self.assertNotIn("controller_version", signed_payload["properties"])
 
     def test_required_fields_are_locally_declared_for_strict_draft202012_compilers(self) -> None:
         schema_files = sorted(SCHEMA_ROOT.glob("*.schema.json"))
-        self.assertEqual(9, len(schema_files))
+        self.assertEqual(10, len(schema_files))
 
         for schema_file in schema_files:
             schema = json.loads(schema_file.read_text(encoding="utf-8"))
@@ -93,7 +93,7 @@ class TestV250SchemaContracts(unittest.TestCase):
 
     def test_release_engine_profile_is_strict_compiler_and_instance_aligned(self) -> None:
         schema_path = REPO / "schemas/release-engine-profile.schema.json"
-        profile_path = REPO / "references/release-profiles/v2.6.json"
+        profile_path = REPO / "references/release-profiles/v2.62.json"
         schema = json.loads(schema_path.read_text(encoding="utf-8"))
         profile = json.loads(profile_path.read_text(encoding="utf-8"))
 
@@ -167,7 +167,7 @@ class TestV250SchemaContracts(unittest.TestCase):
         self.assertEqual(4, assets["maxItems"])
         self.assertIs(False, assets["items"])
         self.assertEqual(
-            ["SHA256SUMS", "_files.sha256", "_release.json", "goal-teams-V2.6.tar.gz"],
+            ["SHA256SUMS", "_files.sha256", "_release.json", "goal-teams-V2.62.tar.gz"],
             [item["properties"]["name"]["const"] for item in assets["prefixItems"]],
         )
         journal = outcome["properties"]["operation_journal"]

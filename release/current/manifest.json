@@ -27,6 +27,30 @@
     },
     "claim_policy": "no_estimation_without_trusted_host_usage_evidence"
   },
+  "candidate_product_version": "V2.62",
+  "candidate_release_state": "v250_release_readiness",
+  "candidate_active_generation": "V2.62",
+  "candidate_release_mode": "skill_simple_v2.50",
+  "candidate_required_status_checks": [
+    "check-macos",
+    "release-asset-gate"
+  ],
+  "candidate_public_assets": [
+    "goal-teams-V2.62.tar.gz",
+    "SHA256SUMS",
+    "_release.json",
+    "_files.sha256"
+  ],
+  "candidate_assurance_limits": {
+    "reproducibility": "not_verified_by_v250_policy",
+    "s2_security_checks": "not_run_by_v250_policy",
+    "fresh_runtime_transition": "I1_correlated_not_external_independence",
+    "kg_parser_scope": "controlled_markdown_lexical_subset_not_commonmark_gfm_conformance",
+    "kg_digest_scope": "graph_input_manifest_not_rdf_dataset",
+    "kg_isolated_entity_detector": "not_implemented",
+    "kg_compile_resource_budget": "not_implemented",
+    "kg_trace_truncated_match_count": "discovered_lower_bound_not_total_reachable_edges"
+  },
   "release_identity": {
     "tag": "v2.6",
     "release_id": 366574904,

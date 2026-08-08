@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Pure V2.6 release routing and receipt-chain helpers.
+"""Pure V2.62 release routing and receipt-chain helpers.
 
 The helpers in this module do not launch tests, build assets, install files, or
 perform a network write.  They validate and bind receipts produced by the
-dedicated V2.6 runners.  A consistent receipt chain is evidence correlation;
+dedicated V2.62 runners.  A consistent receipt chain is evidence correlation;
 it is not a cryptographic host attestation or external-independence proof.
 """
 
@@ -31,8 +31,9 @@ from scripts.v250.runtime_transition import (
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 PROJECT_SIZES = {"discussion", "small", "medium", "large"}
+CURRENT_RELEASE_VERSION = "V2.62"
 PUBLIC_ASSET_NAMES = {
-    "goal-teams-V2.6.tar.gz",
+    "goal-teams-V2.62.tar.gz",
     "SHA256SUMS",
     "_release.json",
     "_files.sha256",
@@ -113,41 +114,62 @@ PROJECT_START_AUTHORIZATION_INTENT_KEYS = frozenset(
 )
 
 V250_SECURITY_CONTRACT_PATH = (
-    "references/current/generations/V2.6/contracts/"
+    "references/current/generations/V2.62/contracts/"
     "release-security-review-manifest.json"
 )
 V250_SECURITY_REQUIRED_TARGET_PATHS = frozenset(
     {
         ".github/workflows/check.yml",
         ".github/workflows/release-gate.yml",
-        "references/current/generations/V2.6/contracts/public-asset-map.json",
-        "references/current/generations/V2.6/contracts/release-command-manifest.json",
-        "references/current/generations/V2.6/contracts/release-route-manifest.json",
+        "references/current/generations/V2.62/contracts/public-asset-map.json",
+        "references/current/generations/V2.62/contracts/release-command-manifest.json",
+        "references/current/generations/V2.62/contracts/release-route-manifest.json",
+        "references/current/generations/V2.62/functions/knowledge-graph.md",
         V250_SECURITY_CONTRACT_PATH,
+        "schemas/v2.50/okf-document-graph.schema.json",
         "schemas/v2.50/project-route.schema.json",
         "schemas/v2.50/release-control.schema.json",
         "scripts/checks/check-package-manifest.py",
+        "scripts/checks/check.sh",
         "scripts/checks/check-v250.py",
+        "scripts/checks/check-version-sync.py",
         "scripts/checks/check-workspace-boundaries.py",
         "scripts/checks/run-v250-release-security-review.py",
+        "scripts/checks/validate-v250-generation.py",
+        "scripts/checks/validate-v250-test-gate.py",
+        "scripts/checks/validate.py",
         "scripts/install/install-local.sh",
         "scripts/release/build-release.py",
         "scripts/release/release_config.py",
         "scripts/release/skill_release.py",
         "scripts/release/validate-release.py",
         "scripts/v250/github_ssh.py",
+        "scripts/v250/generate_subagents.py",
+        "scripts/v250/generate_unicode17_nfc.py",
+        "scripts/v250/generation_runtime.py",
+        "scripts/v250/loop_bootstrap.py",
+        "scripts/v250/okf_conformance.py",
+        "scripts/v250/okf_document_graph.py",
+        "scripts/v250/output_contract.py",
         "scripts/v250/refresh_generation_manifests.py",
         "scripts/v250/release_flow.py",
         "scripts/v250/repository_boundary.py",
+        "scripts/v250/route_closure.py",
         "scripts/v250/runtime_host_adapter.py",
         "scripts/v250/runtime_transition.py",
         "scripts/v250/s4_executor.py",
+        "scripts/v250/test_gate.py",
+        "scripts/v250/unicode17_data.py",
+        "scripts/v250/unicode17_nfc.py",
+        "scripts/v262/compatibility.py",
+        "scripts/v262/project_host_assets.py",
+        "scripts/v262/role_projections.py",
     }
 )
 
 
 def canonical_sha256(value: Any) -> str:
-    """Return the canonical JSON SHA-256 used by V2.6 receipt bindings."""
+    """Return the canonical JSON SHA-256 used by V2.62 receipt bindings."""
 
     return hashlib.sha256(
         json.dumps(
@@ -205,7 +227,7 @@ def _release_ready(route: dict[str, Any]) -> bool:
 
 
 def derive_release_plan(route: dict[str, Any]) -> dict[str, Any]:
-    """Derive V2.6 S0-S4 without executing child processes."""
+    """Derive V2.62 S0-S4 without executing child processes."""
 
     if not isinstance(route, dict):
         raise TypeError("route must be an object")
@@ -221,7 +243,7 @@ def derive_release_plan(route: dict[str, Any]) -> dict[str, Any]:
             gates[gate_id] = _not_required(reason)
         gates["s3"].update({"s3_process_invocation_count": 0, "child_argv": []})
         return {
-            "generation_id": "V2.6",
+            "generation_id": "V2.62",
             "workflow_phase": route.get("workflow_phase"),
             "release_ready": False,
             "s1_gates": [],
@@ -280,7 +302,7 @@ def derive_release_plan(route: dict[str, Any]) -> dict[str, Any]:
         "additional_user_confirmation_required": False,
     }
     return {
-        "generation_id": "V2.6",
+        "generation_id": "V2.62",
         "workflow_phase": "release",
         "release_ready": True,
         "s1_gates": ["full_regression", "release_security_review"],
@@ -312,7 +334,7 @@ def build_s2_receipt(
     if not _nonempty(asset_set_id) or not _nonempty(build_run_id):
         raise ValueError("asset_set_id and build_run_id are required")
     if {asset.get("name") for asset in asset_rows} != PUBLIC_ASSET_NAMES:
-        raise ValueError("the exact V2.6 four-asset set is required")
+        raise ValueError("the exact V2.62 four-asset set is required")
     if len(asset_rows) != len(PUBLIC_ASSET_NAMES):
         raise ValueError("duplicate public asset identity")
     for asset in asset_rows:
@@ -330,7 +352,7 @@ def build_s2_receipt(
     asset_set_digest = canonical_sha256(asset_rows)
     return _seal_receipt(
         {
-            "schema_version": "goal-teams-v2.6-s2-receipt-v1",
+            "schema_version": "goal-teams-v2.62-s2-receipt-v1",
             "gate_id": "s2_single_build",
             "stage": "released",
             "source_commit": source_commit,
@@ -433,17 +455,18 @@ def _validate_full_regression_receipt(
     case_count = denominator.get("test_case_count")
     if (
         denominator.get("denominator_id") != "V250-CURRENT-GENERATION-FULL"
-        or denominator.get("generation_id") != "V2.6"
+        or denominator.get("generation_id") != "V2.62"
         or denominator.get("scope") != "current_generation_full_regression"
         or denominator.get("source_commit") != source_commit
         or denominator.get("source_tree") != source_tree
-        or denominator.get("test_root") != "tests/v250"
+        or denominator.get("test_roots") != ["tests/v250", "tests/v262"]
         or denominator.get("test_pattern") != "test_*.py"
         or denominator.get("contract_path")
-        != "references/current/generations/V2.6/contracts/release-command-manifest.json"
+        != "references/current/generations/V2.62/contracts/release-command-manifest.json"
         or not isinstance(denominator.get("contract_sha256"), str)
         or SHA256_RE.fullmatch(denominator["contract_sha256"]) is None
-        or denominator.get("legacy_roots_excluded") != ["tests/v23", "tests/v249"]
+        or denominator.get("legacy_roots_excluded")
+        != ["tests/v23", "tests/v249", "tests/v26"]
         or not isinstance(files, list)
         or not files
         or files != sorted(files, key=lambda item: item.get("path", ""))
@@ -577,7 +600,7 @@ def _security_review_git_snapshot(
         not isinstance(targets, list)
         or not targets
         or manifest.get("schema_version")
-        != "goal-teams-v2.6-release-security-review-v2"
+        != "goal-teams-v2.62-release-security-review-v2"
         or manifest.get("denominator_id")
         != "V250-RELEASE-SECURITY-IMPLEMENTATION"
         or manifest.get("unknown_or_missing_policy") != "fail_closed"
@@ -822,11 +845,11 @@ def _validate_security_review_receipt(
         isinstance(denominator, dict)
         and denominator.get("denominator_id")
         == "V250-RELEASE-SECURITY-IMPLEMENTATION"
-        and denominator.get("generation_id") == "V2.6"
+        and denominator.get("generation_id") == "V2.62"
         and denominator.get("source_commit") == source_commit
         and denominator.get("source_tree") == source_tree
         and denominator.get("manifest_path")
-        == "references/current/generations/V2.6/contracts/release-security-review-manifest.json"
+        == "references/current/generations/V2.62/contracts/release-security-review-manifest.json"
         and denominator.get("manifest_sha256") == manifest_sha256
         and denominator.get("target_count") == len(expected_target_paths)
         and denominator.get("target_paths") == expected_target_paths
@@ -1011,7 +1034,7 @@ def build_s0_receipt(
         raise ValueError(transition_errors[0])
     return _seal_receipt(
         {
-            "schema_version": "goal-teams-v2.6-s0-receipt-v1",
+            "schema_version": "goal-teams-v2.62-s0-receipt-v1",
             "gate_id": "s0_identity",
             "source_commit": source_commit,
             "source_tree": source_tree,
@@ -1042,7 +1065,7 @@ def build_s1_receipt(
         raise ValueError(str(verdict["errors"][0]))
     return _seal_receipt(
         {
-            "schema_version": "goal-teams-v2.6-s1-receipt-v1",
+            "schema_version": "goal-teams-v2.62-s1-receipt-v1",
             "gate_id": "s1_release_readiness",
             "source_commit": source_commit,
             "source_tree": source_tree,
@@ -1070,6 +1093,8 @@ def validate_project_start_authorization(
     """Validate the real project-start receipt without inventing a new state."""
 
     errors: list[str] = []
+    if version != CURRENT_RELEASE_VERSION:
+        errors.append("E_V250_RELEASE_VERSION")
     value = receipt if isinstance(receipt, dict) else {}
     if not isinstance(receipt, dict):
         errors.append("E_V250_PROJECT_START_AUTHORIZATION_REQUIRED")
@@ -1330,6 +1355,8 @@ def build_release_control_receipt(
 ) -> dict[str, Any]:
     """Create and validate the complete local S4 preflight receipt chain."""
 
+    if version != CURRENT_RELEASE_VERSION:
+        raise ValueError("E_V250_RELEASE_VERSION")
     auth = validate_project_start_authorization(
         authorization_receipt,
         repository=repository,
@@ -1357,7 +1384,7 @@ def build_release_control_receipt(
     }
     s4_preflight = _seal_receipt(
         {
-            "schema_version": "goal-teams-v2.6-s4-preflight-receipt-v1",
+            "schema_version": "goal-teams-v2.62-s4-preflight-receipt-v1",
             "gate_id": "s4_preflight",
             "repository": repository,
             "version": version,
@@ -1392,7 +1419,7 @@ def build_release_control_receipt(
         }
     )
     control: dict[str, Any] = {
-        "schema_version": "goal-teams-v2.6-release-control-receipt-v1",
+        "schema_version": "goal-teams-v2.62-release-control-receipt-v1",
         "repository": repository,
         "version": version,
         "project_size": project_size,
@@ -1449,6 +1476,8 @@ def validate_release_control_receipt(
 
     value = receipt if isinstance(receipt, dict) else {}
     errors: list[str] = []
+    if expected_version != CURRENT_RELEASE_VERSION:
+        errors.append("E_V250_RELEASE_VERSION")
     if not isinstance(receipt, dict):
         return {
             "ok": False,
@@ -1456,7 +1485,7 @@ def validate_release_control_receipt(
             "publish_allowed": False,
             "errors": ["E_V250_RELEASE_CONTROL_REQUIRED"],
         }
-    if value.get("schema_version") != "goal-teams-v2.6-release-control-receipt-v1":
+    if value.get("schema_version") != "goal-teams-v2.62-release-control-receipt-v1":
         errors.append("E_V250_RELEASE_CONTROL_SCHEMA")
     if (
         value.get("release_control_sha256") != _receipt_sha256(value)
@@ -1598,7 +1627,7 @@ def validate_release_control_receipt(
     if (
         not _valid_receipt_digest(anchor)
         or anchor_value.get("schema_version")
-        != "goal-teams-v2.6-external-anchor-validation-v1"
+        != "goal-teams-v2.62-external-anchor-validation-v1"
         or anchor_value.get("source_commit") != expected_source_commit
         or anchor_value.get("source_tree") != expected_source_tree
         or anchor_value.get("asset_set_digest") != value.get("asset_set_digest")

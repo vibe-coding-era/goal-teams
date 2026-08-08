@@ -1,0 +1,27 @@
+{
+  "schema_version": "goal-teams-kg262-fixture-manifest-v1",
+  "case_bundle": "DEN-KG262-DEVELOPMENT-R1",
+  "unicode_profile": "Unicode 17.0.0 / UAX #15 revision 57",
+  "official_source_notice": "Project-pinned SHA-256 values computed from versioned unicode.org HTTPS resources; not an upstream signature.",
+  "files": [
+    {"path": "current/acceptance/target.md", "sha256": "f43ce41aff0a1f4496564a3749b74ec4bec71dafd2bcb656fe2ae2a4b1adb9f5"},
+    {"path": "current/evidence/request.md", "sha256": "1869537001d8ddf69dc8bb404a40d149fe4b4554048a41862af922396333b00d"},
+    {"path": "current/knowledge-map.md", "sha256": "89287639a928b3a9b4427ede884bcb1630ed150c40ae5834f5890ddd5e3bba87"},
+    {"path": "current/orphan.md", "sha256": "fd572b0e6474aff7df38f2e669282cd3069dfafc272ccfca5826c75c158518de"},
+    {"path": "current/requirements/source.md", "sha256": "4fe5c96a63d68dc3f8859554c87ec84fad8d7c7cabd4ac276a631b2f30bca7dd"},
+    {"path": "quality/broken.md", "sha256": "890e6f1ed8618142725ad13789c4c71e6019da0d1434f05caf18654b111cb846"},
+    {"path": "quality/knowledge-map.md", "sha256": "e43774ce34d2941bbb01a28a6cda2ae5722e760688ac01220b0af933ce512971"},
+    {"path": "quality/malformed.md", "sha256": "25a97141c6e5a5097e26c52907eea8a86e2d50fcfe6ea8fead85160b6e9a2e6a"},
+    {"path": "replay/knowledge-map.md", "sha256": "6e8709f428c432015606b7444372acfb04f464c7aa0cc0f1cfae154a9e5c547e"},
+    {"path": "replay/requirements/old.md", "sha256": "78b0804d679f4aed1668968f3eb4892c574533167a645d6498214fdc8f23508d"},
+    {"path": "unicode17/DerivedNormalizationProps.txt", "sha256": "71fd6a206a2c0cdd41feb6b7f656aa31091db45e9cedc926985d718397f9e488", "source": "https://www.unicode.org/Public/17.0.0/ucd/DerivedNormalizationProps.txt"},
+    {"path": "unicode17/LICENSE.txt", "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96", "source": "https://www.unicode.org/license.txt"},
+    {"path": "unicode17/NormalizationTest.txt", "sha256": "5019ffd530751a741900c849c0e010332f142a3612234639bd200b82138a87db", "source": "https://www.unicode.org/Public/17.0.0/ucd/NormalizationTest.txt"},
+    {"path": "unicode17/ReadMe.txt", "sha256": "9fe1a90bd32659d7953616283dc2bffaa165518aae9ace026040c42c559ba606", "source": "https://www.unicode.org/Public/17.0.0/ucd/ReadMe.txt"},
+    {"path": "unicode17/SHA256SUMS", "sha256": "d12c4e85a99323bf63752cc1623ed7a3285d26dd144596317db5babcf60cf65f"},
+    {"path": "unicode17/UnicodeData.txt", "sha256": "2e1efc1dcb59c575eedf5ccae60f95229f706ee6d031835247d843c11d96470c", "source": "https://www.unicode.org/Public/17.0.0/ucd/UnicodeData.txt"},
+    {"path": "unsafe/escape-map.md", "sha256": "47e1103f65eb0aa654c94064e019fecc473c115082846a7b858c7f4bb3fd3d17"},
+    {"path": "unsafe/network-map.md", "sha256": "5832535eda3c7a2ff503814bdcfc860dd7b915b8714f8f9b9ce5a692dc84aa7c"},
+    {"path": "unsafe/symlink-map.md", "sha256": "970e099abaa1f2569100ea63c173eaa5b766f79ab6009e2b394b42122e1a560a"}
+  ]
+}

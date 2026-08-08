@@ -82,16 +82,17 @@ class TestV250ReleaseChecker(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "E_V250_RELEASE_WORKTREE_DIRTY"):
                 checker._released_identity(commit, tree)
 
-    def test_current_denominator_binds_every_exact_v250_test_file(self) -> None:
+    def test_current_denominator_binds_every_exact_current_test_file(self) -> None:
         checker = load_checker()
         commit = "1" * 40
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            test_root = root / "tests/v250"
-            test_root.mkdir(parents=True)
+            (root / "tests/v250").mkdir(parents=True)
+            (root / "tests/v262").mkdir(parents=True)
             files = {
                 "tests/v250/test_a.py": b"import unittest\n",
                 "tests/v250/test_b.py": b"import unittest\n",
+                "tests/v262/test_c.py": b"import unittest\n",
             }
             for relative, data in files.items():
                 (root / relative).write_bytes(data)
@@ -109,10 +110,11 @@ class TestV250ReleaseChecker(unittest.TestCase):
                     observed_test_count=7,
                     release_flow=release_flow,
                 )
-        self.assertEqual(2, denominator["test_file_count"])
+        self.assertEqual(3, denominator["test_file_count"])
         self.assertEqual(7, denominator["test_case_count"])
+        self.assertEqual(["tests/v250", "tests/v262"], denominator["test_roots"])
         self.assertEqual(
-            ["tests/v23", "tests/v249"],
+            ["tests/v23", "tests/v249", "tests/v26"],
             denominator["legacy_roots_excluded"],
         )
         self.assertEqual(

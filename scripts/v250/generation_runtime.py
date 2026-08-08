@@ -23,6 +23,7 @@ V250_CONTROL_SCHEMA_PATHS = (
     "schemas/v2.50/activation-manifest.schema.json",
     "schemas/v2.50/baseline-activation-manifest.schema.json",
     "schemas/v2.50/legacy-replay-manifest.schema.json",
+    "schemas/v2.50/okf-document-graph.schema.json",
     "schemas/v2.50/project-route.schema.json",
     "schemas/v2.50/release-control.schema.json",
     "schemas/v2.50/rule-manifest.schema.json",
@@ -32,13 +33,13 @@ V250_CONTROL_SCHEMA_PATHS = (
 )
 V250_REQUIRED_CONTROL_PATHS = (
     "VERSION",
-    "references/current/generations/V2.6/contracts/public-asset-map.json",
-    "references/current/generations/V2.6/contracts/release-command-manifest.json",
-    "references/current/generations/V2.6/contracts/release-route-manifest.json",
-    "references/current/generations/V2.6/contracts/release-security-review-manifest.json",
+    "references/current/generations/V2.62/contracts/public-asset-map.json",
+    "references/current/generations/V2.62/contracts/release-command-manifest.json",
+    "references/current/generations/V2.62/contracts/release-route-manifest.json",
+    "references/current/generations/V2.62/contracts/release-security-review-manifest.json",
     "references/okf-conformance-policy.json",
-    "references/profiles/goal-teams-self-release-v2.6.md",
-    "references/release-profiles/v2.6.json",
+    "references/profiles/goal-teams-self-release-v2.62.md",
+    "references/release-profiles/v2.62.json",
     "release/current/manifest.json",
     "schemas/release-engine-profile.schema.json",
     "scripts/check.sh",
@@ -63,6 +64,7 @@ V250_REQUIRED_CONTROL_PATHS = (
     "scripts/v250/generation_runtime.py",
     "scripts/v250/github_ssh.py",
     "scripts/v250/okf_conformance.py",
+    "scripts/v250/okf_document_graph.py",
     "scripts/v250/output_contract.py",
     "scripts/v250/release_flow.py",
     "scripts/v250/replay_runner.py",
@@ -104,7 +106,7 @@ V250_REQUIRED_CONTROL_PATHS = (
     *V250_CONTROL_SCHEMA_PATHS,
 )
 V250_DYNAMIC_CONTROL_GLOBS = (
-    "references/current/generations/V2.6/contracts/*.json",
+    "references/current/generations/V2.62/contracts/*.json",
     "schemas/v2.50/*.json",
     "scripts/checks/*v250*.py",
     "scripts/v250/*.py",
@@ -186,7 +188,7 @@ def _activation_payload_digest(manifest: dict[str, Any]) -> str:
 
 
 def _iter_manifest_members(manifest: dict[str, Any]) -> Iterable[tuple[str, str, int | None]]:
-    """Yield path/digest/size for both V2.6 and frozen baseline formats."""
+    """Yield path/digest/size for both V2.62 and frozen baseline formats."""
 
     root_sets = manifest.get("root_sets")
     if isinstance(root_sets, dict):
@@ -334,7 +336,7 @@ def _validate_v250_projection_digests(
             for entry in current_entries
             if isinstance(entry, dict)
             and str(entry.get("path", "")).startswith(
-                "references/current/generations/V2.6/contracts/"
+                "references/current/generations/V2.62/contracts/"
             )
             and str(entry.get("path", "")).endswith(".json")
         ),

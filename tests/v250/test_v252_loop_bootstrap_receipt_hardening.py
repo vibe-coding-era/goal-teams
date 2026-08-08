@@ -25,11 +25,11 @@ class TestV252LoopBootstrapReceiptHardening(unittest.TestCase):
             "lead_run_id": "RUN-LEAD",
             "implementation_owner_run_id": "RUN-IMPL",
             "project_size": "medium",
-            "product_version": "V2.6",
+            "product_version": "V2.62",
             "source_commit": "1" * 40,
             "toolchain_digest": "2" * 64,
             "dependency_digest": "3" * 64,
-            "development_branch": "codex/develop-v2.6",
+            "development_branch": "codex/develop-v2.62",
             "environment_action": "reuse",
             "compatible_existing_environment": True,
         }
@@ -42,7 +42,7 @@ class TestV252LoopBootstrapReceiptHardening(unittest.TestCase):
         self.assertEqual("E_V26_EXISTING_ENV_IDENTITY", caught.exception.code)
 
         receipt["reused_environment"] = {
-            "product_version": "V2.6",
+            "product_version": "V2.62",
             "source_commit": "1" * 40,
             "toolchain_digest": "2" * 64,
             "dependency_digest": "4" * 64,
@@ -59,7 +59,7 @@ class TestV252LoopBootstrapReceiptHardening(unittest.TestCase):
             {
                 "loop_id": "LOOP-V252-NAMESPACE",
                 "round": 1,
-                "product_version": "V2.6",
+                "product_version": "V2.62",
                 "project_size": "medium",
                 "source_commit": "1" * 40,
                 "toolchain_digest": "2" * 64,
@@ -67,7 +67,7 @@ class TestV252LoopBootstrapReceiptHardening(unittest.TestCase):
             }
         )
         self.assertEqual("codex", plan["branch_namespace"])
-        self.assertEqual("codex/develop-v2.6", plan["development_branch"])
+        self.assertEqual("codex/develop-v2.62", plan["development_branch"])
 
         receipt = self._receipt()
         receipt["environment_action"] = "create"
