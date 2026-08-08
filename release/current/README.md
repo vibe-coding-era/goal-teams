@@ -1,12 +1,10 @@
-# Goal Teams V2.6 Release
+# Goal Teams V2.62 Release
 
-V2.6 is the current published product release. Its annotated tag, fixed four public assets, remote readback, and formal canonical local installation have completed.
+V2.62 is the current published product release. Its annotated tag, fixed four public assets, remote readback, and formal canonical local installation have completed.
 
-V2.6 is a compatibility-policy release under the OSI-approved MIT License. It keeps the V2.5 portable execution core and V2.3 Legacy data schema while adding typed compatibility routing without creating a V2.53 product identity.
+V2.62 adds the OKF Document Graph under the OSI-approved MIT License while retaining the V2.5 portable execution core, v2.50 Execution assets, and V2.3 Legacy data schema.
 
-## V2.62 release candidate
-
-V2.62 is the active release-readiness candidate; V2.6 remains the published predecessor until the V2.62 tag, fixed four-asset set, remote readback, and formal local installation are independently complete.
+## V2.62 changes
 
 - Adds the OKF Document Graph as a read-only, in-memory RDF 1.1 projection over tracked OKF and Markdown documents.
 - Keeps Markdown as the SSOT with no database, cache, network access, or document mutation.
@@ -17,9 +15,7 @@ V2.62 is the active release-readiness candidate; V2.6 remains the published pred
 - When `trace` is truncated, its `match_count` is the number of edges discovered before the traversal bound, not the total reachable-edge cardinality.
 - Retains core policy V2.5, Execution assets v2.50, and Legacy data schema V2.3.
 
-The candidate public asset names are `goal-teams-V2.62.tar.gz`, `SHA256SUMS`, `_release.json`, and `_files.sha256`; candidate status is not a published Release claim.
-
-## V2.6 changes
+## Compatibility retained from V2.6
 
 - Added a fail-closed compatibility chain: `Portable Core -> Host -> Provider -> Model -> optional Bridge -> Role -> Task`.
 - Added explicit Codex and Claude Code host overlays, DeepSeek provider metadata, and Kimi K3 model routing.
@@ -31,12 +27,16 @@ The candidate public asset names are `goal-teams-V2.62.tar.gz`, `SHA256SUMS`, `_
 
 The fixed public set is:
 
-- `goal-teams-V2.6.tar.gz`
+- `goal-teams-V2.62.tar.gz`
 - `SHA256SUMS`
 - `_release.json`
 - `_files.sha256`
 
 No `docs/`, `develops/`, local Evidence, credentials, or optional Replay supplement is part of the default asset.
+
+## Projection boundary
+
+This file is the post-release `main` projection of the verified live Release. The immutable V2.62 assets retain the candidate-time `release/current` projection captured by the single S2 build and are not rewritten after publication.
 
 ## Completion telemetry
 

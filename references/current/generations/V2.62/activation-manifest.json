@@ -3,7 +3,7 @@
   "generation_id": "V2.62",
   "generation_state": "active",
   "baseline_generation_id": "V2.48",
-  "manifest_payload_sha256": "6ad98d8f1a7c789317b2cceaf5f6ab77f498a551d1e39f1c0a899a7564fc3643",
+  "manifest_payload_sha256": "333f2443dbfb8785430ca7adce910ccf1b016a6c8bf89c60bd5dcadd503c4792",
   "identity": {
     "loaded_runtime_product_version": "V2.62",
     "route_contract_schema_version": "goal-teams-project-route-v2.50",
@@ -252,8 +252,8 @@
       },
       {
         "path": "release/current/manifest.json",
-        "sha256": "06584ef6c8840cde574c3a29500849666e7d098f6f7e1c7c4e04288646094a8a",
-        "bytes": 2516
+        "sha256": "c9d8b1ab36aae74640188ac0dd7f60770949359586f44ff766b0079034c87976",
+        "bytes": 1899
       },
       {
         "path": "scripts/check.sh",
@@ -612,8 +612,8 @@
       },
       {
         "path": "tests/v250/test_release_runtime_support.py",
-        "sha256": "c9bdd52db9833465e9e9fab85e91bb464cbd7ab4d7a5157353b71b3fd6442ad8",
-        "bytes": 12815
+        "sha256": "5217fb705f860bcea806b86e9fffcf574f23a1e0f143063e8a33d5dd14419b0f",
+        "bytes": 12811
       },
       {
         "path": "tests/v250/test_release_security_review.py",
@@ -824,6 +824,16 @@
         "path": "tests/v250/test_v262_predecessor_release_isolation.py",
         "sha256": "ce4541adb9432b58b96cd3193eea06d9c5cfc277f70ca21d0cf6e87bf2f7bc71",
         "bytes": 5729
+      },
+      {
+        "path": "tests/v250/test_v262_published_projection.py",
+        "sha256": "ca2a9aeeaec917236e382d0959c65f45ad719e0e896b9df76beffbfe71408918",
+        "bytes": 1870
+      },
+      {
+        "path": "tests/v250/test_v262_published_projection_boundaries.py",
+        "sha256": "595ad05e5fc8003258037bb10398c64ea82b02a4cb650794f8b5372666c88d48",
+        "bytes": 1574
       },
       {
         "path": "tests/v250/test_v262_release_error_receipts.py",
@@ -1153,6 +1163,8 @@
     "tests/v250/test_v262_knowledge_graph_rdf.py",
     "tests/v250/test_v262_knowledge_graph_scope.py",
     "tests/v250/test_v262_predecessor_release_isolation.py",
+    "tests/v250/test_v262_published_projection.py",
+    "tests/v250/test_v262_published_projection_boundaries.py",
     "tests/v250/test_v262_release_error_receipts.py",
     "tests/v250/test_v262_release_flow_identity_isolation.py",
     "tests/v250/test_v262_release_surfaces.py",
@@ -1169,7 +1181,7 @@
     "tests/v262/test_runtime_binding_contract.py",
     "tests/v262/test_v262_compatibility_policy.py"
   ],
-  "current_default_allowlist_digest": "2afdd834a9e50f78610d33d38e9f483c87f56913e4949474c30136b32355afb4",
+  "current_default_allowlist_digest": "558ff1d78e3a9a6b428e5ec0aa1dbe28ceb782bc85f9d14b44da0f09fe3231f0",
   "optional_replay_allowlist_digest": "cdd978bd498e7b8fe5966a60fce5c4dec1624f8231f7f4d410924f5cc3779f26",
   "legacy_classification": {
     "path_prefixes": [

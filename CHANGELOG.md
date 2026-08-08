@@ -1,11 +1,11 @@
 # Changelog
 
-## V2.62 — 2026-08-07
+## V2.62 — 2026-08-08
 
 - Added the OKF Document Graph as a standards-aligned, in-memory RDF 1.1 projection over tracked OKF and Markdown documents, with stable IRIs, revision-aware claims, evidence traceability, native lookup, and deterministic graph-input manifest digests.
 - Kept Markdown as the SSOT with **No database**, no cache, no network access, and no document mutation; Current and explicit Replay graph loading remain isolated.
 - Made graph quality **Observe-only**: ambiguity, dangling links, and other quality findings are recorded truthfully and do not create a new quality Gate; SPARQL and SHACL engine capability states remain `not_implemented`.
-- Migrated the Current generation, compatibility projections, release candidate profile, and package closure to product identity V2.62 while retaining core policy V2.5, Execution assets v2.50, published V2.6 as the predecessor, and unchanged Legacy Replay.
+- Published product V2.62 with the annotated `v2.62` tag, fixed four-asset set, exact remote readback, and canonical local installation while retaining core policy V2.5, Execution assets v2.50, V2.6 as the predecessor, and unchanged Legacy Replay.
 
 ## V2.6 — 2026-08-07
 
