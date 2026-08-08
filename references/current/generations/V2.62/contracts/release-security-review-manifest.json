@@ -277,6 +277,7 @@
   "allowed_external_python_imports": ["jsonschema"],
   "dangerous_operation_allowlist": {
     "allowed_callsite_fingerprints": [
+      "005888c9fadc946c0f3ff890e3377cbe012904b462b8e971d61369dfc2e13694",
       "00c2d2f81a60f9de5585e2dd1b96e87bcba51494a15dd229ccbf1482417ca2be",
       "040a900a243ddb0eae0ea5e9314fc38b8f705fca73a630f771618ef7412e558b",
       "04ef97ce0ea600873289492ea15eedc291bc7dbc0096b403cf1aec1b35cef96d",
@@ -389,8 +390,8 @@
       "f3b0888f3c016ee3dba19e2f2cde62989fb399e66c3ce5536b6104c5404f257f",
       "f78dbf7145b32eebbf32e8830be7a03e23929ecd6efb84bce72fe4c91fbe04ae"
     ],
-    "allowed_inventory_count": 111,
-    "allowed_inventory_sha256": "7b70682e75c0ee59be1d1d8ebd1255fde8f46b1f315e0ad34696cfc5ef4a6a69"
+    "allowed_inventory_count": 112,
+    "allowed_inventory_sha256": "be97fec7ef3f2791cb6fdc73ba2b8fa57a314cba82b5cd26f632cbf84d017527"
   },
   "assertion_denominator": [
     "V250-SEC-EXACT-GIT-IDENTITY",
