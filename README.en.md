@@ -8,10 +8,10 @@ Author: 肉山@TGO Hangzhou
 Current release: **V2.62** · [GitHub Release](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.62) · [release/current/README.md](release/current/README.md)
 <!-- goal-teams-release:end -->
 
-Goal Teams is an AgentTeams Skill for team collaboration across CodeAgents, with Codex as one of the currently available hosts. It operates as a Goal Lead: it breaks a goal into a verifiable plan, then coordinates independent members to complete requirements, design, implementation, testing, Evidence, and completion audits. Along the way, it:
+Goal Teams is an AgentTeams Skill for team collaboration across multiple LLM and CodeAgent platforms. It operates as a Goal Lead: it breaks a goal into a verifiable plan, then coordinates independent members to complete requirements, design, implementation, testing, Evidence, and completion audits. Along the way, it:
 
 - Applies the Goal + Plan + Loop model to keep long-running tasks moving to completion;
-- Establishes and strictly follows the three core principles of SPEC + Harness + SSOT, keeping the process rigorous and improving LLM cache-hit rates;
+- Establishes and strictly follows the three core principles of SPEC + Harness + SSOT, keeping the process rigorous and enhancing LLM cache-hit rates;
 - Assigns different roles to different Subagents (running in separate contexts), keeping their contexts independent and free from cross-contamination while tasks run concurrently;
 - Establishes in-process Benchmark baselines to provide data support for each LOOP;
 - Provides a complete development team and can coexist with tools such as OpenSpec and Superpowers;
@@ -23,8 +23,6 @@ Goal Teams is an AgentTeams Skill for team collaboration across CodeAgents, with
 3. Large System: the complete workflow and all gates, including quality and security audits.
 
 ## Core Mechanisms
-
-V2.62's core mechanism compiles controlled OKF/Markdown documents into an in-memory RDF-compatible knowledge graph without a database, vector store, or persistent graph storage; stable IRIs, revision and evidence links, Current/Replay isolation, and Observe-only quality findings improve reuse and retrieval while reducing ambiguity and hallucination risk.
 
 ### Goal + Plan + Loop
 
@@ -57,6 +55,10 @@ The value is that benchmark results make improvement reviewable. The same task c
 Goal Teams does not require every capability to come from a built-in subagent. During Plan, external skills, project scripts, browser tools, test tools, or user-selected subagents can be added to the `Teams 规划表` with locked scope, inputs, outputs, Harness, and validator.
 
 This makes Goal Teams an orchestration layer. It keeps the goal, plan, handoff artifacts, and evidence consistent; concrete capabilities can come from `goal_*` subagents or external skills such as browser verification, document generation, security review, PDF/spreadsheet handling, or project-specific tools. Once an external capability joins the team, it still follows SSOT, Harness, and independent validation rules.
+
+### Compile OKF/Markdown Documents into an In-Memory RDF-Compatible Knowledge Graph
+
+Through stable IRIs, revision and evidence links, Current/Replay isolation, and Observe-only quality findings, it improves knowledge reuse and retrieval while reducing ambiguity and hallucination risk.
 
 ## Project Flow Selection
 
