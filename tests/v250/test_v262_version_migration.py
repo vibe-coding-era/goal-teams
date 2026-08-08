@@ -11,8 +11,8 @@ ROOT = Path(__file__).resolve().parents[2]
 TARGET_VERSION = "V2.62"
 GENERATION = ROOT / "references" / "current" / "generations" / TARGET_VERSION
 PROTECTED_README_SHA256 = {
-    "README.md": "1a2ff1dcf5cbf3dbda9cb8d8e8d43cdf782425f9725db7316f289ac1bd8cc49d",
-    "README.en.md": "d7751fb7a49b62624637cd3935962d4827dcc452ea09149e66c8dda753f55f60",
+    "README.md": "b41fe4de55832b561b077fff0a4c41659bc11058c560ba6b01f982003c6089af",
+    "README.en.md": "b31c0a6d58375282f0ec60e06d74bb7a33179828e0f2def65c4c5c3743f33ec3",
 }
 
 
