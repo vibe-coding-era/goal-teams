@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.50/route-prompt.schema.json",
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "projectRouteFacts": {
+      "type": "object",
+      "required": [
+        "project_size",
+        "workflow_phase",
+        "stage",
+        "release_intent",
+        "implementation_scope_complete",
+        "risk",
+        "failure_consequence",
+        "reversibility",
+        "compliance",
+        "external_write",
+        "security_sensitive",
+        "ui_or_desktop",
+        "agent_runtime",
+        "environment_check_required",
+        "authorization_state",
+        "facts_source_sha256"
+      ],
+      "properties": {
+        "project_size": {
+          "enum": ["discussion", "small", "medium", "large"]
+        },
+        "workflow_phase": {
+          "enum": ["discussion", "development", "release_readiness", "release"]
+        },
+        "stage": {"enum": ["candidate", "released"]},
+        "release_intent": {"type": "boolean"},
+        "implementation_scope_complete": {"type": "boolean"},
+        "risk": {"enum": ["low", "medium", "high", "critical"]},
+        "failure_consequence": {
+          "enum": ["low", "medium", "high", "critical"]
+        },
+        "reversibility": {
+          "enum": ["reversible", "partially_reversible", "irreversible"]
+        },
+        "compliance": {"enum": ["none", "standard", "regulated"]},
+        "external_write": {"type": "boolean"},
+        "security_sensitive": {"type": "boolean"},
+        "ui_or_desktop": {"type": "boolean"},
+        "agent_runtime": {"type": "boolean"},
+        "environment_check_required": {"type": "boolean"},
+        "authorization_state": {
+          "enum": ["not_required", "granted", "missing", "expired", "denied"]
+        },
+        "facts_source_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "derivedRouteReceipt": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "derivation_version",
+        "facts",
+        "facts_sha256",
+        "facts_source_sha256",
+        "project_size",
+        "workflow_phase",
+        "stage",
+        "route_id",
+        "assurance_floor",
+        "effective_assurance",
+        "required_gates",
+        "conditional_gates",
+        "exclusion_reasons",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "goal-teams-derived-route-receipt-v2.63"
+        },
+        "derivation_version": {"const": "V2.63"},
+        "facts": {"$ref": "#/$defs/projectRouteFacts"},
+        "facts_sha256": {"$ref": "#/$defs/sha256"},
+        "facts_source_sha256": {"$ref": "#/$defs/sha256"},
+        "project_size": {
+          "enum": ["discussion", "small", "medium", "large"]
+        },
+        "workflow_phase": {
+          "enum": ["discussion", "development", "release_readiness", "release"]
+        },
+        "stage": {"enum": ["candidate", "released"]},
+        "route_id": {"type": "string", "pattern": "^V250-ROUTE-[A-Z-]+$"},
+        "assurance_floor": {
+          "enum": ["lite", "standard", "high", "critical"]
+        },
+        "effective_assurance": {
+          "enum": ["lite", "standard", "high", "critical"]
+        },
+        "required_gates": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "conditional_gates": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "exclusion_reasons": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "pathEntry": {
+      "type": "object",
+      "required": ["kind", "path", "sha256", "bytes"],
+      "properties": {
+        "kind": {"enum": ["bootstrap", "owner"]},
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "bytes": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "promptArtifact": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "framing",
+        "compiler_mode",
+        "prompt_manifest_sha256",
+        "route_id",
+        "generation_snapshot_sha256",
+        "derived_route_sha256",
+        "bootstrap_refs",
+        "ordered_refs",
+        "path_entries",
+        "member_packet_sha256",
+        "member_packet_bytes",
+        "prompt_plan_sha256",
+        "compiled_prompt_sha256",
+        "compiled_prompt_bytes",
+        "compiled_prompt_base64",
+        "proof_strength",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "schema_version": {"const": "goal-teams-prompt-artifact-v2.63"},
+        "framing": {"const": "GOAL-TEAMS-PROMPT-ARTIFACT-V1"},
+        "compiler_mode": {"enum": ["offline_fixture", "trusted_runtime"]},
+        "prompt_manifest_sha256": {
+          "oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]
+        },
+        "route_id": {
+          "oneOf": [
+            {"type": "string", "pattern": "^V250-ROUTE-[A-Z-]+$"},
+            {"type": "null"}
+          ]
+        },
+        "generation_snapshot_sha256": {"$ref": "#/$defs/sha256"},
+        "derived_route_sha256": {"$ref": "#/$defs/sha256"},
+        "bootstrap_refs": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "ordered_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "path_entries": {
+          "type": "array",
+          "minItems": 2,
+          "items": {"$ref": "#/$defs/pathEntry"}
+        },
+        "member_packet_sha256": {"$ref": "#/$defs/sha256"},
+        "member_packet_bytes": {"type": "integer", "minimum": 1},
+        "prompt_plan_sha256": {"$ref": "#/$defs/sha256"},
+        "compiled_prompt_sha256": {"$ref": "#/$defs/sha256"},
+        "compiled_prompt_bytes": {"type": "integer", "minimum": 1},
+        "compiled_prompt_base64": {
+          "type": "string",
+          "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$"
+        },
+        "proof_strength": {"const": "repository_compiled"},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {"properties": {"compiler_mode": {"const": "trusted_runtime"}}},
+          "then": {
+            "properties": {
+              "bootstrap_refs": {"type": "array", "minItems": 1},
+              "prompt_manifest_sha256": {"$ref": "#/$defs/sha256"},
+              "route_id": {"type": "string", "pattern": "^V250-ROUTE-[A-Z-]+$"}
+            }
+          },
+          "else": {
+            "properties": {
+              "bootstrap_refs": {"type": "array", "minItems": 1},
+              "prompt_manifest_sha256": {"type": "null"},
+              "route_id": {"type": "null"}
+            }
+          }
+        }
+      ]
+    }
+  },
+  "oneOf": [
+    {"$ref": "#/$defs/projectRouteFacts"},
+    {"$ref": "#/$defs/derivedRouteReceipt"},
+    {"$ref": "#/$defs/promptArtifact"}
+  ]
+}

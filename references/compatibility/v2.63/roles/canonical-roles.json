@@ -1,0 +1,1 @@
+{"schema_version":"goal-teams-compatibility-v2.63-canonical-roles-v1","portable_core_ref":"references/current/generations/V2.63/core.md","roles":[{"role_id":"goal_lead","independence_class":"lead"},{"role_id":"goal_reviewer","independence_class":"reviewer"}]}

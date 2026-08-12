@@ -14,8 +14,9 @@ class TestV252LoopBootstrapReceiptHardening(unittest.TestCase):
         return {
             "bootstrap_events": [
                 {"step": "tasklist", "revision": 1},
-                {"step": "task_assignment", "revision": 2},
-                {"step": "environment_preflight", "revision": 3},
+                {"step": "task_exact_set_freeze", "revision": 2},
+                {"step": "task_assignment", "revision": 3},
+                {"step": "environment_preflight", "revision": 4},
             ],
             "tasklist_created": True,
             "tasks_assigned": True,
@@ -25,11 +26,12 @@ class TestV252LoopBootstrapReceiptHardening(unittest.TestCase):
             "lead_run_id": "RUN-LEAD",
             "implementation_owner_run_id": "RUN-IMPL",
             "project_size": "medium",
-            "product_version": "V2.62",
+            "product_version": "V2.63",
+            "task_exact_set_digest": "4" * 64,
             "source_commit": "1" * 40,
             "toolchain_digest": "2" * 64,
             "dependency_digest": "3" * 64,
-            "development_branch": "codex/develop-v2.62",
+            "development_branch": "codex/develop-v2.63",
             "environment_action": "reuse",
             "compatible_existing_environment": True,
         }
@@ -42,7 +44,7 @@ class TestV252LoopBootstrapReceiptHardening(unittest.TestCase):
         self.assertEqual("E_V26_EXISTING_ENV_IDENTITY", caught.exception.code)
 
         receipt["reused_environment"] = {
-            "product_version": "V2.62",
+            "product_version": "V2.63",
             "source_commit": "1" * 40,
             "toolchain_digest": "2" * 64,
             "dependency_digest": "4" * 64,
@@ -59,15 +61,16 @@ class TestV252LoopBootstrapReceiptHardening(unittest.TestCase):
             {
                 "loop_id": "LOOP-V252-NAMESPACE",
                 "round": 1,
-                "product_version": "V2.62",
+                "product_version": "V2.63",
                 "project_size": "medium",
                 "source_commit": "1" * 40,
                 "toolchain_digest": "2" * 64,
                 "dependency_digest": "3" * 64,
+                "task_exact_set_digest": "4" * 64,
             }
         )
         self.assertEqual("codex", plan["branch_namespace"])
-        self.assertEqual("codex/develop-v2.62", plan["development_branch"])
+        self.assertEqual("codex/develop-v2.63", plan["development_branch"])
 
         receipt = self._receipt()
         receipt["environment_action"] = "create"

@@ -336,44 +336,53 @@ def validate_candidate_commit(commit: str | None) -> None:
             fail("--candidate-commit does not resolve to a commit object")
 
 
-def validate_v262_current(args: argparse.Namespace) -> None:
-    """Validate the V2.62 Current projection without invoking Legacy checks."""
+def validate_v250_current(args: argparse.Namespace, product: str) -> None:
+    """Validate the V2.62/V2.63 thin Current projection."""
 
-    product = "V2.62"
-    startup = "我是 Goal Teams Lead V2.62。"
+    suffix = product.removeprefix("V").lower()
+    compact = suffix.replace(".", "")
+    startup = f"我是 Goal Teams Lead {product}。"
     identity_markers = {
-        "SKILL.md": ("Goal Teams V2.62", startup),
-        ".agents/skills/goal-teams/SKILL.md": ("Goal Teams V2.62",),
+        "SKILL.md": (f"Goal Teams {product}", startup),
+        ".agents/skills/goal-teams/SKILL.md": (f"Goal Teams {product}",),
         "AGENTS.md": (
-            "产品版本：`V2.62`",
+            f"产品版本：`{product}`",
             "通用核心策略：`V2.5`",
             "Legacy 机器数据 schema：`V2.3`",
             "scripts/v250/",
             "schemas/v2.50/",
         ),
-        "agents/openai.yaml": ("Goal Teams V2.62", startup),
+        "agents/openai.yaml": (f"Goal Teams {product}", startup),
     }
     for path, markers in identity_markers.items():
         text = read(path)
         for marker in markers:
             if marker not in text:
-                fail(f"{path} missing V2.62 Current identity marker: {marker}")
+                fail(f"{path} missing {product} Current identity marker: {marker}")
 
     for path, expected in V262_README_SHA256.items():
         observed = hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
         if observed != expected:
             fail(f"human-owned {path} changed from its protected V2.62 baseline")
 
+    expected_activation = f"references/current/generations/{product}/activation-manifest.json"
     active = json.loads(read("references/current/ACTIVE.json"))
-    expected_activation = "references/current/generations/V2.62/activation-manifest.json"
-    if (
+    candidate_before_active = (
+        product == "V2.63"
+        and args.mode == "development"
+        and active.get("generation_id") == "V2.62"
+        and active.get("activation_manifest")
+        == "references/current/generations/V2.62/activation-manifest.json"
+        and active.get("state") == "active_current"
+    )
+    if not candidate_before_active and (
         active.get("generation_id") != product
         or active.get("activation_manifest") != expected_activation
         or active.get("state") != "active_current"
     ):
-        fail("ACTIVE does not select the exact V2.62 Current generation")
+        fail(f"ACTIVE does not select the exact {product} Current generation")
     activation_raw = (ROOT / expected_activation).read_bytes()
-    if hashlib.sha256(activation_raw).hexdigest() != active.get(
+    if not candidate_before_active and hashlib.sha256(activation_raw).hexdigest() != active.get(
         "activation_manifest_sha256"
     ):
         fail("ACTIVE activation manifest digest mismatch")
@@ -387,28 +396,30 @@ def validate_v262_current(args: argparse.Namespace) -> None:
         != "goal-teams-project-route-v2.50"
     ):
         fail("activation manifest mixes product, policy, or execution identity")
+    if candidate_before_active and activation.get("generation_state") != "inactive_candidate":
+        fail("V2.63 pre-activation projection must remain inactive_candidate")
 
     for path in (
-        "references/profiles/goal-teams-self-release-v2.62.md",
-        "references/release-profiles/v2.62.json",
+        f"references/profiles/goal-teams-self-release-v{suffix}.md",
+        f"references/release-profiles/v{suffix}.json",
     ):
         if not (ROOT / path).is_file():
-            fail(f"missing V2.62 release profile: {path}")
+            fail(f"missing {product} release profile: {path}")
 
     package = read("scripts/install/package-manifest.txt")
     for marker in (
-        "prefix references/current/generations/V2.62/",
-        "prefix references/compatibility/v2.62/",
-        "references/profiles/goal-teams-self-release-v2.62.md",
-        "references/release-profiles/v2.62.json",
+        f"prefix references/current/generations/{product}/",
+        f"prefix references/compatibility/v{suffix}/",
+        f"references/profiles/goal-teams-self-release-v{suffix}.md",
+        f"references/release-profiles/v{suffix}.json",
         "prefix scripts/v250/",
         "prefix schemas/v2.50/",
-        "prefix scripts/v262/",
-        "prefix schemas/v2.62/",
-        "prefix tests/v262/",
+        f"prefix scripts/v{compact}/",
+        f"prefix schemas/v{suffix}/",
+        f"prefix tests/v{compact}/",
     ):
         if marker not in package:
-            fail(f"package manifest missing V2.62 Current marker: {marker}")
+            fail(f"package manifest missing {product} Current marker: {marker}")
     for forbidden in ("docs/", "develops/", "references/legacy-replay"):
         if forbidden in package:
             fail(f"package manifest includes forbidden Current path: {forbidden}")
@@ -422,15 +433,22 @@ def validate_v262_current(args: argparse.Namespace) -> None:
     published = release.get("product_version")
     if published == product:
         if release.get("release_identity", {}).get("state") != "published":
-            fail("final V2.62 release/current identity is not published")
-    elif not (
-        published == "V2.6"
-        and release.get("candidate_product_version") == product
-        and release.get("candidate_release_state") == "v250_release_readiness"
-    ):
-        fail("release/current is neither the V2.62 candidate nor final projection")
+            fail(f"final {product} release/current identity is not published")
+    else:
+        predecessor = "V2.62" if product == "V2.63" else "V2.6"
+        candidate_states = (
+            {"development_candidate_not_published", "v250_release_readiness"}
+            if product == "V2.63"
+            else {"v250_release_readiness"}
+        )
+        if not (
+            published == predecessor
+            and release.get("candidate_product_version") == product
+            and release.get("candidate_release_state") in candidate_states
+        ):
+            fail(f"release/current is neither the {product} candidate nor final projection")
     if product not in read("release/current/README.md"):
-        fail("release/current README does not describe V2.62")
+        fail(f"release/current README does not describe {product}")
 
     if args.mode == "development":
         if args.published_version != published:
@@ -471,12 +489,12 @@ def main() -> None:
         )
         raise SystemExit(2)
 
-    if product == "V2.62":
-        validate_v262_current(args)
+    if product in {"V2.62", "V2.63"}:
+        validate_v250_current(args, product)
         print(
             "Version synchronization passed: "
             "mode="
-            f"{args.mode}, product=V2.62, core=V2.5, execution=v2.50, "
+            f"{args.mode}, product={product}, core=V2.5, execution=v2.50, "
             "legacy=V2.3, docs=local-only."
         )
         return

@@ -1,9 +1,9 @@
 ---
 name: goal-teams
-description: Goal Teams V2.62 多成员工作流；以薄 Bootstrap、功能规则模板、TDD/增量开发门禁、最终 Release 门禁和可验证 LOOP 完成交付。
+description: Goal Teams V2.63 多成员工作流；以可信发现、事实路由、TaskExactSet/DAG、TDD/增量门禁和可验证 LOOP 治理漂移并完成交付。
 ---
 
-# Goal Teams V2.62
+# Goal Teams V2.63
 
 Goal Lead 负责路由、派发、状态归并和最终诚实汇报；成员只在锁定范围内实现或验证。系统、用户与项目 `AGENTS.md` 始终优先，本 Skill 不扩大权限，也不把候选、自报或本地模拟包装成宿主证明。
 
@@ -13,7 +13,9 @@ Goal Lead 负责路由、派发、状态归并和最终诚实汇报；成员只�
 2. 读取一次 `references/current/ACTIVE.json`，校验它绑定的 activation manifest SHA-256。
 3. 按 activation manifest 读取 `rule-manifest.json` 与 `prompt-manifest.json`；只加载 route 命中的功能规则和合同。
 4. 未提供可信 `replay_version` 时，禁止加载 `references/legacy-replay/` 声明的历史路径。显式 Replay 只返回历史结果，不进入 Current acceptance。
-5. 首次建立身份时汇报：`我是 Goal Teams Lead V2.62。`
+5. 首次建立身份时汇报：`我是 Goal Teams Lead V2.63。`
+
+同一运行会话只读取一次 ACTIVE，并绑定不可变 GenerationSnapshot。磁盘 ACTIVE、selected root、route、scope、授权或 exact-set 变化时，不得热切换或静默继续；必须由可信 delta 进入 `replan|blocked`，必要时以新会话重新加载。
 
 ## 路由事实
 
@@ -37,17 +39,21 @@ Goal Lead 负责路由、派发、状态归并和最终诚实汇报；成员只�
 
 1. 任意非 Discussion、非 `plan_preview` 的 LOOP，第一轮先冻结目标、Done Criteria、边界、route、开始授权和版本化 ledger，建立 `TaskList.md` 投影并分配任务；实现不得先行。
 2. 同一第一轮派发独立 `goal_release_engineer` 的 `environment_preflight` 模式，检查仓库、worktree、分支、工具链与依赖。Medium、Large 或用户指定时执行正式开发环境检查：优先复用身份匹配且 current 的既有环境，否则创建新环境；除 Small 外，新环境必须使用 `develops/v<major.minor>` worktree 与逻辑分支 `develop-v<major.minor>`，宿主要求 namespace 时添加前缀（本仓为 `codex/develop-v<major.minor>`）。Small 仍做独立轻量 preflight，但可不创建版本开发分支。
-3. 成员 packet 绑定 owner、validator、locked scope、forbidden scope、Harness、Evidence 和停止条件。
-4. 实现遵循 TDD：先观察真实 Red，再在同一 immutable TestCase/test-file digest 下取得 Green；Red 与 Green 是不同 `run_role`，不是 flaky retry。
-5. Development 只运行 TDD 与受影响面增量检查。失败进入 LOOP；不得偷偷调用 final full regression、release security、S0–S4 或旧 monolithic gate。
-6. 每轮只追加 event/receipt；中央投影由 Goal Lead/reducer 生成，成员不得自批或双写 SSOT。
-7. 全部实现完成且 Release intent 为真时冻结 candidate/released identity，再进入最终 Release 路由。
+3. 需求先通过 Consumer Gate，再编译为不可变 `TaskExactSet` 与无环 DAG。每个 TaskNode 必须绑定消费者、预算、依赖、验证和退出条件；无当前消费者的需求只进入 `backlog_candidate`，不得扩张本轮 exact-set。
+4. 成员 packet 绑定 owner、validator、locked scope、forbidden scope、预算、Harness、Evidence 和停止条件。
+5. 实现遵循 TDD：先观察真实 Red，再在同一 immutable TestCase/test-file digest 下取得 Green；Red 与 Green 是不同 `run_role`，不是 flaky retry。
+6. Development 只运行 TDD 与受影响面增量检查。失败进入 LOOP；不得偷偷调用 final full regression、release security、S0–S4 或旧 monolithic gate。
+7. 每轮只追加 event/receipt；中央投影由唯一 reducer 生成，成员不得自批或双写 SSOT。Git 真实差异必须自动采集并绑定 baseline，手写清单只能解释，不能覆盖真实 diff。
+8. 外部 blocker 单独表达，只阻断其 DAG 后继闭包。审计 finding 只有在已复现、位于锁定范围、存在当前消费者且修复预算可用时才进入修复 exact-set。
+9. 全部实现完成且 Release intent 为真时冻结 candidate/released identity，再进入最终 Release 路由。
 
 ## 测试与证据
 
 测试链固定为 `RiskDenominator -> immutable TestCase -> TestRunReceipt -> TestReviewReceipt`。Development 与 Release 使用不同 denominator；动态 coverage 只写 TestReviewReceipt。门禁至少检查 TG00–TG08、source/test/environment digest、first failure、coverage diff、validator identity 与三轴保障状态。
 
 完成状态保持正交：任务、检查、审核、运行结果、Evidence freshness、Release readiness 分开记录。`not_run`、`not_required`、`blocked`、`failed`、`stale`、`invalid` 不得写成 passed。结构校验、候选测试、Runtime receipt、合并 main、Release/tag、安装和外部验收是不同事实。
+
+开发时间的可预期性来自锁定范围与预算上界、可计算的 exact-set/DAG/关键路径、消费者准入、独立 blocker、有限 finding 修复和固定退出条件；成果质量的可预期性来自 digest/receipt/Git baseline 绑定、Git 自动差异、TDD/固定回归/独立审计、允许真实 `BLOCKED`，以及工程完成、运行完成和业务验证的正交投影。
 
 ## Release 路由
 
@@ -67,4 +73,4 @@ Release 顺序是：fresh released runtime transition → S0 Identity → S1 ful
 
 只有 Done Criteria、required TestReviewReceipt、独立 Review/Audit、适用 Release/安装/readback 与 Evidence freshness 全部闭合，才可声明 achieved。否则保留精确状态和可恢复 checkpoint。终局除 `Banchmark` 报告外，还必须在 `结果` 中提供 `LOOP 改进建议`，基于本次证据从 Skill、上下文、资料、Harness 或流程等方面提出可执行改进；没有新增建议时也要明确说明。
 
-用户可见回复严格使用 `RULES.md` 的五个固定字段，以及按 LOOP 状态恰好二选一的第六字段；不输出内部推理。
+用户可见回复严格使用 `RULES.md` 的五个固定字段，以及按 LOOP 状态恰好二选一的第六字段；不输出内部推理，也不固定输出运行身份短指纹。运行身份只进入机器 receipt 和诊断 Evidence，只有用户明确询问或漂移诊断需要时才按可验证事实解释。

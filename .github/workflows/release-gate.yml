@@ -1,9 +1,9 @@
-name: Goal Teams V2.62 phase-aware verification
-run-name: Goal Teams V2.62 phase-aware verification ${{ github.sha }}
+name: Goal Teams V2.63 phase-aware verification
+run-name: Goal Teams V2.63 phase-aware verification ${{ github.sha }}
 
 on:
   push:
-    branches: [main, codex/develop-v2.62]
+    branches: [main, codex/develop-v2.63]
   pull_request:
   workflow_dispatch:
     inputs:
@@ -20,11 +20,11 @@ on:
         default: medium
         options: [small, medium, large]
       project_start_authorization_receipt_json:
-        description: Complete V2.62 project-start authorization receipt JSON; required only for release.
+        description: Complete V2.63 project-start authorization receipt JSON; required only for release.
         required: false
         type: string
       controller_handoff_receipt_json:
-        description: Installed V2.6 host-issued V2.62 controller handoff JSON; required only for release.
+        description: Installed V2.62 host-issued V2.63 controller handoff JSON; required only for release.
         required: false
         type: string
 
@@ -65,6 +65,7 @@ jobs:
       - name: Prepare pinned Draft 2020 validator outside the worktree
         env:
           VALIDATOR_PYTHON_PREFIX: ${{ runner.temp }}/goal-teams-v250-python
+          VALIDATOR_NODE_PREFIX: ${{ runner.temp }}/goal-teams-v250-node
         run: |
           python3 -m pip install \
             --target "${VALIDATOR_PYTHON_PREFIX}" \
@@ -73,14 +74,103 @@ jobs:
             jsonschema==4.23.0
           PYTHONPATH="${VALIDATOR_PYTHON_PREFIX}" python3 -c \
             'from jsonschema import Draft202012Validator'
+          npm install --prefix "${VALIDATOR_NODE_PREFIX}" \
+            --ignore-scripts \
+            --no-audit \
+            --no-fund \
+            ajv@8.17.1
+          NODE_PATH="${VALIDATOR_NODE_PREFIX}/node_modules" node -e \
+            "require('ajv/dist/2020')"
           echo "PYTHONPATH=${VALIDATOR_PYTHON_PREFIX}${PYTHONPATH:+:${PYTHONPATH}}" >> "${GITHUB_ENV}"
-      - name: Development TDD and incremental gate
+          echo "NODE_PATH=${VALIDATOR_NODE_PREFIX}/node_modules${NODE_PATH:+:${NODE_PATH}}" >> "${GITHUB_ENV}"
+      - name: Active V2.63 pre-release exact Development gate
         env:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
-          python3 -m unittest discover -s tests/v250 -p 'test_*.py'
-          python3 -m unittest discover -s tests/v262 -p 'test_*.py'
-          python3 scripts/checks/check-v250.py --phase development --project-size medium --stage candidate
+          python3 -m unittest -v \
+            tests.v250.test_package_isolation \
+            tests.v250.test_release_checker \
+            tests.v250.test_release_control \
+            tests.v250.test_release_flow \
+            tests.v250.test_release_runtime_support \
+            tests.v250.test_runtime_cli \
+            tests.v250.test_runtime_host_adapter \
+            tests.v250.test_runtime_transition \
+            tests.v250.test_s4_executor \
+            tests.v250.test_schema_contracts \
+            tests.v250.test_v252_loop_bootstrap \
+            tests.v250.test_v252_loop_bootstrap_hardening \
+            tests.v250.test_v252_loop_bootstrap_receipt_hardening \
+            tests.v250.test_v263_activation_lifecycle \
+            tests.v250.test_v263_activation_lifecycle_hardening \
+            tests.v250.test_v263_active_pointer_locking \
+            tests.v250.test_v263_agents_release_command \
+            tests.v250.test_v263_blocker_finding \
+            tests.v250.test_v263_candidate_projection \
+            tests.v250.test_v263_candidate_registry \
+            tests.v250.test_v263_ci_lifecycle \
+            tests.v250.test_v263_ci_validator_dependencies \
+            tests.v250.test_v263_completion_authority \
+            tests.v250.test_v263_continuation_route_triplet \
+            tests.v250.test_v263_core_audit \
+            tests.v250.test_v263_deleted_index_package_paths \
+            tests.v250.test_v263_discovery_names \
+            tests.v250.test_v263_discovery_snapshot \
+            tests.v250.test_v263_external_anchor_test_roots \
+            tests.v250.test_v263_first_loop_environment \
+            tests.v250.test_v263_git_change \
+            tests.v250.test_v263_generation_validator_selection \
+            tests.v250.test_v263_installer_offline_closure \
+            tests.v250.test_v263_loop_registry_integration \
+            tests.v250.test_v263_output_contract \
+            tests.v250.test_v263_package_active_closure \
+            tests.v250.test_v263_package_candidate_closure \
+            tests.v250.test_v263_project_route_schema \
+            tests.v250.test_v263_prompt_manifest_state \
+            tests.v250.test_v263_refresh_duplicate_rejection \
+            tests.v250.test_v263_release_route_derivation \
+            tests.v250.test_v263_release_route_identity \
+            tests.v250.test_v263_release_surfaces \
+            tests.v250.test_v263_release_workflow_route \
+            tests.v250.test_v263_released_runtime_route_triplet \
+            tests.v250.test_v263_rollback_window \
+            tests.v250.test_v263_route_closure_integration \
+            tests.v250.test_v263_route_closure_trust_boundary \
+            tests.v250.test_v263_route_manifest_canonical_gate_audit \
+            tests.v250.test_v263_route_prompt \
+            tests.v250.test_v263_route_runtime_audit \
+            tests.v250.test_v263_runtime_route_cli_binding \
+            tests.v250.test_v263_runtime_session_entry_boundary \
+            tests.v250.test_v263_runtime_turn \
+            tests.v250.test_v263_s0_controller_identity \
+            tests.v250.test_v263_s1_denominator_validator \
+            tests.v250.test_v263_schema_closure \
+            tests.v250.test_v263_semantic_closure \
+            tests.v250.test_v263_state_reducer \
+            tests.v250.test_v263_task_plan \
+            tests.v250.test_v263_task_plan_authority \
+            tests.v250.test_v263_trust_boundary_hardening \
+            tests.v250.test_v263_validator_callers \
+            tests.v250.test_v263_version_migration \
+            tests.v250.test_workflow_release_contract \
+            tests.v263.test_compatibility_assets \
+            tests.v263.test_delivery_closure \
+            tests.v263.test_development_checker_identity \
+            tests.v263.test_product_identity \
+            tests.v263.test_projection_cli \
+            tests.v263.test_runtime_binding_contract \
+            tests.v263.test_v262_compatibility_policy
+          python3 scripts/checks/check-version-sync.py \
+            --mode development \
+            --published-version V2.62
+          python3 scripts/checks/validate-v250-generation.py \
+            --generation-id V2.63 \
+            --selection active
+          python3 scripts/checks/check-v250.py \
+            --phase development \
+            --project-size medium \
+            --stage candidate
+          python3 scripts/checks/check-package-manifest.py
 
   release-asset-gate:
     name: release-asset-gate
@@ -111,6 +201,7 @@ jobs:
       - name: Prepare pinned Draft 2020 validator outside the worktree
         env:
           VALIDATOR_PYTHON_PREFIX: ${{ runner.temp }}/goal-teams-v250-python
+          VALIDATOR_NODE_PREFIX: ${{ runner.temp }}/goal-teams-v250-node
         run: |
           python3 -m pip install \
             --target "${VALIDATOR_PYTHON_PREFIX}" \
@@ -119,12 +210,20 @@ jobs:
             jsonschema==4.23.0
           PYTHONPATH="${VALIDATOR_PYTHON_PREFIX}" python3 -c \
             'from jsonschema import Draft202012Validator'
+          npm install --prefix "${VALIDATOR_NODE_PREFIX}" \
+            --ignore-scripts \
+            --no-audit \
+            --no-fund \
+            ajv@8.17.1
+          NODE_PATH="${VALIDATOR_NODE_PREFIX}/node_modules" node -e \
+            "require('ajv/dist/2020')"
           echo "PYTHONPATH=${VALIDATOR_PYTHON_PREFIX}${PYTHONPATH:+:${PYTHONPATH}}" >> "${GITHUB_ENV}"
-      - name: Detect the explicit V2.62 workflow phase
+          echo "NODE_PATH=${VALIDATOR_NODE_PREFIX}/node_modules${NODE_PATH:+:${NODE_PATH}}" >> "${GITHUB_ENV}"
+      - name: Detect the explicit V2.63 workflow phase
         id: release-version
         run: |
           product_version="$(tr -d '[:space:]' < VERSION)"
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.workflow_phase }}" = "release" ] && [ "${product_version}" = "V2.62" ]; then
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.workflow_phase }}" = "release" ] && [ "${product_version}" = "V2.63" ]; then
             echo "release=true" >> "${GITHUB_OUTPUT}"
           else
             echo "release=false" >> "${GITHUB_OUTPUT}"
@@ -161,7 +260,7 @@ jobs:
               json.dumps(value, ensure_ascii=False, sort_keys=True), encoding="utf-8"
           )
           PY
-      - name: Materialize the installed V2.6 host-issued V2.62 controller handoff
+      - name: Materialize the installed V2.62 host-issued V2.63 controller handoff
         id: controller_handoff
         if: steps.release-version.outputs.release == 'true'
         env:
@@ -197,30 +296,91 @@ jobs:
           python3 - <<'PY'
           import json
           import os
+          import subprocess
           from pathlib import Path
 
-          from scripts.v250.generation_runtime import load_generation
-          from scripts.v250.route_closure import compile_route_closure
+          from scripts.v250.generation_runtime import (
+              canonical_json_digest,
+              load_generation,
+          )
+          from scripts.v250.route_closure import compile_derived_route_closure
+          from scripts.v250.route_derivation import derive_route
 
-          route_id = {
-              "small": "V250-ROUTE-MEDIUM-RELEASE",
-              "medium": "V250-ROUTE-MEDIUM-RELEASE",
-              "large": "V250-ROUTE-LARGE-RELEASE",
-          }.get(os.environ["PROJECT_SIZE"])
-          if route_id is None:
+          project_size = os.environ["PROJECT_SIZE"]
+          if project_size not in {"small", "medium", "large"}:
               raise SystemExit("E_V250_WORKFLOW_RELEASE_ROUTE")
           root = Path.cwd()
-          receipt = compile_route_closure(root, load_generation(root), route_id)
-          Path(os.environ["RUNNER_TEMP"], "release-route-receipt.json").write_text(
-              json.dumps(
-                  receipt,
-                  ensure_ascii=False,
-                  sort_keys=True,
-                  separators=(",", ":"),
+          authorization = json.loads(
+              Path(os.environ["RUNNER_TEMP"], "authorization.json").read_text(
+                  encoding="utf-8"
               )
-              + "\n",
-              encoding="utf-8",
           )
+          if authorization.get("authorization_state") != "granted_once_at_project_start":
+              raise SystemExit("E_V263_WORKFLOW_RELEASE_AUTHORIZATION")
+          source_commit = os.environ["GITHUB_SHA"]
+          source_tree = subprocess.run(
+              ["git", "rev-parse", f"{source_commit}^{{tree}}"],
+              check=True,
+              capture_output=True,
+              text=True,
+          ).stdout.strip()
+          facts_source = {
+              "schema_version": "goal-teams-project-route-facts-source-v2.63",
+              "repository": os.environ["GITHUB_REPOSITORY"],
+              "source_commit": source_commit,
+              "source_tree": source_tree,
+              "workflow_run_id": os.environ["GITHUB_RUN_ID"],
+              "workflow_run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
+              "project_start_authorization_receipt_sha256": (
+                  canonical_json_digest(authorization)
+              ),
+          }
+          project_route_facts = {
+              "project_size": project_size,
+              "workflow_phase": "release",
+              "stage": "released",
+              "release_intent": True,
+              "implementation_scope_complete": True,
+              "risk": "high",
+              "failure_consequence": "high",
+              "reversibility": "partially_reversible",
+              "compliance": "none",
+              "external_write": True,
+              "security_sensitive": True,
+              "ui_or_desktop": False,
+              "agent_runtime": True,
+              "environment_check_required": True,
+              "authorization_state": "granted",
+              "facts_source_sha256": canonical_json_digest(facts_source),
+          }
+          derived_route = derive_route(project_route_facts)
+          generation = load_generation(root)
+          receipt = compile_derived_route_closure(root, generation, derived_route)
+
+          def write_json(name, value):
+              Path(os.environ["RUNNER_TEMP"], name).write_text(
+                  json.dumps(
+                      value,
+                      ensure_ascii=False,
+                      sort_keys=True,
+                      separators=(",", ":"),
+                  )
+                  + "\n",
+                  encoding="utf-8",
+              )
+
+          write_json(
+              "release-route-facts.json",
+              {
+                  "facts_source": facts_source,
+                  "project_route_facts": project_route_facts,
+                  "project_route_facts_sha256": canonical_json_digest(
+                      project_route_facts
+                  ),
+              },
+          )
+          write_json("release-route-derived.json", derived_route)
+          write_json("release-route-receipt.json", receipt)
           PY
       - name: Verify the pinned GitHub owner public key before host launch
         id: github_owner_key
@@ -248,6 +408,8 @@ jobs:
             --source-commit "${GITHUB_SHA}" \
             --source-tree "$(git rev-parse "${GITHUB_SHA}^{tree}")" \
             --project-size "${{ inputs.project_size }}" \
+            --route-facts-receipt "${RUNNER_TEMP}/release-route-facts.json" \
+            --derived-route-receipt "${RUNNER_TEMP}/release-route-derived.json" \
             --route-receipt "${RUNNER_TEMP}/release-route-receipt.json" \
             --authorization-receipt "${RUNNER_TEMP}/authorization.json" \
             --controller-handoff-receipt "${RUNNER_TEMP}/controller-handoff.json" \
@@ -279,7 +441,7 @@ jobs:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
           python3 scripts/release/build-release.py \
-            --version V2.62 \
+            --version V2.63 \
             --commit "${GITHUB_SHA}" \
             --source-ref "${GITHUB_REF}" \
             --output-root release/versions \
@@ -291,7 +453,7 @@ jobs:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
           python3 scripts/release/skill_release.py validate \
-            --version V2.62 \
+            --version V2.63 \
             --commit "${GITHUB_SHA}" \
             --release-root release/versions \
             --build-receipt "${RUNNER_TEMP}/s2-build.json" \
@@ -335,7 +497,7 @@ jobs:
 
           temp = Path(os.environ["RUNNER_TEMP"])
           receipt = json.loads((temp / "asset-validation.json").read_text(encoding="utf-8"))
-          release_root = Path("release/versions/V2.62").resolve()
+          release_root = Path("release/versions/V2.63").resolve()
           bundle = temp / "release-bundle"
           bundle.mkdir()
           for name, source in receipt["public_asset_sources"].items():
@@ -418,7 +580,7 @@ jobs:
           PY
           }
           if ! python3 scripts/release/skill_release.py preflight \
-            --version V2.62 \
+            --version V2.63 \
             --commit "${GITHUB_SHA}" \
             --project-size "${{ inputs.project_size }}" \
             --authorization-receipt "${RUNNER_TEMP}/authorization.json" \
@@ -431,7 +593,7 @@ jobs:
             exit 1
           fi
           if ! python3 scripts/release/skill_release.py plan-s4 \
-            --version V2.62 \
+            --version V2.63 \
             --commit "${GITHUB_SHA}" \
             --release-control-receipt "${RUNNER_TEMP}/preflight-output.json" \
             > "${RUNNER_TEMP}/plan-output.json"; then
@@ -462,11 +624,11 @@ jobs:
         id: asset_verify
         if: steps.release-version.outputs.release == 'true'
         run: |
-          test -f "release/versions/V2.62/_artifacts/goal-teams-V2.62.tar.gz"
-          test -f "release/versions/V2.62/_artifacts/SHA256SUMS"
-          test -f "release/versions/V2.62/_release.json"
-          test -f "release/versions/V2.62/_files.sha256"
-          cd "release/versions/V2.62/_artifacts"
+          test -f "release/versions/V2.63/_artifacts/goal-teams-V2.63.tar.gz"
+          test -f "release/versions/V2.63/_artifacts/SHA256SUMS"
+          test -f "release/versions/V2.63/_release.json"
+          test -f "release/versions/V2.63/_files.sha256"
+          cd "release/versions/V2.63/_artifacts"
           sha256sum -c SHA256SUMS
       - name: Stage exact receipts for cross-job S4 continuation without rebuilding
         id: stage_receipts
@@ -474,13 +636,15 @@ jobs:
         env:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
-          receipt_root="release/versions/V2.62/_receipts"
-          diagnostic_root="release/versions/V2.62/_diagnostics"
+          receipt_root="release/versions/V2.63/_receipts"
+          diagnostic_root="release/versions/V2.63/_diagnostics"
           mkdir -p "${receipt_root}" "${diagnostic_root}/observed_outputs"
           formal_receipt_names=(
             authorization.json
             controller-handoff.json
             github-owner-key-validation.json
+            release-route-facts.json
+            release-route-derived.json
             release-route-receipt.json
             released-runtime-transition.json
             s1-check.json
@@ -521,7 +685,7 @@ jobs:
             checkpoint_source_root="${RUNNER_TEMP}"
           fi
           python3 scripts/release/skill_release.py checkpoint \
-            --version V2.62 \
+            --version V2.63 \
             --commit "${GITHUB_SHA}" \
             --project-size "${{ inputs.project_size }}" \
             --job-status "${checkpoint_job_status}" \
@@ -565,7 +729,7 @@ jobs:
               "${diagnostic_root}/checkpoint-output.json" \
               "${receipt_root}/_checkpoint.json"
             python3 scripts/release/skill_release.py verify-checkpoint \
-              --version V2.62 \
+              --version V2.63 \
               --commit "${GITHUB_SHA}" \
               --checkpoint-receipt "${receipt_root}/_checkpoint.json" \
               --receipt-root "${receipt_root}" \
@@ -586,11 +750,11 @@ jobs:
         with:
           name: goal-teams-v250-release-${{ github.sha }}
           path: |
-            release/versions/V2.62/_artifacts/goal-teams-V2.62.tar.gz
-            release/versions/V2.62/_artifacts/SHA256SUMS
-            release/versions/V2.62/_release.json
-            release/versions/V2.62/_files.sha256
-            release/versions/V2.62/_receipts/
+            release/versions/V2.63/_artifacts/goal-teams-V2.63.tar.gz
+            release/versions/V2.63/_artifacts/SHA256SUMS
+            release/versions/V2.63/_release.json
+            release/versions/V2.63/_files.sha256
+            release/versions/V2.63/_receipts/
           if-no-files-found: error
           compression-level: 0
           retention-days: 30
@@ -603,7 +767,7 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: goal-teams-v250-diagnostic-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
-          path: release/versions/V2.62/_diagnostics/
+          path: release/versions/V2.63/_diagnostics/
           if-no-files-found: error
           compression-level: 0
           retention-days: 30

@@ -1,3 +1,5 @@
+"""V2.63 S1 frozen denominator validator contract."""
+
 from __future__ import annotations
 
 import copy
@@ -19,18 +21,18 @@ def _seal(value: dict) -> dict:
 def _current_dual_root_receipt() -> dict:
     files = [
         {"path": "tests/v250/test_alpha.py", "sha256": "a" * 64},
-        {"path": "tests/v262/integration/test_beta.py", "sha256": "b" * 64},
+        {"path": "tests/v263/integration/test_beta.py", "sha256": "b" * 64},
     ]
     denominator = {
         "denominator_id": "V250-CURRENT-GENERATION-FULL",
-        "generation_id": "V2.62",
+        "generation_id": "V2.63",
         "scope": "current_generation_full_regression",
         "source_commit": SOURCE,
         "source_tree": TREE,
-        "test_roots": ["tests/v250", "tests/v262"],
+        "test_roots": ["tests/v250", "tests/v263"],
         "test_pattern": "test_*.py",
         "contract_path": (
-            "references/current/generations/V2.62/contracts/"
+            "references/current/generations/V2.63/contracts/"
             "release-command-manifest.json"
         ),
         "contract_sha256": "c" * 64,
@@ -70,7 +72,7 @@ def _current_dual_root_receipt() -> dict:
                 "unittest",
                 "-v",
                 "tests.v250.test_alpha",
-                "tests.v262.integration.test_beta",
+                "tests.v263.integration.test_beta",
             ],
             "cwd": ".",
             "returncode": 0,
@@ -79,7 +81,7 @@ def _current_dual_root_receipt() -> dict:
     )
 
 
-class TestV262S1DenominatorValidator(unittest.TestCase):
+class TestV263S1DenominatorValidator(unittest.TestCase):
     def test_accepts_frozen_dual_root_files_and_module_argv(self) -> None:
         errors = release_flow._validate_full_regression_receipt(
             _current_dual_root_receipt(), SOURCE, TREE
@@ -167,8 +169,8 @@ class TestV262S1DenominatorValidator(unittest.TestCase):
 
     def test_rejects_nul_or_backslash_in_bound_test_path(self) -> None:
         for unsafe_path in (
-            "tests/v262/test_bad\x00.py",
-            "tests/v262/test_bad\\evil.py",
+            "tests/v263/test_bad\x00.py",
+            "tests/v263/test_bad\\evil.py",
         ):
             with self.subTest(path=unsafe_path):
                 receipt = copy.deepcopy(_current_dual_root_receipt())

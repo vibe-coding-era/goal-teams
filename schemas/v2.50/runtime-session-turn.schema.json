@@ -1,0 +1,337 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.50/runtime-session-turn.schema.json",
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "pathEntry": {
+      "type": "object",
+      "required": ["kind", "path", "sha256", "bytes"],
+      "properties": {
+        "kind": {"enum": ["bootstrap", "owner"]},
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "bytes": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "hostLoadObservation": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "host_execution_id",
+        "selected_root_realpath",
+        "opened_files",
+        "observation_source",
+        "actor_relationship",
+        "external_independent",
+        "cryptographic_host_attestation",
+        "provider_prompt_assembly"
+      ],
+      "properties": {
+        "schema_version": {"const": "goal-teams-host-load-observation-v2.63"},
+        "host_execution_id": {"type": "string", "minLength": 1},
+        "selected_root_realpath": {"type": "string", "pattern": "^/"},
+        "opened_files": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/pathEntry"}
+        },
+        "observation_source": {"type": "string", "minLength": 1},
+        "actor_relationship": {"const": "correlated"},
+        "external_independent": {"const": false},
+        "cryptographic_host_attestation": {"const": false},
+        "provider_prompt_assembly": {"const": "unavailable"}
+      },
+      "additionalProperties": false
+    },
+    "runtimeSessionReceipt": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "runtime_session_id",
+        "host_execution_id",
+        "discovery_decision_sha256",
+        "generation_snapshot_sha256",
+        "derived_route_sha256",
+        "prompt_artifact_sha256",
+        "prompt_plan_sha256",
+        "compiled_prompt_sha256",
+        "host_load_observation_sha256",
+        "selected_root_realpath",
+        "opened_paths",
+        "planned_observed_match",
+        "prompt_compiler_mode",
+        "trusted_runtime_entry",
+        "delivery_state",
+        "host_delivery_assurance",
+        "capability_state",
+        "proof_strength",
+        "actor_relationship",
+        "host_runtime_verified",
+        "external_independent",
+        "cryptographic_host_attestation",
+        "provider_prompt_assembly",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "schema_version": {"const": "goal-teams-runtime-session-receipt-v2.63"},
+        "runtime_session_id": {"type": "string", "minLength": 1},
+        "host_execution_id": {"type": "string", "minLength": 1},
+        "discovery_decision_sha256": {"$ref": "#/$defs/sha256"},
+        "generation_snapshot_sha256": {"$ref": "#/$defs/sha256"},
+        "derived_route_sha256": {"$ref": "#/$defs/sha256"},
+        "prompt_artifact_sha256": {"$ref": "#/$defs/sha256"},
+        "prompt_plan_sha256": {"$ref": "#/$defs/sha256"},
+        "compiled_prompt_sha256": {"$ref": "#/$defs/sha256"},
+        "host_load_observation_sha256": {"$ref": "#/$defs/sha256"},
+        "selected_root_realpath": {"type": "string", "pattern": "^/"},
+        "opened_paths": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "planned_observed_match": {"const": true},
+        "prompt_compiler_mode": {
+          "enum": ["offline_fixture", "trusted_runtime"]
+        },
+        "trusted_runtime_entry": {"type": "boolean"},
+        "delivery_state": {
+          "type": "object",
+          "required": ["repository", "host", "provider"],
+          "properties": {
+            "repository": {"const": "repository_compiled"},
+            "host": {"const": "host_received"},
+            "provider": {"const": "unavailable"}
+          },
+          "additionalProperties": false
+        },
+        "host_delivery_assurance": {"const": "correlated"},
+        "capability_state": {"const": "repository_only"},
+        "proof_strength": {"const": "correlated"},
+        "actor_relationship": {"const": "correlated"},
+        "host_runtime_verified": {"const": false},
+        "external_independent": {"const": false},
+        "cryptographic_host_attestation": {"const": false},
+        "provider_prompt_assembly": {"const": "unavailable"},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "turnBindings": {
+      "type": "object",
+      "required": [
+        "generation_snapshot_sha256",
+        "derived_route_sha256",
+        "task_exact_set_sha256",
+        "locked_scope_sha256",
+        "authorization_lineage_sha256",
+        "context_sha256"
+      ],
+      "properties": {
+        "generation_snapshot_sha256": {"$ref": "#/$defs/sha256"},
+        "derived_route_sha256": {"$ref": "#/$defs/sha256"},
+        "task_exact_set_sha256": {"$ref": "#/$defs/sha256"},
+        "locked_scope_sha256": {"$ref": "#/$defs/sha256"},
+        "authorization_lineage_sha256": {"$ref": "#/$defs/sha256"},
+        "context_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "turnBindingsV263": {
+      "type": "object",
+      "required": [
+        "generation_snapshot_sha256",
+        "derived_route_sha256",
+        "task_exact_set_sha256",
+        "locked_scope_sha256",
+        "authorization_lineage_sha256",
+        "context_sha256",
+        "context_delta_sha256"
+      ],
+      "properties": {
+        "generation_snapshot_sha256": {"$ref": "#/$defs/sha256"},
+        "derived_route_sha256": {"$ref": "#/$defs/sha256"},
+        "task_exact_set_sha256": {"$ref": "#/$defs/sha256"},
+        "locked_scope_sha256": {"$ref": "#/$defs/sha256"},
+        "authorization_lineage_sha256": {"$ref": "#/$defs/sha256"},
+        "context_sha256": {"$ref": "#/$defs/sha256"},
+        "context_delta_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "turnAction": {
+      "type": "object",
+      "required": ["type", "target"],
+      "properties": {
+        "type": {"type": "string", "minLength": 1},
+        "target": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "authorizedDelta": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "previous_turn_receipt_sha256",
+        "from_bindings_sha256",
+        "to_bindings_sha256",
+        "from_action_sha256",
+        "to_action_sha256",
+        "changed_fields",
+        "decision",
+        "reason",
+        "authorization_lineage_sha256",
+        "authorization_evidence_refs",
+        "authorization_receipt_sha256",
+        "authorization_issuer",
+        "authorization_proof_strength",
+        "authorization_verified",
+        "permission_effect",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "schema_version": {"const": "goal-teams-authorized-turn-delta-v2.63"},
+        "previous_turn_receipt_sha256": {"$ref": "#/$defs/sha256"},
+        "from_bindings_sha256": {"$ref": "#/$defs/sha256"},
+        "to_bindings_sha256": {"$ref": "#/$defs/sha256"},
+        "from_action_sha256": {"$ref": "#/$defs/sha256"},
+        "to_action_sha256": {"$ref": "#/$defs/sha256"},
+        "changed_fields": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "decision": {"enum": ["continue", "replan", "blocked"]},
+        "reason": {"type": "string", "minLength": 1},
+        "authorization_lineage_sha256": {"$ref": "#/$defs/sha256"},
+        "authorization_evidence_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "authorization_receipt_sha256": {"type": "null"},
+        "authorization_issuer": {"type": "null"},
+        "authorization_proof_strength": {"const": "unverified"},
+        "authorization_verified": {"const": false},
+        "permission_effect": {"const": "none"},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "externalAuthorizationReceipt": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "receipt_id",
+        "issuer",
+        "proof_strength",
+        "action_allowlist",
+        "target_scope",
+        "authorization_lineage_sha256",
+        "previous_turn_receipt_sha256",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "goal-teams-external-authorization-receipt-v2.63"
+        },
+        "receipt_id": {"type": "string", "minLength": 1},
+        "issuer": {"type": "string", "minLength": 1},
+        "proof_strength": {
+          "enum": ["externally_issued", "cryptographically_attested"]
+        },
+        "action_allowlist": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "target_scope": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "authorization_lineage_sha256": {"$ref": "#/$defs/sha256"},
+        "previous_turn_receipt_sha256": {"$ref": "#/$defs/sha256"},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "turnReceipt": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "turn_id",
+        "turn_index",
+        "previous_turn_receipt_sha256",
+        "bindings",
+        "bindings_sha256",
+        "action",
+        "action_sha256",
+        "decision",
+        "evidence_refs",
+        "changed_fields",
+        "authorized_delta_sha256",
+        "receipt_mode",
+        "context_delta_verified",
+        "authorization_verification_state",
+        "authorization_receipt_sha256",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "schema_version": {"const": "goal-teams-turn-receipt-v2.63"},
+        "turn_id": {"type": "string", "minLength": 1},
+        "turn_index": {"type": "integer", "minimum": 1},
+        "previous_turn_receipt_sha256": {
+          "oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]
+        },
+        "bindings": {
+          "oneOf": [
+            {"$ref": "#/$defs/turnBindings"},
+            {"$ref": "#/$defs/turnBindingsV263"}
+          ]
+        },
+        "bindings_sha256": {"$ref": "#/$defs/sha256"},
+        "action": {"$ref": "#/$defs/turnAction"},
+        "action_sha256": {"$ref": "#/$defs/sha256"},
+        "decision": {"enum": ["continue", "replan", "blocked", "stop"]},
+        "evidence_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "changed_fields": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "authorized_delta_sha256": {
+          "oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]
+        },
+        "receipt_mode": {"enum": ["offline_legacy", "runtime_bound"]},
+        "context_delta_verified": {"type": "boolean"},
+        "authorization_verification_state": {
+          "enum": ["not_required", "offline_unverified"]
+        },
+        "authorization_receipt_sha256": {"type": "null"},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "oneOf": [
+    {"$ref": "#/$defs/hostLoadObservation"},
+    {"$ref": "#/$defs/runtimeSessionReceipt"},
+    {"$ref": "#/$defs/externalAuthorizationReceipt"},
+    {"$ref": "#/$defs/authorizedDelta"},
+    {"$ref": "#/$defs/turnReceipt"}
+  ]
+}

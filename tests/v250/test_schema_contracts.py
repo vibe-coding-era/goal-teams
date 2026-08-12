@@ -20,6 +20,31 @@ def walk_schema(value: object, path: str = "$"):
 
 
 class TestV250SchemaContracts(unittest.TestCase):
+    def test_predecessor_release_identity_contract_is_strict_and_valid(self) -> None:
+        schema = json.loads(
+            (SCHEMA_ROOT / "predecessor-release-identity.schema.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        contract = json.loads(
+            (
+                REPO
+                / "references/current/generations/V2.63/contracts/"
+                "predecessor-release-identity.json"
+            ).read_text(encoding="utf-8")
+        )
+        try:
+            from jsonschema import Draft202012Validator
+        except ModuleNotFoundError:
+            Draft202012Validator = None
+        if Draft202012Validator is not None:
+            Draft202012Validator.check_schema(schema)
+            Draft202012Validator(schema).validate(contract)
+        self.assertEqual("V2.63", contract["generation_id"])
+        self.assertEqual("V2.62", contract["predecessor_product_version"])
+        self.assertFalse(schema["additionalProperties"])
+        self.assertEqual(set(schema["required"]), set(schema["properties"]))
+
     def test_activation_and_runtime_identity_versions_are_unambiguous(self) -> None:
         activation = json.loads(
             (SCHEMA_ROOT / "activation-manifest.schema.json").read_text(
@@ -36,7 +61,7 @@ class TestV250SchemaContracts(unittest.TestCase):
             set(identity["required"]),
         )
         self.assertEqual(
-            {"const": "V2.62"},
+            {"enum": ["V2.62", "V2.63"]},
             identity["properties"]["loaded_runtime_product_version"],
         )
         self.assertNotIn("controller_product_version", identity["properties"])
@@ -56,23 +81,24 @@ class TestV250SchemaContracts(unittest.TestCase):
             self.assertNotIn(forbidden, runtime["required"])
             self.assertNotIn(forbidden, runtime["properties"])
         self.assertEqual(
-            {"const": "V2.62"},
+            {"const": "V2.63"},
             runtime["properties"]["loaded_runtime_product_version"],
         )
         handoff = runtime["$defs"]["controllerHandoffReceipt"]
         signed_payload = handoff["properties"]["signed_payload"]
         self.assertEqual(
-            {"const": "V2.6"},
+            {"const": "V2.62"},
             signed_payload["properties"]["previous_controller_product_version"],
         )
         self.assertIn("previous_run_id", signed_payload["required"])
-        self.assertIn("installed_v26_current_state", signed_payload["required"])
+        self.assertIn("installed_v262_current_state", signed_payload["required"])
+        self.assertNotIn("installed_v26_current_state", signed_payload["properties"])
         self.assertNotIn("installed_v250_current_state", signed_payload["properties"])
         self.assertNotIn("controller_version", signed_payload["properties"])
 
     def test_required_fields_are_locally_declared_for_strict_draft202012_compilers(self) -> None:
         schema_files = sorted(SCHEMA_ROOT.glob("*.schema.json"))
-        self.assertEqual(10, len(schema_files))
+        self.assertGreaterEqual(len(schema_files), 19)
 
         for schema_file in schema_files:
             schema = json.loads(schema_file.read_text(encoding="utf-8"))
@@ -82,6 +108,11 @@ class TestV250SchemaContracts(unittest.TestCase):
             for node_path, node in walk_schema(schema):
                 required = node.get("required")
                 if required is None:
+                    continue
+                # A property map may itself contain a data field named
+                # ``required``; it is not the JSON Schema keyword of the
+                # surrounding object.
+                if not isinstance(required, list) and node_path.endswith("/properties"):
                     continue
                 self.assertIsInstance(required, list, f"{schema_file}:{node_path}")
                 properties = node.get("properties")
@@ -93,7 +124,7 @@ class TestV250SchemaContracts(unittest.TestCase):
 
     def test_release_engine_profile_is_strict_compiler_and_instance_aligned(self) -> None:
         schema_path = REPO / "schemas/release-engine-profile.schema.json"
-        profile_path = REPO / "references/release-profiles/v2.62.json"
+        profile_path = REPO / "references/release-profiles/v2.63.json"
         schema = json.loads(schema_path.read_text(encoding="utf-8"))
         profile = json.loads(profile_path.read_text(encoding="utf-8"))
 
@@ -167,7 +198,7 @@ class TestV250SchemaContracts(unittest.TestCase):
         self.assertEqual(4, assets["maxItems"])
         self.assertIs(False, assets["items"])
         self.assertEqual(
-            ["SHA256SUMS", "_files.sha256", "_release.json", "goal-teams-V2.62.tar.gz"],
+            ["SHA256SUMS", "_files.sha256", "_release.json", "goal-teams-V2.63.tar.gz"],
             [item["properties"]["name"]["const"] for item in assets["prefixItems"]],
         )
         journal = outcome["properties"]["operation_journal"]

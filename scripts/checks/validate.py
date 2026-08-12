@@ -1554,13 +1554,15 @@ def check_example() -> None:
 
 
 def main() -> None:
-    if CURRENT_VERSION in {"V2.52", "V2.6", "V2.62"}:
+    if CURRENT_VERSION in {"V2.52", "V2.6", "V2.62", "V2.63"}:
         commands = [
             [
                 sys.executable,
                 "scripts/checks/validate-v250-generation.py",
                 "--generation-id",
                 CURRENT_VERSION,
+                "--selection",
+                "active",
             ],
             [sys.executable, "scripts/checks/validate-v250-test-gate.py", "--self-test"],
             [sys.executable, "scripts/checks/check-package-manifest.py"],

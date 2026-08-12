@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.50/predecessor-release-identity.schema.json",
+  "title": "Goal Teams V2.63 immutable predecessor release identity",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generation_id",
+    "predecessor_product_version",
+    "release_identity",
+    "release_identity_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "goal-teams-predecessor-release-identity-v2.63"},
+    "generation_id": {"const": "V2.63"},
+    "predecessor_product_version": {"const": "V2.62"},
+    "release_identity": {
+      "type": "object",
+      "required": ["tag", "release_id", "state", "source_commit", "source_tree", "public_assets"],
+      "properties": {
+        "tag": {"const": "v2.62"},
+        "release_id": {"type": "integer", "minimum": 1},
+        "state": {"const": "published"},
+        "source_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "source_tree": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "public_assets": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      },
+      "additionalProperties": false
+    },
+    "release_identity_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": false
+}

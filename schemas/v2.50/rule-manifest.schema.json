@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://goal-teams.local/schemas/v2.50/rule-manifest.schema.json",
-  "title": "Goal Teams V2.62 derived rule index",
+  "title": "Goal Teams V2.62/V2.63 derived rule index",
   "type": "object",
   "required": ["schema_version", "generation_id", "manifest_state", "semantic_source", "source_digest_algorithm", "owners"],
   "properties": {
     "schema_version": {"const": "goal-teams-rule-manifest-v2.50"},
-    "generation_id": {"const": "V2.62"},
+    "generation_id": {"enum": ["V2.62", "V2.63"]},
     "manifest_state": {"const": "derived_projection"},
     "semantic_source": {"const": "owner_markdown_only"},
     "source_digest_algorithm": {"const": "sha256_raw_file_bytes"},
@@ -33,11 +33,50 @@
         "owner_kind": {"enum": ["core", "routing", "assurance", "function", "contract"]},
         "path": {"$ref": "#/$defs/repoPath"},
         "source_sha256": {"$ref": "#/$defs/sha256"},
-        "dependencies": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/stableId"}},
+        "dependencies": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/dependency"}},
         "route_membership": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^V250-ROUTE-[A-Z0-9-]+$"}},
-        "owned_rule_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^GT250-[A-Z0-9-]+$"}}
+        "owned_rule_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^GT(?:250|263)-[A-Z0-9-]+$"}}
       },
       "additionalProperties": false
+    },
+    "dependency": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "owner_id"],
+          "properties": {
+            "kind": {"enum": ["required", "optional"]},
+            "owner_id": {"$ref": "#/$defs/stableId"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "owner_id", "phases"],
+          "properties": {
+            "kind": {"const": "phase_gated"},
+            "owner_id": {"$ref": "#/$defs/stableId"},
+            "phases": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {"enum": ["discussion", "development", "release_readiness", "release"]}
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "owner_id", "fact", "equals"],
+          "properties": {
+            "kind": {"const": "fact_gated"},
+            "owner_id": {"$ref": "#/$defs/stableId"},
+            "fact": {"type": "string", "minLength": 1},
+            "equals": {}
+          },
+          "additionalProperties": false
+        }
+      ]
     }
   }
 }

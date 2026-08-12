@@ -1,5 +1,13 @@
 # Changelog
 
+## V2.63 — 2026-08-12
+
+- Added deterministic discovery selection, immutable per-session generation snapshots, trusted-fact route derivation, deterministic prompt artifacts, and host observation receipts to govern runtime drift without overstating Provider assembly proof.
+- Added Consumer Gate, immutable TaskExactSet/DAG compilation, explicit budgets and exit conditions, independent external blockers, bounded audit-finding admission, Git-derived change receipts, and orthogonal completion projections so time and quality bounds are calculable and auditable.
+- Bound input, code, tests, results, authorization, route, scope, and phase exact-sets through digest/receipt chains; preserved honest `BLOCKED` and separated engineering, runtime, business, release, and installation states.
+- Removed the fixed user-visible runtime identity fingerprint. Runtime identity remains machine Evidence and is explained only when explicitly requested or needed for drift diagnosis.
+- Migrated the product-bound Current candidate, compatibility projection, checks, package closure, and release profile to V2.63 while retaining core policy V2.5, Legacy schema V2.3, published predecessor V2.62, and unchanged human-owned root READMEs.
+
 ## V2.62 — 2026-08-08
 
 - Added the OKF Document Graph as a standards-aligned, in-memory RDF 1.1 projection over tracked OKF and Markdown documents, with stable IRIs, revision-aware claims, evidence traceability, native lookup, and deterministic graph-input manifest digests.

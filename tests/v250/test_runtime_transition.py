@@ -18,6 +18,8 @@ from scripts.v250.runtime_transition import (
     validate_controller_handoff,
     validate_transition,
 )
+from scripts.v250.route_closure import compile_derived_route_closure
+from scripts.v250.route_derivation import derive_route
 
 
 SOURCE = "1" * 40
@@ -26,6 +28,19 @@ CAPTURED_AT = "2026-08-01T08:05:00+00:00"
 VALIDATION_TIME = dt.datetime(2026, 8, 1, 8, 5, tzinfo=dt.timezone.utc)
 ROUTE_ID = "V250-ROUTE-LARGE-RELEASE"
 HANDOFF_NONCE = "nonce-v250-controller-handoff-000001"
+PUBLISHED_V262_IDENTITY = {
+    "tag": "v2.62",
+    "release_id": 367112913,
+    "state": "published",
+    "source_commit": "bd4eedfc0623e74b74efeaf157edf92ce2be1e74",
+    "source_tree": "58d11881eeda2f0a018fcc4273ce2f3982977f94",
+    "public_assets": [
+        "goal-teams-V2.62.tar.gz",
+        "SHA256SUMS",
+        "_release.json",
+        "_files.sha256",
+    ],
+}
 
 
 def _json_bytes(value: object) -> bytes:
@@ -52,20 +67,78 @@ def _activation_payload_sha256(value: dict) -> str:
     ).hexdigest()
 
 
-def _prepare_observer_inputs(root: Path) -> tuple[Path, Path, Path]:
+def _prepare_observer_inputs(root: Path) -> tuple[Path, Path, Path, Path, Path]:
     bootstrap_paths = {
         ".agents/skills/goal-teams/SKILL.md": b"wrapper\n",
         "AGENTS.md": b"agents\n",
         "RULES.md": b"rules\n",
         "SKILL.md": b"skill\n",
     }
+    core_path = "references/current/generations/V2.63/core.md"
+    core_raw = b"core\n"
+    facts_source = {
+        "schema_version": "goal-teams-project-route-facts-source-v2.63",
+        "repository": "vibe-coding-era/goal-teams",
+        "source_commit": SOURCE,
+        "source_tree": TREE,
+        "workflow_run_id": "10001",
+        "workflow_run_attempt": "1",
+        "project_start_authorization_receipt_sha256": "3" * 64,
+    }
+    project_route_facts = {
+        "project_size": "large",
+        "workflow_phase": "release",
+        "stage": "released",
+        "release_intent": True,
+        "implementation_scope_complete": True,
+        "risk": "high",
+        "failure_consequence": "high",
+        "reversibility": "partially_reversible",
+        "compliance": "none",
+        "external_write": True,
+        "security_sensitive": True,
+        "ui_or_desktop": False,
+        "agent_runtime": True,
+        "environment_check_required": True,
+        "authorization_state": "granted",
+        "facts_source_sha256": _canonical_sha256(facts_source),
+    }
+    derived_route = derive_route(project_route_facts)
+    owner = {
+        "owner_id": "core",
+        "path": core_path,
+        "source_sha256": hashlib.sha256(core_raw).hexdigest(),
+        "owned_rule_ids": ["GT263-RUNTIME-TEST"],
+        "route_membership": [ROUTE_ID],
+        "dependencies": [],
+    }
+    rule_manifest = {"owners": [owner]}
+    rule_manifest_path = (
+        "references/current/generations/V2.63/rule-manifest.json"
+    )
     current_paths = {
-        "references/current/generations/V2.62/core.md": b"core\n",
-        "references/current/generations/V2.62/prompt-manifest.json": b"",
-        "references/profiles/goal-teams-self-release-v2.62.md": b"profile\n",
-        "references/release-profiles/v2.62.json": b"{}\n",
-        "references/current/generations/V2.62/contracts/release-route-manifest.json": b"{}\n",
-        "references/current/generations/V2.62/contracts/release-command-manifest.json": b"{}\n",
+        core_path: core_raw,
+        rule_manifest_path: _json_bytes(rule_manifest),
+        "references/current/generations/V2.63/prompt-manifest.json": b"",
+        "references/profiles/goal-teams-self-release-v2.63.md": b"profile\n",
+        "references/release-profiles/v2.63.json": b"{}\n",
+        "references/current/generations/V2.63/contracts/release-route-manifest.json": b"{}\n",
+        "references/current/generations/V2.63/contracts/release-command-manifest.json": b"{}\n",
+        "references/current/generations/V2.63/contracts/predecessor-release-identity.json": _json_bytes(
+            {
+                "schema_version": "goal-teams-predecessor-release-identity-v2.63",
+                "generation_id": "V2.63",
+                "predecessor_product_version": "V2.62",
+                "release_identity": PUBLISHED_V262_IDENTITY,
+                "release_identity_sha256": hashlib.sha256(
+                    json.dumps(
+                        PUBLISHED_V262_IDENTITY,
+                        sort_keys=True,
+                        separators=(",", ":"),
+                    ).encode("utf-8")
+                ).hexdigest(),
+            }
+        ),
     }
     execution_paths = {
         "scripts/checks/check-v250.py": b"checker\n",
@@ -80,17 +153,21 @@ def _prepare_observer_inputs(root: Path) -> tuple[Path, Path, Path]:
     }
     prompt = {
         "schema_version": "goal-teams-prompt-manifest-v2.50",
-        "generation_id": "V2.62",
+        "generation_id": "V2.63",
         "manifest_state": "active_current",
         "routes": {
             ROUTE_ID: {
                 "workflow_phase": "release",
-                "ordered_refs": ["references/current/generations/V2.62/core.md"],
+                "ordered_refs": [core_path],
+                "required_gates": derived_route["required_gates"],
+                "conditional_gates": derived_route["conditional_gates"],
+                "expected_loaded_rule_bytes": len(core_raw),
+                "max_loaded_rule_bytes": len(core_raw),
             }
         },
     }
     current_paths[
-        "references/current/generations/V2.62/prompt-manifest.json"
+        "references/current/generations/V2.63/prompt-manifest.json"
     ] = _json_bytes(prompt)
 
     entries: dict[str, list[dict[str, object]]] = {
@@ -111,50 +188,103 @@ def _prepare_observer_inputs(root: Path) -> tuple[Path, Path, Path]:
                 {"path": relative, "sha256": digest, "bytes": len(raw)}
             )
 
+    # Mutable published projection remains available to prove it is not part
+    # of the V2.63 runtime or predecessor-controller identity closure.
+    _write(
+        root,
+        "release/current/manifest.json",
+        _json_bytes(
+            {
+                "schema_version": "goal-teams-release-manifest-v2.62",
+                "product_version": "V2.62",
+                "release_identity": PUBLISHED_V262_IDENTITY,
+                "status": "release",
+            }
+        ),
+    )
+
     activation = {
         "schema_version": "goal-teams-activation-manifest-v2.50",
-        "generation_id": "V2.62",
+        "generation_id": "V2.63",
         "generation_state": "active",
         "identity": {
-            "loaded_runtime_product_version": "V2.62",
+            "loaded_runtime_product_version": "V2.63",
             "route_contract_schema_version": "goal-teams-project-route-v2.50",
-            "target_policy_generation": "V2.62",
+            "target_policy_generation": "V2.63",
         },
         "root_sets": entries,
-        "prompt_manifest_path": "references/current/generations/V2.62/prompt-manifest.json",
+        "rule_manifest_path": rule_manifest_path,
+        "prompt_manifest_path": "references/current/generations/V2.63/prompt-manifest.json",
+        "current_default_allowlist": [core_path],
+        "legacy_classification": {"exact_paths": [], "path_prefixes": []},
+        "budgets": {"max_route_rule_bytes": len(core_raw)},
     }
     activation["manifest_payload_sha256"] = _activation_payload_sha256(activation)
-    activation_path = "references/current/generations/V2.62/activation-manifest.json"
+    activation_path = "references/current/generations/V2.63/activation-manifest.json"
     activation_raw = _json_bytes(activation)
     activation_digest = _write(root, activation_path, activation_raw)
     active = {
         "schema_version": "goal-teams-active-generation-v1",
-        "generation_id": "V2.62",
+        "generation_id": "V2.63",
         "activation_manifest": activation_path,
         "activation_manifest_sha256": activation_digest,
         "state": "active_current",
     }
     _write(root, "references/current/ACTIVE.json", _json_bytes(active))
 
-    route = {
-        "generation_id": "V2.62",
-        "route_id": ROUTE_ID,
-        "loaded_paths": ["references/current/generations/V2.62/core.md"],
-        "path_digests": {
-            "references/current/generations/V2.62/core.md": hashlib.sha256(
-                b"core\n"
-            ).hexdigest()
-        },
-        "legacy_intersection": [],
+    generation = {
+        "generation_id": "V2.63",
+        "activation_digest_verified": True,
+        "member_digests_verified": True,
+        "activation_manifest": activation,
+        "prompt_manifest": prompt,
+        "rule_manifest": rule_manifest,
+        "current_default_allowlist": [core_path],
+        "legacy_exact_paths": [],
+        "legacy_path_prefixes": [],
     }
-    route["closure_digest"] = _canonical_sha256(route, digest_field="closure_digest")
-    route_path = root / "docs/route-receipt.json"
+    route = compile_derived_route_closure(root, generation, derived_route)
+    route_facts_path = root / "docs/release-route-facts.json"
+    derived_route_path = root / "docs/release-route-derived.json"
+    route_path = root / "docs/release-route-receipt.json"
     route_path.parent.mkdir(parents=True)
-    route_path.write_bytes(_json_bytes(route))
+    route_facts_path.write_bytes(
+        json.dumps(
+            {
+                "facts_source": facts_source,
+                "project_route_facts": project_route_facts,
+                "project_route_facts_sha256": _canonical_sha256(
+                    project_route_facts
+                ),
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+        + b"\n"
+    )
+    derived_route_path.write_bytes(
+        json.dumps(
+            derived_route,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+        + b"\n"
+    )
+    route_path.write_bytes(
+        json.dumps(
+            route,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+        + b"\n"
+    )
 
     intent = {
         "repository": "vibe-coding-era/goal-teams",
-        "version": "V2.62",
+        "version": "V2.63",
         "action_allowlist": ["fresh_runtime_transition"],
     }
     authorization = {
@@ -164,7 +294,7 @@ def _prepare_observer_inputs(root: Path) -> tuple[Path, Path, Path]:
         "authorization_state": "granted_once_at_project_start",
         "authorization_lineage_preserved": True,
         "repository": {"name_with_owner": "vibe-coding-era/goal-teams"},
-        "version": "V2.62",
+        "version": "V2.63",
         "action_allowlist": ["fresh_runtime_transition"],
         "intent": intent,
         "intent_sha256": _canonical_sha256(intent),
@@ -174,7 +304,13 @@ def _prepare_observer_inputs(root: Path) -> tuple[Path, Path, Path]:
 
     adapter_path = root / "docs/trusted-runtime-adapter.py"
     adapter_path.write_bytes(b"# trusted host adapter\n")
-    return route_path, authorization_path, adapter_path
+    return (
+        route_facts_path,
+        derived_route_path,
+        route_path,
+        authorization_path,
+        adapter_path,
+    )
 
 
 def _handoff(authorization_path: Path) -> dict:
@@ -188,17 +324,16 @@ def _handoff(authorization_path: Path) -> dict:
             authorization_path.read_bytes()
         ).hexdigest(),
         "authorization_intent_sha256": authorization["intent_sha256"],
-        "previous_controller_product_version": "V2.6",
+        "previous_controller_product_version": "V2.62",
         "previous_run_id": "V251-HOST-RUN-0001",
         "nonce": HANDOFF_NONCE,
         "issued_at": "2026-08-01T08:00:00+00:00",
         "expires_at": "2026-08-01T08:10:00+00:00",
-        "installed_v26_current_state": {
-            "state_sha256": "3" * 64,
-            "source_commit": "4" * 40,
-            "source_tree": "5" * 40,
-            "tag": "v2.6",
-            "release_id": 362135071,
+        "installed_v262_current_state": {
+            "source_commit": PUBLISHED_V262_IDENTITY["source_commit"],
+            "source_tree": PUBLISHED_V262_IDENTITY["source_tree"],
+            "tag": PUBLISHED_V262_IDENTITY["tag"],
+            "release_id": PUBLISHED_V262_IDENTITY["release_id"],
         },
         "github_signing_identity": {
             "account": "vibe-coding-era",
@@ -210,11 +345,15 @@ def _handoff(authorization_path: Path) -> dict:
             "public_key_fingerprint": (
                 "SHA256:fEM2bYLJFOSvNA78soiWLvrSUaWxANVr1HIVl6AAirE"
             ),
-            "ssh_signature_namespace": "goal-teams-v2.62-controller-handoff",
+            "ssh_signature_namespace": "goal-teams-v2.63-controller-handoff",
         },
     }
+    installed = signed_payload["installed_v262_current_state"]
+    installed["state_sha256"] = _canonical_sha256(
+        installed, digest_field="state_sha256"
+    )
     return {
-        "schema_version": "goal-teams-v2.62-controller-handoff-receipt-v1",
+        "schema_version": "goal-teams-v2.63-controller-handoff-receipt-v1",
         "signed_payload": signed_payload,
         "payload_sha256": _canonical_sha256(signed_payload),
         "ssh_signature": (
@@ -227,7 +366,7 @@ def _handoff(authorization_path: Path) -> dict:
 
 def _launch(handoff: dict, adapter_path: Path) -> dict:
     value = {
-        "schema_version": "goal-teams-v2.62-runtime-launch-receipt-v1",
+        "schema_version": "goal-teams-v2.63-runtime-launch-receipt-v1",
         "controller_handoff_receipt_sha256": runtime_transition.object_sha256(handoff),
         "controller_handoff_payload_sha256": handoff["payload_sha256"],
         "nonce": HANDOFF_NONCE,
@@ -244,7 +383,13 @@ def _launch(handoff: dict, adapter_path: Path) -> dict:
 
 
 def _observe(root: Path) -> dict:
-    route_path, authorization_path, adapter_path = _prepare_observer_inputs(root)
+    (
+        route_facts_path,
+        derived_route_path,
+        route_path,
+        authorization_path,
+        adapter_path,
+    ) = _prepare_observer_inputs(root)
     handoff = _handoff(authorization_path)
     launch = _launch(handoff, adapter_path)
     with mock.patch.object(
@@ -255,6 +400,8 @@ def _observe(root: Path) -> dict:
             source_commit=SOURCE,
             source_tree=TREE,
             project_size="large",
+            route_facts_receipt_path=route_facts_path,
+            derived_route_receipt_path=derived_route_path,
             route_receipt_path=route_path,
             authorization_receipt_path=authorization_path,
             adapter_identity="codex-host-runtime-adapter",
@@ -294,7 +441,7 @@ class TestV250RuntimeTransition(unittest.TestCase):
         self.assertTrue(verdict["ok"], verdict["errors"])
         self.assertTrue(verdict["may_enter_s0"])
         self.assertEqual(
-            "V2.6",
+            "V2.62",
             value["controller_handoff_receipt"]["signed_payload"][
                 "previous_controller_product_version"
             ],
@@ -302,7 +449,7 @@ class TestV250RuntimeTransition(unittest.TestCase):
         self.assertEqual(
             "V250-RUNTIME-RUN-0001", value["runtime_launch_receipt"]["new_run_id"]
         )
-        self.assertEqual("V2.62", value["loaded_runtime_product_version"])
+        self.assertEqual("V2.63", value["loaded_runtime_product_version"])
         self.assertEqual("host_adapter_popen_child", value["fresh_process_kind"])
         self.assertNotIn("previous_run_id", value)
         self.assertNotIn("new_run_id", value)
@@ -318,15 +465,27 @@ class TestV250RuntimeTransition(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             value = _observe(root)
-            route_raw = (root / "docs/route-receipt.json").read_bytes()
+            facts_raw = (root / "docs/release-route-facts.json").read_bytes()
+            derived_raw = (root / "docs/release-route-derived.json").read_bytes()
+            route_raw = (root / "docs/release-route-receipt.json").read_bytes()
             authorization_raw = (
                 root / "docs/authorization-receipt.json"
             ).read_bytes()
+            portable_facts = root / "downloaded/release-route-facts.json"
+            portable_derived = root / "downloaded/release-route-derived.json"
             portable_route = root / "downloaded/release-route-receipt.json"
             portable_authorization = root / "downloaded/authorization.json"
             portable_route.parent.mkdir(parents=True)
+            portable_facts.write_bytes(facts_raw)
+            portable_derived.write_bytes(derived_raw)
             portable_route.write_bytes(route_raw)
             portable_authorization.write_bytes(authorization_raw)
+            value["route_facts_receipt_path"] = (
+                "/expired-runner/release-route-facts.json"
+            )
+            value["derived_route_receipt_path"] = (
+                "/expired-runner/release-route-derived.json"
+            )
             value["route_receipt_path"] = "/expired-runner/route-receipt.json"
             value["authorization_receipt_path"] = (
                 "/expired-runner/authorization.json"
@@ -337,6 +496,8 @@ class TestV250RuntimeTransition(unittest.TestCase):
             portable = self._validate(
                 value,
                 root,
+                route_facts_receipt_path_override=portable_facts,
+                derived_route_receipt_path_override=portable_derived,
                 route_receipt_path_override=portable_route,
                 authorization_receipt_path_override=portable_authorization,
             )
@@ -354,7 +515,7 @@ class TestV250RuntimeTransition(unittest.TestCase):
     def test_forged_signature_is_rejected_by_fixed_owner_verifier(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            _, authorization_path, _ = _prepare_observer_inputs(root)
+            _, _, _, authorization_path, _ = _prepare_observer_inputs(root)
             handoff = _handoff(authorization_path)
             verdict = validate_controller_handoff(
                 handoff,
@@ -369,10 +530,38 @@ class TestV250RuntimeTransition(unittest.TestCase):
                     authorization_path.read_text(encoding="utf-8")
                 )["intent_sha256"],
                 validation_time=VALIDATION_TIME,
+                root=root,
             )
 
         self.assertFalse(verdict["ok"])
         self.assertIn("E_V250_CONTROLLER_HANDOFF_SIGNATURE", verdict["errors"])
+
+    def test_handoff_identity_ignores_mutable_release_projection(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            _, _, _, authorization_path, _ = _prepare_observer_inputs(root)
+            handoff = _handoff(authorization_path)
+            projection = root / "release/current/manifest.json"
+            projection.write_text("{}\n", encoding="utf-8")
+            with mock.patch.object(
+                runtime_transition, "_verify_handoff_signature", return_value=True
+            ):
+                verdict = validate_controller_handoff(
+                    handoff,
+                    expected_repository="vibe-coding-era/goal-teams",
+                    expected_source_commit=SOURCE,
+                    expected_source_tree=TREE,
+                    expected_authorization_id="AUTH-V250-TEST",
+                    expected_authorization_receipt_sha256=hashlib.sha256(
+                        authorization_path.read_bytes()
+                    ).hexdigest(),
+                    expected_authorization_intent_sha256=json.loads(
+                        authorization_path.read_text(encoding="utf-8")
+                    )["intent_sha256"],
+                    validation_time=VALIDATION_TIME,
+                    root=root,
+                )
+        self.assertTrue(verdict["ok"], verdict["errors"])
 
     def test_missing_handoff_or_launch_fails_closed(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -457,7 +646,7 @@ class TestV250RuntimeTransition(unittest.TestCase):
         cases = (
             (
                 lambda payload: payload.__setitem__(
-                    "previous_controller_product_version", "V2.62"
+                    "previous_controller_product_version", "V2.63"
                 ),
                 "E_V250_CONTROLLER_HANDOFF_VERSION",
             ),
@@ -470,7 +659,7 @@ class TestV250RuntimeTransition(unittest.TestCase):
                 "E_V250_CONTROLLER_HANDOFF_AUTHORIZATION_DRIFT",
             ),
             (
-                lambda payload: payload["installed_v26_current_state"].__setitem__(
+                lambda payload: payload["installed_v262_current_state"].__setitem__(
                     "tag", "v2.47"
                 ),
                 "E_V250_CONTROLLER_HANDOFF_INSTALLED_STATE",
@@ -576,7 +765,7 @@ class TestV250RuntimeTransition(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             value = _observe(root)
-            (root / "references/current/generations/V2.62/core.md").write_text(
+            (root / "references/current/generations/V2.63/core.md").write_text(
                 "drift\n", encoding="utf-8"
             )
             verdict = self._validate(value, root)

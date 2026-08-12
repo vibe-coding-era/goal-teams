@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.50/discovery-snapshot.schema.json",
+  "$ref": "#/$defs/generationSnapshot",
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "gitObject": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40}$"},
+    "memberDigest": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "discoveryCandidate": {
+      "type": "object",
+      "required": [
+        "root_realpath", "root_kind", "discovery_order", "discovery_name",
+        "generation_id", "product_version", "source_commit", "source_tree",
+        "skill_sha256", "active_sha256", "activation_sha256",
+        "prompt_manifest_sha256", "identity_sha256"
+      ],
+      "properties": {
+        "root_realpath": {"type": "string", "pattern": "^/"},
+        "root_kind": {
+          "enum": ["workspace", "canonical_install", "mirror", "backup", "replay"]
+        },
+        "discovery_order": {"type": "integer", "minimum": 0},
+        "discovery_name": {"type": "string", "minLength": 1},
+        "generation_id": {"type": "string", "pattern": "^V[0-9]+\\.[0-9]+$"},
+        "product_version": {"type": "string", "pattern": "^V[0-9]+\\.[0-9]+$"},
+        "source_commit": {"$ref": "#/$defs/gitObject"},
+        "source_tree": {"$ref": "#/$defs/gitObject"},
+        "skill_sha256": {"$ref": "#/$defs/sha256"},
+        "active_sha256": {"$ref": "#/$defs/sha256"},
+        "activation_sha256": {"$ref": "#/$defs/sha256"},
+        "prompt_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "identity_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "discoveryDecision": {
+      "type": "object",
+      "required": [
+        "schema_version", "selected_identity_sha256", "candidates",
+        "selection_rule", "decision_sha256"
+      ],
+      "properties": {
+        "schema_version": {"const": "goal-teams-discovery-decision-v2.63"},
+        "selected_identity_sha256": {"$ref": "#/$defs/sha256"},
+        "candidates": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/discoveryCandidate"}
+        },
+        "selection_rule": {
+          "enum": ["explicit_qualified_root", "identity_matched_workspace", "canonical_install"]
+        },
+        "decision_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "generationSnapshot": {
+      "type": "object",
+      "required": ["session_id", "selected_root_realpath", "source_commit", "source_tree", "active_sha256", "activation_manifest_sha256", "rule_manifest_sha256", "prompt_manifest_sha256", "generation_id", "member_digests", "captured_at", "snapshot_sha256"],
+      "properties": {
+        "session_id": {"type": "string", "minLength": 1},
+        "selected_root_realpath": {"type": "string", "pattern": "^/"},
+        "source_commit": {"$ref": "#/$defs/gitObject"},
+        "source_tree": {"$ref": "#/$defs/gitObject"},
+        "active_sha256": {"$ref": "#/$defs/sha256"},
+        "activation_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "rule_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "prompt_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "generation_id": {"type": "string", "pattern": "^V[0-9]+\\.[0-9]+$"},
+        "member_digests": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/memberDigest"}
+        },
+        "captured_at": {"type": "string", "format": "date-time"},
+        "snapshot_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    }
+  }
+}

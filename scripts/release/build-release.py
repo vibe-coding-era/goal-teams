@@ -200,10 +200,11 @@ KNOWN_RELEASES = {
     "V2.52": "codex/v2.52-small",
     "V2.6": "codex/develop-v2.6",
     "V2.62": "codex/develop-v2.62",
+    "V2.63": "codex/develop-v2.63",
 }
 OKF_GENERATED_PATH = "references/okf-conformance-manifest.json"
-OKF_RELEASE_VERSIONS = {"V2.39", "V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49", "V2.50", "V2.52", "V2.6", "V2.62"}
-STRICT_SNAPSHOT_VERSIONS = {"V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49", "V2.50", "V2.52", "V2.6", "V2.62"}
+OKF_RELEASE_VERSIONS = {"V2.39", "V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49", "V2.50", "V2.52", "V2.6", "V2.62", "V2.63"}
+STRICT_SNAPSHOT_VERSIONS = {"V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49", "V2.50", "V2.52", "V2.6", "V2.62", "V2.63"}
 FROZEN_COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 
 
@@ -384,7 +385,7 @@ def write_file(target: Path, data: bytes, mode: str) -> None:
 def okf_runtime_generation(version: str) -> str:
     """Return the packaged OKF runtime generation for a release version."""
 
-    return "v250" if version in {"V2.50", "V2.52", "V2.6", "V2.62"} else "v249"
+    return "v250" if version in {"V2.50", "V2.52", "V2.6", "V2.62", "V2.63"} else "v249"
 
 
 def generate_okf_manifest(

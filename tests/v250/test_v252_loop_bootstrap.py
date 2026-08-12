@@ -14,7 +14,7 @@ class TestV252LoopBootstrap(unittest.TestCase):
         facts: dict[str, object] = {
             "loop_id": "LOOP-V252-001",
             "round": 1,
-            "product_version": "V2.62",
+            "product_version": "V2.63",
             "project_size": "medium",
             "plan_preview": False,
             "environment_check_requested": False,
@@ -23,6 +23,7 @@ class TestV252LoopBootstrap(unittest.TestCase):
             "source_commit": "1" * 40,
             "toolchain_digest": "2" * 64,
             "dependency_digest": "3" * 64,
+            "task_exact_set_digest": "4" * 64,
             "branch_namespace": "codex",
             "existing_environment": None,
         }
@@ -33,14 +34,19 @@ class TestV252LoopBootstrap(unittest.TestCase):
         plan = plan_loop_round(self._facts())
 
         self.assertEqual(
-            ["tasklist", "task_assignment", "environment_preflight"],
+            [
+                "tasklist",
+                "task_exact_set_freeze",
+                "task_assignment",
+                "environment_preflight",
+            ],
             plan["required_order"],
         )
         self.assertEqual("goal_release_engineer", plan["environment_checker"])
         self.assertEqual("environment_preflight", plan["environment_mode"])
         self.assertEqual("required", plan["development_environment_check"])
         self.assertEqual("create", plan["environment_action"])
-        self.assertEqual("codex/develop-v2.62", plan["development_branch"])
+        self.assertEqual("codex/develop-v2.63", plan["development_branch"])
 
     def test_small_keeps_preflight_but_does_not_require_version_branch(self) -> None:
         plan = plan_loop_round(self._facts(project_size="small"))
@@ -59,11 +65,11 @@ class TestV252LoopBootstrap(unittest.TestCase):
 
     def test_current_compatible_environment_is_reused(self) -> None:
         existing = {
-            "path": "/repo/develops/v2.62",
+            "path": "/repo/develops/v2.63",
             "identity": "ENV-252-A",
             "current": True,
             "compatible": True,
-            "product_version": "V2.62",
+            "product_version": "V2.63",
             "source_commit": "1" * 40,
             "toolchain_digest": "2" * 64,
             "dependency_digest": "3" * 64,
@@ -86,8 +92,9 @@ class TestV252LoopBootstrap(unittest.TestCase):
         base = {
             "bootstrap_events": [
                 {"step": "tasklist", "revision": 1},
-                {"step": "task_assignment", "revision": 2},
-                {"step": "environment_preflight", "revision": 3},
+                {"step": "task_exact_set_freeze", "revision": 2},
+                {"step": "task_assignment", "revision": 3},
+                {"step": "environment_preflight", "revision": 4},
             ],
             "tasklist_created": True,
             "tasks_assigned": True,
@@ -97,8 +104,9 @@ class TestV252LoopBootstrap(unittest.TestCase):
             "lead_run_id": "RUN-LEAD",
             "implementation_owner_run_id": "RUN-IMPL",
             "project_size": "medium",
-            "product_version": "V2.62",
-            "development_branch": "codex/develop-v2.62",
+            "product_version": "V2.63",
+            "task_exact_set_digest": "4" * 64,
+            "development_branch": "codex/develop-v2.63",
             "environment_action": "create",
             "compatible_existing_environment": False,
         }
@@ -123,8 +131,9 @@ class TestV252LoopBootstrap(unittest.TestCase):
         receipt = {
             "bootstrap_events": [
                 {"step": "tasklist", "revision": 1},
-                {"step": "task_assignment", "revision": 2},
-                {"step": "environment_preflight", "revision": 3},
+                {"step": "task_exact_set_freeze", "revision": 2},
+                {"step": "task_assignment", "revision": 3},
+                {"step": "environment_preflight", "revision": 4},
             ],
             "tasklist_created": True,
             "tasks_assigned": True,
@@ -134,7 +143,8 @@ class TestV252LoopBootstrap(unittest.TestCase):
             "lead_run_id": "RUN-LEAD",
             "implementation_owner_run_id": "RUN-IMPL",
             "project_size": "medium",
-            "product_version": "V2.62",
+            "product_version": "V2.63",
+            "task_exact_set_digest": "4" * 64,
             "development_branch": "main",
             "environment_action": "create",
             "compatible_existing_environment": False,
@@ -143,7 +153,7 @@ class TestV252LoopBootstrap(unittest.TestCase):
             validate_loop_bootstrap_receipt(receipt)
         self.assertEqual("E_V26_DEVELOPMENT_BRANCH", caught.exception.code)
 
-        receipt["development_branch"] = "codex/develop-v2.62"
+        receipt["development_branch"] = "codex/develop-v2.63"
         receipt["compatible_existing_environment"] = True
         with self.assertRaises(LoopBootstrapError) as caught:
             validate_loop_bootstrap_receipt(receipt)

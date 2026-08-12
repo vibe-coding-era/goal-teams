@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.50/prompt-manifest.schema.json",
+  "$ref": "#/$defs/promptManifest",
+  "$defs": {
+    "repoPath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)[^\\u0000]+$"
+    },
+    "gateId": {
+      "type": "string",
+      "enum": ["loop_bootstrap", "project_start_authorization", "environment_preflight", "development_environment_check", "tdd", "incremental", "semantic_review", "behavior_review", "completion_audit", "independent_review", "runtime_capability", "desktop_runtime", "ui_e2e", "pixel_comparison", "fresh_runtime_transition", "full_regression", "release_security_review", "repository_boundary_compliance", "s0", "s1", "s2", "s3", "s4"]
+    },
+    "route": {
+      "type": "object",
+      "required": ["assurance_level", "workflow_phase", "ordered_refs", "required_gates", "conditional_gates", "manual_artifact_count", "governance_time", "max_loaded_rule_bytes", "expected_loaded_rule_bytes"],
+      "properties": {
+        "assurance_level": {"enum": ["Discussion", "Lite", "Standard", "Full"]},
+        "workflow_phase": {"enum": ["startup", "discussion", "development", "release"]},
+        "ordered_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/repoPath"}
+        },
+        "required_gates": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/gateId"}
+        },
+        "conditional_gates": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/gateId"}
+        },
+        "manual_artifact_count": {"type": "integer", "minimum": 0},
+        "governance_time": {"type": "string", "minLength": 1},
+        "max_loaded_rule_bytes": {"type": "integer", "minimum": 1},
+        "expected_loaded_rule_bytes": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "promptManifest": {
+      "type": "object",
+      "required": ["schema_version", "generation_id", "manifest_state", "ordering_rule", "path_deduplication_rule", "byte_count_algorithm", "current_rule_allowlist", "routes"],
+      "properties": {
+        "schema_version": {"const": "goal-teams-prompt-manifest-v2.50"},
+        "generation_id": {"pattern": "^V[0-9]+\\.[0-9]+$"},
+        "manifest_state": {"enum": ["inactive_candidate", "active_current"]},
+        "ordering_rule": {"type": "string", "minLength": 1},
+        "path_deduplication_rule": {"const": "reject_duplicate_repo_relative_posix_paths"},
+        "byte_count_algorithm": {"type": "string", "minLength": 1},
+        "current_rule_allowlist": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/repoPath"}
+        },
+        "routes": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {"pattern": "^V250-ROUTE-[A-Z0-9-]+$"},
+          "additionalProperties": {"$ref": "#/$defs/route"}
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,3 +1,5 @@
+"""V2.63 Current and release control surfaces."""
+
 from __future__ import annotations
 
 import importlib.util
@@ -16,7 +18,7 @@ SECURITY_RUNNER_PATH = ROOT / "scripts/checks/run-v250-release-security-review.p
 VERSION_SYNC_PATH = ROOT / "scripts/checks/check-version-sync.py"
 SECURITY_MANIFEST_PATH = (
     ROOT
-    / "references/current/generations/V2.62/contracts/"
+    / "references/current/generations/V2.63/contracts/"
     "release-security-review-manifest.json"
 )
 
@@ -29,12 +31,12 @@ def _load(path: Path, name: str):
     return module
 
 
-class TestV262ReleaseSurfaces(unittest.TestCase):
-    def test_version_sync_uses_v262_current_projection_not_legacy_markers(self) -> None:
-        sync = _load(VERSION_SYNC_PATH, "_test_v262_version_sync")
+class TestV263ReleaseSurfaces(unittest.TestCase):
+    def test_version_sync_uses_v263_current_projection_not_legacy_markers(self) -> None:
+        sync = _load(VERSION_SYNC_PATH, "_test_v263_version_sync")
         args = argparse.Namespace(
-            mode="candidate",
-            published_version=None,
+            mode="development",
+            published_version="V2.62",
             candidate_commit=None,
         )
         with (
@@ -48,9 +50,9 @@ class TestV262ReleaseSurfaces(unittest.TestCase):
         ):
             sync.main()
 
-    def test_current_validator_dispatches_v262_without_legacy_readme_checks(self) -> None:
-        validator = _load(VALIDATE_PATH, "_test_v262_current_validator")
-        self.assertEqual("V2.62", validator.CURRENT_VERSION)
+    def test_current_validator_dispatches_v263_without_legacy_readme_checks(self) -> None:
+        validator = _load(VALIDATE_PATH, "_test_v263_current_validator")
+        self.assertEqual("V2.63", validator.CURRENT_VERSION)
         with (
             mock.patch.object(validator.subprocess, "run") as run,
             mock.patch.object(
@@ -68,28 +70,47 @@ class TestV262ReleaseSurfaces(unittest.TestCase):
                 validator.sys.executable,
                 "scripts/checks/validate-v250-generation.py",
                 "--generation-id",
-                "V2.62",
+                "V2.63",
+                "--selection",
+                "active",
             ],
             commands,
         )
 
-    def test_current_release_readme_describes_v262_and_v26_predecessor(self) -> None:
+    def test_current_release_readme_describes_v263_and_v262_predecessor(self) -> None:
         text = (ROOT / "scripts/release/README.md").read_text(encoding="utf-8")
         current = text.split("## V2.48 Skill 简单发行兼容", 1)[0]
-        self.assertIn("V2.62 两阶段 Skill 发行", current)
-        self.assertIn("--version V2.62", current)
-        self.assertIn("docs/v2.62-release-runtime", current)
-        self.assertIn("已安装 V2.6 Codex 宿主", current)
-        self.assertNotIn("已安装 V2.52 Codex 宿主", current)
-        self.assertIn("不是 V2.62\nCurrent Skill 发行默认入口", text)
+        self.assertIn("V2.63 两阶段 Skill 发行", current)
+        self.assertIn("--version V2.63", current)
+        self.assertIn("docs/v2.63-release-runtime", current)
+        self.assertIn("已安装 V2.62 Codex 宿主", current)
+        self.assertNotIn("已安装 V2.6 Codex 宿主", current)
+        self.assertIn("不是 V2.63\nCurrent Skill 发行默认入口", text)
         self.assertIn(
-            "V2.62 是候选 `skill_simple` profile，V2.6 保持已安装基线直到 atomic cutover",
+            "V2.63 是候选 `skill_simple` profile，V2.62 保持已安装基线直到 atomic cutover",
             text,
         )
 
+    def test_v263_release_readme_uses_facts_derived_medium_route_only(self) -> None:
+        text = (ROOT / "scripts/release/README.md").read_text(encoding="utf-8")
+        current = text.split("## V2.48 Skill 简单发行兼容", 1)[0]
+        self.assertIn("from scripts.v250.route_derivation import derive_route", current)
+        self.assertIn(
+            "from scripts.v250.route_closure import compile_derived_route_closure",
+            current,
+        )
+        self.assertIn('"project_size": "medium"', current)
+        self.assertIn('"workflow_phase": "release"', current)
+        self.assertIn('"stage": "released"', current)
+        self.assertIn("derive_route(project_route_facts)", current)
+        self.assertIn("compile_derived_route_closure", current)
+        self.assertIn("--project-size medium", current)
+        self.assertNotIn("compile_route_closure", current)
+        self.assertNotIn("--project-size large", current)
+
     def test_security_denominator_covers_new_runtime_and_projection_code(self) -> None:
         manifest = json.loads(SECURITY_MANIFEST_PATH.read_text(encoding="utf-8"))
-        runner = _load(SECURITY_RUNNER_PATH, "_test_v262_security_runner")
+        runner = _load(SECURITY_RUNNER_PATH, "_test_v263_security_runner")
         targets = {item["path"] for item in manifest["review_targets"]}
         required = {
             "scripts/checks/check.sh",
@@ -107,9 +128,9 @@ class TestV262ReleaseSurfaces(unittest.TestCase):
             "scripts/v250/test_gate.py",
             "scripts/v250/unicode17_data.py",
             "scripts/v250/unicode17_nfc.py",
-            "scripts/v262/compatibility.py",
-            "scripts/v262/project_host_assets.py",
-            "scripts/v262/role_projections.py",
+            "scripts/v263/compatibility.py",
+            "scripts/v263/project_host_assets.py",
+            "scripts/v263/role_projections.py",
         }
         self.assertTrue(required.issubset(targets))
         self.assertEqual(targets, set(runner.MANDATORY_REVIEW_TARGETS))
@@ -119,13 +140,13 @@ class TestV262ReleaseSurfaces(unittest.TestCase):
         command = json.loads(
             (
                 ROOT
-                / "references/current/generations/V2.62/contracts/"
+                / "references/current/generations/V2.63/contracts/"
                 "release-command-manifest.json"
             ).read_text(encoding="utf-8")
         )
         denominator = command["release"]["s1"]["current_full_regression_denominator"]
         self.assertEqual(
-            ["tests/v250", "tests/v262"],
+            ["tests/v250", "tests/v263"],
             denominator["test_roots"],
         )
         self.assertEqual(
@@ -139,8 +160,12 @@ class TestV262ReleaseSurfaces(unittest.TestCase):
             "scripts/checks/check.sh",
         ):
             text = (ROOT / relative).read_text(encoding="utf-8")
-            self.assertIn("tests/v250", text, relative)
-            self.assertIn("tests/v262", text, relative)
+            if relative.endswith(".yml"):
+                self.assertIn("tests.v250.", text, relative)
+                self.assertIn("tests.v263.", text, relative)
+            else:
+                self.assertIn("tests/v250", text, relative)
+                self.assertIn("tests/v263", text, relative)
 
 
 if __name__ == "__main__":

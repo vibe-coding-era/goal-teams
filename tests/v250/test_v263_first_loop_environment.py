@@ -8,15 +8,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 
-class TestV252FirstLoopEnvironment(unittest.TestCase):
-    def test_product_identity_and_active_generation_are_v252(self) -> None:
-        self.assertEqual("V2.62", (ROOT / "VERSION").read_text(encoding="utf-8").strip())
+class TestV263FirstLoopEnvironment(unittest.TestCase):
+    def test_product_identity_and_active_generation_are_v263(self) -> None:
+        self.assertEqual("V2.63", (ROOT / "VERSION").read_text(encoding="utf-8").strip())
         active = json.loads(
             (ROOT / "references/current/ACTIVE.json").read_text(encoding="utf-8")
         )
-        self.assertEqual("V2.62", active["generation_id"])
+        self.assertEqual("V2.63", active["generation_id"])
         self.assertEqual(
-            "references/current/generations/V2.62/activation-manifest.json",
+            "references/current/generations/V2.63/activation-manifest.json",
             active["activation_manifest"],
         )
 
@@ -40,7 +40,7 @@ class TestV252FirstLoopEnvironment(unittest.TestCase):
     def test_first_loop_contract_creates_tasklist_assigns_and_checks_environment(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         core = (
-            ROOT / "references/current/generations/V2.62/core.md"
+            ROOT / "references/current/generations/V2.63/core.md"
         ).read_text(encoding="utf-8")
         for text in (skill, core):
             self.assertIn("第一轮", text)
@@ -51,7 +51,7 @@ class TestV252FirstLoopEnvironment(unittest.TestCase):
     def test_environment_check_is_independent_reusable_and_version_branched(self) -> None:
         architecture = (
             ROOT
-            / "references/current/generations/V2.62/functions/architecture-implementation.md"
+            / "references/current/generations/V2.63/functions/architecture-implementation.md"
         ).read_text(encoding="utf-8")
         common = (ROOT / "subagents/common-developer-instructions.txt").read_text(
             encoding="utf-8"

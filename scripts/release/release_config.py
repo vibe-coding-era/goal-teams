@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Load closed, Git-tracked release identities.
 
-V2.62 is the active Skill release profile used by ``skill_release.py``.
-V2.6 is the published predecessor; V2.50 remains the rollback baseline.
+V2.63 is the active Skill release profile used by ``skill_release.py``.
+V2.62 is the published predecessor; V2.50 remains the rollback baseline.
 V2.46 keeps the governed CP00-CP18 engine; earlier versions are replay-only.
 """
 
@@ -18,7 +18,7 @@ from typing import Any
 
 SCHEMA_VERSION = "goal-teams-release-engine-profile-v1"
 PROTOCOL_VERSION = "V2.40"
-ACTIVE_VERSION = "V2.62"
+ACTIVE_VERSION = "V2.63"
 NEXT_VERSION = None
 ROOT = Path(__file__).resolve().parents[2]
 PROFILE_BY_VERSION = {
@@ -32,6 +32,7 @@ PROFILE_BY_VERSION = {
     "V2.52": ROOT / "references" / "release-profiles" / "v2.52.json",
     "V2.6": ROOT / "references" / "release-profiles" / "v2.6.json",
     "V2.62": ROOT / "references" / "release-profiles" / "v2.62.json",
+    "V2.63": ROOT / "references" / "release-profiles" / "v2.63.json",
 }
 PREDECESSOR_BY_VERSION = {
     "V2.40": None,
@@ -44,6 +45,7 @@ PREDECESSOR_BY_VERSION = {
     "V2.52": "V2.51",
     "V2.6": "V2.52",
     "V2.62": "V2.6",
+    "V2.63": "V2.62",
 }
 HOST_ACCEPTANCE_VERSIONS = {"V2.44", "V2.45", "V2.46"}
 REQUIRED_FIELDS = {
@@ -102,6 +104,7 @@ V249_FIELDS = SIMPLE_FIELDS | {
     "public_asset_map_path",
 }
 V250_FIELDS = V249_FIELDS
+V263_FIELDS = V250_FIELDS | {"core_policy_version", "legacy_data_schema_version"}
 SIMPLE_GATES = [
     "source_freeze",
     "checks",
@@ -118,7 +121,7 @@ V249_GATES = [
     "publish",
 ]
 V250_GATES = V249_GATES
-CURRENT_SIMPLE_VERSIONS = {"V2.49", "V2.50", "V2.52", "V2.6", "V2.62"}
+CURRENT_SIMPLE_VERSIONS = {"V2.49", "V2.50", "V2.52", "V2.6", "V2.62", "V2.63"}
 VERSION_RE = re.compile(r"^V[0-9]+\.[0-9]+$")
 CANDIDATE_RE = re.compile(r"^develops/[a-z0-9][a-z0-9._-]*$")
 BRANCH_RE = re.compile(r"^codex/[A-Za-z0-9._/-]+$")
@@ -147,7 +150,9 @@ def _load_profile(version: str) -> dict[str, Any]:
         and value.get("release_mode") == "skill_simple"
     )
     expected_fields = (
-        V249_FIELDS
+        V263_FIELDS
+        if simple_mode and version == "V2.63"
+        else V249_FIELDS
         if simple_mode and version in CURRENT_SIMPLE_VERSIONS
         else SIMPLE_FIELDS
         if simple_mode
@@ -212,6 +217,7 @@ def _load_profile(version: str) -> dict[str, Any]:
             "V2.52": "codex/v2.52-small",
             "V2.6": "codex/develop-v2.6",
             "V2.62": "codex/develop-v2.62",
+            "V2.63": "codex/develop-v2.63",
         }[version]
         lowercase_version = version.lower()
         if (
@@ -230,10 +236,7 @@ def _load_profile(version: str) -> dict[str, Any]:
             != f"references/profiles/goal-teams-self-release-{lowercase_version}.md"
             or value["release_title"] != f"Goal Teams {version}"
             or value["release_body"]
-            != (
-                f"Goal Teams {version}. "
-                "See release/current/README.md in the tagged source."
-            )
+            != f"Goal Teams {version}. See release/current/README.md in the tagged source."
             or value["tag_message"] != f"Goal Teams {version}"
             or value["snapshot_schema_version"]
             != "goal-teams-release-snapshot-v2.40"
@@ -256,6 +259,13 @@ def _load_profile(version: str) -> dict[str, Any]:
             != (
                 f"references/current/generations/{version}/contracts/"
                 "public-asset-map.json"
+            )
+            or (
+                version == "V2.63"
+                and (
+                    value.get("core_policy_version") != "V2.5"
+                    or value.get("legacy_data_schema_version") != "V2.3"
+                )
             )
         ):
             raise ValueError(f"release simple policy drift: {version}")

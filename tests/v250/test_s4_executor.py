@@ -15,9 +15,9 @@ from scripts.v250 import release_flow, s4_executor
 SOURCE = "1" * 40
 TREE = "2" * 40
 REPOSITORY = "vibe-coding-era/goal-teams"
-VERSION = "V2.62"
-TAG = "v2.62"
-RELEASE_BODY = "Goal Teams V2.62. See release/current/README.md in the tagged source."
+VERSION = "V2.63"
+TAG = "v2.63"
+RELEASE_BODY = "Goal Teams V2.63. See release/current/README.md in the tagged source."
 SCHEMA_PATH = Path(__file__).resolve().parents[2] / "schemas/v2.50/release-control.schema.json"
 
 
@@ -35,7 +35,7 @@ def sha256_bytes(value: bytes) -> str:
 
 
 def make_release_tree(root: Path) -> tuple[Path, list[dict[str, object]]]:
-    profile = root / "references/release-profiles/v2.62.json"
+    profile = root / "references/release-profiles/v2.63.json"
     profile.parent.mkdir(parents=True)
     profile.write_text(
         json.dumps(
@@ -43,9 +43,9 @@ def make_release_tree(root: Path) -> tuple[Path, list[dict[str, object]]]:
                 "version": VERSION,
                 "status": "active",
                 "tag": TAG,
-                "release_title": "Goal Teams V2.62",
+                "release_title": "Goal Teams V2.63",
                 "release_body": RELEASE_BODY,
-                "tag_message": "Goal Teams V2.62",
+                "tag_message": "Goal Teams V2.63",
             },
             sort_keys=True,
         ),
@@ -118,10 +118,10 @@ def make_release_tree(root: Path) -> tuple[Path, list[dict[str, object]]]:
 def make_control(assets: list[dict[str, object]]) -> dict[str, object]:
     asset_set_digest = release_flow.canonical_sha256(assets)
     return {
-        "schema_version": "goal-teams-v2.62-release-control-receipt-v1",
+        "schema_version": "goal-teams-v2.63-release-control-receipt-v1",
         "repository": REPOSITORY,
         "version": VERSION,
-        "candidate_branch": "codex/develop-v2.62",
+        "candidate_branch": "codex/develop-v2.63",
         "tag": TAG,
         "source_commit": SOURCE,
         "source_tree": TREE,
@@ -361,7 +361,7 @@ class FakeBackend:
             "body": body,
             "draft": True,
             "prerelease": False,
-            "html_url": "https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.62",
+            "html_url": "https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.63",
             "assets": [],
         }
         if self.fail_after_mutation == "release_create":
@@ -388,7 +388,7 @@ class FakeBackend:
         self.write_counts["release_publish"] += 1
         self.release["draft"] = False
         self.release["html_url"] = (
-            "https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.62"
+            "https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.63"
         )
 
     def download_asset(self, repository: str, tag: str, name: str, target: Path) -> None:
@@ -577,7 +577,7 @@ class TestV250S4Executor(unittest.TestCase):
     def test_default_control_validator_uses_downloaded_receipt_paths(self) -> None:
         module = mock.Mock()
         module.validate_v250_s4_control.return_value = {"ok": True}
-        receipt_root = Path("/portable/release/versions/V2.62/_receipts")
+        receipt_root = Path("/portable/release/versions/V2.63/_receipts")
         with mock.patch.object(s4_executor, "_load_module", return_value=module):
             verdict = s4_executor._default_control_validator(
                 VERSION,
@@ -1038,12 +1038,12 @@ class TestV250S4Executor(unittest.TestCase):
                 "object_sha": "6" * 40,
                 "peeled_commit": SOURCE,
                 "annotated": True,
-                "message": "Goal Teams V2.62",
+                "message": "Goal Teams V2.63",
             }
             backend.release = {
                 "id": 363687225,
                 "tag_name": TAG,
-                "name": "Goal Teams V2.62",
+                "name": "Goal Teams V2.63",
                 "body": RELEASE_BODY,
                 "draft": True,
                 "prerelease": False,
@@ -1243,18 +1243,18 @@ class TestV250S4Executor(unittest.TestCase):
                 "object_sha": "6" * 40,
                 "peeled_commit": SOURCE,
                 "annotated": True,
-                "message": "Goal Teams V2.62",
+                "message": "Goal Teams V2.63",
             }
             backend.release = {
                 "id": 249,
                 "tag_name": TAG,
-                "name": "Goal Teams V2.62",
+                "name": "Goal Teams V2.63",
                 "body": "wrong release notes",
                 "draft": True,
                 "prerelease": False,
                 "html_url": (
                     "https://github.com/vibe-coding-era/goal-teams/"
-                    "releases/tag/v2.62"
+                    "releases/tag/v2.63"
                 ),
                 "assets": [],
             }
@@ -1286,12 +1286,12 @@ class TestV250S4Executor(unittest.TestCase):
                 "object_sha": "6" * 40,
                 "peeled_commit": SOURCE,
                 "annotated": True,
-                "message": "Goal Teams V2.62",
+                "message": "Goal Teams V2.63",
             }
             backend.release = {
                 "id": 249,
                 "tag_name": TAG,
-                "name": "Goal Teams V2.62",
+                "name": "Goal Teams V2.63",
                 "body": RELEASE_BODY,
                 "draft": True,
                 "prerelease": False,
@@ -1330,12 +1330,12 @@ class TestV250S4Executor(unittest.TestCase):
                 "object_sha": "6" * 40,
                 "peeled_commit": SOURCE,
                 "annotated": True,
-                "message": "Goal Teams V2.62",
+                "message": "Goal Teams V2.63",
             }
             backend.release = {
                 "id": 249,
                 "tag_name": TAG,
-                "name": "Goal Teams V2.62",
+                "name": "Goal Teams V2.63",
                 "body": RELEASE_BODY,
                 "draft": False,
                 "prerelease": False,
@@ -1490,7 +1490,7 @@ class TestV250S4Executor(unittest.TestCase):
                 "object_sha": "6" * 40,
                 "peeled_commit": SOURCE,
                 "annotated": True,
-                "message": "Goal Teams V2.62",
+                "message": "Goal Teams V2.63",
             }
             backend.fail_without_mutation = "release_create"
 
@@ -1527,7 +1527,7 @@ class TestV250S4Executor(unittest.TestCase):
                 "object_sha": "6" * 40,
                 "peeled_commit": "9" * 40,
                 "annotated": True,
-                "message": "Goal Teams V2.62",
+                "message": "Goal Teams V2.63",
             }
 
             with self.assertRaises(s4_executor.S4ExecutionError) as caught:
@@ -1751,15 +1751,15 @@ class TestV250CommandBackend(unittest.TestCase):
         )
         backend = s4_executor.CommandBackend(Path.cwd(), runner)
 
-        backend.create_annotated_tag(TAG, SOURCE, "Goal Teams V2.62")
+        backend.create_annotated_tag(TAG, SOURCE, "Goal Teams V2.63")
         backend.push_tag(TAG, "6" * 40)
 
         self.assertEqual(
-            ["git", "tag", "-a", TAG, SOURCE, "-m", "Goal Teams V2.62"],
+            ["git", "tag", "-a", TAG, SOURCE, "-m", "Goal Teams V2.63"],
             runner.argv[0],
         )
         self.assertEqual(
-            ["git", "push", "origin", f"{'6' * 40}:refs/tags/v2.62"],
+            ["git", "push", "origin", f"{'6' * 40}:refs/tags/v2.63"],
             runner.argv[1],
         )
         flattened = " ".join(item for argv in runner.argv for item in argv).lower()
@@ -1810,7 +1810,7 @@ class TestV250CommandBackend(unittest.TestCase):
                 TAG,
                 commit,
                 "-m",
-                "Goal Teams V2.62",
+                "Goal Teams V2.63",
             )
             validated_oid = git("rev-parse", f"refs/tags/{TAG}")
             git("tag", "--delete", TAG)
@@ -1880,7 +1880,7 @@ class TestV250CommandBackend(unittest.TestCase):
         draft = {
             "id": 363687225,
             "tag_name": TAG,
-            "name": "Goal Teams V2.62",
+            "name": "Goal Teams V2.63",
             "body": RELEASE_BODY,
             "draft": True,
             "prerelease": False,
@@ -1940,10 +1940,10 @@ class TestV250CommandBackend(unittest.TestCase):
         response = s4_executor.CommandResult(
             0,
             'HTTP/2.0 200 OK\n\n'
-            '{"id":249,"tag_name":"v2.62","name":"Goal Teams V2.62",'
-            '"body":"Goal Teams V2.62. See release/current/README.md in the tagged source.",'
+            '{"id":249,"tag_name":"v2.63","name":"Goal Teams V2.63",'
+            '"body":"Goal Teams V2.63. See release/current/README.md in the tagged source.",'
             '"draft":true,"prerelease":false,'
-            '"html_url":"https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.62",'
+            '"html_url":"https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.63",'
             '"assets":[]}\n',
         )
         runner = RecordingRunner(
@@ -1961,7 +1961,7 @@ class TestV250CommandBackend(unittest.TestCase):
             backend.create_draft_release(
                 REPOSITORY,
                 TAG,
-                "Goal Teams V2.62",
+                "Goal Teams V2.63",
                 RELEASE_BODY,
             )
             backend.upload_asset(REPOSITORY, TAG, Path("SHA256SUMS"))
@@ -1998,7 +1998,7 @@ class TestV250CommandBackend(unittest.TestCase):
             "type commit\n"
             f"tag {TAG}\n"
             "tagger Goal Teams <noreply@example.invalid> 0 +0000\n\n"
-            "Goal Teams V2.62\n"
+            "Goal Teams V2.63\n"
         )
         runner = RecordingRunner(
             [
@@ -2010,7 +2010,7 @@ class TestV250CommandBackend(unittest.TestCase):
         )
         backend = s4_executor.CommandBackend(Path.cwd(), runner)
         value = backend.read_local_tag(TAG)
-        self.assertEqual("Goal Teams V2.62", value["message"])
+        self.assertEqual("Goal Teams V2.63", value["message"])
         self.assertEqual(
             ["git", "cat-file", "-t", "6" * 40], runner.argv[2]
         )
@@ -2018,7 +2018,7 @@ class TestV250CommandBackend(unittest.TestCase):
             ["git", "cat-file", "tag", "6" * 40], runner.argv[3]
         )
 
-        wrong = tag_object.replace("Goal Teams V2.62\n", "wrong title\n")
+        wrong = tag_object.replace("Goal Teams V2.63\n", "wrong title\n")
         backend = s4_executor.CommandBackend(
             Path.cwd(),
             RecordingRunner(
@@ -2053,7 +2053,7 @@ class TestV250CommandBackend(unittest.TestCase):
         backend = s4_executor.CommandBackend(Path.cwd(), absent_runner)
         self.assertIsNone(backend.read_local_tag(TAG))
         self.assertEqual(
-            ["git", "show-ref", "--verify", "--quiet", "refs/tags/v2.62"],
+            ["git", "show-ref", "--verify", "--quiet", "refs/tags/v2.63"],
             absent_runner.argv[0],
         )
 
