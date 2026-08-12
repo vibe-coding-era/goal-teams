@@ -65,6 +65,7 @@ jobs:
       - name: Prepare pinned Draft 2020 validator outside the worktree
         env:
           VALIDATOR_PYTHON_PREFIX: ${{ runner.temp }}/goal-teams-v250-python
+          VALIDATOR_NODE_PREFIX: ${{ runner.temp }}/goal-teams-v250-node
         run: |
           python3 -m pip install \
             --target "${VALIDATOR_PYTHON_PREFIX}" \
@@ -73,7 +74,15 @@ jobs:
             jsonschema==4.23.0
           PYTHONPATH="${VALIDATOR_PYTHON_PREFIX}" python3 -c \
             'from jsonschema import Draft202012Validator'
+          npm install --prefix "${VALIDATOR_NODE_PREFIX}" \
+            --ignore-scripts \
+            --no-audit \
+            --no-fund \
+            ajv@8.17.1
+          NODE_PATH="${VALIDATOR_NODE_PREFIX}/node_modules" node -e \
+            "require('ajv/dist/2020')"
           echo "PYTHONPATH=${VALIDATOR_PYTHON_PREFIX}${PYTHONPATH:+:${PYTHONPATH}}" >> "${GITHUB_ENV}"
+          echo "NODE_PATH=${VALIDATOR_NODE_PREFIX}/node_modules${NODE_PATH:+:${NODE_PATH}}" >> "${GITHUB_ENV}"
       - name: Active V2.63 pre-release exact Development gate
         env:
           PYTHONDONTWRITEBYTECODE: '1'
@@ -100,6 +109,7 @@ jobs:
             tests.v250.test_v263_candidate_projection \
             tests.v250.test_v263_candidate_registry \
             tests.v250.test_v263_ci_lifecycle \
+            tests.v250.test_v263_ci_validator_dependencies \
             tests.v250.test_v263_completion_authority \
             tests.v250.test_v263_continuation_route_triplet \
             tests.v250.test_v263_core_audit \
@@ -191,6 +201,7 @@ jobs:
       - name: Prepare pinned Draft 2020 validator outside the worktree
         env:
           VALIDATOR_PYTHON_PREFIX: ${{ runner.temp }}/goal-teams-v250-python
+          VALIDATOR_NODE_PREFIX: ${{ runner.temp }}/goal-teams-v250-node
         run: |
           python3 -m pip install \
             --target "${VALIDATOR_PYTHON_PREFIX}" \
@@ -199,7 +210,15 @@ jobs:
             jsonschema==4.23.0
           PYTHONPATH="${VALIDATOR_PYTHON_PREFIX}" python3 -c \
             'from jsonschema import Draft202012Validator'
+          npm install --prefix "${VALIDATOR_NODE_PREFIX}" \
+            --ignore-scripts \
+            --no-audit \
+            --no-fund \
+            ajv@8.17.1
+          NODE_PATH="${VALIDATOR_NODE_PREFIX}/node_modules" node -e \
+            "require('ajv/dist/2020')"
           echo "PYTHONPATH=${VALIDATOR_PYTHON_PREFIX}${PYTHONPATH:+:${PYTHONPATH}}" >> "${GITHUB_ENV}"
+          echo "NODE_PATH=${VALIDATOR_NODE_PREFIX}/node_modules${NODE_PATH:+:${NODE_PATH}}" >> "${GITHUB_ENV}"
       - name: Detect the explicit V2.63 workflow phase
         id: release-version
         run: |

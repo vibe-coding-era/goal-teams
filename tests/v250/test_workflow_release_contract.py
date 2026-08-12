@@ -115,9 +115,31 @@ class TestWorkflowSSHContract(unittest.TestCase):
                 'echo "PYTHONPATH=${VALIDATOR_PYTHON_PREFIX}${PYTHONPATH:+:${PYTHONPATH}}" >> "${GITHUB_ENV}"'
             ),
         )
-        self.assertNotIn("node_modules", combined)
-        self.assertNotIn("npm install", combined)
-        self.assertNotIn("NODE_PATH", combined)
+        self.assertEqual(
+            3,
+            combined.count(
+                "VALIDATOR_NODE_PREFIX: ${{ runner.temp }}/goal-teams-v250-node"
+            ),
+        )
+        self.assertEqual(3, combined.count('npm install --prefix "${VALIDATOR_NODE_PREFIX}"'))
+        self.assertEqual(3, combined.count("--ignore-scripts"))
+        self.assertEqual(3, combined.count("--no-audit"))
+        self.assertEqual(3, combined.count("--no-fund"))
+        self.assertEqual(3, combined.count("ajv@8.17.1"))
+        self.assertEqual(
+            3,
+            combined.count(
+                'NODE_PATH="${VALIDATOR_NODE_PREFIX}/node_modules" node -e'
+            ),
+        )
+        self.assertEqual(
+            3,
+            combined.count(
+                'echo "NODE_PATH=${VALIDATOR_NODE_PREFIX}/node_modules${NODE_PATH:+:${NODE_PATH}}" >> "${GITHUB_ENV}"'
+            ),
+        )
+        self.assertNotIn("npm install --prefix .", combined)
+        self.assertNotIn("npm install --prefix ./", combined)
 
     def test_secret_guard_precedes_each_checkout_and_transport_assertion_follows(self) -> None:
         for path in (".github/workflows/check.yml", ".github/workflows/release-gate.yml"):

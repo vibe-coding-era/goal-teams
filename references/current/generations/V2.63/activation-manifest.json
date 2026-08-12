@@ -3,7 +3,7 @@
   "generation_id": "V2.63",
   "generation_state": "active",
   "baseline_generation_id": "V2.62",
-  "manifest_payload_sha256": "0e75d19845319c1ff6df4884e733193005e62ca887aadd371af471282c5216f9",
+  "manifest_payload_sha256": "af52e9c0e0acbc54532e85706ed5fd0fef4aaf344e444155f8c1cde3329c1976",
   "identity": {
     "loaded_runtime_product_version": "V2.63",
     "core_policy_version": "V2.5",
@@ -928,6 +928,11 @@
         "bytes": 4634
       },
       {
+        "path": "tests/v250/test_v263_ci_validator_dependencies.py",
+        "sha256": "b9e1755e2e5045fdd869ddd0063d97dba2dcb2004b04d6820c5fd71e5fdc5fa8",
+        "bytes": 1972
+      },
+      {
         "path": "tests/v250/test_v263_completion_authority.py",
         "sha256": "3c2210e1a5f2099bbdac3b453291b1f63031e2a95063ac3acd40980146443125",
         "bytes": 18058
@@ -1144,8 +1149,8 @@
       },
       {
         "path": "tests/v250/test_workflow_release_contract.py",
-        "sha256": "ceb9cee98b6421a9dac6f177c34bb47fad1d0eb1836c97aa8b4d4687c48ae6e6",
-        "bytes": 21952
+        "sha256": "02cf7bc591c18c23bcb320a1f40b4517e3ecb7dd7a09f28507615a6d861eeec2",
+        "bytes": 22816
       },
       {
         "path": "tests/v250/v263_activation_fixture.py",
@@ -1530,6 +1535,7 @@
     "tests/v250/test_v263_candidate_projection.py",
     "tests/v250/test_v263_candidate_registry.py",
     "tests/v250/test_v263_ci_lifecycle.py",
+    "tests/v250/test_v263_ci_validator_dependencies.py",
     "tests/v250/test_v263_completion_authority.py",
     "tests/v250/test_v263_continuation_route_triplet.py",
     "tests/v250/test_v263_core_audit.py",
@@ -1585,7 +1591,7 @@
     "tests/v263/test_runtime_binding_contract.py",
     "tests/v263/test_v262_compatibility_policy.py"
   ],
-  "current_default_allowlist_digest": "900f8d1bef2de703d42d3d02311731c9b1ed1964b3c82693b4de5e64675bc578",
+  "current_default_allowlist_digest": "9e14ad4f938710ab33a0fd2ca814da725b55e75e13f17a5d2f5ae99e4acac620",
   "optional_replay_allowlist_digest": "cdd978bd498e7b8fe5966a60fce5c4dec1624f8231f7f4d410924f5cc3779f26",
   "legacy_classification": {
     "path_prefixes": [
