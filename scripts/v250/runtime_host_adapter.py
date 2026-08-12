@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""External host adapter for the V2.6 -> V2.62 runtime handoff.
+"""External host adapter for the V2.62 -> V2.63 runtime handoff.
 
 This module never creates or signs a controller handoff.  It accepts the
-V2.62 receipt externally issued by the installed V2.6 host, verifies the
-pinned owner key, launches a fresh V2.62 child with ``Popen``, sends the
+V2.63 receipt externally issued by the installed V2.62 host, verifies the
+pinned owner key, launches a fresh V2.63 child with ``Popen``, sends the
 launch contract only after the child PID exists, and verifies the child's
 acknowledgement.
 """
@@ -188,6 +188,8 @@ def launch_runtime_transition(
     source_commit: str,
     source_tree: str,
     project_size: str,
+    route_facts_receipt_path: Path | str,
+    derived_route_receipt_path: Path | str,
     route_receipt_path: Path | str,
     authorization_receipt_path: Path | str,
     adapter_identity: str,
@@ -211,6 +213,7 @@ def launch_runtime_transition(
         expected_authorization_id=authorization["authorization_id"],
         expected_authorization_receipt_sha256=authorization_digest,
         expected_authorization_intent_sha256=authorization["intent_sha256"],
+        root=root,
     )
     if not handoff_verdict.get("ok"):
         errors = handoff_verdict.get("errors") or ["E_V250_CONTROLLER_HANDOFF_REQUIRED"]
@@ -231,6 +234,10 @@ def launch_runtime_transition(
         source_tree,
         "--project-size",
         project_size,
+        "--route-facts-receipt",
+        str(route_facts_receipt_path),
+        "--derived-route-receipt",
+        str(derived_route_receipt_path),
         "--route-receipt",
         str(route_receipt_path),
         "--authorization-receipt",
@@ -291,6 +298,10 @@ def launch_runtime_transition(
         expected_adapter_identity=adapter_identity,
         expected_adapter_code_sha256=adapter_digest,
         expected_host_execution_id=host_execution_id,
+        route_facts_receipt_path_override=route_facts_receipt_path,
+        derived_route_receipt_path_override=derived_route_receipt_path,
+        route_receipt_path_override=route_receipt_path,
+        authorization_receipt_path_override=authorization_receipt_path,
         root=root,
     )
     if not verdict.get("ok") or (stage == "released" and not verdict.get("may_enter_s0")):
@@ -319,6 +330,8 @@ def parse_args() -> argparse.Namespace:
         choices=("discussion", "small", "medium", "large"),
         required=True,
     )
+    launch.add_argument("--route-facts-receipt", type=Path, required=True)
+    launch.add_argument("--derived-route-receipt", type=Path, required=True)
     launch.add_argument("--route-receipt", type=Path, required=True)
     launch.add_argument("--authorization-receipt", type=Path, required=True)
     launch.add_argument("--adapter-identity", required=True)
@@ -344,6 +357,8 @@ def main() -> int:
                 source_commit=args.source_commit,
                 source_tree=args.source_tree,
                 project_size=args.project_size,
+                route_facts_receipt_path=args.route_facts_receipt,
+                derived_route_receipt_path=args.derived_route_receipt,
                 route_receipt_path=args.route_receipt,
                 authorization_receipt_path=args.authorization_receipt,
                 adapter_identity=args.adapter_identity,

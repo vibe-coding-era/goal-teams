@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Thin CLI for the V2.62 current-generation test-gate validator."""
+"""Thin CLI for the V2.63 current-generation test-gate validator."""
 
 from __future__ import annotations
 

@@ -549,7 +549,7 @@ def parse_release_file_manifest(data: bytes, version: str) -> dict[str, dict[str
             if size < 0:
                 raise InstallError(f"E_RELEASE_FILES_SIZE:{number}")
         else:
-            if version in {"V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49", "V2.52", "V2.6", "V2.62"} or "  " not in line:
+            if version in {"V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49", "V2.52", "V2.6", "V2.62", "V2.63"} or "  " not in line:
                 raise InstallError(f"E_RELEASE_FILES_EXTENDED_REQUIRED:{number}")
             digest, raw_path = line.split("  ", 1)
             git_mode = "100644"
@@ -1185,7 +1185,10 @@ def load_v250_prompt_modules(root: Path) -> tuple[Any, Any]:
             "scripts.v250.route_closure",
             safe_root,
             "scripts/v250/route_closure.py",
-            ("compile_route_closure",),
+            (
+                "compile_route_closure",
+                "validate_declared_route_closure",
+            ),
         )
         imported_helpers = (
             "canonical_json_digest",
@@ -1216,7 +1219,7 @@ def compute_prompt_identity(root: Path) -> dict[str, Any]:
         except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
             raise InstallError("E_PROMPT_IDENTITY_ACTIVE") from exc
         active_generation_id = active.get("generation_id")
-        if active_generation_id in {"V2.6", "V2.62"}:
+        if active_generation_id in {"V2.6", "V2.62", "V2.63"}:
             generation_path = root / "scripts" / "v250" / "generation_runtime.py"
             closure_path = root / "scripts" / "v250" / "route_closure.py"
             if any(
@@ -1227,11 +1230,18 @@ def compute_prompt_identity(root: Path) -> dict[str, Any]:
             generation_module, closure_module = load_v250_prompt_modules(root)
             try:
                 generation = generation_module.load_generation(root)
-                closure = closure_module.compile_route_closure(
-                    root,
-                    generation,
-                    route_id="V250-ROUTE-STARTUP",
-                )
+                if active_generation_id == "V2.63":
+                    closure = closure_module.validate_declared_route_closure(
+                        root,
+                        generation,
+                        route_id="V250-ROUTE-STARTUP",
+                    )
+                else:
+                    closure = closure_module.compile_route_closure(
+                        root,
+                        generation,
+                        route_id="V250-ROUTE-STARTUP",
+                    )
                 if not isinstance(generation, dict) or not isinstance(closure, dict):
                     raise InstallError("E_PROMPT_IDENTITY_INVALID")
             except BaseException as exc:
@@ -1554,7 +1564,7 @@ def validate_skill(root: Path, phase: str) -> None:
         try:
             use_v250 = json.loads(
                 active_path.read_text(encoding="utf-8")
-            ).get("generation_id") in {"V2.6", "V2.62"}
+            ).get("generation_id") in {"V2.6", "V2.62", "V2.63"}
         except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
             raise InstallError(f"E_VALIDATION_ACTIVE:{phase}") from exc
     checker = (

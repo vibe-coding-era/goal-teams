@@ -69,3 +69,26 @@ def validate_output(value: Mapping[str, Any], *, loop_decision: str) -> dict[str
         "provider_prompt_assembly": "unavailable",
         "runtime_receipt_sha256": None,
     }
+
+
+def serialize_output(value: Mapping[str, Any], *, loop_decision: str) -> str:
+    """Render the only user-visible envelope in deterministic field order.
+
+    The serializer does not add a runtime identity fingerprint.  Runtime and
+    Provider assurance stay in machine receipts and the validation result.
+    """
+
+    validation = validate_output(value, loop_decision=loop_decision)
+    if not validation.get("ok"):
+        raise ValueError(str(validation.get("error_code") or "E_V250_OUTPUT_ENVELOPE"))
+    terminal = TERMINAL_BY_DECISION[loop_decision]
+    ordered = (*BASE_FIELDS, terminal)
+    lines: list[str] = []
+    for field in ordered:
+        rendered = value[field].strip().replace("\r\n", "\n").replace("\r", "\n")
+        rendered = rendered.replace("\n", "\n  ")
+        lines.append(f"{field}：{rendered}")
+    return "\n\n".join(lines)
+
+
+__all__ = ["BASE_FIELDS", "serialize_output", "validate_output"]

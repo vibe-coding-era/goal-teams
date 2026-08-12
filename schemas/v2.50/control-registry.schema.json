@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.50/control-registry.schema.json",
+  "$ref": "#/$defs/controlRegistry",
+  "$defs": {
+    "nonEmptyStrings": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "controlRegistry": {
+      "type": "object",
+      "required": ["schema_version", "vocabularies", "aliases", "assets"],
+      "properties": {
+        "schema_version": {"const": "goal-teams-control-registry-v2.63"},
+        "vocabularies": {
+          "type": "object",
+          "required": ["phase", "gate", "assurance", "receipt_strength", "completion_axis", "state_axis"],
+          "properties": {
+            "phase": {"$ref": "#/$defs/nonEmptyStrings"},
+            "gate": {"$ref": "#/$defs/nonEmptyStrings"},
+            "assurance": {"$ref": "#/$defs/nonEmptyStrings"},
+            "receipt_strength": {"$ref": "#/$defs/nonEmptyStrings"},
+            "completion_axis": {"$ref": "#/$defs/nonEmptyStrings"},
+            "state_axis": {"$ref": "#/$defs/nonEmptyStrings"}
+          },
+          "additionalProperties": false
+        },
+        "aliases": {
+          "type": "object",
+          "required": ["phase", "gate", "assurance", "receipt_strength", "completion_axis", "state_axis"],
+          "properties": {
+            "phase": {"$ref": "#/$defs/aliasMap"},
+            "gate": {"$ref": "#/$defs/aliasMap"},
+            "assurance": {"$ref": "#/$defs/aliasMap"},
+            "receipt_strength": {"$ref": "#/$defs/aliasMap"},
+            "completion_axis": {"$ref": "#/$defs/aliasMap"},
+            "state_axis": {"$ref": "#/$defs/aliasMap"}
+          },
+          "additionalProperties": false
+        },
+        "assets": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/asset"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "aliasMap": {
+      "type": "object",
+      "propertyNames": {"minLength": 1},
+      "additionalProperties": {"type": "string", "minLength": 1}
+    },
+    "asset": {
+      "type": "object",
+      "required": ["introduced_in", "path_pattern"],
+      "properties": {
+        "introduced_in": {"pattern": "^V[0-9]+\\.[0-9]+$"},
+        "path_pattern": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    }
+  }
+}

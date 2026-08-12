@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministically project the V2.62 common contract into subagent TOML files."""
+"""Deterministically project the V2.63 common contract into subagent TOML files."""
 
 from __future__ import annotations
 
@@ -56,7 +56,7 @@ def render(path: Path, common: str) -> str:
     return (
         f'name = {json.dumps(existing["name"], ensure_ascii=False)}\n'
         f'description = {json.dumps(existing["description"], ensure_ascii=False)}\n'
-        '# common_prefix_generation = "V2.62"\n'
+        '# common_prefix_generation = "V2.63"\n'
         f'# common_prefix_sha256 = "{common_digest}"\n'
         'developer_instructions = """\n'
         f"{instructions}\n"

@@ -15,12 +15,51 @@ from scripts.v250.runtime_transition import _canonical_sha256, object_sha256
 
 SOURCE = "1" * 40
 TREE = "2" * 40
+PUBLISHED_V262_IDENTITY = {
+    "tag": "v2.62",
+    "release_id": 367112913,
+    "state": "published",
+    "source_commit": "bd4eedfc0623e74b74efeaf157edf92ce2be1e74",
+    "source_tree": "58d11881eeda2f0a018fcc4273ce2f3982977f94",
+    "public_assets": [
+        "goal-teams-V2.62.tar.gz",
+        "SHA256SUMS",
+        "_release.json",
+        "_files.sha256",
+    ],
+}
+
+
+def _write_predecessor_contract(root: Path) -> None:
+    path = root / (
+        "references/current/generations/V2.63/contracts/"
+        "predecessor-release-identity.json"
+    )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    identity_digest = hashlib.sha256(
+        json.dumps(
+            PUBLISHED_V262_IDENTITY, sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")
+    ).hexdigest()
+    path.write_text(
+        json.dumps(
+            {
+                "schema_version": "goal-teams-predecessor-release-identity-v2.63",
+                "generation_id": "V2.63",
+                "predecessor_product_version": "V2.62",
+                "release_identity": PUBLISHED_V262_IDENTITY,
+                "release_identity_sha256": identity_digest,
+            },
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
 
 
 def _authorization(path: Path) -> dict:
     intent = {
         "repository": "vibe-coding-era/goal-teams",
-        "version": "V2.62",
+        "version": "V2.63",
         "action_allowlist": ["fresh_runtime_transition"],
     }
     value = {
@@ -30,7 +69,7 @@ def _authorization(path: Path) -> dict:
         "authorization_state": "granted_once_at_project_start",
         "authorization_lineage_preserved": True,
         "repository": {"name_with_owner": "vibe-coding-era/goal-teams"},
-        "version": "V2.62",
+        "version": "V2.63",
         "action_allowlist": ["fresh_runtime_transition"],
         "intent": intent,
         "intent_sha256": _canonical_sha256(intent),
@@ -47,17 +86,16 @@ def _handoff() -> dict:
         "authorization_id": "AUTH-V250-HOST",
         "authorization_receipt_sha256": "a" * 64,
         "authorization_intent_sha256": "b" * 64,
-        "previous_controller_product_version": "V2.6",
-        "previous_run_id": "V251-HOST-RUN",
+        "previous_controller_product_version": "V2.62",
+        "previous_run_id": "V262-HOST-RUN",
         "nonce": "nonce-v250-controller-handoff-000001",
         "issued_at": "2026-08-01T08:00:00+00:00",
         "expires_at": "2026-08-01T08:10:00+00:00",
-        "installed_v26_current_state": {
-            "state_sha256": "c" * 64,
-            "source_commit": "3" * 40,
-            "source_tree": "4" * 40,
-            "tag": "v2.6",
-            "release_id": 362135071,
+        "installed_v262_current_state": {
+            "source_commit": PUBLISHED_V262_IDENTITY["source_commit"],
+            "source_tree": PUBLISHED_V262_IDENTITY["source_tree"],
+            "tag": PUBLISHED_V262_IDENTITY["tag"],
+            "release_id": PUBLISHED_V262_IDENTITY["release_id"],
         },
         "github_signing_identity": {
             "account": runtime_host_adapter.PINNED_GITHUB_ACCOUNT,
@@ -67,8 +105,12 @@ def _handoff() -> dict:
             "ssh_signature_namespace": runtime_host_adapter.HANDOFF_SIGNATURE_NAMESPACE,
         },
     }
+    installed = payload["installed_v262_current_state"]
+    installed["state_sha256"] = _canonical_sha256(
+        installed, digest_field="state_sha256"
+    )
     return {
-        "schema_version": "goal-teams-v2.62-controller-handoff-receipt-v1",
+        "schema_version": "goal-teams-v2.63-controller-handoff-receipt-v1",
         "signed_payload": payload,
         "payload_sha256": _canonical_sha256(payload),
         "ssh_signature": "signed-externally",
@@ -88,7 +130,7 @@ class _FakeProcess:
         launch = self.stdin_payload["runtime_launch_receipt"]
         runtime_receipt = {"receipt_sha256": "d" * 64}
         ack = {
-            "schema_version": "goal-teams-v2.62-runtime-child-ack-v1",
+            "schema_version": "goal-teams-v2.63-runtime-child-ack-v1",
             "acknowledged": True,
             "child_pid": launch["expected_child_pid"],
             "parent_pid": launch["parent_pid"],
@@ -134,6 +176,10 @@ class TestRuntimeHostAdapter(unittest.TestCase):
             _authorization(authorization_path)
             route_path = root / "route.json"
             route_path.write_text("{}", encoding="utf-8")
+            route_facts_path = root / "route-facts.json"
+            route_facts_path.write_text("{}", encoding="utf-8")
+            derived_route_path = root / "route-derived.json"
+            derived_route_path.write_text("{}", encoding="utf-8")
             adapter_path = root / "runtime_host_adapter.py"
             adapter_path.write_text("# adapter\n", encoding="utf-8")
             process = _FakeProcess()
@@ -160,6 +206,8 @@ class TestRuntimeHostAdapter(unittest.TestCase):
                     source_commit=SOURCE,
                     source_tree=TREE,
                     project_size="large",
+                    route_facts_receipt_path=route_facts_path,
+                    derived_route_receipt_path=derived_route_path,
                     route_receipt_path=route_path,
                     authorization_receipt_path=authorization_path,
                     adapter_identity="github-actions-release-host-adapter",
@@ -175,6 +223,8 @@ class TestRuntimeHostAdapter(unittest.TestCase):
         argv, kwargs = popen_calls[0]
         self.assertIn("runtime_transition.py", " ".join(argv))
         self.assertIn("--child", argv)
+        self.assertIn("--route-facts-receipt", argv)
+        self.assertIn("--derived-route-receipt", argv)
         self.assertNotIn("--previous-run-id", argv)
         self.assertIs(subprocess.PIPE, kwargs["stdin"])
         self.assertIsNotNone(process.stdin_payload)
@@ -182,9 +232,10 @@ class TestRuntimeHostAdapter(unittest.TestCase):
         self.assertEqual(process.pid, launch["expected_child_pid"])
         self.assertEqual("987654321", launch["host_execution_id"])
 
-    def test_v26_self_handoff_is_rejected_before_popen(self) -> None:
+    def test_v263_self_handoff_is_rejected_before_popen(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
+            _write_predecessor_contract(root)
             authorization_path = root / "authorization.json"
             authorization = _authorization(authorization_path)
             handoff = _handoff()
@@ -193,7 +244,7 @@ class TestRuntimeHostAdapter(unittest.TestCase):
                 authorization_path.read_bytes()
             ).hexdigest()
             payload["authorization_intent_sha256"] = authorization["intent_sha256"]
-            payload["previous_controller_product_version"] = "V2.62"
+            payload["previous_controller_product_version"] = "V2.63"
             handoff["payload_sha256"] = _canonical_sha256(payload)
             popen_factory = mock.Mock(side_effect=AssertionError("unexpected Popen"))
 
@@ -208,6 +259,8 @@ class TestRuntimeHostAdapter(unittest.TestCase):
                         source_commit=SOURCE,
                         source_tree=TREE,
                         project_size="medium",
+                        route_facts_receipt_path=root / "unused-route-facts.json",
+                        derived_route_receipt_path=root / "unused-route-derived.json",
                         route_receipt_path=root / "unused-route.json",
                         authorization_receipt_path=authorization_path,
                         adapter_identity="github-actions-release-host-adapter",
@@ -227,6 +280,10 @@ class TestRuntimeHostAdapter(unittest.TestCase):
             _authorization(authorization_path)
             route_path = root / "route.json"
             route_path.write_text("{}", encoding="utf-8")
+            route_facts_path = root / "route-facts.json"
+            route_facts_path.write_text("{}", encoding="utf-8")
+            derived_route_path = root / "route-derived.json"
+            derived_route_path.write_text("{}", encoding="utf-8")
             adapter_path = root / "runtime_host_adapter.py"
             adapter_path.write_text("# adapter\n", encoding="utf-8")
             process = _FakeProcess(ack_drift="child_pid")
@@ -248,6 +305,8 @@ class TestRuntimeHostAdapter(unittest.TestCase):
                     source_commit=SOURCE,
                     source_tree=TREE,
                     project_size="large",
+                    route_facts_receipt_path=route_facts_path,
+                    derived_route_receipt_path=derived_route_path,
                     route_receipt_path=route_path,
                     authorization_receipt_path=authorization_path,
                     adapter_identity="github-actions-release-host-adapter",

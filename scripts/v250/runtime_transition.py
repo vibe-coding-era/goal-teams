@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Observe and validate V2.62 fresh-runtime transition receipts.
+"""Observe and validate V2.63 fresh-runtime transition receipts.
 
 The observer must be launched as a fresh process for the exact candidate or
 released identity.  It binds the approved Current prompt closure, trusted
@@ -29,12 +29,13 @@ COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 RUN_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$")
 NONCE_RE = re.compile(r"^[A-Za-z0-9_-]{32,128}$")
-PREVIOUS_CONTROLLER_PRODUCT_VERSION = "V2.6"
-LOADED_RUNTIME_PRODUCT_VERSION = "V2.62"
+PREVIOUS_CONTROLLER_PRODUCT_VERSION = "V2.62"
+LOADED_RUNTIME_PRODUCT_VERSION = "V2.63"
 REPOSITORY = "vibe-coding-era/goal-teams"
-HANDOFF_SCHEMA_VERSION = "goal-teams-v2.62-controller-handoff-receipt-v1"
-LAUNCH_SCHEMA_VERSION = "goal-teams-v2.62-runtime-launch-receipt-v1"
-CHILD_ACK_SCHEMA_VERSION = "goal-teams-v2.62-runtime-child-ack-v1"
+PREVIOUS_CONTROLLER_RELEASE_TAG = "v2.62"
+HANDOFF_SCHEMA_VERSION = "goal-teams-v2.63-controller-handoff-receipt-v1"
+LAUNCH_SCHEMA_VERSION = "goal-teams-v2.63-runtime-launch-receipt-v1"
+CHILD_ACK_SCHEMA_VERSION = "goal-teams-v2.63-runtime-child-ack-v1"
 PINNED_GITHUB_ACCOUNT = "vibe-coding-era"
 PINNED_GITHUB_KEY_ID = 152596014
 PINNED_GITHUB_PUBLIC_KEY = (
@@ -44,15 +45,19 @@ PINNED_GITHUB_PUBLIC_KEY = (
 PINNED_GITHUB_FINGERPRINT = (
     "SHA256:fEM2bYLJFOSvNA78soiWLvrSUaWxANVr1HIVl6AAirE"
 )
-HANDOFF_SIGNATURE_NAMESPACE = "goal-teams-v2.62-controller-handoff"
+HANDOFF_SIGNATURE_NAMESPACE = "goal-teams-v2.63-controller-handoff"
 ACTIVE_PATH = "references/current/ACTIVE.json"
-POLICY_PROFILE_PATH = "references/profiles/goal-teams-self-release-v2.62.md"
-RELEASE_PROFILE_PATH = "references/release-profiles/v2.62.json"
+PREDECESSOR_RELEASE_IDENTITY_PATH = (
+    "references/current/generations/V2.63/contracts/"
+    "predecessor-release-identity.json"
+)
+POLICY_PROFILE_PATH = "references/profiles/goal-teams-self-release-v2.63.md"
+RELEASE_PROFILE_PATH = "references/release-profiles/v2.63.json"
 RELEASE_ROUTE_MANIFEST_PATH = (
-    "references/current/generations/V2.62/contracts/release-route-manifest.json"
+    "references/current/generations/V2.63/contracts/release-route-manifest.json"
 )
 RELEASE_COMMAND_MANIFEST_PATH = (
-    "references/current/generations/V2.62/contracts/release-command-manifest.json"
+    "references/current/generations/V2.63/contracts/release-command-manifest.json"
 )
 RUNTIME_TRANSITION_SCHEMA_PATH = (
     "schemas/v2.50/runtime-transition-receipt.schema.json"
@@ -66,6 +71,7 @@ REQUIRED_STATIC_INPUT_PATHS = (
     RELEASE_PROFILE_PATH,
     RELEASE_ROUTE_MANIFEST_PATH,
     RELEASE_COMMAND_MANIFEST_PATH,
+    PREDECESSOR_RELEASE_IDENTITY_PATH,
     RUNTIME_TRANSITION_SCHEMA_PATH,
     "scripts/checks/check-v250.py",
     "scripts/v250/runtime_host_adapter.py",
@@ -76,7 +82,7 @@ ROUTE_BY_STAGE_AND_SIZE = {
     ("candidate", "small"): "V250-ROUTE-SMALL-DEVELOPMENT",
     ("candidate", "medium"): "V250-ROUTE-MEDIUM-DEVELOPMENT",
     ("candidate", "large"): "V250-ROUTE-LARGE-DEVELOPMENT",
-    # V2.62 has no separate Small Release prompt route.  Small Release uses
+    # V2.63 has no separate Small Release prompt route.  Small Release uses
     # the stricter Medium Release prompt closure rather than inventing one.
     ("released", "small"): "V250-ROUTE-MEDIUM-RELEASE",
     ("released", "medium"): "V250-ROUTE-MEDIUM-RELEASE",
@@ -242,13 +248,15 @@ def _load_route_context(
     root: Path,
     stage: str,
     project_size: str,
+    route_facts_receipt_path: Path | str,
+    derived_route_receipt_path: Path | str,
     route_receipt_path: Path | str,
     loaded_runtime_product_version: str,
 ) -> dict[str, Any]:
     active, active_raw = _read_repo_json(root, ACTIVE_PATH)
     if (
         active.get("schema_version") != "goal-teams-active-generation-v1"
-        or active.get("generation_id") != "V2.62"
+        or active.get("generation_id") != "V2.63"
         or active.get("state") != "active_current"
     ):
         raise ValueError("E_V250_RUNTIME_TRANSITION_ACTIVE")
@@ -262,7 +270,7 @@ def _load_route_context(
     if (
         activation.get("schema_version")
         != "goal-teams-activation-manifest-v2.50"
-        or activation.get("generation_id") != "V2.62"
+        or activation.get("generation_id") != "V2.63"
         or activation.get("generation_state") != "active"
         or activation.get("manifest_payload_sha256")
         != _canonical_sha256(activation, digest_field="manifest_payload_sha256")
@@ -275,7 +283,7 @@ def _load_route_context(
         != loaded_runtime_product_version
         or identity.get("route_contract_schema_version")
         != "goal-teams-project-route-v2.50"
-        or identity.get("target_policy_generation") != "V2.62"
+        or identity.get("target_policy_generation") != "V2.63"
         or "controller_product_version" in identity
     ):
         raise ValueError("E_V250_RUNTIME_TRANSITION_VERSION_AXIS")
@@ -288,25 +296,86 @@ def _load_route_context(
     if (
         prompt_manifest.get("schema_version")
         != "goal-teams-prompt-manifest-v2.50"
-        or prompt_manifest.get("generation_id") != "V2.62"
+        or prompt_manifest.get("generation_id") != "V2.63"
         or prompt_manifest.get("manifest_state") != "active_current"
     ):
         raise ValueError("E_V250_RUNTIME_TRANSITION_PROMPT_MANIFEST")
 
+    route_facts_path = _evidence_file(route_facts_receipt_path, root)
+    derived_route_path = _evidence_file(derived_route_receipt_path, root)
     route_path = _evidence_file(route_receipt_path, root)
-    route_receipt, route_raw = _read_json_file(route_path)
+    route_facts_raw = route_facts_path.read_bytes()
+    derived_route_raw = derived_route_path.read_bytes()
+    route_raw = route_path.read_bytes()
     expected_route_id = ROUTE_BY_STAGE_AND_SIZE.get((stage, project_size))
-    if expected_route_id is None or route_receipt.get("route_id") != expected_route_id:
+    if expected_route_id is None:
         raise ValueError("E_V250_RUNTIME_TRANSITION_ROUTE")
     routes = prompt_manifest.get("routes")
     route_plan = routes.get(expected_route_id) if isinstance(routes, dict) else None
     if not isinstance(route_plan, dict):
         raise ValueError("E_V250_RUNTIME_TRANSITION_ROUTE")
+    workflow_phase = route_plan.get("workflow_phase")
+    expected_workflow_phase = (
+        "development" if workflow_phase == "startup" else workflow_phase
+    )
+    if expected_workflow_phase not in {
+        "discussion",
+        "development",
+        "release_readiness",
+        "release",
+    }:
+        raise ValueError("E_V250_RUNTIME_TRANSITION_ROUTE")
+
+    rule_manifest_path = activation.get("rule_manifest_path")
+    if not isinstance(rule_manifest_path, str):
+        raise ValueError("E_V250_RUNTIME_TRANSITION_ROUTE")
+    rule_manifest, rule_manifest_raw = _read_repo_json(root, rule_manifest_path)
+    if member_digests.get(rule_manifest_path) != _sha256(rule_manifest_raw):
+        raise ValueError("E_V250_RUNTIME_TRANSITION_CURRENT_DIGEST")
+    legacy = activation.get("legacy_classification")
+    if not isinstance(legacy, dict):
+        raise ValueError("E_V250_RUNTIME_TRANSITION_ROUTE")
+    runtime_generation = {
+        "generation_id": "V2.63",
+        "activation_digest_verified": True,
+        "member_digests_verified": True,
+        "activation_manifest": activation,
+        "prompt_manifest": prompt_manifest,
+        "rule_manifest": rule_manifest,
+        "current_default_allowlist": activation.get("current_default_allowlist"),
+        "legacy_exact_paths": legacy.get("exact_paths"),
+        "legacy_path_prefixes": legacy.get("path_prefixes"),
+    }
+    try:
+        from scripts.v250.route_closure import (
+            RouteClosureError,
+            validate_released_runtime_route_triplet,
+        )
+
+        triplet = validate_released_runtime_route_triplet(
+            root,
+            runtime_generation,
+            project_route_facts_raw=route_facts_raw,
+            derived_route_receipt_raw=derived_route_raw,
+            route_closure_raw=route_raw,
+            expected_stage=stage,
+            expected_workflow_phase=expected_workflow_phase,
+            expected_project_size=project_size,
+            expected_route_id=expected_route_id,
+        )
+    except RouteClosureError as exc:
+        if exc.code in {
+            "E_V250_OWNER_DIGEST_DRIFT",
+            "E_V250_ROUTE_BYTE_DRIFT",
+        }:
+            raise ValueError("E_V250_RUNTIME_TRANSITION_CURRENT_DIGEST") from exc
+        raise ValueError(exc.code) from exc
+    route_receipt = triplet["route_closure"]
     expected_current_paths = route_plan.get("ordered_refs")
     route_loaded_paths = route_receipt.get("loaded_paths")
     route_digests = route_receipt.get("path_digests")
     if (
-        route_receipt.get("generation_id") != "V2.62"
+        route_receipt.get("generation_id") != "V2.63"
         or not isinstance(expected_current_paths, list)
         or not expected_current_paths
         or not all(isinstance(item, str) and item for item in expected_current_paths)
@@ -348,6 +417,13 @@ def _load_route_context(
         "activation_manifest_path": activation_path,
         "prompt_manifest_path": prompt_manifest_path,
         "route_id": expected_route_id,
+        "route_facts_receipt_path": _path_label(route_facts_path, root),
+        "route_facts_receipt_sha256": _sha256(route_facts_raw),
+        "project_route_facts_sha256": triplet["project_route_facts_sha256"],
+        "derived_route_receipt_path": _path_label(derived_route_path, root),
+        "derived_route_receipt_sha256": _sha256(derived_route_raw),
+        "derived_route_sha256": triplet["derived_route_sha256"],
+        "route_selection_mode": triplet["route_selection_mode"],
         "route_receipt_path": _path_label(route_path, root),
         "route_receipt_sha256": _sha256(route_raw),
         "route_closure_digest": route_receipt["closure_digest"],
@@ -375,7 +451,7 @@ def _load_authorization(
         or value.get("authorization_state")
         != "granted_once_at_project_start"
         or value.get("authorization_lineage_preserved") is not True
-        or value.get("version") != "V2.62"
+        or value.get("version") != "V2.63"
         or not isinstance(repository, dict)
         or repository.get("name_with_owner") != "vibe-coding-era/goal-teams"
         or not isinstance(actions, list)
@@ -414,7 +490,7 @@ def _validation_clock(value: dt.datetime | None) -> dt.datetime:
 def _verify_handoff_signature(
     signed_payload: Mapping[str, Any], signature: str
 ) -> bool:
-    """Verify the V2.6 host-issued V2.62 handoff with the pinned owner key."""
+    """Verify the V2.62 host-issued V2.63 handoff with the pinned owner key."""
 
     if not isinstance(signature, str) or not signature.strip():
         return False
@@ -451,6 +527,71 @@ def _verify_handoff_signature(
     return result.returncode == 0
 
 
+def _load_previous_controller_release_identity(root: Path) -> dict[str, Any]:
+    """Load the activation-bound published V2.62 identity fail closed."""
+
+    contract, _ = _read_repo_json(root.resolve(), PREDECESSOR_RELEASE_IDENTITY_PATH)
+    identity = contract.get("release_identity")
+    expected_fields = {
+        "tag",
+        "release_id",
+        "state",
+        "source_commit",
+        "source_tree",
+        "public_assets",
+    }
+    if (
+        set(contract)
+        != {
+            "schema_version",
+            "generation_id",
+            "predecessor_product_version",
+            "release_identity",
+            "release_identity_sha256",
+        }
+        or contract.get("schema_version")
+        != "goal-teams-predecessor-release-identity-v2.63"
+        or contract.get("generation_id") != LOADED_RUNTIME_PRODUCT_VERSION
+        or contract.get("predecessor_product_version")
+        != PREVIOUS_CONTROLLER_PRODUCT_VERSION
+        or not isinstance(identity, dict)
+        or set(identity) != expected_fields
+        or identity.get("tag") != PREVIOUS_CONTROLLER_RELEASE_TAG
+        or identity.get("state") != "published"
+        or not isinstance(identity.get("release_id"), int)
+        or isinstance(identity.get("release_id"), bool)
+        or identity.get("release_id", 0) < 1
+        or COMMIT_RE.fullmatch(str(identity.get("source_commit", ""))) is None
+        or COMMIT_RE.fullmatch(str(identity.get("source_tree", ""))) is None
+        or not isinstance(identity.get("public_assets"), list)
+        or not identity.get("public_assets")
+        or len(identity["public_assets"]) != len(set(identity["public_assets"]))
+        or any(
+            not isinstance(asset, str) or not asset
+            for asset in identity["public_assets"]
+        )
+        or contract.get("release_identity_sha256")
+        != hashlib.sha256(_canonical_bytes(identity)).hexdigest()
+    ):
+        raise ValueError("E_V250_CONTROLLER_HANDOFF_INSTALLED_STATE")
+    return identity
+
+
+def _expected_installed_controller_state(
+    identity: Mapping[str, Any],
+) -> dict[str, Any]:
+    state: dict[str, Any] = {
+        "source_commit": identity["source_commit"],
+        "source_tree": identity["source_tree"],
+        "tag": identity["tag"],
+        "release_id": identity["release_id"],
+    }
+    state["state_sha256"] = _canonical_sha256(
+        state, digest_field="state_sha256"
+    )
+    return state
+
+
 def validate_controller_handoff(
     receipt: object,
     *,
@@ -461,8 +602,9 @@ def validate_controller_handoff(
     expected_authorization_receipt_sha256: str | None = None,
     expected_authorization_intent_sha256: str | None = None,
     validation_time: dt.datetime | None = None,
+    root: Path = ROOT,
 ) -> dict[str, Any]:
-    """Validate the installed V2.6 host-issued V2.62 handoff."""
+    """Validate the installed V2.62 host-issued V2.63 handoff."""
 
     errors: list[str] = []
     if not isinstance(receipt, dict):
@@ -501,7 +643,7 @@ def validate_controller_handoff(
         "nonce",
         "issued_at",
         "expires_at",
-        "installed_v26_current_state",
+        "installed_v262_current_state",
         "github_signing_identity",
     }
     _append_if(
@@ -579,7 +721,7 @@ def validate_controller_handoff(
         "E_V250_CONTROLLER_HANDOFF_AUTHORIZATION_DRIFT",
     )
 
-    installed = payload.get("installed_v26_current_state")
+    installed = payload.get("installed_v262_current_state")
     expected_installed_fields = {
         "state_sha256",
         "source_commit",
@@ -587,17 +729,16 @@ def validate_controller_handoff(
         "tag",
         "release_id",
     }
+    try:
+        release_identity = _load_previous_controller_release_identity(root)
+        expected_installed = _expected_installed_controller_state(release_identity)
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError, ValueError):
+        expected_installed = None
     _append_if(
         errors,
         not isinstance(installed, dict)
         or set(installed) != expected_installed_fields
-        or SHA256_RE.fullmatch(str(installed.get("state_sha256", ""))) is None
-        or COMMIT_RE.fullmatch(str(installed.get("source_commit", ""))) is None
-        or COMMIT_RE.fullmatch(str(installed.get("source_tree", ""))) is None
-        or installed.get("tag") != "v2.6"
-        or not isinstance(installed.get("release_id"), int)
-        or isinstance(installed.get("release_id"), bool)
-        or installed.get("release_id", 0) < 1,
+        or installed != expected_installed,
         "E_V250_CONTROLLER_HANDOFF_INSTALLED_STATE",
     )
 
@@ -772,6 +913,8 @@ def observe_transition(
     source_commit: str,
     source_tree: str,
     project_size: str,
+    route_facts_receipt_path: Path | str,
+    derived_route_receipt_path: Path | str,
     route_receipt_path: Path | str,
     authorization_receipt_path: Path | str,
     adapter_identity: str,
@@ -813,6 +956,7 @@ def observe_transition(
         expected_authorization_receipt_sha256=authorization_digest,
         expected_authorization_intent_sha256=authorization["intent_sha256"],
         validation_time=validation_time,
+        root=root,
     )
     if not handoff_verdict["ok"]:
         raise ValueError(handoff_verdict["errors"][0])
@@ -834,6 +978,8 @@ def observe_transition(
         root=root,
         stage=stage,
         project_size=project_size,
+        route_facts_receipt_path=route_facts_receipt_path,
+        derived_route_receipt_path=derived_route_receipt_path,
         route_receipt_path=route_receipt_path,
         loaded_runtime_product_version=LOADED_RUNTIME_PRODUCT_VERSION,
     )
@@ -842,15 +988,22 @@ def observe_transition(
     )
     input_digests = route["input_digests"]
     receipt: dict[str, Any] = {
-        "schema_version": "goal-teams-v2.62-runtime-transition-receipt-v1",
+        "schema_version": "goal-teams-v2.63-runtime-transition-receipt-v1",
         "transition_id": transition_id or f"V250-TRANSITION-{uuid.uuid4().hex}",
         "stage": stage,
         "source_commit": source_commit,
         "source_tree": source_tree,
-        "generation_id": "V2.62",
+        "generation_id": "V2.63",
         "loaded_runtime_product_version": LOADED_RUNTIME_PRODUCT_VERSION,
         "project_size": project_size,
         "route_id": route["route_id"],
+        "route_facts_receipt_path": route["route_facts_receipt_path"],
+        "route_facts_receipt_sha256": route["route_facts_receipt_sha256"],
+        "project_route_facts_sha256": route["project_route_facts_sha256"],
+        "derived_route_receipt_path": route["derived_route_receipt_path"],
+        "derived_route_receipt_sha256": route["derived_route_receipt_sha256"],
+        "derived_route_sha256": route["derived_route_sha256"],
+        "route_selection_mode": route["route_selection_mode"],
         "route_receipt_path": route["route_receipt_path"],
         "route_receipt_sha256": route["route_receipt_sha256"],
         "route_closure_digest": route["route_closure_digest"],
@@ -921,6 +1074,8 @@ def validate_transition(
     expected_adapter_identity: str | None = None,
     expected_adapter_code_sha256: str | None = None,
     expected_host_execution_id: str | None = None,
+    route_facts_receipt_path_override: Path | str | None = None,
+    derived_route_receipt_path_override: Path | str | None = None,
     route_receipt_path_override: Path | str | None = None,
     authorization_receipt_path_override: Path | str | None = None,
     validation_time: dt.datetime | None = None,
@@ -948,7 +1103,7 @@ def validate_transition(
     _append_if(
         errors,
         value.get("schema_version")
-        != "goal-teams-v2.62-runtime-transition-receipt-v1",
+        != "goal-teams-v2.63-runtime-transition-receipt-v1",
         "E_V250_RUNTIME_TRANSITION_SCHEMA",
     )
     _append_if(
@@ -986,7 +1141,7 @@ def validate_transition(
     )
     _append_if(
         errors,
-        value.get("generation_id") != "V2.62"
+        value.get("generation_id") != "V2.63"
         or value.get("loaded_runtime_product_version")
         != LOADED_RUNTIME_PRODUCT_VERSION,
         "E_V250_RUNTIME_TRANSITION_VERSION_AXIS",
@@ -1093,25 +1248,51 @@ def validate_transition(
     root = root.resolve()
     observed_context: dict[str, Any] | None = None
     route_evidence_current = False
+    route_facts_receipt_input = (
+        route_facts_receipt_path_override
+        if route_facts_receipt_path_override is not None
+        else str(value.get("route_facts_receipt_path", ""))
+    )
+    derived_route_receipt_input = (
+        derived_route_receipt_path_override
+        if derived_route_receipt_path_override is not None
+        else str(value.get("derived_route_receipt_path", ""))
+    )
     route_receipt_input = (
         route_receipt_path_override
         if route_receipt_path_override is not None
         else str(value.get("route_receipt_path", ""))
     )
-    try:
-        route_evidence = _evidence_file(route_receipt_input, root)
-        route_evidence_current = value.get("route_receipt_sha256") == _sha256(
-            route_evidence.read_bytes()
-        )
-        if not route_evidence_current:
-            errors.append("E_V250_RUNTIME_TRANSITION_ROUTE_RECEIPT_DIGEST")
-    except (OSError, ValueError):
+    evidence_inputs = (
+        (
+            route_facts_receipt_input,
+            "route_facts_receipt_sha256",
+        ),
+        (
+            derived_route_receipt_input,
+            "derived_route_receipt_sha256",
+        ),
+        (route_receipt_input, "route_receipt_sha256"),
+    )
+    evidence_checks: list[bool] = []
+    for evidence_input, digest_field in evidence_inputs:
+        try:
+            evidence_path = _evidence_file(evidence_input, root)
+            evidence_checks.append(
+                value.get(digest_field) == _sha256(evidence_path.read_bytes())
+            )
+        except (OSError, ValueError):
+            evidence_checks.append(False)
+    route_evidence_current = all(evidence_checks)
+    if not route_evidence_current:
         errors.append("E_V250_RUNTIME_TRANSITION_ROUTE_RECEIPT_DIGEST")
     try:
         observed_context = _load_route_context(
             root=root,
             stage=str(value.get("stage", "")),
             project_size=str(project_size or ""),
+            route_facts_receipt_path=route_facts_receipt_input,
+            derived_route_receipt_path=derived_route_receipt_input,
             route_receipt_path=route_receipt_input,
             loaded_runtime_product_version=LOADED_RUNTIME_PRODUCT_VERSION,
         )
@@ -1129,6 +1310,16 @@ def validate_transition(
         _append_if(
             errors,
             value.get("route_id") != observed_context["route_id"]
+            or value.get("route_facts_receipt_sha256")
+            != observed_context["route_facts_receipt_sha256"]
+            or value.get("project_route_facts_sha256")
+            != observed_context["project_route_facts_sha256"]
+            or value.get("derived_route_receipt_sha256")
+            != observed_context["derived_route_receipt_sha256"]
+            or value.get("derived_route_sha256")
+            != observed_context["derived_route_sha256"]
+            or value.get("route_selection_mode")
+            != observed_context["route_selection_mode"]
             or value.get("route_receipt_sha256")
             != observed_context["route_receipt_sha256"]
             or value.get("route_closure_digest")
@@ -1233,6 +1424,7 @@ def validate_transition(
                 authorization.get("intent_sha256") if authorization else None
             ),
             validation_time=validation_time,
+            root=root,
         )
         errors.extend(handoff_verdict["errors"])
 
@@ -1303,6 +1495,8 @@ def parse_args() -> argparse.Namespace:
         choices=("discussion", "small", "medium", "large"),
         required=True,
     )
+    parser.add_argument("--route-facts-receipt", type=Path, required=True)
+    parser.add_argument("--derived-route-receipt", type=Path, required=True)
     parser.add_argument("--route-receipt", type=Path, required=True)
     parser.add_argument("--authorization-receipt", type=Path, required=True)
     parser.add_argument("--adapter-identity", required=True)
@@ -1351,6 +1545,8 @@ def main() -> int:
             source_commit=args.source_commit,
             source_tree=args.source_tree,
             project_size=args.project_size,
+            route_facts_receipt_path=args.route_facts_receipt,
+            derived_route_receipt_path=args.derived_route_receipt,
             route_receipt_path=args.route_receipt,
             authorization_receipt_path=args.authorization_receipt,
             adapter_identity=args.adapter_identity,

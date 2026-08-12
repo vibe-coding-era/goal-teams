@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any, Mapping
 
 
 PROJECT_SIZES = {"small", "medium", "large"}
 ENVIRONMENT_CHECKER = "goal_release_engineer"
 ENVIRONMENT_MODE = "environment_preflight"
+SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
 class LoopBootstrapError(ValueError):
@@ -75,6 +77,15 @@ def plan_loop_round(facts: Mapping[str, Any]) -> dict[str, Any]:
             "E_V26_LOOP_FACTS", "project_size must be small, medium, or large"
         )
     product_version = _required_text(facts.get("product_version"), "product_version")
+    task_exact_set_digest: str | None = None
+    if product_version == "V2.63":
+        candidate_digest = facts.get("task_exact_set_digest")
+        if not isinstance(candidate_digest, str) or SHA256_RE.fullmatch(candidate_digest) is None:
+            raise LoopBootstrapError(
+                "E_V263_TASK_EXACT_SET_REQUIRED",
+                "V2.63 must freeze TaskExactSet before assignment and preflight",
+            )
+        task_exact_set_digest = candidate_digest
     source_commit = _required_text(facts.get("source_commit"), "source_commit")
     toolchain_digest = _required_text(
         facts.get("toolchain_digest"), "toolchain_digest"
@@ -126,11 +137,19 @@ def plan_loop_round(facts: Mapping[str, Any]) -> dict[str, Any]:
             reuse_rejected_reasons.extend(mismatches)
         reuse = not reuse_rejected_reasons
 
-    return {
+    required_order = ["tasklist", "task_assignment", "environment_preflight"]
+    if product_version == "V2.63":
+        required_order = [
+            "tasklist",
+            "task_exact_set_freeze",
+            "task_assignment",
+            "environment_preflight",
+        ]
+    result = {
         "loop_id": _required_text(facts.get("loop_id"), "loop_id"),
         "round": 1,
         "action": "bootstrap",
-        "required_order": ["tasklist", "task_assignment", "environment_preflight"],
+        "required_order": required_order,
         "tasklist": "required",
         "task_assignment": "required",
         "environment_preflight": "required",
@@ -146,16 +165,27 @@ def plan_loop_round(facts: Mapping[str, Any]) -> dict[str, Any]:
         "development_branch": branch,
         "development_worktree": worktree,
     }
+    if task_exact_set_digest is not None:
+        result["task_exact_set_digest"] = task_exact_set_digest
+    return result
 
 
 def validate_loop_bootstrap_receipt(receipt: Mapping[str, Any]) -> dict[str, Any]:
     """Validate first-round ordering, actor independence, reuse, and branch identity."""
 
     events = receipt.get("bootstrap_events")
+    v263 = receipt.get("product_version") == "V2.63"
     expected_steps = ["tasklist", "task_assignment", "environment_preflight"]
+    if v263:
+        expected_steps = [
+            "tasklist",
+            "task_exact_set_freeze",
+            "task_assignment",
+            "environment_preflight",
+        ]
     if not isinstance(events, list) or len(events) < len(expected_steps):
         raise LoopBootstrapError(
-            "E_V26_LOOP_BOOTSTRAP_ORDER",
+            "E_V263_TASK_EXACT_SET_REQUIRED" if v263 else "E_V26_LOOP_BOOTSTRAP_ORDER",
             "bootstrap_events must prove TaskList, assignment, then environment preflight",
         )
     steps: list[object] = []
@@ -207,6 +237,15 @@ def validate_loop_bootstrap_receipt(receipt: Mapping[str, Any]) -> dict[str, Any
     if project_size not in PROJECT_SIZES:
         raise LoopBootstrapError("E_V26_LOOP_FACTS", "invalid project_size")
     product_version = _required_text(receipt.get("product_version"), "product_version")
+    task_exact_set_digest: str | None = None
+    if product_version == "V2.63":
+        candidate_digest = receipt.get("task_exact_set_digest")
+        if not isinstance(candidate_digest, str) or SHA256_RE.fullmatch(candidate_digest) is None:
+            raise LoopBootstrapError(
+                "E_V263_TASK_EXACT_SET_REQUIRED",
+                "V2.63 bootstrap receipt must bind the frozen TaskExactSet",
+            )
+        task_exact_set_digest = candidate_digest
     namespace = receipt.get("branch_namespace", "codex")
     if not isinstance(namespace, str):
         raise LoopBootstrapError("E_V26_LOOP_FACTS", "branch_namespace must be text")
@@ -263,4 +302,7 @@ def validate_loop_bootstrap_receipt(receipt: Mapping[str, Any]) -> dict[str, Any
                 "reused environment identity must exactly match the receipt baseline",
             )
 
-    return {"ok": True, "environment_action": action}
+    result = {"ok": True, "passed": True, "environment_action": action}
+    if task_exact_set_digest is not None:
+        result["task_exact_set_digest"] = task_exact_set_digest
+    return result

@@ -10,8 +10,11 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
-from typing import Any, Iterable
+from types import MappingProxyType
+from typing import Any, Iterable, Mapping
 
 
 ACTIVE_PATH = "references/current/ACTIVE.json"
@@ -113,6 +116,34 @@ V250_DYNAMIC_CONTROL_GLOBS = (
     "subagents/goal-*.toml",
     "tests/v250/test_*.py",
 )
+
+
+def _generation_required_control_paths(generation_id: str) -> set[str]:
+    required = set(V250_REQUIRED_CONTROL_PATHS)
+    if generation_id != "V2.63":
+        return required
+    required = {
+        path.replace("V2.62", "V2.63")
+        .replace("v2.62", "v2.63")
+        .replace("v262", "v263")
+        for path in required
+    }
+    # ``release/current/manifest.json`` is a mutable publication projection.
+    # V2.63 binds immutable release command/profile controls instead; otherwise
+    # an S4 projection update would invalidate an already-active generation.
+    required.discard("release/current/manifest.json")
+    return required
+
+
+def _generation_dynamic_control_globs(generation_id: str) -> tuple[str, ...]:
+    if generation_id != "V2.63":
+        return V250_DYNAMIC_CONTROL_GLOBS
+    return tuple(
+        pattern.replace("V2.62", "V2.63")
+        .replace("v2.62", "v2.63")
+        .replace("v262", "v263")
+        for pattern in V250_DYNAMIC_CONTROL_GLOBS
+    )
 
 
 class GenerationLoadError(RuntimeError):
@@ -269,12 +300,19 @@ def _validate_baseline_snapshot(manifest: dict[str, Any], member_paths: list[str
 def _load_v250_control_schemas(
     repo_root: Path,
     member_digests: dict[str, str],
+    generation_id: str,
 ) -> dict[str, dict[str, Any]]:
-    required = set(V250_REQUIRED_CONTROL_PATHS)
-    for pattern in V250_DYNAMIC_CONTROL_GLOBS:
+    from scripts.v250.control_registry import is_control_asset_applicable
+
+    required = _generation_required_control_paths(generation_id)
+    for pattern in _generation_dynamic_control_globs(generation_id):
         for path in repo_root.glob(pattern):
             if path.is_file() and not path.is_symlink():
-                required.add(path.relative_to(repo_root).as_posix())
+                relative_path = path.relative_to(repo_root).as_posix()
+                if is_control_asset_applicable(
+                    relative_path, generation_id=generation_id
+                ):
+                    required.add(relative_path)
     missing = sorted(required - set(member_digests))
     if missing:
         raise GenerationLoadError(
@@ -287,6 +325,9 @@ def _load_v250_control_schemas(
         path.relative_to(repo_root).as_posix()
         for path in repo_root.glob("schemas/v2.50/*.json")
         if path.is_file() and not path.is_symlink()
+        and is_control_asset_applicable(
+            path.relative_to(repo_root).as_posix(), generation_id=generation_id
+        )
     )
     for relative_path in sorted(schema_paths):
         payload, _raw = _read_json_file(repo_root, relative_path)
@@ -330,14 +371,14 @@ def _validate_v250_projection_digests(
         raise GenerationLoadError("E_V250_SCHEMA_SET_DRIFT", "schema and validator digest differs")
 
     current_entries = root_sets.get("current", [])
+    generation_id = manifest.get("generation_id")
+    contract_prefix = f"references/current/generations/{generation_id}/contracts/"
     contract_entries = sorted(
         (
             entry
             for entry in current_entries
             if isinstance(entry, dict)
-            and str(entry.get("path", "")).startswith(
-                "references/current/generations/V2.62/contracts/"
-            )
+            and str(entry.get("path", "")).startswith(contract_prefix)
             and str(entry.get("path", "")).endswith(".json")
         ),
         key=lambda item: item["path"],
@@ -393,29 +434,79 @@ def _load_v250_projection(
     return rule_manifest, prompt_manifest, rule_digest, prompt_digest
 
 
-def load_generation(repo_root: Path | str, generation_id: str | None = None) -> dict[str, Any]:
+def _load_generation_impl(
+    repo_root: Path | str,
+    generation_id: str | None = None,
+    *,
+    candidate_manifest_path: str | None = None,
+    candidate_expected_digest: str | None = None,
+    explicit_selection_state: str | None = None,
+) -> dict[str, Any]:
     """Load a generation after verifying pointer/payload and all members."""
 
     root = Path(repo_root).resolve()
-    active, _active_raw = _read_json_file(root, ACTIVE_PATH)
-    active_generation = active.get("generation_id")
-    active_manifest_path = active.get("activation_manifest")
-    active_manifest_digest = active.get("activation_manifest_sha256")
-
-    if generation_id is None:
-        requested = active_generation
-        manifest_path = active_manifest_path
-        pointer_bound = True
-    else:
+    candidate_bound = (
+        candidate_manifest_path is not None or candidate_expected_digest is not None
+    )
+    if candidate_bound:
+        if candidate_manifest_path is None or candidate_expected_digest is None:
+            raise GenerationLoadError(
+                "E_V250_CANDIDATE_BINDING",
+                "candidate manifest path and expected digest are both required",
+            )
+        if not isinstance(generation_id, str) or not GENERATION_ID_RE.fullmatch(
+            generation_id
+        ):
+            raise GenerationLoadError(
+                "E_V250_GENERATION_ID", f"invalid generation id: {generation_id!r}"
+            )
+        active_generation = None
+        active_manifest_path = None
+        active_manifest_digest = None
+        active_raw: bytes | None = None
         requested = generation_id
-        if not isinstance(requested, str) or not GENERATION_ID_RE.fullmatch(requested):
-            raise GenerationLoadError("E_V250_GENERATION_ID", f"invalid generation id: {requested!r}")
-        if requested == active_generation:
+        manifest_path = candidate_manifest_path
+        pointer_bound = False
+        if explicit_selection_state not in {"inactive_candidate", "active"}:
+            raise GenerationLoadError(
+                "E_V250_EXPLICIT_SELECTION_STATE",
+                "explicit selection must bind inactive_candidate or active",
+            )
+        selection_mode = (
+            "candidate_expected_digest"
+            if explicit_selection_state == "inactive_candidate"
+            else "prepared_active_expected_digest"
+        )
+    else:
+        active, active_raw = _read_json_file(root, ACTIVE_PATH)
+        active_generation = active.get("generation_id")
+        active_manifest_path = active.get("activation_manifest")
+        active_manifest_digest = active.get("activation_manifest_sha256")
+
+        if generation_id is None:
+            requested = active_generation
             manifest_path = active_manifest_path
             pointer_bound = True
+            selection_mode = "active_pointer"
         else:
-            manifest_path = f"references/current/generations/{requested}/activation-manifest.json"
-            pointer_bound = False
+            requested = generation_id
+            if not isinstance(requested, str) or not GENERATION_ID_RE.fullmatch(
+                requested
+            ):
+                raise GenerationLoadError(
+                    "E_V250_GENERATION_ID",
+                    f"invalid generation id: {requested!r}",
+                )
+            if requested == active_generation:
+                manifest_path = active_manifest_path
+                pointer_bound = True
+                selection_mode = "active_pointer"
+            else:
+                manifest_path = (
+                    f"references/current/generations/{requested}/activation-manifest.json"
+                )
+                pointer_bound = False
+                selection_mode = "active_bound_rollback"
 
     if not isinstance(requested, str) or not GENERATION_ID_RE.fullmatch(requested):
         raise GenerationLoadError("E_V250_ACTIVE_INVALID", "ACTIVE.json has an invalid generation_id")
@@ -423,7 +514,7 @@ def load_generation(repo_root: Path | str, generation_id: str | None = None) -> 
         raise GenerationLoadError("E_V250_ACTIVE_INVALID", "activation manifest path is missing")
 
     rollback_bound_digest: str | None = None
-    if not pointer_bound:
+    if not pointer_bound and not candidate_bound:
         if not isinstance(active_manifest_path, str):
             raise GenerationLoadError("E_V250_ACTIVE_INVALID", "active manifest path is missing")
         active_manifest, active_manifest_raw = _read_json_file(root, active_manifest_path)
@@ -448,11 +539,43 @@ def load_generation(repo_root: Path | str, generation_id: str | None = None) -> 
     if manifest.get("generation_id") != requested:
         raise GenerationLoadError("E_V250_ACTIVATION_GENERATION_MISMATCH", "activation generation differs from selection")
 
+    observed_generation_state = manifest.get("generation_state")
+    if pointer_bound and observed_generation_state != "active":
+        raise GenerationLoadError(
+            "E_V250_ACTIVE_STATE",
+            "ACTIVE may point only to an activation manifest with generation_state=active",
+        )
+    if candidate_bound and observed_generation_state != explicit_selection_state:
+        code = (
+            "E_V250_CANDIDATE_STATE"
+            if explicit_selection_state == "inactive_candidate"
+            else "E_V250_PREPARED_STATE"
+        )
+        raise GenerationLoadError(
+            code,
+            f"explicit selection requires generation_state={explicit_selection_state}",
+        )
+    if not pointer_bound and not candidate_bound and observed_generation_state != "active":
+        raise GenerationLoadError(
+            "E_V250_ROLLBACK_STATE",
+            "ACTIVE-bound rollback target must have generation_state=active",
+        )
+
     if pointer_bound:
         expected = _validate_digest(active_manifest_digest, "ACTIVE activation_manifest_sha256")
         if manifest_digest != expected:
             raise GenerationLoadError(
                 "E_V250_ACTIVE_DIGEST_MISMATCH",
+                f"expected {expected}, observed {manifest_digest}",
+            )
+        activation_digest_verified = True
+    elif candidate_bound:
+        expected = _validate_digest(
+            candidate_expected_digest, "expected_activation_sha256"
+        )
+        if manifest_digest != expected:
+            raise GenerationLoadError(
+                "E_V250_CANDIDATE_DIGEST_MISMATCH",
                 f"expected {expected}, observed {manifest_digest}",
             )
         activation_digest_verified = True
@@ -481,7 +604,19 @@ def load_generation(repo_root: Path | str, generation_id: str | None = None) -> 
         rule_manifest, prompt_manifest, rule_digest, prompt_digest = _load_v250_projection(
             root, manifest, member_digests
         )
-        control_schemas = _load_v250_control_schemas(root, member_digests)
+        expected_prompt_state = (
+            "active_current"
+            if manifest.get("generation_state") == "active"
+            else "inactive_candidate"
+        )
+        if prompt_manifest.get("manifest_state") != expected_prompt_state:
+            raise GenerationLoadError(
+                "E_V250_PROMPT_STATE",
+                "prompt manifest state differs from activation generation state",
+            )
+        control_schemas = _load_v250_control_schemas(
+            root, member_digests, requested
+        )
         _validate_v250_projection_digests(manifest, rule_manifest)
         current_allowlist = manifest.get("current_default_allowlist")
         if not isinstance(current_allowlist, list) or not all(isinstance(path, str) for path in current_allowlist):
@@ -537,6 +672,8 @@ def load_generation(repo_root: Path | str, generation_id: str | None = None) -> 
         "generation_id": requested,
         "active_generation_id": active_generation,
         "selected_via_active_pointer": pointer_bound,
+        "selection_mode": selection_mode,
+        "active_sha256": sha256_bytes(active_raw) if active_raw is not None else None,
         "activation_manifest_path": manifest_path,
         "activation_manifest_sha256": manifest_digest,
         "activation_digest_verified": activation_digest_verified,
@@ -556,17 +693,262 @@ def load_generation(repo_root: Path | str, generation_id: str | None = None) -> 
     }
 
 
+def load_generation(
+    repo_root: Path | str, generation_id: str | None = None
+) -> dict[str, Any]:
+    """Load only ACTIVE or its explicitly ACTIVE-bound rollback target."""
+
+    return _load_generation_impl(repo_root, generation_id)
+
+
+def load_candidate_generation(
+    repo_root: Path | str,
+    *,
+    generation_id: str,
+    activation_manifest_path: str,
+    expected_activation_sha256: str,
+) -> dict[str, Any]:
+    """Load a non-Current candidate bound by a caller-supplied trusted digest.
+
+    Candidate loading never reads ACTIVE and therefore cannot be reached by
+    passing a candidate generation id to :func:`load_generation`.
+    """
+
+    return _load_generation_impl(
+        repo_root,
+        generation_id,
+        candidate_manifest_path=activation_manifest_path,
+        candidate_expected_digest=expected_activation_sha256,
+        explicit_selection_state="inactive_candidate",
+    )
+
+
+def load_prepared_generation(
+    repo_root: Path | str,
+    *,
+    generation_id: str,
+    activation_manifest_path: str,
+    expected_activation_sha256: str,
+) -> dict[str, Any]:
+    """Load a prepared active manifest without consulting ``ACTIVE.json``.
+
+    This is the only pre-cutover validation path for a manifest whose
+    ``generation_state`` is already ``active``.  The caller must supply the
+    trusted raw-file digest that the subsequent ACTIVE pointer CAS will bind.
+    """
+
+    return _load_generation_impl(
+        repo_root,
+        generation_id,
+        candidate_manifest_path=activation_manifest_path,
+        candidate_expected_digest=expected_activation_sha256,
+        explicit_selection_state="active",
+    )
+
+
+def _deep_freeze(value: Any) -> Any:
+    if isinstance(value, dict):
+        return MappingProxyType({key: _deep_freeze(item) for key, item in value.items()})
+    if isinstance(value, list):
+        return tuple(_deep_freeze(item) for item in value)
+    if isinstance(value, set):
+        return frozenset(_deep_freeze(item) for item in value)
+    return value
+
+
+@dataclass(frozen=True)
+class GenerationSnapshot:
+    """Immutable session identity derived from one ACTIVE initialization."""
+
+    session_id: str
+    selected_root_realpath: str
+    source_commit: str | None
+    source_tree: str | None
+    active_sha256: str
+    activation_manifest_sha256: str
+    rule_manifest_sha256: str
+    prompt_manifest_sha256: str
+    generation_id: str
+    member_digests: tuple[tuple[str, str], ...]
+    captured_at: str
+    snapshot_sha256: str
+
+
+_GENERATION_RUNTIME_SESSION_ISSUER = object()
+
+
+class GenerationRuntimeSession:
+    """Read-once ACTIVE session with explicit invalidation events."""
+
+    def __init__(
+        self,
+        *,
+        snapshot: GenerationSnapshot,
+        generation: Mapping[str, Any],
+        _issuer: object,
+    ) -> None:
+        if _issuer is not _GENERATION_RUNTIME_SESSION_ISSUER:
+            raise GenerationLoadError(
+                "E_V250_SESSION_PROVENANCE",
+                "runtime sessions can only be created by the generation loader",
+            )
+        self._snapshot = snapshot
+        self._generation = generation
+        self._issuer = _issuer
+        self._invalid_reason: str | None = None
+
+    @classmethod
+    def initialize(
+        cls,
+        repo_root: Path | str,
+        *,
+        session_id: str,
+        source_commit: str | None = None,
+        source_tree: str | None = None,
+        captured_at: str | None = None,
+    ) -> "GenerationRuntimeSession":
+        if not isinstance(session_id, str) or not session_id:
+            raise GenerationLoadError(
+                "E_V250_SESSION_ID", "session_id must be a non-empty string"
+            )
+        generation = load_generation(repo_root)
+        active_sha256 = generation.get("active_sha256")
+        if not isinstance(active_sha256, str):
+            raise GenerationLoadError(
+                "E_V250_ACTIVE_INVALID", "ACTIVE content digest is unavailable"
+            )
+        timestamp = captured_at or datetime.now(timezone.utc).isoformat()
+        member_digests = tuple(sorted(generation["member_digests"].items()))
+        payload = {
+            "session_id": session_id,
+            "selected_root_realpath": Path(repo_root).resolve().as_posix(),
+            "source_commit": source_commit,
+            "source_tree": source_tree,
+            "active_sha256": active_sha256,
+            "activation_manifest_sha256": generation[
+                "activation_manifest_sha256"
+            ],
+            "rule_manifest_sha256": generation["rule_manifest_sha256"],
+            "prompt_manifest_sha256": generation["prompt_manifest_sha256"],
+            "generation_id": generation["generation_id"],
+            "member_digests": member_digests,
+            "captured_at": timestamp,
+        }
+        snapshot = GenerationSnapshot(
+            **payload,
+            snapshot_sha256=canonical_json_digest(payload),
+        )
+        return cls(
+            snapshot=snapshot,
+            generation=_deep_freeze(generation),
+            _issuer=_GENERATION_RUNTIME_SESSION_ISSUER,
+        )
+
+    def _require_current(self) -> None:
+        if self._invalid_reason is not None:
+            raise GenerationLoadError(
+                "E_ACTIVE_CHANGED_RESTART_REQUIRED",
+                "generation snapshot was invalidated; start a new session",
+            )
+
+    @property
+    def snapshot(self) -> GenerationSnapshot:
+        self._require_current()
+        return self._snapshot
+
+    @property
+    def generation(self) -> Mapping[str, Any]:
+        self._require_current()
+        return self._generation
+
+    def notify_active_change(self, observed_active_sha256: str) -> None:
+        observed = _validate_digest(observed_active_sha256, "observed_active_sha256")
+        if observed != self._snapshot.active_sha256:
+            self._invalid_reason = "active_content_changed"
+
+    def invalidate(self, reason: str) -> None:
+        if not isinstance(reason, str) or not reason:
+            raise GenerationLoadError(
+                "E_V250_SESSION_INVALIDATION", "invalidation reason is required"
+            )
+        self._invalid_reason = reason
+
+
+def validate_generation_runtime_session(
+    session: GenerationRuntimeSession,
+) -> GenerationSnapshot:
+    """Return a snapshot only for a live loader-issued runtime session."""
+
+    if (
+        not isinstance(session, GenerationRuntimeSession)
+        or getattr(session, "_issuer", None) is not _GENERATION_RUNTIME_SESSION_ISSUER
+    ):
+        raise GenerationLoadError(
+            "E_V250_SESSION_PROVENANCE",
+            "trusted runtime requires a loader-issued generation session",
+        )
+    session._require_current()
+    snapshot = session._snapshot
+    generation = session._generation
+    payload = {
+        "session_id": snapshot.session_id,
+        "selected_root_realpath": snapshot.selected_root_realpath,
+        "source_commit": snapshot.source_commit,
+        "source_tree": snapshot.source_tree,
+        "active_sha256": snapshot.active_sha256,
+        "activation_manifest_sha256": snapshot.activation_manifest_sha256,
+        "rule_manifest_sha256": snapshot.rule_manifest_sha256,
+        "prompt_manifest_sha256": snapshot.prompt_manifest_sha256,
+        "generation_id": snapshot.generation_id,
+        "member_digests": snapshot.member_digests,
+        "captured_at": snapshot.captured_at,
+    }
+    if snapshot.snapshot_sha256 != canonical_json_digest(payload):
+        raise GenerationLoadError(
+            "E_V250_SESSION_PROVENANCE", "generation snapshot digest differs"
+        )
+    expected_bindings = {
+        "active_sha256": generation.get("active_sha256"),
+        "activation_manifest_sha256": generation.get(
+            "activation_manifest_sha256"
+        ),
+        "rule_manifest_sha256": generation.get("rule_manifest_sha256"),
+        "prompt_manifest_sha256": generation.get("prompt_manifest_sha256"),
+        "generation_id": generation.get("generation_id"),
+        "member_digests": tuple(sorted(generation.get("member_digests", {}).items())),
+    }
+    observed_bindings = {
+        "active_sha256": snapshot.active_sha256,
+        "activation_manifest_sha256": snapshot.activation_manifest_sha256,
+        "rule_manifest_sha256": snapshot.rule_manifest_sha256,
+        "prompt_manifest_sha256": snapshot.prompt_manifest_sha256,
+        "generation_id": snapshot.generation_id,
+        "member_digests": snapshot.member_digests,
+    }
+    if observed_bindings != expected_bindings:
+        raise GenerationLoadError(
+            "E_V250_SESSION_PROVENANCE",
+            "generation snapshot differs from loader state",
+        )
+    return snapshot
+
+
 __all__ = [
     "ACTIVE_PATH",
     "BASELINE_SCHEMA",
     "CURRENT_SCHEMA",
+    "GenerationRuntimeSession",
+    "GenerationSnapshot",
     "GenerationLoadError",
     "V250_CONTROL_SCHEMA_PATHS",
     "V250_DYNAMIC_CONTROL_GLOBS",
     "V250_REQUIRED_CONTROL_PATHS",
     "canonical_json_bytes",
     "canonical_json_digest",
+    "load_candidate_generation",
     "load_generation",
+    "load_prepared_generation",
     "resolve_repo_file",
     "sha256_bytes",
+    "validate_generation_runtime_session",
 ]

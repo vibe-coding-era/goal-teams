@@ -1,6 +1,6 @@
 ---
-name: goal-teams
-description: Goal Teams V2.62 仓库入口；从 ACTIVE generation 加载 Current 规则，Legacy 仅显式 Replay。
+name: goal-teams-repo
+description: Goal Teams V2.63 仓库入口；与正式安装使用不同发现名，从 ACTIVE generation 加载 Current 规则，Legacy 仅显式 Replay。
 ---
 
 # Goal Teams 仓库入口

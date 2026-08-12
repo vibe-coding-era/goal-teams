@@ -18,7 +18,7 @@ class TestV252LoopBootstrapHardening(unittest.TestCase):
         facts: dict[str, object] = {
             "loop_id": "LOOP-V252-HARDEN",
             "round": 1,
-            "product_version": "V2.62",
+            "product_version": "V2.63",
             "project_size": "medium",
             "plan_preview": False,
             "environment_check_requested": False,
@@ -27,6 +27,7 @@ class TestV252LoopBootstrapHardening(unittest.TestCase):
             "source_commit": "1" * 40,
             "toolchain_digest": "2" * 64,
             "dependency_digest": "3" * 64,
+            "task_exact_set_digest": "4" * 64,
             "branch_namespace": "codex",
             "existing_environment": None,
         }
@@ -37,8 +38,9 @@ class TestV252LoopBootstrapHardening(unittest.TestCase):
         return {
             "bootstrap_events": [
                 {"step": "tasklist", "revision": 1},
-                {"step": "task_assignment", "revision": 2},
-                {"step": "environment_preflight", "revision": 3},
+                {"step": "task_exact_set_freeze", "revision": 2},
+                {"step": "task_assignment", "revision": 3},
+                {"step": "environment_preflight", "revision": 4},
             ],
             "tasklist_created": True,
             "tasks_assigned": True,
@@ -48,9 +50,10 @@ class TestV252LoopBootstrapHardening(unittest.TestCase):
             "lead_run_id": "RUN-LEAD",
             "implementation_owner_run_id": "RUN-IMPL",
             "project_size": "medium",
-            "product_version": "V2.62",
+            "product_version": "V2.63",
+            "task_exact_set_digest": "4" * 64,
             "branch_namespace": "codex",
-            "development_branch": "codex/develop-v2.62",
+            "development_branch": "codex/develop-v2.63",
             "environment_action": "create",
             "compatible_existing_environment": False,
         }
@@ -60,7 +63,8 @@ class TestV252LoopBootstrapHardening(unittest.TestCase):
         receipt["bootstrap_events"] = [
             {"step": "environment_preflight", "revision": 1},
             {"step": "tasklist", "revision": 2},
-            {"step": "task_assignment", "revision": 3},
+            {"step": "task_exact_set_freeze", "revision": 3},
+            {"step": "task_assignment", "revision": 4},
         ]
 
         with self.assertRaises(LoopBootstrapError) as caught:
@@ -94,11 +98,11 @@ class TestV252LoopBootstrapHardening(unittest.TestCase):
 
     def test_reuse_requires_exact_environment_identity(self) -> None:
         existing = {
-            "path": "/repo/develops/v2.62",
+            "path": "/repo/develops/v2.63",
             "identity": "ENV-252",
             "current": True,
             "compatible": True,
-            "product_version": "V2.62",
+            "product_version": "V2.63",
             "source_commit": "1" * 40,
             "toolchain_digest": "2" * 64,
             "dependency_digest": "3" * 64,
@@ -116,10 +120,10 @@ class TestV252LoopBootstrapHardening(unittest.TestCase):
     def test_branch_namespace_and_worktree_templates_are_separate(self) -> None:
         plan = plan_loop_round(self._facts())
 
-        self.assertEqual("develop-v2.62", plan["logical_development_branch"])
+        self.assertEqual("develop-v2.63", plan["logical_development_branch"])
         self.assertEqual("codex", plan["branch_namespace"])
-        self.assertEqual("codex/develop-v2.62", plan["development_branch"])
-        self.assertEqual("develops/v2.62", plan["development_worktree"])
+        self.assertEqual("codex/develop-v2.63", plan["development_branch"])
+        self.assertEqual("develops/v2.63", plan["development_worktree"])
 
     def test_environment_mode_stops_before_release_workflow(self) -> None:
         index = (ROOT / "prompts/members/release-engineer/INDEX.md").read_text(

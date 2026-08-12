@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://goal-teams.local/schemas/v2.50/activation-manifest.schema.json",
-  "title": "Goal Teams V2.62 immutable activation manifest",
+  "title": "Goal Teams V2.62/V2.63 immutable activation manifest",
   "type": "object",
   "required": [
     "schema_version",
@@ -30,7 +30,7 @@
   ],
   "properties": {
     "schema_version": {"const": "goal-teams-activation-manifest-v2.50"},
-    "generation_id": {"const": "V2.62"},
+    "generation_id": {"enum": ["V2.62", "V2.63"]},
     "generation_state": {"enum": ["inactive_candidate", "active", "retired_replay_only"]},
     "baseline_generation_id": {"type": "string", "pattern": "^V[0-9]+\\.[0-9]+$"},
     "manifest_payload_sha256": {"$ref": "#/$defs/sha256"},
@@ -38,9 +38,11 @@
       "type": "object",
       "required": ["loaded_runtime_product_version", "route_contract_schema_version", "target_policy_generation"],
       "properties": {
-        "loaded_runtime_product_version": {"const": "V2.62"},
+        "loaded_runtime_product_version": {"enum": ["V2.62", "V2.63"]},
+        "core_policy_version": {"const": "V2.5"},
+        "legacy_data_schema_version": {"const": "V2.3"},
         "route_contract_schema_version": {"type": "string", "minLength": 1},
-        "target_policy_generation": {"const": "V2.62"}
+        "target_policy_generation": {"enum": ["V2.62", "V2.63"]}
       },
       "additionalProperties": false
     },
@@ -63,6 +65,8 @@
     "schema_and_validator_digest": {"$ref": "#/$defs/sha256"},
     "current_default_allowlist": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/repoPath"}},
     "current_default_allowlist_digest": {"$ref": "#/$defs/sha256"},
+    "package_supplement_allowlist": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/repoPath"}},
+    "package_supplement_allowlist_digest": {"$ref": "#/$defs/sha256"},
     "optional_replay_allowlist_digest": {"$ref": "#/$defs/sha256"},
     "legacy_classification": {
       "type": "object",
@@ -111,6 +115,21 @@
       "additionalProperties": false
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"generation_id": {"const": "V2.63"}},
+        "required": ["generation_id"]
+      },
+      "then": {
+        "required": ["package_supplement_allowlist", "package_supplement_allowlist_digest"],
+        "properties": {
+          "package_supplement_allowlist": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/repoPath"}},
+          "package_supplement_allowlist_digest": {"$ref": "#/$defs/sha256"}
+        }
+      }
+    }
+  ],
   "additionalProperties": false,
   "$defs": {
     "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},

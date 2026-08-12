@@ -1,5 +1,13 @@
 # Goal Teams V2.62 Release
 
+> Candidate projection: V2.62 remains the current published release. V2.63 is an unpublished development candidate and is not represented by a tag, GitHub Release, public asset, or canonical installation yet.
+
+## V2.63 candidate scope
+
+- Governs discovery, immutable generation snapshots, fact-derived routes, deterministic prompt artifacts, TaskExactSet/DAG, bounded blockers/findings, Git-derived change receipts, and orthogonal completion projections.
+- Removes the fixed user-visible runtime identity fingerprint; identity remains machine Evidence and is explained only when requested or required for drift diagnosis.
+- Retains core policy V2.5 and Legacy data schema V2.3. The candidate state is `development_candidate_not_published`.
+
 V2.62 is the current published product release. Its annotated tag, fixed four public assets, remote readback, and formal canonical local installation have completed.
 
 V2.62 adds the OKF Document Graph under the OSI-approved MIT License while retaining the V2.5 portable execution core, v2.50 Execution assets, and V2.3 Legacy data schema.

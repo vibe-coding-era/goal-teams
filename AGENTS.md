@@ -1,4 +1,4 @@
-# Goal Teams 仓库维护指南（V2.62）
+# Goal Teams 仓库维护指南（V2.63）
 
 本仓库是 Codex Skill 包。维护目标是 Current 规则清晰、安装可用、历史可复盘、发行事实可验证。
 
@@ -12,14 +12,14 @@
 ## Current、Execution 与 Replay
 
 - `references/current/ACTIVE.json` 是唯一代际切换指针；进程只读取一次并验证 activation manifest digest。
-- `references/current/generations/V2.62/` 按功能模板承载 Current 规则、Prompt plan 和合同。
-- `scripts/v250/`、`schemas/v2.50/`、route-aware checks 与当前成员配置是 Execution assets。
+- `references/current/generations/V2.63/` 按功能模板承载 Current 规则、Prompt plan 和合同。
+- `scripts/v250/`、`schemas/v2.50/`、`scripts/v263/`、`schemas/v2.63/`、route-aware checks 与当前成员配置是 Execution assets。
 - `references/legacy-replay/manifest.json` 是历史可达性的唯一 allowlist。未显式提供可信 `replay_version` 时，Current route、默认安装包和 Prompt closure 均不得包含 Legacy。
 - 历史 profile/schema/fixture/engine 首轮迁移保持字节不变；删除必须在观察窗口后另行批准。
 
 ## 版本身份
 
-- 产品版本：`V2.62`。
+- 产品版本：`V2.63`。
 - 通用核心策略：`V2.5`。
 - Legacy 机器数据 schema：`V2.3`。
 - `VERSION`、根/包装 Skill、release profile、release/current 与启动语必须同步；不得混用三种版本身份。根 `README.md` 与 `README.en.md` 仅允许人类维护，AI 不得更新。
@@ -30,9 +30,9 @@
 - 根 `SKILL.md`：薄入口、路由和加载顺序。
 - `RULES.md`：用户可见六字段 Envelope。
 - `goal-teams.md`：当前用户指定的长期要求。
-- `references/current/generations/V2.62/functions/`：需求、架构实现、测试、UI/桌面、Agent runtime、知识图谱与发行操作。
-- `references/current/generations/V2.62/contracts/`：任务状态、测试门禁、Harness/Evidence、Review/Completion、授权/副作用与 Release manifests。
-- `references/profiles/goal-teams-self-release-v2.62.md` 与 `references/release-profiles/v2.62.json`：本仓当前发行规则。
+- `references/current/generations/V2.63/functions/`：需求、架构实现、测试、UI/桌面、Agent runtime、知识图谱与发行操作。
+- `references/current/generations/V2.63/contracts/`：任务状态、测试门禁、Harness/Evidence、Review/Completion、授权/副作用与 Release manifests。
+- `references/profiles/goal-teams-self-release-v2.63.md` 与 `references/release-profiles/v2.63.json`：本仓当前发行规则。
 - `scripts/install/package-manifest.txt`：默认 Current 包 allowlist；`replay-package-manifest.txt`：可选 Replay 包。
 
 兼容入口只能转发，不得复制规范正文或把 Legacy 带回 Current prompt plan。
@@ -45,6 +45,8 @@
 - 全量回归与独立 `release_security_review` 只在全部实现完成、Release intent 为真且 source 冻结后运行。
 - 不得在开发 PR 中调用旧 monolithic full/security/install path。
 - 测试事实由 `RiskDenominator -> TestCase -> TestRunReceipt -> TestReviewReceipt` 绑定；Development/Release denominator 分离。
+- 每项 active 需求必须有当前消费者；冻结后的 `TaskExactSet` 与 DAG 绑定预算、依赖、验证和退出条件，任何改变都必须提升 plan revision。
+- GitChangeReceipt 自动绑定 baseline、tracked diff 与 untracked exact-set。外部 blocker 与 audit finding 的修复准入不得静默扩大范围或形成无限循环。
 
 ## S0–S4
 
@@ -55,7 +57,7 @@
 - 正式 S0 前必须有 exact released SHA 的 fresh runtime transition receipt；receipt 必须绑定 root
   `AGENTS.md`/`SKILL.md`、ACTIVE/activation、Prompt/release/route/command manifests、可信 route 与
   `project_size`、项目起始授权 lineage、host adapter code digest、transition 前 controller product
-  version `V2.6`、fresh loaded runtime product version `V2.62`、前后 run ID、
+  version `V2.62`、fresh loaded runtime product version `V2.63`、前后 run ID、
   `captured_at` 和实际 Current `loaded_paths`/digests。
 
 ## Git 与外部写入
@@ -78,9 +80,11 @@ python3 scripts/checks/check-v250.py --phase development
 ```bash
 python3 scripts/v250/runtime_host_adapter.py launch --stage released \
   --source-commit <40-hex> --source-tree <40-hex> --project-size <small|medium|large> \
+  --route-facts-receipt <trusted-route-facts-receipt.json> \
+  --derived-route-receipt <trusted-derived-route-receipt.json> \
   --route-receipt <trusted-route-receipt.json> \
   --authorization-receipt <project-start-authorization-receipt.json> \
-  --controller-handoff-receipt <externally-issued-v248-handoff.json> \
+  --controller-handoff-receipt <externally-issued-v263-controller-handoff.json> \
   --host-execution-id <external-host-execution-id> \
   --adapter-identity <host-adapter-id> \
   --adapter-code scripts/v250/runtime_host_adapter.py \
@@ -91,7 +95,7 @@ python3 scripts/v250/runtime_host_adapter.py launch --stage released \
   --released-runtime-receipt <released-runtime-transition.json>
 ```
 
-旧 `./scripts/check.sh` 仅是兼容调度入口；V2.62 必须由 route-aware checker 决定实际命令。提交前验证 Skill frontmatter、subagent TOML、版本同步、Current/Replay closure、默认包和受影响测试。正式发行再运行 full regression、release security、boundary、单次 S2、适用 S3 与 S4 readback。
+旧 `./scripts/check.sh` 仅是兼容调度入口；V2.63 必须由 route-aware checker 决定实际命令。提交前验证 Skill frontmatter、subagent TOML、版本同步、Current/Replay closure、默认包和受影响测试。正式发行再运行 full regression、release security、boundary、单次 S2、适用 S3 与 S4 readback。
 
 ## 风格与状态
 
@@ -99,4 +103,5 @@ python3 scripts/v250/runtime_host_adapter.py launch --stage released \
 - 根 `README.md` 与 `README.en.md` 为人类维护内容；AI 不得修改其正文、发行标记或版本说明。版本技术事实只记录在 `CHANGELOG.md`、`release/current/` 与正式发行快照中。
 - 不新增未验证的 runtime 能力，不把结构检查写成行为或宿主证明。
 - 用户可见回复只输出 `任务、成员、进度、结果、Banchmark`，以及恰好二选一的 `下一轮 LOOP` 或 `下一个任务`。
+- 不固定输出运行身份短指纹；身份只进入机器 receipt 和诊断 Evidence。
 - `not_run|not_required|blocked|failed|stale|invalid` 保持真实；候选、合并、Release、安装与外部验收不得混写。

@@ -1,8 +1,8 @@
 # Release scripts
 
-## V2.62 两阶段 Skill 发行
+## V2.63 两阶段 Skill 发行
 
-V2.62 开发阶段只运行 TDD 与受影响面增量检查，不进入 S0–S4。只有 exact released
+V2.63 开发阶段只运行 TDD 与受影响面增量检查，不进入 S0–S4。只有 exact released
 identity 进入 Release Readiness 后，才由 `check-v250.py --phase release` 各运行一次最终全量
 回归和独立 `release_security_review`，并形成绑定 commit/tree 的两个 receipt。
 
@@ -12,42 +12,112 @@ S2 安全检查。S3 仅适用于 Large Release 且要求 S1 `passed/current`。
 GitHub SSH；PR、Actions/ruleset 回读和 GitHub Release 使用 `gh` API/CLI。
 
 ```bash
-python3 scripts/release/skill_release.py plan --version V2.62 --commit <40-hex>
+python3 scripts/release/skill_release.py plan --version V2.63 --commit <40-hex>
 
-EVIDENCE_DIR=docs/v2.62-release-runtime
+EVIDENCE_DIR=docs/v2.63-release-runtime
 mkdir -p "$EVIDENCE_DIR"
 SOURCE_COMMIT="$(git rev-parse 'HEAD^{commit}')"
 SOURCE_TREE="$(git rev-parse "${SOURCE_COMMIT}^{tree}")"
-ROUTE_RECEIPT="$EVIDENCE_DIR/large-release-route.json"
+ROUTE_FACTS_RECEIPT="$EVIDENCE_DIR/medium-release-route-facts.json"
+DERIVED_ROUTE_RECEIPT="$EVIDENCE_DIR/medium-release-route-derived.json"
+ROUTE_RECEIPT="$EVIDENCE_DIR/medium-release-route-closure.json"
 RUNTIME_RECEIPT="$EVIDENCE_DIR/released-runtime-transition.json"
 S1_CHECK_RECEIPT="$EVIDENCE_DIR/s1-check-result.json"
-AUTH_RECEIPT=docs/v2.62-execution/versions/V2.62/evidence/project-start-authorization-receipt.json
-HANDOFF_RECEIPT="${HANDOFF_RECEIPT:?请提供由已安装 V2.6 Codex 宿主签发的 handoff receipt}"
+AUTH_RECEIPT=docs/v2.63-execution/versions/V2.63/evidence/project-start-authorization-receipt.json
+HANDOFF_RECEIPT="${HANDOFF_RECEIPT:?请提供由已安装 V2.62 Codex 宿主签发的 handoff receipt}"
 HOST_EXECUTION_ID="${HOST_EXECUTION_ID:?请提供外部宿主 execution ID}"
 PYTHON_BIN="$(python3 -c 'import pathlib,sys; print(pathlib.Path(sys.executable).resolve())')"
 
-"$PYTHON_BIN" -c 'import json, pathlib, sys; from scripts.v250.generation_runtime import load_generation; from scripts.v250.route_closure import compile_route_closure; root=pathlib.Path(".").resolve(); pathlib.Path(sys.argv[1]).write_text(json.dumps(compile_route_closure(root, load_generation(root), "V250-ROUTE-LARGE-RELEASE"), ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8")' "$ROUTE_RECEIPT"
+"$PYTHON_BIN" - \
+  "$ROUTE_FACTS_RECEIPT" "$DERIVED_ROUTE_RECEIPT" "$ROUTE_RECEIPT" \
+  "$SOURCE_COMMIT" "$SOURCE_TREE" "$AUTH_RECEIPT" <<'PY'
+import json
+import pathlib
+import sys
+
+from scripts.v250.generation_runtime import canonical_json_digest, load_generation
+from scripts.v250.route_closure import compile_derived_route_closure
+from scripts.v250.route_derivation import derive_route
+
+root = pathlib.Path(".").resolve()
+authorization = json.loads(pathlib.Path(sys.argv[6]).read_text(encoding="utf-8"))
+facts_source = {
+    "schema_version": "goal-teams-project-route-facts-source-v2.63",
+    "repository": "vibe-coding-era/goal-teams",
+    "source_commit": sys.argv[4],
+    "source_tree": sys.argv[5],
+    "project_start_authorization_receipt_sha256": canonical_json_digest(
+        authorization
+    ),
+}
+project_route_facts = {
+    "project_size": "medium",
+    "workflow_phase": "release",
+    "stage": "released",
+    "release_intent": True,
+    "implementation_scope_complete": True,
+    "risk": "high",
+    "failure_consequence": "high",
+    "reversibility": "partially_reversible",
+    "compliance": "none",
+    "external_write": True,
+    "security_sensitive": True,
+    "ui_or_desktop": False,
+    "agent_runtime": True,
+    "environment_check_required": True,
+    "authorization_state": "granted",
+    "facts_source_sha256": canonical_json_digest(facts_source),
+}
+derived_route = derive_route(project_route_facts)
+receipt = compile_derived_route_closure(root, load_generation(root), derived_route)
+
+def write_json(path, value):
+    pathlib.Path(path).write_text(
+        json.dumps(
+            value,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+write_json(
+    sys.argv[1],
+    {
+        "facts_source": facts_source,
+        "project_route_facts": project_route_facts,
+        "project_route_facts_sha256": canonical_json_digest(project_route_facts),
+    },
+)
+write_json(sys.argv[2], derived_route)
+write_json(sys.argv[3], receipt)
+PY
 
 "$PYTHON_BIN" scripts/v250/runtime_host_adapter.py launch \
   --stage released --source-commit "$SOURCE_COMMIT" --source-tree "$SOURCE_TREE" \
-  --project-size large --route-receipt "$ROUTE_RECEIPT" \
+  --project-size medium \
+  --route-facts-receipt "$ROUTE_FACTS_RECEIPT" \
+  --derived-route-receipt "$DERIVED_ROUTE_RECEIPT" \
+  --route-receipt "$ROUTE_RECEIPT" \
   --authorization-receipt "$AUTH_RECEIPT" \
   --controller-handoff-receipt "$HANDOFF_RECEIPT" \
   --host-execution-id "$HOST_EXECUTION_ID" \
   --adapter-identity local-external-runtime-host \
   --adapter-code scripts/v250/runtime_host_adapter.py > "$RUNTIME_RECEIPT"
 
-./scripts/check.sh --phase release --project-size large \
+./scripts/check.sh --phase release --project-size medium \
   --source-commit "$SOURCE_COMMIT" --source-tree "$SOURCE_TREE" \
   --expected-host-execution-id "$HOST_EXECUTION_ID" \
   --released-runtime-receipt "$RUNTIME_RECEIPT" > "$S1_CHECK_RECEIPT"
 ```
 
-handoff 只能由已安装的 V2.6 Codex 宿主在仓库外签发，仓库代码不生成它。host adapter 会验证
+handoff 只能由已安装的 V2.62 Codex 宿主在仓库外签发，仓库代码不生成它。host adapter 会验证
 固定 owner SSH 公钥、完整 Current prompt 闭包、route、项目起始授权和 adapter digest，并在获得
 真实 child PID 后才传入 launch receipt、校验 child ack；其结果仍只有 I1/correlated assurance。
 `S1_CHECK_RECEIPT` 只关闭 S0/S1。后续 S2 必须显式调用一次 `build-release.py`，再用
-`skill_release.py validate` 校验同一 asset set；不要对 V2.62 调用兼容命令 `verify`。
+`skill_release.py validate` 校验同一 asset set；不要对 V2.63 调用兼容命令 `verify`。
 实际外部操作必须经 `scripts/v250/github_ssh.py` 的 SSH remote 检查，并由上层发布编排器执行与回读。
 
 ## V2.48 Skill 简单发行兼容
@@ -66,11 +136,11 @@ tag、资产 hash 和外部操作做一次明确确认后，才可另行执行 p
 V2.48 GitHub 必需状态检查只有 `check-macos` 与 `release-asset-gate`；
 `check-ubuntu` 不属于 small 流程或普通 Skill 发行的合并门禁。
 
-以下 `release.py` 与 CP00–CP18 内容是 V2.46 governed 兼容路径，不是 V2.62
+以下 `release.py` 与 CP00–CP18 内容是 V2.46 governed 兼容路径，不是 V2.63
 Current Skill 发行默认入口。
 
 - `release.py`：legacy/governed 发行入口；提供 `start`、`doctor`、`prepare`、`promote`、`status`、`recover` 和 `close`，并以 operation 级 `intent -> live readback -> marker-last` 状态恢复。
-- `release_config.py`：只加载 Git-tracked 闭集 profile；V2.62 是候选 `skill_simple` profile，V2.6 保持已安装基线直到 atomic cutover，V2.46 保留 governed replay engine。
+- `release_config.py`：只加载 Git-tracked 闭集 profile；V2.63 是候选 `skill_simple` profile，V2.62 保持已安装基线直到 atomic cutover，V2.46 保留 governed replay engine。
 - `audit-release.py`：不信任 promote-state，依据 live main、peeled tag、Latest Release、重新下载资产、CI 与安装树独立验证五点身份。
 - `build-release.py`（internal）：只接受 40 位 lowercase commit SHA，从不可变 Git 对象在临时目录构建并原子 seal；既有同版本 snapshot 不可覆盖。
 - `validate-release.py`（internal）：从 frozen commit 独立重建 generated asset，校验来源、完整文件清单、safe tar、哈希、`--package-tree` 与非发行路径隔离。

@@ -88,11 +88,11 @@ class TestV250ReleaseChecker(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "tests/v250").mkdir(parents=True)
-            (root / "tests/v262").mkdir(parents=True)
+            (root / "tests/v263").mkdir(parents=True)
             files = {
                 "tests/v250/test_a.py": b"import unittest\n",
                 "tests/v250/test_b.py": b"import unittest\n",
-                "tests/v262/test_c.py": b"import unittest\n",
+                "tests/v263/test_c.py": b"import unittest\n",
             }
             for relative, data in files.items():
                 (root / relative).write_bytes(data)
@@ -112,7 +112,7 @@ class TestV250ReleaseChecker(unittest.TestCase):
                 )
         self.assertEqual(3, denominator["test_file_count"])
         self.assertEqual(7, denominator["test_case_count"])
-        self.assertEqual(["tests/v250", "tests/v262"], denominator["test_roots"])
+        self.assertEqual(["tests/v250", "tests/v263"], denominator["test_roots"])
         self.assertEqual(
             ["tests/v23", "tests/v249", "tests/v26"],
             denominator["legacy_roots_excluded"],

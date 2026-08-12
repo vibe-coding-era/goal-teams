@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.50/git-change-receipt.schema.json",
+  "type": "object",
+  "required": [
+    "schema_version", "baseline_digest", "base_commit", "base_tree",
+    "observed_head", "observed_tree", "working_state_sha256", "changes", "change_count",
+    "changed_paths", "scope_gate", "attribution_complete", "receipt_digest"
+  ],
+  "properties": {
+    "schema_version": {"const": "goal-teams-git-change-receipt-v1"},
+    "baseline_digest": {"$ref": "#/$defs/sha256"},
+    "base_commit": {"$ref": "#/$defs/gitObject"},
+    "base_tree": {"$ref": "#/$defs/gitObject"},
+    "observed_head": {"$ref": "#/$defs/gitObject"},
+    "observed_tree": {
+      "description": "Tree object of observed_head; working changes are bound separately.",
+      "$ref": "#/$defs/gitObject"
+    },
+    "working_state_sha256": {"$ref": "#/$defs/sha256"},
+    "changes": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/change"}
+    },
+    "change_count": {"type": "integer", "minimum": 0},
+    "changed_paths": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "scope_gate": {"const": "passed"},
+    "attribution_complete": {"const": true},
+    "receipt_digest": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "gitObject": {"type": "string", "pattern": "^[0-9a-f]{40,64}$"},
+    "gitMode": {"type": ["string", "null"], "pattern": "^[0-9]{6}$"},
+    "change": {
+      "type": "object",
+      "required": [
+        "status", "path", "old_mode", "new_mode", "mode_changed",
+        "old_blob", "new_blob", "content_sha256", "task_id"
+      ],
+      "properties": {
+        "status": {"enum": ["M", "A", "D", "R", "T", "U", "UNTRACKED"]},
+        "path": {"type": "string", "minLength": 1},
+        "old_path": {"type": "string", "minLength": 1},
+        "old_mode": {"$ref": "#/$defs/gitMode"},
+        "new_mode": {"$ref": "#/$defs/gitMode"},
+        "mode_changed": {"type": "boolean"},
+        "old_blob": {"type": ["string", "null"]},
+        "new_blob": {"type": ["string", "null"]},
+        "content_sha256": {
+          "oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]
+        },
+        "similarity": {"type": "integer", "minimum": 0, "maximum": 100},
+        "dirty_baseline_changed": {"type": "boolean"},
+        "task_id": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

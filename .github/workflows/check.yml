@@ -46,11 +46,92 @@ jobs:
           PYTHONPATH="${VALIDATOR_PYTHON_PREFIX}" python3 -c \
             'from jsonschema import Draft202012Validator'
           echo "PYTHONPATH=${VALIDATOR_PYTHON_PREFIX}${PYTHONPATH:+:${PYTHONPATH}}" >> "${GITHUB_ENV}"
-      - name: V2.62 TDD and affected-surface incremental checks
+      - name: Active V2.63 pre-release exact Development gate
         env:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
-          python3 -m unittest discover -s tests/v250 -p 'test_*.py'
-          python3 -m unittest discover -s tests/v262 -p 'test_*.py'
-          python3 scripts/checks/check-v250.py --phase development --project-size medium --stage candidate
+          python3 -m unittest -v \
+            tests.v250.test_package_isolation \
+            tests.v250.test_release_checker \
+            tests.v250.test_release_control \
+            tests.v250.test_release_flow \
+            tests.v250.test_release_runtime_support \
+            tests.v250.test_runtime_cli \
+            tests.v250.test_runtime_host_adapter \
+            tests.v250.test_runtime_transition \
+            tests.v250.test_s4_executor \
+            tests.v250.test_schema_contracts \
+            tests.v250.test_v252_loop_bootstrap \
+            tests.v250.test_v252_loop_bootstrap_hardening \
+            tests.v250.test_v252_loop_bootstrap_receipt_hardening \
+            tests.v250.test_v263_activation_lifecycle \
+            tests.v250.test_v263_activation_lifecycle_hardening \
+            tests.v250.test_v263_active_pointer_locking \
+            tests.v250.test_v263_agents_release_command \
+            tests.v250.test_v263_blocker_finding \
+            tests.v250.test_v263_candidate_projection \
+            tests.v250.test_v263_candidate_registry \
+            tests.v250.test_v263_ci_lifecycle \
+            tests.v250.test_v263_completion_authority \
+            tests.v250.test_v263_continuation_route_triplet \
+            tests.v250.test_v263_core_audit \
+            tests.v250.test_v263_deleted_index_package_paths \
+            tests.v250.test_v263_discovery_names \
+            tests.v250.test_v263_discovery_snapshot \
+            tests.v250.test_v263_external_anchor_test_roots \
+            tests.v250.test_v263_first_loop_environment \
+            tests.v250.test_v263_git_change \
+            tests.v250.test_v263_generation_validator_selection \
+            tests.v250.test_v263_installer_offline_closure \
+            tests.v250.test_v263_loop_registry_integration \
+            tests.v250.test_v263_output_contract \
+            tests.v250.test_v263_package_active_closure \
+            tests.v250.test_v263_package_candidate_closure \
+            tests.v250.test_v263_project_route_schema \
+            tests.v250.test_v263_prompt_manifest_state \
+            tests.v250.test_v263_refresh_duplicate_rejection \
+            tests.v250.test_v263_release_route_derivation \
+            tests.v250.test_v263_release_route_identity \
+            tests.v250.test_v263_release_surfaces \
+            tests.v250.test_v263_release_workflow_route \
+            tests.v250.test_v263_released_runtime_route_triplet \
+            tests.v250.test_v263_rollback_window \
+            tests.v250.test_v263_route_closure_integration \
+            tests.v250.test_v263_route_closure_trust_boundary \
+            tests.v250.test_v263_route_manifest_canonical_gate_audit \
+            tests.v250.test_v263_route_prompt \
+            tests.v250.test_v263_route_runtime_audit \
+            tests.v250.test_v263_runtime_route_cli_binding \
+            tests.v250.test_v263_runtime_session_entry_boundary \
+            tests.v250.test_v263_runtime_turn \
+            tests.v250.test_v263_s0_controller_identity \
+            tests.v250.test_v263_s1_denominator_validator \
+            tests.v250.test_v263_schema_closure \
+            tests.v250.test_v263_semantic_closure \
+            tests.v250.test_v263_state_reducer \
+            tests.v250.test_v263_task_plan \
+            tests.v250.test_v263_task_plan_authority \
+            tests.v250.test_v263_trust_boundary_hardening \
+            tests.v250.test_v263_validator_callers \
+            tests.v250.test_v263_version_migration \
+            tests.v250.test_workflow_release_contract \
+            tests.v263.test_compatibility_assets \
+            tests.v263.test_delivery_closure \
+            tests.v263.test_development_checker_identity \
+            tests.v263.test_product_identity \
+            tests.v263.test_projection_cli \
+            tests.v263.test_runtime_binding_contract \
+            tests.v263.test_v262_compatibility_policy
+          python3 scripts/checks/check-version-sync.py \
+            --mode development \
+            --published-version V2.62
+          python3 scripts/checks/validate-v250-generation.py \
+            --generation-id V2.63 \
+            --selection active
+          python3 scripts/checks/check-v250.py \
+            --phase development \
+            --project-size medium \
+            --stage candidate
           python3 scripts/checks/check-package-manifest.py
+      - name: Confirm Development stopped before Release gates
+        run: echo "Active pre-release Development checks passed; S0-S4 were not entered."
