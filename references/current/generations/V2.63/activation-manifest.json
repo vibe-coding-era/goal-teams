@@ -3,7 +3,7 @@
   "generation_id": "V2.63",
   "generation_state": "active",
   "baseline_generation_id": "V2.62",
-  "manifest_payload_sha256": "c6823e288f8a46a51d1a2cd1933e8224837f41b15e36a361eaa74236f3bb3c5d",
+  "manifest_payload_sha256": "5d095ce1321bd451026d20c0b220146ecc93a6be7688397a05899824ffb9bd7f",
   "identity": {
     "loaded_runtime_product_version": "V2.63",
     "core_policy_version": "V2.5",
@@ -339,8 +339,8 @@
       },
       {
         "path": "scripts/release/validate-release.py",
-        "sha256": "5d74c695377a85e1677258179a52124ed3146b3a2d95cc66fea8ac618964fc4a",
-        "bytes": 40000
+        "sha256": "2c8ad4a38d52ae6a9442b46613da948b185b0844e372d77456bf9d859cadcdd1",
+        "bytes": 44670
       },
       {
         "path": "scripts/v250/control_registry.py",
@@ -664,8 +664,8 @@
       },
       {
         "path": "tests/v250/test_release_runtime_support.py",
-        "sha256": "dea57584292c2fbf82824186a9875cfa10a351058a7206b165abbb7ec775911f",
-        "bytes": 13156
+        "sha256": "5d058095256593a4f856fd9eb688491e308df48ddeaca8ad3b5ee2184dcebbc5",
+        "bytes": 20777
       },
       {
         "path": "tests/v250/test_release_security_review.py",
