@@ -34,8 +34,71 @@ def _load(path: Path, name: str):
 
 class TestV263ReleaseSurfaces(unittest.TestCase):
     @staticmethod
-    def _strict_projections(sync):
-        candidate = json.loads(sync.read("release/current/manifest.json"))
+    def _strict_projections(_sync):
+        candidate = {
+            "schema_version": "goal-teams-release-manifest-v2.62",
+            "product_version": "V2.62",
+            "candidate_product_version": "V2.63",
+            "candidate_release_state": "development_candidate_not_published",
+            "candidate_profile": "references/release-profiles/v2.63.json",
+            "core_policy_version": "V2.5",
+            "legacy_data_schema_version": "V2.3",
+            "docs_policy": "local-only",
+            "release_scope": "runtime-package",
+            "claim_scope": (
+                "agent_product_development_and_verification_governance_"
+                "desktop_contracts"
+            ),
+            "cache_evidence": {
+                "structural_delivery_state": "passed",
+                "host_integration_state": "unavailable",
+                "live_cache_validation_state": "not_authorized",
+                "request_hit_rate_support_state": "unavailable",
+            },
+            "completion_telemetry": {
+                "tokens_consumed": {
+                    "status": "unavailable",
+                    "value": None,
+                    "display_zh": "未获取到",
+                    "display_en": "Unavailable",
+                },
+                "cache_hit_rate": {
+                    "status": "unavailable",
+                    "value": None,
+                    "display_zh": "未获取到",
+                    "display_en": "Unavailable",
+                },
+                "claim_policy": "no_estimation_without_trusted_host_usage_evidence",
+            },
+            "release_identity": {
+                "tag": "v2.62",
+                "release_id": 367112913,
+                "state": "published",
+                "source_commit": "bd4eedfc0623e74b74efeaf157edf92ce2be1e74",
+                "source_tree": "58d11881eeda2f0a018fcc4273ce2f3982977f94",
+                "public_assets": [
+                    "goal-teams-V2.62.tar.gz",
+                    "SHA256SUMS",
+                    "_release.json",
+                    "_files.sha256",
+                ],
+            },
+            "assurance_limits": {
+                "reproducibility": "not_verified_by_v250_policy",
+                "s2_security_checks": "not_run_by_v250_policy",
+                "fresh_runtime_transition": "I1_correlated_not_external_independence",
+                "kg_parser_scope": (
+                    "controlled_markdown_lexical_subset_not_commonmark_gfm_conformance"
+                ),
+                "kg_digest_scope": "graph_input_manifest_not_rdf_dataset",
+                "kg_isolated_entity_detector": "not_implemented",
+                "kg_compile_resource_budget": "not_implemented",
+                "kg_trace_truncated_match_count": (
+                    "discovered_lower_bound_not_total_reachable_edges"
+                ),
+            },
+            "status": "release",
+        }
         final = {
             **candidate,
             "schema_version": "goal-teams-release-manifest-v2.63",
@@ -100,6 +163,31 @@ class TestV263ReleaseSurfaces(unittest.TestCase):
     def test_version_sync_accepts_candidate_and_final_current_projection(self) -> None:
         sync = _load(VERSION_SYNC_PATH, "_test_v263_version_sync")
         candidate, final = self._strict_projections(sync)
+        self.assertEqual(
+            {
+                "schema_version": "goal-teams-release-manifest-v2.62",
+                "product_version": "V2.62",
+                "tag": "v2.62",
+                "release_id": 367112913,
+                "source_commit": "bd4eedfc0623e74b74efeaf157edf92ce2be1e74",
+                "source_tree": "58d11881eeda2f0a018fcc4273ce2f3982977f94",
+            },
+            {
+                "schema_version": candidate["schema_version"],
+                "product_version": candidate["product_version"],
+                "tag": candidate["release_identity"]["tag"],
+                "release_id": candidate["release_identity"]["release_id"],
+                "source_commit": candidate["release_identity"]["source_commit"],
+                "source_tree": candidate["release_identity"]["source_tree"],
+            },
+        )
+        self.assertTrue(
+            {
+                "candidate_product_version",
+                "candidate_release_state",
+                "candidate_profile",
+            }.isdisjoint(final)
+        )
         for projection in (candidate, final):
             with self.subTest(published_version=projection["product_version"]):
                 self._run_version_sync_projection(sync, projection)
@@ -127,6 +215,10 @@ class TestV263ReleaseSurfaces(unittest.TestCase):
             "candidate_profile",
             "schema_version",
             "release_identity.tag",
+            "release_identity.state",
+            "release_identity.release_id",
+            "release_identity.source_commit",
+            "release_identity.source_tree",
             "release_identity.public_assets",
         ):
             mixed = copy.deepcopy(final)
@@ -140,6 +232,14 @@ class TestV263ReleaseSurfaces(unittest.TestCase):
                 mixed[key] = "goal-teams-release-manifest-v2.62"
             elif key == "release_identity.tag":
                 mixed["release_identity"]["tag"] = "v2.62"
+            elif key == "release_identity.state":
+                mixed["release_identity"]["state"] = "draft"
+            elif key == "release_identity.release_id":
+                mixed["release_identity"]["release_id"] = 0
+            elif key == "release_identity.source_commit":
+                mixed["release_identity"]["source_commit"] = "a" * 39
+            elif key == "release_identity.source_tree":
+                mixed["release_identity"]["source_tree"] = "b" * 39
             else:
                 mixed["release_identity"]["public_assets"][0] = (
                     "goal-teams-V2.62.tar.gz"
