@@ -293,6 +293,7 @@ class TestReleaseWorkflowSequence(unittest.TestCase):
         ]
         self.assertIn("s2-build.json", diagnostic_outputs)
         self.assertIn("asset-validation.json", diagnostic_outputs)
+        self.assertIn("released-runtime-transition.json", diagnostic_outputs)
         self.assertNotIn('> "${diagnostic_root}/_checkpoint.json"', workflow)
         self.assertNotIn('"${diagnostic_root}/_checkpoint.json"', workflow)
         self.assertIn("steps.stage_receipts.outputs.checkpoint_state == 'ready_for_s4'", workflow)

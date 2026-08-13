@@ -25,6 +25,15 @@ from typing import Any, Mapping
 
 
 ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.v250.route_closure import (  # noqa: E402
+    RouteClosureError,
+    validate_released_runtime_route_triplet,
+)
+
+
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 RUN_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$")
@@ -347,11 +356,6 @@ def _load_route_context(
         "legacy_path_prefixes": legacy.get("path_prefixes"),
     }
     try:
-        from scripts.v250.route_closure import (
-            RouteClosureError,
-            validate_released_runtime_route_triplet,
-        )
-
         triplet = validate_released_runtime_route_triplet(
             root,
             runtime_generation,

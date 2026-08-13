@@ -111,6 +111,7 @@ jobs:
             tests.v250.test_v263_route_manifest_canonical_gate_audit \
             tests.v250.test_v263_route_prompt \
             tests.v250.test_v263_route_runtime_audit \
+            tests.v250.test_v263_runtime_child_script_bootstrap \
             tests.v250.test_v263_runtime_route_cli_binding \
             tests.v250.test_v263_runtime_session_entry_boundary \
             tests.v250.test_v263_runtime_turn \

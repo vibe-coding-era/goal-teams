@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import copy
 import hashlib
+import io
 import json
 import subprocess
 import tempfile
 import unittest
+from argparse import Namespace
+from contextlib import redirect_stdout
 from pathlib import Path
 from unittest import mock
 
@@ -118,14 +121,35 @@ def _handoff() -> dict:
 
 
 class _FakeProcess:
-    def __init__(self, *, ack_drift: str | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        ack_drift: str | None = None,
+        failure_error_code: str | None = None,
+        failure_stderr: str = "",
+    ) -> None:
         self.pid = 4242
-        self.returncode = 0
+        self.returncode = 1 if failure_error_code is not None else 0
         self.ack_drift = ack_drift
+        self.failure_error_code = failure_error_code
+        self.failure_stderr = failure_stderr
         self.stdin_payload: dict | None = None
 
     def communicate(self, value: str) -> tuple[str, str]:
         self.stdin_payload = json.loads(value)
+        if self.failure_error_code is not None:
+            return (
+                json.dumps(
+                    {
+                        "schema_version": "goal-teams-v2.63-runtime-child-ack-v1",
+                        "acknowledged": False,
+                        "error_code": self.failure_error_code,
+                        "external_independence": False,
+                    },
+                    sort_keys=True,
+                ),
+                self.failure_stderr,
+            )
         handoff = self.stdin_payload["controller_handoff_receipt"]
         launch = self.stdin_payload["runtime_launch_receipt"]
         runtime_receipt = {"receipt_sha256": "d" * 64}
@@ -149,6 +173,57 @@ class _FakeProcess:
 
 
 class TestRuntimeHostAdapter(unittest.TestCase):
+    def test_child_failure_error_code_rejects_secret_and_oversized_inputs(self) -> None:
+        def failure_stdout(error_code: str) -> str:
+            return json.dumps(
+                {
+                    "schema_version": "goal-teams-v2.63-runtime-child-ack-v1",
+                    "acknowledged": False,
+                    "error_code": error_code,
+                    "external_independence": False,
+                },
+                sort_keys=True,
+            )
+
+        unavailable = "E_V250_RUNTIME_CHILD_ERROR_UNAVAILABLE"
+        valid = "E_V250_RUNTIME_TRANSITION_ACTIVE_DIGEST"
+        self.assertEqual(
+            valid,
+            runtime_host_adapter._child_failure_error_code(failure_stdout(valid)),
+        )
+        rejected = (
+            failure_stdout("E_V250_SECRET:AKIAFAKEVALUE"),
+            failure_stdout("E_V250_SECRET\nAKIAFAKEVALUE"),
+            failure_stdout("E_V999_FORGED"),
+            failure_stdout("E_V250_SECRET_AKIAFAKEVALUE"),
+            failure_stdout("E_V250_" + "A" * 97),
+            failure_stdout(valid) + " " * 4096,
+            (
+                '{"schema_version":"goal-teams-v2.63-runtime-child-ack-v1",'
+                '"acknowledged":false,"error_code":"'
+                + valid
+                + '","error_code":"E_V999_FORGED",'
+                '"external_independence":false}'
+            ),
+            "[" * 1100 + "]" * 1100,
+            "{not-json",
+        )
+        for stdout in rejected:
+            with self.subTest(stdout_length=len(stdout)):
+                observed = runtime_host_adapter._child_failure_error_code(stdout)
+                self.assertEqual(unavailable, observed)
+                self.assertNotIn("AKIAFAKEVALUE", observed)
+
+        with mock.patch.object(
+            runtime_host_adapter.json,
+            "loads",
+            side_effect=ValueError("integer conversion limit"),
+        ):
+            self.assertEqual(
+                unavailable,
+                runtime_host_adapter._child_failure_error_code(failure_stdout(valid)),
+            )
+
     def test_public_api_readback_matches_only_the_pinned_owner_key(self) -> None:
         exact = [
             {
@@ -316,6 +391,90 @@ class TestRuntimeHostAdapter(unittest.TestCase):
                     root=root,
                     popen_factory=lambda _argv, **_kwargs: process,
                 )
+
+    def test_child_failure_is_forwarded_as_a_machine_safe_parent_envelope(self) -> None:
+        child_error_code = "E_V250_RUNTIME_TRANSITION_ACTIVE_DIGEST"
+        raw_stderr = "sensitive child diagnostic: do not forward\n"
+        process = _FakeProcess(
+            failure_error_code=child_error_code,
+            failure_stderr=raw_stderr,
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            authorization_path = root / "authorization.json"
+            _authorization(authorization_path)
+            route_path = root / "route.json"
+            route_path.write_text("{}", encoding="utf-8")
+            route_facts_path = root / "route-facts.json"
+            route_facts_path.write_text("{}", encoding="utf-8")
+            derived_route_path = root / "route-derived.json"
+            derived_route_path.write_text("{}", encoding="utf-8")
+            adapter_path = root / "runtime_host_adapter.py"
+            adapter_path.write_text("# adapter\n", encoding="utf-8")
+            with (
+                mock.patch.object(
+                    runtime_host_adapter,
+                    "validate_controller_handoff",
+                    return_value={"ok": True, "errors": []},
+                ),
+                self.assertRaises(runtime_host_adapter.RuntimeChildFailure) as caught,
+            ):
+                runtime_host_adapter.launch_runtime_transition(
+                    stage="released",
+                    source_commit=SOURCE,
+                    source_tree=TREE,
+                    project_size="medium",
+                    route_facts_receipt_path=route_facts_path,
+                    derived_route_receipt_path=derived_route_path,
+                    route_receipt_path=route_path,
+                    authorization_receipt_path=authorization_path,
+                    adapter_identity="github-actions-release-host-adapter",
+                    adapter_code_path=adapter_path,
+                    controller_handoff_receipt=_handoff(),
+                    host_execution_id="987654321",
+                    root=root,
+                    popen_factory=lambda _argv, **_kwargs: process,
+                )
+
+        expected = {
+            "passed": False,
+            "error_code": "E_V250_RUNTIME_CHILD_FAILED",
+            "child_error_code": child_error_code,
+            "child_stderr_sha256": hashlib.sha256(raw_stderr.encode("utf-8")).hexdigest(),
+            "external_write_count": 0,
+        }
+        self.assertEqual(expected, caught.exception.parent_envelope())
+        self.assertEqual("E_V250_RUNTIME_CHILD_FAILED", str(caught.exception))
+
+        args = Namespace(
+            command="launch",
+            stage="released",
+            source_commit=SOURCE,
+            source_tree=TREE,
+            project_size="medium",
+            route_facts_receipt=Path("route-facts.json"),
+            derived_route_receipt=Path("route-derived.json"),
+            route_receipt=Path("route.json"),
+            authorization_receipt=Path("authorization.json"),
+            adapter_identity="github-actions-release-host-adapter",
+            adapter_code=Path("runtime_host_adapter.py"),
+            controller_handoff_receipt=Path("controller-handoff.json"),
+            host_execution_id="987654321",
+        )
+        output = io.StringIO()
+        with (
+            mock.patch.object(runtime_host_adapter, "parse_args", return_value=args),
+            mock.patch.object(runtime_host_adapter, "_read_json", return_value={}),
+            mock.patch.object(
+                runtime_host_adapter,
+                "launch_runtime_transition",
+                side_effect=caught.exception,
+            ),
+            redirect_stdout(output),
+        ):
+            self.assertEqual(1, runtime_host_adapter.main())
+        self.assertEqual(expected, json.loads(output.getvalue()))
+        self.assertNotIn(raw_stderr.strip(), output.getvalue())
 
 
 if __name__ == "__main__":
