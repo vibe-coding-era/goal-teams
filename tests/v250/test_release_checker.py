@@ -9,6 +9,7 @@ import tempfile
 import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import mock
 
 from scripts.v250 import release_flow
@@ -27,6 +28,107 @@ def load_checker():
 
 
 class TestV250ReleaseChecker(unittest.TestCase):
+    def test_release_cli_accepts_portable_runtime_receipt_inputs(self) -> None:
+        checker = load_checker()
+        argv = [
+            "check-v250.py",
+            "--phase",
+            "release",
+            "--route-facts-receipt",
+            "downloaded/release-route-facts.json",
+            "--derived-route-receipt",
+            "downloaded/release-route-derived.json",
+            "--route-receipt",
+            "downloaded/release-route-receipt.json",
+            "--authorization-receipt",
+            "downloaded/authorization.json",
+        ]
+
+        with mock.patch.object(checker.sys, "argv", argv):
+            args = checker.parse_args()
+
+        self.assertEqual(
+            Path("downloaded/release-route-facts.json"),
+            args.route_facts_receipt,
+        )
+        self.assertEqual(
+            Path("downloaded/release-route-derived.json"),
+            args.derived_route_receipt,
+        )
+        self.assertEqual(
+            Path("downloaded/release-route-receipt.json"),
+            args.route_receipt,
+        )
+        self.assertEqual(
+            Path("downloaded/authorization.json"),
+            args.authorization_receipt,
+        )
+
+    def test_release_checker_forwards_portable_runtime_receipt_inputs(self) -> None:
+        checker = load_checker()
+        receipt_paths = {
+            "route_facts_receipt": Path("downloaded/release-route-facts.json"),
+            "derived_route_receipt": Path("downloaded/release-route-derived.json"),
+            "route_receipt": Path("downloaded/release-route-receipt.json"),
+            "authorization_receipt": Path("downloaded/authorization.json"),
+        }
+        args = argparse.Namespace(
+            phase="release",
+            project_size="medium",
+            stage="released",
+            release_intent=True,
+            implementation_scope_complete=True,
+            s1_current=False,
+            source_commit="1" * 40,
+            source_tree="2" * 40,
+            released_runtime_receipt=Path("downloaded/released-runtime-transition.json"),
+            expected_host_execution_id="host-run-263",
+            **receipt_paths,
+        )
+        validate_transition = mock.Mock(return_value={"may_enter_s0": False})
+        runtime_transition = SimpleNamespace(validate_transition=validate_transition)
+        release_flow_module = SimpleNamespace(
+            canonical_sha256=lambda _value: "f" * 64,
+            derive_release_plan=lambda route: {"route": route},
+        )
+        output = io.StringIO()
+
+        with mock.patch.object(checker, "parse_args", return_value=args), mock.patch.object(
+            checker, "validate_contracts", return_value={"passed": True}
+        ), mock.patch.object(
+            checker,
+            "_load_module",
+            side_effect=[release_flow_module, runtime_transition],
+        ), mock.patch.object(
+            checker,
+            "_released_identity",
+            return_value=(args.source_commit, args.source_tree, {}),
+        ), mock.patch.object(
+            checker, "_read_json", return_value={"receipt": "runtime"}
+        ), redirect_stdout(output):
+            self.assertEqual(1, checker.main())
+
+        validate_transition.assert_called_once_with(
+            {"receipt": "runtime"},
+            expected_stage="released",
+            allow_release=True,
+            expected_source_commit=args.source_commit,
+            expected_source_tree=args.source_tree,
+            expected_project_size="medium",
+            expected_host_execution_id="host-run-263",
+            route_facts_receipt_path_override=receipt_paths[
+                "route_facts_receipt"
+            ].resolve(),
+            derived_route_receipt_path_override=receipt_paths[
+                "derived_route_receipt"
+            ].resolve(),
+            route_receipt_path_override=receipt_paths["route_receipt"].resolve(),
+            authorization_receipt_path_override=receipt_paths[
+                "authorization_receipt"
+            ].resolve(),
+            root=checker.ROOT,
+        )
+
     def test_command_count_includes_each_git_child_process(self) -> None:
         checker = load_checker()
         checker._COMMAND_EXECUTION_COUNT = 0

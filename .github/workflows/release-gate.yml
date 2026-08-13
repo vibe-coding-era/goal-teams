@@ -452,6 +452,10 @@ jobs:
             --source-tree "$(git rev-parse "${GITHUB_SHA}^{tree}")" \
             --expected-host-execution-id "${GITHUB_RUN_ID}" \
             --released-runtime-receipt "${RUNNER_TEMP}/released-runtime-transition.json" \
+            --route-facts-receipt "${RUNNER_TEMP}/release-route-facts.json" \
+            --derived-route-receipt "${RUNNER_TEMP}/release-route-derived.json" \
+            --route-receipt "${RUNNER_TEMP}/release-route-receipt.json" \
+            --authorization-receipt "${RUNNER_TEMP}/authorization.json" \
             > "${RUNNER_TEMP}/s1-check.json"
       - name: Build the exact released asset set once
         id: s2_build
@@ -677,6 +681,7 @@ jobs:
           )
           diagnostic_output_names=(
             released-runtime-transition.json
+            s1-check.json
             s2-build.json
             asset-validation.json
             preflight-output.json

@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class TestV250RuntimeCLI(unittest.TestCase):
-    def test_release_wrapper_forwards_runtime_receipt(self) -> None:
+    def test_release_wrapper_forwards_runtime_and_route_receipts(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             temp = Path(directory)
             log = temp / "python-argv.log"
@@ -23,6 +23,14 @@ class TestV250RuntimeCLI(unittest.TestCase):
             fake_python.chmod(0o755)
             runtime_receipt = temp / "runtime-transition.json"
             runtime_receipt.write_text("{}\n", encoding="utf-8")
+            route_facts_receipt = temp / "release-route-facts.json"
+            route_facts_receipt.write_text("{}\n", encoding="utf-8")
+            derived_route_receipt = temp / "release-route-derived.json"
+            derived_route_receipt.write_text("{}\n", encoding="utf-8")
+            route_receipt = temp / "release-route-receipt.json"
+            route_receipt.write_text("{}\n", encoding="utf-8")
+            authorization_receipt = temp / "authorization.json"
+            authorization_receipt.write_text("{}\n", encoding="utf-8")
             result = subprocess.run(
                 [
                     "bash",
@@ -39,6 +47,14 @@ class TestV250RuntimeCLI(unittest.TestCase):
                     "HOST-RUN-1",
                     "--released-runtime-receipt",
                     str(runtime_receipt),
+                    "--route-facts-receipt",
+                    str(route_facts_receipt),
+                    "--derived-route-receipt",
+                    str(derived_route_receipt),
+                    "--route-receipt",
+                    str(route_receipt),
+                    "--authorization-receipt",
+                    str(authorization_receipt),
                 ],
                 cwd=ROOT,
                 check=False,
@@ -58,6 +74,16 @@ class TestV250RuntimeCLI(unittest.TestCase):
             f"--released-runtime-receipt {runtime_receipt}", release_invocation
         )
         self.assertIn("--expected-host-execution-id HOST-RUN-1", release_invocation)
+        self.assertIn(
+            f"--route-facts-receipt {route_facts_receipt}", release_invocation
+        )
+        self.assertIn(
+            f"--derived-route-receipt {derived_route_receipt}", release_invocation
+        )
+        self.assertIn(f"--route-receipt {route_receipt}", release_invocation)
+        self.assertIn(
+            f"--authorization-receipt {authorization_receipt}", release_invocation
+        )
 
     def test_runtime_child_cli_forbids_raw_lineage_and_uses_stdin_receipts(self) -> None:
         result = subprocess.run(

@@ -3,7 +3,7 @@
   "generation_id": "V2.63",
   "generation_state": "active",
   "baseline_generation_id": "V2.62",
-  "manifest_payload_sha256": "09465c97c7a21f905eebef0c191b24d436323b4688defc6b6700fe6d4a227983",
+  "manifest_payload_sha256": "b31c21031df9c159f4a8114920b58b644ac25db0068f4f31894e8aafd6448ad5",
   "identity": {
     "loaded_runtime_product_version": "V2.63",
     "core_policy_version": "V2.5",
@@ -102,8 +102,8 @@
       },
       {
         "path": "references/current/generations/V2.63/contracts/release-security-review-manifest.json",
-        "sha256": "4cdb8df9dba7ab913a722f47d6989a9d16613915d9241b8a09b55eb8301a1de4",
-        "bytes": 17810
+        "sha256": "04a5e7c3fc2806d08cc9cb0e1f7e8c50104be3c661f1317b3df2f2d7079879a8",
+        "bytes": 19068
       },
       {
         "path": "references/current/generations/V2.63/contracts/review-completion.md",
@@ -274,13 +274,13 @@
       },
       {
         "path": "scripts/checks/check-v250.py",
-        "sha256": "666c33a2ee544dd0d7c353cb7c7fe18cb4236ad50b1c55706a5e4cc9947f0ab0",
-        "bytes": 19328
+        "sha256": "650c7cb5a4e4cb62b088fb28b0a2b62ac8cf5583d545b243c0e985e93f0b0071",
+        "bytes": 20424
       },
       {
         "path": "scripts/checks/check.sh",
-        "sha256": "52fa9b4296ace512fddfe2191dcd46606ef038319e11baab80a84dc8e7a235a9",
-        "bytes": 3093
+        "sha256": "caeef91a206cec871d99435fe8c4009a7e0832b6d0ce84bf704f28cea6596b61",
+        "bytes": 4029
       },
       {
         "path": "scripts/checks/run-v250-release-security-review.py",
@@ -614,13 +614,13 @@
       },
       {
         "path": "tests/v250/test_generation.py",
-        "sha256": "fbe1a87abb72828be710b7039daeec5ba65f80de93d4b5aa918b8a7e4b698849",
-        "bytes": 939
+        "sha256": "dfe6820ec2d731ebd9b12c6f3aca08310fb30e3e5d822e5cfd69a0a38c59dd56",
+        "bytes": 1067
       },
       {
         "path": "tests/v250/test_generation_isolation.py",
-        "sha256": "dc0fab8647d8de05821788ce6b127390fea9617bea4171dce9b23ec58e4b9091",
-        "bytes": 6535
+        "sha256": "8d6b3bca5ac203d5f069b8c1dbb3350550171c6e618be92885b8f8c9b802e6cc",
+        "bytes": 5777
       },
       {
         "path": "tests/v250/test_github_ssh.py",
@@ -634,8 +634,8 @@
       },
       {
         "path": "tests/v250/test_manifest_refresh.py",
-        "sha256": "24c1ecd54537e3687ada088d8dcef6e719fa2fb3c03b03a9a56951612833cbbd",
-        "bytes": 708
+        "sha256": "ed68f3ccaefcd8e379c2c3563e1480f9315a38d7a3f16c91eccf5f2eab4b7f09",
+        "bytes": 885
       },
       {
         "path": "tests/v250/test_output_contract.py",
@@ -649,8 +649,8 @@
       },
       {
         "path": "tests/v250/test_release_checker.py",
-        "sha256": "61cbfd1d779efb6fa2892a0b228bb951e8fd778fb71b01e307b41a520b9b2e78",
-        "bytes": 6653
+        "sha256": "d96fcedcfd25d7aff773f6cca9add2f91c631aaa6f2129cb73c31e712f60f9a7",
+        "bytes": 10728
       },
       {
         "path": "tests/v250/test_release_control.py",
@@ -684,8 +684,8 @@
       },
       {
         "path": "tests/v250/test_runtime_cli.py",
-        "sha256": "4ae515d3de193b3b4f9f0bf8a87d6f6e8e54adb01df51cacbc5899b65b088785",
-        "bytes": 3914
+        "sha256": "0326a34c58d3de57e810ed61f20153786b769956c63df45fbec64c8aff73da1e",
+        "bytes": 5249
       },
       {
         "path": "tests/v250/test_runtime_host_adapter.py",
@@ -719,7 +719,7 @@
       },
       {
         "path": "tests/v250/test_v251_small_iteration.py",
-        "sha256": "09453bd1df9134c684a948c61a1983f1751a0f19db959f591b8d52df24e5fa2b",
+        "sha256": "66aeb1c9e5c21e739cd0b1f628923aee5b5bf5883997ff6a689420eea6665302",
         "bytes": 3236
       },
       {
@@ -884,8 +884,8 @@
       },
       {
         "path": "tests/v250/test_v262_version_migration.py",
-        "sha256": "4e7f4ee340df705e2d5007f2402ed0b786eaf07ea6365d1c9ecaf6b94715acc1",
-        "bytes": 7484
+        "sha256": "0280a0c19457ca31376b488c6dee49d930f061b59097f7332de9f4a192cc9ee5",
+        "bytes": 8973
       },
       {
         "path": "tests/v250/test_v263_activation_lifecycle.py",
@@ -1149,13 +1149,13 @@
       },
       {
         "path": "tests/v250/test_version_migration.py",
-        "sha256": "c2b4128c089f98c6ebc0cb1e4bec341137f876db94c91b5c6cb644a6e66d4c23",
-        "bytes": 2429
+        "sha256": "6ba2427172c4c5cdd09f4389661f38af06922369950ee02ed3b98dd99e36fbb4",
+        "bytes": 2888
       },
       {
         "path": "tests/v250/test_workflow_release_contract.py",
-        "sha256": "77334b45c2b418a81fd259b92fe087f050c42d5c6076051ecb49e2b86e6a111b",
-        "bytes": 22894
+        "sha256": "85bc20839a19a59d2aa7ffaa9e74fb1f3df178e670597a02ab65d10410941d64",
+        "bytes": 23499
       },
       {
         "path": "tests/v250/v263_activation_fixture.py",
@@ -1688,7 +1688,7 @@
     "scripts/v250/refresh_generation_manifests.py"
   ],
   "projection_writer_allowlist_digest": "6013892aaf766bf73fbf750cb1836da333ee7c58caee199bbbf96571c6eebbfb",
-  "fixture_and_completion_contract_digest": "3362e126ae455afe3fe40f31d1727fb15d91a538a19d990343f2443048046313",
+  "fixture_and_completion_contract_digest": "392fe13a0da6c2ae0ce0f723c132d2402bb2a2c8741410672cf0bdbabd1690c9",
   "repository_control_exclusions": [
     {
       "path_prefix": ".github/workflows/",
