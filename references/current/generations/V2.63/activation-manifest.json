@@ -3,7 +3,7 @@
   "generation_id": "V2.63",
   "generation_state": "active",
   "baseline_generation_id": "V2.62",
-  "manifest_payload_sha256": "c6a92c49b491281092a3eaa401ded96fd76e0f620d778180ae14e41c1c8f86e1",
+  "manifest_payload_sha256": "09465c97c7a21f905eebef0c191b24d436323b4688defc6b6700fe6d4a227983",
   "identity": {
     "loaded_runtime_product_version": "V2.63",
     "core_policy_version": "V2.5",
@@ -429,8 +429,8 @@
       },
       {
         "path": "scripts/v250/runtime_host_adapter.py",
-        "sha256": "ce80db49dfc42147c7c5b344b6d7802a87367c616a3793edd7981d71489bdc4d",
-        "bytes": 13764
+        "sha256": "fc38130273ff4b3427469896c472a4f6f78b5dbbd5f3b4bbd3b7b0dd6a9d2098",
+        "bytes": 21277
       },
       {
         "path": "scripts/v250/runtime_session.py",
@@ -439,8 +439,8 @@
       },
       {
         "path": "scripts/v250/runtime_transition.py",
-        "sha256": "a6220c7ec145adcf0aded486c2c6f12fba259b2da99ba58a8fd8b309f6ff1c78",
-        "bytes": 62259
+        "sha256": "0993cae4d8265a8cde632bf824d797e897ceb513e3678fc8206db650c98c8203",
+        "bytes": 62307
       },
       {
         "path": "scripts/v250/s4_executor.py",
@@ -689,8 +689,8 @@
       },
       {
         "path": "tests/v250/test_runtime_host_adapter.py",
-        "sha256": "e9a279f2b2e2c277cf16e7bc77b825e69e73b017fe49178df48a5f01c8a444e5",
-        "bytes": 13707
+        "sha256": "2d95d5c3da78f8ec92c01b571708bfa280e1368c0eb292ff3ec3ba4a6e5ca66c",
+        "bytes": 20523
       },
       {
         "path": "tests/v250/test_runtime_transition.py",
@@ -1078,6 +1078,11 @@
         "bytes": 14241
       },
       {
+        "path": "tests/v250/test_v263_runtime_child_script_bootstrap.py",
+        "sha256": "db2567b1580763e4cb33838d190ff78d74ba0f896d8026347d54c6571d3864f6",
+        "bytes": 4908
+      },
+      {
         "path": "tests/v250/test_v263_runtime_route_cli_binding.py",
         "sha256": "3e6c3ed4e43ab9e64bbaec48c664226204fb039a8ab62ca33884faa655f61f94",
         "bytes": 1880
@@ -1149,8 +1154,8 @@
       },
       {
         "path": "tests/v250/test_workflow_release_contract.py",
-        "sha256": "02cf7bc591c18c23bcb320a1f40b4517e3ecb7dd7a09f28507615a6d861eeec2",
-        "bytes": 22816
+        "sha256": "77334b45c2b418a81fd259b92fe087f050c42d5c6076051ecb49e2b86e6a111b",
+        "bytes": 22894
       },
       {
         "path": "tests/v250/v263_activation_fixture.py",
@@ -1565,6 +1570,7 @@
     "tests/v250/test_v263_route_manifest_canonical_gate_audit.py",
     "tests/v250/test_v263_route_prompt.py",
     "tests/v250/test_v263_route_runtime_audit.py",
+    "tests/v250/test_v263_runtime_child_script_bootstrap.py",
     "tests/v250/test_v263_runtime_route_cli_binding.py",
     "tests/v250/test_v263_runtime_session_entry_boundary.py",
     "tests/v250/test_v263_runtime_turn.py",
@@ -1591,7 +1597,7 @@
     "tests/v263/test_runtime_binding_contract.py",
     "tests/v263/test_v262_compatibility_policy.py"
   ],
-  "current_default_allowlist_digest": "9e14ad4f938710ab33a0fd2ca814da725b55e75e13f17a5d2f5ae99e4acac620",
+  "current_default_allowlist_digest": "248ddf9a490e7a13a904a66965141ab1e00f2eb9b092db617b616adfec03fe27",
   "optional_replay_allowlist_digest": "cdd978bd498e7b8fe5966a60fce5c4dec1624f8231f7f4d410924f5cc3779f26",
   "legacy_classification": {
     "path_prefixes": [

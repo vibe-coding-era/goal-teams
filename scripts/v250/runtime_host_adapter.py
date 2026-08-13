@@ -16,6 +16,7 @@ import datetime as dt
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 import uuid
@@ -45,6 +46,192 @@ from scripts.v250.runtime_transition import (
     validate_controller_handoff,
     validate_transition,
 )
+
+
+CHILD_FAILURE_STDOUT_MAX_BYTES = 4096
+CHILD_ERROR_UNAVAILABLE = "E_V250_RUNTIME_CHILD_ERROR_UNAVAILABLE"
+CHILD_STDERR_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+KNOWN_RUNTIME_CHILD_ERROR_CODES = frozenset(
+    {
+        "E_V250_CONTROLLER_HANDOFF_AUTHORIZATION_DRIFT",
+        "E_V250_CONTROLLER_HANDOFF_DIGEST",
+        "E_V250_CONTROLLER_HANDOFF_EXPIRED",
+        "E_V250_CONTROLLER_HANDOFF_IDENTITY_DRIFT",
+        "E_V250_CONTROLLER_HANDOFF_INSTALLED_STATE",
+        "E_V250_CONTROLLER_HANDOFF_NONCE",
+        "E_V250_CONTROLLER_HANDOFF_PAYLOAD_DIGEST",
+        "E_V250_CONTROLLER_HANDOFF_REQUIRED",
+        "E_V250_CONTROLLER_HANDOFF_RUN_LINEAGE",
+        "E_V250_CONTROLLER_HANDOFF_SCHEMA",
+        "E_V250_CONTROLLER_HANDOFF_SIGNATURE",
+        "E_V250_CONTROLLER_HANDOFF_SIGNER_DRIFT",
+        "E_V250_CONTROLLER_HANDOFF_TIME",
+        "E_V250_CONTROLLER_HANDOFF_TIME_DRIFT",
+        "E_V250_CONTROLLER_HANDOFF_VERSION",
+        "E_V250_FRESH_RUNTIME_REQUIRED",
+        "E_V250_OWNER_DIGEST_DRIFT",
+        "E_V250_ROUTE_ALLOWLIST",
+        "E_V250_ROUTE_BUDGET",
+        "E_V250_ROUTE_BYTE_DRIFT",
+        "E_V250_ROUTE_GENERATION",
+        "E_V250_ROUTE_LEGACY_REACHABLE",
+        "E_V250_ROUTE_MANIFEST",
+        "E_V250_ROUTE_MEMBERSHIP_DRIFT",
+        "E_V250_ROUTE_NON_TEXT",
+        "E_V250_ROUTE_REFS",
+        "E_V250_ROUTE_SHAPE",
+        "E_V250_ROUTE_UNKNOWN",
+        "E_V250_ROUTE_UNMANAGED",
+        "E_V250_ROUTE_UNVERIFIED_GENERATION",
+        "E_V250_ROUTE_WITHOUT_OWNER",
+        "E_V250_RULE_ID_DUPLICATE",
+        "E_V250_RULE_INDEX",
+        "E_V250_RULE_OWNER",
+        "E_V250_RULE_OWNER_DUPLICATE",
+        "E_V250_RUNTIME_CHILD_MODE_REQUIRED",
+        "E_V250_RUNTIME_LAUNCH_ADAPTER",
+        "E_V250_RUNTIME_LAUNCH_DIGEST",
+        "E_V250_RUNTIME_LAUNCH_LINEAGE",
+        "E_V250_RUNTIME_LAUNCH_REQUIRED",
+        "E_V250_RUNTIME_LAUNCH_SCHEMA",
+        "E_V250_RUNTIME_LAUNCH_TIME",
+        "E_V250_RUNTIME_STDIN_RECEIPTS_REQUIRED",
+        "E_V250_RUNTIME_TRANSITION_ACTIVATION",
+        "E_V250_RUNTIME_TRANSITION_ACTIVE",
+        "E_V250_RUNTIME_TRANSITION_ACTIVE_DIGEST",
+        "E_V250_RUNTIME_TRANSITION_ADAPTER_CODE_DIGEST",
+        "E_V250_RUNTIME_TRANSITION_ADAPTER_IDENTITY",
+        "E_V250_RUNTIME_TRANSITION_APPROVED_PROMPT_DIGEST",
+        "E_V250_RUNTIME_TRANSITION_ASSURANCE",
+        "E_V250_RUNTIME_TRANSITION_AUTHORIZATION",
+        "E_V250_RUNTIME_TRANSITION_AUTHORIZATION_RECEIPT_DIGEST",
+        "E_V250_RUNTIME_TRANSITION_CAPTURED_AT",
+        "E_V250_RUNTIME_TRANSITION_CURRENT_DIGEST",
+        "E_V250_RUNTIME_TRANSITION_CURRENT_INPUT",
+        "E_V250_RUNTIME_TRANSITION_DIGEST",
+        "E_V250_RUNTIME_TRANSITION_EVIDENCE_PATH",
+        "E_V250_RUNTIME_TRANSITION_IDENTITY",
+        "E_V250_RUNTIME_TRANSITION_JSON",
+        "E_V250_RUNTIME_TRANSITION_LOADED_PATHS",
+        "E_V250_RUNTIME_TRANSITION_PATH",
+        "E_V250_RUNTIME_TRANSITION_PROCESS",
+        "E_V250_RUNTIME_TRANSITION_PROJECT_SIZE",
+        "E_V250_RUNTIME_TRANSITION_PROMPT_MANIFEST",
+        "E_V250_RUNTIME_TRANSITION_RAW_LINEAGE",
+        "E_V250_RUNTIME_TRANSITION_RECEIPT",
+        "E_V250_RUNTIME_TRANSITION_RECEIPT_DIGEST",
+        "E_V250_RUNTIME_TRANSITION_ROUTE",
+        "E_V250_RUNTIME_TRANSITION_ROUTE_RECEIPT",
+        "E_V250_RUNTIME_TRANSITION_ROUTE_RECEIPT_DIGEST",
+        "E_V250_RUNTIME_TRANSITION_SCHEMA",
+        "E_V250_RUNTIME_TRANSITION_SCHEMA_CONTRACT",
+        "E_V250_RUNTIME_TRANSITION_SCHEMA_FIELDS",
+        "E_V250_RUNTIME_TRANSITION_STAGE",
+        "E_V250_RUNTIME_TRANSITION_STALE",
+        "E_V250_RUNTIME_TRANSITION_VERSION_AXIS",
+        "E_V263_CONTROL_ALIAS",
+        "E_V263_CONTROL_ALIAS_COLLISION",
+        "E_V263_CONTROL_TERM",
+        "E_V263_DEPENDENCY_DUPLICATE",
+        "E_V263_DEPENDENCY_KIND",
+        "E_V263_DEPENDENCY_SHAPE",
+        "E_V263_DEPENDENCY_UNKNOWN",
+        "E_V263_DERIVED_ROUTE_CONTROLS",
+        "E_V263_DERIVED_ROUTE_DIGEST",
+        "E_V263_DERIVED_ROUTE_RECEIPT",
+        "E_V263_DERIVED_ROUTE_REPLAY",
+        "E_V263_FACTS",
+        "E_V263_FACT_DEPENDENCY",
+        "E_V263_ORDERED_REF_DUPLICATE",
+        "E_V263_ORDERED_REFS",
+        "E_V263_OWNER_DUPLICATE",
+        "E_V263_OWNER_SHAPE",
+        "E_V263_PHASE_DEPENDENCY",
+        "E_V263_REQUIRED_DEPENDENCY",
+        "E_V263_ROUTE_CONTROL",
+        "E_V263_ROUTE_FACTS_REQUIRED",
+        "E_V263_ROUTE_ID",
+        "E_V263_ROUTE_MEMBERSHIP",
+        "E_V263_ROUTE_WITHOUT_OWNER",
+        "E_V263_RUNTIME_ROUTE_CLOSURE",
+        "E_V263_RUNTIME_ROUTE_EVIDENCE_JSON",
+        "E_V263_RUNTIME_ROUTE_EVIDENCE_NORMALIZATION",
+        "E_V263_RUNTIME_ROUTE_EVIDENCE_REQUIRED",
+        "E_V263_RUNTIME_ROUTE_FACTS",
+        "E_V263_RUNTIME_ROUTE_FACTS_BINDING",
+        "E_V263_RUNTIME_ROUTE_FACTS_DIGEST",
+        "E_V263_RUNTIME_ROUTE_IDENTITY",
+        "E_V263_RUNTIME_ROUTE_RECOMPILE",
+        "E_V263_SEMANTIC_SHAPE",
+    }
+)
+
+
+def _reject_duplicate_json_key(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    value: dict[str, Any] = {}
+    for key, item in pairs:
+        if key in value:
+            raise ValueError("duplicate JSON key")
+        value[key] = item
+    return value
+
+
+class RuntimeChildFailure(ValueError):
+    """Machine-safe parent-side projection of a failed runtime child."""
+
+    def __init__(self, *, child_error_code: str, child_stderr_sha256: str) -> None:
+        super().__init__("E_V250_RUNTIME_CHILD_FAILED")
+        self.child_error_code = (
+            child_error_code
+            if child_error_code in KNOWN_RUNTIME_CHILD_ERROR_CODES
+            else CHILD_ERROR_UNAVAILABLE
+        )
+        if CHILD_STDERR_SHA256_RE.fullmatch(child_stderr_sha256) is None:
+            raise ValueError("E_V250_RUNTIME_CHILD_DIAGNOSTIC_INVALID")
+        self.child_stderr_sha256 = child_stderr_sha256
+
+    def parent_envelope(self) -> dict[str, Any]:
+        return {
+            "passed": False,
+            "error_code": "E_V250_RUNTIME_CHILD_FAILED",
+            "child_error_code": self.child_error_code,
+            "child_stderr_sha256": self.child_stderr_sha256,
+            "external_write_count": 0,
+        }
+
+
+def _child_failure_error_code(stdout: str) -> str:
+    if not isinstance(stdout, str):
+        return CHILD_ERROR_UNAVAILABLE
+    try:
+        stdout_bytes = stdout.encode("utf-8")
+    except UnicodeEncodeError:
+        return CHILD_ERROR_UNAVAILABLE
+    if len(stdout_bytes) > CHILD_FAILURE_STDOUT_MAX_BYTES:
+        return CHILD_ERROR_UNAVAILABLE
+    try:
+        value = json.loads(stdout, object_pairs_hook=_reject_duplicate_json_key)
+    except (json.JSONDecodeError, ValueError, RecursionError):
+        return CHILD_ERROR_UNAVAILABLE
+    expected_fields = {
+        "schema_version",
+        "acknowledged",
+        "error_code",
+        "external_independence",
+    }
+    if (
+        not isinstance(value, dict)
+        or set(value) != expected_fields
+        or value.get("schema_version") != CHILD_ACK_SCHEMA_VERSION
+        or value.get("acknowledged") is not False
+        or value.get("external_independence") is not False
+        or not isinstance(value.get("error_code"), str)
+    ):
+        return CHILD_ERROR_UNAVAILABLE
+    error_code = value["error_code"]
+    if error_code not in KNOWN_RUNTIME_CHILD_ERROR_CODES:
+        return CHILD_ERROR_UNAVAILABLE
+    return error_code
 
 
 def _public_key_fingerprint(public_key: str) -> str | None:
@@ -273,9 +460,9 @@ def launch_runtime_transition(
         json.dumps(envelope, ensure_ascii=False, sort_keys=True) + "\n"
     )
     if process.returncode != 0:
-        raise ValueError(
-            "E_V250_RUNTIME_CHILD_FAILED:"
-            + hashlib.sha256(stderr.encode("utf-8")).hexdigest()
+        raise RuntimeChildFailure(
+            child_error_code=_child_failure_error_code(stdout),
+            child_stderr_sha256=hashlib.sha256(stderr.encode("utf-8")).hexdigest(),
         )
     try:
         ack = json.loads(stdout)
@@ -366,6 +553,10 @@ def main() -> int:
                 controller_handoff_receipt=handoff,
                 host_execution_id=args.host_execution_id,
             )
+    except RuntimeChildFailure as exc:
+        result = exc.parent_envelope()
+        print(json.dumps(result, sort_keys=True))
+        return 1
     except (OSError, UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
         print(
             json.dumps(
