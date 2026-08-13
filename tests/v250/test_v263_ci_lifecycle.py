@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+import json
+import subprocess
+import sys
+import tempfile
+import textwrap
 import unittest
 from pathlib import Path
 
@@ -55,6 +60,15 @@ def development_step(workflow: str) -> str:
     return workflow[start:] if end < 0 else workflow[start:end]
 
 
+def published_version_reader_source(workflow: str) -> str:
+    step = development_step(workflow)
+    start_marker = "            python3 - <<'PY'\n"
+    end_marker = "\n          PY\n"
+    start = step.index(start_marker) + len(start_marker)
+    end = step.index(end_marker, start)
+    return textwrap.dedent(step[start:end])
+
+
 class TestV263CiLifecycle(unittest.TestCase):
     def test_development_jobs_use_one_explicit_active_pre_release_exact_set(
         self,
@@ -88,9 +102,10 @@ class TestV263CiLifecycle(unittest.TestCase):
 
     def test_active_pre_release_phase_commands_are_explicit_and_ordered(self) -> None:
         commands = (
+            'published_version="$(',
             "scripts/checks/check-version-sync.py \\",
             "--mode development \\",
-            "--published-version V2.62",
+            '--published-version "${published_version}"',
             "scripts/checks/validate-v250-generation.py \\",
             "--generation-id V2.63 \\",
             "--selection active",
@@ -105,7 +120,61 @@ class TestV263CiLifecycle(unittest.TestCase):
                 step = development_step(text(path))
                 positions = [step.index(command) for command in commands]
                 self.assertEqual(sorted(positions), positions)
+                self.assertNotIn("--published-version V2.62", step)
                 self.assertNotIn("--phase release", step)
+
+    def test_published_version_reader_supports_candidate_and_final_projection(
+        self,
+    ) -> None:
+        projections = ("V2.62", "V2.63")
+        for path in WORKFLOWS:
+            source = published_version_reader_source(text(path))
+            with self.subTest(path=path.name):
+                self.assertIn('Path("release/current/manifest.json")', source)
+                self.assertIn('manifest.get("product_version")', source)
+            for product_version in projections:
+                with self.subTest(path=path.name, product_version=product_version):
+                    with tempfile.TemporaryDirectory() as directory:
+                        root = Path(directory)
+                        current = root / "release/current"
+                        current.mkdir(parents=True)
+                        (current / "manifest.json").write_text(
+                            json.dumps({"product_version": product_version}),
+                            encoding="utf-8",
+                        )
+                        result = subprocess.run(
+                            [sys.executable, "-c", source],
+                            cwd=root,
+                            text=True,
+                            capture_output=True,
+                            check=False,
+                        )
+                    self.assertEqual(0, result.returncode, result.stderr)
+                    self.assertEqual(product_version, result.stdout.strip())
+
+    def test_published_version_reader_fails_closed_on_invalid_projection(self) -> None:
+        invalid_projections = ({}, {"product_version": 263}, {"product_version": "2.63"})
+        for path in WORKFLOWS:
+            source = published_version_reader_source(text(path))
+            for projection in invalid_projections:
+                with self.subTest(path=path.name, projection=projection):
+                    with tempfile.TemporaryDirectory() as directory:
+                        root = Path(directory)
+                        current = root / "release/current"
+                        current.mkdir(parents=True)
+                        (current / "manifest.json").write_text(
+                            json.dumps(projection),
+                            encoding="utf-8",
+                        )
+                        result = subprocess.run(
+                            [sys.executable, "-c", source],
+                            cwd=root,
+                            text=True,
+                            capture_output=True,
+                            check=False,
+                        )
+                    self.assertNotEqual(0, result.returncode)
+                    self.assertIn("E_V263_PUBLISHED_VERSION_REQUIRED", result.stderr)
 
     def test_formal_release_workflow_keeps_facts_s1_and_single_s2(self) -> None:
         workflow = text(ROOT / ".github/workflows/release-gate.yml")

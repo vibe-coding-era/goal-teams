@@ -428,12 +428,50 @@ def validate_v250_current(args: argparse.Namespace, product: str) -> None:
     if (
         release.get("core_policy_version") != CORE
         or release.get("legacy_data_schema_version") != LEGACY
+        or release.get("status") != "release"
     ):
-        fail("release/current mixes core or Legacy data identity")
+        fail("release/current mixes core, Legacy, or release status identity")
     published = release.get("product_version")
+    identity = release.get("release_identity")
+    if not isinstance(identity, dict):
+        fail("release/current release_identity must be an object")
+
+    def expected_public_assets(version: str) -> list[str]:
+        return [
+            f"goal-teams-{version}.tar.gz",
+            "SHA256SUMS",
+            "_release.json",
+            "_files.sha256",
+        ]
+
+    def validate_published_identity(version: str) -> None:
+        if (
+            identity.get("tag") != version.lower()
+            or identity.get("state") != "published"
+            or isinstance(identity.get("release_id"), bool)
+            or not isinstance(identity.get("release_id"), int)
+            or identity["release_id"] <= 0
+            or not COMMIT_RE.fullmatch(str(identity.get("source_commit", "")))
+            or not COMMIT_RE.fullmatch(str(identity.get("source_tree", "")))
+            or identity.get("public_assets") != expected_public_assets(version)
+        ):
+            fail(f"release/current {version} published identity is invalid")
+
+    candidate_keys = {
+        "candidate_product_version",
+        "candidate_release_state",
+        "candidate_profile",
+    }
     if published == product:
-        if release.get("release_identity", {}).get("state") != "published":
-            fail(f"final {product} release/current identity is not published")
+        if release.get("schema_version") != f"goal-teams-release-manifest-{product.lower()}":
+            fail(f"final {product} release/current schema is invalid")
+        retained_candidate_keys = candidate_keys.intersection(release)
+        if retained_candidate_keys:
+            fail(
+                f"final {product} release/current retains candidate keys: "
+                f"{sorted(retained_candidate_keys)}"
+            )
+        validate_published_identity(product)
     else:
         predecessor = "V2.62" if product == "V2.63" else "V2.6"
         candidate_states = (
@@ -443,12 +481,20 @@ def validate_v250_current(args: argparse.Namespace, product: str) -> None:
         )
         if not (
             published == predecessor
+            and release.get("schema_version")
+            == f"goal-teams-release-manifest-{predecessor.lower()}"
             and release.get("candidate_product_version") == product
             and release.get("candidate_release_state") in candidate_states
+            and release.get("candidate_profile")
+            == f"references/release-profiles/v{suffix}.json"
         ):
             fail(f"release/current is neither the {product} candidate nor final projection")
-    if product not in read("release/current/README.md"):
+        validate_published_identity(predecessor)
+    release_readme = read("release/current/README.md")
+    if product not in release_readme:
         fail(f"release/current README does not describe {product}")
+    if not release_readme.startswith(f"# Goal Teams {published} Release\n"):
+        fail("release/current README heading does not match published product")
 
     if args.mode == "development":
         if args.published_version != published:

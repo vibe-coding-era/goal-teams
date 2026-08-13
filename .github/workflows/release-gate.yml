@@ -160,9 +160,27 @@ jobs:
             tests.v263.test_projection_cli \
             tests.v263.test_runtime_binding_contract \
             tests.v263.test_v262_compatibility_policy
+          published_version="$(
+            python3 - <<'PY'
+          import json
+          import re
+          from pathlib import Path
+
+          manifest = json.loads(
+              Path("release/current/manifest.json").read_text(encoding="utf-8")
+          )
+          published_version = manifest.get("product_version")
+          if (
+              not isinstance(published_version, str)
+              or re.fullmatch(r"V[0-9]+\.[0-9]+", published_version) is None
+          ):
+              raise SystemExit("E_V263_PUBLISHED_VERSION_REQUIRED")
+          print(published_version)
+          PY
+          )"
           python3 scripts/checks/check-version-sync.py \
             --mode development \
-            --published-version V2.62
+            --published-version "${published_version}"
           python3 scripts/checks/validate-v250-generation.py \
             --generation-id V2.63 \
             --selection active
