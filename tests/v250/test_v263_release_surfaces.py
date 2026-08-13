@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib.util
 import argparse
+import copy
 import json
 import unittest
 from pathlib import Path
@@ -32,15 +33,61 @@ def _load(path: Path, name: str):
 
 
 class TestV263ReleaseSurfaces(unittest.TestCase):
-    def test_version_sync_uses_v263_current_projection_not_legacy_markers(self) -> None:
-        sync = _load(VERSION_SYNC_PATH, "_test_v263_version_sync")
+    @staticmethod
+    def _strict_projections(sync):
+        candidate = json.loads(sync.read("release/current/manifest.json"))
+        final = {
+            **candidate,
+            "schema_version": "goal-teams-release-manifest-v2.63",
+            "product_version": "V2.63",
+            "release_identity": {
+                **candidate["release_identity"],
+                "tag": "v2.63",
+                "release_id": 463000001,
+                "state": "published",
+                "source_commit": "a" * 40,
+                "source_tree": "b" * 40,
+                "public_assets": [
+                    "goal-teams-V2.63.tar.gz",
+                    "SHA256SUMS",
+                    "_release.json",
+                    "_files.sha256",
+                ],
+            },
+        }
+        for key in (
+            "candidate_product_version",
+            "candidate_release_state",
+            "candidate_profile",
+        ):
+            final.pop(key, None)
+        return candidate, final
+
+    def _run_version_sync_projection(
+        self,
+        sync,
+        projection,
+        *,
+        readme_published_version: str | None = None,
+    ) -> None:
+        original_read = sync.read
         args = argparse.Namespace(
             mode="development",
-            published_version="V2.62",
+            published_version=projection.get("product_version"),
             candidate_commit=None,
         )
+
+        def projected_read(path: str) -> str:
+            if path == "release/current/manifest.json":
+                return json.dumps(projection)
+            if path == "release/current/README.md":
+                heading = readme_published_version or projection.get("product_version")
+                return f"# Goal Teams {heading} Release\n\nV2.63\n"
+            return original_read(path)
+
         with (
             mock.patch.object(sync, "parse_args", return_value=args),
+            mock.patch.object(sync, "read", side_effect=projected_read),
             mock.patch.object(
                 sync,
                 "validate_runtime_identity",
@@ -49,6 +96,68 @@ class TestV263ReleaseSurfaces(unittest.TestCase):
             mock.patch("builtins.print"),
         ):
             sync.main()
+
+    def test_version_sync_accepts_candidate_and_final_current_projection(self) -> None:
+        sync = _load(VERSION_SYNC_PATH, "_test_v263_version_sync")
+        candidate, final = self._strict_projections(sync)
+        for projection in (candidate, final):
+            with self.subTest(published_version=projection["product_version"]):
+                self._run_version_sync_projection(sync, projection)
+
+    def test_version_sync_rejects_mixed_or_partial_current_projection(self) -> None:
+        sync = _load(VERSION_SYNC_PATH, "_test_v263_version_sync_negative")
+        candidate, final = self._strict_projections(sync)
+        invalid = []
+
+        missing_profile = copy.deepcopy(candidate)
+        missing_profile.pop("candidate_profile")
+        invalid.append(missing_profile)
+
+        candidate_schema = copy.deepcopy(candidate)
+        candidate_schema["schema_version"] = "goal-teams-release-manifest-v2.63"
+        invalid.append(candidate_schema)
+
+        candidate_draft = copy.deepcopy(candidate)
+        candidate_draft["release_identity"]["state"] = "draft"
+        invalid.append(candidate_draft)
+
+        for key in (
+            "candidate_product_version",
+            "candidate_release_state",
+            "candidate_profile",
+            "schema_version",
+            "release_identity.tag",
+            "release_identity.public_assets",
+        ):
+            mixed = copy.deepcopy(final)
+            if key == "candidate_product_version":
+                mixed[key] = "V2.63"
+            elif key == "candidate_release_state":
+                mixed[key] = "development_candidate_not_published"
+            elif key == "candidate_profile":
+                mixed[key] = "references/release-profiles/v2.63.json"
+            elif key == "schema_version":
+                mixed[key] = "goal-teams-release-manifest-v2.62"
+            elif key == "release_identity.tag":
+                mixed["release_identity"]["tag"] = "v2.62"
+            else:
+                mixed["release_identity"]["public_assets"][0] = (
+                    "goal-teams-V2.62.tar.gz"
+                )
+            invalid.append(mixed)
+
+        for projection in invalid:
+            with self.subTest(projection=projection):
+                with self.assertRaises(SystemExit):
+                    self._run_version_sync_projection(sync, projection)
+
+        with self.subTest(projection="final_with_predecessor_readme_heading"):
+            with self.assertRaises(SystemExit):
+                self._run_version_sync_projection(
+                    sync,
+                    final,
+                    readme_published_version="V2.62",
+                )
 
     def test_current_validator_dispatches_v263_without_legacy_readme_checks(self) -> None:
         validator = _load(VALIDATE_PATH, "_test_v263_current_validator")
