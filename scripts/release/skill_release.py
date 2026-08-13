@@ -1394,6 +1394,8 @@ def _validate_s4_control(
     commit: str,
     release_control_receipt: dict[str, Any],
     *,
+    runtime_route_facts_receipt_path: Path | str | None = None,
+    runtime_derived_route_receipt_path: Path | str | None = None,
     runtime_route_receipt_path: Path | str | None = None,
     runtime_authorization_receipt_path: Path | str | None = None,
 ) -> dict[str, Any]:
@@ -1421,6 +1423,12 @@ def _validate_s4_control(
         expected_tag=config["tag"],
         expected_source_commit=commit,
         expected_source_tree=identity["source_git_tree"],
+        runtime_route_facts_receipt_path=(
+            runtime_route_facts_receipt_path
+        ),
+        runtime_derived_route_receipt_path=(
+            runtime_derived_route_receipt_path
+        ),
         runtime_route_receipt_path=runtime_route_receipt_path,
         runtime_authorization_receipt_path=(
             runtime_authorization_receipt_path
@@ -1506,6 +1514,8 @@ def validate_v250_s4_control(
     commit: str,
     release_control_receipt: dict[str, Any],
     *,
+    runtime_route_facts_receipt_path: Path | str | None = None,
+    runtime_derived_route_receipt_path: Path | str | None = None,
     runtime_route_receipt_path: Path | str | None = None,
     runtime_authorization_receipt_path: Path | str | None = None,
 ) -> dict[str, Any]:
@@ -1519,6 +1529,8 @@ def validate_v250_s4_control(
         version,
         commit,
         release_control_receipt,
+        runtime_route_facts_receipt_path=runtime_route_facts_receipt_path,
+        runtime_derived_route_receipt_path=runtime_derived_route_receipt_path,
         runtime_route_receipt_path=runtime_route_receipt_path,
         runtime_authorization_receipt_path=runtime_authorization_receipt_path,
     )
@@ -1861,6 +1873,34 @@ def _v263_checkpoint_route_triplet_binding_errors(
     return []
 
 
+def _checkpoint_runtime_receipt_paths(
+    version: str,
+    receipt_root: Path,
+) -> dict[str, Path]:
+    """Return the portable runtime inputs staged with one continuation bundle."""
+
+    paths = {
+        "runtime_route_receipt_path": (
+            receipt_root / "release-route-receipt.json"
+        ),
+        "runtime_authorization_receipt_path": (
+            receipt_root / "authorization.json"
+        ),
+    }
+    if version == "V2.63":
+        paths.update(
+            {
+                "runtime_route_facts_receipt_path": (
+                    receipt_root / "release-route-facts.json"
+                ),
+                "runtime_derived_route_receipt_path": (
+                    receipt_root / "release-route-derived.json"
+                ),
+            }
+        )
+    return paths
+
+
 def build_v249_continuation_checkpoint(
     version: str,
     commit: str,
@@ -1989,11 +2029,8 @@ def build_v249_continuation_checkpoint(
                 version,
                 commit,
                 control,
-                runtime_route_receipt_path=(
-                    receipt_source_root / "release-route-receipt.json"
-                ),
-                runtime_authorization_receipt_path=(
-                    receipt_source_root / "authorization.json"
+                **_checkpoint_runtime_receipt_paths(
+                    version, receipt_source_root
                 ),
             )
         except SkillReleaseError as exc:
@@ -2297,12 +2334,7 @@ def validate_v249_continuation_checkpoint(
             version,
             commit,
             control,
-            runtime_route_receipt_path=(
-                receipt_root / "release-route-receipt.json"
-            ),
-            runtime_authorization_receipt_path=(
-                receipt_root / "authorization.json"
-            ),
+            **_checkpoint_runtime_receipt_paths(version, receipt_root),
         )
     except SkillReleaseError as exc:
         control_verdict = {

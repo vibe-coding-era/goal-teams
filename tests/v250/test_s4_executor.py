@@ -9,7 +9,9 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+from scripts.release import skill_release
 from scripts.v250 import release_flow, s4_executor
+from tests.v250.test_release_control import checkpoint_fixture
 
 
 SOURCE = "1" * 40
@@ -591,6 +593,12 @@ class TestV250S4Executor(unittest.TestCase):
             VERSION,
             SOURCE,
             {},
+            runtime_route_facts_receipt_path=(
+                receipt_root / "release-route-facts.json"
+            ),
+            runtime_derived_route_receipt_path=(
+                receipt_root / "release-route-derived.json"
+            ),
             runtime_route_receipt_path=(
                 receipt_root / "release-route-receipt.json"
             ),
@@ -686,6 +694,143 @@ class TestV250S4Executor(unittest.TestCase):
             "E_V250_S4_CHECKPOINT_CONTROL_BINDING", caught.exception.code
         )
         module.validate_v250_continuation_checkpoint.assert_not_called()
+
+    def test_portable_triplet_symlink_and_swap_block_before_backend(self) -> None:
+        cases = (
+            ("symlink-facts", ("release-route-facts.json",), "symlink"),
+            ("symlink-derived", ("release-route-derived.json",), "symlink"),
+            ("symlink-closure", ("release-route-receipt.json",), "symlink"),
+            ("symlink-authorization", ("authorization.json",), "symlink"),
+            (
+                "swap-facts-derived",
+                ("release-route-facts.json", "release-route-derived.json"),
+                "swap",
+            ),
+            (
+                "swap-derived-closure",
+                ("release-route-derived.json", "release-route-receipt.json"),
+                "swap",
+            ),
+        )
+        for label, names, mutation in cases:
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as temp:
+                root = Path(temp)
+                staging_root, release_root, outcomes = checkpoint_fixture(root)
+                with (
+                    mock.patch.object(
+                        skill_release,
+                        "_read_identity",
+                        return_value={"source_git_tree": TREE},
+                    ),
+                    mock.patch.object(
+                        skill_release,
+                        "validate_v250_s4_control",
+                        return_value={"ok": True, "errors": []},
+                    ),
+                ):
+                    checkpoint = skill_release.build_v250_continuation_checkpoint(
+                        VERSION,
+                        SOURCE,
+                        project_size="large",
+                        job_status="success",
+                        workflow_run_id="1003",
+                        workflow_run_attempt="1",
+                        gate_outcomes=outcomes,
+                        receipt_source_root=staging_root,
+                        release_root=release_root,
+                    )
+                self.assertEqual("ready_for_s4", checkpoint["state"])
+                receipt_root = release_root / VERSION / "_receipts"
+                staging_root.rename(receipt_root)
+                checkpoint_receipt = receipt_root / "_checkpoint.json"
+                checkpoint_receipt.write_text(
+                    json.dumps(checkpoint, sort_keys=True), encoding="utf-8"
+                )
+
+                if mutation == "symlink":
+                    source = receipt_root / names[0]
+                    target = root / f"{names[0]}.regular-target"
+                    source.rename(target)
+                    source.symlink_to(target)
+                    expected_error = "E_V263_CONTINUATION_RECEIPT_SET"
+                else:
+                    first = receipt_root / names[0]
+                    second = receipt_root / names[1]
+                    first_raw = first.read_bytes()
+                    second_raw = second.read_bytes()
+                    first.write_bytes(second_raw)
+                    second.write_bytes(first_raw)
+                    for name in names:
+                        path = receipt_root / name
+                        checkpoint["formal_files"][name] = {
+                            "size": path.stat().st_size,
+                            "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                        }
+                    checkpoint.pop("checkpoint_sha256")
+                    checkpoint["checkpoint_sha256"] = (
+                        release_flow.canonical_sha256(checkpoint)
+                    )
+                    checkpoint_receipt.write_text(
+                        json.dumps(checkpoint, sort_keys=True), encoding="utf-8"
+                    )
+                    expected_error = (
+                        "E_V263_CONTINUATION_ROUTE_TRIPLET_BINDING"
+                    )
+
+                control = json.loads(
+                    (receipt_root / "release-control.json").read_text(
+                        encoding="utf-8"
+                    )
+                )
+                backend = FakeBackend()
+                backend.read_fetch_remote = mock.Mock(
+                    side_effect=AssertionError("backend must not be called")
+                )
+                control_validator = mock.Mock(
+                    side_effect=AssertionError(
+                        "control validator must not be called"
+                    )
+                )
+                with (
+                    mock.patch.object(
+                        s4_executor,
+                        "_load_module",
+                        return_value=skill_release,
+                    ),
+                    mock.patch.object(
+                        skill_release,
+                        "_read_identity",
+                        return_value={"source_git_tree": TREE},
+                    ),
+                    mock.patch.object(
+                        skill_release,
+                        "validate_v250_s4_control",
+                        return_value={"ok": True, "errors": []},
+                    ),
+                    self.assertRaises(s4_executor.S4ExecutionError) as caught,
+                ):
+                    self.execute_s4(
+                        version=VERSION,
+                        commit=SOURCE,
+                        release_control=control,
+                        release_root=release_root,
+                        repository_root=root,
+                        backend=backend,
+                        checkpoint_receipt=checkpoint_receipt,
+                        receipt_root=receipt_root,
+                        checkpoint_validator=(
+                            s4_executor._default_checkpoint_validator
+                        ),
+                        control_validator=control_validator,
+                    )
+
+                self.assertEqual(expected_error, caught.exception.code)
+                self.assertEqual(0, caught.exception.receipt["write_attempt_count"])
+                self.assertEqual(
+                    {key: 0 for key in backend.write_counts}, backend.write_counts
+                )
+                backend.read_fetch_remote.assert_not_called()
+                control_validator.assert_not_called()
 
     def test_checkpoint_path_must_be_the_exact_regular_receipt_file(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

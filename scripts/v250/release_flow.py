@@ -994,6 +994,8 @@ def _runtime_transition_errors(
     source_commit: str,
     source_tree: str,
     expected_host_execution_id: str | None = None,
+    route_facts_receipt_path_override: Path | str | None = None,
+    derived_route_receipt_path_override: Path | str | None = None,
     route_receipt_path_override: Path | str | None = None,
     authorization_receipt_path_override: Path | str | None = None,
 ) -> list[str]:
@@ -1022,6 +1024,12 @@ def _runtime_transition_errors(
             expected_source_commit=source_commit,
             expected_source_tree=source_tree,
             expected_host_execution_id=expected_host_execution_id,
+            route_facts_receipt_path_override=(
+                route_facts_receipt_path_override
+            ),
+            derived_route_receipt_path_override=(
+                derived_route_receipt_path_override
+            ),
             route_receipt_path_override=route_receipt_path_override,
             authorization_receipt_path_override=(
                 authorization_receipt_path_override
@@ -1496,6 +1504,8 @@ def validate_release_control_receipt(
     expected_tag: str,
     expected_source_commit: str,
     expected_source_tree: str,
+    runtime_route_facts_receipt_path: Path | str | None = None,
+    runtime_derived_route_receipt_path: Path | str | None = None,
     runtime_route_receipt_path: Path | str | None = None,
     runtime_authorization_receipt_path: Path | str | None = None,
     validation_time: dt.datetime | None = None,
@@ -1550,6 +1560,12 @@ def validate_release_control_receipt(
             transition,
             expected_source_commit,
             expected_source_tree,
+            route_facts_receipt_path_override=(
+                runtime_route_facts_receipt_path
+            ),
+            derived_route_receipt_path_override=(
+                runtime_derived_route_receipt_path
+            ),
             route_receipt_path_override=runtime_route_receipt_path,
             authorization_receipt_path_override=(
                 runtime_authorization_receipt_path

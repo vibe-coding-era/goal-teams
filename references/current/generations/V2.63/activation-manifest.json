@@ -3,7 +3,7 @@
   "generation_id": "V2.63",
   "generation_state": "active",
   "baseline_generation_id": "V2.62",
-  "manifest_payload_sha256": "5d095ce1321bd451026d20c0b220146ecc93a6be7688397a05899824ffb9bd7f",
+  "manifest_payload_sha256": "1e6d3be789f703ac30beaf04eeb5d30c35dae475d12240f0e9f029df2b3e3a03",
   "identity": {
     "loaded_runtime_product_version": "V2.63",
     "core_policy_version": "V2.5",
@@ -334,8 +334,8 @@
       },
       {
         "path": "scripts/release/skill_release.py",
-        "sha256": "2c9c6e2ef27d8a64fd63538f90fc9216d6c8418bd3d1f76149fd5040f0d555c5",
-        "bytes": 95581
+        "sha256": "14eb728b6ebc78ab9ade64d0a557726978e8f4b9d72b3c0e88732b887f4af3bf",
+        "bytes": 96688
       },
       {
         "path": "scripts/release/validate-release.py",
@@ -409,8 +409,8 @@
       },
       {
         "path": "scripts/v250/release_flow.py",
-        "sha256": "58408904e7d635539858a9ee3e7718b6670e4cdf220d77ff0755ecbb8d926ef3",
-        "bytes": 68051
+        "sha256": "1b93211731249b5386cd308824cbc8e7c0b7ecdaedcf78f5c3926156ca9719d3",
+        "bytes": 68771
       },
       {
         "path": "scripts/v250/replay_runner.py",
@@ -444,8 +444,8 @@
       },
       {
         "path": "scripts/v250/s4_executor.py",
-        "sha256": "275acbfe2d7c28c0fd0da42646f48dc06f64d849e01e12d58192ccaea1162579",
-        "bytes": 115225
+        "sha256": "74da6a34a445920e1d73dbf4b80ca9d2ae271fc1e41f33bf02c8b6a40b39c121",
+        "bytes": 115849
       },
       {
         "path": "scripts/v250/semantic_closure.py",
@@ -654,8 +654,8 @@
       },
       {
         "path": "tests/v250/test_release_control.py",
-        "sha256": "cf67d65b9b05665c22f976c5bab66029e21ce735a0dc42cfeeb7b79a52d4d53a",
-        "bytes": 61873
+        "sha256": "16d4f39fc7d13eceb03ec3543aec4a22245b4f3f8a71a83f752ad9aa2531deab",
+        "bytes": 68716
       },
       {
         "path": "tests/v250/test_release_flow.py",
@@ -699,8 +699,8 @@
       },
       {
         "path": "tests/v250/test_s4_executor.py",
-        "sha256": "0f59c0f94146bb179edbeb443ae2f0334f1c2ff22deb35dc7f5b85e4741091b3",
-        "bytes": 88972
+        "sha256": "1e711a08e7eb749eb1a3f7b907e8e7a1c7f604c2a236025a404ccda46538a085",
+        "bytes": 95523
       },
       {
         "path": "tests/v250/test_schema_contracts.py",
@@ -939,8 +939,8 @@
       },
       {
         "path": "tests/v250/test_v263_continuation_route_triplet.py",
-        "sha256": "b7becbe01a43103368f975d2c4f81e427a2f58d043968cf9083d487f0b933782",
-        "bytes": 4493
+        "sha256": "4c38aca230ceddc60359035debf73a088a09633658b1e073c92fed1ca8c0b0f5",
+        "bytes": 6033
       },
       {
         "path": "tests/v250/test_v263_core_audit.py",

@@ -16,6 +16,7 @@ from scripts.v250.route_closure import compile_derived_route_closure
 from scripts.v250.route_derivation import derive_route
 from scripts.v250.repository_boundary import build_boundary_receipt
 from tests.v250.v263_candidate_fixture import inactive_candidate_fixture
+from tests.v250.test_runtime_transition import _observe as observe_runtime_transition
 
 
 SOURCE = "1" * 40
@@ -765,9 +766,115 @@ def checkpoint_fixture(root: Path) -> tuple[Path, Path, dict[str, str]]:
 
 
 class TestV250ReleaseControl(unittest.TestCase):
+    def test_release_flow_replays_stale_runner_paths_from_portable_triplet(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = observe_runtime_transition(root)
+            source_paths = {
+                "route_facts_receipt_path_override": (
+                    root / "docs/release-route-facts.json"
+                ),
+                "derived_route_receipt_path_override": (
+                    root / "docs/release-route-derived.json"
+                ),
+                "route_receipt_path_override": (
+                    root / "docs/release-route-receipt.json"
+                ),
+                "authorization_receipt_path_override": (
+                    root / "docs/authorization-receipt.json"
+                ),
+            }
+            portable_root = root / "downloaded"
+            portable_root.mkdir()
+            portable_inputs: dict[str, Path] = {}
+            for override_name, source_path in source_paths.items():
+                target = portable_root / source_path.name
+                target.write_bytes(source_path.read_bytes())
+                portable_inputs[override_name] = target
+
+            runtime["route_facts_receipt_path"] = (
+                "/home/runner/work/_temp/release-route-facts.json"
+            )
+            runtime["derived_route_receipt_path"] = (
+                "/home/runner/work/_temp/release-route-derived.json"
+            )
+            runtime["route_receipt_path"] = (
+                "/home/runner/work/_temp/release-route-receipt.json"
+            )
+            runtime["authorization_receipt_path"] = (
+                "/home/runner/work/_temp/authorization.json"
+            )
+            runtime["receipt_sha256"] = runtime_transition._canonical_sha256(
+                runtime
+            )
+
+            def actual_validator(receipt: object, **kwargs: object) -> dict:
+                with mock.patch.object(
+                    runtime_transition,
+                    "_verify_handoff_signature",
+                    return_value=True,
+                ):
+                    return runtime_transition.validate_transition(
+                        receipt,
+                        root=root,
+                        **kwargs,
+                    )
+
+            with mock.patch.object(
+                release_flow,
+                "validate_runtime_transition",
+                side_effect=actual_validator,
+            ):
+                stale = release_flow._runtime_transition_errors(
+                    runtime,
+                    SOURCE,
+                    TREE,
+                )
+                portable = release_flow._runtime_transition_errors(
+                    runtime,
+                    SOURCE,
+                    TREE,
+                    **portable_inputs,
+                )
+                incomplete = {
+                    missing: release_flow._runtime_transition_errors(
+                        runtime,
+                        SOURCE,
+                        TREE,
+                        **{
+                            name: path
+                            for name, path in portable_inputs.items()
+                            if name != missing
+                        },
+                    )
+                    for missing in portable_inputs
+                }
+
+        self.assertIn("E_V250_RELEASED_RUNTIME_S0_REQUIRED", stale)
+        self.assertEqual([], portable)
+        for missing, errors in incomplete.items():
+            with self.subTest(missing=missing):
+                self.assertIn("E_V250_RELEASED_RUNTIME_S0_REQUIRED", errors)
+
     def test_s4_revalidates_handoff_at_recorded_transition_time(self) -> None:
         captured_at = "2026-08-01T08:00:00+00:00"
         receipt = {"captured_at": captured_at}
+        portable_inputs = {
+            "route_facts_receipt_path_override": Path(
+                "/portable/release-route-facts.json"
+            ),
+            "derived_route_receipt_path_override": Path(
+                "/portable/release-route-derived.json"
+            ),
+            "route_receipt_path_override": Path(
+                "/portable/release-route-receipt.json"
+            ),
+            "authorization_receipt_path_override": Path(
+                "/portable/authorization.json"
+            ),
+        }
         with mock.patch.object(
             release_flow,
             "validate_runtime_transition",
@@ -777,12 +884,80 @@ class TestV250ReleaseControl(unittest.TestCase):
                 receipt,
                 SOURCE,
                 TREE,
+                **portable_inputs,
             )
 
         self.assertEqual([], errors)
         self.assertEqual(
             dt.datetime.fromisoformat(captured_at),
             validator.call_args.kwargs["validation_time"],
+        )
+        for name, path in portable_inputs.items():
+            self.assertEqual(path, validator.call_args.kwargs[name])
+
+    def test_release_control_forwards_complete_portable_runtime_inputs(self) -> None:
+        control = control_receipt()
+        portable_inputs = {
+            "runtime_route_facts_receipt_path": Path(
+                "/portable/release-route-facts.json"
+            ),
+            "runtime_derived_route_receipt_path": Path(
+                "/portable/release-route-derived.json"
+            ),
+            "runtime_route_receipt_path": Path(
+                "/portable/release-route-receipt.json"
+            ),
+            "runtime_authorization_receipt_path": Path(
+                "/portable/authorization.json"
+            ),
+        }
+        runtime_validator = mock.Mock(side_effect=fixture_runtime_validation)
+        with (
+            mock.patch.object(
+                release_flow,
+                "validate_runtime_transition",
+                runtime_validator,
+            ),
+            mock.patch.object(
+                release_flow,
+                "_security_review_git_snapshot",
+                return_value=security_git_snapshot(),
+            ),
+        ):
+            verdict = release_flow.validate_release_control_receipt(
+                control,
+                expected_repository="vibe-coding-era/goal-teams",
+                expected_version="V2.63",
+                expected_candidate_branch="codex/develop-v2.63",
+                expected_tag="v2.63",
+                expected_source_commit=SOURCE,
+                expected_source_tree=TREE,
+                validation_time=NOW,
+                **portable_inputs,
+            )
+
+        self.assertTrue(verdict["ok"])
+        self.assertEqual(
+            portable_inputs["runtime_route_facts_receipt_path"],
+            runtime_validator.call_args.kwargs[
+                "route_facts_receipt_path_override"
+            ],
+        )
+        self.assertEqual(
+            portable_inputs["runtime_derived_route_receipt_path"],
+            runtime_validator.call_args.kwargs[
+                "derived_route_receipt_path_override"
+            ],
+        )
+        self.assertEqual(
+            portable_inputs["runtime_route_receipt_path"],
+            runtime_validator.call_args.kwargs["route_receipt_path_override"],
+        )
+        self.assertEqual(
+            portable_inputs["runtime_authorization_receipt_path"],
+            runtime_validator.call_args.kwargs[
+                "authorization_receipt_path_override"
+            ],
         )
 
     def test_runtime_external_anchor_tracks_the_complete_dynamic_input_set(self) -> None:
