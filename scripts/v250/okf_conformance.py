@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic Google OKF conformance primitives for Goal Teams V2.62 Current.
+"""Deterministic Google OKF conformance primitives for Goal Teams V2.63 Current.
 
 The implementation intentionally uses only the Python standard library.  It
 parses a small, documented YAML subset instead of constructing arbitrary YAML
@@ -26,6 +26,10 @@ SCAN_MANIFEST_SCHEMA = "goal-teams-okf-scan-manifest-v1"
 PACKAGE_MANIFEST_SCHEMA = "goal-teams-okf-conformance-manifest-v2.39"
 DEFAULT_POLICY_PATH = "references/okf-conformance-policy.json"
 DEFAULT_PACKAGE_MANIFEST_PATH = "references/okf-conformance-manifest.json"
+V250_RUNTIME_PRODUCT_VERSIONS = frozenset(
+    {"V2.50", "V2.52", "V2.6", "V2.62", "V2.63"}
+)
+V23_RUNTIME_PRODUCT_VERSIONS = frozenset({"V2.39"})
 
 
 class OkfError(ValueError):
@@ -56,6 +60,20 @@ class OkfError(ValueError):
         if self.field:
             value["field"] = self.field
         return value
+
+
+def _okf_runtime_binding(product_version: str | None) -> tuple[str, str]:
+    """Return the exact builder identity and checker path for one product."""
+
+    if product_version in V250_RUNTIME_PRODUCT_VERSIONS:
+        return product_version, "scripts/v250/okf_conformance.py"
+    if product_version in V23_RUNTIME_PRODUCT_VERSIONS:
+        return product_version, "scripts/v23/okf_conformance.py"
+    raise OkfError(
+        "E_OKF_PRODUCT_VERSION",
+        f"product version has no registered OKF runtime: {product_version}",
+        path="VERSION",
+    )
 
 
 def _sha256_bytes(value: bytes) -> str:
@@ -327,7 +345,7 @@ def _parse_frontmatter(lines: Sequence[str]) -> dict[str, Any]:
 
 
 def parse_okf_document(path: str | Path, *, max_bytes: int = 65536) -> dict[str, Any]:
-    """Safely parse the V2.62 Current-supported OKF Markdown subset."""
+    """Safely parse the V2.63 Current-supported OKF Markdown subset."""
 
     target = Path(path)
     if target.is_symlink():
@@ -1068,17 +1086,14 @@ def build_package_manifest(
     )
     policy_path = base / DEFAULT_POLICY_PATH
     version_path = base / "VERSION"
-    product_version = (
-        version_path.read_text(encoding="utf-8").strip()
-        if version_path.is_file()
-        else "V2.62"
-    )
-    builder_version = "V2.62" if product_version == "V2.62" else "V2.39"
-    runtime_path = (
-        "scripts/v250/okf_conformance.py"
-        if product_version == "V2.62"
-        else "scripts/v23/okf_conformance.py"
-    )
+    if not version_path.is_file() or version_path.is_symlink():
+        raise OkfError(
+            "E_OKF_PRODUCT_VERSION",
+            "product version identity is missing or invalid",
+            path="VERSION",
+        )
+    product_version = version_path.read_text(encoding="utf-8").strip()
+    builder_version, runtime_path = _okf_runtime_binding(product_version)
     checker_paths = [runtime_path, "scripts/checks/check-okf.py"]
     checkers: list[dict[str, Any]] = []
     for relative in checker_paths:
@@ -1203,6 +1218,20 @@ def validate_manifest(
         )
 
     if is_package:
+        current_version = base / "VERSION"
+        installed_product_version = (
+            current_version.read_text(encoding="utf-8").strip()
+            if current_version.is_file() and not current_version.is_symlink()
+            else None
+        )
+        try:
+            expected_builder_version, expected_runtime_path = _okf_runtime_binding(
+                installed_product_version
+            )
+        except OkfError as exc:
+            findings.append(exc.finding())
+            expected_builder_version = "invalid"
+            expected_runtime_path = "invalid"
         if require_complete_package:
             source_binding = payload.get("source")
             package_binding = payload.get("package")
@@ -1210,15 +1239,6 @@ def validate_manifest(
             checker_values = payload.get("checkers")
             markdown_values = payload.get("markdown_entries")
             generation = payload.get("generation")
-            current_version = base / "VERSION"
-            installed_product_version = (
-                current_version.read_text(encoding="utf-8").strip()
-                if current_version.is_file() and not current_version.is_symlink()
-                else None
-            )
-            expected_builder_version = (
-                "V2.62" if installed_product_version == "V2.62" else "V2.39"
-            )
             expected_top_fields = {
                 "schema_version",
                 "canonicalization",
@@ -1336,10 +1356,11 @@ def validate_manifest(
             for value in checker_values
             if isinstance(value, dict) and isinstance(value.get("path"), str)
         } if isinstance(checker_values, list) else {}
-        for relative in (
-            "scripts/v250/okf_conformance.py",
+        expected_checker_paths = (
+            expected_runtime_path,
             "scripts/checks/check-okf.py",
-        ):
+        )
+        for relative in expected_checker_paths:
             path = base / relative
             value = checker_map.get(relative)
             if (
