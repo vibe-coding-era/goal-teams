@@ -194,6 +194,13 @@ MAX_TAR_PATH_BYTES = 240
 MAX_TAR_SINGLE_FILE_BYTES = 16 * 1024 * 1024
 MAX_TAR_TOTAL_BYTES = 128 * 1024 * 1024
 MAX_TAR_COMPRESSION_RATIO = 100
+V263_PREDECESSOR_IDENTITY_PATH = Path(
+    "references/current/generations/V2.63/contracts/"
+    "predecessor-release-identity.json"
+)
+V263_PREDECESSOR_IDENTITY_SHA256 = (
+    "e48e3b6ea14a95bfe83e82ac37ee1ce2260cf27cd9313724cbbd39445ee70295"
+)
 
 
 class V240FilesManifestError(RuntimeError):
@@ -209,6 +216,90 @@ class V240FilesManifestError(RuntimeError):
         super().__init__(f"E_V240_FILES_MANIFEST_COLUMNS: {message}")
 
 
+def _canonical_json_sha256(value: object) -> str:
+    return hashlib.sha256(
+        json.dumps(
+            value,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest()
+
+
+def _v263_predecessor_release_identity() -> dict[str, object] | None:
+    path = SOURCE_ROOT / V263_PREDECESSOR_IDENTITY_PATH
+    if path.is_symlink() or not path.is_file():
+        return None
+    try:
+        contract = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return None
+    if (
+        not isinstance(contract, dict)
+        or set(contract)
+        != {
+            "schema_version",
+            "generation_id",
+            "predecessor_product_version",
+            "release_identity",
+            "release_identity_sha256",
+        }
+        or contract.get("schema_version")
+        != "goal-teams-predecessor-release-identity-v2.63"
+        or contract.get("generation_id") != "V2.63"
+        or contract.get("predecessor_product_version") != "V2.62"
+        or contract.get("release_identity_sha256")
+        != V263_PREDECESSOR_IDENTITY_SHA256
+        or _canonical_json_sha256(contract.get("release_identity"))
+        != V263_PREDECESSOR_IDENTITY_SHA256
+    ):
+        return None
+    identity = contract.get("release_identity")
+    return dict(identity) if isinstance(identity, dict) else None
+
+
+def _v263_published_identity_valid(
+    identity: object,
+    version: str,
+    *,
+    exact_identity: dict[str, object] | None = None,
+) -> bool:
+    expected_assets = [
+        f"goal-teams-{version}.tar.gz",
+        "SHA256SUMS",
+        "_release.json",
+        "_files.sha256",
+    ]
+    return bool(
+        isinstance(identity, dict)
+        and set(identity)
+        == {
+            "tag",
+            "release_id",
+            "state",
+            "source_commit",
+            "source_tree",
+            "public_assets",
+        }
+        and identity.get("tag") == version.lower()
+        and identity.get("state") == "published"
+        and not isinstance(identity.get("release_id"), bool)
+        and isinstance(identity.get("release_id"), int)
+        and identity["release_id"] > 0
+        and re.fullmatch(
+            r"[0-9a-f]{40}", str(identity.get("source_commit", ""))
+        )
+        is not None
+        and re.fullmatch(
+            r"[0-9a-f]{40}", str(identity.get("source_tree", ""))
+        )
+        is not None
+        and identity.get("public_assets") == expected_assets
+        and (exact_identity is None or identity == exact_identity)
+    )
+
+
 def release_projection_state(
     version: str,
     current: object,
@@ -219,6 +310,51 @@ def release_projection_state(
 
     if not isinstance(current, dict) or current.get("status") != "release":
         return "invalid"
+    if version == "V2.63":
+        candidate_keys = {
+            key for key in current if str(key).startswith("candidate_")
+        }
+        if current.get("product_version") == "V2.63":
+            if (
+                current.get("schema_version")
+                != "goal-teams-release-manifest-v2.63"
+                or current.get("core_policy_version") != "V2.5"
+                or current.get("legacy_data_schema_version") != "V2.3"
+                or candidate_keys
+                or not _v263_published_identity_valid(
+                    current.get("release_identity"), "V2.63"
+                )
+            ):
+                return "invalid"
+            return "final"
+        expected_candidate_keys = {
+            "candidate_product_version",
+            "candidate_release_state",
+            "candidate_profile",
+        }
+        predecessor_identity = _v263_predecessor_release_identity()
+        if (
+            allow_candidate
+            and current.get("product_version") == "V2.62"
+            and current.get("schema_version")
+            == "goal-teams-release-manifest-v2.62"
+            and current.get("core_policy_version") == "V2.5"
+            and current.get("legacy_data_schema_version") == "V2.3"
+            and candidate_keys == expected_candidate_keys
+            and current.get("candidate_product_version") == "V2.63"
+            and current.get("candidate_release_state")
+            in {"development_candidate_not_published", "v250_release_readiness"}
+            and current.get("candidate_profile")
+            == "references/release-profiles/v2.63.json"
+            and predecessor_identity is not None
+            and _v263_published_identity_valid(
+                current.get("release_identity"),
+                "V2.62",
+                exact_identity=predecessor_identity,
+            )
+        ):
+            return "candidate"
+        return "invalid"
     if current.get("product_version") == version:
         return "final"
     candidate_predecessors = {
@@ -228,7 +364,6 @@ def release_projection_state(
         "V2.52": "V2.51",
         "V2.6": "V2.52",
         "V2.62": "V2.6",
-        "V2.63": "V2.62",
     }
     candidate_states = {
         "V2.48": {"skill_simple_local_validation"},
@@ -240,7 +375,6 @@ def release_projection_state(
         "V2.52": {"v250_release_readiness"},
         "V2.6": {"v250_release_readiness"},
         "V2.62": {"v250_release_readiness"},
-        "V2.63": {"development_candidate_not_published", "v250_release_readiness"},
     }
     if (
         allow_candidate
