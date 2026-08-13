@@ -1141,16 +1141,36 @@ def _default_control_validator(
         "_goal_teams_v250_skill_release_for_s4",
         ROOT / "scripts" / "release" / "skill_release.py",
     )
+    runtime_paths: dict[str, Path | None] = {
+        "runtime_route_receipt_path": (
+            None
+            if receipt_root is None
+            else receipt_root / "release-route-receipt.json"
+        ),
+        "runtime_authorization_receipt_path": (
+            None if receipt_root is None else receipt_root / "authorization.json"
+        ),
+    }
+    if version == "V2.63":
+        runtime_paths.update(
+            {
+                "runtime_route_facts_receipt_path": (
+                    None
+                    if receipt_root is None
+                    else receipt_root / "release-route-facts.json"
+                ),
+                "runtime_derived_route_receipt_path": (
+                    None
+                    if receipt_root is None
+                    else receipt_root / "release-route-derived.json"
+                ),
+            }
+        )
     return module.validate_v250_s4_control(
         version,
         commit,
         control,
-        runtime_route_receipt_path=(
-            None if receipt_root is None else receipt_root / "release-route-receipt.json"
-        ),
-        runtime_authorization_receipt_path=(
-            None if receipt_root is None else receipt_root / "authorization.json"
-        ),
+        **runtime_paths,
     )
 
 

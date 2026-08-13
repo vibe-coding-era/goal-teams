@@ -53,7 +53,7 @@ class TestV263ContinuationRouteTriplet(unittest.TestCase):
                     skill_release,
                     "validate_v250_s4_control",
                     return_value={"ok": True, "errors": []},
-                ),
+                ) as control_validator,
             ):
                 checkpoint = skill_release.build_v250_continuation_checkpoint(
                     "V2.63",
@@ -66,6 +66,24 @@ class TestV263ContinuationRouteTriplet(unittest.TestCase):
                     receipt_source_root=receipt_root,
                     release_root=release_root,
                 )
+                control_validator.assert_called_once_with(
+                    "V2.63",
+                    SOURCE,
+                    mock.ANY,
+                    runtime_route_facts_receipt_path=(
+                        receipt_root / "release-route-facts.json"
+                    ),
+                    runtime_derived_route_receipt_path=(
+                        receipt_root / "release-route-derived.json"
+                    ),
+                    runtime_route_receipt_path=(
+                        receipt_root / "release-route-receipt.json"
+                    ),
+                    runtime_authorization_receipt_path=(
+                        receipt_root / "authorization.json"
+                    ),
+                )
+                control_validator.reset_mock()
                 self.assertEqual("ready_for_s4", checkpoint["state"])
                 self.assertEqual(
                     set(skill_release.V263_CONTINUATION_FORMAL_RECEIPTS),
@@ -100,6 +118,23 @@ class TestV263ContinuationRouteTriplet(unittest.TestCase):
                     release_root=release_root,
                     expected_workflow_run_id="26301",
                     expected_workflow_run_attempt="1",
+                )
+                control_validator.assert_called_once_with(
+                    "V2.63",
+                    SOURCE,
+                    mock.ANY,
+                    runtime_route_facts_receipt_path=(
+                        receipt_root / "release-route-facts.json"
+                    ),
+                    runtime_derived_route_receipt_path=(
+                        receipt_root / "release-route-derived.json"
+                    ),
+                    runtime_route_receipt_path=(
+                        receipt_root / "release-route-receipt.json"
+                    ),
+                    runtime_authorization_receipt_path=(
+                        receipt_root / "authorization.json"
+                    ),
                 )
 
             self.assertFalse(verdict["passed"])
