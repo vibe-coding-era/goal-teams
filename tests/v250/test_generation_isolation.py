@@ -7,11 +7,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.v250.freeze_v248_snapshot import SOURCE_PATHS, materialize
+from scripts.v250.freeze_v248_snapshot import materialize
 from scripts.v250.generation_runtime import (
     GenerationLoadError,
     V250_CONTROL_SCHEMA_PATHS,
-    V250_REQUIRED_CONTROL_PATHS,
+    _generation_required_control_paths,
     load_generation,
 )
 
@@ -23,19 +23,14 @@ HAS_REPLAY_SUPPLEMENT = (
 
 
 class TestV250GenerationIsolation(unittest.TestCase):
-    @unittest.skipUnless(HAS_REPLAY_SUPPLEMENT, "optional V2.48 rollback supplement is not installed")
-    def test_v248_rollback_generation_loads_only_isolated_snapshot_members(self) -> None:
-        generation = load_generation(REPO, generation_id="V2.48")
+    def test_closed_rollback_cannot_load_v248_through_current_loader(self) -> None:
+        current = load_generation(REPO)
+        self.assertEqual("closed", current["activation_manifest"]["rollback"]["window_status"])
 
-        self.assertEqual("V2.48", generation["generation_id"])
-        self.assertTrue(generation["activation_digest_verified"])
-        self.assertEqual(len(SOURCE_PATHS), len(generation["member_paths"]))
-        self.assertTrue(
-            all(
-                path.startswith("references/legacy-replay/generations/V2.48/snapshot/")
-                for path in generation["member_paths"]
-            )
-        )
+        with self.assertRaises(GenerationLoadError) as caught:
+            load_generation(REPO, generation_id="V2.48")
+
+        self.assertEqual("E_V250_GENERATION_NOT_REACHABLE", caught.exception.code)
 
     @unittest.skipUnless(HAS_REPLAY_SUPPLEMENT, "optional V2.48 rollback supplement is not installed")
     def test_v248_snapshot_is_byte_identical_to_frozen_git_tree(self) -> None:
@@ -46,29 +41,22 @@ class TestV250GenerationIsolation(unittest.TestCase):
         self.assertEqual([], receipt["errors"])
 
     @unittest.skipUnless(HAS_REPLAY_SUPPLEMENT, "optional V2.48 rollback supplement is not installed")
-    def test_active_pointer_can_be_atomically_switched_to_v248_snapshot(self) -> None:
-        current = load_generation(REPO)
-        baseline = load_generation(REPO, generation_id="V2.48")
+    def test_active_pointer_cannot_select_v248_baseline_snapshot(self) -> None:
+        baseline_path = Path(
+            "references/current/generations/V2.48/activation-manifest.json"
+        )
+        baseline_raw = (REPO / baseline_path).read_bytes()
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            required = {
-                current["activation_manifest_path"],
-                baseline["activation_manifest_path"],
-                *current["member_paths"],
-                *baseline["member_paths"],
-            }
-            for relative in required:
-                source = REPO / relative
-                target = root / relative
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(source, target)
-            manifest_raw = (root / baseline["activation_manifest_path"]).read_bytes()
+            target = root / baseline_path
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(baseline_raw)
             active = {
                 "schema_version": "goal-teams-active-generation-v1",
                 "generation_id": "V2.48",
-                "activation_manifest": baseline["activation_manifest_path"],
-                "activation_manifest_sha256": hashlib.sha256(manifest_raw).hexdigest(),
-                "state": "active_rollback",
+                "activation_manifest": baseline_path.as_posix(),
+                "activation_manifest_sha256": hashlib.sha256(baseline_raw).hexdigest(),
+                "state": "active_current",
                 "updated_at": "2026-08-01T00:00:00+08:00",
             }
             active_path = root / "references/current/ACTIVE.json"
@@ -77,21 +65,17 @@ class TestV250GenerationIsolation(unittest.TestCase):
                 json.dumps(active, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
             )
 
-            restored = load_generation(root)
+            with self.assertRaises(GenerationLoadError) as caught:
+                load_generation(root)
 
-            self.assertEqual("V2.48", restored["generation_id"])
-            self.assertTrue(restored["selected_via_active_pointer"])
-            shutil.copy2(REPO / "references/current/ACTIVE.json", active_path)
-
-            resumed = load_generation(root)
-
-            self.assertEqual("V2.62", resumed["generation_id"])
-            self.assertTrue(resumed["selected_via_active_pointer"])
+            self.assertEqual("E_V250_ACTIVE_STATE", caught.exception.code)
 
     def test_active_generation_binds_all_declared_current_control_assets(self) -> None:
         generation = load_generation(REPO)
 
-        self.assertTrue(set(V250_REQUIRED_CONTROL_PATHS).issubset(generation["member_digests"]))
+        required = _generation_required_control_paths(generation["generation_id"])
+        self.assertEqual(80, len(required))
+        self.assertTrue(required.issubset(generation["member_digests"]))
         expected_schemas = {
             path.relative_to(REPO).as_posix()
             for path in (REPO / "schemas/v2.50").glob("*.json")

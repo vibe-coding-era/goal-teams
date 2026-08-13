@@ -202,6 +202,18 @@ class TestReleaseWorkflowSequence(unittest.TestCase):
             3,
         )
         self.assertIn('--expected-host-execution-id "${GITHUB_RUN_ID}"', workflow)
+        s1_command = workflow[
+            checker : workflow.index(
+                '> "${RUNNER_TEMP}/s1-check.json"', checker
+            )
+        ]
+        for option in (
+            '--route-facts-receipt "${RUNNER_TEMP}/release-route-facts.json"',
+            '--derived-route-receipt "${RUNNER_TEMP}/release-route-derived.json"',
+            '--route-receipt "${RUNNER_TEMP}/release-route-receipt.json"',
+            '--authorization-receipt "${RUNNER_TEMP}/authorization.json"',
+        ):
+            self.assertIn(option, s1_command)
 
     def test_single_asset_set_flows_s2_boundary_s3_s4_without_rebuild(self) -> None:
         workflow = text(".github/workflows/release-gate.yml")
@@ -294,6 +306,7 @@ class TestReleaseWorkflowSequence(unittest.TestCase):
         self.assertIn("s2-build.json", diagnostic_outputs)
         self.assertIn("asset-validation.json", diagnostic_outputs)
         self.assertIn("released-runtime-transition.json", diagnostic_outputs)
+        self.assertIn("s1-check.json", diagnostic_outputs)
         self.assertNotIn('> "${diagnostic_root}/_checkpoint.json"', workflow)
         self.assertNotIn('"${diagnostic_root}/_checkpoint.json"', workflow)
         self.assertIn("steps.stage_receipts.outputs.checkpoint_state == 'ready_for_s4'", workflow)

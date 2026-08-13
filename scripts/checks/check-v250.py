@@ -361,6 +361,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--source-commit")
     parser.add_argument("--source-tree")
     parser.add_argument("--released-runtime-receipt", type=Path)
+    parser.add_argument("--route-facts-receipt", type=Path)
+    parser.add_argument("--derived-route-receipt", type=Path)
+    parser.add_argument("--route-receipt", type=Path)
+    parser.add_argument("--authorization-receipt", type=Path)
     parser.add_argument("--expected-host-execution-id")
     return parser.parse_args()
 
@@ -414,6 +418,26 @@ def main() -> int:
                 expected_source_tree=source_tree,
                 expected_project_size=args.project_size,
                 expected_host_execution_id=expected_host_execution_id,
+                route_facts_receipt_path_override=(
+                    args.route_facts_receipt.resolve()
+                    if args.route_facts_receipt is not None
+                    else None
+                ),
+                derived_route_receipt_path_override=(
+                    args.derived_route_receipt.resolve()
+                    if args.derived_route_receipt is not None
+                    else None
+                ),
+                route_receipt_path_override=(
+                    args.route_receipt.resolve()
+                    if args.route_receipt is not None
+                    else None
+                ),
+                authorization_receipt_path_override=(
+                    args.authorization_receipt.resolve()
+                    if args.authorization_receipt is not None
+                    else None
+                ),
                 root=ROOT,
             )
             if not released_runtime_validation.get("may_enter_s0"):
