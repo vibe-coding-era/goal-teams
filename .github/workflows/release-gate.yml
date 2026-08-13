@@ -122,6 +122,7 @@ jobs:
             tests.v250.test_v263_generation_validator_selection \
             tests.v250.test_v263_installer_offline_closure \
             tests.v250.test_v263_loop_registry_integration \
+            tests.v250.test_v263_okf_package_manifest \
             tests.v250.test_v263_output_contract \
             tests.v250.test_v263_package_active_closure \
             tests.v250.test_v263_package_candidate_closure \

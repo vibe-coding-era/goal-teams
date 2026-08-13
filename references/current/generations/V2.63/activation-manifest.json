@@ -3,7 +3,7 @@
   "generation_id": "V2.63",
   "generation_state": "active",
   "baseline_generation_id": "V2.62",
-  "manifest_payload_sha256": "b31c21031df9c159f4a8114920b58b644ac25db0068f4f31894e8aafd6448ad5",
+  "manifest_payload_sha256": "c6823e288f8a46a51d1a2cd1933e8224837f41b15e36a361eaa74236f3bb3c5d",
   "identity": {
     "loaded_runtime_product_version": "V2.63",
     "core_policy_version": "V2.5",
@@ -384,8 +384,8 @@
       },
       {
         "path": "scripts/v250/okf_conformance.py",
-        "sha256": "94813fab0e0d6f99522aea86bcb0d8dc2bcb89856786b231b89bc166834461f7",
-        "bytes": 65993
+        "sha256": "6b08c6951760770c0edac107285ba1a9d22448157e07bae2a70c891d67e38039",
+        "bytes": 66911
       },
       {
         "path": "scripts/v250/okf_document_graph.py",
@@ -993,6 +993,11 @@
         "bytes": 3485
       },
       {
+        "path": "tests/v250/test_v263_okf_package_manifest.py",
+        "sha256": "ee64ad7ad768bfecc41d7c7c03f9d0d77d1575b71aaf4be6e6e07d18394b404a",
+        "bytes": 9006
+      },
+      {
         "path": "tests/v250/test_v263_output_contract.py",
         "sha256": "c8a9e54af08c46398b76711e130b19666fd8605c6c13d1f5a2e833d5b52a430a",
         "bytes": 1768
@@ -1553,6 +1558,7 @@
     "tests/v250/test_v263_git_change.py",
     "tests/v250/test_v263_installer_offline_closure.py",
     "tests/v250/test_v263_loop_registry_integration.py",
+    "tests/v250/test_v263_okf_package_manifest.py",
     "tests/v250/test_v263_output_contract.py",
     "tests/v250/test_v263_package_active_closure.py",
     "tests/v250/test_v263_package_candidate_closure.py",
@@ -1597,7 +1603,7 @@
     "tests/v263/test_runtime_binding_contract.py",
     "tests/v263/test_v262_compatibility_policy.py"
   ],
-  "current_default_allowlist_digest": "248ddf9a490e7a13a904a66965141ab1e00f2eb9b092db617b616adfec03fe27",
+  "current_default_allowlist_digest": "b0502339c98dc14279c00987052df51edc9d835d1f39dffc61a8e0806b332fe3",
   "optional_replay_allowlist_digest": "cdd978bd498e7b8fe5966a60fce5c4dec1624f8231f7f4d410924f5cc3779f26",
   "legacy_classification": {
     "path_prefixes": [
