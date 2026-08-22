@@ -125,7 +125,7 @@ class TestWorkflowSSHContract(unittest.TestCase):
         self.assertEqual(3, combined.count("--ignore-scripts"))
         self.assertEqual(3, combined.count("--no-audit"))
         self.assertEqual(3, combined.count("--no-fund"))
-        self.assertEqual(3, combined.count("ajv@8.17.1"))
+        self.assertEqual(3, combined.count("ajv@8.18.0"))
         self.assertEqual(
             3,
             combined.count(

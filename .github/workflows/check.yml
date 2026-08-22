@@ -50,7 +50,7 @@ jobs:
             --ignore-scripts \
             --no-audit \
             --no-fund \
-            ajv@8.17.1
+            ajv@8.18.0
           NODE_PATH="${VALIDATOR_NODE_PREFIX}/node_modules" node -e \
             "require('ajv/dist/2020')"
           echo "PYTHONPATH=${VALIDATOR_PYTHON_PREFIX}${PYTHONPATH:+:${PYTHONPATH}}" >> "${GITHUB_ENV}"
