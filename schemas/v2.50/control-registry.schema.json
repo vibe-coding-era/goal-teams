@@ -13,7 +13,7 @@
       "type": "object",
       "required": ["schema_version", "vocabularies", "aliases", "assets"],
       "properties": {
-        "schema_version": {"const": "goal-teams-control-registry-v2.63"},
+        "schema_version": {"const": "goal-teams-control-registry-v2.65"},
         "vocabularies": {
           "type": "object",
           "required": ["phase", "gate", "assurance", "receipt_strength", "completion_axis", "state_axis"],

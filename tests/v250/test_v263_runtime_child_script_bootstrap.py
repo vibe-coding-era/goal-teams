@@ -33,12 +33,12 @@ class TestV263RuntimeChildScriptBootstrap(unittest.TestCase):
 
             activation = {
                 "schema_version": "goal-teams-activation-manifest-v2.50",
-                "generation_id": "V2.63",
+                "generation_id": "V2.65",
                 "generation_state": "active",
                 "identity": {
-                    "loaded_runtime_product_version": "V2.63",
+                    "loaded_runtime_product_version": "V2.65",
                     "route_contract_schema_version": "goal-teams-project-route-v2.50",
-                    "target_policy_generation": "V2.63",
+                    "target_policy_generation": "V2.65",
                 },
                 "prompt_manifest_path": "prompt.json",
                 "rule_manifest_path": "rules.json",
@@ -52,14 +52,14 @@ class TestV263RuntimeChildScriptBootstrap(unittest.TestCase):
             activation_raw = json.dumps(activation).encode("utf-8")
             active = {
                 "schema_version": "goal-teams-active-generation-v1",
-                "generation_id": "V2.63",
+                "generation_id": "V2.65",
                 "state": "active_current",
                 "activation_manifest": "activation.json",
                 "activation_manifest_sha256": module._sha256(activation_raw),
             }
             prompt = {
                 "schema_version": "goal-teams-prompt-manifest-v2.50",
-                "generation_id": "V2.63",
+                "generation_id": "V2.65",
                 "manifest_state": "active_current",
                 "routes": {
                     "V250-ROUTE-MEDIUM-RELEASE": {
@@ -88,7 +88,7 @@ class TestV263RuntimeChildScriptBootstrap(unittest.TestCase):
                     route_facts_receipt_path=evidence_root / "route-facts.json",
                     derived_route_receipt_path=evidence_root / "derived-route.json",
                     route_receipt_path=evidence_root / "route.json",
-                    loaded_runtime_product_version="V2.63",
+                    loaded_runtime_product_version="V2.65",
                 )
             except ValueError as exc:
                 if not str(exc).startswith("E_V"):

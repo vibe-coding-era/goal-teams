@@ -337,7 +337,7 @@ def validate_candidate_commit(commit: str | None) -> None:
 
 
 def validate_v250_current(args: argparse.Namespace, product: str) -> None:
-    """Validate the V2.62/V2.63 thin Current projection."""
+    """Validate the thin Current projection."""
 
     suffix = product.removeprefix("V").lower()
     compact = suffix.replace(".", "")
@@ -367,12 +367,14 @@ def validate_v250_current(args: argparse.Namespace, product: str) -> None:
 
     expected_activation = f"references/current/generations/{product}/activation-manifest.json"
     active = json.loads(read("references/current/ACTIVE.json"))
+    predecessor_by_product = {"V2.63": "V2.62", "V2.65": "V2.63"}
+    expected_predecessor = predecessor_by_product.get(product)
     candidate_before_active = (
-        product == "V2.63"
+        expected_predecessor is not None
         and args.mode == "development"
-        and active.get("generation_id") == "V2.62"
+        and active.get("generation_id") == expected_predecessor
         and active.get("activation_manifest")
-        == "references/current/generations/V2.62/activation-manifest.json"
+        == f"references/current/generations/{expected_predecessor}/activation-manifest.json"
         and active.get("state") == "active_current"
     )
     if not candidate_before_active and (
@@ -397,7 +399,7 @@ def validate_v250_current(args: argparse.Namespace, product: str) -> None:
     ):
         fail("activation manifest mixes product, policy, or execution identity")
     if candidate_before_active and activation.get("generation_state") != "inactive_candidate":
-        fail("V2.63 pre-activation projection must remain inactive_candidate")
+        fail(f"{product} pre-activation projection must remain inactive_candidate")
 
     for path in (
         f"references/profiles/goal-teams-self-release-v{suffix}.md",
@@ -473,13 +475,18 @@ def validate_v250_current(args: argparse.Namespace, product: str) -> None:
             )
         validate_published_identity(product)
     else:
-        predecessor = "V2.62" if product == "V2.63" else "V2.6"
+        predecessor = predecessor_by_product.get(product, "V2.6")
         candidate_states = (
             {"development_candidate_not_published", "v250_release_readiness"}
-            if product == "V2.63"
+            if product in {"V2.63", "V2.65"}
             else {"v250_release_readiness"}
         )
-        if not (
+        unchanged_published_predecessor = (
+            product == "V2.65"
+            and published == predecessor
+            and candidate_keys.isdisjoint(release)
+        )
+        if not unchanged_published_predecessor and not (
             published == predecessor
             and release.get("schema_version")
             == f"goal-teams-release-manifest-{predecessor.lower()}"
@@ -491,7 +498,9 @@ def validate_v250_current(args: argparse.Namespace, product: str) -> None:
             fail(f"release/current is neither the {product} candidate nor final projection")
         validate_published_identity(predecessor)
     release_readme = read("release/current/README.md")
-    if product not in release_readme:
+    if product not in release_readme and not (
+        product == "V2.65" and published == "V2.63" and candidate_keys.isdisjoint(release)
+    ):
         fail(f"release/current README does not describe {product}")
     if not release_readme.startswith(f"# Goal Teams {published} Release\n"):
         fail("release/current README heading does not match published product")
@@ -535,7 +544,7 @@ def main() -> None:
         )
         raise SystemExit(2)
 
-    if product in {"V2.62", "V2.63"}:
+    if product in {"V2.62", "V2.63", "V2.65"}:
         validate_v250_current(args, product)
         print(
             "Version synchronization passed: "

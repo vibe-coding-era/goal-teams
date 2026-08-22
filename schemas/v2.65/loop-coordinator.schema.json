@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.65/loop-coordinator.schema.json",
+  "title": "Goal Teams V2.65 LOOP Coordinator",
+  "oneOf": [
+    {"$ref": "#/$defs/state"},
+    {"$ref": "#/$defs/receipt"}
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "timestamp": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "nullableString": {"type": ["string", "null"], "minLength": 1},
+    "nullableSha256": {
+      "oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]
+    },
+    "strings": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "descriptor": {
+      "type": "object",
+      "required": [
+        "round_id", "project_id", "artifact_version", "skill_version",
+        "loop_id", "loop_round", "task_exact_set_sha256", "graph_revision",
+        "plan_revision", "source_revision", "started_at",
+        "max_capsule_items", "max_capsule_bytes"
+      ],
+      "properties": {
+        "round_id": {"type": "string", "minLength": 1},
+        "project_id": {"type": "string", "minLength": 1},
+        "artifact_version": {"type": "string", "minLength": 1},
+        "skill_version": {"type": "string", "minLength": 1},
+        "loop_id": {"type": "string", "minLength": 1},
+        "loop_round": {"type": "integer", "minimum": 1},
+        "task_exact_set_sha256": {"$ref": "#/$defs/sha256"},
+        "graph_revision": {"type": "integer", "minimum": 1},
+        "plan_revision": {"type": "integer", "minimum": 1},
+        "source_revision": {"type": "string", "minLength": 1},
+        "started_at": {"$ref": "#/$defs/timestamp"},
+        "max_capsule_items": {"type": "integer", "minimum": 1},
+        "max_capsule_bytes": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "pendingOperation": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "required": [
+            "operation", "coordinator_revision_before", "signed_review",
+            "active_review_ids", "compiled_at", "capsule"
+          ],
+          "properties": {
+            "operation": {"enum": ["record_problem_review", "finalize_round"]},
+            "coordinator_revision_before": {"type": "integer", "minimum": 0},
+            "signed_review": {"type": "object"},
+            "active_review_ids": {"$ref": "#/$defs/strings"},
+            "compiled_at": {
+              "oneOf": [{"$ref": "#/$defs/timestamp"}, {"type": "null"}]
+            },
+            "capsule": {"type": ["object", "null"]}
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "state": {
+      "type": "object",
+      "required": [
+        "schema_version", "descriptor", "status", "pending_issue_key",
+        "pending_evidence_refs", "pending_operation", "pending_review_id",
+        "pending_review_sha256", "pending_capsule_sha256", "review_ids",
+        "review_state_revision", "review_file_sha256", "next_sequence",
+        "previous_review_sha256", "coordinator_revision",
+        "capsule_relative_path", "capsule_sha256", "last_receipt_sha256",
+        "state_sha256"
+      ],
+      "properties": {
+        "schema_version": {"const": "goal-teams-loop-coordinator-state-v2.65"},
+        "descriptor": {"$ref": "#/$defs/descriptor"},
+        "status": {
+          "enum": [
+            "active", "problem_pending", "committing_problem",
+            "committing_finalize", "finalized"
+          ]
+        },
+        "pending_issue_key": {"$ref": "#/$defs/nullableString"},
+        "pending_evidence_refs": {"$ref": "#/$defs/strings"},
+        "pending_operation": {"$ref": "#/$defs/pendingOperation"},
+        "pending_review_id": {"$ref": "#/$defs/nullableString"},
+        "pending_review_sha256": {"$ref": "#/$defs/nullableSha256"},
+        "pending_capsule_sha256": {"$ref": "#/$defs/nullableSha256"},
+        "review_ids": {"$ref": "#/$defs/strings"},
+        "review_state_revision": {"type": "integer", "minimum": 0},
+        "review_file_sha256": {"$ref": "#/$defs/sha256"},
+        "next_sequence": {"type": "integer", "minimum": 1},
+        "previous_review_sha256": {"$ref": "#/$defs/sha256"},
+        "coordinator_revision": {"type": "integer", "minimum": 1},
+        "capsule_relative_path": {"$ref": "#/$defs/nullableString"},
+        "capsule_sha256": {"$ref": "#/$defs/nullableSha256"},
+        "last_receipt_sha256": {"$ref": "#/$defs/sha256"},
+        "state_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "receipt": {
+      "type": "object",
+      "required": [
+        "schema_version", "operation", "round_id", "loop_id", "loop_round",
+        "coordinator_revision_before", "coordinator_revision_after",
+        "review_state_revision", "review_file_sha256", "review_id",
+        "pending_issue_key", "next_action_ready", "finalized",
+        "capsule_relative_path", "capsule_sha256", "loop_decision",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "schema_version": {"const": "goal-teams-loop-coordinator-receipt-v2.65"},
+        "operation": {
+          "enum": [
+            "begin_round", "flag_problem", "record_problem_review",
+            "finalize_round", "reconcile_round"
+          ]
+        },
+        "round_id": {"type": "string", "minLength": 1},
+        "loop_id": {"type": "string", "minLength": 1},
+        "loop_round": {"type": "integer", "minimum": 1},
+        "coordinator_revision_before": {"type": "integer", "minimum": 0},
+        "coordinator_revision_after": {"type": "integer", "minimum": 1},
+        "review_state_revision": {"type": "integer", "minimum": 0},
+        "review_file_sha256": {"$ref": "#/$defs/sha256"},
+        "review_id": {"$ref": "#/$defs/nullableString"},
+        "pending_issue_key": {"$ref": "#/$defs/nullableString"},
+        "next_action_ready": {"type": "boolean"},
+        "finalized": {"type": "boolean"},
+        "capsule_relative_path": {"$ref": "#/$defs/nullableString"},
+        "capsule_sha256": {"$ref": "#/$defs/nullableSha256"},
+        "loop_decision": {
+          "type": ["string", "null"],
+          "enum": [null, "continue", "replan", "stop"]
+        },
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    }
+  }
+}

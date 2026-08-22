@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://goal-teams.local/schemas/v2.50/predecessor-release-identity.schema.json",
-  "title": "Goal Teams V2.63 immutable predecessor release identity",
+  "title": "Goal Teams immutable predecessor release identity",
   "type": "object",
   "required": [
     "schema_version",
@@ -11,14 +11,14 @@
     "release_identity_sha256"
   ],
   "properties": {
-    "schema_version": {"const": "goal-teams-predecessor-release-identity-v2.63"},
-    "generation_id": {"const": "V2.63"},
-    "predecessor_product_version": {"const": "V2.62"},
+    "schema_version": {"enum": ["goal-teams-predecessor-release-identity-v2.63", "goal-teams-predecessor-release-identity-v2.65"]},
+    "generation_id": {"enum": ["V2.63", "V2.65"]},
+    "predecessor_product_version": {"enum": ["V2.62", "V2.63"]},
     "release_identity": {
       "type": "object",
       "required": ["tag", "release_id", "state", "source_commit", "source_tree", "public_assets"],
       "properties": {
-        "tag": {"const": "v2.62"},
+        "tag": {"enum": ["v2.62", "v2.63"]},
         "release_id": {"type": "integer", "minimum": 1},
         "state": {"const": "published"},
         "source_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},

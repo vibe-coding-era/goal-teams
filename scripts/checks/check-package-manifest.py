@@ -407,9 +407,9 @@ def _candidate_identity(root: Path) -> tuple[str, str, str]:
     try:
         version = (root / "VERSION").read_text(encoding="utf-8").strip()
     except OSError:
-        version = "V2.63"
+        version = "V2.65"
     if not version.startswith("V") or version.count(".") != 1:
-        version = "V2.63"
+        version = "V2.65"
     suffix = version[1:].lower()
     compact = suffix.replace(".", "")
     return version, suffix, compact

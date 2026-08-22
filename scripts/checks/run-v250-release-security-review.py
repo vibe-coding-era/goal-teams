@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit the exact V2.63 released implementation in a fresh process.
+"""Audit the exact V2.65 released implementation in a fresh process.
 
 This is an S1 release-security review, not an S2 security check.  It binds a
 declared implementation denominator to one clean Git commit/tree, compares
@@ -27,7 +27,7 @@ from typing import Any, Iterable, Mapping, Sequence
 
 ROOT = Path(__file__).resolve().parents[2]
 CONTRACT_PATH = (
-    "references/current/generations/V2.63/contracts/"
+    "references/current/generations/V2.65/contracts/"
     "release-security-review-manifest.json"
 )
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -74,11 +74,22 @@ MANDATORY_REVIEW_TARGETS = frozenset(
     {
         ".github/workflows/check.yml",
         ".github/workflows/release-gate.yml",
-        "references/current/generations/V2.63/contracts/public-asset-map.json",
-        "references/current/generations/V2.63/contracts/release-command-manifest.json",
-        "references/current/generations/V2.63/contracts/release-route-manifest.json",
+        "references/current/generations/V2.65/contracts/public-asset-map.json",
+        "references/current/generations/V2.65/contracts/release-command-manifest.json",
+        "references/current/generations/V2.65/contracts/release-route-manifest.json",
         CONTRACT_PATH,
-        "references/current/generations/V2.63/functions/knowledge-graph.md",
+        "references/current/generations/V2.65/functions/knowledge-graph.md",
+        "references/current/generations/V2.65/functions/graph-engineering.md",
+        "references/current/generations/V2.65/contracts/loop-evolution.md",
+        "schemas/v2.65/compatibility-manifest.schema.json",
+        "schemas/v2.65/context-bundle.schema.json",
+        "schemas/v2.65/graph-contract.schema.json",
+        "schemas/v2.65/graph-runtime.schema.json",
+        "schemas/v2.65/host-capability.schema.json",
+        "schemas/v2.65/loop-coordinator.schema.json",
+        "schemas/v2.65/loop-review.schema.json",
+        "schemas/v2.65/member-packet.schema.json",
+        "schemas/v2.65/runtime-binding.schema.json",
         "schemas/v2.50/okf-document-graph.schema.json",
         "schemas/v2.50/project-route.schema.json",
         "schemas/v2.50/release-control.schema.json",
@@ -114,9 +125,19 @@ MANDATORY_REVIEW_TARGETS = frozenset(
         "scripts/v250/test_gate.py",
         "scripts/v250/unicode17_data.py",
         "scripts/v250/unicode17_nfc.py",
-        "scripts/v263/compatibility.py",
-        "scripts/v263/project_host_assets.py",
-        "scripts/v263/role_projections.py",
+        "scripts/v265/compatibility.py",
+        "scripts/v265/project_host_assets.py",
+        "scripts/v265/role_projections.py",
+        "scripts/v265/canonical.py",
+        "scripts/v265/context_compiler.py",
+        "scripts/v265/graph_contract.py",
+        "scripts/v265/graph_runtime.py",
+        "scripts/v265/host_adapter.py",
+        "scripts/v265/loop_coordinator.py",
+        "scripts/v265/loop_review.py",
+        "scripts/v265/member_packet.py",
+        "scripts/v265/runtime_controller.py",
+        "scripts/v265/runtime_store.py",
     }
 )
 
@@ -361,7 +382,7 @@ def _load_manifest(
 
 
 def _validate_manifest(manifest: Mapping[str, Any]) -> list[dict[str, Any]]:
-    if manifest.get("schema_version") != "goal-teams-v2.63-release-security-review-v2":
+    if manifest.get("schema_version") != "goal-teams-v2.65-release-security-review-v2":
         raise SecurityReviewError("E_V250_SECURITY_DENOMINATOR_SCHEMA")
     if manifest.get("denominator_id") != "V250-RELEASE-SECURITY-IMPLEMENTATION":
         raise SecurityReviewError("E_V250_SECURITY_DENOMINATOR_ID")
@@ -931,7 +952,7 @@ def run_review(
     )
     workflows, git_ssh = _scan_workflows_and_ssh(texts)
 
-    command_contract = json.loads(texts["references/current/generations/V2.63/contracts/release-command-manifest.json"])
+    command_contract = json.loads(texts["references/current/generations/V2.65/contracts/release-command-manifest.json"])
     s2 = command_contract.get("release", {}).get("s2", {})
     s2_separation = bool(
         s2.get("security_check_invocation_limit") == 0
@@ -944,7 +965,7 @@ def run_review(
     reviewed_file_set_sha256 = _sha256(_canonical_bytes(reviewed_files))
     denominator: dict[str, Any] = {
         "denominator_id": manifest["denominator_id"],
-        "generation_id": "V2.63",
+        "generation_id": "V2.65",
         "source_commit": source_commit,
         "source_tree": source_tree,
         "manifest_path": CONTRACT_PATH,
@@ -988,7 +1009,7 @@ def run_review(
         "dangerous_operation_inventory_sha256": dangerous["inventory_sha256"],
     }
     receipt: dict[str, Any] = {
-        "schema_version": "goal-teams-v2.63-release-gate-receipt-v1",
+        "schema_version": "goal-teams-v2.65-release-gate-receipt-v1",
         "gate_id": "release_security_review",
         "run_id": review_run_id,
         "review_run_id": review_run_id,
@@ -1061,7 +1082,7 @@ def main() -> int:
         print(
             json.dumps(
                 {
-                    "schema_version": "goal-teams-v2.63-release-gate-receipt-v1",
+                    "schema_version": "goal-teams-v2.65-release-gate-receipt-v1",
                     "gate_id": "release_security_review",
                     "passed": False,
                     "check_state": "failed",

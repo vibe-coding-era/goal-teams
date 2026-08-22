@@ -128,8 +128,8 @@ class TestV250RuntimeCLI(unittest.TestCase):
         adapter_source = (ROOT / "scripts/v250/runtime_host_adapter.py").read_text(
             encoding="utf-8"
         )
-        self.assertIn("V2.62 -> V2.63 runtime handoff", adapter_source)
-        self.assertNotIn("V2.63 -> V2.63 runtime handoff", adapter_source)
+        self.assertIn("V2.63 -> V2.65 runtime handoff", adapter_source)
+        self.assertNotIn("V2.65 -> V2.65 runtime handoff", adapter_source)
 
 
 if __name__ == "__main__":

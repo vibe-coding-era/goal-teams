@@ -120,12 +120,14 @@ V250_DYNAMIC_CONTROL_GLOBS = (
 
 def _generation_required_control_paths(generation_id: str) -> set[str]:
     required = set(V250_REQUIRED_CONTROL_PATHS)
-    if generation_id != "V2.63":
+    if generation_id not in {"V2.63", "V2.65"}:
         return required
+    compact = generation_id[1:].replace(".", "")
+    lowercase = generation_id.lower()
     required = {
-        path.replace("V2.62", "V2.63")
-        .replace("v2.62", "v2.63")
-        .replace("v262", "v263")
+        path.replace("V2.62", generation_id)
+        .replace("v2.62", lowercase)
+        .replace("v262", f"v{compact}")
         for path in required
     }
     # ``release/current/manifest.json`` is a mutable publication projection.
@@ -136,12 +138,14 @@ def _generation_required_control_paths(generation_id: str) -> set[str]:
 
 
 def _generation_dynamic_control_globs(generation_id: str) -> tuple[str, ...]:
-    if generation_id != "V2.63":
+    if generation_id not in {"V2.63", "V2.65"}:
         return V250_DYNAMIC_CONTROL_GLOBS
+    compact = generation_id[1:].replace(".", "")
+    lowercase = generation_id.lower()
     return tuple(
-        pattern.replace("V2.62", "V2.63")
-        .replace("v2.62", "v2.63")
-        .replace("v262", "v263")
+        pattern.replace("V2.62", generation_id)
+        .replace("v2.62", lowercase)
+        .replace("v262", f"v{compact}")
         for pattern in V250_DYNAMIC_CONTROL_GLOBS
     )
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""V2.63 route-aware development and final-release checker."""
+"""V2.65 route-aware development and final-release checker."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[2]
-CONTRACT_ROOT = ROOT / "references/current/generations/V2.63/contracts"
+CONTRACT_ROOT = ROOT / "references/current/generations/V2.65/contracts"
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 TEST_COUNT_RE = re.compile(r"Ran ([0-9]+) tests? in ")
 _COMMAND_EXECUTION_COUNT = 0
@@ -58,10 +58,10 @@ def _read_json(path: Path) -> dict[str, Any]:
 
 def validate_contracts() -> dict[str, Any]:
     required = {
-        "release-route-manifest.json": "goal-teams-v2.63-release-route-v1",
-        "release-command-manifest.json": "goal-teams-v2.63-release-command-manifest-v1",
-        "release-security-review-manifest.json": "goal-teams-v2.63-release-security-review-v2",
-        "public-asset-map.json": "goal-teams-v2.63-public-asset-map-v1",
+        "release-route-manifest.json": "goal-teams-v2.65-release-route-v1",
+        "release-command-manifest.json": "goal-teams-v2.65-release-command-manifest-v1",
+        "release-security-review-manifest.json": "goal-teams-v2.65-release-security-review-v2",
+        "public-asset-map.json": "goal-teams-v2.65-public-asset-map-v1",
     }
     errors: list[str] = []
     values: dict[str, dict[str, Any]] = {}
@@ -76,7 +76,7 @@ def validate_contracts() -> dict[str, Any]:
             errors.append(f"E_V250_CONTRACT_SCHEMA:{name}")
     assets = values.get("public-asset-map.json", {})
     expected_assets = {
-        "goal-teams-V2.63.tar.gz",
+        "goal-teams-V2.65.tar.gz",
         "SHA256SUMS",
         "_release.json",
         "_files.sha256",
@@ -92,7 +92,12 @@ def validate_contracts() -> dict[str, Any]:
     )
     if (
         denominator.get("denominator_id") != "V250-CURRENT-GENERATION-FULL"
-        or denominator.get("test_roots") != ["tests/v250", "tests/v263"]
+        or denominator.get("test_roots") != ["tests/v250", "tests/v265"]
+        or denominator.get("published_predecessor_test_roots")
+        != ["tests/v263"]
+        or denominator.get("predecessor_test_invocation_limit") != 0
+        or denominator.get("predecessor_release_identity_path")
+        != "references/current/generations/V2.65/contracts/predecessor-release-identity.json"
         or denominator.get("test_pattern") != "test_*.py"
         or denominator.get("legacy_roots_excluded")
         != ["tests/v23", "tests/v249", "tests/v26"]
@@ -181,7 +186,7 @@ def _current_test_denominator(
     observed_test_count: int,
     release_flow: ModuleType,
 ) -> dict[str, Any]:
-    test_roots = ("tests/v250", "tests/v263")
+    test_roots = ("tests/v250", "tests/v265")
     tracked = _git_text(
         "ls-tree", "-r", "--name-only", source_commit, "--", *test_roots
     ).splitlines()
@@ -211,13 +216,16 @@ def _current_test_denominator(
         )
     denominator: dict[str, Any] = {
         "denominator_id": "V250-CURRENT-GENERATION-FULL",
-        "generation_id": "V2.63",
+        "generation_id": "V2.65",
         "scope": "current_generation_full_regression",
         "source_commit": source_commit,
         "source_tree": _git_text("rev-parse", f"{source_commit}^{{tree}}"),
         "test_roots": list(test_roots),
+        "published_predecessor_test_roots": ["tests/v263"],
+        "predecessor_test_invocation_limit": 0,
+        "predecessor_release_identity_path": "references/current/generations/V2.65/contracts/predecessor-release-identity.json",
         "test_pattern": "test_*.py",
-        "contract_path": "references/current/generations/V2.63/contracts/release-command-manifest.json",
+        "contract_path": "references/current/generations/V2.65/contracts/release-command-manifest.json",
         "contract_sha256": hashlib.sha256(
             (CONTRACT_ROOT / "release-command-manifest.json").read_bytes()
         ).hexdigest(),
@@ -239,7 +247,7 @@ def run_full_regression(
     *,
     command_counter: dict[str, int] | None = None,
 ) -> dict[str, Any]:
-    """Run the complete frozen V2.63 Current-generation denominator once."""
+    """Run the complete frozen V2.65 Current-generation denominator once."""
 
     frozen = _current_test_denominator(
         source_commit,
@@ -271,7 +279,7 @@ def run_full_regression(
     )
     passed = result.returncode == 0 and observed_count > 0
     receipt: dict[str, Any] = {
-        "schema_version": "goal-teams-v2.63-release-gate-receipt-v1",
+        "schema_version": "goal-teams-v2.65-release-gate-receipt-v1",
         "gate_id": "full_regression",
         "run_id": f"V250-CURRENT-FULL-{source_commit[:12]}-{uuid.uuid4().hex}",
         "runner_role": "current_generation_full_regression",
@@ -498,7 +506,7 @@ def main() -> int:
         # Release completion before S2/S3/boundary/S4 preflight are bound.
         passed = False
     payload: dict[str, Any] = {
-        "schema_version": "goal-teams-v2.63-check-result-v1",
+        "schema_version": "goal-teams-v2.65-check-result-v1",
         "passed": passed,
         "s1_passed": s1_passed,
         "release_control_state": (

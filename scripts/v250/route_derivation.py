@@ -72,12 +72,17 @@ def _append_once(values: list[str], value: str) -> None:
 
 
 def derive_route(
-    facts: Mapping[str, Any], *, requested_assurance: str | None = None
+    facts: Mapping[str, Any],
+    *,
+    requested_assurance: str | None = None,
+    generation_id: str = "V2.65",
 ) -> dict[str, Any]:
     """Return a digest-bound route receipt derived only from validated facts."""
 
     if not isinstance(facts, Mapping):
         _fail("E_V263_ROUTE_FACTS", "facts must be an object")
+    if generation_id not in {"V2.63", "V2.65"}:
+        _fail("E_V263_ROUTE_FACTS", "unsupported derivation generation")
     if "route_id" in facts or "derived_route" in facts:
         _fail(
             "E_V263_ROUTE_CALLER_SELECTED",
@@ -336,8 +341,8 @@ def derive_route(
 
     normalized_facts = {field: facts[field] for field in sorted(FACT_FIELDS)}
     receipt: dict[str, Any] = {
-        "schema_version": "goal-teams-derived-route-receipt-v2.63",
-        "derivation_version": "V2.63",
+        "schema_version": f"goal-teams-derived-route-receipt-{generation_id.lower()}",
+        "derivation_version": generation_id,
         "facts": normalized_facts,
         "facts_sha256": canonical_json_digest(normalized_facts),
         "facts_source_sha256": facts_source_sha256,

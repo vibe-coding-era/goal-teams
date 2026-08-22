@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-ACTIVATION = ROOT / "references/current/generations/V2.63/activation-manifest.json"
+ACTIVATION = ROOT / "references/current/generations/V2.65/activation-manifest.json"
 
 
 class TestV263RollbackWindow(unittest.TestCase):

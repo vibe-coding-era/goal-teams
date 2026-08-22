@@ -1,4 +1,4 @@
-"""V2.63 frozen external-anchor denominator contract."""
+"""V2.65 frozen external-anchor denominator contract."""
 
 from __future__ import annotations
 
@@ -18,11 +18,11 @@ class TestV263ExternalAnchorTestRoots(unittest.TestCase):
 
     def _fixture(self) -> tuple[dict[str, bytes], dict[str, object], dict[str, object]]:
         command_path = (
-            "references/current/generations/V2.63/contracts/"
+            "references/current/generations/V2.65/contracts/"
             "release-command-manifest.json"
         )
         security_path = (
-            "references/current/generations/V2.63/contracts/"
+            "references/current/generations/V2.65/contracts/"
             "release-security-review-manifest.json"
         )
         contract_path = "contracts/reviewed.json"
@@ -33,7 +33,10 @@ class TestV263ExternalAnchorTestRoots(unittest.TestCase):
                     "release": {
                         "s1": {
                             "current_full_regression_denominator": {
-                                "test_roots": ["tests/v250", "tests/v263"]
+                                "test_roots": ["tests/v250", "tests/v265"],
+                                "published_predecessor_test_roots": ["tests/v263"],
+                                "predecessor_test_invocation_limit": 0,
+                                "predecessor_release_identity_path": "references/current/generations/V2.65/contracts/predecessor-release-identity.json"
                             }
                         }
                     }
@@ -48,6 +51,7 @@ class TestV263ExternalAnchorTestRoots(unittest.TestCase):
             runner_path: b"reviewed runner",
             "tests/v250/test_alpha.py": b"alpha",
             "tests/v263/test_beta.py": b"beta",
+            "tests/v265/test_gamma.py": b"gamma",
             "tests/v26/test_legacy.py": b"legacy",
         }
         expected_tests = [
@@ -55,11 +59,17 @@ class TestV263ExternalAnchorTestRoots(unittest.TestCase):
                 "path": path,
                 "sha256": hashlib.sha256(files[path]).hexdigest(),
             }
-            for path in ("tests/v250/test_alpha.py", "tests/v263/test_beta.py")
+            for path in (
+                "tests/v250/test_alpha.py",
+                "tests/v265/test_gamma.py",
+            )
         ]
         full = {
             "denominator": {
-                "test_roots": ["tests/v250", "tests/v263"],
+                "test_roots": ["tests/v250", "tests/v265"],
+                "published_predecessor_test_roots": ["tests/v263"],
+                "predecessor_test_invocation_limit": 0,
+                "predecessor_release_identity_path": "references/current/generations/V2.65/contracts/predecessor-release-identity.json",
                 "test_files": expected_tests,
                 "test_file_count": len(expected_tests),
                 "test_file_set_sha256": release_flow.canonical_sha256(expected_tests),
@@ -84,7 +94,7 @@ class TestV263ExternalAnchorTestRoots(unittest.TestCase):
             "released_runtime_transition": {},
         }
         s2 = {
-            "assets": [{"name": "goal-teams-V2.63.tar.gz"}],
+            "assets": [{"name": "goal-teams-V2.65.tar.gz"}],
             "asset_set_id": "asset-set",
             "asset_set_digest": "3" * 64,
             "receipt_sha256": "4" * 64,
@@ -145,10 +155,10 @@ class TestV263ExternalAnchorTestRoots(unittest.TestCase):
                 source_tree=self.TREE,
                 s1_check_receipt=s1,
                 asset_validation_receipt=asset_validation,
-                version="V2.63",
+                version="V2.65",
             )
 
-    def test_external_anchor_uses_both_current_test_roots_from_frozen_contract(self) -> None:
+    def test_external_anchor_uses_all_current_test_roots_from_frozen_contract(self) -> None:
         files, s1, asset_validation = self._fixture()
 
         receipt = self._validate(files, s1, asset_validation)
@@ -159,7 +169,7 @@ class TestV263ExternalAnchorTestRoots(unittest.TestCase):
             receipt["current_test_file_set_sha256"],
         )
 
-    def test_external_anchor_rejects_receipt_that_omits_v263_root(self) -> None:
+    def test_external_anchor_rejects_receipt_that_omits_current_roots(self) -> None:
         files, s1, asset_validation = self._fixture()
         denominator = s1["release_gate_receipts"]["full_regression"]["denominator"]
         denominator["test_files"] = denominator["test_files"][:1]
@@ -170,7 +180,7 @@ class TestV263ExternalAnchorTestRoots(unittest.TestCase):
 
         with self.assertRaisesRegex(
             skill_release.SkillReleaseError,
-            "E_V263_CURRENT_DENOMINATOR_EXTERNAL_ANCHOR",
+            "E_V265_CURRENT_DENOMINATOR_EXTERNAL_ANCHOR",
         ):
             self._validate(files, s1, asset_validation)
 

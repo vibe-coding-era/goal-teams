@@ -29,13 +29,13 @@ VALIDATION_TIME = dt.datetime(2026, 8, 1, 8, 5, tzinfo=dt.timezone.utc)
 ROUTE_ID = "V250-ROUTE-LARGE-RELEASE"
 HANDOFF_NONCE = "nonce-v250-controller-handoff-000001"
 PUBLISHED_V262_IDENTITY = {
-    "tag": "v2.62",
-    "release_id": 367112913,
+    "tag": "v2.63",
+    "release_id": 369846737,
     "state": "published",
-    "source_commit": "bd4eedfc0623e74b74efeaf157edf92ce2be1e74",
-    "source_tree": "58d11881eeda2f0a018fcc4273ce2f3982977f94",
+    "source_commit": "8e246e4b7bb7c44bd6aa514eb273590d925b32b0",
+    "source_tree": "33c0af795a549ec6121919a18f42a04a797463a2",
     "public_assets": [
-        "goal-teams-V2.62.tar.gz",
+        "goal-teams-V2.63.tar.gz",
         "SHA256SUMS",
         "_release.json",
         "_files.sha256",
@@ -74,10 +74,10 @@ def _prepare_observer_inputs(root: Path) -> tuple[Path, Path, Path, Path, Path]:
         "RULES.md": b"rules\n",
         "SKILL.md": b"skill\n",
     }
-    core_path = "references/current/generations/V2.63/core.md"
+    core_path = "references/current/generations/V2.65/core.md"
     core_raw = b"core\n"
     facts_source = {
-        "schema_version": "goal-teams-project-route-facts-source-v2.63",
+        "schema_version": "goal-teams-project-route-facts-source-v2.65",
         "repository": "vibe-coding-era/goal-teams",
         "source_commit": SOURCE,
         "source_tree": TREE,
@@ -114,21 +114,21 @@ def _prepare_observer_inputs(root: Path) -> tuple[Path, Path, Path, Path, Path]:
     }
     rule_manifest = {"owners": [owner]}
     rule_manifest_path = (
-        "references/current/generations/V2.63/rule-manifest.json"
+        "references/current/generations/V2.65/rule-manifest.json"
     )
     current_paths = {
         core_path: core_raw,
         rule_manifest_path: _json_bytes(rule_manifest),
-        "references/current/generations/V2.63/prompt-manifest.json": b"",
-        "references/profiles/goal-teams-self-release-v2.63.md": b"profile\n",
-        "references/release-profiles/v2.63.json": b"{}\n",
-        "references/current/generations/V2.63/contracts/release-route-manifest.json": b"{}\n",
-        "references/current/generations/V2.63/contracts/release-command-manifest.json": b"{}\n",
-        "references/current/generations/V2.63/contracts/predecessor-release-identity.json": _json_bytes(
+        "references/current/generations/V2.65/prompt-manifest.json": b"",
+        "references/profiles/goal-teams-self-release-v2.65.md": b"profile\n",
+        "references/release-profiles/v2.65.json": b"{}\n",
+        "references/current/generations/V2.65/contracts/release-route-manifest.json": b"{}\n",
+        "references/current/generations/V2.65/contracts/release-command-manifest.json": b"{}\n",
+        "references/current/generations/V2.65/contracts/predecessor-release-identity.json": _json_bytes(
             {
-                "schema_version": "goal-teams-predecessor-release-identity-v2.63",
-                "generation_id": "V2.63",
-                "predecessor_product_version": "V2.62",
+                "schema_version": "goal-teams-predecessor-release-identity-v2.65",
+                "generation_id": "V2.65",
+                "predecessor_product_version": "V2.63",
                 "release_identity": PUBLISHED_V262_IDENTITY,
                 "release_identity_sha256": hashlib.sha256(
                     json.dumps(
@@ -153,7 +153,7 @@ def _prepare_observer_inputs(root: Path) -> tuple[Path, Path, Path, Path, Path]:
     }
     prompt = {
         "schema_version": "goal-teams-prompt-manifest-v2.50",
-        "generation_id": "V2.63",
+        "generation_id": "V2.65",
         "manifest_state": "active_current",
         "routes": {
             ROUTE_ID: {
@@ -167,7 +167,7 @@ def _prepare_observer_inputs(root: Path) -> tuple[Path, Path, Path, Path, Path]:
         },
     }
     current_paths[
-        "references/current/generations/V2.63/prompt-manifest.json"
+        "references/current/generations/V2.65/prompt-manifest.json"
     ] = _json_bytes(prompt)
 
     entries: dict[str, list[dict[str, object]]] = {
@@ -189,14 +189,14 @@ def _prepare_observer_inputs(root: Path) -> tuple[Path, Path, Path, Path, Path]:
             )
 
     # Mutable published projection remains available to prove it is not part
-    # of the V2.63 runtime or predecessor-controller identity closure.
+    # of the V2.65 runtime or predecessor-controller identity closure.
     _write(
         root,
         "release/current/manifest.json",
         _json_bytes(
             {
-                "schema_version": "goal-teams-release-manifest-v2.62",
-                "product_version": "V2.62",
+                "schema_version": "goal-teams-release-manifest-v2.63",
+                "product_version": "V2.63",
                 "release_identity": PUBLISHED_V262_IDENTITY,
                 "status": "release",
             }
@@ -205,27 +205,27 @@ def _prepare_observer_inputs(root: Path) -> tuple[Path, Path, Path, Path, Path]:
 
     activation = {
         "schema_version": "goal-teams-activation-manifest-v2.50",
-        "generation_id": "V2.63",
+        "generation_id": "V2.65",
         "generation_state": "active",
         "identity": {
-            "loaded_runtime_product_version": "V2.63",
+            "loaded_runtime_product_version": "V2.65",
             "route_contract_schema_version": "goal-teams-project-route-v2.50",
-            "target_policy_generation": "V2.63",
+            "target_policy_generation": "V2.65",
         },
         "root_sets": entries,
         "rule_manifest_path": rule_manifest_path,
-        "prompt_manifest_path": "references/current/generations/V2.63/prompt-manifest.json",
+        "prompt_manifest_path": "references/current/generations/V2.65/prompt-manifest.json",
         "current_default_allowlist": [core_path],
         "legacy_classification": {"exact_paths": [], "path_prefixes": []},
         "budgets": {"max_route_rule_bytes": len(core_raw)},
     }
     activation["manifest_payload_sha256"] = _activation_payload_sha256(activation)
-    activation_path = "references/current/generations/V2.63/activation-manifest.json"
+    activation_path = "references/current/generations/V2.65/activation-manifest.json"
     activation_raw = _json_bytes(activation)
     activation_digest = _write(root, activation_path, activation_raw)
     active = {
         "schema_version": "goal-teams-active-generation-v1",
-        "generation_id": "V2.63",
+        "generation_id": "V2.65",
         "activation_manifest": activation_path,
         "activation_manifest_sha256": activation_digest,
         "state": "active_current",
@@ -233,7 +233,7 @@ def _prepare_observer_inputs(root: Path) -> tuple[Path, Path, Path, Path, Path]:
     _write(root, "references/current/ACTIVE.json", _json_bytes(active))
 
     generation = {
-        "generation_id": "V2.63",
+        "generation_id": "V2.65",
         "activation_digest_verified": True,
         "member_digests_verified": True,
         "activation_manifest": activation,
@@ -284,7 +284,7 @@ def _prepare_observer_inputs(root: Path) -> tuple[Path, Path, Path, Path, Path]:
 
     intent = {
         "repository": "vibe-coding-era/goal-teams",
-        "version": "V2.63",
+        "version": "V2.65",
         "action_allowlist": ["fresh_runtime_transition"],
     }
     authorization = {
@@ -294,7 +294,7 @@ def _prepare_observer_inputs(root: Path) -> tuple[Path, Path, Path, Path, Path]:
         "authorization_state": "granted_once_at_project_start",
         "authorization_lineage_preserved": True,
         "repository": {"name_with_owner": "vibe-coding-era/goal-teams"},
-        "version": "V2.63",
+        "version": "V2.65",
         "action_allowlist": ["fresh_runtime_transition"],
         "intent": intent,
         "intent_sha256": _canonical_sha256(intent),
@@ -324,12 +324,12 @@ def _handoff(authorization_path: Path) -> dict:
             authorization_path.read_bytes()
         ).hexdigest(),
         "authorization_intent_sha256": authorization["intent_sha256"],
-        "previous_controller_product_version": "V2.62",
+        "previous_controller_product_version": "V2.63",
         "previous_run_id": "V251-HOST-RUN-0001",
         "nonce": HANDOFF_NONCE,
         "issued_at": "2026-08-01T08:00:00+00:00",
         "expires_at": "2026-08-01T08:10:00+00:00",
-        "installed_v262_current_state": {
+        "installed_v263_current_state": {
             "source_commit": PUBLISHED_V262_IDENTITY["source_commit"],
             "source_tree": PUBLISHED_V262_IDENTITY["source_tree"],
             "tag": PUBLISHED_V262_IDENTITY["tag"],
@@ -345,15 +345,15 @@ def _handoff(authorization_path: Path) -> dict:
             "public_key_fingerprint": (
                 "SHA256:fEM2bYLJFOSvNA78soiWLvrSUaWxANVr1HIVl6AAirE"
             ),
-            "ssh_signature_namespace": "goal-teams-v2.63-controller-handoff",
+            "ssh_signature_namespace": "goal-teams-v2.65-controller-handoff",
         },
     }
-    installed = signed_payload["installed_v262_current_state"]
+    installed = signed_payload["installed_v263_current_state"]
     installed["state_sha256"] = _canonical_sha256(
         installed, digest_field="state_sha256"
     )
     return {
-        "schema_version": "goal-teams-v2.63-controller-handoff-receipt-v1",
+        "schema_version": "goal-teams-v2.65-controller-handoff-receipt-v1",
         "signed_payload": signed_payload,
         "payload_sha256": _canonical_sha256(signed_payload),
         "ssh_signature": (
@@ -366,7 +366,7 @@ def _handoff(authorization_path: Path) -> dict:
 
 def _launch(handoff: dict, adapter_path: Path) -> dict:
     value = {
-        "schema_version": "goal-teams-v2.63-runtime-launch-receipt-v1",
+        "schema_version": "goal-teams-v2.65-runtime-launch-receipt-v1",
         "controller_handoff_receipt_sha256": runtime_transition.object_sha256(handoff),
         "controller_handoff_payload_sha256": handoff["payload_sha256"],
         "nonce": HANDOFF_NONCE,
@@ -441,7 +441,7 @@ class TestV250RuntimeTransition(unittest.TestCase):
         self.assertTrue(verdict["ok"], verdict["errors"])
         self.assertTrue(verdict["may_enter_s0"])
         self.assertEqual(
-            "V2.62",
+            "V2.63",
             value["controller_handoff_receipt"]["signed_payload"][
                 "previous_controller_product_version"
             ],
@@ -449,7 +449,7 @@ class TestV250RuntimeTransition(unittest.TestCase):
         self.assertEqual(
             "V250-RUNTIME-RUN-0001", value["runtime_launch_receipt"]["new_run_id"]
         )
-        self.assertEqual("V2.63", value["loaded_runtime_product_version"])
+        self.assertEqual("V2.65", value["loaded_runtime_product_version"])
         self.assertEqual("host_adapter_popen_child", value["fresh_process_kind"])
         self.assertNotIn("previous_run_id", value)
         self.assertNotIn("new_run_id", value)
@@ -646,7 +646,7 @@ class TestV250RuntimeTransition(unittest.TestCase):
         cases = (
             (
                 lambda payload: payload.__setitem__(
-                    "previous_controller_product_version", "V2.63"
+                    "previous_controller_product_version", "V2.65"
                 ),
                 "E_V250_CONTROLLER_HANDOFF_VERSION",
             ),
@@ -659,7 +659,7 @@ class TestV250RuntimeTransition(unittest.TestCase):
                 "E_V250_CONTROLLER_HANDOFF_AUTHORIZATION_DRIFT",
             ),
             (
-                lambda payload: payload["installed_v262_current_state"].__setitem__(
+                lambda payload: payload["installed_v263_current_state"].__setitem__(
                     "tag", "v2.47"
                 ),
                 "E_V250_CONTROLLER_HANDOFF_INSTALLED_STATE",
@@ -765,7 +765,7 @@ class TestV250RuntimeTransition(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             value = _observe(root)
-            (root / "references/current/generations/V2.63/core.md").write_text(
+            (root / "references/current/generations/V2.65/core.md").write_text(
                 "drift\n", encoding="utf-8"
             )
             verdict = self._validate(value, root)

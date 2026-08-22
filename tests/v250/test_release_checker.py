@@ -191,10 +191,12 @@ class TestV250ReleaseChecker(unittest.TestCase):
             root = Path(directory)
             (root / "tests/v250").mkdir(parents=True)
             (root / "tests/v263").mkdir(parents=True)
+            (root / "tests/v265").mkdir(parents=True)
             files = {
                 "tests/v250/test_a.py": b"import unittest\n",
                 "tests/v250/test_b.py": b"import unittest\n",
                 "tests/v263/test_c.py": b"import unittest\n",
+                "tests/v265/test_d.py": b"import unittest\n",
             }
             for relative, data in files.items():
                 (root / relative).write_bytes(data)
@@ -214,7 +216,14 @@ class TestV250ReleaseChecker(unittest.TestCase):
                 )
         self.assertEqual(3, denominator["test_file_count"])
         self.assertEqual(7, denominator["test_case_count"])
-        self.assertEqual(["tests/v250", "tests/v263"], denominator["test_roots"])
+        self.assertEqual(
+            ["tests/v250", "tests/v265"],
+            denominator["test_roots"],
+        )
+        self.assertEqual(
+            ["tests/v263"], denominator["published_predecessor_test_roots"]
+        )
+        self.assertEqual(0, denominator["predecessor_test_invocation_limit"])
         self.assertEqual(
             ["tests/v23", "tests/v249", "tests/v26"],
             denominator["legacy_roots_excluded"],

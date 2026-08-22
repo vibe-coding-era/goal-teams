@@ -1,0 +1,197 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.65/context-bundle.schema.json",
+  "title": "Goal Teams V2.65 Context Bundle",
+  "oneOf": [
+    { "$ref": "#/$defs/contextBundle" },
+    { "$ref": "#/$defs/contextValidationReceipt" },
+    { "$ref": "#/$defs/reviewCapsule" }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": ".*\\S.*"
+    },
+    "timestamp": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "stringSet": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/nonEmptyString" },
+      "uniqueItems": true
+    },
+    "nonEmptyStringSet": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/nonEmptyString" },
+      "uniqueItems": true
+    },
+    "compiledResource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resource_id",
+        "resource_type",
+        "source_ref",
+        "revision",
+        "sha256",
+        "bytes",
+        "estimated_tokens",
+        "freshness_state",
+        "sensitivity",
+        "permission_ref",
+        "producer_node_id",
+        "producer_receipt_sha256",
+        "content_base64"
+      ],
+      "properties": {
+        "resource_id": { "$ref": "#/$defs/nonEmptyString" },
+        "resource_type": {
+          "enum": [
+            "repository_file",
+            "user_input",
+            "rule",
+            "upstream_artifact",
+            "generated_context",
+            "review_capsule"
+          ]
+        },
+        "source_ref": { "$ref": "#/$defs/nonEmptyString" },
+        "revision": { "$ref": "#/$defs/nonEmptyString" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "bytes": { "type": "integer", "minimum": 0 },
+        "estimated_tokens": { "type": "integer", "minimum": 0 },
+        "freshness_state": { "const": "current" },
+        "sensitivity": {
+          "enum": ["public", "internal", "confidential", "restricted"]
+        },
+        "permission_ref": { "$ref": "#/$defs/nonEmptyString" },
+        "producer_node_id": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/nonEmptyString" }
+          ]
+        },
+        "producer_receipt_sha256": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/sha256" }
+          ]
+        },
+        "content_base64": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9+/]*={0,2}$"
+        }
+      }
+    },
+    "contextBundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "bundle_id",
+        "graph_contract_sha256",
+        "node_id",
+        "resources",
+        "review_capsule_sha256",
+        "total_bytes",
+        "estimated_tokens",
+        "token_estimate_algorithm",
+        "compiled_at",
+        "bundle_sha256"
+      ],
+      "properties": {
+        "schema_version": { "const": "goal-teams-context-bundle-v2.65" },
+        "bundle_id": { "$ref": "#/$defs/nonEmptyString" },
+        "graph_contract_sha256": { "$ref": "#/$defs/sha256" },
+        "node_id": { "$ref": "#/$defs/nonEmptyString" },
+        "resources": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/compiledResource" }
+        },
+        "review_capsule_sha256": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/sha256" }
+          ]
+        },
+        "total_bytes": { "type": "integer", "minimum": 0 },
+        "estimated_tokens": { "type": "integer", "minimum": 0 },
+        "token_estimate_algorithm": { "const": "utf8_bytes_ceiling_div4" },
+        "compiled_at": { "$ref": "#/$defs/timestamp" },
+        "bundle_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "contextValidationReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "bundle_id",
+        "node_id",
+        "graph_contract_sha256",
+        "bundle_sha256",
+        "valid",
+        "validator",
+        "validated_at",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "goal-teams-context-validation-receipt-v2.65"
+        },
+        "bundle_id": { "$ref": "#/$defs/nonEmptyString" },
+        "node_id": { "$ref": "#/$defs/nonEmptyString" },
+        "graph_contract_sha256": { "$ref": "#/$defs/sha256" },
+        "bundle_sha256": { "$ref": "#/$defs/sha256" },
+        "valid": { "const": true },
+        "validator": {
+          "const": "scripts.v265.context_compiler.validate_context_bundle"
+        },
+        "validated_at": { "$ref": "#/$defs/timestamp" },
+        "receipt_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "reviewCapsule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "capsule_id",
+        "source_review_ids",
+        "source_review_sha256s",
+        "retained_practices",
+        "active_adjustments",
+        "open_gaps",
+        "forbidden_retries",
+        "required_evidence",
+        "compiled_at",
+        "capsule_sha256"
+      ],
+      "properties": {
+        "schema_version": { "const": "goal-teams-review-capsule-v2.65" },
+        "capsule_id": { "$ref": "#/$defs/nonEmptyString" },
+        "source_review_ids": { "$ref": "#/$defs/nonEmptyStringSet" },
+        "source_review_sha256s": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/sha256" },
+          "uniqueItems": true
+        },
+        "retained_practices": { "$ref": "#/$defs/stringSet" },
+        "active_adjustments": { "$ref": "#/$defs/stringSet" },
+        "open_gaps": { "$ref": "#/$defs/stringSet" },
+        "forbidden_retries": { "$ref": "#/$defs/stringSet" },
+        "required_evidence": { "$ref": "#/$defs/stringSet" },
+        "compiled_at": { "$ref": "#/$defs/timestamp" },
+        "capsule_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}

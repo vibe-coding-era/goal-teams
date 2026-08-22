@@ -29,7 +29,7 @@ class TestV250SchemaContracts(unittest.TestCase):
         contract = json.loads(
             (
                 REPO
-                / "references/current/generations/V2.63/contracts/"
+                / "references/current/generations/V2.65/contracts/"
                 "predecessor-release-identity.json"
             ).read_text(encoding="utf-8")
         )
@@ -40,8 +40,8 @@ class TestV250SchemaContracts(unittest.TestCase):
         if Draft202012Validator is not None:
             Draft202012Validator.check_schema(schema)
             Draft202012Validator(schema).validate(contract)
-        self.assertEqual("V2.63", contract["generation_id"])
-        self.assertEqual("V2.62", contract["predecessor_product_version"])
+        self.assertEqual("V2.65", contract["generation_id"])
+        self.assertEqual("V2.63", contract["predecessor_product_version"])
         self.assertFalse(schema["additionalProperties"])
         self.assertEqual(set(schema["required"]), set(schema["properties"]))
 
@@ -61,7 +61,7 @@ class TestV250SchemaContracts(unittest.TestCase):
             set(identity["required"]),
         )
         self.assertEqual(
-            {"enum": ["V2.62", "V2.63"]},
+            {"enum": ["V2.62", "V2.63", "V2.65"]},
             identity["properties"]["loaded_runtime_product_version"],
         )
         self.assertNotIn("controller_product_version", identity["properties"])
@@ -81,17 +81,17 @@ class TestV250SchemaContracts(unittest.TestCase):
             self.assertNotIn(forbidden, runtime["required"])
             self.assertNotIn(forbidden, runtime["properties"])
         self.assertEqual(
-            {"const": "V2.63"},
+            {"const": "V2.65"},
             runtime["properties"]["loaded_runtime_product_version"],
         )
         handoff = runtime["$defs"]["controllerHandoffReceipt"]
         signed_payload = handoff["properties"]["signed_payload"]
         self.assertEqual(
-            {"const": "V2.62"},
+            {"const": "V2.63"},
             signed_payload["properties"]["previous_controller_product_version"],
         )
         self.assertIn("previous_run_id", signed_payload["required"])
-        self.assertIn("installed_v262_current_state", signed_payload["required"])
+        self.assertIn("installed_v263_current_state", signed_payload["required"])
         self.assertNotIn("installed_v26_current_state", signed_payload["properties"])
         self.assertNotIn("installed_v250_current_state", signed_payload["properties"])
         self.assertNotIn("controller_version", signed_payload["properties"])
@@ -124,7 +124,7 @@ class TestV250SchemaContracts(unittest.TestCase):
 
     def test_release_engine_profile_is_strict_compiler_and_instance_aligned(self) -> None:
         schema_path = REPO / "schemas/release-engine-profile.schema.json"
-        profile_path = REPO / "references/release-profiles/v2.63.json"
+        profile_path = REPO / "references/release-profiles/v2.65.json"
         schema = json.loads(schema_path.read_text(encoding="utf-8"))
         profile = json.loads(profile_path.read_text(encoding="utf-8"))
 
@@ -198,7 +198,7 @@ class TestV250SchemaContracts(unittest.TestCase):
         self.assertEqual(4, assets["maxItems"])
         self.assertIs(False, assets["items"])
         self.assertEqual(
-            ["SHA256SUMS", "_files.sha256", "_release.json", "goal-teams-V2.63.tar.gz"],
+            ["SHA256SUMS", "_files.sha256", "_release.json", "goal-teams-V2.65.tar.gz"],
             [item["properties"]["name"]["const"] for item in assets["prefixItems"]],
         )
         journal = outcome["properties"]["operation_journal"]

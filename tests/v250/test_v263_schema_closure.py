@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 class TestV263SchemaClosure(unittest.TestCase):
     def test_control_registry_export_is_canonical_and_schema_bound(self) -> None:
         registry = export_control_registry()
-        self.assertEqual("goal-teams-control-registry-v2.63", registry["schema_version"])
+        self.assertEqual("goal-teams-control-registry-v2.65", registry["schema_version"])
         self.assertIn("full_regression", registry["vocabularies"]["gate"])
         self.assertEqual(
             "full_regression", registry["aliases"]["gate"]["final_full_regression"]

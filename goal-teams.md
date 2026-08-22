@@ -1,4 +1,4 @@
-# Goal Teams 用户指定要求（Current V2.63）
+# Goal Teams 用户指定要求（Current V2.65）
 
 本文件记录当前代际的长期用户要求。规范语义由 `references/current/ACTIVE.json` 指向的功能 Owner 文档承载；历史版本只通过 Legacy Replay 查询，不参与 Current 优先级。
 
@@ -51,6 +51,9 @@
 
 ## Harness、Evidence 与 LOOP
 
+- Graph Engineering 必须区分静态 TaskExactSet/DAG、实际 scheduler/Host 执行、持久恢复、外部副作用与业务证据；只有 DAG、RDF 或 `ready_layers` 不得宣称 Runtime complete。
+- 每轮 LOOP 结束后，或发现问题时，用户当前项目都要生成一次反思并 append 到 `loop-review.md`；反思覆盖 prompt、context、Skill、graph、materials、Harness、Evidence、members、tools、workflow、runtime 与 cost。
+- `loop-review.md` 中的改进是项目级 candidate；自动修改全局 Skill、Prompt、权限或发行规则必须另建消费者、TaskExactSet、预算、授权和验证，不得由反思直接生效。
 - Harness 只保留高信息密度断言：SPEC/route、输入身份、命令/环境、预期观察、错误码、Evidence freshness 和 Owner/Validator。
 - 状态正交：task/check/audit/run/evidence/release/installation 各自记录，不以自然语言“完成”覆盖。
 - 输入、代码、测试与结果必须通过 digest、receipt 和 Git baseline 绑定。tracked diff 与 untracked exact-set 由 Git 自动采集，手写变更说明不得替代或掩盖真实差异。
@@ -68,6 +71,6 @@
 ## Runtime 与可信边界
 
 - Candidate 可由候选外 fresh process 做 cutover/incremental transition，但不得启动正式 S0–S4。
-- 合并后必须从 exact released commit/tree 再启动 fresh V2.63 runtime；只有 released transition receipt 可进入 S0。
+- 合并后必须从 exact released commit/tree 再启动 fresh V2.65 runtime；只有 released transition receipt 可进入 S0。
 - 本地宿主适配器最多证明 I1 correlated fresh-process observation；不得冒充独立外部验收、密码学 attestation 或 Provider prompt 签名。
 - 若宿主 transition 不可用，记录 `fresh_runtime_transition_unavailable` 和可恢复 checkpoint，不回退旧 V2.48/V2.36 发行门禁，也不重复向用户授权。

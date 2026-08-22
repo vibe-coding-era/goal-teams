@@ -25,7 +25,11 @@ REPLAY_MANIFEST_PATH = "references/legacy-replay/manifest.json"
 ALLOWED_STATUSES = ("historical_passed", "historical_failed", "replay_unavailable")
 
 
-def load_replay_manifest(repo_root: Path | str) -> dict[str, Any]:
+def load_replay_manifest(
+    repo_root: Path | str,
+    *,
+    generation: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     root = Path(repo_root).resolve()
     path = resolve_repo_file(root, REPLAY_MANIFEST_PATH)
     raw = path.read_bytes()
@@ -35,7 +39,7 @@ def load_replay_manifest(repo_root: Path | str) -> dict[str, Any]:
         raise GenerationLoadError("E_V250_REPLAY_MANIFEST_JSON", "legacy replay manifest is invalid") from exc
     if not isinstance(manifest, dict):
         raise GenerationLoadError("E_V250_REPLAY_MANIFEST_SHAPE", "legacy replay manifest must be an object")
-    generation = load_generation(root)
+    generation = load_generation(root) if generation is None else generation
     activation = generation.get("activation_manifest", {})
     legacy = activation.get("legacy_classification", {})
     expected_raw_digest = legacy.get("replay_manifest_sha256")
@@ -87,6 +91,7 @@ def run_replay(
     explicit_intent: bool = False,
     identified_artifact: bool = False,
     operation: str = "content_digest_verify",
+    generation: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Run one manifest-selected read-only operation without subprocesses."""
 
@@ -102,7 +107,7 @@ def run_replay(
         result["errors"].append("E_V250_REPLAY_EXPLICIT_INTENT_REQUIRED")
         return result
     try:
-        manifest = load_replay_manifest(repo_root)
+        manifest = load_replay_manifest(repo_root, generation=generation)
     except GenerationLoadError as exc:
         result["errors"].append(exc.code)
         return result

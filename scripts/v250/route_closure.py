@@ -1,4 +1,4 @@
-"""Compile and verify a V2.62/V2.63 Current route closure."""
+"""Compile and verify a Current route closure."""
 
 from __future__ import annotations
 
@@ -51,9 +51,9 @@ def compile_route_closure(
     generation: dict[str, Any],
     route_id: str,
 ) -> dict[str, Any]:
-    """Compile a legacy direct route; V2.63 runtime callers must use facts."""
+    """Compile a legacy direct route; modern runtime callers must use facts."""
 
-    if generation.get("generation_id") == "V2.63":
+    if generation.get("generation_id") in {"V2.63", "V2.65"}:
         raise RouteClosureError(
             "E_V263_ROUTE_FACTS_REQUIRED",
             "V2.63 runtime route closure requires a DerivedRouteReceipt",
@@ -78,7 +78,7 @@ def _compile_route_closure(
     """Compile the manifest-declared exact route and fail closed on drift."""
 
     generation_id = generation.get("generation_id")
-    if generation_id not in {"V2.62", "V2.63"}:
+    if generation_id not in {"V2.62", "V2.63", "V2.65"}:
         raise RouteClosureError("E_V250_ROUTE_GENERATION", "route compiler received an unsupported generation")
     if not generation.get("activation_digest_verified") or not generation.get("member_digests_verified"):
         raise RouteClosureError("E_V250_ROUTE_UNVERIFIED_GENERATION", "generation digests are not verified")
@@ -95,7 +95,7 @@ def _compile_route_closure(
         raise RouteClosureError("E_V250_ROUTE_SHAPE", f"invalid route object: {route_id}")
 
     loaded_paths = _ordered_paths(
-        route.get("ordered_refs"), reject_duplicates=generation_id == "V2.63"
+        route.get("ordered_refs"), reject_duplicates=generation_id in {"V2.63", "V2.65"}
     )
     allowlist = generation.get("current_default_allowlist", [])
     if not isinstance(allowlist, list):
@@ -172,7 +172,7 @@ def _compile_route_closure(
             raise RouteClosureError("E_V250_OWNER_DIGEST_DRIFT", f"owner digest differs: {path}")
         compiled_rule_ids.extend(owner.get("owned_rule_ids", []))
 
-    if generation_id == "V2.63":
+    if generation_id in {"V2.63", "V2.65"}:
         from scripts.v250.semantic_closure import (
             SemanticClosureError,
             compile_owner_closure,
@@ -203,7 +203,7 @@ def _compile_route_closure(
         ] != route.get("conditional_gates", []):
             raise RouteClosureError(
                 "E_V263_CONTROL_ALIAS",
-                "V2.63 route manifests must store canonical controls",
+                "modern route manifests must store canonical controls",
             )
 
     expected_bytes = route.get("expected_loaded_rule_bytes")
@@ -236,7 +236,7 @@ def _compile_route_closure(
         "governance_time": route.get("governance_time", "unknown"),
         "path_digests": observed_digests,
     }
-    if generation_id == "V2.63":
+    if generation_id in {"V2.63", "V2.65"}:
         result["semantic_closure_sha256"] = semantic["closure_sha256"]
     result["closure_digest"] = canonical_json_digest(result)
     return result
@@ -249,11 +249,12 @@ def _validate_derived_route_receipt(
         raise RouteClosureError(
             "E_V263_DERIVED_ROUTE_RECEIPT", "derived route receipt is required"
         )
+    generation_id = generation.get("generation_id")
     if (
-        receipt.get("schema_version")
-        != "goal-teams-derived-route-receipt-v2.63"
-        or receipt.get("derivation_version") != "V2.63"
-        or generation.get("generation_id") != "V2.63"
+        generation_id not in {"V2.63", "V2.65"}
+        or receipt.get("derivation_version") != generation_id
+        or receipt.get("schema_version")
+        != f"goal-teams-derived-route-receipt-{str(generation_id).lower()}"
     ):
         raise RouteClosureError(
             "E_V263_DERIVED_ROUTE_RECEIPT", "derived route identity differs"
@@ -476,7 +477,7 @@ def validate_released_runtime_route_triplet(
         route_closure_raw, evidence_kind="RouteClosure"
     )
     if (
-        closure.get("generation_id") != "V2.63"
+        closure.get("generation_id") != generation.get("generation_id")
         or closure.get("route_id") != expected_route_id
         or closure.get("route_selection_mode") != "facts_derived"
         or closure.get("derived_route_sha256") != derived_route_sha256

@@ -204,7 +204,7 @@ def compile_owner_closure(
         )
 
     result: dict[str, Any] = {
-        "schema_version": "goal-teams-owner-closure-v2.63",
+        "schema_version": "goal-teams-owner-closure-v2.65",
         "route_id": route_id,
         "phase": normalized_phase,
         "ordered_refs": refs,

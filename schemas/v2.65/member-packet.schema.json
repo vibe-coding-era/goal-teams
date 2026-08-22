@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.65/member-packet.schema.json",
+  "title": "Goal Teams V2.65 Member Packet",
+  "oneOf": [
+    { "$ref": "#/$defs/memberPacket" },
+    { "$ref": "#/$defs/validationReceipt" }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": ".*\\S.*"
+    },
+    "timestamp": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "memberPacket": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "packet_id",
+        "graph_id",
+        "graph_revision",
+        "graph_contract_sha256",
+        "plan_id",
+        "plan_revision",
+        "task_exact_set_sha256",
+        "node_id",
+        "task_id",
+        "owner_identity",
+        "owner_run_id",
+        "validator_identity",
+        "validator_run_id",
+        "action_ref",
+        "scope_sha256",
+        "context_bundle_sha256",
+        "context_validation_receipt_sha256",
+        "capability_receipt_sha256",
+        "capability_request_sha256",
+        "capability_decision_sha256",
+        "issued_at",
+        "packet_sha256"
+      ],
+      "properties": {
+        "schema_version": { "const": "goal-teams-member-packet-v2.65" },
+        "packet_id": { "$ref": "#/$defs/nonEmptyString" },
+        "graph_id": { "$ref": "#/$defs/nonEmptyString" },
+        "graph_revision": { "type": "integer", "minimum": 1 },
+        "graph_contract_sha256": { "$ref": "#/$defs/sha256" },
+        "plan_id": { "$ref": "#/$defs/nonEmptyString" },
+        "plan_revision": { "type": "integer", "minimum": 1 },
+        "task_exact_set_sha256": { "$ref": "#/$defs/sha256" },
+        "node_id": { "$ref": "#/$defs/nonEmptyString" },
+        "task_id": { "$ref": "#/$defs/nonEmptyString" },
+        "owner_identity": { "$ref": "#/$defs/nonEmptyString" },
+        "owner_run_id": { "$ref": "#/$defs/nonEmptyString" },
+        "validator_identity": { "$ref": "#/$defs/nonEmptyString" },
+        "validator_run_id": { "$ref": "#/$defs/nonEmptyString" },
+        "action_ref": { "$ref": "#/$defs/nonEmptyString" },
+        "scope_sha256": { "$ref": "#/$defs/sha256" },
+        "context_bundle_sha256": { "$ref": "#/$defs/sha256" },
+        "context_validation_receipt_sha256": { "$ref": "#/$defs/sha256" },
+        "capability_receipt_sha256": { "$ref": "#/$defs/sha256" },
+        "capability_request_sha256": { "$ref": "#/$defs/sha256" },
+        "capability_decision_sha256": { "$ref": "#/$defs/sha256" },
+        "issued_at": { "$ref": "#/$defs/timestamp" },
+        "packet_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "validationReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "packet_id",
+        "node_id",
+        "packet_sha256",
+        "graph_contract_sha256",
+        "context_bundle_sha256",
+        "capability_receipt_sha256",
+        "capability_request_sha256",
+        "capability_decision_sha256",
+        "valid",
+        "validator",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "goal-teams-member-packet-validation-receipt-v2.65"
+        },
+        "packet_id": { "$ref": "#/$defs/nonEmptyString" },
+        "node_id": { "$ref": "#/$defs/nonEmptyString" },
+        "packet_sha256": { "$ref": "#/$defs/sha256" },
+        "graph_contract_sha256": { "$ref": "#/$defs/sha256" },
+        "context_bundle_sha256": { "$ref": "#/$defs/sha256" },
+        "capability_receipt_sha256": { "$ref": "#/$defs/sha256" },
+        "capability_request_sha256": { "$ref": "#/$defs/sha256" },
+        "capability_decision_sha256": { "$ref": "#/$defs/sha256" },
+        "valid": { "const": true },
+        "validator": { "const": "scripts.v265.member_packet.validate_member_packet" },
+        "receipt_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}

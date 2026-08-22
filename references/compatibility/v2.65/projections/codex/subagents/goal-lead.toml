@@ -1,0 +1,4 @@
+name = "goal_lead"
+description = "V2.65 thin compatibility projection for goal_lead"
+canonical_ref = "references/compatibility/v2.65/roles/goal-lead.md"
+portable_core_ref = "references/current/generations/V2.65/core.md"

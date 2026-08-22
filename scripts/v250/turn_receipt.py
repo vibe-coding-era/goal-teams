@@ -136,7 +136,7 @@ def _receipt_digest(value: Mapping[str, Any]) -> str:
 
 def _validate_previous(value: Mapping[str, Any]) -> dict[str, Any]:
     if not isinstance(value, Mapping) or value.get("schema_version") != (
-        "goal-teams-turn-receipt-v2.63"
+        "goal-teams-turn-receipt-v2.65"
     ):
         _fail("E_V263_TURN_PREVIOUS", "invalid previous turn receipt")
     claimed = value.get("receipt_sha256")
@@ -204,7 +204,7 @@ def _authorization_metadata(
         not isinstance(authorization_receipt, Mapping)
         or set(authorization_receipt) != AUTHORIZATION_RECEIPT_FIELDS
         or authorization_receipt.get("schema_version")
-        != "goal-teams-external-authorization-receipt-v2.63"
+        != "goal-teams-external-authorization-receipt-v2.65"
     ):
         _fail("E_V263_TURN_AUTH_RECEIPT", "invalid external authorization receipt")
     claimed = _sha(
@@ -307,7 +307,7 @@ def create_authorized_delta(
         next_action=normalized_action,
     )
     delta: dict[str, Any] = {
-        "schema_version": "goal-teams-authorized-turn-delta-v2.63",
+        "schema_version": "goal-teams-authorized-turn-delta-v2.65",
         "previous_turn_receipt_sha256": previous["receipt_sha256"],
         "from_bindings_sha256": canonical_json_digest(previous["bindings"]),
         "to_bindings_sha256": canonical_json_digest(normalized_bindings),
@@ -334,7 +334,7 @@ def _validate_delta(
     decision: str,
 ) -> dict[str, Any]:
     if not isinstance(value, Mapping) or value.get("schema_version") != (
-        "goal-teams-authorized-turn-delta-v2.63"
+        "goal-teams-authorized-turn-delta-v2.65"
     ):
         _fail("E_V263_TURN_DELTA", "invalid authorized delta")
     if value.get("receipt_sha256") != _receipt_digest(value):
@@ -480,7 +480,7 @@ def create_turn_receipt(
         authorization_state = "not_required"
 
     receipt: dict[str, Any] = {
-        "schema_version": "goal-teams-turn-receipt-v2.63",
+        "schema_version": "goal-teams-turn-receipt-v2.65",
         "turn_id": identifier,
         "turn_index": turn_index,
         "previous_turn_receipt_sha256": previous_digest,

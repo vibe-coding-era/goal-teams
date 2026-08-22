@@ -44,7 +44,7 @@ class TestV263DerivedRouteCanonicalGateClosure(unittest.TestCase):
     def setUpClass(cls) -> None:
         manifest = json.loads(
             Path(
-                "references/current/generations/V2.63/prompt-manifest.json"
+                "references/current/generations/V2.65/prompt-manifest.json"
             ).read_text()
         )
         cls.routes = manifest["routes"]

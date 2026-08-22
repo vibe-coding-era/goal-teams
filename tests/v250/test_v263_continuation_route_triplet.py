@@ -18,27 +18,28 @@ class TestV263ContinuationRouteTriplet(unittest.TestCase):
     ) -> None:
         predecessor = skill_release.V249_CONTINUATION_FORMAL_RECEIPTS
         self.assertEqual(predecessor, skill_release.V250_CONTINUATION_FORMAL_RECEIPTS)
-        for version in ("V2.49", "V2.50", "V2.52", "V2.6", "V2.62"):
+        for version in ("V2.49", "V2.50", "V2.52", "V2.6"):
             with self.subTest(version=version):
                 self.assertEqual(
                     predecessor,
                     skill_release.continuation_formal_receipts(version),
                 )
 
-        current = skill_release.continuation_formal_receipts("V2.63")
-        self.assertEqual(current, skill_release.V263_CONTINUATION_FORMAL_RECEIPTS)
-        self.assertEqual(
-            (
+        for version in ("V2.63", "V2.65"):
+            current = skill_release.continuation_formal_receipts(version)
+            self.assertEqual(current, skill_release.V263_CONTINUATION_FORMAL_RECEIPTS)
+            self.assertEqual(
+                (
+                    "release-route-facts.json",
+                    "release-route-derived.json",
+                    "release-route-receipt.json",
+                ),
+                tuple(name for name in current if name.startswith("release-route-")),
+            )
+            self.assertEqual(set(current), set(predecessor) | {
                 "release-route-facts.json",
                 "release-route-derived.json",
-                "release-route-receipt.json",
-            ),
-            tuple(name for name in current if name.startswith("release-route-")),
-        )
-        self.assertEqual(set(current), set(predecessor) | {
-            "release-route-facts.json",
-            "release-route-derived.json",
-        })
+            })
 
     def test_ready_checkpoint_exactly_binds_all_three_route_receipts(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -56,7 +57,7 @@ class TestV263ContinuationRouteTriplet(unittest.TestCase):
                 ) as control_validator,
             ):
                 checkpoint = skill_release.build_v250_continuation_checkpoint(
-                    "V2.63",
+                    "V2.65",
                     SOURCE,
                     project_size="large",
                     job_status="success",
@@ -67,7 +68,7 @@ class TestV263ContinuationRouteTriplet(unittest.TestCase):
                     release_root=release_root,
                 )
                 control_validator.assert_called_once_with(
-                    "V2.63",
+                    "V2.65",
                     SOURCE,
                     mock.ANY,
                     runtime_route_facts_receipt_path=(
@@ -106,12 +107,12 @@ class TestV263ContinuationRouteTriplet(unittest.TestCase):
                 }
                 forged.pop("checkpoint_sha256")
                 forged["checkpoint_sha256"] = (
-                    skill_release._release_flow_module("V2.63").canonical_sha256(
+                    skill_release._release_flow_module("V2.65").canonical_sha256(
                         forged
                     )
                 )
                 verdict = skill_release.validate_v250_continuation_checkpoint(
-                    "V2.63",
+                    "V2.65",
                     SOURCE,
                     forged,
                     receipt_root=receipt_root,
@@ -120,7 +121,7 @@ class TestV263ContinuationRouteTriplet(unittest.TestCase):
                     expected_workflow_run_attempt="1",
                 )
                 control_validator.assert_called_once_with(
-                    "V2.63",
+                    "V2.65",
                     SOURCE,
                     mock.ANY,
                     runtime_route_facts_receipt_path=(

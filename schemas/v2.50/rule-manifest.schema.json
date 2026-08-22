@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://goal-teams.local/schemas/v2.50/rule-manifest.schema.json",
-  "title": "Goal Teams V2.62/V2.63 derived rule index",
+  "title": "Goal Teams Current derived rule index",
   "type": "object",
   "required": ["schema_version", "generation_id", "manifest_state", "semantic_source", "source_digest_algorithm", "owners"],
   "properties": {
     "schema_version": {"const": "goal-teams-rule-manifest-v2.50"},
-    "generation_id": {"enum": ["V2.62", "V2.63"]},
+    "generation_id": {"enum": ["V2.62", "V2.63", "V2.65"]},
     "manifest_state": {"const": "derived_projection"},
     "semantic_source": {"const": "owner_markdown_only"},
     "source_digest_algorithm": {"const": "sha256_raw_file_bytes"},
@@ -35,7 +35,7 @@
         "source_sha256": {"$ref": "#/$defs/sha256"},
         "dependencies": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/dependency"}},
         "route_membership": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^V250-ROUTE-[A-Z0-9-]+$"}},
-        "owned_rule_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^GT(?:250|263)-[A-Z0-9-]+$"}}
+        "owned_rule_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^GT(?:250|263|265)-[A-Z0-9-]+$"}}
       },
       "additionalProperties": false
     },

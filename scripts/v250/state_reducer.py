@@ -384,7 +384,7 @@ def make_validation_receipt(
     """Build a typed validation receipt; validation is repeated by every consumer."""
 
     receipt: dict[str, Any] = {
-        "schema_version": "goal-teams-validation-receipt-v2.63",
+        "schema_version": "goal-teams-validation-receipt-v2.65",
         "receipt_type": receipt_type,
         "subject_id": subject_id,
         "status": status,
@@ -417,7 +417,7 @@ def validate_validation_receipt(
         raise StateReducerError(
             "E_V263_VALIDATION_RECEIPT", "validation receipt fields differ"
         )
-    if receipt.get("schema_version") != "goal-teams-validation-receipt-v2.63":
+    if receipt.get("schema_version") != "goal-teams-validation-receipt-v2.65":
         raise StateReducerError(
             "E_V263_VALIDATION_RECEIPT", "validation receipt schema differs"
         )
@@ -509,7 +509,7 @@ def make_state_event(
     """Build a canonical event; reducer validation remains authoritative."""
 
     event = {
-        "schema_version": "goal-teams-state-event-v2.63",
+        "schema_version": "goal-teams-state-event-v2.65",
         "event_id": event_id,
         "event_seq": event_seq,
         "event_type": event_type,
@@ -550,7 +550,7 @@ def _validate_event_shape(event: Mapping[str, Any]) -> None:
     }
     if set(event) != required:
         raise StateReducerError("E_V263_STATE_EVENT", "event fields differ")
-    if event.get("schema_version") != "goal-teams-state-event-v2.63":
+    if event.get("schema_version") != "goal-teams-state-event-v2.65":
         raise StateReducerError("E_V263_STATE_EVENT", "unknown event schema")
     for field in (
         "event_id",
@@ -728,7 +728,7 @@ def reduce_state_events(
         previous = str(event["event_sha256"])
 
     projection: dict[str, Any] = {
-        "schema_version": "goal-teams-state-projection-v2.63",
+        "schema_version": "goal-teams-state-projection-v2.65",
         "revision": revision,
         "event_count": event_count,
         "last_event_sha256": previous,

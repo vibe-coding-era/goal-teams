@@ -12,7 +12,7 @@ from scripts.v250.route_closure import (
     validate_declared_route_closure,
 )
 from scripts.v250.route_derivation import derive_route
-from tests.v250.v263_candidate_fixture import inactive_candidate_fixture
+from tests.v250.v265_candidate_fixture import inactive_candidate_fixture
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -49,7 +49,7 @@ class TestV263RouteClosureIntegration(unittest.TestCase):
         fixture = cls.candidate_fixture
         cls.generation = load_candidate_generation(
             fixture.root,
-            generation_id="V2.63",
+            generation_id="V2.65",
             activation_manifest_path=fixture.activation_path,
             expected_activation_sha256=fixture.activation_sha256,
         )

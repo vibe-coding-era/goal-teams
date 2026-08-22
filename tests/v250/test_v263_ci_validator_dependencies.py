@@ -20,7 +20,7 @@ class TestV263CiValidatorDependencies(unittest.TestCase):
             "--ignore-scripts",
             "--no-audit",
             "--no-fund",
-            "ajv@8.17.1",
+            "ajv@8.18.0",
             'NODE_PATH="${VALIDATOR_NODE_PREFIX}/node_modules" node -e',
             'echo "NODE_PATH=${VALIDATOR_NODE_PREFIX}/node_modules${NODE_PATH:+:${NODE_PATH}}" >> "${GITHUB_ENV}"',
         )
@@ -37,11 +37,11 @@ class TestV263CiValidatorDependencies(unittest.TestCase):
 
         self.assertEqual(
             1,
-            WORKFLOWS[0].read_text(encoding="utf-8").count("ajv@8.17.1"),
+            WORKFLOWS[0].read_text(encoding="utf-8").count("ajv@8.18.0"),
         )
         self.assertEqual(
             2,
-            WORKFLOWS[1].read_text(encoding="utf-8").count("ajv@8.17.1"),
+            WORKFLOWS[1].read_text(encoding="utf-8").count("ajv@8.18.0"),
         )
 
     def test_dependency_gate_is_in_both_exact_development_sets(self) -> None:

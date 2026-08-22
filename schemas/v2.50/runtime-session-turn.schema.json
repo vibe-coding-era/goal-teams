@@ -31,7 +31,7 @@
         "provider_prompt_assembly"
       ],
       "properties": {
-        "schema_version": {"const": "goal-teams-host-load-observation-v2.63"},
+        "schema_version": {"const": "goal-teams-host-load-observation-v2.65"},
         "host_execution_id": {"type": "string", "minLength": 1},
         "selected_root_realpath": {"type": "string", "pattern": "^/"},
         "opened_files": {
@@ -77,7 +77,7 @@
         "receipt_sha256"
       ],
       "properties": {
-        "schema_version": {"const": "goal-teams-runtime-session-receipt-v2.63"},
+        "schema_version": {"const": "goal-teams-runtime-session-receipt-v2.65"},
         "runtime_session_id": {"type": "string", "minLength": 1},
         "host_execution_id": {"type": "string", "minLength": 1},
         "discovery_decision_sha256": {"$ref": "#/$defs/sha256"},
@@ -194,7 +194,7 @@
         "receipt_sha256"
       ],
       "properties": {
-        "schema_version": {"const": "goal-teams-authorized-turn-delta-v2.63"},
+        "schema_version": {"const": "goal-teams-authorized-turn-delta-v2.65"},
         "previous_turn_receipt_sha256": {"$ref": "#/$defs/sha256"},
         "from_bindings_sha256": {"$ref": "#/$defs/sha256"},
         "to_bindings_sha256": {"$ref": "#/$defs/sha256"},
@@ -239,7 +239,7 @@
       ],
       "properties": {
         "schema_version": {
-          "const": "goal-teams-external-authorization-receipt-v2.63"
+          "const": "goal-teams-external-authorization-receipt-v2.65"
         },
         "receipt_id": {"type": "string", "minLength": 1},
         "issuer": {"type": "string", "minLength": 1},
@@ -286,7 +286,7 @@
         "receipt_sha256"
       ],
       "properties": {
-        "schema_version": {"const": "goal-teams-turn-receipt-v2.63"},
+        "schema_version": {"const": "goal-teams-turn-receipt-v2.65"},
         "turn_id": {"type": "string", "minLength": 1},
         "turn_index": {"type": "integer", "minimum": 1},
         "previous_turn_receipt_sha256": {

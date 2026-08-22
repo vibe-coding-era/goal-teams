@@ -91,7 +91,7 @@ def _decision_payload(
     selection_rule: str,
 ) -> dict[str, object]:
     return {
-        "schema_version": "goal-teams-discovery-decision-v2.63",
+        "schema_version": "goal-teams-discovery-decision-v2.65",
         "selected_identity_sha256": selected.identity_sha256,
         "candidates": [_candidate_payload(candidate) for candidate in candidates],
         "selection_rule": selection_rule,

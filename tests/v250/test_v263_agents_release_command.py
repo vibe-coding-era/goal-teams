@@ -19,7 +19,7 @@ class TestV263AgentsReleaseCommand(unittest.TestCase):
             text,
         )
         self.assertIn(
-            "--controller-handoff-receipt <externally-issued-v263-controller-handoff.json>",
+            "--controller-handoff-receipt <externally-issued-v265-controller-handoff.json>",
             text,
         )
         self.assertNotIn("externally-issued-v248-handoff", text)

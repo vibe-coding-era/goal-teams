@@ -121,7 +121,7 @@ class TestV263TrustedPromptRuntime(unittest.TestCase):
 
     def observation(self, artifact: dict[str, object]) -> dict[str, object]:
         return {
-            "schema_version": "goal-teams-host-load-observation-v2.63",
+            "schema_version": "goal-teams-host-load-observation-v2.65",
             "host_execution_id": "HOST-EXEC-263-AUDIT",
             "selected_root_realpath": self.root.resolve().as_posix(),
             "opened_files": copy.deepcopy(artifact["path_entries"]),
@@ -243,7 +243,7 @@ class TestV263ExternalAuthorizationAndContextDelta(unittest.TestCase):
         self, previous: dict[str, object], lineage: str
     ) -> dict[str, object]:
         receipt: dict[str, object] = {
-            "schema_version": "goal-teams-external-authorization-receipt-v2.63",
+            "schema_version": "goal-teams-external-authorization-receipt-v2.65",
             "receipt_id": "AUTH-AUDIT-263-1",
             "issuer": "codex_host",
             "proof_strength": "externally_issued",

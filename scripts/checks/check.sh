@@ -86,24 +86,24 @@ if ! command -v "$PYTHON_BIN" >/dev/null 2>&1; then
   exit 2
 fi
 
-if [[ "$(<VERSION)" != "V2.63" ]]; then
-  echo "This Current checker only accepts VERSION=V2.63." >&2
+if [[ "$(<VERSION)" != "V2.65" ]]; then
+  echo "This Current checker only accepts VERSION=V2.65." >&2
   exit 2
 fi
 
-"$PYTHON_BIN" scripts/checks/validate-v250-generation.py --generation-id V2.63 --selection active
+"$PYTHON_BIN" scripts/checks/validate-v250-generation.py --generation-id V2.65 --selection active
 "$PYTHON_BIN" scripts/checks/validate-v250-test-gate.py --self-test
 "$PYTHON_BIN" scripts/checks/check-package-manifest.py
 "$PYTHON_BIN" scripts/v250/generate_subagents.py --check
 
 if [[ "$PHASE" == "development" ]]; then
   "$PYTHON_BIN" -m unittest discover -s tests/v250 -p 'test_*.py'
-  "$PYTHON_BIN" -m unittest discover -s tests/v263 -p 'test_*.py'
+  "$PYTHON_BIN" -m unittest discover -s tests/v265 -p 'test_*.py'
   "$PYTHON_BIN" scripts/checks/check-v250.py \
     --phase development \
     --project-size "$PROJECT_SIZE" \
     --stage candidate
-  echo "Goal Teams V2.63 development checks passed (${CHECK_MODE})."
+  echo "Goal Teams V2.65 development checks passed (${CHECK_MODE})."
   exit 0
 fi
 
@@ -127,4 +127,4 @@ fi
   --route-receipt "$ROUTE_RECEIPT" \
   --authorization-receipt "$AUTHORIZATION_RECEIPT"
 
-echo "Goal Teams V2.63 final regression and release security review passed (${CHECK_MODE})."
+echo "Goal Teams V2.65 final regression and release security review passed (${CHECK_MODE})."

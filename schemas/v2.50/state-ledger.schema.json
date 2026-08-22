@@ -187,7 +187,7 @@
         "receipt_digest"
       ],
       "properties": {
-        "schema_version": {"const": "goal-teams-validation-receipt-v2.63"},
+        "schema_version": {"const": "goal-teams-validation-receipt-v2.65"},
         "receipt_type": {
           "enum": [
             "task_verification",
@@ -294,7 +294,7 @@
         "event_sha256"
       ],
       "properties": {
-        "schema_version": {"const": "goal-teams-state-event-v2.63"},
+        "schema_version": {"const": "goal-teams-state-event-v2.65"},
         "event_id": {"type": "string", "minLength": 1},
         "event_seq": {"type": "integer", "minimum": 1},
         "event_type": {
