@@ -68,7 +68,7 @@ class TestV263RouteClosureTrustBoundary(unittest.TestCase):
             {key: value for key, value in attacked.items() if key != "receipt_sha256"}
         )
         generation = {
-            "generation_id": "V2.63",
+            "generation_id": "V2.65",
             "prompt_manifest": {
                 "routes": {
                     downgraded["route_id"]: {

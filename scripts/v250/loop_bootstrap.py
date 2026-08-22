@@ -78,7 +78,7 @@ def plan_loop_round(facts: Mapping[str, Any]) -> dict[str, Any]:
         )
     product_version = _required_text(facts.get("product_version"), "product_version")
     task_exact_set_digest: str | None = None
-    if product_version == "V2.63":
+    if product_version in {"V2.63", "V2.65"}:
         candidate_digest = facts.get("task_exact_set_digest")
         if not isinstance(candidate_digest, str) or SHA256_RE.fullmatch(candidate_digest) is None:
             raise LoopBootstrapError(
@@ -138,7 +138,7 @@ def plan_loop_round(facts: Mapping[str, Any]) -> dict[str, Any]:
         reuse = not reuse_rejected_reasons
 
     required_order = ["tasklist", "task_assignment", "environment_preflight"]
-    if product_version == "V2.63":
+    if product_version in {"V2.63", "V2.65"}:
         required_order = [
             "tasklist",
             "task_exact_set_freeze",
@@ -174,7 +174,7 @@ def validate_loop_bootstrap_receipt(receipt: Mapping[str, Any]) -> dict[str, Any
     """Validate first-round ordering, actor independence, reuse, and branch identity."""
 
     events = receipt.get("bootstrap_events")
-    v263 = receipt.get("product_version") == "V2.63"
+    v263 = receipt.get("product_version") in {"V2.63", "V2.65"}
     expected_steps = ["tasklist", "task_assignment", "environment_preflight"]
     if v263:
         expected_steps = [
@@ -238,7 +238,7 @@ def validate_loop_bootstrap_receipt(receipt: Mapping[str, Any]) -> dict[str, Any
         raise LoopBootstrapError("E_V26_LOOP_FACTS", "invalid project_size")
     product_version = _required_text(receipt.get("product_version"), "product_version")
     task_exact_set_digest: str | None = None
-    if product_version == "V2.63":
+    if product_version in {"V2.63", "V2.65"}:
         candidate_digest = receipt.get("task_exact_set_digest")
         if not isinstance(candidate_digest, str) or SHA256_RE.fullmatch(candidate_digest) is None:
             raise LoopBootstrapError(

@@ -55,7 +55,7 @@ jobs:
             "require('ajv/dist/2020')"
           echo "PYTHONPATH=${VALIDATOR_PYTHON_PREFIX}${PYTHONPATH:+:${PYTHONPATH}}" >> "${GITHUB_ENV}"
           echo "NODE_PATH=${VALIDATOR_NODE_PREFIX}/node_modules${NODE_PATH:+:${NODE_PATH}}" >> "${GITHUB_ENV}"
-      - name: Active V2.63 pre-release exact Development gate
+      - name: Active V2.65 pre-release exact Development gate
         env:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
@@ -126,14 +126,49 @@ jobs:
             tests.v250.test_v263_trust_boundary_hardening \
             tests.v250.test_v263_validator_callers \
             tests.v250.test_v263_version_migration \
+            tests.v250.test_v265_activation_lifecycle \
+            tests.v250.test_v265_activation_lifecycle_hardening \
+            tests.v250.test_v265_active_pointer_locking \
+            tests.v250.test_v265_generation_validator_selection \
+            tests.v250.test_v265_prompt_manifest_state \
             tests.v250.test_workflow_release_contract \
-            tests.v263.test_compatibility_assets \
-            tests.v263.test_delivery_closure \
-            tests.v263.test_development_checker_identity \
-            tests.v263.test_product_identity \
-            tests.v263.test_projection_cli \
-            tests.v263.test_runtime_binding_contract \
-            tests.v263.test_v262_compatibility_policy
+            tests.v265.test_condition_gate_compiler \
+            tests.v265.test_controller_authority_closure \
+            tests.v265.test_controller_recovery_authority \
+            tests.v265.test_current_compatibility_closure \
+            tests.v265.test_current_generation_closure \
+            tests.v265.test_current_product_identity \
+            tests.v265.test_current_release_closure \
+            tests.v265.test_generation_dependency_validator \
+            tests.v265.test_graph_contract \
+            tests.v265.test_graph_runtime \
+            tests.v265.test_host_readback_order \
+            tests.v265.test_historical_package_fixture_isolation \
+            tests.v265.test_loop_coordinator \
+            tests.v265.test_loop_coordinator_multiround \
+            tests.v265.test_loop_review \
+            tests.v265.test_owner_dependency_projection \
+            tests.v265.test_predecessor_denominator_isolation \
+            tests.v265.test_retry_namespace_hardening \
+            tests.v265.test_runtime_execution_authority \
+            tests.v265.test_runtime_hardening_integration \
+            tests.v265.test_runtime_semantic_closure \
+            tests.v265.test_runtime_semantic_hardening \
+            tests.v265.test_runtime_store_atomicity \
+            tests.v265.test_runtime_store_integrity_hardening \
+            tests.v265.test_runtime_store_live_identity \
+            tests.v265.test_schema_strictness \
+            tests.v265.test_active_generation_refresh \
+            tests.v265.test_v265_installer_offline_closure \
+            tests.v265.test_v265_okf_package_manifest \
+            tests.v265.test_v265_package_active_closure \
+            tests.v265.test_v265_package_candidate_closure \
+            tests.v265.test_v265_release_surfaces \
+            tests.v265.test_v265_released_runtime_route_triplet \
+            tests.v265.test_v265_s0_controller_identity \
+            tests.v265.test_v265_s1_denominator_validator \
+            tests.v265.test_v265_s4_executor \
+            tests.v265.test_v265_version_migration
           published_version="$(
             python3 - <<'PY'
           import json
@@ -156,7 +191,7 @@ jobs:
             --mode development \
             --published-version "${published_version}"
           python3 scripts/checks/validate-v250-generation.py \
-            --generation-id V2.63 \
+            --generation-id V2.65 \
             --selection active
           python3 scripts/checks/check-v250.py \
             --phase development \

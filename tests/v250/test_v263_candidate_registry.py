@@ -19,12 +19,12 @@ from scripts.v250.generation_runtime import (
     load_candidate_generation,
     load_generation,
 )
-from tests.v250.v263_candidate_fixture import inactive_candidate_fixture
+from tests.v250.v265_candidate_fixture import inactive_candidate_fixture
 
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 V263_ACTIVATION_PATH = (
-    "references/current/generations/V2.63/activation-manifest.json"
+    "references/current/generations/V2.65/activation-manifest.json"
 )
 V263_FOUNDATION_ASSETS = (
     "scripts/v250/control_registry.py",
@@ -79,7 +79,7 @@ class TestV263CandidateRegistry(unittest.TestCase):
         with self.assertRaises(TypeError):
             load_candidate_generation(
                 fixture.root,
-                generation_id="V2.63",
+                generation_id="V2.65",
                 activation_manifest_path=fixture.activation_path,
             )
 
@@ -97,7 +97,7 @@ class TestV263CandidateRegistry(unittest.TestCase):
         ):
             candidate = load_candidate_generation(
                 fixture.root,
-                generation_id="V2.63",
+                generation_id="V2.65",
                 activation_manifest_path=fixture.activation_path,
                 expected_activation_sha256=candidate_digest,
             )
@@ -109,7 +109,7 @@ class TestV263CandidateRegistry(unittest.TestCase):
         with self.assertRaises(GenerationLoadError) as caught:
             load_candidate_generation(
                 fixture.root,
-                generation_id="V2.63",
+                generation_id="V2.65",
                 activation_manifest_path=fixture.activation_path,
                 expected_activation_sha256="0" * 64,
             )
@@ -119,7 +119,7 @@ class TestV263CandidateRegistry(unittest.TestCase):
         with self.assertRaises(GenerationLoadError) as live_state:
             load_candidate_generation(
                 REPO,
-                generation_id="V2.63",
+                generation_id="V2.65",
                 activation_manifest_path=V263_ACTIVATION_PATH,
                 expected_activation_sha256=hashlib.sha256(live_raw).hexdigest(),
             )
@@ -127,19 +127,19 @@ class TestV263CandidateRegistry(unittest.TestCase):
 
     def test_default_loader_uses_active_only_and_predecessor_window_is_closed(self) -> None:
         active = json.loads((REPO / ACTIVE_PATH).read_text(encoding="utf-8"))
-        self.assertIn(active["generation_id"], {"V2.62", "V2.63"})
-        if active["generation_id"] == "V2.63":
+        self.assertIn(active["generation_id"], {"V2.63", "V2.65"})
+        if active["generation_id"] == "V2.65":
             generation = load_generation(REPO)
-            self.assertEqual("V2.63", generation["generation_id"])
+            self.assertEqual("V2.65", generation["generation_id"])
             self.assertEqual("active_pointer", generation["selection_mode"])
             self.assertTrue(generation["selected_via_active_pointer"])
-            unreachable = "V2.62"
+            unreachable = "V2.63"
         else:
             prepared = json.loads(
                 (REPO / V263_ACTIVATION_PATH).read_text(encoding="utf-8")
             )
             self.assertEqual("active", prepared["generation_state"])
-            unreachable = "V2.63"
+            unreachable = "V2.65"
 
         with self.assertRaises(GenerationLoadError) as caught:
             load_generation(REPO, generation_id=unreachable)
@@ -149,20 +149,20 @@ class TestV263CandidateRegistry(unittest.TestCase):
         fixture = self.candidate_fixture
         generation = load_candidate_generation(
             fixture.root,
-            generation_id="V2.63",
+            generation_id="V2.65",
             activation_manifest_path=fixture.activation_path,
             expected_activation_sha256=fixture.activation_sha256,
         )
-        self.assertEqual("V2.63", generation["generation_id"])
+        self.assertEqual("V2.65", generation["generation_id"])
 
         for relative_path in V263_FOUNDATION_ASSETS:
             with self.subTest(relative_path=relative_path):
                 self.assertTrue((fixture.root / relative_path).is_file())
-                self.assertFalse(
-                    is_control_asset_applicable(relative_path, generation_id="V2.62")
-                )
                 self.assertTrue(
                     is_control_asset_applicable(relative_path, generation_id="V2.63")
+                )
+                self.assertTrue(
+                    is_control_asset_applicable(relative_path, generation_id="V2.65")
                 )
                 self.assertIn(relative_path, generation["member_digests"])
 

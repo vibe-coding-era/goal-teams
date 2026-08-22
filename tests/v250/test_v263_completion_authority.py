@@ -328,14 +328,14 @@ class V263CompletionAuthorityTests(unittest.TestCase):
         publication = self._axis_receipt(
             context,
             "release_publication",
-            "V2.63",
+            "V2.65",
             {
-                "tag_name": "V2.63",
+                "tag_name": "V2.65",
                 "release_id": "release-263",
                 "expected_tag_target_sha256": "1" * 64,
                 "observed_tag_target_sha256": "1" * 64,
-                "expected_asset_ids": ["goal-teams-V2.63.tar.gz"],
-                "observed_asset_ids": ["goal-teams-V2.63.tar.gz"],
+                "expected_asset_ids": ["goal-teams-V2.65.tar.gz"],
+                "observed_asset_ids": ["goal-teams-V2.65.tar.gz"],
             },
         )
         published = self._completion(context, [*base, publication])
@@ -351,8 +351,8 @@ class V263CompletionAuthorityTests(unittest.TestCase):
                 "observed_source_sha256": "1" * 64,
                 "expected_artifact_sha256": "f" * 64,
                 "observed_artifact_sha256": "f" * 64,
-                "expected_version": "V2.63",
-                "observed_version": "V2.63",
+                "expected_version": "V2.65",
+                "observed_version": "V2.65",
                 "expected_canonical_path": "/Users/Rou/.codex/skills/goal-teams",
                 "observed_canonical_path": "/Users/Rou/.codex/skills/goal-teams",
             },

@@ -19,13 +19,13 @@ from scripts.v250.runtime_transition import _canonical_sha256, object_sha256
 SOURCE = "1" * 40
 TREE = "2" * 40
 PUBLISHED_V262_IDENTITY = {
-    "tag": "v2.62",
-    "release_id": 367112913,
+    "tag": "v2.63",
+    "release_id": 369846737,
     "state": "published",
-    "source_commit": "bd4eedfc0623e74b74efeaf157edf92ce2be1e74",
-    "source_tree": "58d11881eeda2f0a018fcc4273ce2f3982977f94",
+    "source_commit": "8e246e4b7bb7c44bd6aa514eb273590d925b32b0",
+    "source_tree": "33c0af795a549ec6121919a18f42a04a797463a2",
     "public_assets": [
-        "goal-teams-V2.62.tar.gz",
+        "goal-teams-V2.63.tar.gz",
         "SHA256SUMS",
         "_release.json",
         "_files.sha256",
@@ -35,7 +35,7 @@ PUBLISHED_V262_IDENTITY = {
 
 def _write_predecessor_contract(root: Path) -> None:
     path = root / (
-        "references/current/generations/V2.63/contracts/"
+        "references/current/generations/V2.65/contracts/"
         "predecessor-release-identity.json"
     )
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -47,9 +47,9 @@ def _write_predecessor_contract(root: Path) -> None:
     path.write_text(
         json.dumps(
             {
-                "schema_version": "goal-teams-predecessor-release-identity-v2.63",
-                "generation_id": "V2.63",
-                "predecessor_product_version": "V2.62",
+                "schema_version": "goal-teams-predecessor-release-identity-v2.65",
+                "generation_id": "V2.65",
+                "predecessor_product_version": "V2.63",
                 "release_identity": PUBLISHED_V262_IDENTITY,
                 "release_identity_sha256": identity_digest,
             },
@@ -62,7 +62,7 @@ def _write_predecessor_contract(root: Path) -> None:
 def _authorization(path: Path) -> dict:
     intent = {
         "repository": "vibe-coding-era/goal-teams",
-        "version": "V2.63",
+        "version": "V2.65",
         "action_allowlist": ["fresh_runtime_transition"],
     }
     value = {
@@ -72,7 +72,7 @@ def _authorization(path: Path) -> dict:
         "authorization_state": "granted_once_at_project_start",
         "authorization_lineage_preserved": True,
         "repository": {"name_with_owner": "vibe-coding-era/goal-teams"},
-        "version": "V2.63",
+        "version": "V2.65",
         "action_allowlist": ["fresh_runtime_transition"],
         "intent": intent,
         "intent_sha256": _canonical_sha256(intent),
@@ -89,12 +89,12 @@ def _handoff() -> dict:
         "authorization_id": "AUTH-V250-HOST",
         "authorization_receipt_sha256": "a" * 64,
         "authorization_intent_sha256": "b" * 64,
-        "previous_controller_product_version": "V2.62",
-        "previous_run_id": "V262-HOST-RUN",
+        "previous_controller_product_version": "V2.63",
+        "previous_run_id": "V263-HOST-RUN",
         "nonce": "nonce-v250-controller-handoff-000001",
         "issued_at": "2026-08-01T08:00:00+00:00",
         "expires_at": "2026-08-01T08:10:00+00:00",
-        "installed_v262_current_state": {
+        "installed_v263_current_state": {
             "source_commit": PUBLISHED_V262_IDENTITY["source_commit"],
             "source_tree": PUBLISHED_V262_IDENTITY["source_tree"],
             "tag": PUBLISHED_V262_IDENTITY["tag"],
@@ -108,12 +108,12 @@ def _handoff() -> dict:
             "ssh_signature_namespace": runtime_host_adapter.HANDOFF_SIGNATURE_NAMESPACE,
         },
     }
-    installed = payload["installed_v262_current_state"]
+    installed = payload["installed_v263_current_state"]
     installed["state_sha256"] = _canonical_sha256(
         installed, digest_field="state_sha256"
     )
     return {
-        "schema_version": "goal-teams-v2.63-controller-handoff-receipt-v1",
+        "schema_version": "goal-teams-v2.65-controller-handoff-receipt-v1",
         "signed_payload": payload,
         "payload_sha256": _canonical_sha256(payload),
         "ssh_signature": "signed-externally",
@@ -141,7 +141,7 @@ class _FakeProcess:
             return (
                 json.dumps(
                     {
-                        "schema_version": "goal-teams-v2.63-runtime-child-ack-v1",
+                        "schema_version": "goal-teams-v2.65-runtime-child-ack-v1",
                         "acknowledged": False,
                         "error_code": self.failure_error_code,
                         "external_independence": False,
@@ -154,7 +154,7 @@ class _FakeProcess:
         launch = self.stdin_payload["runtime_launch_receipt"]
         runtime_receipt = {"receipt_sha256": "d" * 64}
         ack = {
-            "schema_version": "goal-teams-v2.63-runtime-child-ack-v1",
+            "schema_version": "goal-teams-v2.65-runtime-child-ack-v1",
             "acknowledged": True,
             "child_pid": launch["expected_child_pid"],
             "parent_pid": launch["parent_pid"],
@@ -177,7 +177,7 @@ class TestRuntimeHostAdapter(unittest.TestCase):
         def failure_stdout(error_code: str) -> str:
             return json.dumps(
                 {
-                    "schema_version": "goal-teams-v2.63-runtime-child-ack-v1",
+                    "schema_version": "goal-teams-v2.65-runtime-child-ack-v1",
                     "acknowledged": False,
                     "error_code": error_code,
                     "external_independence": False,
@@ -199,7 +199,7 @@ class TestRuntimeHostAdapter(unittest.TestCase):
             failure_stdout("E_V250_" + "A" * 97),
             failure_stdout(valid) + " " * 4096,
             (
-                '{"schema_version":"goal-teams-v2.63-runtime-child-ack-v1",'
+                '{"schema_version":"goal-teams-v2.65-runtime-child-ack-v1",'
                 '"acknowledged":false,"error_code":"'
                 + valid
                 + '","error_code":"E_V999_FORGED",'
@@ -319,7 +319,7 @@ class TestRuntimeHostAdapter(unittest.TestCase):
                 authorization_path.read_bytes()
             ).hexdigest()
             payload["authorization_intent_sha256"] = authorization["intent_sha256"]
-            payload["previous_controller_product_version"] = "V2.63"
+            payload["previous_controller_product_version"] = "V2.65"
             handoff["payload_sha256"] = _canonical_sha256(payload)
             popen_factory = mock.Mock(side_effect=AssertionError("unexpected Popen"))
 

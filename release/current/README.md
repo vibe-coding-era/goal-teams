@@ -1,5 +1,13 @@
 # Goal Teams V2.63 Release
 
+> Candidate projection: V2.63 remains the current published release. V2.65 is an unpublished development candidate and is not yet represented by a tag, GitHub Release, public asset, or canonical installation.
+
+## V2.65 candidate scope
+
+- Adds typed Graph compilation, scheduler/runtime authority, durable SQLite recovery, HITL resume, exactly-once effect evidence, and explicit real-Host/business boundaries.
+- Adds a proactive evolution LOOP: every round end or detected problem appends a project reflection to `loop-review.md`, including prompt, context, Skill, graph, Harness and workflow improvement candidates.
+- Retains core policy V2.5 and Legacy data schema V2.3. Candidate state is `development_candidate_not_published` until S4 exact readback.
+
 V2.63 is the current published product release. GitHub Release `369846737`, the annotated `v2.63` tag, the fixed four public assets, remote readback, and the formal canonical local installation have completed.
 
 V2.63 governs discovery, immutable generation snapshots, fact-derived routes, deterministic prompt artifacts, TaskExactSet/DAG, bounded blockers/findings, Git-derived change receipts, and orthogonal completion projections while retaining the V2.5 portable execution core, v2.50 Execution assets, and V2.3 Legacy data schema.

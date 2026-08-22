@@ -1,0 +1,38 @@
+{
+  "schema_version": "goal-teams-compatibility-v2.65-role-projections-v1",
+  "portable_core_ref": "references/current/generations/V2.65/core.md",
+  "roles": [
+    {
+      "role_id": "goal_lead",
+      "canonical_ref": "references/compatibility/v2.65/roles/goal-lead.md",
+      "targets": [
+        {
+          "host_id": "host.codex",
+          "format": "toml",
+          "path": "references/compatibility/v2.65/projections/codex/subagents/goal-lead.toml"
+        },
+        {
+          "host_id": "host.claude-code",
+          "format": "markdown",
+          "path": "references/compatibility/v2.65/projections/claude-code/.claude/agents/goal-lead.md"
+        }
+      ]
+    },
+    {
+      "role_id": "goal_reviewer",
+      "canonical_ref": "references/compatibility/v2.65/roles/goal-reviewer.md",
+      "targets": [
+        {
+          "host_id": "host.codex",
+          "format": "toml",
+          "path": "references/compatibility/v2.65/projections/codex/subagents/goal-reviewer.toml"
+        },
+        {
+          "host_id": "host.claude-code",
+          "format": "markdown",
+          "path": "references/compatibility/v2.65/projections/claude-code/.claude/agents/goal-reviewer.md"
+        }
+      ]
+    }
+  ]
+}

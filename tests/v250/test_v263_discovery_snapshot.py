@@ -101,7 +101,7 @@ class TestV263DiscoverySnapshot(unittest.TestCase):
     def test_candidate_identity_is_digest_bound_and_selection_is_deterministic(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = pathlib.Path(directory) / "canonical"
-            activation_digest = _write_candidate(root, generation_id="V2.63")
+            activation_digest = _write_candidate(root, generation_id="V2.65")
             spec = DiscoveryCandidateSpec(
                 root=root,
                 root_kind="canonical_install",
@@ -116,7 +116,7 @@ class TestV263DiscoverySnapshot(unittest.TestCase):
 
             self.assertEqual(root.resolve().as_posix(), candidate.root_realpath)
             self.assertEqual("goal-teams", candidate.discovery_name)
-            self.assertEqual("V2.63", candidate.generation_id)
+            self.assertEqual("V2.65", candidate.generation_id)
             self.assertEqual(activation_digest, candidate.activation_sha256)
             self.assertEqual(candidate, decision.selected)
             self.assertEqual("canonical_install", decision.selection_rule)
@@ -126,7 +126,7 @@ class TestV263DiscoverySnapshot(unittest.TestCase):
         cases = (
             ("workspace", "V2.6", "old"),
             ("replay", "V2.48", "replay"),
-            ("mirror", "V2.63", "mirror"),
+            ("mirror", "V2.65", "mirror"),
         )
         for root_kind, generation_id, marker in cases:
             with self.subTest(root_kind=root_kind, generation_id=generation_id):
@@ -135,7 +135,7 @@ class TestV263DiscoverySnapshot(unittest.TestCase):
                     current_root = base / "current"
                     duplicate_root = base / marker
                     current_digest = _write_candidate(
-                        current_root, generation_id="V2.63", marker="current"
+                        current_root, generation_id="V2.65", marker="current"
                     )
                     duplicate_digest = _write_candidate(
                         duplicate_root,
@@ -169,9 +169,9 @@ class TestV263DiscoverySnapshot(unittest.TestCase):
             base = pathlib.Path(directory)
             bad_root = base / "workspace"
             good_root = base / "canonical"
-            _write_candidate(bad_root, generation_id="V2.63", marker="bad")
+            _write_candidate(bad_root, generation_id="V2.65", marker="bad")
             good_digest = _write_candidate(
-                good_root, generation_id="V2.63", marker="good"
+                good_root, generation_id="V2.65", marker="good"
             )
             specs = (
                 DiscoveryCandidateSpec(
@@ -224,10 +224,10 @@ class TestV263DiscoverySnapshot(unittest.TestCase):
         self.assertEqual(1, observed_paths.count(ACTIVE_PATH))
         self.assertIs(first, second)
         self.assertIs(second, third)
-        self.assertEqual("V2.63", generation["generation_id"])
+        self.assertEqual("V2.65", generation["generation_id"])
         self.assertEqual(tuple(sorted(generation["member_digests"].items())), first.member_digests)
         with self.assertRaises(FrozenInstanceError):
-            first.generation_id = "V2.63"  # type: ignore[misc]
+            first.generation_id = "V2.65"  # type: ignore[misc]
 
         session.notify_active_change("f" * 64)
         for accessor in (lambda: session.snapshot, lambda: session.generation):

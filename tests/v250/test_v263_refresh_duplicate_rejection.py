@@ -19,9 +19,9 @@ class TestV263RefreshDuplicateRejection(unittest.TestCase):
 
         refresh._load = load_with_duplicate
         try:
-            paths = refresh._generation_paths("V2.63")
+            paths = refresh._generation_paths("V2.65")
             with self.assertRaisesRegex(ValueError, "duplicate prompt route ref"):
-                refresh._refreshed_prompt_manifest(paths, "V2.63")
+                refresh._refreshed_prompt_manifest(paths, "V2.65")
         finally:
             refresh._load = original
 

@@ -145,7 +145,7 @@ def _validate_prompt_artifact(
     artifact: Mapping[str, Any], *, require_trusted_runtime: bool = False
 ) -> list[dict[str, Any]]:
     if not isinstance(artifact, Mapping) or artifact.get("schema_version") != (
-        "goal-teams-prompt-artifact-v2.63"
+        "goal-teams-prompt-artifact-v2.65"
     ):
         _fail("E_V263_PROMPT_ARTIFACT", "invalid prompt artifact")
     if set(artifact) != PROMPT_ARTIFACT_FIELDS:
@@ -289,7 +289,7 @@ def validate_host_load_observation(
 
     expected = _validate_prompt_artifact(prompt_artifact)
     if not isinstance(observation, Mapping) or observation.get("schema_version") != (
-        "goal-teams-host-load-observation-v2.63"
+        "goal-teams-host-load-observation-v2.65"
     ):
         _fail("E_V263_HOST_LOAD_OBSERVATION", "invalid host-load observation")
     if set(observation) != HOST_LOAD_OBSERVATION_FIELDS:
@@ -404,7 +404,7 @@ def compile_runtime_session_receipt(
     trusted_runtime = compiler_mode == "trusted_runtime"
 
     receipt: dict[str, Any] = {
-        "schema_version": "goal-teams-runtime-session-receipt-v2.63",
+        "schema_version": "goal-teams-runtime-session-receipt-v2.65",
         "runtime_session_id": session_id,
         "host_execution_id": execution_id,
         "discovery_decision_sha256": discovery_digest,

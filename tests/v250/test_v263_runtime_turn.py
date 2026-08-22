@@ -49,7 +49,7 @@ class TestV263RuntimeSession(unittest.TestCase):
 
     def observation(self) -> dict[str, object]:
         return {
-            "schema_version": "goal-teams-host-load-observation-v2.63",
+            "schema_version": "goal-teams-host-load-observation-v2.65",
             "host_execution_id": "HOST-EXEC-263-1",
             "selected_root_realpath": str(self.root.resolve()),
             "opened_files": copy.deepcopy(self.artifact["path_entries"]),

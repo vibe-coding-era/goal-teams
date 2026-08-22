@@ -1554,7 +1554,7 @@ def check_example() -> None:
 
 
 def main() -> None:
-    if CURRENT_VERSION in {"V2.52", "V2.6", "V2.62", "V2.63"}:
+    if CURRENT_VERSION in {"V2.52", "V2.6", "V2.62", "V2.63", "V2.65"}:
         commands = [
             [
                 sys.executable,

@@ -38,7 +38,7 @@ class TestV263ReleaseRouteDerivation(unittest.TestCase):
         prompt = json.loads(
             (
                 ROOT
-                / "references/current/generations/V2.63/prompt-manifest.json"
+                / "references/current/generations/V2.65/prompt-manifest.json"
             ).read_text(encoding="utf-8")
         )
         derived = derive_route(release_facts())

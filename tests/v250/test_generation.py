@@ -20,7 +20,7 @@ class TestV250Generation(unittest.TestCase):
         )
         self.assertEqual([], closure["legacy_intersection"])
         self.assertLessEqual(closure["loaded_rule_bytes"], 72194)
-        self.assertEqual("V2.63", closure["generation_id"])
+        self.assertEqual("V2.65", closure["generation_id"])
         self.assertEqual("offline_manifest_audit", closure["route_selection_mode"])
 
     def test_active_pointer_is_digest_bound(self) -> None:

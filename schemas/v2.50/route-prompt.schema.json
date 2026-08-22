@@ -77,9 +77,9 @@
       ],
       "properties": {
         "schema_version": {
-          "const": "goal-teams-derived-route-receipt-v2.63"
+          "enum": ["goal-teams-derived-route-receipt-v2.63", "goal-teams-derived-route-receipt-v2.65"]
         },
-        "derivation_version": {"const": "V2.63"},
+        "derivation_version": {"enum": ["V2.63", "V2.65"]},
         "facts": {"$ref": "#/$defs/projectRouteFacts"},
         "facts_sha256": {"$ref": "#/$defs/sha256"},
         "facts_source_sha256": {"$ref": "#/$defs/sha256"},
@@ -150,7 +150,7 @@
         "receipt_sha256"
       ],
       "properties": {
-        "schema_version": {"const": "goal-teams-prompt-artifact-v2.63"},
+        "schema_version": {"const": "goal-teams-prompt-artifact-v2.65"},
         "framing": {"const": "GOAL-TEAMS-PROMPT-ARTIFACT-V1"},
         "compiler_mode": {"enum": ["offline_fixture", "trusted_runtime"]},
         "prompt_manifest_sha256": {

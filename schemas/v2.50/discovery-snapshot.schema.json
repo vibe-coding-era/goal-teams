@@ -48,7 +48,7 @@
         "selection_rule", "decision_sha256"
       ],
       "properties": {
-        "schema_version": {"const": "goal-teams-discovery-decision-v2.63"},
+        "schema_version": {"const": "goal-teams-discovery-decision-v2.65"},
         "selected_identity_sha256": {"$ref": "#/$defs/sha256"},
         "candidates": {
           "type": "array",

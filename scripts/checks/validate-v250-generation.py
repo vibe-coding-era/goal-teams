@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate V2.62/V2.63 owner projections and semantic route closure."""
+"""Validate Current owner projections and semantic route closure."""
 
 from __future__ import annotations
 
@@ -30,7 +30,40 @@ from scripts.v250.route_closure import (
 )
 
 
-RULE_RE = re.compile(r"^- \x60(GT(?:250|263)-[A-Z0-9-]+)\x60:", re.MULTILINE)
+RULE_RE = re.compile(r"^- \x60(GT(?:250|263|265)-[A-Z0-9-]+)\x60:", re.MULTILINE)
+
+
+def _owner_markdown_section_refs(source: str, heading: str) -> set[str]:
+    matched = re.search(
+        rf"^## {re.escape(heading)}\s*$\n(.*?)(?=^## |\Z)",
+        source,
+        re.MULTILINE | re.DOTALL,
+    )
+    if matched is None:
+        return set()
+    return set(re.findall(r"^- `([^`]+)`", matched.group(1), re.MULTILINE))
+
+
+def validate_owner_dependency_projection(
+    source: str, owner: dict[str, Any]
+) -> list[str]:
+    """Recompute dependency projection from Owner Markdown fail closed."""
+
+    declared = _owner_markdown_section_refs(
+        source, "contract_refs"
+    ) | _owner_markdown_section_refs(source, "dependencies")
+    dependencies = owner.get("dependencies")
+    if not isinstance(dependencies, list) or any(
+        not isinstance(item, dict) or not isinstance(item.get("owner_id"), str)
+        for item in dependencies
+    ):
+        return ["E_V250_OWNER_DEPENDENCY_PROJECTION"]
+    projected = {item["owner_id"] for item in dependencies}
+    return (
+        []
+        if declared == projected
+        else ["E_V250_OWNER_DEPENDENCY_PROJECTION"]
+    )
 
 
 def validate_generation(
@@ -125,6 +158,7 @@ def validate_generation(
             except (GenerationLoadError, UnicodeDecodeError):
                 errors.append("E_V250_RULE_OWNER_UNREADABLE")
                 continue
+            errors.extend(validate_owner_dependency_projection(source, owner))
             source_rules = set(RULE_RE.findall(source))
             projected_rules = owner.get("owned_rule_ids")
             if not isinstance(projected_rules, list) or source_rules != set(projected_rules):
@@ -149,7 +183,7 @@ def validate_generation(
                         generation,
                         route_id=route_id,
                     )
-                    if generation_id == "V2.63"
+                    if generation_id in {"V2.63", "V2.65"}
                     else compile_route_closure(root, generation, route_id)
                 )
             except RouteClosureError as exc:
@@ -160,13 +194,18 @@ def validate_generation(
     # generation until ACTIVE-last cutover.
     if generation_id != "V2.63":
         try:
-            replay_manifest = load_replay_manifest(root)
+            replay_manifest = load_replay_manifest(root, generation=generation)
             replay_versions = [entry["legacy_version"] for entry in replay_manifest["replays"]]
             for version in replay_versions:
-                denied = run_replay(root, version)
+                denied = run_replay(root, version, generation=generation)
                 if denied.get("status") != "replay_unavailable":
                     errors.append("E_V250_REPLAY_IMPLICITLY_ENABLED")
-                explicit = run_replay(root, version, explicit_intent=True)
+                explicit = run_replay(
+                    root,
+                    version,
+                    explicit_intent=True,
+                    generation=generation,
+                )
                 if explicit.get("status") not in {"historical_passed", "historical_failed", "replay_unavailable"}:
                     errors.append("E_V250_REPLAY_OUTPUT")
                 if explicit.get("current_completion_eligible") is not False:

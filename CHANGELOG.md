@@ -5,8 +5,9 @@
 - Added a typed, canonically hashed Graph contract with node/edge identities, predecessor constraints, authority declarations, Host capability negotiation, and digest-bound Member Packets.
 - Added a local SQLite-backed Graph Runtime development slice with durable attempts, checkpoints, compare-and-swap transitions, confirmed idempotency records, recovery projection, and resumable human gates through an explicit Host adapter boundary.
 - Added deterministic Context Bundles and append-only proactive evolution reviews for end-of-LOOP and problem-detected reflection across prompt, context, Skill, graph, Harness, and workflow dimensions.
-- Passed 104 V2.65 tests and 31 affected V2.63 compatibility tests, including strict compilation of all seven V2.65 schemas and a local terminated-process recovery observation that did not repeat a confirmed idempotency key.
-- This is an isolated Development candidate only: it is not activated as Current, packaged, released, installed, validated against a real Host/Provider, or proven by real business execution.
+- Activated the V2.65 Current generation with 9 routes and 125 rules; the default package closes over 347 paths while V2.63 remains an exact published predecessor outside the Current execution denominator.
+- Passed the 661-case Current Development denominator (`tests/v250` 492 + `tests/v265` 169), strict compilation of all nine V2.65 schemas, immutable V2.63 lifecycle replay fixtures, and a local terminated-process recovery observation that did not repeat a confirmed idempotency key.
+- This is a Current Development candidate: GitHub merge, S0-S4, formal Release, installation, real Host/Provider validation, real external side effects, and business execution remain `not_run` until their separate evidence chains close.
 
 ## V2.63 — 2026-08-12
 

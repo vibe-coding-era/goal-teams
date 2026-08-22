@@ -8,13 +8,13 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-CURRENT_VERSION = "V2.63"
-PREDECESSOR_VERSION = "V2.62"
+CURRENT_VERSION = "V2.65"
+PREDECESSOR_VERSION = "V2.63"
 PREDECESSOR_GENERATION = (
     ROOT / "references" / "current" / "generations" / PREDECESSOR_VERSION
 )
 PREDECESSOR_ACTIVATION_SHA256 = (
-    "593f140f0b320c88033774252b03dddd18e4bfb844180eac86caa0799730588d"
+    "ac4619b7eca55bd6416af7b319899ba53c4292090339d37a217ab52f313aa294"
 )
 PROTECTED_README_SHA256 = {
     "README.md": "b41fe4de55832b561b077fff0a4c41659bc11058c560ba6b01f982003c6089af",
@@ -39,7 +39,7 @@ class TestV262VersionMigration(unittest.TestCase):
         )
         self.assertEqual(CURRENT_VERSION, active["generation_id"])
         self.assertEqual(
-            "references/current/generations/V2.63/activation-manifest.json",
+            "references/current/generations/V2.65/activation-manifest.json",
             active["activation_manifest"],
         )
         activation_path = ROOT / active["activation_manifest"]
@@ -86,14 +86,14 @@ class TestV262VersionMigration(unittest.TestCase):
             if line.strip()
         ]
         self.assertEqual(["name", "description"], keys)
-        self.assertIn("Goal Teams V2.63", skill)
-        self.assertIn("我是 Goal Teams Lead V2.63。", skill)
+        self.assertIn("Goal Teams V2.65", skill)
+        self.assertIn("我是 Goal Teams Lead V2.65。", skill)
         self.assertIn(
-            "V2.63",
+            "V2.65",
             (ROOT / ".agents/skills/goal-teams/SKILL.md").read_text(encoding="utf-8"),
         )
-        self.assertIn("产品版本：`V2.63`", (ROOT / "AGENTS.md").read_text())
-        self.assertIn("V2.63", (ROOT / "agents/openai.yaml").read_text())
+        self.assertIn("产品版本：`V2.65`", (ROOT / "AGENTS.md").read_text())
+        self.assertIn("V2.65", (ROOT / "agents/openai.yaml").read_text())
         for path, expected in PROTECTED_README_SHA256.items():
             self.assertEqual(
                 expected,
@@ -113,10 +113,10 @@ class TestV262VersionMigration(unittest.TestCase):
             for entries in predecessor["root_sets"].values()
             for entry in entries
             if entry["path"].startswith(
-                "references/current/generations/V2.62/"
+                "references/current/generations/V2.63/"
             )
         ]
-        self.assertEqual(22, len(generation_owned))
+        self.assertEqual(23, len(generation_owned))
         for entry in generation_owned:
             with self.subTest(path=entry["path"]):
                 self.assertEqual(
@@ -150,44 +150,44 @@ class TestV262VersionMigration(unittest.TestCase):
         package = (ROOT / "scripts/install/package-manifest.txt").read_text(
             encoding="utf-8"
         )
-        self.assertIn("prefix references/current/generations/V2.63/", package)
-        self.assertIn("references/profiles/goal-teams-self-release-v2.63.md", package)
-        self.assertIn("references/release-profiles/v2.63.json", package)
+        self.assertIn("prefix references/current/generations/V2.65/", package)
+        self.assertIn("references/profiles/goal-teams-self-release-v2.65.md", package)
+        self.assertIn("references/release-profiles/v2.65.json", package)
         self.assertIn("prefix scripts/v250/", package)
         self.assertIn("prefix schemas/v2.50/", package)
         self.assertIn("prefix tests/v250/", package)
-        self.assertIn("prefix scripts/v263/", package)
-        self.assertIn("prefix schemas/v2.63/", package)
-        self.assertIn("prefix tests/v263/", package)
-        self.assertIn("prefix references/compatibility/v2.63/", package)
-        self.assertNotIn("prefix references/current/generations/V2.62/", package)
-        self.assertNotIn("prefix scripts/v262/", package)
-        self.assertNotIn("prefix schemas/v2.62/", package)
-        self.assertNotIn("prefix tests/v262/", package)
+        self.assertIn("prefix scripts/v265/", package)
+        self.assertIn("prefix schemas/v2.65/", package)
+        self.assertIn("prefix tests/v265/", package)
+        self.assertIn("prefix references/compatibility/v2.65/", package)
+        self.assertNotIn("prefix references/current/generations/V2.63/", package)
+        self.assertNotIn("prefix scripts/v263/", package)
+        self.assertNotIn("prefix schemas/v2.63/", package)
+        self.assertNotIn("prefix tests/v263/", package)
         self.assertNotIn("references/legacy-replay", package)
         self.assertTrue(
             (ROOT / "schemas/v2.50/okf-document-graph.schema.json").is_file()
         )
         self.assertTrue((ROOT / "scripts/v250/okf_document_graph.py").is_file())
-        self.assertTrue((ROOT / "scripts/v263").is_dir())
-        self.assertTrue((ROOT / "schemas/v2.63").is_dir())
+        self.assertTrue((ROOT / "scripts/v265").is_dir())
+        self.assertTrue((ROOT / "schemas/v2.65").is_dir())
         self.assertTrue((ROOT / "tests/v263").is_dir())
-        self.assertTrue((ROOT / "references/compatibility/v2.63").is_dir())
+        self.assertTrue((ROOT / "references/compatibility/v2.65").is_dir())
 
     def test_v262_predecessor_profile_and_changelog_remain_preserved(self) -> None:
         profile = json.loads(
-            (ROOT / "references/release-profiles/v2.62.json").read_text(
+            (ROOT / "references/release-profiles/v2.63.json").read_text(
                 encoding="utf-8"
             )
         )
         self.assertEqual(PREDECESSOR_VERSION, profile["version"])
-        self.assertIn("Goal Teams V2.62", profile["release_title"])
+        self.assertIn("Goal Teams V2.63", profile["release_title"])
         self.assertIn(
-            "V2.62",
-            (ROOT / "references/profiles/goal-teams-self-release-v2.62.md").read_text(),
+            "V2.63",
+            (ROOT / "references/profiles/goal-teams-self-release-v2.63.md").read_text(),
         )
         changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
-        self.assertIn("V2.62", changelog)
+        self.assertIn("V2.63", changelog)
         self.assertIn("OKF Document Graph", changelog)
         self.assertIn("No database", changelog)
         self.assertIn("Observe-only", changelog)

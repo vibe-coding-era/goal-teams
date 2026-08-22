@@ -1,6 +1,9 @@
 {
   "schema_version": "goal-teams-release-manifest-v2.63",
   "product_version": "V2.63",
+  "candidate_product_version": "V2.65",
+  "candidate_release_state": "development_candidate_not_published",
+  "candidate_profile": "references/release-profiles/v2.65.json",
   "core_policy_version": "V2.5",
   "legacy_data_schema_version": "V2.3",
   "docs_policy": "local-only",

@@ -11,7 +11,7 @@ class TestV263ValidatorCallers(unittest.TestCase):
     def test_current_callers_select_active_generation_explicitly(self) -> None:
         shell = (ROOT / "scripts/checks/check.sh").read_text(encoding="utf-8")
         self.assertIn(
-            "validate-v250-generation.py --generation-id V2.63 --selection active",
+            "validate-v250-generation.py --generation-id V2.65 --selection active",
             shell,
         )
 

@@ -100,7 +100,7 @@ class RuntimeFixture:
         self.route = derive_route(route_facts())
         self.prompt_manifest = {
             "schema_version": "goal-teams-prompt-manifest-v2.50",
-            "generation_id": "V2.63",
+            "generation_id": "V2.65",
             "manifest_state": "active_current",
             "routes": {
                 self.route["route_id"]: {
@@ -113,21 +113,21 @@ class RuntimeFixture:
         }
         self.prompt_raw = _canonical_bytes(self.prompt_manifest)
         prompt_relative = (
-            "references/current/generations/V2.63/prompt-manifest.json"
+            "references/current/generations/V2.65/prompt-manifest.json"
         )
         prompt_path = root / prompt_relative
         prompt_path.parent.mkdir(parents=True, exist_ok=True)
         prompt_path.write_bytes(self.prompt_raw)
 
         activation_relative = (
-            "references/current/generations/V2.63/activation-manifest.json"
+            "references/current/generations/V2.65/activation-manifest.json"
         )
         activation = {
             "schema_version": "goal-teams-activation-manifest-v2.50",
-            "generation_id": "V2.63",
+            "generation_id": "V2.65",
             "identity": {
-                "loaded_runtime_product_version": "V2.63",
-                "target_policy_generation": "V2.63",
+                "loaded_runtime_product_version": "V2.65",
+                "target_policy_generation": "V2.65",
             },
             "prompt_manifest_path": prompt_relative,
             "prompt_plan_digest": sha256_bytes(self.prompt_raw),
@@ -138,7 +138,7 @@ class RuntimeFixture:
 
         active = {
             "schema_version": "goal-teams-active-generation-v1",
-            "generation_id": "V2.63",
+            "generation_id": "V2.65",
             "activation_manifest": activation_relative,
             "activation_manifest_sha256": self.activation_sha256,
             "state": "active_current",
@@ -163,7 +163,7 @@ class RuntimeFixture:
             "activation_manifest_sha256": self.activation_sha256,
             "rule_manifest_sha256": SHA["7"],
             "prompt_manifest_sha256": sha256_bytes(self.prompt_raw),
-            "generation_id": "V2.63",
+            "generation_id": "V2.65",
             "member_digests": {
                 path: sha256_bytes((root / path).read_bytes())
                 for path in ["SKILL.md", *self.refs]
@@ -197,7 +197,7 @@ class RuntimeFixture:
         self, artifact: dict[str, object], *, selected_root: str | None = None
     ) -> dict[str, object]:
         return {
-            "schema_version": "goal-teams-host-load-observation-v2.63",
+            "schema_version": "goal-teams-host-load-observation-v2.65",
             "host_execution_id": "HOST-EXEC-263-TRUST",
             "selected_root_realpath": selected_root or self.root.resolve().as_posix(),
             "opened_files": copy.deepcopy(artifact["path_entries"]),
@@ -294,7 +294,7 @@ class TestV263RuntimeProvenanceBoundary(unittest.TestCase):
             route = derive_route(route_facts())
             manifest = {
                 "schema_version": "goal-teams-prompt-manifest-v2.50",
-                "generation_id": "V2.63",
+                "generation_id": "V2.65",
                 "manifest_state": "active_current",
                 "routes": {
                     route["route_id"]: {
@@ -313,7 +313,7 @@ class TestV263RuntimeProvenanceBoundary(unittest.TestCase):
                 "activation_manifest_sha256": SHA["2"],
                 "rule_manifest_sha256": SHA["3"],
                 "prompt_manifest_sha256": sha256_bytes(manifest_raw),
-                "generation_id": "V2.63",
+                "generation_id": "V2.65",
                 "member_digests": (
                     (relative, sha256_bytes((root / relative).read_bytes())),
                 ),
@@ -414,7 +414,7 @@ class TestV263AuthorizationTrustBoundary(unittest.TestCase):
         )
         action = {"type": "github_push", "target": "origin"}
         self_authored = {
-            "schema_version": "goal-teams-external-authorization-receipt-v2.63",
+            "schema_version": "goal-teams-external-authorization-receipt-v2.65",
             "receipt_id": "SELF-AUTHORED-JSON",
             "issuer": "codex_host",
             "proof_strength": "externally_issued",

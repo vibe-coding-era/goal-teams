@@ -130,10 +130,10 @@ def validate_generation_snapshot(snapshot: GenerationSnapshot) -> GenerationSnap
         "snapshot_sha256",
     ):
         _digest(getattr(snapshot, field), f"generation_snapshot.{field}")
-    if snapshot.generation_id != "V2.63":
+    if snapshot.generation_id not in {"V2.63", "V2.65"}:
         _fail(
             "E_V263_PROMPT_GENERATION_SNAPSHOT",
-            "trusted runtime prompt requires generation V2.63",
+            "trusted runtime prompt requires a supported Current generation",
         )
     if not Path(snapshot.selected_root_realpath).is_absolute():
         _fail(
@@ -164,9 +164,9 @@ def validate_derived_route_receipt(receipt: Mapping[str, Any]) -> dict[str, Any]
     if (
         not isinstance(receipt, Mapping)
         or set(receipt) != ROUTE_RECEIPT_FIELDS
+        or receipt.get("derivation_version") not in {"V2.63", "V2.65"}
         or receipt.get("schema_version")
-        != "goal-teams-derived-route-receipt-v2.63"
-        or receipt.get("derivation_version") != "V2.63"
+        != f"goal-teams-derived-route-receipt-{str(receipt.get('derivation_version')).lower()}"
     ):
         _fail("E_V263_PROMPT_ROUTE_RECEIPT", "invalid derived route receipt")
     value = dict(receipt)
@@ -190,6 +190,7 @@ def validate_derived_route_receipt(receipt: Mapping[str, Any]) -> dict[str, Any]
         replayed = derive_route(
             facts,
             requested_assurance=receipt.get("effective_assurance"),
+            generation_id=str(receipt.get("derivation_version")),
         )
     except RouteDerivationError as exc:
         raise PromptCompilerError("E_V263_PROMPT_ROUTE_REPLAY", exc.message) from exc
@@ -215,7 +216,7 @@ def _prompt_plan(
     member_packet_bytes: int,
 ) -> dict[str, Any]:
     return {
-        "schema_version": "goal-teams-prompt-plan-v2.63",
+        "schema_version": "goal-teams-prompt-plan-v2.65",
         "framing": "GOAL-TEAMS-PROMPT-ARTIFACT-V1",
         "compiler_mode": compiler_mode,
         "prompt_manifest_sha256": prompt_manifest_sha256,
@@ -332,7 +333,7 @@ def _compile(
         member_packet_bytes=len(member_raw),
     )
     artifact: dict[str, Any] = {
-        "schema_version": "goal-teams-prompt-artifact-v2.63",
+        "schema_version": "goal-teams-prompt-artifact-v2.65",
         "framing": plan["framing"],
         "compiler_mode": compiler_mode,
         "prompt_manifest_sha256": prompt_manifest_sha256,

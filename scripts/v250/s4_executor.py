@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Execute and reconcile the V2.63 S4 publish/install contract.
+"""Execute and reconcile the V2.65 S4 publish/install contract.
 
 Every possible mutation is journaled before invocation, followed by an
 independent readback.  An exception never causes an automatic replay: the
@@ -29,20 +29,20 @@ from typing import Any, Callable, Mapping, Protocol, Sequence
 
 
 ROOT = Path(__file__).resolve().parents[2]
-VERSION = "V2.63"
+VERSION = "V2.65"
 REPOSITORY = "vibe-coding-era/goal-teams"
 GH_REPOSITORY = "github.com/vibe-coding-era/goal-teams"
-TAG = "v2.63"
-TITLE = "Goal Teams V2.63"
+TAG = "v2.65"
+TITLE = "Goal Teams V2.65"
 CANONICAL_REMOTE = "git@github.com:vibe-coding-era/goal-teams.git"
 CANONICAL_RELEASE_URL = (
-    "https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.63"
+    "https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.65"
 )
 DRAFT_RELEASE_URL_RE = re.compile(
     r"^https://github\.com/vibe-coding-era/goal-teams/releases/tag/"
     r"untagged-[0-9a-f]{20,64}$"
 )
-RELEASE_PROFILE_RELATIVE = Path("references/release-profiles/v2.63.json")
+RELEASE_PROFILE_RELATIVE = Path("references/release-profiles/v2.65.json")
 SCHEMA_PATH = ROOT / "schemas" / "v2.50" / "release-control.schema.json"
 RUNTIME_TRANSITION_SCHEMA_PATH = (
     ROOT / "schemas" / "v2.50" / "runtime-transition-receipt.schema.json"
@@ -62,7 +62,7 @@ CANONICAL_ASSET_NAMES = (
     "SHA256SUMS",
     "_files.sha256",
     "_release.json",
-    "goal-teams-V2.63.tar.gz",
+    "goal-teams-V2.65.tar.gz",
 )
 MAX_ASSET_BYTES = 128 * 1024 * 1024
 MAX_PACKAGE_FILES = 20000
@@ -70,9 +70,9 @@ MAX_RECEIPT_BYTES = 16 * 1024 * 1024
 POSITIVE_DECIMAL_RE = re.compile(r"^[1-9][0-9]*$")
 
 JOURNAL_LAYOUT = (
-    ("tag_local_create", "tag_local_create", "refs/tags/v2.63", "local_repository"),
-    ("tag_push", "tag_push", "refs/tags/v2.63", "external_service"),
-    ("release_create", "release_create", "v2.63", "external_service"),
+    ("tag_local_create", "tag_local_create", "refs/tags/v2.65", "local_repository"),
+    ("tag_push", "tag_push", "refs/tags/v2.65", "external_service"),
+    ("release_create", "release_create", "v2.65", "external_service"),
     (
         "asset_upload:SHA256SUMS",
         "asset_upload",
@@ -92,18 +92,18 @@ JOURNAL_LAYOUT = (
         "external_service",
     ),
     (
-        "asset_upload:goal-teams-V2.63.tar.gz",
+        "asset_upload:goal-teams-V2.65.tar.gz",
         "asset_upload",
-        "goal-teams-V2.63.tar.gz",
+        "goal-teams-V2.65.tar.gz",
         "external_service",
     ),
-    ("release_publish", "release_publish", "v2.63", "external_service"),
+    ("release_publish", "release_publish", "v2.65", "external_service"),
     ("install", "install", "canonical CODEX_HOME", "local_install"),
 )
 
 
 def canonical_sha256(value: Any) -> str:
-    """Return the canonical JSON SHA-256 used by V2.63 receipts."""
+    """Return the canonical JSON SHA-256 used by V2.65 receipts."""
 
     return hashlib.sha256(
         json.dumps(
@@ -1151,7 +1151,7 @@ def _default_control_validator(
             None if receipt_root is None else receipt_root / "authorization.json"
         ),
     }
-    if version == "V2.63":
+    if version == "V2.65":
         runtime_paths.update(
             {
                 "runtime_route_facts_receipt_path": (
@@ -2389,7 +2389,7 @@ def _base_outcome(
 ) -> dict[str, Any]:
     metrics = _operation_metrics(journal)
     return {
-        "schema_version": "goal-teams-v2.63-s4-outcome-receipt-v2",
+        "schema_version": "goal-teams-v2.65-s4-outcome-receipt-v2",
         "gate_id": "s4_publish_install_readback",
         **identity,
         "action_executed": metrics["action_executed"],

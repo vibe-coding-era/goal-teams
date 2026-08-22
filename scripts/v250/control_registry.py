@@ -139,6 +139,7 @@ _INTRODUCED_ASSET_PATTERNS: Final = (
     ("V2.63", "schemas/v2.50/state-ledger.schema.json"),
     ("V2.63", "schemas/v2.50/task-plan.schema.json"),
     ("V2.63", "tests/v250/test_v263_*.py"),
+    ("V2.65", "tests/v250/test_v265_*.py"),
 )
 
 
@@ -204,7 +205,7 @@ def export_control_registry() -> dict[str, object]:
     """Return the deterministic machine projection consumed by Schema checks."""
 
     return {
-        "schema_version": "goal-teams-control-registry-v2.63",
+        "schema_version": "goal-teams-control-registry-v2.65",
         "vocabularies": {
             name: sorted(values) for name, values in sorted(_VOCABULARIES.items())
         },

@@ -8,7 +8,7 @@ from scripts.v250.output_contract import serialize_output, validate_output
 class TestV263OutputContract(unittest.TestCase):
     def _payload(self) -> dict[str, str]:
         return {
-            "任务": "实施 V2.63",
+            "任务": "实施 V2.65",
             "成员": "Goal Lead",
             "进度": "第 1 轮/共 2 轮",
             "结果": "候选实现，host runtime 未验证。LOOP 改进建议：保持证明强度。",
