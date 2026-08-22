@@ -1,0 +1,662 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.65/graph-contract.schema.json",
+  "title": "Goal Teams V2.65 Graph Contract",
+  "oneOf": [
+    { "$ref": "#/$defs/graphInput" },
+    { "$ref": "#/$defs/compiledGraph" },
+    { "$ref": "#/$defs/validationReceipt" },
+    { "$ref": "#/$defs/intrinsicValidationReceipt" }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": ".*\\S.*"
+    },
+    "stringSet": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/nonEmptyString" },
+      "uniqueItems": true
+    },
+    "nonEmptyStringSet": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/nonEmptyString" },
+      "uniqueItems": true
+    },
+    "sensitivity": {
+      "enum": ["public", "internal", "confidential", "restricted"]
+    },
+    "terminalOutcome": {
+      "enum": [
+        "completed",
+        "partial",
+        "failed",
+        "unverified",
+        "skipped",
+        "blocked",
+        "cancelled",
+        "stale"
+      ]
+    },
+    "planBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "plan_id",
+        "plan_revision",
+        "task_exact_set_sha256",
+        "compiled_task_plan_sha256",
+        "task_plan_validation_sha256"
+      ],
+      "properties": {
+        "plan_id": { "$ref": "#/$defs/nonEmptyString" },
+        "plan_revision": { "type": "integer", "minimum": 1 },
+        "task_exact_set_sha256": { "$ref": "#/$defs/sha256" },
+        "compiled_task_plan_sha256": { "$ref": "#/$defs/sha256" },
+        "task_plan_validation_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "resourceRefs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required",
+        "recommended",
+        "generated",
+        "upstream_artifacts",
+        "forbidden"
+      ],
+      "properties": {
+        "required": { "$ref": "#/$defs/stringSet" },
+        "recommended": { "$ref": "#/$defs/stringSet" },
+        "generated": { "$ref": "#/$defs/stringSet" },
+        "upstream_artifacts": { "$ref": "#/$defs/stringSet" },
+        "forbidden": { "$ref": "#/$defs/stringSet" }
+      }
+    },
+    "inputPort": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["port_id", "schema_ref", "required", "sensitivity"],
+      "properties": {
+        "port_id": { "$ref": "#/$defs/nonEmptyString" },
+        "schema_ref": { "$ref": "#/$defs/nonEmptyString" },
+        "required": { "type": "boolean" },
+        "sensitivity": { "$ref": "#/$defs/sensitivity" }
+      }
+    },
+    "outputPort": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "port_id",
+        "schema_ref",
+        "required",
+        "sensitivity",
+        "consumer_node_ids"
+      ],
+      "properties": {
+        "port_id": { "$ref": "#/$defs/nonEmptyString" },
+        "schema_ref": { "$ref": "#/$defs/nonEmptyString" },
+        "required": { "type": "boolean" },
+        "sensitivity": { "$ref": "#/$defs/sensitivity" },
+        "consumer_node_ids": { "$ref": "#/$defs/stringSet" }
+      }
+    },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["work_units", "attempts", "revalidations", "context_tokens"],
+      "properties": {
+        "work_units": { "type": "integer", "minimum": 1 },
+        "attempts": { "type": "integer", "minimum": 1 },
+        "revalidations": { "type": "integer", "minimum": 0 },
+        "context_tokens": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "retryPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_attempts", "retryable_outcomes", "backoff_seconds"],
+      "properties": {
+        "max_attempts": { "type": "integer", "minimum": 1 },
+        "retryable_outcomes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/terminalOutcome" },
+          "uniqueItems": true
+        },
+        "backoff_seconds": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "recoveryPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "edge_id"],
+      "properties": {
+        "mode": { "enum": ["none", "retry", "edge"] },
+        "edge_id": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/nonEmptyString" }
+          ]
+        }
+      }
+    },
+    "fanIn": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "edge_ids",
+        "quorum_count",
+        "quorum_ratio_basis_points"
+      ],
+      "properties": {
+        "mode": { "enum": ["all", "any", "quorum"] },
+        "edge_ids": { "$ref": "#/$defs/nonEmptyStringSet" },
+        "quorum_count": {
+          "oneOf": [
+            { "type": "null" },
+            { "type": "integer", "minimum": 1 }
+          ]
+        },
+        "quorum_ratio_basis_points": {
+          "oneOf": [
+            { "type": "null" },
+            { "type": "integer", "minimum": 1, "maximum": 10000 }
+          ]
+        }
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "node_id",
+        "task_refs",
+        "node_type",
+        "owner_identity",
+        "validator_identity",
+        "action_ref",
+        "resource_refs",
+        "input_ports",
+        "output_ports",
+        "scope_allowlist",
+        "forbidden_scope",
+        "budget",
+        "timeout_seconds",
+        "retry_policy",
+        "gate_refs",
+        "exit_condition_ref",
+        "recovery_policy",
+        "fan_in"
+      ],
+      "properties": {
+        "node_id": { "$ref": "#/$defs/nonEmptyString" },
+        "task_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": { "$ref": "#/$defs/nonEmptyString" },
+          "uniqueItems": true
+        },
+        "node_type": { "enum": ["action", "validation", "human_gate", "terminal"] },
+        "owner_identity": { "$ref": "#/$defs/nonEmptyString" },
+        "validator_identity": { "$ref": "#/$defs/nonEmptyString" },
+        "action_ref": { "$ref": "#/$defs/nonEmptyString" },
+        "resource_refs": { "$ref": "#/$defs/resourceRefs" },
+        "input_ports": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/inputPort" }
+        },
+        "output_ports": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/outputPort" }
+        },
+        "scope_allowlist": { "$ref": "#/$defs/nonEmptyStringSet" },
+        "forbidden_scope": { "$ref": "#/$defs/stringSet" },
+        "budget": { "$ref": "#/$defs/budget" },
+        "timeout_seconds": { "type": "integer", "minimum": 1 },
+        "retry_policy": { "$ref": "#/$defs/retryPolicy" },
+        "gate_refs": { "$ref": "#/$defs/stringSet" },
+        "exit_condition_ref": { "$ref": "#/$defs/nonEmptyString" },
+        "recovery_policy": { "$ref": "#/$defs/recoveryPolicy" },
+        "fan_in": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/fanIn" }
+          ]
+        }
+      }
+    },
+    "dataBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output_port_id", "input_port_id", "schema_ref"],
+      "properties": {
+        "output_port_id": { "$ref": "#/$defs/nonEmptyString" },
+        "input_port_id": { "$ref": "#/$defs/nonEmptyString" },
+        "schema_ref": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "edge_id",
+        "edge_type",
+        "source_node_id",
+        "target_node_id",
+        "accepted_outcomes",
+        "gate_ref",
+        "data_bindings",
+        "traversal_budget"
+      ],
+      "properties": {
+        "edge_id": { "$ref": "#/$defs/nonEmptyString" },
+        "edge_type": {
+          "enum": [
+            "dependency",
+            "data",
+            "success",
+            "failure",
+            "blocked",
+            "unverified",
+            "repeat",
+            "human_approved",
+            "recovery",
+            "supersedes"
+          ]
+        },
+        "source_node_id": { "$ref": "#/$defs/nonEmptyString" },
+        "target_node_id": { "$ref": "#/$defs/nonEmptyString" },
+        "accepted_outcomes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/terminalOutcome" },
+          "uniqueItems": true
+        },
+        "gate_ref": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/nonEmptyString" }
+          ]
+        },
+        "data_bindings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/dataBinding" }
+        },
+        "traversal_budget": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "freshnessPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "max_age_seconds"],
+      "properties": {
+        "mode": { "enum": ["immutable", "max_age", "runtime"] },
+        "max_age_seconds": {
+          "oneOf": [
+            { "type": "null" },
+            { "type": "integer", "minimum": 1 }
+          ]
+        }
+      }
+    },
+    "resource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resource_id",
+        "resource_type",
+        "source_ref",
+        "revision",
+        "expected_sha256",
+        "schema_ref",
+        "freshness_policy",
+        "sensitivity",
+        "permission_ref",
+        "token_budget",
+        "producer_node_id",
+        "consumer_node_ids"
+      ],
+      "properties": {
+        "resource_id": { "$ref": "#/$defs/nonEmptyString" },
+        "resource_type": {
+          "enum": [
+            "repository_file",
+            "user_input",
+            "rule",
+            "upstream_artifact",
+            "generated_context",
+            "review_capsule"
+          ]
+        },
+        "source_ref": { "$ref": "#/$defs/nonEmptyString" },
+        "revision": { "$ref": "#/$defs/nonEmptyString" },
+        "expected_sha256": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/sha256" }
+          ]
+        },
+        "schema_ref": { "$ref": "#/$defs/nonEmptyString" },
+        "freshness_policy": { "$ref": "#/$defs/freshnessPolicy" },
+        "sensitivity": { "$ref": "#/$defs/sensitivity" },
+        "permission_ref": { "$ref": "#/$defs/nonEmptyString" },
+        "token_budget": { "type": "integer", "minimum": 1 },
+        "producer_node_id": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/nonEmptyString" }
+          ]
+        },
+        "consumer_node_ids": { "$ref": "#/$defs/stringSet" }
+      }
+    },
+    "condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fact_ref", "operator", "expected_value"],
+      "properties": {
+        "fact_ref": { "$ref": "#/$defs/nonEmptyString" },
+        "operator": { "enum": ["equals", "not_equals", "present", "absent"] },
+        "expected_value": {
+          "anyOf": [
+            { "type": "string" },
+            { "type": "number" },
+            { "type": "boolean" },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate_id",
+        "gate_type",
+        "authority_ref",
+        "required_evidence_types",
+        "condition",
+        "timeout_seconds",
+        "on_timeout_outcome"
+      ],
+      "properties": {
+        "gate_id": { "$ref": "#/$defs/nonEmptyString" },
+        "gate_type": { "enum": ["evidence", "human_approval", "condition"] },
+        "authority_ref": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/nonEmptyString" }
+          ]
+        },
+        "required_evidence_types": { "$ref": "#/$defs/stringSet" },
+        "condition": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/condition" }
+          ]
+        },
+        "timeout_seconds": { "type": "integer", "minimum": 1 },
+        "on_timeout_outcome": {
+          "enum": ["blocked", "failed", "waiting_user", "cancelled"]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "type": "object",
+            "required": ["gate_type"],
+            "properties": {"gate_type": {"const": "evidence"}}
+          },
+          "then": {
+            "type": "object",
+            "properties": {
+              "authority_ref": {"type": "null"},
+              "required_evidence_types": {
+                "$ref": "#/$defs/nonEmptyStringSet"
+              },
+              "condition": {"type": "null"}
+            }
+          }
+        },
+        {
+          "if": {
+            "type": "object",
+            "required": ["gate_type"],
+            "properties": {"gate_type": {"const": "human_approval"}}
+          },
+          "then": {
+            "type": "object",
+            "properties": {
+              "authority_ref": {"$ref": "#/$defs/nonEmptyString"},
+              "required_evidence_types": {"const": ["approval_receipt"]},
+              "condition": {"type": "null"}
+            }
+          }
+        },
+        {
+          "if": {
+            "type": "object",
+            "required": ["gate_type"],
+            "properties": {"gate_type": {"const": "condition"}}
+          },
+          "then": {
+            "type": "object",
+            "properties": {
+              "authority_ref": {"type": "null"},
+              "required_evidence_types": {"$ref": "#/$defs/stringSet"},
+              "condition": {"$ref": "#/$defs/condition"}
+            }
+          }
+        }
+      ]
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action_id",
+        "runner",
+        "effect",
+        "tool_allowlist",
+        "network_policy",
+        "workspace_policy",
+        "input_schema_ref",
+        "output_schema_ref",
+        "idempotency_required"
+      ],
+      "properties": {
+        "action_id": { "$ref": "#/$defs/nonEmptyString" },
+        "runner": { "const": "host_adapter" },
+        "effect": { "enum": ["read", "local_write", "external_write"] },
+        "tool_allowlist": { "$ref": "#/$defs/nonEmptyStringSet" },
+        "network_policy": { "enum": ["deny", "declared"] },
+        "workspace_policy": { "enum": ["read_only", "node_scope", "isolated_worktree"] },
+        "input_schema_ref": { "$ref": "#/$defs/nonEmptyString" },
+        "output_schema_ref": { "$ref": "#/$defs/nonEmptyString" },
+        "idempotency_required": { "type": "boolean" }
+      }
+    },
+    "graphInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "graph_id",
+        "graph_revision",
+        "plan_binding",
+        "supersedes_graph_sha256",
+        "nodes",
+        "edges",
+        "resources",
+        "gates",
+        "actions"
+      ],
+      "properties": {
+        "schema_version": { "const": "goal-teams-graph-contract-v2.65" },
+        "graph_id": { "$ref": "#/$defs/nonEmptyString" },
+        "graph_revision": { "type": "integer", "minimum": 1 },
+        "plan_binding": { "$ref": "#/$defs/planBinding" },
+        "supersedes_graph_sha256": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/sha256" }
+          ]
+        },
+        "nodes": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/node" }
+        },
+        "edges": { "type": "array", "items": { "$ref": "#/$defs/edge" } },
+        "resources": { "type": "array", "items": { "$ref": "#/$defs/resource" } },
+        "gates": { "type": "array", "items": { "$ref": "#/$defs/gate" } },
+        "actions": { "type": "array", "items": { "$ref": "#/$defs/action" } }
+      }
+    },
+    "stringMap": {
+      "type": "object",
+      "patternProperties": {
+        ".+": { "$ref": "#/$defs/nonEmptyString" }
+      },
+      "additionalProperties": false
+    },
+    "stringArrayMap": {
+      "type": "object",
+      "patternProperties": {
+        ".+": { "$ref": "#/$defs/stringSet" }
+      },
+      "additionalProperties": false
+    },
+    "fanInMap": {
+      "type": "object",
+      "patternProperties": {
+        ".+": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/fanIn" }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "compiledGraph": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "graph_id",
+        "graph_revision",
+        "plan_binding",
+        "supersedes_graph_sha256",
+        "nodes",
+        "edges",
+        "resources",
+        "gates",
+        "actions",
+        "task_node_map",
+        "predecessor_map",
+        "fan_in_map",
+        "topological_order",
+        "ready_roots",
+        "execution_edge_ids",
+        "lineage_edge_ids",
+        "graph_contract_sha256",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "schema_version": { "const": "goal-teams-graph-contract-v2.65" },
+        "graph_id": { "$ref": "#/$defs/nonEmptyString" },
+        "graph_revision": { "type": "integer", "minimum": 1 },
+        "plan_binding": { "$ref": "#/$defs/planBinding" },
+        "supersedes_graph_sha256": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/sha256" }
+          ]
+        },
+        "nodes": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/node" } },
+        "edges": { "type": "array", "items": { "$ref": "#/$defs/edge" } },
+        "resources": { "type": "array", "items": { "$ref": "#/$defs/resource" } },
+        "gates": { "type": "array", "items": { "$ref": "#/$defs/gate" } },
+        "actions": { "type": "array", "items": { "$ref": "#/$defs/action" } },
+        "task_node_map": { "$ref": "#/$defs/stringMap" },
+        "predecessor_map": { "$ref": "#/$defs/stringArrayMap" },
+        "fan_in_map": { "$ref": "#/$defs/fanInMap" },
+        "topological_order": { "$ref": "#/$defs/nonEmptyStringSet" },
+        "ready_roots": { "$ref": "#/$defs/stringSet" },
+        "execution_edge_ids": { "$ref": "#/$defs/stringSet" },
+        "lineage_edge_ids": { "$ref": "#/$defs/stringSet" },
+        "graph_contract_sha256": { "$ref": "#/$defs/sha256" },
+        "receipt_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "validationReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "graph_id",
+        "graph_revision",
+        "task_exact_set_sha256",
+        "compiled_graph_receipt_sha256",
+        "validator",
+        "valid",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "schema_version": { "const": "goal-teams-graph-validation-receipt-v2.65" },
+        "graph_id": { "$ref": "#/$defs/nonEmptyString" },
+        "graph_revision": { "type": "integer", "minimum": 1 },
+        "task_exact_set_sha256": { "$ref": "#/$defs/sha256" },
+        "compiled_graph_receipt_sha256": { "$ref": "#/$defs/sha256" },
+        "validator": {
+          "const": "scripts.v265.graph_contract.validate_compiled_graph_contract"
+        },
+        "valid": { "const": true },
+        "receipt_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "intrinsicValidationReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "graph_id",
+        "graph_revision",
+        "graph_contract_sha256",
+        "compiled_graph_receipt_sha256",
+        "derived_map_sha256",
+        "valid",
+        "validator",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "goal-teams-graph-intrinsic-validation-v2.65"
+        },
+        "graph_id": { "$ref": "#/$defs/nonEmptyString" },
+        "graph_revision": { "type": "integer", "minimum": 1 },
+        "graph_contract_sha256": { "$ref": "#/$defs/sha256" },
+        "compiled_graph_receipt_sha256": { "$ref": "#/$defs/sha256" },
+        "derived_map_sha256": { "$ref": "#/$defs/sha256" },
+        "valid": { "const": true },
+        "validator": {
+          "const": "scripts.v265.graph_contract.validate_graph_intrinsic"
+        },
+        "receipt_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}

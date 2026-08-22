@@ -1,0 +1,699 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.65/graph-runtime.schema.json",
+  "title": "Goal Teams V2.65 Graph Runtime",
+  "oneOf": [
+    {"$ref": "#/$defs/event"},
+    {"$ref": "#/$defs/projection"},
+    {"$ref": "#/$defs/storeReceipt"},
+    {"$ref": "#/$defs/waveReceipt"},
+    {"$ref": "#/$defs/recoveryReceipt"}
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "timestamp": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "strings": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "eventPayloadMatrix": {
+      "allOf": [
+        {
+          "if": {"type": "object", "properties": {"event_type": {"const": "run.created"}}},
+          "then": {"type": "object", "properties": {"payload": {
+            "type": "object", "required": ["graph_receipt_sha256"],
+            "properties": {"graph_receipt_sha256": {"$ref": "#/$defs/sha256"}},
+            "additionalProperties": false
+          }}}
+        },
+        {
+          "if": {"type": "object", "properties": {"event_type": {"enum": ["gate.passed", "gate.rejected"]}}},
+          "then": {"type": "object", "properties": {"payload": {
+            "type": "object", "required": ["gate_id", "gate_receipt", "gate_decision_sha256", "decision"],
+            "properties": {
+              "gate_id": {"type": "string", "minLength": 1},
+              "gate_receipt": {"$ref": "#/$defs/gateReceipt"},
+              "gate_decision_sha256": {"$ref": "#/$defs/sha256"},
+              "decision": {"enum": ["passed", "rejected"]}
+            }, "additionalProperties": false
+          }}}
+        },
+        {
+          "if": {"type": "object", "properties": {"event_type": {"const": "gate.timed_out"}}},
+          "then": {"type": "object", "properties": {"payload": {
+            "type": "object", "required": ["gate_id", "deadline", "on_timeout_outcome"],
+            "properties": {
+              "gate_id": {"type": "string", "minLength": 1},
+              "deadline": {"$ref": "#/$defs/timestamp"},
+              "on_timeout_outcome": {"enum": ["blocked", "failed", "waiting_user", "cancelled"]}
+            }, "additionalProperties": false
+          }}}
+        },
+        {
+          "if": {"type": "object", "properties": {"event_type": {"const": "node.ready"}}},
+          "then": {"type": "object", "properties": {"payload": {
+            "type": "object", "required": ["satisfied_edge_ids", "fan_in_mode", "required_edge_count", "satisfied_edge_count"],
+            "properties": {
+              "satisfied_edge_ids": {"$ref": "#/$defs/strings"},
+              "fan_in_mode": {"enum": ["root", "all", "any", "quorum"]},
+              "required_edge_count": {"type": "integer", "minimum": 0},
+              "satisfied_edge_count": {"type": "integer", "minimum": 0}
+            }, "additionalProperties": false
+          }}}
+        },
+        {
+          "if": {"type": "object", "properties": {"event_type": {"const": "node.claimed"}}},
+          "then": {"type": "object", "properties": {"payload": {
+            "type": "object", "required": ["worker_id", "lease_id", "lease_expires_at"],
+            "properties": {
+              "worker_id": {"type": "string", "minLength": 1},
+              "lease_id": {"type": "string", "minLength": 1},
+              "lease_expires_at": {"$ref": "#/$defs/timestamp"}
+            }, "additionalProperties": false
+          }}}
+        },
+        {
+          "if": {"type": "object", "properties": {"event_type": {"const": "node.started"}}},
+          "then": {"type": "object", "properties": {"payload": {
+            "type": "object", "required": ["owner_run_id", "validator_run_id", "member_packet", "context_bundle_sha256", "capability_receipt", "capability_request", "capability_decision", "host_handle_id"],
+            "properties": {
+              "owner_run_id": {"type": "string", "minLength": 1},
+              "validator_run_id": {"type": "string", "minLength": 1},
+              "member_packet": {"$ref": "#/$defs/memberPacket"},
+              "context_bundle_sha256": {"$ref": "#/$defs/sha256"},
+              "capability_receipt": {"$ref": "#/$defs/capabilityReceipt"},
+              "capability_request": {"$ref": "#/$defs/capabilityRequest"},
+              "capability_decision": {"$ref": "#/$defs/capabilityDecision"},
+              "host_handle_id": {"type": "string", "minLength": 1}
+            }, "additionalProperties": false
+          }}}
+        },
+        {
+          "if": {"type": "object", "properties": {"event_type": {"const": "node.heartbeat"}}},
+          "then": {"type": "object", "properties": {"payload": {
+            "type": "object", "required": ["lease_id", "previous_expires_at", "new_expires_at"],
+            "properties": {
+              "lease_id": {"type": "string", "minLength": 1},
+              "previous_expires_at": {"$ref": "#/$defs/timestamp"},
+              "new_expires_at": {"$ref": "#/$defs/timestamp"}
+            }, "additionalProperties": false
+          }}}
+        },
+        {
+          "if": {"type": "object", "properties": {"event_type": {"const": "node.outcome_recorded"}}},
+          "then": {"type": "object", "properties": {"payload": {
+            "type": "object", "required": ["outcome", "owner_run_id", "artifact_receipts"],
+            "properties": {
+              "outcome": {"enum": ["completed", "partial", "failed", "unverified", "skipped", "blocked", "cancelled", "stale"]},
+              "owner_run_id": {"type": "string", "minLength": 1},
+              "artifact_receipts": {"type": "array", "items": {"$ref": "#/$defs/artifactReceipt"}}
+            }, "additionalProperties": false
+          }}}
+        },
+        {
+          "if": {"type": "object", "properties": {"event_type": {"const": "node.validation_recorded"}}},
+          "then": {"type": "object", "properties": {"payload": {
+            "type": "object", "required": ["validation_state", "validator_run_id", "validation_receipt", "observed_outcome"],
+            "properties": {
+              "validation_state": {"enum": ["passed", "rejected"]},
+              "validator_run_id": {"type": "string", "minLength": 1},
+              "validation_receipt": {"$ref": "#/$defs/nodeValidationReceipt"},
+              "observed_outcome": {"enum": ["completed", "partial", "failed", "unverified", "skipped", "blocked", "cancelled", "stale"]}
+            }, "additionalProperties": false
+          }}}
+        },
+        {
+          "if": {"type": "object", "properties": {"event_type": {"const": "node.blocked"}}},
+          "then": {"type": "object", "properties": {"payload": {
+            "type": "object", "required": ["blocker_id"],
+            "properties": {"blocker_id": {"type": "string", "minLength": 1}},
+            "additionalProperties": false
+          }}}
+        },
+        {
+          "if": {"type": "object", "properties": {"event_type": {"const": "node.interrupted"}}},
+          "then": {"type": "object", "properties": {"payload": {
+            "type": "object", "required": ["interrupt_id", "gate_id", "reason", "capability_receipt_sha256"],
+            "properties": {
+              "interrupt_id": {"type": "string", "minLength": 1},
+              "gate_id": {"type": "string", "minLength": 1},
+              "reason": {"type": "string", "minLength": 1},
+              "capability_receipt_sha256": {"$ref": "#/$defs/sha256"}
+            }, "additionalProperties": false
+          }}}
+        },
+        {
+          "if": {"type": "object", "properties": {"event_type": {"const": "node.resumed"}}},
+          "then": {"type": "object", "properties": {"payload": {
+            "type": "object", "required": ["interrupt_id", "approval_receipt", "approval_decision", "decision"],
+            "properties": {
+              "interrupt_id": {"type": "string", "minLength": 1},
+              "approval_receipt": {"$ref": "#/$defs/approvalReceipt"},
+              "approval_decision": {"$ref": "#/$defs/approvalDecision"},
+              "decision": {"const": "approve"}
+            }, "additionalProperties": false
+          }}}
+        },
+        {
+          "if": {"type": "object", "properties": {"event_type": {"const": "node.cancelled"}}},
+          "then": {"type": "object", "properties": {"payload": {
+            "type": "object", "required": ["reason"],
+            "properties": {"reason": {"type": "string", "minLength": 1}},
+            "additionalProperties": false
+          }}}
+        },
+        {
+          "if": {"type": "object", "properties": {"event_type": {"const": "node.lease_expired"}}},
+          "then": {"type": "object", "properties": {"payload": {
+            "type": "object", "required": ["lease_id", "lease_expires_at", "recovery_decision"],
+            "properties": {
+              "lease_id": {"type": "string", "minLength": 1},
+              "lease_expires_at": {"$ref": "#/$defs/timestamp"},
+              "recovery_decision": {"enum": ["ready", "failed"]}
+            }, "additionalProperties": false
+          }}}
+        },
+        {
+          "if": {"type": "object", "properties": {"event_type": {"const": "node.retry_scheduled"}}},
+          "then": {"type": "object", "properties": {"payload": {
+            "type": "object", "required": ["source_edge_id", "traversal_count", "next_attempt"],
+            "properties": {
+              "source_edge_id": {"type": "string", "minLength": 1},
+              "traversal_count": {"type": "integer", "minimum": 1},
+              "next_attempt": {"type": "integer", "minimum": 1}
+            }, "additionalProperties": false
+          }}}
+        },
+        {
+          "if": {"type": "object", "properties": {"event_type": {"const": "side_effect.intent"}}},
+          "then": {"type": "object", "properties": {"payload": {
+            "type": "object", "required": ["idempotency_key", "action_sha256"],
+            "properties": {
+              "idempotency_key": {"type": "string", "minLength": 1},
+              "action_sha256": {"$ref": "#/$defs/sha256"}
+            }, "additionalProperties": false
+          }}}
+        },
+        {
+          "if": {"type": "object", "properties": {"event_type": {"const": "side_effect.confirmed"}}},
+          "then": {"type": "object", "properties": {"payload": {
+            "type": "object", "required": ["idempotency_key", "result_digest", "readback_receipt_sha256"],
+            "properties": {
+              "idempotency_key": {"type": "string", "minLength": 1},
+              "result_digest": {"$ref": "#/$defs/sha256"},
+              "readback_receipt_sha256": {"$ref": "#/$defs/sha256"}
+            }, "additionalProperties": false
+          }}}
+        },
+        {
+          "if": {"type": "object", "properties": {"event_type": {"const": "side_effect.reconciliation_required"}}},
+          "then": {"type": "object", "properties": {"payload": {
+            "type": "object", "required": ["idempotency_key", "reason_code"],
+            "properties": {
+              "idempotency_key": {"type": "string", "minLength": 1},
+              "reason_code": {"type": "string", "minLength": 1}
+            }, "additionalProperties": false
+          }}}
+        },
+        {
+          "if": {"type": "object", "properties": {"event_type": {"const": "checkpoint.created"}}},
+          "then": {"type": "object", "properties": {"payload": {
+            "type": "object", "required": ["checkpoint_revision", "projection_sha256"],
+            "properties": {
+              "checkpoint_revision": {"type": "integer", "minimum": 1},
+              "projection_sha256": {"$ref": "#/$defs/sha256"}
+            }, "additionalProperties": false
+          }}}
+        },
+        {
+          "if": {"type": "object", "properties": {"event_type": {"const": "node.stale"}}},
+          "then": {"type": "object", "properties": {"payload": {
+            "type": "object", "required": ["changed_binding_fields"],
+            "properties": {"changed_binding_fields": {"$ref": "#/$defs/strings"}},
+            "additionalProperties": false
+          }}}
+        },
+        {
+          "if": {"type": "object", "properties": {"event_type": {"const": "host.prepared"}}},
+          "then": {"type": "object", "properties": {"payload": {
+            "type": "object", "required": ["host_handle", "dispatch_sha256"],
+            "properties": {
+              "host_handle": {"$ref": "#/$defs/hostHandle"},
+              "dispatch_sha256": {"$ref": "#/$defs/sha256"}
+            }, "additionalProperties": false
+          }}}
+        },
+        {
+          "if": {"type": "object", "properties": {"event_type": {"const": "host.execution_started"}}},
+          "then": {"type": "object", "properties": {"payload": {
+            "type": "object", "required": ["host_handle_sha256", "execution_receipt"],
+            "properties": {
+              "host_handle_sha256": {"$ref": "#/$defs/sha256"},
+              "execution_receipt": {"$ref": "#/$defs/hostExecutionReceipt"}
+            }, "additionalProperties": false
+          }}}
+        },
+        {
+          "if": {"type": "object", "properties": {"event_type": {"const": "host.observation_recorded"}}},
+          "then": {"type": "object", "properties": {"payload": {
+            "type": "object", "required": ["observation_type", "host_handle_id", "observation_receipt", "observation_sha256"],
+            "properties": {
+              "observation_type": {"enum": ["probe", "cancel", "readback"]},
+              "host_handle_id": {"type": "string", "minLength": 1},
+              "observation_receipt": {"$ref": "#/$defs/hostObservationReceipt"},
+              "observation_sha256": {"$ref": "#/$defs/sha256"}
+            }, "additionalProperties": false
+          }}}
+        }
+      ]
+    },
+    "bindings": {
+      "type": "object",
+      "required": [
+        "source_sha256", "route_sha256", "contract_sha256",
+        "task_exact_set_sha256", "environment_sha256",
+        "authorization_lineage_sha256"
+      ],
+      "properties": {
+        "source_sha256": {"$ref": "#/$defs/sha256"},
+        "route_sha256": {"$ref": "#/$defs/sha256"},
+        "contract_sha256": {"$ref": "#/$defs/sha256"},
+        "task_exact_set_sha256": {"$ref": "#/$defs/sha256"},
+        "environment_sha256": {"$ref": "#/$defs/sha256"},
+        "authorization_lineage_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "hostHandle": {
+      "type": "object",
+      "required": ["schema_version", "adapter_id", "host_handle_id", "run_id", "node_id", "attempt", "transport", "proof_strength", "dispatch_sha256", "state", "prepared_at", "handle_sha256"],
+      "properties": {
+        "schema_version": {"const": "goal-teams-host-handle-v2.65"},
+        "adapter_id": {"type": "string", "minLength": 1},
+        "host_handle_id": {"type": "string", "minLength": 1},
+        "run_id": {"type": "string", "minLength": 1},
+        "node_id": {"type": "string", "minLength": 1},
+        "attempt": {"type": "integer", "minimum": 1},
+        "transport": {"type": "string", "minLength": 1},
+        "proof_strength": {"type": "string", "minLength": 1},
+        "dispatch_sha256": {"$ref": "#/$defs/sha256"},
+        "state": {"const": "prepared"},
+        "prepared_at": {"$ref": "#/$defs/timestamp"},
+        "handle_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "hostExecutionReceipt": {
+      "type": "object",
+      "required": ["schema_version", "adapter_id", "host_handle_id", "handle_sha256", "dispatch_sha256", "state", "started_at", "proof_strength", "receipt_sha256"],
+      "properties": {
+        "schema_version": {"const": "goal-teams-host-execution-receipt-v2.65"},
+        "adapter_id": {"type": "string", "minLength": 1},
+        "host_handle_id": {"type": "string", "minLength": 1},
+        "handle_sha256": {"$ref": "#/$defs/sha256"},
+        "dispatch_sha256": {"$ref": "#/$defs/sha256"},
+        "state": {"const": "running"},
+        "started_at": {"$ref": "#/$defs/timestamp"},
+        "proof_strength": {"type": "string", "minLength": 1},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "gateReceipt": {
+      "type": "object",
+      "minProperties": 14,
+      "maxProperties": 14,
+      "propertyNames": {"enum": ["schema_version", "receipt_id", "graph_contract_sha256", "run_id", "gate_id", "gate_type", "decision", "authority_identity", "actor_relationship", "evidence_refs", "observed_facts", "issued_at", "expires_at", "receipt_sha256"]},
+      "properties": {
+        "schema_version": {"const": "goal-teams-gate-receipt-v2.65"},
+        "graph_contract_sha256": {"$ref": "#/$defs/sha256"},
+        "gate_type": {"enum": ["evidence", "condition"]},
+        "decision": {"enum": ["passed", "rejected"]},
+        "evidence_refs": {"$ref": "#/$defs/strings"},
+        "observed_facts": {"type": "object"},
+        "issued_at": {"$ref": "#/$defs/timestamp"},
+        "expires_at": {"$ref": "#/$defs/timestamp"},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "capabilityReceipt": {
+      "type": "object",
+      "minProperties": 25,
+      "maxProperties": 25,
+      "propertyNames": {"enum": ["schema_version", "capability_id", "issuer", "issuer_key_id", "issuer_assurance", "actor_relationship", "proof_strength", "host_execution_id", "node_id", "owner_run_id", "graph_contract_sha256", "scope_allowlist", "forbidden_scope", "scope_sha256", "tool_allowlist", "network_policy", "workspace_policy", "workspace_realpath", "not_before", "issued_at", "expires_at", "freshness_state", "permission_effect", "attestation_ref", "receipt_sha256"]},
+      "properties": {
+        "schema_version": {"const": "goal-teams-host-capability-receipt-v2.65"},
+        "graph_contract_sha256": {"$ref": "#/$defs/sha256"},
+        "scope_sha256": {"$ref": "#/$defs/sha256"},
+        "not_before": {"$ref": "#/$defs/timestamp"},
+        "issued_at": {"$ref": "#/$defs/timestamp"},
+        "expires_at": {"$ref": "#/$defs/timestamp"},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "capabilityRequest": {
+      "type": "object",
+      "minProperties": 13,
+      "maxProperties": 13,
+      "propertyNames": {"enum": ["schema_version", "run_id", "node_id", "task_id", "attempt", "action_ref", "owner_run_id", "graph_contract_sha256", "scope_sha256", "context_bundle_sha256", "capability_receipt_sha256", "requested_at", "request_sha256"]},
+      "properties": {
+        "schema_version": {"const": "goal-teams-host-capability-request-v2.65"},
+        "attempt": {"type": "integer", "minimum": 1},
+        "graph_contract_sha256": {"$ref": "#/$defs/sha256"},
+        "scope_sha256": {"$ref": "#/$defs/sha256"},
+        "context_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "capability_receipt_sha256": {"$ref": "#/$defs/sha256"},
+        "requested_at": {"$ref": "#/$defs/timestamp"},
+        "request_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "capabilityDecision": {
+      "type": "object",
+      "minProperties": 15,
+      "maxProperties": 15,
+      "propertyNames": {"enum": ["schema_version", "verified", "issuer", "issuer_key_id", "issuer_assurance", "actor_relationship", "proof_strength", "permission_effect", "freshness_state", "scope_sha256", "node_id", "capability_receipt_sha256", "request_sha256", "reason_code", "decision_sha256"]},
+      "properties": {
+        "schema_version": {"const": "goal-teams-host-capability-decision-v2.65"},
+        "verified": {"type": "boolean"},
+        "scope_sha256": {"$ref": "#/$defs/sha256"},
+        "capability_receipt_sha256": {"$ref": "#/$defs/sha256"},
+        "request_sha256": {"$ref": "#/$defs/sha256"},
+        "decision_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "memberPacket": {
+      "type": "object",
+      "minProperties": 23,
+      "maxProperties": 23,
+      "propertyNames": {"enum": ["schema_version", "packet_id", "graph_id", "graph_revision", "graph_contract_sha256", "plan_id", "plan_revision", "task_exact_set_sha256", "node_id", "task_id", "owner_identity", "owner_run_id", "validator_identity", "validator_run_id", "action_ref", "scope_sha256", "context_bundle_sha256", "context_validation_receipt_sha256", "capability_receipt_sha256", "capability_request_sha256", "capability_decision_sha256", "issued_at", "packet_sha256"]},
+      "properties": {
+        "schema_version": {"const": "goal-teams-member-packet-v2.65"},
+        "graph_revision": {"type": "integer", "minimum": 1},
+        "plan_revision": {"type": "integer", "minimum": 1},
+        "graph_contract_sha256": {"$ref": "#/$defs/sha256"},
+        "task_exact_set_sha256": {"$ref": "#/$defs/sha256"},
+        "scope_sha256": {"$ref": "#/$defs/sha256"},
+        "context_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "context_validation_receipt_sha256": {"$ref": "#/$defs/sha256"},
+        "capability_receipt_sha256": {"$ref": "#/$defs/sha256"},
+        "capability_request_sha256": {"$ref": "#/$defs/sha256"},
+        "capability_decision_sha256": {"$ref": "#/$defs/sha256"},
+        "issued_at": {"$ref": "#/$defs/timestamp"},
+        "packet_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "artifactReceipt": {
+      "type": "object",
+      "minProperties": 16,
+      "maxProperties": 16,
+      "propertyNames": {"enum": ["schema_version", "receipt_id", "graph_contract_sha256", "run_id", "node_id", "attempt", "artifact_id", "output_port_id", "schema_ref", "artifact_sha256", "source_revision", "freshness_state", "sensitivity", "evidence_refs", "issued_at", "receipt_sha256"]},
+      "properties": {
+        "schema_version": {"const": "goal-teams-artifact-receipt-v2.65"},
+        "graph_contract_sha256": {"$ref": "#/$defs/sha256"},
+        "attempt": {"type": "integer", "minimum": 1},
+        "artifact_sha256": {"$ref": "#/$defs/sha256"},
+        "evidence_refs": {"$ref": "#/$defs/strings"},
+        "issued_at": {"$ref": "#/$defs/timestamp"},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "nodeValidationReceipt": {
+      "type": "object",
+      "minProperties": 16,
+      "maxProperties": 16,
+      "propertyNames": {"enum": ["schema_version", "receipt_id", "graph_contract_sha256", "node_id", "task_id", "attempt", "observed_outcome", "validation_state", "owner_run_id", "validator_identity", "validator_run_id", "actor_relationship", "artifact_receipt_sha256s", "evidence_refs", "issued_at", "receipt_sha256"]},
+      "properties": {
+        "schema_version": {"const": "goal-teams-node-validation-receipt-v2.65"},
+        "graph_contract_sha256": {"$ref": "#/$defs/sha256"},
+        "attempt": {"type": "integer", "minimum": 1},
+        "validation_state": {"enum": ["passed", "rejected"]},
+        "artifact_receipt_sha256s": {"type": "array", "items": {"$ref": "#/$defs/sha256"}, "uniqueItems": true},
+        "evidence_refs": {"$ref": "#/$defs/strings"},
+        "issued_at": {"$ref": "#/$defs/timestamp"},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "approvalReceipt": {
+      "type": "object",
+      "minProperties": 17,
+      "maxProperties": 17,
+      "propertyNames": {"enum": ["schema_version", "approval_id", "issuer", "issuer_key_id", "issuer_assurance", "actor_relationship", "proof_strength", "interrupt_id", "gate_id", "scope_sha256", "decision", "not_before", "issued_at", "expires_at", "permission_effect", "attestation_ref", "receipt_sha256"]},
+      "properties": {
+        "schema_version": {"const": "goal-teams-host-approval-receipt-v2.65"},
+        "scope_sha256": {"$ref": "#/$defs/sha256"},
+        "decision": {"const": "approve"},
+        "not_before": {"$ref": "#/$defs/timestamp"},
+        "issued_at": {"$ref": "#/$defs/timestamp"},
+        "expires_at": {"$ref": "#/$defs/timestamp"},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "approvalDecision": {
+      "type": "object",
+      "minProperties": 15,
+      "maxProperties": 15,
+      "propertyNames": {"enum": ["schema_version", "verified", "issuer", "issuer_key_id", "issuer_assurance", "actor_relationship", "proof_strength", "permission_effect", "freshness_state", "scope_sha256", "interrupt_id", "approval_receipt_sha256", "expires_at", "reason_code", "decision_sha256"]},
+      "properties": {
+        "schema_version": {"const": "goal-teams-host-approval-decision-v2.65"},
+        "verified": {"const": true},
+        "scope_sha256": {"$ref": "#/$defs/sha256"},
+        "approval_receipt_sha256": {"$ref": "#/$defs/sha256"},
+        "expires_at": {"$ref": "#/$defs/timestamp"},
+        "decision_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "hostProbeReceipt": {
+      "type": "object",
+      "minProperties": 11,
+      "maxProperties": 11,
+      "propertyNames": {"enum": ["schema_version", "adapter_id", "host_handle_id", "run_id", "node_id", "attempt", "observed_state", "quiescent", "observed_at", "evidence_refs", "receipt_sha256"]},
+      "properties": {
+        "schema_version": {"const": "goal-teams-host-probe-receipt-v2.65"},
+        "attempt": {"type": "integer", "minimum": 1},
+        "observed_state": {"enum": ["prepared", "running", "terminal", "cancelled", "absent", "indeterminate"]},
+        "quiescent": {"type": "boolean"},
+        "observed_at": {"$ref": "#/$defs/timestamp"},
+        "evidence_refs": {"$ref": "#/$defs/strings"},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "hostCancelReceipt": {
+      "type": "object",
+      "minProperties": 6,
+      "maxProperties": 6,
+      "propertyNames": {"enum": ["schema_version", "host_handle_id", "cancelled", "observed_state", "reason_code", "decision_sha256"]},
+      "properties": {
+        "schema_version": {"const": "goal-teams-host-cancel-result-v2.65"},
+        "cancelled": {"type": "boolean"},
+        "observed_state": {"enum": ["cancelled_before_start", "cancelled", "running", "terminal", "indeterminate"]},
+        "decision_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "hostReadbackReceipt": {
+      "type": "object",
+      "minProperties": 19,
+      "maxProperties": 19,
+      "propertyNames": {"enum": ["schema_version", "adapter_id", "host_handle_id", "handle_sha256", "dispatch_sha256", "run_id", "node_id", "attempt", "idempotency_key", "action_sha256", "observed_state", "result_digest", "external_receipt_ref", "issuer", "issuer_assurance", "proof_strength", "attestation_ref", "observed_at", "receipt_sha256"]},
+      "properties": {
+        "schema_version": {"const": "goal-teams-host-side-effect-readback-v2.65"},
+        "handle_sha256": {"$ref": "#/$defs/sha256"},
+        "dispatch_sha256": {"$ref": "#/$defs/sha256"},
+        "attempt": {"type": "integer", "minimum": 1},
+        "action_sha256": {"$ref": "#/$defs/sha256"},
+        "observed_state": {"enum": ["confirmed", "absent", "indeterminate"]},
+        "result_digest": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "external_receipt_ref": {"type": ["string", "null"]},
+        "observed_at": {"$ref": "#/$defs/timestamp"},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "hostObservationReceipt": {
+      "oneOf": [
+        {"$ref": "#/$defs/hostProbeReceipt"},
+        {"$ref": "#/$defs/hostCancelReceipt"},
+        {"$ref": "#/$defs/hostReadbackReceipt"}
+      ]
+    },
+    "event": {
+      "type": "object",
+      "allOf": [{"$ref": "#/$defs/eventPayloadMatrix"}],
+      "required": [
+        "schema_version", "run_id", "event_id", "event_seq", "event_type",
+        "node_id", "attempt", "cas_base_revision", "previous_event_sha256",
+        "bindings", "payload", "evidence_refs", "actor_identity",
+        "actor_relationship", "occurred_at", "event_sha256"
+      ],
+      "properties": {
+        "schema_version": {"const": "goal-teams-graph-event-v2.65"},
+        "run_id": {"type": "string", "minLength": 1},
+        "event_id": {"type": "string", "minLength": 1},
+        "event_seq": {"type": "integer", "minimum": 1},
+        "event_type": {
+          "enum": [
+            "run.created", "gate.passed", "gate.rejected", "gate.timed_out",
+            "node.ready", "node.claimed", "node.started", "node.heartbeat",
+            "node.outcome_recorded", "node.validation_recorded", "node.blocked",
+            "node.interrupted", "node.resumed", "node.cancelled",
+            "node.lease_expired", "node.retry_scheduled", "node.stale",
+            "side_effect.intent", "side_effect.confirmed",
+            "side_effect.reconciliation_required", "checkpoint.created",
+            "host.prepared", "host.execution_started", "host.observation_recorded"
+          ]
+        },
+        "node_id": {"type": ["string", "null"], "minLength": 1},
+        "attempt": {"type": "integer", "minimum": 0},
+        "cas_base_revision": {"type": "integer", "minimum": 0},
+        "previous_event_sha256": {"$ref": "#/$defs/sha256"},
+        "bindings": {"$ref": "#/$defs/bindings"},
+        "payload": {"type": "object"},
+        "evidence_refs": {"$ref": "#/$defs/strings"},
+        "actor_identity": {"type": "string", "minLength": 1},
+        "actor_relationship": {"type": "string", "minLength": 1},
+        "occurred_at": {"$ref": "#/$defs/timestamp"},
+        "event_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "nodeProjection": {
+      "type": "object",
+      "required": [
+        "execution_state", "outcome", "validation_state", "attempt",
+        "owner_run_id", "validator_run_id", "worker_id", "lease_id",
+        "lease_expires_at", "member_packet_sha256", "context_bundle_sha256",
+        "capability_receipt_sha256", "capability_request_sha256",
+        "capability_decision_sha256", "approval_decision_sha256",
+        "host_handle_id", "host_binding_assurance",
+        "artifact_receipts", "evidence_refs"
+      ],
+      "properties": {
+        "execution_state": {
+          "enum": ["pending", "ready", "claimed", "active", "waiting_user", "terminal", "cancelled", "stale"]
+        },
+        "outcome": {
+          "enum": ["pending", "completed", "partial", "failed", "unverified", "skipped", "blocked", "waiting_user", "cancelled", "stale"]
+        },
+        "validation_state": {"enum": ["not_run", "passed", "rejected", "stale"]},
+        "attempt": {"type": "integer", "minimum": 0},
+        "owner_run_id": {"type": ["string", "null"]},
+        "validator_run_id": {"type": ["string", "null"]},
+        "worker_id": {"type": ["string", "null"]},
+        "lease_id": {"type": ["string", "null"]},
+        "lease_expires_at": {"oneOf": [{"$ref": "#/$defs/timestamp"}, {"type": "null"}]},
+        "member_packet_sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "context_bundle_sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "capability_receipt_sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "capability_request_sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "capability_decision_sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "approval_decision_sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "host_handle_id": {"type": ["string", "null"], "minLength": 1},
+        "host_binding_assurance": {"enum": ["confirmed", "legacy_unobserved"]},
+        "artifact_receipts": {"type": "array", "items": {"type": "object"}},
+        "evidence_refs": {"$ref": "#/$defs/strings"}
+      },
+      "additionalProperties": false
+    },
+    "projection": {
+      "type": "object",
+      "required": [
+        "schema_version", "run_id", "revision", "event_count",
+        "last_event_sha256", "bindings", "nodes", "gate_states",
+        "idempotency", "interrupts", "traversal_counts", "host_handles",
+        "projection_sha256"
+      ],
+      "properties": {
+        "schema_version": {"const": "goal-teams-graph-projection-v2.65"},
+        "run_id": {"type": "string", "minLength": 1},
+        "revision": {"type": "integer", "minimum": 1},
+        "event_count": {"type": "integer", "minimum": 1},
+        "last_event_sha256": {"$ref": "#/$defs/sha256"},
+        "bindings": {"$ref": "#/$defs/bindings"},
+        "nodes": {
+          "type": "object",
+          "additionalProperties": {"$ref": "#/$defs/nodeProjection"}
+        },
+        "gate_states": {
+          "type": "object",
+          "additionalProperties": {"enum": ["pending", "waiting", "passed", "rejected", "timed_out", "stale"]}
+        },
+        "idempotency": {"type": "object"},
+        "interrupts": {"type": "object"},
+        "traversal_counts": {"type": "object"},
+        "host_handles": {"type": "object"},
+        "projection_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "storeReceipt": {
+      "type": "object",
+      "required": [
+        "schema_version", "run_id", "operation", "revision_before",
+        "revision_after", "event_sha256", "database_identity_sha256",
+        "committed", "receipt_sha256"
+      ],
+      "properties": {
+        "schema_version": {"const": "goal-teams-sqlite-store-receipt-v2.65"},
+        "run_id": {"type": "string", "minLength": 1},
+        "operation": {"type": "string", "minLength": 1},
+        "revision_before": {"type": "integer", "minimum": 0},
+        "revision_after": {"type": "integer", "minimum": 0},
+        "event_sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "database_identity_sha256": {"$ref": "#/$defs/sha256"},
+        "committed": {"const": true},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "waveReceipt": {
+      "type": "object",
+      "required": [
+        "schema_version", "run_id", "ready_node_ids", "started_node_ids",
+        "completed_node_ids", "failed_node_ids", "blocked_node_ids",
+        "max_workers", "revision_before", "revision_after",
+        "projection_sha256", "receipt_sha256"
+      ],
+      "properties": {
+        "schema_version": {"const": "goal-teams-runtime-wave-receipt-v2.65"},
+        "run_id": {"type": "string", "minLength": 1},
+        "ready_node_ids": {"$ref": "#/$defs/strings"},
+        "started_node_ids": {"$ref": "#/$defs/strings"},
+        "completed_node_ids": {"$ref": "#/$defs/strings"},
+        "failed_node_ids": {"$ref": "#/$defs/strings"},
+        "blocked_node_ids": {"$ref": "#/$defs/strings"},
+        "max_workers": {"type": "integer", "minimum": 1},
+        "revision_before": {"type": "integer", "minimum": 0},
+        "revision_after": {"type": "integer", "minimum": 0},
+        "projection_sha256": {"$ref": "#/$defs/sha256"},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "recoveryReceipt": {
+      "type": "object",
+      "required": [
+        "schema_version", "run_id", "checkpoint_revision",
+        "replayed_event_count", "expired_lease_node_ids",
+        "reconciliation_required_node_ids", "ready_node_ids",
+        "revision_before", "revision_after", "projection_sha256",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "schema_version": {"const": "goal-teams-runtime-recovery-receipt-v2.65"},
+        "run_id": {"type": "string", "minLength": 1},
+        "checkpoint_revision": {"type": "integer", "minimum": 0},
+        "replayed_event_count": {"type": "integer", "minimum": 1},
+        "expired_lease_node_ids": {"$ref": "#/$defs/strings"},
+        "reconciliation_required_node_ids": {"$ref": "#/$defs/strings"},
+        "ready_node_ids": {"$ref": "#/$defs/strings"},
+        "revision_before": {"type": "integer", "minimum": 0},
+        "revision_after": {"type": "integer", "minimum": 0},
+        "projection_sha256": {"$ref": "#/$defs/sha256"},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    }
+  }
+}

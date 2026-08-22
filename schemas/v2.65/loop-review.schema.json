@@ -1,0 +1,411 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.65/loop-review.schema.json",
+  "title": "Goal Teams V2.65 LOOP Review",
+  "oneOf": [
+    { "$ref": "#/$defs/signedReview" },
+    { "$ref": "#/$defs/reviewState" },
+    { "$ref": "#/$defs/appendReceipt" },
+    { "$ref": "#/$defs/roundReceipt" },
+    { "$ref": "#/$defs/reconcileReceipt" }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": ".*\\S.*"
+    },
+    "timestamp": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "stringSet": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/nonEmptyString" },
+      "uniqueItems": true
+    },
+    "nonEmptyStringSet": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/nonEmptyString" },
+      "uniqueItems": true
+    },
+    "nullableString": {
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "#/$defs/nonEmptyString" }
+      ]
+    },
+    "rootCause": {
+      "enum": [
+        "graph_contract",
+        "route_or_edge",
+        "prompt",
+        "context",
+        "skill",
+        "capability_or_permission",
+        "scheduler",
+        "runtime_or_recovery",
+        "harness_or_oracle",
+        "evidence",
+        "requirement",
+        "member_coordination",
+        "external_dependency",
+        "unknown"
+      ]
+    },
+    "loopResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision",
+        "achieved",
+        "blocked_items",
+        "failed_items",
+        "not_run_items",
+        "open_gaps"
+      ],
+      "properties": {
+        "decision": { "enum": ["continue", "replan", "stop"] },
+        "achieved": { "type": "boolean" },
+        "blocked_items": { "$ref": "#/$defs/stringSet" },
+        "failed_items": { "$ref": "#/$defs/stringSet" },
+        "not_run_items": { "$ref": "#/$defs/stringSet" },
+        "open_gaps": { "$ref": "#/$defs/stringSet" }
+      }
+    },
+    "dimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "finding",
+        "evidence_refs",
+        "improvement",
+        "expected_benefit",
+        "validation_method",
+        "risk"
+      ],
+      "properties": {
+        "state": { "enum": ["no_finding", "observed", "candidate"] },
+        "finding": { "$ref": "#/$defs/nullableString" },
+        "evidence_refs": { "$ref": "#/$defs/stringSet" },
+        "improvement": { "$ref": "#/$defs/nullableString" },
+        "expected_benefit": { "$ref": "#/$defs/nullableString" },
+        "validation_method": { "$ref": "#/$defs/nullableString" },
+        "risk": { "$ref": "#/$defs/nullableString" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "state": { "const": "no_finding" } } },
+          "then": {
+            "properties": {
+              "finding": { "type": "null" },
+              "evidence_refs": { "type": "array", "maxItems": 0 },
+              "improvement": { "type": "null" },
+              "expected_benefit": { "type": "null" },
+              "validation_method": { "type": "null" },
+              "risk": { "type": "null" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "state": { "const": "observed" } } },
+          "then": {
+            "properties": {
+              "finding": { "$ref": "#/$defs/nonEmptyString" },
+              "evidence_refs": { "$ref": "#/$defs/nonEmptyStringSet" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "state": { "const": "candidate" } } },
+          "then": {
+            "properties": {
+              "finding": { "$ref": "#/$defs/nonEmptyString" },
+              "evidence_refs": { "$ref": "#/$defs/nonEmptyStringSet" },
+              "improvement": { "$ref": "#/$defs/nonEmptyString" },
+              "expected_benefit": { "$ref": "#/$defs/nonEmptyString" },
+              "validation_method": { "$ref": "#/$defs/nonEmptyString" },
+              "risk": { "$ref": "#/$defs/nonEmptyString" }
+            }
+          }
+        }
+      ]
+    },
+    "dimensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "prompt",
+        "context",
+        "skill",
+        "graph",
+        "materials",
+        "harness",
+        "evidence",
+        "members",
+        "tools",
+        "workflow",
+        "runtime",
+        "cost"
+      ],
+      "properties": {
+        "prompt": { "$ref": "#/$defs/dimension" },
+        "context": { "$ref": "#/$defs/dimension" },
+        "skill": { "$ref": "#/$defs/dimension" },
+        "graph": { "$ref": "#/$defs/dimension" },
+        "materials": { "$ref": "#/$defs/dimension" },
+        "harness": { "$ref": "#/$defs/dimension" },
+        "evidence": { "$ref": "#/$defs/dimension" },
+        "members": { "$ref": "#/$defs/dimension" },
+        "tools": { "$ref": "#/$defs/dimension" },
+        "workflow": { "$ref": "#/$defs/dimension" },
+        "runtime": { "$ref": "#/$defs/dimension" },
+        "cost": { "$ref": "#/$defs/dimension" }
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_id",
+        "consumer_refs",
+        "scope_allowlist",
+        "risk",
+        "budget_wu",
+        "validation_plan",
+        "rollback_condition",
+        "required_authorization"
+      ],
+      "properties": {
+        "candidate_id": { "$ref": "#/$defs/nonEmptyString" },
+        "consumer_refs": { "$ref": "#/$defs/stringSet" },
+        "scope_allowlist": { "$ref": "#/$defs/stringSet" },
+        "risk": { "$ref": "#/$defs/nonEmptyString" },
+        "budget_wu": { "type": "integer", "minimum": 1 },
+        "validation_plan": { "$ref": "#/$defs/nonEmptyString" },
+        "rollback_condition": { "$ref": "#/$defs/nonEmptyString" },
+        "required_authorization": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "signedReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "review_id",
+        "trigger",
+        "project_id",
+        "artifact_version",
+        "skill_version",
+        "loop_id",
+        "loop_round",
+        "sequence",
+        "occurred_at",
+        "graph_revision",
+        "plan_revision",
+        "task_exact_set_sha256",
+        "source_revision",
+        "task_refs",
+        "evidence_refs",
+        "issue_key",
+        "loop_result",
+        "observed_facts",
+        "assumptions",
+        "uncertainty",
+        "retained_practices",
+        "root_cause_primary",
+        "root_cause_secondary",
+        "dimensions",
+        "candidate",
+        "review_outcome",
+        "status",
+        "previous_review_sha256",
+        "issue_fingerprint",
+        "review_sha256"
+      ],
+      "properties": {
+        "schema_version": { "const": "goal-teams-loop-review-v2.65" },
+        "review_id": { "$ref": "#/$defs/nonEmptyString" },
+        "trigger": { "enum": ["loop_end", "problem_detected", "user_correction"] },
+        "project_id": { "$ref": "#/$defs/nonEmptyString" },
+        "artifact_version": { "$ref": "#/$defs/nonEmptyString" },
+        "skill_version": { "$ref": "#/$defs/nonEmptyString" },
+        "loop_id": { "$ref": "#/$defs/nonEmptyString" },
+        "loop_round": { "type": "integer", "minimum": 1 },
+        "sequence": { "type": "integer", "minimum": 1 },
+        "occurred_at": { "$ref": "#/$defs/timestamp" },
+        "graph_revision": { "type": "integer", "minimum": 1 },
+        "plan_revision": { "type": "integer", "minimum": 1 },
+        "task_exact_set_sha256": { "$ref": "#/$defs/sha256" },
+        "source_revision": { "$ref": "#/$defs/nonEmptyString" },
+        "task_refs": { "$ref": "#/$defs/nonEmptyStringSet" },
+        "evidence_refs": { "$ref": "#/$defs/stringSet" },
+        "issue_key": { "$ref": "#/$defs/nullableString" },
+        "loop_result": { "$ref": "#/$defs/loopResult" },
+        "observed_facts": { "$ref": "#/$defs/nonEmptyStringSet" },
+        "assumptions": { "$ref": "#/$defs/stringSet" },
+        "uncertainty": { "$ref": "#/$defs/stringSet" },
+        "retained_practices": { "$ref": "#/$defs/stringSet" },
+        "root_cause_primary": { "$ref": "#/$defs/rootCause" },
+        "root_cause_secondary": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/rootCause" },
+          "uniqueItems": true
+        },
+        "dimensions": { "$ref": "#/$defs/dimensions" },
+        "candidate": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/candidate" }
+          ]
+        },
+        "review_outcome": {
+          "enum": [
+            "no_change",
+            "observed_only",
+            "backlog_candidate",
+            "experiment_candidate",
+            "next_loop_candidate",
+            "skill_improvement_candidate",
+            "required_fix",
+            "new_scope_required",
+            "blocked",
+            "rejected"
+          ]
+        },
+        "status": {
+          "enum": [
+            "open",
+            "candidate_only",
+            "rejected",
+            "blocked",
+            "closed",
+            "review_incomplete"
+          ]
+        },
+        "previous_review_sha256": { "$ref": "#/$defs/sha256" },
+        "issue_fingerprint": { "$ref": "#/$defs/sha256" },
+        "review_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "reviewState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "revision",
+        "file_sha256",
+        "last_review_sha256",
+        "review_count",
+        "loop_end_keys",
+        "issue_fingerprints",
+        "header_sha256",
+        "state_sha256"
+      ],
+      "properties": {
+        "schema_version": { "const": "goal-teams-loop-review-state-v2.65" },
+        "revision": { "type": "integer", "minimum": 1 },
+        "file_sha256": { "$ref": "#/$defs/sha256" },
+        "last_review_sha256": { "$ref": "#/$defs/sha256" },
+        "review_count": { "type": "integer", "minimum": 1 },
+        "loop_end_keys": { "$ref": "#/$defs/stringSet" },
+        "issue_fingerprints": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/sha256" },
+          "uniqueItems": true
+        },
+        "header_sha256": { "$ref": "#/$defs/sha256" },
+        "state_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "appendReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "review_id",
+        "relative_path",
+        "state_revision_before",
+        "state_revision_after",
+        "file_sha256_before",
+        "file_sha256_after",
+        "review_sha256",
+        "bytes_appended",
+        "sidecar_sha256",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "schema_version": { "const": "goal-teams-loop-review-append-receipt-v2.65" },
+        "review_id": { "$ref": "#/$defs/nonEmptyString" },
+        "relative_path": { "$ref": "#/$defs/nonEmptyString" },
+        "state_revision_before": { "type": "integer", "minimum": 0 },
+        "state_revision_after": { "type": "integer", "minimum": 1 },
+        "file_sha256_before": { "$ref": "#/$defs/sha256" },
+        "file_sha256_after": { "$ref": "#/$defs/sha256" },
+        "review_sha256": { "$ref": "#/$defs/sha256" },
+        "bytes_appended": { "type": "integer", "minimum": 1 },
+        "sidecar_sha256": { "$ref": "#/$defs/sha256" },
+        "receipt_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "roundReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "loop_id",
+        "loop_round",
+        "review_ids",
+        "loop_end_review_id",
+        "valid",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "schema_version": { "const": "goal-teams-loop-review-round-receipt-v2.65" },
+        "loop_id": { "$ref": "#/$defs/nonEmptyString" },
+        "loop_round": { "type": "integer", "minimum": 1 },
+        "review_ids": { "$ref": "#/$defs/nonEmptyStringSet" },
+        "loop_end_review_id": { "$ref": "#/$defs/nonEmptyString" },
+        "valid": { "const": true },
+        "receipt_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "reconcileReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "relative_path",
+        "state_revision_before",
+        "state_revision_after",
+        "file_sha256",
+        "last_review_sha256",
+        "reconciled_review_id",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "goal-teams-loop-review-reconcile-receipt-v2.65"
+        },
+        "relative_path": { "$ref": "#/$defs/nonEmptyString" },
+        "state_revision_before": { "type": "integer", "minimum": 0 },
+        "state_revision_after": { "type": "integer", "minimum": 0 },
+        "file_sha256": { "$ref": "#/$defs/sha256" },
+        "last_review_sha256": { "$ref": "#/$defs/sha256" },
+        "reconciled_review_id": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/nonEmptyString" }
+          ]
+        },
+        "receipt_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}

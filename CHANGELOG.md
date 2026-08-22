@@ -1,5 +1,13 @@
 # Changelog
 
+## V2.65 Development Candidate — 2026-08-22
+
+- Added a typed, canonically hashed Graph contract with node/edge identities, predecessor constraints, authority declarations, Host capability negotiation, and digest-bound Member Packets.
+- Added a local SQLite-backed Graph Runtime development slice with durable attempts, checkpoints, compare-and-swap transitions, confirmed idempotency records, recovery projection, and resumable human gates through an explicit Host adapter boundary.
+- Added deterministic Context Bundles and append-only proactive evolution reviews for end-of-LOOP and problem-detected reflection across prompt, context, Skill, graph, Harness, and workflow dimensions.
+- Passed 104 V2.65 tests and 31 affected V2.63 compatibility tests, including strict compilation of all seven V2.65 schemas and a local terminated-process recovery observation that did not repeat a confirmed idempotency key.
+- This is an isolated Development candidate only: it is not activated as Current, packaged, released, installed, validated against a real Host/Provider, or proven by real business execution.
+
 ## V2.63 — 2026-08-12
 
 - Added deterministic discovery selection, immutable per-session generation snapshots, trusted-fact route derivation, deterministic prompt artifacts, and host observation receipts to govern runtime drift without overstating Provider assembly proof.
