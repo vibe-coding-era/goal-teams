@@ -1,26 +1,17 @@
-# Goal Teams V2.63 Release
+# Goal Teams V2.65 Release
 
-> Candidate projection: V2.63 remains the current published release. V2.65 is an unpublished development candidate and is not yet represented by a tag, GitHub Release, public asset, or canonical installation.
+V2.65 is the current published product release. GitHub Release `375434758`, the annotated `v2.65` tag, the fixed four public assets, exact remote readback, and the formal canonical local installation have completed.
 
-## V2.65 candidate scope
+V2.65 adds executable Graph Engineering and a proactive evolution LOOP while retaining the V2.5 portable execution core, v2.50 release controls, and V2.3 Legacy data schema.
 
-- Adds typed Graph compilation, scheduler/runtime authority, durable SQLite recovery, HITL resume, exactly-once effect evidence, and explicit real-Host/business boundaries.
-- Adds a proactive evolution LOOP: every round end or detected problem appends a project reflection to `loop-review.md`, including prompt, context, Skill, graph, Harness and workflow improvement candidates.
-- Retains core policy V2.5 and Legacy data schema V2.3. Candidate state is `development_candidate_not_published` until S4 exact readback.
+## V2.65 changes
 
-V2.63 is the current published product release. GitHub Release `369846737`, the annotated `v2.63` tag, the fixed four public assets, remote readback, and the formal canonical local installation have completed.
-
-V2.63 governs discovery, immutable generation snapshots, fact-derived routes, deterministic prompt artifacts, TaskExactSet/DAG, bounded blockers/findings, Git-derived change receipts, and orthogonal completion projections while retaining the V2.5 portable execution core, v2.50 Execution assets, and V2.3 Legacy data schema.
-
-## V2.63 changes
-
-- Adds trusted discovery and fact-derived routing so runtime selection is bound to observed Current facts rather than an assumed path.
-- Binds each frozen TaskExactSet and DAG to its budget, dependencies, validation, and exit conditions; scope changes require a plan revision.
-- Adds Git-derived baseline, tracked-diff, and untracked exact-set receipts for change evidence.
-- Bounds external blockers and audit findings so accepted fixes cannot silently expand scope or form an infinite loop.
-- Separates engineering completion, runtime completion, and business validation as orthogonal projections.
-- Removes the fixed user-visible runtime identity fingerprint; identity remains machine Evidence and is explained only when requested or required for drift diagnosis.
-- Retains the V2.62 OKF Document Graph and its explicit parser, digest, resource-budget, and truncation assurance limits.
+- Adds a typed, canonically hashed Graph contract for nodes, edges, ports, gates, authority, Host capabilities, retries and Member Packets.
+- Adds a local SQLite-backed Runtime slice with durable events, checkpoints, CAS transitions, process-exit recovery, HITL resume and confirmed idempotency evidence.
+- Makes fan-in, condition, retry and terminal routing fail closed instead of inferring execution from static DAG layers or filenames.
+- Adds deterministic Context Bundles and append-only `loop-review.md` reflection after every LOOP and detected problem.
+- Preserves explicit boundaries between local Callback/fake-adapter evidence, real Host/Provider execution, external effects and business validation.
+- Keeps V2.63 as the published predecessor and excludes predecessor/Legacy test roots from the V2.65 Current execution denominator.
 
 ## Compatibility retained from V2.6
 
@@ -34,16 +25,16 @@ V2.63 governs discovery, immutable generation snapshots, fact-derived routes, de
 
 The fixed public set is:
 
-- `goal-teams-V2.63.tar.gz` — 1,530,836 bytes — SHA-256 `8b66526d7761723ac82508ea27d5e6afb5989f6e9a49b8f0574ffe79a7e5d1f7`
-- `SHA256SUMS` — 90 bytes — SHA-256 `6db31de5025768e7b4497a9f43dbedea5067c47689b7947550936f212dc25930`
-- `_release.json` — 1,760 bytes — SHA-256 `cba5b3ac3cd579f6d49afc54a773e1e4b34e6a6a880712bcbd7b4ad60e91192e`
-- `_files.sha256` — 35,570 bytes — SHA-256 `c661486db1296a761b3dd6be850f09831a2b9db97970f38cb71a0774135e1208`
+- `goal-teams-V2.65.tar.gz` — 1,726,938 bytes — SHA-256 `bc773921cd8218fd1476666be4cd442517985cfa6d333d11230e8eb3f484e045`
+- `SHA256SUMS` — 90 bytes — SHA-256 `71a2b446dc82ac24b9d900132470bd9d5d9203c585aaa3312bd1ea4d6cd56381`
+- `_release.json` — 1,761 bytes — SHA-256 `aecfce9a8eedaf8bc626a0719e47af39a50f9e71ab0f60fbb795dc0bde7a2593`
+- `_files.sha256` — 42,103 bytes — SHA-256 `b54d7e09d122934964b62fe9d326301a79ca91855259e341e549e40b8bb3fa78`
 
 No `docs/`, `develops/`, local Evidence, credentials, or optional Replay supplement is part of the default asset.
 
 ## Projection boundary
 
-This file is the post-release `main` projection of the verified live V2.63 Release. The immutable V2.63 assets retain the candidate-time `release/current` projection captured by the single S2 build and are not rewritten after publication. The immutable V2.62 assets retain the candidate-time projection from their own release and remain untouched by this V2.63 projection.
+This file is the post-release `main` projection of the verified live V2.65 Release. The immutable V2.65 assets retain the candidate-time `release/current` projection captured by the single S2 build and are not rewritten after publication. The immutable V2.63 assets retain the candidate-time projection from their own release and remain untouched by this V2.65 projection.
 
 ## Completion telemetry
 
@@ -52,6 +43,6 @@ This file is the post-release `main` projection of the verified live V2.63 Relea
 
 ## Assurance boundary
 
-A fresh runtime transition receipt proves only an I1 correlated local-process observation. It does not prove repository-external independence, cryptographic host attestation, or provider final-prompt assembly. Tokens consumed and cache hit rate remain unavailable unless trusted host usage Evidence exists.
+A fresh runtime transition receipt proves only an I1 correlated process observation. The installed package, local Graph Runtime tests and canonical installation do not prove repository-external independence, provider final-prompt assembly, real business execution or business acceptance. Tokens consumed and cache hit rate remain unavailable unless trusted host usage Evidence exists.
 
 Requirements: Python 3.11+ for the complete validated toolchain.

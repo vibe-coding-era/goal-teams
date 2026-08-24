@@ -1,9 +1,6 @@
 {
-  "schema_version": "goal-teams-release-manifest-v2.63",
-  "product_version": "V2.63",
-  "candidate_product_version": "V2.65",
-  "candidate_release_state": "development_candidate_not_published",
-  "candidate_profile": "references/release-profiles/v2.65.json",
+  "schema_version": "goal-teams-release-manifest-v2.65",
+  "product_version": "V2.65",
   "core_policy_version": "V2.5",
   "legacy_data_schema_version": "V2.3",
   "docs_policy": "local-only",
@@ -31,13 +28,13 @@
     "claim_policy": "no_estimation_without_trusted_host_usage_evidence"
   },
   "release_identity": {
-    "tag": "v2.63",
-    "release_id": 369846737,
+    "tag": "v2.65",
+    "release_id": 375434758,
     "state": "published",
-    "source_commit": "8e246e4b7bb7c44bd6aa514eb273590d925b32b0",
-    "source_tree": "33c0af795a549ec6121919a18f42a04a797463a2",
+    "source_commit": "8512f6b9a7668daa6824b7a97494b927962b299e",
+    "source_tree": "fb436dbee231ee6c066cbb00fc9048b3113134ef",
     "public_assets": [
-      "goal-teams-V2.63.tar.gz",
+      "goal-teams-V2.65.tar.gz",
       "SHA256SUMS",
       "_release.json",
       "_files.sha256"
