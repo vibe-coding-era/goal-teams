@@ -253,7 +253,7 @@ class TestV250PackageIsolation(unittest.TestCase):
         self.assertEqual("goal-teams-prompt-identity-v2.50", identity["prompt_identity_version"])
         self.assertEqual("V250-ROUTE-STARTUP", identity["route_id"])
 
-    def test_installer_runs_v250_source_validation_with_prompt_identity(self) -> None:
+    def test_installer_runs_current_source_validation_with_prompt_identity(self) -> None:
         with _workspace_tempdir("goal-teams-v250-installer-") as directory:
             runtime = _embedded_installer_namespace(Path(directory))
             identity = runtime["compute_prompt_identity"](REPO)
@@ -268,6 +268,10 @@ class TestV250PackageIsolation(unittest.TestCase):
             results = runtime["validation_results"]
         self.assertTrue(results)
         self.assertTrue(all(result["status"] == "passed" for result in results))
+        self.assertIn(
+            "scripts/checks/check-v266.py --phase development",
+            {result["command"] for result in results},
+        )
         self.assertIn(
             "scripts/v250/generation_runtime.py:V250-ROUTE-STARTUP",
             {result["command"] for result in results},

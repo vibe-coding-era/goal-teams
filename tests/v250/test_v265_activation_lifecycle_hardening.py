@@ -11,7 +11,7 @@ from unittest import mock
 
 from scripts.v250 import generation_runtime
 from scripts.v250 import refresh_generation_manifests as refresh
-from tests.v250.v265_activation_fixture import V265ActivationFixture
+from tests.v250.test_v265_activation_lifecycle import V266ActivationFixture
 
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
@@ -23,7 +23,7 @@ class TestV265ActivationLifecycleHardening(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory()
         self.root = pathlib.Path(self.temporary.name) / "repo"
-        self.fixture = V265ActivationFixture.copy_from(REPO, self.root)
+        self.fixture = V266ActivationFixture.copy_from(REPO, self.root)
         prepared = self.prepare_active()
         self.assertEqual(0, prepared.returncode, prepared.stdout)
 
@@ -34,7 +34,7 @@ class TestV265ActivationLifecycleHardening(unittest.TestCase):
         return self.fixture.run_refresh(*arguments)
 
     def prepare_active(self) -> subprocess.CompletedProcess[str]:
-        result = self.fixture.prepare_v265()
+        result = self.fixture.prepare_v266()
         self.active_raw = self.fixture.base_active_raw
         self.active_sha256 = self.fixture.base_active_sha256
         self.activation_sha256 = self.fixture.base_activation_sha256
@@ -44,7 +44,7 @@ class TestV265ActivationLifecycleHardening(unittest.TestCase):
         result = self.run_refresh(
             "--write",
             "--generation-id",
-            "V2.65",
+            "V2.66",
             "--base-activation-sha256",
             self.activation_sha256,
             "--check-state",
@@ -55,14 +55,14 @@ class TestV265ActivationLifecycleHardening(unittest.TestCase):
     def test_activate_rejects_non_rfc3339_timestamp_before_pointer_write(self) -> None:
         prepare = self.prepare_active()
         self.assertEqual(0, prepare.returncode, prepare.stdout)
-        prepared = self.root / "references/current/generations/V2.65/activation-manifest.json"
+        prepared = self.root / "references/current/generations/V2.66/activation-manifest.json"
         prepared_sha256 = hashlib.sha256(prepared.read_bytes()).hexdigest()
         result = self.run_refresh(
             "--activate",
             "--generation-id",
-            "V2.65",
+            "V2.66",
             "--predecessor",
-            "V2.63",
+            "V2.65",
             "--base-active-sha256",
             self.active_sha256,
             "--base-activation-sha256",
@@ -77,7 +77,7 @@ class TestV265ActivationLifecycleHardening(unittest.TestCase):
 
     def test_prepare_rejects_inconsistent_active_pointer_semantics_without_writes(self) -> None:
         protected = tuple(
-            pathlib.Path(f"references/current/generations/V2.65/{name}")
+            pathlib.Path(f"references/current/generations/V2.66/{name}")
             for name in (
                 "rule-manifest.json",
                 "prompt-manifest.json",
@@ -101,9 +101,9 @@ class TestV265ActivationLifecycleHardening(unittest.TestCase):
                 result = self.run_refresh(
                     "--prepare-active",
                     "--generation-id",
-                    "V2.65",
+                    "V2.66",
                     "--predecessor",
-                    "V2.63",
+                    "V2.65",
                     "--base-active-sha256",
                     active_digest,
                     "--base-activation-sha256",
@@ -112,12 +112,12 @@ class TestV265ActivationLifecycleHardening(unittest.TestCase):
                 self.assertNotEqual(0, result.returncode, result.stdout)
                 for path, raw in protected_before.items():
                     self.assertEqual(raw, (self.root / path).read_bytes(), path)
-                self.fixture.restore_v263_base()
+                self.fixture.restore_v265_base()
 
     def test_activate_reverifies_prepared_members_immediately_before_write(self) -> None:
         prepare = self.prepare_active()
         self.assertEqual(0, prepare.returncode, prepare.stdout)
-        prepared = self.root / "references/current/generations/V2.65/activation-manifest.json"
+        prepared = self.root / "references/current/generations/V2.66/activation-manifest.json"
         prepared_sha256 = hashlib.sha256(prepared.read_bytes()).hexdigest()
         original_loader = generation_runtime.load_prepared_generation
         calls = 0
@@ -127,7 +127,7 @@ class TestV265ActivationLifecycleHardening(unittest.TestCase):
             calls += 1
             result = original_loader(*args, **kwargs)
             if calls == 1:
-                member = self.root / "references/current/generations/V2.65/core.md"
+                member = self.root / "references/current/generations/V2.66/core.md"
                 member.write_bytes(member.read_bytes() + b"drift\n")
             return result
 
@@ -135,9 +135,9 @@ class TestV265ActivationLifecycleHardening(unittest.TestCase):
             str(self.root / REFRESH),
             "--activate",
             "--generation-id",
-            "V2.65",
+            "V2.66",
             "--predecessor",
-            "V2.63",
+            "V2.65",
             "--base-active-sha256",
             self.active_sha256,
             "--base-activation-sha256",
@@ -161,7 +161,7 @@ class TestV265ActivationLifecycleHardening(unittest.TestCase):
     def test_activate_rolls_back_pointer_when_post_write_readback_fails(self) -> None:
         prepare = self.prepare_active()
         self.assertEqual(0, prepare.returncode, prepare.stdout)
-        prepared = self.root / "references/current/generations/V2.65/activation-manifest.json"
+        prepared = self.root / "references/current/generations/V2.66/activation-manifest.json"
         prepared_sha256 = hashlib.sha256(prepared.read_bytes()).hexdigest()
         original_atomic_write = refresh._atomic_write
         corrupted = False
@@ -171,16 +171,16 @@ class TestV265ActivationLifecycleHardening(unittest.TestCase):
             original_atomic_write(relative, raw)
             if relative == ACTIVE and not corrupted:
                 corrupted = True
-                member = self.root / "references/current/generations/V2.65/core.md"
+                member = self.root / "references/current/generations/V2.66/core.md"
                 member.write_bytes(member.read_bytes() + b"post-write-drift\n")
 
         argv = [
             str(self.root / REFRESH),
             "--activate",
             "--generation-id",
-            "V2.65",
+            "V2.66",
             "--predecessor",
-            "V2.63",
+            "V2.65",
             "--base-active-sha256",
             self.active_sha256,
             "--base-activation-sha256",

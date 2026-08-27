@@ -30,7 +30,7 @@ from scripts.v250.route_closure import (
 )
 
 
-RULE_RE = re.compile(r"^- \x60(GT(?:250|263|265)-[A-Z0-9-]+)\x60:", re.MULTILINE)
+RULE_RE = re.compile(r"^- \x60(GT(?:250|263|265|266)-[A-Z0-9-]+)\x60:", re.MULTILINE)
 
 
 def _owner_markdown_section_refs(source: str, heading: str) -> set[str]:
@@ -183,7 +183,7 @@ def validate_generation(
                         generation,
                         route_id=route_id,
                     )
-                    if generation_id in {"V2.63", "V2.65"}
+                    if generation_id in {"V2.63", "V2.65", "V2.66"}
                     else compile_route_closure(root, generation, route_id)
                 )
             except RouteClosureError as exc:

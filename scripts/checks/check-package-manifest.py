@@ -407,9 +407,9 @@ def _candidate_identity(root: Path) -> tuple[str, str, str]:
     try:
         version = (root / "VERSION").read_text(encoding="utf-8").strip()
     except OSError:
-        version = "V2.65"
+        version = "V2.66"
     if not version.startswith("V") or version.count(".") != 1:
-        version = "V2.65"
+        version = "V2.66"
     suffix = version[1:].lower()
     compact = suffix.replace(".", "")
     return version, suffix, compact
@@ -623,10 +623,21 @@ def validate_manifest(
                     or is_product_schema
                 ) and value not in identity_rules:
                     errors.append(identity_error + value)
+            current_checker = (
+                "scripts/checks/check-v266.py"
+                if version == "V2.66"
+                else "scripts/checks/check-v250.py"
+            )
+            current_security_runner = (
+                "scripts/checks/run-v266-release-security-review.py"
+                if version == "V2.66"
+                else "scripts/checks/run-v250-release-security-review.py"
+            )
             for required_path in (
                 f"references/profiles/goal-teams-self-release-v{suffix}.md",
                 f"references/release-profiles/v{suffix}.json",
-                "scripts/checks/check-v250.py",
+                current_checker,
+                current_security_runner,
                 "scripts/install/install-local.sh",
             ):
                 if ("file", required_path) not in rules:

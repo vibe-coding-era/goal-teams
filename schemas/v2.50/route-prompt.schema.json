@@ -77,9 +77,9 @@
       ],
       "properties": {
         "schema_version": {
-          "enum": ["goal-teams-derived-route-receipt-v2.63", "goal-teams-derived-route-receipt-v2.65"]
+          "enum": ["goal-teams-derived-route-receipt-v2.63", "goal-teams-derived-route-receipt-v2.65", "goal-teams-derived-route-receipt-v2.66"]
         },
-        "derivation_version": {"enum": ["V2.63", "V2.65"]},
+        "derivation_version": {"enum": ["V2.63", "V2.65", "V2.66"]},
         "facts": {"$ref": "#/$defs/projectRouteFacts"},
         "facts_sha256": {"$ref": "#/$defs/sha256"},
         "facts_source_sha256": {"$ref": "#/$defs/sha256"},

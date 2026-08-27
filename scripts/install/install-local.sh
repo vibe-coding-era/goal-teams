@@ -549,7 +549,7 @@ def parse_release_file_manifest(data: bytes, version: str) -> dict[str, dict[str
             if size < 0:
                 raise InstallError(f"E_RELEASE_FILES_SIZE:{number}")
         else:
-            if version in {"V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49", "V2.52", "V2.6", "V2.62", "V2.63", "V2.65"} or "  " not in line:
+            if version in {"V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49", "V2.52", "V2.6", "V2.62", "V2.63", "V2.65", "V2.66"} or "  " not in line:
                 raise InstallError(f"E_RELEASE_FILES_EXTENDED_REQUIRED:{number}")
             digest, raw_path = line.split("  ", 1)
             git_mode = "100644"
@@ -1219,7 +1219,7 @@ def compute_prompt_identity(root: Path) -> dict[str, Any]:
         except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
             raise InstallError("E_PROMPT_IDENTITY_ACTIVE") from exc
         active_generation_id = active.get("generation_id")
-        if active_generation_id in {"V2.6", "V2.62", "V2.63", "V2.65"}:
+        if active_generation_id in {"V2.6", "V2.62", "V2.63", "V2.65", "V2.66"}:
             generation_path = root / "scripts" / "v250" / "generation_runtime.py"
             closure_path = root / "scripts" / "v250" / "route_closure.py"
             if any(
@@ -1230,7 +1230,7 @@ def compute_prompt_identity(root: Path) -> dict[str, Any]:
             generation_module, closure_module = load_v250_prompt_modules(root)
             try:
                 generation = generation_module.load_generation(root)
-                if active_generation_id in {"V2.63", "V2.65"}:
+                if active_generation_id in {"V2.63", "V2.65", "V2.66"}:
                     closure = closure_module.validate_declared_route_closure(
                         root,
                         generation,
@@ -1559,19 +1559,26 @@ def validation_environment() -> dict[str, str]:
 
 def validate_skill(root: Path, phase: str) -> None:
     active_path = root / "references" / "current" / "ACTIVE.json"
-    use_v250 = False
+    active_generation_id: str | None = None
     if active_path.is_file() and not active_path.is_symlink():
         try:
-            use_v250 = json.loads(
+            active_generation_id = json.loads(
                 active_path.read_text(encoding="utf-8")
-            ).get("generation_id") in {"V2.6", "V2.62", "V2.63", "V2.65"}
+            ).get("generation_id")
         except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
             raise InstallError(f"E_VALIDATION_ACTIVE:{phase}") from exc
-    checker = (
-        root / "scripts" / "checks" / "check-v250.py"
-        if use_v250
-        else root / "scripts" / "check.sh"
-    )
+    use_route_aware = active_generation_id in {
+        "V2.6",
+        "V2.62",
+        "V2.63",
+        "V2.65",
+        "V2.66",
+    }
+    checker = root / "scripts" / "check.sh"
+    if active_generation_id == "V2.66":
+        checker = root / "scripts" / "checks" / "check-v266.py"
+    elif use_route_aware:
+        checker = root / "scripts" / "checks" / "check-v250.py"
     if not checker.is_file() or checker.is_symlink():
         raise InstallError(f"E_VALIDATION_ENTRY:{phase}")
     argv = (
@@ -1585,7 +1592,7 @@ def validate_skill(root: Path, phase: str) -> None:
             "--stage",
             "candidate",
         ]
-        if use_v250
+        if use_route_aware
         else [str(checker), "--installed-package"]
     )
     result = run(
@@ -1597,8 +1604,8 @@ def validate_skill(root: Path, phase: str) -> None:
     validation_results.append({
         "phase": phase,
         "command": (
-            "scripts/checks/check-v250.py --phase development"
-            if use_v250
+            f"{checker.relative_to(root).as_posix()} --phase development"
+            if use_route_aware
             else "scripts/check.sh --installed-package"
         ),
         "exit_code": result.returncode,
@@ -1624,7 +1631,7 @@ def validate_skill(root: Path, phase: str) -> None:
         "phase": f"prompt_identity_{phase}",
         "command": (
             "scripts/v250/generation_runtime.py:V250-ROUTE-STARTUP"
-            if use_v250
+            if use_route_aware
             else "scripts/v23/prompt_cache.py:installed_startup"
         ),
         "exit_code": 0,

@@ -1,0 +1,72 @@
+{
+  "schema_version": "goal-teams-v2.66-release-route-v1",
+  "generation_id": "V2.66",
+  "route_schema": "schemas/v2.50/project-route.schema.json",
+  "development": {
+    "required_gates": ["tdd", "incremental"],
+    "release_gates": {
+      "s0": "not_required",
+      "s1": "not_required",
+      "s2": "not_required",
+      "s3": "not_required",
+      "s4": "not_required"
+    }
+  },
+  "release_readiness": {
+    "required_facts": {
+      "workflow_phase": "release",
+      "release_intent": true,
+      "implementation_scope_complete": true,
+      "stage": "released"
+    },
+    "s1_gates": ["full_regression", "release_security_review"],
+    "s1_invocation_limit_per_released_identity": 1,
+    "s1_source_binding": "exact_clean_released_worktree",
+    "s1_full_regression_scope": "V2.66_current_generation_only",
+    "s2": {
+      "build_invocation_count_for_asset_set": 1,
+      "second_build_comparison_attempted": false,
+      "reproducibility": "not_verified_by_v250_policy",
+      "s2_security_checks": "not_run_by_v250_policy"
+    },
+    "s3": {
+      "required_when": {
+        "project_size": "large",
+        "release_intent": true,
+        "s1_current": true
+      },
+      "otherwise": "not_required"
+    },
+    "s4": {
+      "authorization_source": "project_start_authorization_receipt",
+      "additional_user_confirmation": false,
+      "release_control_receipt_required": true,
+      "preflight_requires_complete_receipt_chain": true
+    }
+  },
+  "repository_boundary": {
+    "gate_id": "repository_boundary_compliance",
+    "outside_s0_s4": true,
+    "required_before_s4": true
+  },
+  "runtime_transition": {
+    "released_receipt_required_before_s0": true,
+      "controller_handoff_source": "externally_issued_by_installed_v2.65_codex_host",
+    "controller_handoff_generation_inside_repository": "forbidden",
+    "controller_handoff_signature": {
+      "github_account": "vibe-coding-era",
+      "github_key_id": 152596014,
+      "public_key_fingerprint": "SHA256:fEM2bYLJFOSvNA78soiWLvrSUaWxANVr1HIVl6AAirE",
+      "namespace": "goal-teams-v2.66-controller-handoff"
+    },
+    "launch_contract": "popen_child_pid_then_stdin_launch_then_ack",
+    "minimum_actor_assurance": "I1",
+    "actor_relationship": "correlated",
+    "external_independence_required": false
+  },
+  "release_control": {
+    "schema": "schemas/v2.66/release-control.schema.json",
+    "identity_binding": ["repository", "version", "source_commit", "source_tree", "asset_set_id", "asset_set_digest", "intent_sha256"],
+    "missing_or_stale_receipt_policy": "fail_closed"
+  }
+}

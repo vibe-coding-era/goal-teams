@@ -1,4 +1,4 @@
-# Goal Teams V2.65 Current install allowlist: product V2.65, core policy V2.5, legacy data schema V2.3.
+# Goal Teams V2.66 Current install allowlist: product V2.66, core policy V2.5, Graph execution contract V2.65, legacy data schema V2.3.
 # Default installation contains one active generation plus its exact execution
 # dependencies. Legacy Replay is a separate, explicit supplement.
 file .agents/skills/goal-teams/SKILL.md
@@ -15,21 +15,30 @@ prefix agents/
 file release/current/README.md
 file release/current/manifest.json
 file references/current/ACTIVE.json
-prefix references/current/generations/V2.65/
-prefix references/compatibility/v2.65/
+prefix references/current/generations/V2.66/
+prefix references/compatibility/v2.66/
 file references/okf-conformance-policy.json
-file references/profiles/goal-teams-self-release-v2.65.md
-file references/release-profiles/v2.65.json
+file references/profiles/goal-teams-self-release-v2.66.md
+file references/release-profiles/v2.66.json
 generated references/okf-conformance-manifest.json
 file schemas/release-engine-profile.schema.json
 prefix schemas/v2.50/
-prefix schemas/v2.65/
+file schemas/v2.65/context-bundle.schema.json
+file schemas/v2.65/graph-contract.schema.json
+file schemas/v2.65/graph-runtime.schema.json
+file schemas/v2.65/host-capability.schema.json
+file schemas/v2.65/loop-coordinator.schema.json
+file schemas/v2.65/loop-review.schema.json
+file schemas/v2.65/member-packet.schema.json
+prefix schemas/v2.66/
 file scripts/check.sh
 file scripts/checks/check.sh
 file scripts/checks/check-okf.py
 file scripts/checks/check-package-manifest.py
 file scripts/checks/check-v250.py
+file scripts/checks/check-v266.py
 file scripts/checks/run-v250-release-security-review.py
+file scripts/checks/run-v266-release-security-review.py
 file scripts/checks/validate-v250-generation.py
 file scripts/checks/validate-v250-test-gate.py
 file scripts/checks/validate.py
@@ -43,7 +52,18 @@ file scripts/release/release_config.py
 file scripts/release/skill_release.py
 file scripts/release/validate-release.py
 prefix scripts/v250/
-prefix scripts/v265/
+file scripts/v265/__init__.py
+file scripts/v265/canonical.py
+file scripts/v265/context_compiler.py
+file scripts/v265/graph_contract.py
+file scripts/v265/graph_runtime.py
+file scripts/v265/host_adapter.py
+file scripts/v265/loop_coordinator.py
+file scripts/v265/loop_review.py
+file scripts/v265/member_packet.py
+file scripts/v265/runtime_controller.py
+file scripts/v265/runtime_store.py
+prefix scripts/v266/
 prefix subagents/
 prefix tests/v250/
-prefix tests/v265/
+prefix tests/v266/

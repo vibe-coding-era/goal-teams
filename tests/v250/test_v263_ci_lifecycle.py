@@ -32,10 +32,10 @@ SHARED_ACTIVE_PRE_RELEASE_MODULES = (
 )
 
 
-def actual_v263_test_modules() -> tuple[str, ...]:
+def actual_current_test_modules() -> tuple[str, ...]:
     paths = sorted((ROOT / "tests/v250").glob("test_v263*.py"))
     paths.extend(sorted((ROOT / "tests/v250").glob("test_v265*.py")))
-    paths.extend(sorted((ROOT / "tests/v265").glob("test_*.py")))
+    paths.extend(sorted((ROOT / "tests/v266").glob("test_*.py")))
     return tuple(
         path.relative_to(ROOT).with_suffix("").as_posix().replace("/", ".")
         for path in paths
@@ -44,7 +44,7 @@ def actual_v263_test_modules() -> tuple[str, ...]:
 
 ACTIVE_PRE_RELEASE_MODULES = (
     *SHARED_ACTIVE_PRE_RELEASE_MODULES,
-    *actual_v263_test_modules(),
+    *actual_current_test_modules(),
 )
 
 
@@ -53,7 +53,7 @@ def text(path: Path) -> str:
 
 
 def development_step(workflow: str) -> str:
-    marker = "      - name: Active V2.65 pre-release exact Development gate"
+    marker = "      - name: Active V2.66 pre-release exact Development gate"
     start = workflow.index(marker)
     end = workflow.find("\n      - name:", start + len(marker))
     if end < 0:
@@ -98,7 +98,7 @@ class TestV263CiLifecycle(unittest.TestCase):
         )
         self.assertEqual(
             set(ACTIVE_PRE_RELEASE_MODULES),
-            set(SHARED_ACTIVE_PRE_RELEASE_MODULES) | set(actual_v263_test_modules()),
+            set(SHARED_ACTIVE_PRE_RELEASE_MODULES) | set(actual_current_test_modules()),
         )
 
     def test_active_pre_release_phase_commands_are_explicit_and_ordered(self) -> None:
@@ -108,9 +108,9 @@ class TestV263CiLifecycle(unittest.TestCase):
             "--mode development \\",
             '--published-version "${published_version}"',
             "scripts/checks/validate-v250-generation.py \\",
-            "--generation-id V2.65 \\",
+            "--generation-id V2.66 \\",
             "--selection active",
-            "scripts/checks/check-v250.py \\",
+            "scripts/checks/check-v266.py \\",
             "--phase development \\",
             "--project-size medium \\",
             "--stage candidate",
@@ -121,13 +121,13 @@ class TestV263CiLifecycle(unittest.TestCase):
                 step = development_step(text(path))
                 positions = [step.index(command) for command in commands]
                 self.assertEqual(sorted(positions), positions)
-                self.assertNotIn("--published-version V2.63", step)
+                self.assertNotIn("--published-version V2.65", step)
                 self.assertNotIn("--phase release", step)
 
     def test_published_version_reader_supports_candidate_and_final_projection(
         self,
     ) -> None:
-        projections = ("V2.63", "V2.65")
+        projections = ("V2.65", "V2.66")
         for path in WORKFLOWS:
             source = published_version_reader_source(text(path))
             with self.subTest(path=path.name):
@@ -154,7 +154,7 @@ class TestV263CiLifecycle(unittest.TestCase):
                     self.assertEqual(product_version, result.stdout.strip())
 
     def test_published_version_reader_fails_closed_on_invalid_projection(self) -> None:
-        invalid_projections = ({}, {"product_version": 263}, {"product_version": "2.63"})
+        invalid_projections = ({}, {"product_version": 266}, {"product_version": "2.66"})
         for path in WORKFLOWS:
             source = published_version_reader_source(text(path))
             for projection in invalid_projections:

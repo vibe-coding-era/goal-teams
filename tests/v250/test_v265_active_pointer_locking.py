@@ -13,13 +13,13 @@ from unittest import mock
 
 from scripts.v250 import generation_runtime
 from scripts.v250 import refresh_generation_manifests as refresh
-from tests.v250.v265_activation_fixture import V265ActivationFixture
+from tests.v250.test_v265_activation_lifecycle import V266ActivationFixture
 
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 ACTIVE = pathlib.Path("references/current/ACTIVE.json")
-V265_ACTIVATION = pathlib.Path(
-    "references/current/generations/V2.65/activation-manifest.json"
+V266_ACTIVATION = pathlib.Path(
+    "references/current/generations/V2.66/activation-manifest.json"
 )
 REFRESH = pathlib.Path("scripts/v250/refresh_generation_manifests.py")
 ACTIVATED_AT = "2026-08-22T18:30:00+08:00"
@@ -37,7 +37,7 @@ class TestV265ActivePointerLocking(unittest.TestCase):
         self.runtime_tmp.mkdir(mode=0o700)
         self.environment = dict(os.environ)
         self.environment["TMPDIR"] = str(self.runtime_tmp)
-        self.fixture = V265ActivationFixture.copy_from(
+        self.fixture = V266ActivationFixture.copy_from(
             REPO,
             self.root,
             environment=self.environment,
@@ -52,19 +52,19 @@ class TestV265ActivePointerLocking(unittest.TestCase):
         return self.fixture.run_refresh(*arguments)
 
     def prepare_active(self) -> str:
-        result = self.fixture.prepare_v265()
+        result = self.fixture.prepare_v266()
         self.assertEqual(0, result.returncode, result.stdout)
         self.base_active_sha256 = self.fixture.base_active_sha256
         self.base_activation_sha256 = self.fixture.base_activation_sha256
-        return sha256((self.root / V265_ACTIVATION).read_bytes())
+        return sha256((self.root / V266_ACTIVATION).read_bytes())
 
     def activate_arguments(self, prepared_digest: str) -> tuple[str, ...]:
         return (
             "--activate",
             "--generation-id",
-            "V2.65",
+            "V2.66",
             "--predecessor",
-            "V2.63",
+            "V2.65",
             "--base-active-sha256",
             self.base_active_sha256,
             "--base-activation-sha256",
@@ -98,9 +98,9 @@ class TestV265ActivePointerLocking(unittest.TestCase):
             candidate = self.run_refresh(
                 "--write",
                 "--generation-id",
-                "V2.65",
+                "V2.66",
                 "--predecessor",
-                "V2.63",
+                "V2.65",
                 "--base-activation-sha256",
                 self.base_activation_sha256,
                 "--lock-timeout-seconds",
@@ -109,9 +109,9 @@ class TestV265ActivePointerLocking(unittest.TestCase):
             prepared = self.run_refresh(
                 "--prepare-active",
                 "--generation-id",
-                "V2.65",
+                "V2.66",
                 "--predecessor",
-                "V2.63",
+                "V2.65",
                 "--base-active-sha256",
                 self.base_active_sha256,
                 "--base-activation-sha256",
@@ -153,9 +153,9 @@ class TestV265ActivePointerLocking(unittest.TestCase):
         result = self.run_refresh(
             "--write",
             "--generation-id",
-            "V2.65",
+            "V2.66",
             "--predecessor",
-            "V2.63",
+            "V2.65",
             "--base-activation-sha256",
             self.base_activation_sha256,
             "--lock-timeout-seconds",
@@ -211,7 +211,7 @@ class TestV265ActivePointerLocking(unittest.TestCase):
             results,
         )
         active = json.loads((self.root / ACTIVE).read_bytes())
-        self.assertEqual("V2.65", active["generation_id"])
+        self.assertEqual("V2.66", active["generation_id"])
         self.assertEqual(prepared_digest, active["activation_manifest_sha256"])
 
     def test_inserted_pointer_update_between_validation_windows_is_preserved(self) -> None:
@@ -309,7 +309,7 @@ class TestV265ActivePointerLocking(unittest.TestCase):
             self.assertEqual(0, refresh.main())
 
         active = json.loads((self.root / ACTIVE).read_bytes())
-        self.assertEqual("V2.65", active["generation_id"])
+        self.assertEqual("V2.66", active["generation_id"])
         self.assertEqual(prepared_digest, active["activation_manifest_sha256"])
 
 

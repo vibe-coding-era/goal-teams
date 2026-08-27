@@ -18,7 +18,33 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[2]
-CONTRACT_ROOT = ROOT / "references/current/generations/V2.65/contracts"
+CURRENT_RELEASE_VERSION = "V2.65"
+CONTRACT_ROOT = ROOT / f"references/current/generations/{CURRENT_RELEASE_VERSION}/contracts"
+CONTRACT_SCHEMA_VERSIONS = {
+    "release-route-manifest.json": "goal-teams-v2.65-release-route-v1",
+    "release-command-manifest.json": "goal-teams-v2.65-release-command-manifest-v1",
+    "release-security-review-manifest.json": "goal-teams-v2.65-release-security-review-v2",
+    "public-asset-map.json": "goal-teams-v2.65-public-asset-map-v1",
+}
+EXPECTED_PUBLIC_ASSETS = {
+    "goal-teams-V2.65.tar.gz",
+    "SHA256SUMS",
+    "_release.json",
+    "_files.sha256",
+}
+CURRENT_TEST_ROOTS = ("tests/v250", "tests/v265")
+PUBLISHED_PREDECESSOR_TEST_ROOTS = ["tests/v263"]
+LEGACY_ROOTS_EXCLUDED = ["tests/v23", "tests/v249", "tests/v26"]
+PREDECESSOR_RELEASE_IDENTITY_PATH = (
+    "references/current/generations/V2.65/contracts/"
+    "predecessor-release-identity.json"
+)
+RELEASE_FLOW_PATH = ROOT / "scripts/v250/release_flow.py"
+RUNTIME_TRANSITION_PATH = ROOT / "scripts/v250/runtime_transition.py"
+SECURITY_REVIEW_RUNNER_PATH = "scripts/checks/run-v250-release-security-review.py"
+SECURITY_REVIEWER_ID = "goal-teams-v250-release-implementation-security-reviewer"
+RELEASE_GATE_RECEIPT_SCHEMA = "goal-teams-v2.65-release-gate-receipt-v1"
+CHECK_RESULT_SCHEMA = "goal-teams-v2.65-check-result-v1"
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 TEST_COUNT_RE = re.compile(r"Ran ([0-9]+) tests? in ")
 _COMMAND_EXECUTION_COUNT = 0
@@ -57,12 +83,7 @@ def _read_json(path: Path) -> dict[str, Any]:
 
 
 def validate_contracts() -> dict[str, Any]:
-    required = {
-        "release-route-manifest.json": "goal-teams-v2.65-release-route-v1",
-        "release-command-manifest.json": "goal-teams-v2.65-release-command-manifest-v1",
-        "release-security-review-manifest.json": "goal-teams-v2.65-release-security-review-v2",
-        "public-asset-map.json": "goal-teams-v2.65-public-asset-map-v1",
-    }
+    required = CONTRACT_SCHEMA_VERSIONS
     errors: list[str] = []
     values: dict[str, dict[str, Any]] = {}
     for name, schema_version in required.items():
@@ -75,12 +96,7 @@ def validate_contracts() -> dict[str, Any]:
         if value.get("schema_version") != schema_version:
             errors.append(f"E_V250_CONTRACT_SCHEMA:{name}")
     assets = values.get("public-asset-map.json", {})
-    expected_assets = {
-        "goal-teams-V2.65.tar.gz",
-        "SHA256SUMS",
-        "_release.json",
-        "_files.sha256",
-    }
+    expected_assets = EXPECTED_PUBLIC_ASSETS
     observed_assets = {
         item.get("name") for item in assets.get("assets", []) if isinstance(item, dict)
     }
@@ -92,15 +108,14 @@ def validate_contracts() -> dict[str, Any]:
     )
     if (
         denominator.get("denominator_id") != "V250-CURRENT-GENERATION-FULL"
-        or denominator.get("test_roots") != ["tests/v250", "tests/v265"]
+        or denominator.get("test_roots") != list(CURRENT_TEST_ROOTS)
         or denominator.get("published_predecessor_test_roots")
-        != ["tests/v263"]
+        != PUBLISHED_PREDECESSOR_TEST_ROOTS
         or denominator.get("predecessor_test_invocation_limit") != 0
         or denominator.get("predecessor_release_identity_path")
-        != "references/current/generations/V2.65/contracts/predecessor-release-identity.json"
+        != PREDECESSOR_RELEASE_IDENTITY_PATH
         or denominator.get("test_pattern") != "test_*.py"
-        or denominator.get("legacy_roots_excluded")
-        != ["tests/v23", "tests/v249", "tests/v26"]
+        or denominator.get("legacy_roots_excluded") != LEGACY_ROOTS_EXCLUDED
     ):
         errors.append("E_V250_CURRENT_DENOMINATOR_CONTRACT")
     return {
@@ -186,7 +201,7 @@ def _current_test_denominator(
     observed_test_count: int,
     release_flow: ModuleType,
 ) -> dict[str, Any]:
-    test_roots = ("tests/v250", "tests/v265")
+    test_roots = CURRENT_TEST_ROOTS
     tracked = _git_text(
         "ls-tree", "-r", "--name-only", source_commit, "--", *test_roots
     ).splitlines()
@@ -216,16 +231,19 @@ def _current_test_denominator(
         )
     denominator: dict[str, Any] = {
         "denominator_id": "V250-CURRENT-GENERATION-FULL",
-        "generation_id": "V2.65",
+        "generation_id": CURRENT_RELEASE_VERSION,
         "scope": "current_generation_full_regression",
         "source_commit": source_commit,
         "source_tree": _git_text("rev-parse", f"{source_commit}^{{tree}}"),
         "test_roots": list(test_roots),
-        "published_predecessor_test_roots": ["tests/v263"],
+        "published_predecessor_test_roots": list(PUBLISHED_PREDECESSOR_TEST_ROOTS),
         "predecessor_test_invocation_limit": 0,
-        "predecessor_release_identity_path": "references/current/generations/V2.65/contracts/predecessor-release-identity.json",
+        "predecessor_release_identity_path": PREDECESSOR_RELEASE_IDENTITY_PATH,
         "test_pattern": "test_*.py",
-        "contract_path": "references/current/generations/V2.65/contracts/release-command-manifest.json",
+        "contract_path": (
+            f"references/current/generations/{CURRENT_RELEASE_VERSION}/contracts/"
+            "release-command-manifest.json"
+        ),
         "contract_sha256": hashlib.sha256(
             (CONTRACT_ROOT / "release-command-manifest.json").read_bytes()
         ).hexdigest(),
@@ -233,7 +251,7 @@ def _current_test_denominator(
         "test_file_count": len(files),
         "test_file_set_sha256": release_flow.canonical_sha256(files),
         "test_case_count": observed_test_count,
-        "legacy_roots_excluded": ["tests/v23", "tests/v249", "tests/v26"],
+        "legacy_roots_excluded": list(LEGACY_ROOTS_EXCLUDED),
     }
     denominator["denominator_sha256"] = release_flow.canonical_sha256(denominator)
     return denominator
@@ -247,7 +265,7 @@ def run_full_regression(
     *,
     command_counter: dict[str, int] | None = None,
 ) -> dict[str, Any]:
-    """Run the complete frozen V2.65 Current-generation denominator once."""
+    """Run the complete frozen Current-generation denominator once."""
 
     frozen = _current_test_denominator(
         source_commit,
@@ -279,7 +297,7 @@ def run_full_regression(
     )
     passed = result.returncode == 0 and observed_count > 0
     receipt: dict[str, Any] = {
-        "schema_version": "goal-teams-v2.65-release-gate-receipt-v1",
+        "schema_version": RELEASE_GATE_RECEIPT_SCHEMA,
         "gate_id": "full_regression",
         "run_id": f"V250-CURRENT-FULL-{source_commit[:12]}-{uuid.uuid4().hex}",
         "runner_role": "current_generation_full_regression",
@@ -314,13 +332,13 @@ def run_release_security_review(
     review_run_id = f"V250-SECURITY-{source_commit[:12]}-{uuid.uuid4().hex}"
     argv = [
         sys.executable,
-        "scripts/checks/run-v250-release-security-review.py",
+        SECURITY_REVIEW_RUNNER_PATH,
         "--source-commit",
         source_commit,
         "--source-tree",
         source_tree,
         "--reviewer-id",
-        "goal-teams-v250-release-implementation-security-reviewer",
+        SECURITY_REVIEWER_ID,
         "--review-run-id",
         review_run_id,
         "--orchestrator-pid",
@@ -384,11 +402,11 @@ def main() -> int:
     command_counter = {"count": 0}
     contract_result = validate_contracts()
     release_flow = _load_module(
-        "_goalteams_v250_release_flow", ROOT / "scripts/v250/release_flow.py"
+        "_goalteams_current_release_flow", RELEASE_FLOW_PATH
     )
     runtime_transition = _load_module(
-        "_goalteams_v250_runtime_transition",
-        ROOT / "scripts/v250/runtime_transition.py",
+        "_goalteams_current_runtime_transition",
+        RUNTIME_TRANSITION_PATH,
     )
     route = {
         "project_size": args.project_size,
@@ -506,7 +524,7 @@ def main() -> int:
         # Release completion before S2/S3/boundary/S4 preflight are bound.
         passed = False
     payload: dict[str, Any] = {
-        "schema_version": "goal-teams-v2.65-check-result-v1",
+        "schema_version": CHECK_RESULT_SCHEMA,
         "passed": passed,
         "s1_passed": s1_passed,
         "release_control_state": (

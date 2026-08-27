@@ -19,16 +19,16 @@ DEVELOPS = ROOT / "develops"
 CHECKER = ROOT / "scripts/checks/check-package-manifest.py"
 PACKAGE_MANIFEST = ROOT / "scripts/install/package-manifest.txt"
 ACTIVE_PATH = "references/current/ACTIVE.json"
-GENERATION = "V2.65"
+GENERATION = "V2.66"
 ACTIVATION_PATH = (
-    "references/current/generations/V2.65/activation-manifest.json"
+    "references/current/generations/V2.66/activation-manifest.json"
 )
 SUPPLEMENT_PATH = "release/current/README.md"
 
 
 def _load_checker():
     spec = importlib.util.spec_from_file_location(
-        "check_package_manifest_v265_candidate_closure", CHECKER
+        "check_package_manifest_v266_candidate_closure", CHECKER
     )
     if spec is None or spec.loader is None:
         raise RuntimeError("cannot load package checker")
@@ -47,7 +47,7 @@ def _canonical_digest(value: object) -> str:
     return hashlib.sha256(raw).hexdigest()
 
 
-class TestV265PackageCandidateClosure(unittest.TestCase):
+class TestV266PackageCandidateClosure(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.checker = _load_checker()
@@ -57,7 +57,7 @@ class TestV265PackageCandidateClosure(unittest.TestCase):
         self, *, generation_state: str
     ) -> tuple[tempfile.TemporaryDirectory[str], Path, set[str], str]:
         temporary = tempfile.TemporaryDirectory(
-            prefix="v265-package-candidate-", dir=DEVELOPS
+            prefix="v266-package-candidate-", dir=DEVELOPS
         )
         root = Path(temporary.name)
         activation = copy.deepcopy(
@@ -124,7 +124,7 @@ class TestV265PackageCandidateClosure(unittest.TestCase):
         try:
             active_raw = (root / ACTIVE_PATH).read_bytes()
             active = json.loads((root / ACTIVE_PATH).read_text(encoding="utf-8"))
-            self.assertIn(active["generation_id"], {"V2.63", "V2.65"})
+            self.assertIn(active["generation_id"], {"V2.65", "V2.66"})
             self.assertEqual(
                 [],
                 self.checker._candidate_package_closure(

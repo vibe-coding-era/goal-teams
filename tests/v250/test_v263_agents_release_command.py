@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class TestV263AgentsReleaseCommand(unittest.TestCase):
-    def test_release_command_names_the_v263_handoff_not_legacy_v248(self) -> None:
+    def test_release_command_names_the_v266_handoff_not_legacy_v248(self) -> None:
         text = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
         self.assertIn(
             "--route-facts-receipt <trusted-route-facts-receipt.json>",
@@ -19,7 +19,7 @@ class TestV263AgentsReleaseCommand(unittest.TestCase):
             text,
         )
         self.assertIn(
-            "--controller-handoff-receipt <externally-issued-v265-controller-handoff.json>",
+            "--controller-handoff-receipt <externally-issued-v266-controller-handoff.json>",
             text,
         )
         self.assertNotIn("externally-issued-v248-handoff", text)

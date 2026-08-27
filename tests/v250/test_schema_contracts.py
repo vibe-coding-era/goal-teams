@@ -7,6 +7,7 @@ import unittest
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 SCHEMA_ROOT = REPO / "schemas/v2.50"
+RELEASE_SCHEMA_ROOT = REPO / "schemas/v2.66"
 
 
 def walk_schema(value: object, path: str = "$"):
@@ -29,7 +30,7 @@ class TestV250SchemaContracts(unittest.TestCase):
         contract = json.loads(
             (
                 REPO
-                / "references/current/generations/V2.65/contracts/"
+                / "references/current/generations/V2.66/contracts/"
                 "predecessor-release-identity.json"
             ).read_text(encoding="utf-8")
         )
@@ -40,8 +41,8 @@ class TestV250SchemaContracts(unittest.TestCase):
         if Draft202012Validator is not None:
             Draft202012Validator.check_schema(schema)
             Draft202012Validator(schema).validate(contract)
-        self.assertEqual("V2.65", contract["generation_id"])
-        self.assertEqual("V2.63", contract["predecessor_product_version"])
+        self.assertEqual("V2.66", contract["generation_id"])
+        self.assertEqual("V2.65", contract["predecessor_product_version"])
         self.assertFalse(schema["additionalProperties"])
         self.assertEqual(set(schema["required"]), set(schema["properties"]))
 
@@ -61,13 +62,13 @@ class TestV250SchemaContracts(unittest.TestCase):
             set(identity["required"]),
         )
         self.assertEqual(
-            {"enum": ["V2.62", "V2.63", "V2.65"]},
+            {"enum": ["V2.62", "V2.63", "V2.65", "V2.66"]},
             identity["properties"]["loaded_runtime_product_version"],
         )
         self.assertNotIn("controller_product_version", identity["properties"])
 
         runtime = json.loads(
-            (SCHEMA_ROOT / "runtime-transition-receipt.schema.json").read_text(
+            (RELEASE_SCHEMA_ROOT / "runtime-transition-receipt.schema.json").read_text(
                 encoding="utf-8"
             )
         )
@@ -81,17 +82,17 @@ class TestV250SchemaContracts(unittest.TestCase):
             self.assertNotIn(forbidden, runtime["required"])
             self.assertNotIn(forbidden, runtime["properties"])
         self.assertEqual(
-            {"const": "V2.65"},
+            {"const": "V2.66"},
             runtime["properties"]["loaded_runtime_product_version"],
         )
         handoff = runtime["$defs"]["controllerHandoffReceipt"]
         signed_payload = handoff["properties"]["signed_payload"]
         self.assertEqual(
-            {"const": "V2.63"},
+            {"const": "V2.65"},
             signed_payload["properties"]["previous_controller_product_version"],
         )
         self.assertIn("previous_run_id", signed_payload["required"])
-        self.assertIn("installed_v263_current_state", signed_payload["required"])
+        self.assertIn("installed_v265_current_state", signed_payload["required"])
         self.assertNotIn("installed_v26_current_state", signed_payload["properties"])
         self.assertNotIn("installed_v250_current_state", signed_payload["properties"])
         self.assertNotIn("controller_version", signed_payload["properties"])
@@ -124,7 +125,7 @@ class TestV250SchemaContracts(unittest.TestCase):
 
     def test_release_engine_profile_is_strict_compiler_and_instance_aligned(self) -> None:
         schema_path = REPO / "schemas/release-engine-profile.schema.json"
-        profile_path = REPO / "references/release-profiles/v2.65.json"
+        profile_path = REPO / "references/release-profiles/v2.66.json"
         schema = json.loads(schema_path.read_text(encoding="utf-8"))
         profile = json.loads(profile_path.read_text(encoding="utf-8"))
 
@@ -156,10 +157,10 @@ class TestV250SchemaContracts(unittest.TestCase):
 
     def test_release_control_uses_the_full_runtime_transition_schema(self) -> None:
         control = json.loads(
-            (SCHEMA_ROOT / "release-control.schema.json").read_text(encoding="utf-8")
+            (RELEASE_SCHEMA_ROOT / "release-control.schema.json").read_text(encoding="utf-8")
         )
         runtime = json.loads(
-            (SCHEMA_ROOT / "runtime-transition-receipt.schema.json").read_text(
+            (RELEASE_SCHEMA_ROOT / "runtime-transition-receipt.schema.json").read_text(
                 encoding="utf-8"
             )
         )
@@ -180,7 +181,7 @@ class TestV250SchemaContracts(unittest.TestCase):
 
     def test_s4_outcome_has_three_strict_terminal_branches_and_exact_assets(self) -> None:
         control = json.loads(
-            (SCHEMA_ROOT / "release-control.schema.json").read_text(encoding="utf-8")
+            (RELEASE_SCHEMA_ROOT / "release-control.schema.json").read_text(encoding="utf-8")
         )
         outcome = control["$defs"]["s4_outcome_receipt"]
         self.assertEqual(3, len(outcome["oneOf"]))
@@ -198,7 +199,7 @@ class TestV250SchemaContracts(unittest.TestCase):
         self.assertEqual(4, assets["maxItems"])
         self.assertIs(False, assets["items"])
         self.assertEqual(
-            ["SHA256SUMS", "_files.sha256", "_release.json", "goal-teams-V2.65.tar.gz"],
+            ["SHA256SUMS", "_files.sha256", "_release.json", "goal-teams-V2.66.tar.gz"],
             [item["properties"]["name"]["const"] for item in assets["prefixItems"]],
         )
         journal = outcome["properties"]["operation_journal"]

@@ -1,4 +1,4 @@
-# Goal Teams 用户指定要求（Current V2.65）
+# Goal Teams 用户指定要求（Current V2.66）
 
 本文件记录当前代际的长期用户要求。规范语义由 `references/current/ACTIVE.json` 指向的功能 Owner 文档承载；历史版本只通过 Legacy Replay 查询，不参与 Current 优先级。
 
@@ -63,6 +63,13 @@
 - 减少展示推理过程不等于降低模型内部推理；只压缩用户可见噪声。
 - 删除每轮固定输出运行身份短指纹的设计；不得增加新顶层字段或用同义字符串恢复。身份只进入机器 receipt 和诊断 Evidence。
 
+## 用户可见执行看板
+
+- 外层六字段 Envelope 保持不变；执行型更新的 `结果` 依次显示 `◆ Goal-Teams 任务执行看板`、`◆ Context / Knowledge / Tools` 和 `◆ LOOP：第 n 轮 / 预计 m 轮`。
+- 任务表只显示进行中与剩余的业务父任务/子任务，列为 `优先级 | 任务 / 子任务 | Subagent 成员 | 进度`；完成详情通过完整 TaskList 链接查看。
+- 成员后的 `（并行）` 必须来自真实 DAG/派发事实。Context 每个非空项使用真实链接，项目知识固定包含 `memory.md`，代码库只显示工程名，MCP/CLI/API 不得造占位入口。
+- LOOP 使用 P/D/C/A 四行：P 为计划/下一轮目标，D 为本轮执行，C 为 Evidence/缺口/阻塞及 `Banchmark.md`，A 为决策及 `loop-review.md`。
+
 ## 可预期性原则
 
 - 开发时间开始可预期，是因为范围和预算形成工作量上界，exact-set 与 DAG 使任务数、顺序、依赖和关键路径可计算，无消费者需求不进入本轮，外部阻断不再引发内部反复返工，修复只处理验真且在范围内的问题，每个任务都有固定验证和退出条件。
@@ -71,6 +78,6 @@
 ## Runtime 与可信边界
 
 - Candidate 可由候选外 fresh process 做 cutover/incremental transition，但不得启动正式 S0–S4。
-- 合并后必须从 exact released commit/tree 再启动 fresh V2.65 runtime；只有 released transition receipt 可进入 S0。
+- 合并后必须从 exact released commit/tree 再启动 fresh V2.66 runtime；只有 released transition receipt 可进入 S0。
 - 本地宿主适配器最多证明 I1 correlated fresh-process observation；不得冒充独立外部验收、密码学 attestation 或 Provider prompt 签名。
 - 若宿主 transition 不可用，记录 `fresh_runtime_transition_unavailable` 和可恢复 checkpoint，不回退旧 V2.48/V2.36 发行门禁，也不重复向用户授权。

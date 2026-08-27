@@ -7,7 +7,7 @@ import sys
 import tempfile
 import unittest
 
-from tests.v250.v265_activation_fixture import V265ActivationFixture
+from tests.v250.test_v265_activation_lifecycle import V266ActivationFixture
 
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
@@ -18,17 +18,17 @@ class TestV265GenerationValidatorSelection(unittest.TestCase):
     def test_active_selection_uses_only_active_pointer_binding(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = pathlib.Path(temporary) / "repo"
-            fixture = V265ActivationFixture.copy_from(REPO, root)
-            prepare = fixture.prepare_v265()
+            fixture = V266ActivationFixture.copy_from(REPO, root)
+            prepare = fixture.prepare_v266()
             self.assertEqual(0, prepare.returncode, prepare.stdout)
             prepared_sha256 = fixture.prepared_activation_sha256
             self.assertIsNotNone(prepared_sha256)
             activate = fixture.run_refresh(
                 "--activate",
                 "--generation-id",
-                "V2.65",
+                "V2.66",
                 "--predecessor",
-                "V2.63",
+                "V2.65",
                 "--base-active-sha256",
                 fixture.base_active_sha256,
                 "--base-activation-sha256",
@@ -45,7 +45,7 @@ class TestV265GenerationValidatorSelection(unittest.TestCase):
                     sys.executable,
                     str(root / VALIDATOR),
                     "--generation-id",
-                    "V2.65",
+                    "V2.66",
                     "--selection",
                     "active",
                     "--json",
@@ -64,7 +64,7 @@ class TestV265GenerationValidatorSelection(unittest.TestCase):
                     sys.executable,
                     str(root / VALIDATOR),
                     "--generation-id",
-                    "V2.65",
+                    "V2.66",
                     "--selection",
                     "active",
                     "--expected-activation-sha256",

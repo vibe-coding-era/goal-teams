@@ -11,14 +11,14 @@
     "release_identity_sha256"
   ],
   "properties": {
-    "schema_version": {"enum": ["goal-teams-predecessor-release-identity-v2.63", "goal-teams-predecessor-release-identity-v2.65"]},
-    "generation_id": {"enum": ["V2.63", "V2.65"]},
-    "predecessor_product_version": {"enum": ["V2.62", "V2.63"]},
+    "schema_version": {"enum": ["goal-teams-predecessor-release-identity-v2.63", "goal-teams-predecessor-release-identity-v2.65", "goal-teams-predecessor-release-identity-v2.66"]},
+    "generation_id": {"enum": ["V2.63", "V2.65", "V2.66"]},
+    "predecessor_product_version": {"enum": ["V2.62", "V2.63", "V2.65"]},
     "release_identity": {
       "type": "object",
       "required": ["tag", "release_id", "state", "source_commit", "source_tree", "public_assets"],
       "properties": {
-        "tag": {"enum": ["v2.62", "v2.63"]},
+        "tag": {"enum": ["v2.62", "v2.63", "v2.65"]},
         "release_id": {"type": "integer", "minimum": 1},
         "state": {"const": "published"},
         "source_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
