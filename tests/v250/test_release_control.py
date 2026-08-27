@@ -36,7 +36,11 @@ def seal(value: dict) -> dict:
 def authorization() -> dict:
     actions = sorted(
         release_flow.REQUIRED_S4_ACTION_CLASSES
-        | {"git_stage_commit", "targeted_test_and_validation"}
+        | {
+            "fresh_runtime_transition",
+            "git_stage_commit",
+            "targeted_test_and_validation",
+        }
     )
     conditions = sorted(release_flow.REQUIRED_AUTH_VALIDITY_CONDITIONS)
     intent = {
@@ -1188,6 +1192,24 @@ class TestV250ReleaseControl(unittest.TestCase):
         )
         control["release_control_sha256"] = release_flow._receipt_sha256(control)
         verdict = validate(control)
+        self.assertFalse(verdict["ok"])
+        self.assertIn("E_V250_AUTHORIZATION_ACTION_DRIFT", verdict["errors"])
+
+    def test_authorization_requires_fresh_runtime_transition(self) -> None:
+        value = authorization()
+        value["action_allowlist"].remove("fresh_runtime_transition")
+        value["intent"]["action_allowlist"] = value["action_allowlist"]
+        value["intent_sha256"] = release_flow.canonical_sha256(value["intent"])
+
+        verdict = release_flow.validate_project_start_authorization(
+            value,
+            repository="vibe-coding-era/goal-teams",
+            version="V2.66",
+            candidate_branch="codex/develop-v2.66",
+            tag="v2.66",
+            validation_time=NOW,
+        )
+
         self.assertFalse(verdict["ok"])
         self.assertIn("E_V250_AUTHORIZATION_ACTION_DRIFT", verdict["errors"])
 

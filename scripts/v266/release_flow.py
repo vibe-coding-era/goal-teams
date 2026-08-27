@@ -45,6 +45,9 @@ REQUIRED_S4_ACTION_CLASSES = {
     "release_asset_build_and_readback",
     "formal_install_update_rollback_uninstall",
 }
+REQUIRED_PROJECT_START_ACTION_CLASSES = REQUIRED_S4_ACTION_CLASSES | {
+    "fresh_runtime_transition",
+}
 REQUIRED_AUTH_VALIDITY_CONDITIONS = {
     "repository_version_locked_scope_target_branch_tag_and_action_classes_unchanged",
     "run_state_running_replan_or_same_checkpoint_resumable_blocked",
@@ -1141,7 +1144,9 @@ def validate_project_start_authorization(
     version: str,
     candidate_branch: str,
     tag: str,
-    required_action_classes: Sequence[str] = tuple(sorted(REQUIRED_S4_ACTION_CLASSES)),
+    required_action_classes: Sequence[str] = tuple(
+        sorted(REQUIRED_PROJECT_START_ACTION_CLASSES)
+    ),
     validation_time: dt.datetime | None = None,
 ) -> dict[str, Any]:
     """Validate the real project-start receipt without inventing a new state."""

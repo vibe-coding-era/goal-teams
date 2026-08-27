@@ -3,7 +3,7 @@
   "generation_id": "V2.66",
   "generation_state": "active",
   "baseline_generation_id": "V2.65",
-  "manifest_payload_sha256": "5858a424a24e1a4000e60e30ac3e60aebbc6f3d0baa4f79002d3b12ad4a37020",
+  "manifest_payload_sha256": "12d48f8323f3606ae7c0083ab340e1ee4e2dd97533d50c4e2785e8e6d9607982",
   "identity": {
     "loaded_runtime_product_version": "V2.66",
     "core_policy_version": "V2.5",
@@ -585,8 +585,8 @@
       },
       {
         "path": "scripts/v266/release_flow.py",
-        "sha256": "290ce684e5192192bd647d18df41c8969061899819d46588fb9ad17869dac0b6",
-        "bytes": 69403
+        "sha256": "468ec12cb4ddde873e171fbf018e374198007bc42d2a36022d4f483d4d5e0425",
+        "bytes": 69533
       },
       {
         "path": "scripts/v266/release_identity.py",
@@ -770,8 +770,8 @@
       },
       {
         "path": "tests/v250/test_release_control.py",
-        "sha256": "efaf46d9145cc429383a77f2048e367ebb37217fe720be9e8351ba775688bdf2",
-        "bytes": 69083
+        "sha256": "5c0ae32fdb6a3d3951cf77596dfb498e61f13d35c000ee6b2a05723477c8ec9f",
+        "bytes": 69898
       },
       {
         "path": "tests/v250/test_release_flow.py",
