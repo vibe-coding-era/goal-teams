@@ -12,7 +12,14 @@ from pathlib import Path
 from scripts.v250 import okf_conformance
 
 
-MODERN_RUNTIME_VERSIONS = ("V2.50", "V2.52", "V2.6", "V2.63", "V2.65")
+MODERN_RUNTIME_VERSIONS = (
+    "V2.50",
+    "V2.52",
+    "V2.6",
+    "V2.63",
+    "V2.65",
+    "V2.66",
+)
 ROOT = Path(__file__).resolve().parents[2]
 
 

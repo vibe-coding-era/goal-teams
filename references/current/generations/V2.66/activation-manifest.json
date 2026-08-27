@@ -3,7 +3,7 @@
   "generation_id": "V2.66",
   "generation_state": "active",
   "baseline_generation_id": "V2.65",
-  "manifest_payload_sha256": "ed1908c2428ae38eee79850e525eef20342fafcafc8e2c2c77c6994cd17ebcd7",
+  "manifest_payload_sha256": "9066549f0fb05c8255759da4bd61f7ac5b542e65ccd0ab318b6958e19a973547",
   "identity": {
     "loaded_runtime_product_version": "V2.66",
     "core_policy_version": "V2.5",
@@ -410,8 +410,8 @@
       },
       {
         "path": "scripts/v250/okf_conformance.py",
-        "sha256": "40a6a6558f1575ed3a1577f135a46b081d9952fe3facf8c85d1a2a529c1c5929",
-        "bytes": 66920
+        "sha256": "fda1c03f4b960db03f31b3d21f8919becfbd03733bd01096dcf9fafa38db785c",
+        "bytes": 66929
       },
       {
         "path": "scripts/v250/okf_document_graph.py",
@@ -1110,8 +1110,8 @@
       },
       {
         "path": "tests/v250/test_v263_okf_package_manifest.py",
-        "sha256": "9bb1ca4496d88d055553fba711bb83cc3502dbffd1f87ebb92da0d58800e5596",
-        "bytes": 9006
+        "sha256": "1ec99b9078df18d5d19f9063456cdc512da1a781689bd40b2148fef506a7fa33",
+        "bytes": 9042
       },
       {
         "path": "tests/v250/test_v263_output_contract.py",
