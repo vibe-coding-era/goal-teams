@@ -146,7 +146,16 @@ class TestV266VersionCandidate(unittest.TestCase):
         self.assertEqual(PREDECESSOR, profile["published_before"])
         self.assertFalse(profile["external_writes_allowed"])
         published = json.loads((ROOT / "release/current/manifest.json").read_text())
-        self.assertEqual(PREDECESSOR, published["product_version"])
+        if published["product_version"] == PREDECESSOR:
+            self.assertEqual(TARGET, published["candidate_product_version"])
+            self.assertEqual(
+                "development_candidate_not_published",
+                published["candidate_release_state"],
+            )
+        else:
+            self.assertEqual(TARGET, published["product_version"])
+            self.assertEqual("v2.66", published["release_identity"]["tag"])
+            self.assertEqual("published", published["release_identity"]["state"])
         self.assertNotEqual("published", profile.get("candidate_release_state"))
         self.assertIn("## V2.66 Development Candidate", (ROOT / "CHANGELOG.md").read_text())
 

@@ -3,7 +3,7 @@
   "generation_id": "V2.66",
   "generation_state": "active",
   "baseline_generation_id": "V2.65",
-  "manifest_payload_sha256": "9066549f0fb05c8255759da4bd61f7ac5b542e65ccd0ab318b6958e19a973547",
+  "manifest_payload_sha256": "213c145d796938d0e755bd826e7040ba6557930d6bd6b9e6cc57189d7a628595",
   "identity": {
     "loaded_runtime_product_version": "V2.66",
     "core_policy_version": "V2.5",
@@ -1360,8 +1360,8 @@
       },
       {
         "path": "tests/v266/test_version_candidate.py",
-        "sha256": "c104f2cf5bf8b74c6c933f39cbd06d4eadb9d884ef64fcd53a2f552a542caf69",
-        "bytes": 7592
+        "sha256": "5b1149e4e0f7a2843cb1b1cb582dbd4cb3850f7a58129f6c01a75d6bf6a1ee0a",
+        "bytes": 8049
       }
     ],
     "schemas_and_validators": [
