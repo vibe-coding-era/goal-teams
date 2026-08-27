@@ -3,7 +3,7 @@
   "generation_id": "V2.66",
   "generation_state": "active",
   "baseline_generation_id": "V2.65",
-  "manifest_payload_sha256": "12d48f8323f3606ae7c0083ab340e1ee4e2dd97533d50c4e2785e8e6d9607982",
+  "manifest_payload_sha256": "ed1908c2428ae38eee79850e525eef20342fafcafc8e2c2c77c6994cd17ebcd7",
   "identity": {
     "loaded_runtime_product_version": "V2.66",
     "core_policy_version": "V2.5",
@@ -730,7 +730,7 @@
       },
       {
         "path": "tests/v250/test_generation.py",
-        "sha256": "9a0415b9dece001cb772b4ad7ee62c4e126e7248d51846492f3b828c5cb519f0",
+        "sha256": "09f5a3622aea749d952b007e0999b4bff0b8750082ee82f0d820a299c80ae100",
         "bytes": 1067
       },
       {
@@ -750,7 +750,7 @@
       },
       {
         "path": "tests/v250/test_manifest_refresh.py",
-        "sha256": "bce2d4d90185094f04e00fdd434cfada64543f7d369facb4f835b15bac44f2c7",
+        "sha256": "b17ce5911c61e3f70d9fd02994ff6c2b93e1e272bfa84cf41f1069fc3ff1fa0d",
         "bytes": 885
       },
       {
@@ -835,7 +835,7 @@
       },
       {
         "path": "tests/v250/test_v251_small_iteration.py",
-        "sha256": "4eb44c5afe7f5dd53a2a1467a22958bcbbbda12cb11bdd9de4a0fa395e44faf8",
+        "sha256": "d893132b94f0155800c53a1ae1c276229520bf79963a7a66d39a3807f0019e78",
         "bytes": 3236
       },
       {
@@ -985,8 +985,8 @@
       },
       {
         "path": "tests/v250/test_v262_published_projection_boundaries.py",
-        "sha256": "595ad05e5fc8003258037bb10398c64ea82b02a4cb650794f8b5372666c88d48",
-        "bytes": 1574
+        "sha256": "b7a7640cd39e77ba90db0d32b7b4a5540df1b16c4b08e0b25bf36950e1c4060c",
+        "bytes": 1634
       },
       {
         "path": "tests/v250/test_v262_release_error_receipts.py",
@@ -1000,8 +1000,8 @@
       },
       {
         "path": "tests/v250/test_v262_version_migration.py",
-        "sha256": "c532fe34c8f526b45122a5c4559e8bfc6293f6b61908547e925cc8e53d6a7116",
-        "bytes": 8973
+        "sha256": "4aa0bf335f4e1f8567f23b2ceb423d440486793f0aaf0facd35f7c8a55c557ac",
+        "bytes": 10703
       },
       {
         "path": "tests/v250/test_v263_activation_lifecycle.py",
@@ -1295,8 +1295,8 @@
       },
       {
         "path": "tests/v250/test_version_migration.py",
-        "sha256": "2355988d800bc606fe3bd90e8a8f946073528acb889301c2337dfd497bdcac36",
-        "bytes": 2888
+        "sha256": "2e3cf5dc47599f022d697aad75ac8e84de74cee76bad5b890a75cabc11a86ee2",
+        "bytes": 4823
       },
       {
         "path": "tests/v250/test_workflow_release_contract.py",
