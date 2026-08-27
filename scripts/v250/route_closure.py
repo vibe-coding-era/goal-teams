@@ -53,7 +53,7 @@ def compile_route_closure(
 ) -> dict[str, Any]:
     """Compile a legacy direct route; modern runtime callers must use facts."""
 
-    if generation.get("generation_id") in {"V2.63", "V2.65"}:
+    if generation.get("generation_id") in {"V2.63", "V2.65", "V2.66"}:
         raise RouteClosureError(
             "E_V263_ROUTE_FACTS_REQUIRED",
             "V2.63 runtime route closure requires a DerivedRouteReceipt",
@@ -78,7 +78,7 @@ def _compile_route_closure(
     """Compile the manifest-declared exact route and fail closed on drift."""
 
     generation_id = generation.get("generation_id")
-    if generation_id not in {"V2.62", "V2.63", "V2.65"}:
+    if generation_id not in {"V2.62", "V2.63", "V2.65", "V2.66"}:
         raise RouteClosureError("E_V250_ROUTE_GENERATION", "route compiler received an unsupported generation")
     if not generation.get("activation_digest_verified") or not generation.get("member_digests_verified"):
         raise RouteClosureError("E_V250_ROUTE_UNVERIFIED_GENERATION", "generation digests are not verified")
@@ -95,7 +95,7 @@ def _compile_route_closure(
         raise RouteClosureError("E_V250_ROUTE_SHAPE", f"invalid route object: {route_id}")
 
     loaded_paths = _ordered_paths(
-        route.get("ordered_refs"), reject_duplicates=generation_id in {"V2.63", "V2.65"}
+        route.get("ordered_refs"), reject_duplicates=generation_id in {"V2.63", "V2.65", "V2.66"}
     )
     allowlist = generation.get("current_default_allowlist", [])
     if not isinstance(allowlist, list):
@@ -172,7 +172,7 @@ def _compile_route_closure(
             raise RouteClosureError("E_V250_OWNER_DIGEST_DRIFT", f"owner digest differs: {path}")
         compiled_rule_ids.extend(owner.get("owned_rule_ids", []))
 
-    if generation_id in {"V2.63", "V2.65"}:
+    if generation_id in {"V2.63", "V2.65", "V2.66"}:
         from scripts.v250.semantic_closure import (
             SemanticClosureError,
             compile_owner_closure,
@@ -236,7 +236,7 @@ def _compile_route_closure(
         "governance_time": route.get("governance_time", "unknown"),
         "path_digests": observed_digests,
     }
-    if generation_id in {"V2.63", "V2.65"}:
+    if generation_id in {"V2.63", "V2.65", "V2.66"}:
         result["semantic_closure_sha256"] = semantic["closure_sha256"]
     result["closure_digest"] = canonical_json_digest(result)
     return result
@@ -251,7 +251,7 @@ def _validate_derived_route_receipt(
         )
     generation_id = generation.get("generation_id")
     if (
-        generation_id not in {"V2.63", "V2.65"}
+        generation_id not in {"V2.63", "V2.65", "V2.66"}
         or receipt.get("derivation_version") != generation_id
         or receipt.get("schema_version")
         != f"goal-teams-derived-route-receipt-{str(generation_id).lower()}"

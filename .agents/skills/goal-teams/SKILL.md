@@ -1,6 +1,6 @@
 ---
 name: goal-teams-repo
-description: Goal Teams V2.65 Graph Engineering 仓库入口；与正式安装使用不同发现名，从 ACTIVE generation 加载 Current 规则，Legacy 仅显式 Replay。
+description: Goal Teams V2.66 输出控制与 Graph Engineering 仓库入口；从 ACTIVE generation 加载 Current 规则，Legacy 仅显式 Replay。
 ---
 
 # Goal Teams 仓库入口

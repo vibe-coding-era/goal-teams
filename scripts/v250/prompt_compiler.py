@@ -130,7 +130,7 @@ def validate_generation_snapshot(snapshot: GenerationSnapshot) -> GenerationSnap
         "snapshot_sha256",
     ):
         _digest(getattr(snapshot, field), f"generation_snapshot.{field}")
-    if snapshot.generation_id not in {"V2.63", "V2.65"}:
+    if snapshot.generation_id not in {"V2.63", "V2.65", "V2.66"}:
         _fail(
             "E_V263_PROMPT_GENERATION_SNAPSHOT",
             "trusted runtime prompt requires a supported Current generation",
@@ -164,7 +164,7 @@ def validate_derived_route_receipt(receipt: Mapping[str, Any]) -> dict[str, Any]
     if (
         not isinstance(receipt, Mapping)
         or set(receipt) != ROUTE_RECEIPT_FIELDS
-        or receipt.get("derivation_version") not in {"V2.63", "V2.65"}
+        or receipt.get("derivation_version") not in {"V2.63", "V2.65", "V2.66"}
         or receipt.get("schema_version")
         != f"goal-teams-derived-route-receipt-{str(receipt.get('derivation_version')).lower()}"
     ):

@@ -6,7 +6,7 @@
   "required": ["schema_version", "generation_id", "manifest_state", "semantic_source", "source_digest_algorithm", "owners"],
   "properties": {
     "schema_version": {"const": "goal-teams-rule-manifest-v2.50"},
-    "generation_id": {"enum": ["V2.62", "V2.63", "V2.65"]},
+    "generation_id": {"enum": ["V2.62", "V2.63", "V2.65", "V2.66"]},
     "manifest_state": {"const": "derived_projection"},
     "semantic_source": {"const": "owner_markdown_only"},
     "source_digest_algorithm": {"const": "sha256_raw_file_bytes"},

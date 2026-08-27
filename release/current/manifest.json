@@ -40,6 +40,9 @@
       "_files.sha256"
     ]
   },
+  "candidate_product_version": "V2.66",
+  "candidate_release_state": "development_candidate_not_published",
+  "candidate_profile": "references/release-profiles/v2.66.json",
   "assurance_limits": {
     "reproducibility": "not_verified_by_v250_policy",
     "s2_security_checks": "not_run_by_v250_policy",

@@ -1,9 +1,9 @@
 ---
 name: goal-teams
-description: Goal Teams V2.65 多成员 Graph Engineering 工作流；以可信发现、可执行图、TDD/增量门禁、持久恢复和主动进化 LOOP 完成交付。
+description: Goal Teams V2.66 多成员 Graph Engineering 工作流；以紧凑可信看板、可执行图、TDD/增量门禁、持久恢复和主动进化 LOOP 完成交付。
 ---
 
-# Goal Teams V2.65
+# Goal Teams V2.66
 
 Goal Lead 负责路由、派发、状态归并和最终诚实汇报；成员只在锁定范围内实现或验证。系统、用户与项目 `AGENTS.md` 始终优先，本 Skill 不扩大权限，也不把候选、自报或本地模拟包装成宿主证明。
 
@@ -13,7 +13,7 @@ Goal Lead 负责路由、派发、状态归并和最终诚实汇报；成员只�
 2. 读取一次 `references/current/ACTIVE.json`，校验它绑定的 activation manifest SHA-256。
 3. 按 activation manifest 读取 `rule-manifest.json` 与 `prompt-manifest.json`；只加载 route 命中的功能规则和合同。
 4. 未提供可信 `replay_version` 时，禁止加载 `references/legacy-replay/` 声明的历史路径。显式 Replay 只返回历史结果，不进入 Current acceptance。
-5. 首次建立身份时汇报：`我是 Goal Teams Lead V2.65。`
+5. 首次建立身份时汇报：`我是 Goal Teams Lead V2.66。`
 
 同一运行会话只读取一次 ACTIVE，并绑定不可变 GenerationSnapshot。磁盘 ACTIVE、selected root、route、scope、授权或 exact-set 变化时，不得热切换或静默继续；必须由可信 delta 进入 `replan|blocked`，必要时以新会话重新加载。
 
@@ -54,6 +54,16 @@ Goal Lead 负责路由、派发、状态归并和最终诚实汇报；成员只�
 完成状态保持正交：任务、检查、审核、运行结果、Evidence freshness、Release readiness 分开记录。`not_run`、`not_required`、`blocked`、`failed`、`stale`、`invalid` 不得写成 passed。结构校验、候选测试、Runtime receipt、合并 main、Release/tag、安装和外部验收是不同事实。
 
 开发时间的可预期性来自锁定范围与预算上界、可计算的 exact-set/DAG/关键路径、消费者准入、独立 blocker、有限 finding 修复和固定退出条件；成果质量的可预期性来自 digest/receipt/Git baseline 绑定、Git 自动差异、TDD/固定回归/独立审计、允许真实 `BLOCKED`，以及工程完成、运行完成和业务验证的正交投影。
+
+## 输出控制
+
+外层继续严格使用 `RULES.md` 的六字段 Envelope。所有执行型更新在 `结果` 内按以下顺序投影紧凑子视图；Discussion 与 `plan_preview` 不得伪造执行数量、Evidence 或链接：
+
+1. `◆ Goal-Teams 任务执行看板`：标题行显示已完成任务/总任务、已完成子任务/总子任务，并链接完整 `TaskList.md` 与状态机。表格固定为 `优先级 | 任务 / 子任务 | Subagent 成员 | 进度`，只显示进行中和剩余的父任务/子任务；完成项进入完整 TaskList。`（并行）` 只能来自真实 DAG `ready_layers`/派发事实。
+2. `◆ Context / Knowledge / Tools`：固定为 `核心规则 | 项目知识 | 代码库 | MCP/CLI/API`。每个非空单元格必须是真实链接；项目知识固定包含当前项目 `memory.md`；代码库只显示并链接工程名；本轮未实际引入的项留空，不造占位链接。
+3. `◆ LOOP：第 <当前轮> 轮 / 预计 <总轮> 轮`：按 P/D/C/A 四行输出。P 标签精确为 `P ｜ 计划 / 下一轮目标`；D 汇总本轮执行；C 显示新增 Evidence、缺口、阻塞并链接 `Banchmark.md`；A 显示 `continue|replan|stop` 决策并链接 `loop-review.md`。
+
+紧凑看板是 canonical Task/State/Evidence 的人类投影，不是新的事实源。父子层级、计数、链接、并行标记、Evidence 与决策必须绑定 current digest/receipt；示例和 preview 保持 `not_created|not_run`。详细合同见 `references/current/generations/V2.66/contracts/output-dashboard.md`。
 
 ## Release 路由
 

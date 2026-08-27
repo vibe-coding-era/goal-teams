@@ -1,5 +1,11 @@
 # Changelog
 
+## V2.66 Development Candidate — 2026-08-26
+
+- Added a compact, digest-bound execution dashboard inside the existing six-field user-visible Envelope: active/remaining parent and subtask rows, fact-bound parallel Subagent markers, linked Context / Knowledge / Tools, and a four-line P/D/C/A LOOP with round estimates.
+- Added a strict V2.66 dashboard schema and deterministic renderer; preview/example data cannot claim nonzero execution progress or current Evidence.
+- Kept the V2.65 Graph Execution contract as the unchanged execution layer instead of duplicating runtime code; V2.66 formal Release, installation, external effects, and business validation remain `not_run`.
+
 ## V2.65 Development Candidate — 2026-08-22
 
 - Added a typed, canonically hashed Graph contract with node/edge identities, predecessor constraints, authority declarations, Host capability negotiation, and digest-bound Member Packets.

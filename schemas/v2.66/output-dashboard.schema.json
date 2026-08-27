@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.66/output-dashboard.schema.json",
+  "type": "object",
+  "required": ["schema_version", "mode", "project", "dashboard", "context", "loop", "bindings"],
+  "properties": {
+    "schema_version": {"const": "goal-teams-output-dashboard-v2.66"},
+    "mode": {"enum": ["execution", "preview"]},
+    "project": {"type": "string", "minLength": 1},
+    "dashboard": {
+      "type": "object",
+      "required": ["completed_tasks", "total_tasks", "completed_subtasks", "total_subtasks", "tasklist_ref", "state_machine_ref", "active_rows"],
+      "properties": {
+        "completed_tasks": {"type": "integer", "minimum": 0},
+        "total_tasks": {"type": "integer", "minimum": 0},
+        "completed_subtasks": {"type": "integer", "minimum": 0},
+        "total_subtasks": {"type": "integer", "minimum": 0},
+        "tasklist_ref": {"$ref": "#/$defs/link"},
+        "state_machine_ref": {"$ref": "#/$defs/link"},
+        "active_rows": {"type": "array", "items": {"$ref": "#/$defs/activeRow"}}
+      },
+      "additionalProperties": false
+    },
+    "context": {
+      "type": "object",
+      "required": ["core_rules", "project_knowledge", "codebase", "tools"],
+      "properties": {
+        "core_rules": {"type": "array", "items": {"$ref": "#/$defs/link"}},
+        "project_knowledge": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/link"},
+          "contains": {
+            "type": "object",
+            "required": ["label", "href"],
+            "properties": {
+              "label": {"const": "memory.md"},
+              "href": {"type": "string", "minLength": 1, "not": {"pattern": "[{}<>]"}}
+            }
+          }
+        },
+        "codebase": {"$ref": "#/$defs/link"},
+        "tools": {"type": "array", "items": {"$ref": "#/$defs/tool"}}
+      },
+      "additionalProperties": false
+    },
+    "loop": {
+      "type": "object",
+      "required": ["current_round", "estimated_total_rounds", "plan", "do", "new_evidence_count", "gap_count", "blocked_count", "decision", "evidence_ref", "banchmark_ref", "loop_review_ref"],
+      "properties": {
+        "current_round": {"type": "integer", "minimum": 1},
+        "estimated_total_rounds": {"type": "integer", "minimum": 1},
+        "plan": {"type": "string", "minLength": 1},
+        "do": {"type": "string", "minLength": 1},
+        "new_evidence_count": {"type": "integer", "minimum": 0},
+        "gap_count": {"type": "integer", "minimum": 0},
+        "blocked_count": {"type": "integer", "minimum": 0},
+        "decision": {"enum": ["continue", "replan", "stop"]},
+        "evidence_ref": {"$ref": "#/$defs/link"},
+        "banchmark_ref": {"$ref": "#/$defs/link"},
+        "loop_review_ref": {"$ref": "#/$defs/link"}
+      },
+      "additionalProperties": false
+    },
+    "bindings": {
+      "type": "object",
+      "required": ["tasklist_sha256", "state_machine_sha256", "evidence_sha256", "banchmark_sha256", "loop_review_sha256", "freshness"],
+      "properties": {
+        "tasklist_sha256": {"$ref": "#/$defs/sha256"},
+        "state_machine_sha256": {"$ref": "#/$defs/sha256"},
+        "evidence_sha256": {"$ref": "#/$defs/sha256"},
+        "banchmark_sha256": {"$ref": "#/$defs/sha256"},
+        "loop_review_sha256": {"$ref": "#/$defs/sha256"},
+        "freshness": {"const": "current"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "link": {
+      "type": "object",
+      "required": ["label", "href"],
+      "properties": {
+        "label": {"type": "string", "minLength": 1},
+        "href": {"type": "string", "minLength": 1, "not": {"pattern": "[{}<>]"}}
+      },
+      "additionalProperties": false
+    },
+    "activeRow": {
+      "type": "object",
+      "required": ["row_kind", "task_id", "parent_task_id", "priority", "name", "members", "parallel", "in_progress", "remaining"],
+      "properties": {
+        "row_kind": {"enum": ["task", "subtask"]},
+        "task_id": {"type": "string", "minLength": 1},
+        "parent_task_id": {"type": ["string", "null"]},
+        "priority": {"type": "string", "pattern": "^P[0-9]+$"},
+        "name": {"type": "string", "minLength": 1},
+        "members": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "parallel": {"type": "boolean"},
+        "in_progress": {"type": "integer", "minimum": 0},
+        "remaining": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "tool": {
+      "type": "object",
+      "required": ["tool_kind", "label", "href"],
+      "properties": {
+        "tool_kind": {"enum": ["MCP", "CLI", "API"]},
+        "label": {"type": "string", "minLength": 1},
+        "href": {"type": "string", "minLength": 1, "not": {"pattern": "[{}<>]"}}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

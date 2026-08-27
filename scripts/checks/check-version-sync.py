@@ -367,7 +367,11 @@ def validate_v250_current(args: argparse.Namespace, product: str) -> None:
 
     expected_activation = f"references/current/generations/{product}/activation-manifest.json"
     active = json.loads(read("references/current/ACTIVE.json"))
-    predecessor_by_product = {"V2.63": "V2.62", "V2.65": "V2.63"}
+    predecessor_by_product = {
+        "V2.63": "V2.62",
+        "V2.65": "V2.63",
+        "V2.66": "V2.65",
+    }
     expected_predecessor = predecessor_by_product.get(product)
     candidate_before_active = (
         expected_predecessor is not None
@@ -398,6 +402,8 @@ def validate_v250_current(args: argparse.Namespace, product: str) -> None:
         != "goal-teams-project-route-v2.50"
     ):
         fail("activation manifest mixes product, policy, or execution identity")
+    if product == "V2.66" and identity.get("execution_asset_generation") != "V2.65":
+        fail("V2.66 activation must bind the V2.65 Graph execution contract")
     if candidate_before_active and activation.get("generation_state") != "inactive_candidate":
         fail(f"{product} pre-activation projection must remain inactive_candidate")
 
@@ -409,7 +415,7 @@ def validate_v250_current(args: argparse.Namespace, product: str) -> None:
             fail(f"missing {product} release profile: {path}")
 
     package = read("scripts/install/package-manifest.txt")
-    for marker in (
+    package_markers = [
         f"prefix references/current/generations/{product}/",
         f"prefix references/compatibility/v{suffix}/",
         f"references/profiles/goal-teams-self-release-v{suffix}.md",
@@ -419,7 +425,17 @@ def validate_v250_current(args: argparse.Namespace, product: str) -> None:
         f"prefix scripts/v{compact}/",
         f"prefix schemas/v{suffix}/",
         f"prefix tests/v{compact}/",
-    ):
+    ]
+    if product == "V2.66":
+        package_markers.extend(
+            [
+                "file scripts/v265/graph_runtime.py",
+                "file scripts/v265/runtime_controller.py",
+                "file schemas/v2.65/graph-runtime.schema.json",
+                "Graph execution contract V2.65",
+            ]
+        )
+    for marker in package_markers:
         if marker not in package:
             fail(f"package manifest missing {product} Current marker: {marker}")
     for forbidden in ("docs/", "develops/", "references/legacy-replay"):
@@ -478,11 +494,11 @@ def validate_v250_current(args: argparse.Namespace, product: str) -> None:
         predecessor = predecessor_by_product.get(product, "V2.6")
         candidate_states = (
             {"development_candidate_not_published", "v250_release_readiness"}
-            if product in {"V2.63", "V2.65"}
+            if product in {"V2.63", "V2.65", "V2.66"}
             else {"v250_release_readiness"}
         )
         unchanged_published_predecessor = (
-            product == "V2.65"
+            product in {"V2.65", "V2.66"}
             and published == predecessor
             and candidate_keys.isdisjoint(release)
         )
@@ -499,7 +515,8 @@ def validate_v250_current(args: argparse.Namespace, product: str) -> None:
         validate_published_identity(predecessor)
     release_readme = read("release/current/README.md")
     if product not in release_readme and not (
-        product == "V2.65" and published == "V2.63" and candidate_keys.isdisjoint(release)
+        product in {"V2.65", "V2.66"}
+        and published == predecessor_by_product[product]
     ):
         fail(f"release/current README does not describe {product}")
     if not release_readme.startswith(f"# Goal Teams {published} Release\n"):
@@ -544,12 +561,13 @@ def main() -> None:
         )
         raise SystemExit(2)
 
-    if product in {"V2.62", "V2.63", "V2.65"}:
+    if product in {"V2.62", "V2.63", "V2.65", "V2.66"}:
         validate_v250_current(args, product)
+        execution = "v2.50+v2.65-graph" if product == "V2.66" else "v2.50"
         print(
             "Version synchronization passed: "
             "mode="
-            f"{args.mode}, product={product}, core=V2.5, execution=v2.50, "
+            f"{args.mode}, product={product}, core=V2.5, execution={execution}, "
             "legacy=V2.3, docs=local-only."
         )
         return

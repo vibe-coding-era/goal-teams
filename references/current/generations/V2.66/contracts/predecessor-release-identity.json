@@ -1,0 +1,19 @@
+{
+  "schema_version": "goal-teams-predecessor-release-identity-v2.66",
+  "generation_id": "V2.66",
+  "predecessor_product_version": "V2.65",
+  "release_identity": {
+    "tag": "v2.65",
+    "release_id": 375434758,
+    "state": "published",
+    "source_commit": "8512f6b9a7668daa6824b7a97494b927962b299e",
+    "source_tree": "fb436dbee231ee6c066cbb00fc9048b3113134ef",
+    "public_assets": [
+      "goal-teams-V2.65.tar.gz",
+      "SHA256SUMS",
+      "_release.json",
+      "_files.sha256"
+    ]
+  },
+  "release_identity_sha256": "4780ca1b41a6c848d777204168cc7fe3d33203312ad5a2c2dc46f69f52f1dcda"
+}
