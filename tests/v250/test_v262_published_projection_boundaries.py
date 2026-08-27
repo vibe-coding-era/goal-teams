@@ -32,7 +32,10 @@ class TestV262PublishedProjectionBoundaries(unittest.TestCase):
         )
         readme = (ROOT / "release/current/README.md").read_text(encoding="utf-8")
         self.assertIn("post-release `main` projection", readme)
-        self.assertIn("immutable V2.62 assets retain the candidate-time", readme)
+        self.assertIn(
+            f"immutable {manifest['product_version']} assets retain the candidate-time",
+            readme,
+        )
         self.assertIn("are not rewritten after publication", readme)
 
 

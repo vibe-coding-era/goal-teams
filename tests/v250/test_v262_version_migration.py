@@ -8,14 +8,35 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-CURRENT_VERSION = "V2.65"
-PREDECESSOR_VERSION = "V2.63"
-PREDECESSOR_GENERATION = (
-    ROOT / "references" / "current" / "generations" / PREDECESSOR_VERSION
+CURRENT_VERSION = "V2.66"
+PUBLISHED_PREDECESSOR_VERSION = "V2.65"
+KG_HISTORY_VERSION = "V2.63"
+KG_HISTORY_GENERATION = (
+    ROOT / "references" / "current" / "generations" / KG_HISTORY_VERSION
 )
-PREDECESSOR_ACTIVATION_SHA256 = (
+KG_HISTORY_ACTIVATION_SHA256 = (
     "ac4619b7eca55bd6416af7b319899ba53c4292090339d37a217ab52f313aa294"
 )
+SHARED_V265_RUNTIME_FILES = {
+    "file schemas/v2.65/context-bundle.schema.json",
+    "file schemas/v2.65/graph-contract.schema.json",
+    "file schemas/v2.65/graph-runtime.schema.json",
+    "file schemas/v2.65/host-capability.schema.json",
+    "file schemas/v2.65/loop-coordinator.schema.json",
+    "file schemas/v2.65/loop-review.schema.json",
+    "file schemas/v2.65/member-packet.schema.json",
+    "file scripts/v265/__init__.py",
+    "file scripts/v265/canonical.py",
+    "file scripts/v265/context_compiler.py",
+    "file scripts/v265/graph_contract.py",
+    "file scripts/v265/graph_runtime.py",
+    "file scripts/v265/host_adapter.py",
+    "file scripts/v265/loop_coordinator.py",
+    "file scripts/v265/loop_review.py",
+    "file scripts/v265/member_packet.py",
+    "file scripts/v265/runtime_controller.py",
+    "file scripts/v265/runtime_store.py",
+}
 PROTECTED_README_SHA256 = {
     "README.md": "b41fe4de55832b561b077fff0a4c41659bc11058c560ba6b01f982003c6089af",
     "README.en.md": "b31c0a6d58375282f0ec60e06d74bb7a33179828e0f2def65c4c5c3743f33ec3",
@@ -32,14 +53,14 @@ def _target(testcase: unittest.TestCase):
 
 
 class TestV262VersionMigration(unittest.TestCase):
-    def test_product_current_is_v263_over_published_v262_predecessor(self) -> None:
+    def test_product_current_is_v266_over_published_v265_predecessor(self) -> None:
         self.assertEqual(CURRENT_VERSION, (ROOT / "VERSION").read_text().strip())
         active = json.loads(
             (ROOT / "references/current/ACTIVE.json").read_text(encoding="utf-8")
         )
         self.assertEqual(CURRENT_VERSION, active["generation_id"])
         self.assertEqual(
-            "references/current/generations/V2.65/activation-manifest.json",
+            "references/current/generations/V2.66/activation-manifest.json",
             active["activation_manifest"],
         )
         activation_path = ROOT / active["activation_manifest"]
@@ -61,7 +82,7 @@ class TestV262VersionMigration(unittest.TestCase):
         release = json.loads(
             (ROOT / "release/current/manifest.json").read_text(encoding="utf-8")
         )
-        if release["product_version"] == PREDECESSOR_VERSION:
+        if release["product_version"] == PUBLISHED_PREDECESSOR_VERSION:
             self.assertEqual(CURRENT_VERSION, release["candidate_product_version"])
             self.assertEqual(
                 "development_candidate_not_published",
@@ -74,7 +95,6 @@ class TestV262VersionMigration(unittest.TestCase):
         self.assertEqual("V2.3", release["legacy_data_schema_version"])
         release_readme = (ROOT / "release/current/README.md").read_text()
         self.assertIn(release["product_version"], release_readme)
-        self.assertIn(CURRENT_VERSION, release_readme)
 
     def test_skill_identity_and_frontmatter_are_closed_without_touching_readmes(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
@@ -86,14 +106,14 @@ class TestV262VersionMigration(unittest.TestCase):
             if line.strip()
         ]
         self.assertEqual(["name", "description"], keys)
-        self.assertIn("Goal Teams V2.65", skill)
-        self.assertIn("我是 Goal Teams Lead V2.65。", skill)
+        self.assertIn("Goal Teams V2.66", skill)
+        self.assertIn("我是 Goal Teams Lead V2.66。", skill)
         self.assertIn(
-            "V2.65",
+            "V2.66",
             (ROOT / ".agents/skills/goal-teams/SKILL.md").read_text(encoding="utf-8"),
         )
-        self.assertIn("产品版本：`V2.65`", (ROOT / "AGENTS.md").read_text())
-        self.assertIn("V2.65", (ROOT / "agents/openai.yaml").read_text())
+        self.assertIn("产品版本：`V2.66`", (ROOT / "AGENTS.md").read_text())
+        self.assertIn("V2.66", (ROOT / "agents/openai.yaml").read_text())
         for path, expected in PROTECTED_README_SHA256.items():
             self.assertEqual(
                 expected,
@@ -102,9 +122,9 @@ class TestV262VersionMigration(unittest.TestCase):
             )
 
     def test_v262_predecessor_preserves_knowledge_graph_owner_and_prompt_isolation(self) -> None:
-        activation = PREDECESSOR_GENERATION / "activation-manifest.json"
+        activation = KG_HISTORY_GENERATION / "activation-manifest.json"
         self.assertEqual(
-            PREDECESSOR_ACTIVATION_SHA256,
+            KG_HISTORY_ACTIVATION_SHA256,
             hashlib.sha256(activation.read_bytes()).hexdigest(),
         )
         predecessor = json.loads(activation.read_text(encoding="utf-8"))
@@ -123,14 +143,14 @@ class TestV262VersionMigration(unittest.TestCase):
                     entry["sha256"],
                     hashlib.sha256((ROOT / entry["path"]).read_bytes()).hexdigest(),
                 )
-        owner = PREDECESSOR_GENERATION / "functions" / "knowledge-graph.md"
+        owner = KG_HISTORY_GENERATION / "functions" / "knowledge-graph.md"
         self.assertTrue(owner.is_file())
         self.assertIn("Observe-only", owner.read_text(encoding="utf-8"))
         prompt_manifest = json.loads(
-            (PREDECESSOR_GENERATION / "prompt-manifest.json").read_text(encoding="utf-8")
+            (KG_HISTORY_GENERATION / "prompt-manifest.json").read_text(encoding="utf-8")
         )
         rule_manifest = json.loads(
-            (PREDECESSOR_GENERATION / "rule-manifest.json").read_text(encoding="utf-8")
+            (KG_HISTORY_GENERATION / "rule-manifest.json").read_text(encoding="utf-8")
         )
         rendered = json.dumps(
             {"prompt": prompt_manifest, "rule": rule_manifest},
@@ -141,25 +161,44 @@ class TestV262VersionMigration(unittest.TestCase):
         self.assertNotIn("legacy-replay", rendered)
         owner_mentions = [
             path
-            for path in PREDECESSOR_GENERATION.rglob("*.md")
+            for path in KG_HISTORY_GENERATION.rglob("*.md")
             if "OKF Document Graph" in path.read_text(encoding="utf-8")
         ]
         self.assertIn(owner, owner_mentions)
 
-    def test_execution_core_stays_v250_and_default_package_is_v263_only(self) -> None:
+    def test_execution_core_stays_v250_and_default_package_is_v266_only(self) -> None:
         package = (ROOT / "scripts/install/package-manifest.txt").read_text(
             encoding="utf-8"
         )
-        self.assertIn("prefix references/current/generations/V2.65/", package)
-        self.assertIn("references/profiles/goal-teams-self-release-v2.65.md", package)
-        self.assertIn("references/release-profiles/v2.65.json", package)
+        package_lines = set(package.splitlines())
+        self.assertIn("prefix references/current/generations/V2.66/", package_lines)
+        self.assertIn("prefix references/compatibility/v2.66/", package_lines)
+        self.assertIn(
+            "file references/profiles/goal-teams-self-release-v2.66.md",
+            package_lines,
+        )
+        self.assertIn("file references/release-profiles/v2.66.json", package_lines)
         self.assertIn("prefix scripts/v250/", package)
         self.assertIn("prefix schemas/v2.50/", package)
         self.assertIn("prefix tests/v250/", package)
-        self.assertIn("prefix scripts/v265/", package)
-        self.assertIn("prefix schemas/v2.65/", package)
-        self.assertIn("prefix tests/v265/", package)
-        self.assertIn("prefix references/compatibility/v2.65/", package)
+        self.assertEqual(
+            SHARED_V265_RUNTIME_FILES,
+            {
+                line
+                for line in package_lines
+                if line.startswith(("file schemas/v2.65/", "file scripts/v265/"))
+            },
+        )
+        self.assertIn("prefix schemas/v2.66/", package_lines)
+        self.assertIn("prefix scripts/v266/", package_lines)
+        self.assertIn("prefix tests/v266/", package_lines)
+        self.assertNotIn("prefix references/current/generations/V2.65/", package)
+        self.assertNotIn("prefix references/compatibility/v2.65/", package)
+        self.assertNotIn("references/profiles/goal-teams-self-release-v2.65.md", package)
+        self.assertNotIn("references/release-profiles/v2.65.json", package)
+        self.assertNotIn("prefix scripts/v265/", package)
+        self.assertNotIn("prefix schemas/v2.65/", package)
+        self.assertNotIn("prefix tests/v265/", package)
         self.assertNotIn("prefix references/current/generations/V2.63/", package)
         self.assertNotIn("prefix scripts/v263/", package)
         self.assertNotIn("prefix schemas/v2.63/", package)
@@ -180,7 +219,7 @@ class TestV262VersionMigration(unittest.TestCase):
                 encoding="utf-8"
             )
         )
-        self.assertEqual(PREDECESSOR_VERSION, profile["version"])
+        self.assertEqual(KG_HISTORY_VERSION, profile["version"])
         self.assertIn("Goal Teams V2.63", profile["release_title"])
         self.assertIn(
             "V2.63",
