@@ -1604,8 +1604,8 @@ def validate_skill(root: Path, phase: str) -> None:
     validation_results.append({
         "phase": phase,
         "command": (
-            "scripts/checks/check-v250.py --phase development"
-            if use_v250
+            f"{checker.relative_to(root).as_posix()} --phase development"
+            if use_route_aware
             else "scripts/check.sh --installed-package"
         ),
         "exit_code": result.returncode,
@@ -1631,7 +1631,7 @@ def validate_skill(root: Path, phase: str) -> None:
         "phase": f"prompt_identity_{phase}",
         "command": (
             "scripts/v250/generation_runtime.py:V250-ROUTE-STARTUP"
-            if use_v250
+            if use_route_aware
             else "scripts/v23/prompt_cache.py:installed_startup"
         ),
         "exit_code": 0,

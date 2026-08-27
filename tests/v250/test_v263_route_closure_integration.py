@@ -12,7 +12,7 @@ from scripts.v250.route_closure import (
     validate_declared_route_closure,
 )
 from scripts.v250.route_derivation import derive_route
-from tests.v250.v265_candidate_fixture import inactive_candidate_fixture
+from tests.v250.v266_candidate_fixture import inactive_candidate_fixture
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -49,7 +49,7 @@ class TestV263RouteClosureIntegration(unittest.TestCase):
         fixture = cls.candidate_fixture
         cls.generation = load_candidate_generation(
             fixture.root,
-            generation_id="V2.65",
+            generation_id="V2.66",
             activation_manifest_path=fixture.activation_path,
             expected_activation_sha256=fixture.activation_sha256,
         )
@@ -59,7 +59,7 @@ class TestV263RouteClosureIntegration(unittest.TestCase):
         cls._candidate_context.close()
 
     def test_runtime_closure_requires_digest_valid_derived_route_receipt(self) -> None:
-        derived = derive_route(facts())
+        derived = derive_route(facts(), generation_id="V2.66")
         closure = compile_derived_route_closure(
             self.candidate_fixture.root, self.generation, derived
         )
@@ -93,7 +93,7 @@ class TestV263RouteClosureIntegration(unittest.TestCase):
         self.assertEqual("offline_manifest_audit", offline["route_selection_mode"])
 
     def test_derived_gates_must_match_manifest_controls(self) -> None:
-        derived = derive_route(facts())
+        derived = derive_route(facts(), generation_id="V2.66")
         derived["required_gates"] = ["tdd"]
         from scripts.v250.generation_runtime import canonical_json_digest
 
