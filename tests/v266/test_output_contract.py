@@ -278,11 +278,20 @@ class TestV266OutputContract(unittest.TestCase):
         target = _target()
         rendered = target.serialize_dashboard(_view(), loop_decision="continue", repo_root=ROOT)
         self.assertIn("**◆ LOOP：第 2 轮 / 预计 4 轮**", rendered)
-        self.assertIn("`P ｜ 计划 / 下一轮目标：`", rendered)
+        labels = (
+            "P ｜ 计划 / 下一轮目标",
+            "D ｜ 执行 / 本轮执行",
+            "C ｜ 检查 / 执行结果",
+            "A ｜ 改进 / 调整行动",
+        )
+        for label in labels:
+            self.assertIn(f"`{label}` ", rendered)
+            self.assertNotIn(f"`{label}：`", rendered)
         self.assertIn("新增 Evidence 4｜缺口 3｜阻塞 1", rendered)
         self.assertIn(f"[Banchmark.md]({ROOT / _fixture('Banchmark.md')})", rendered)
         self.assertIn(f"[loop-review.md]({ROOT / _fixture('loop-review.md')})", rendered)
-        self.assertIn("决策 `continue`", rendered)
+        self.assertIn("决策 `continue`｜改进反思：", rendered)
+        self.assertNotIn("LOOP 改进建议", rendered)
 
         invalid = _view()
         invalid["loop"]["current_round"] = 5  # type: ignore[index]
@@ -432,6 +441,12 @@ class TestV266OutputContract(unittest.TestCase):
                 complete, loop_decision="stop", repo_root=repo_root
             )
             self.assertTrue(verdict["ok"], verdict["errors"])
+            rendered = target.serialize_dashboard(
+                complete, loop_decision="stop", repo_root=repo_root
+            )
+            self.assertIn("决策 `stop`｜LOOP 改进建议：", rendered)
+            self.assertNotIn("决策 `stop`｜改进反思：", rendered)
+            self.assertIn("[loop-review.md]", rendered)
 
     def test_preview_never_enters_execution_renderer(self) -> None:
         target = _target()
