@@ -593,18 +593,20 @@ def serialize_dashboard(
             item = context["tools"][index]
             tool = f"{item['tool_kind']}：{_markdown_link(item, display_root)}"
         lines.append(f"| {core} | {knowledge} | {codebase} | {tool} |")
+    reflection_label = "LOOP 改进建议" if loop_decision == "stop" else "改进反思"
     lines.extend(
         [
             "",
             f"**◆ LOOP：第 {loop['current_round']} 轮 / 预计 {loop['estimated_total_rounds']} 轮**",
             "",
-            f"`P ｜ 计划 / 下一轮目标：`{loop['plan']}  ",
-            f"`D ｜ 执行 / 本轮执行：`{loop['do']}  ",
-            "`C ｜ 检查 / 执行结果：`"
+            f"`P ｜ 计划 / 下一轮目标` {loop['plan']}  ",
+            f"`D ｜ 执行 / 本轮执行` {loop['do']}  ",
+            "`C ｜ 检查 / 执行结果` "
             f"新增 Evidence {loop['new_evidence_count']}｜缺口 {loop['gap_count']}｜"
             f"阻塞 {loop['blocked_count']}｜{_markdown_link(loop['banchmark_ref'], display_root)}  ",
-            "`A ｜ 改进 / 调整行动：`"
-            f"决策 `{loop['decision']}`｜改进反思：{_markdown_link(loop['loop_review_ref'], display_root)}",
+            "`A ｜ 改进 / 调整行动` "
+            f"决策 `{loop['decision']}`｜{reflection_label}："
+            f"{_markdown_link(loop['loop_review_ref'], display_root)}",
         ]
     )
     return "\n".join(lines)

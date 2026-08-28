@@ -3,7 +3,7 @@
   "generation_id": "V2.66",
   "generation_state": "active",
   "baseline_generation_id": "V2.65",
-  "manifest_payload_sha256": "213c145d796938d0e755bd826e7040ba6557930d6bd6b9e6cc57189d7a628595",
+  "manifest_payload_sha256": "55df12aa7b3028cd6952e5be3600491ae54fc090a760fda631a3e61667253d91",
   "identity": {
     "loaded_runtime_product_version": "V2.66",
     "core_policy_version": "V2.5",
@@ -575,8 +575,8 @@
       },
       {
         "path": "scripts/v266/output_dashboard.py",
-        "sha256": "8fc113e16c70f57a229cd6e0ea2ae6137a7f9edddea2e030d119ce34de99d61b",
-        "bytes": 22348
+        "sha256": "fc992e5710c525495288a1ec94f260df7afc3b37a8bfd2403ae4bb2374e07957",
+        "bytes": 22452
       },
       {
         "path": "scripts/v266/project_host_assets.py",
@@ -1335,8 +1335,8 @@
       },
       {
         "path": "tests/v266/test_output_contract.py",
-        "sha256": "6f35e0c715777264c50fe58aab03b8ed2216604ca617517b24764dbae01396e1",
-        "bytes": 19501
+        "sha256": "c567a1eec58026b74766aa5876e2bb83c7ff19cb816c8a342375ecab12eab49e",
+        "bytes": 20183
       },
       {
         "path": "tests/v266/test_release_gate_denominator.py",
