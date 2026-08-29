@@ -5,7 +5,7 @@
 作者：肉山@TGO 杭州
 
 <!-- goal-teams-release:start -->
-当前发行：**V2.62** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.62) · [发行说明](release/current/README.md)
+当前发行：**V2.66** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.66) · [发行说明](release/current/README.md)
 <!-- goal-teams-release:end -->
 
 Goal Teams 是一个跨 CodeAgent 的团队协作 AgentTeams Skill，支持多个 LLM 及 CodeAgent 平台。它会以一个 Goal Lead 的身份，把目标拆成可验证计划，再协调独立成员完成需求、设计、实现、测试、Evidence 和收尾审计，过程中会应用到：
