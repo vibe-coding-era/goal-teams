@@ -11,7 +11,7 @@ TARGET = "V2.66"
 PREDECESSOR = "V2.65"
 GEN = ROOT / "references/current/generations/V2.66"
 PROTECTED_READMES = {
-    "README.md": "b41fe4de55832b561b077fff0a4c41659bc11058c560ba6b01f982003c6089af",
+    "README.md": "122b693ef2cb864d1fd9d63a4aeabf5ef9f0ee4bd05f22fcbced4470b7772e60",
     "README.en.md": "b31c0a6d58375282f0ec60e06d74bb7a33179828e0f2def65c4c5c3743f33ec3",
 }
 SHARED_RUNTIME = {
