@@ -3,7 +3,7 @@
   "generation_id": "V2.66",
   "generation_state": "active",
   "baseline_generation_id": "V2.65",
-  "manifest_payload_sha256": "42ddb7e541f220cf5252b8841bd8eaa13127396c77db14eb680a4898791d98ce",
+  "manifest_payload_sha256": "0e15399367305c0d69cf3d143cc00fa67b40238c28798fd5327a8ec793beae38",
   "identity": {
     "loaded_runtime_product_version": "V2.66",
     "core_policy_version": "V2.5",
@@ -188,8 +188,8 @@
       },
       {
         "path": "references/current/generations/V2.66/rule-manifest.json",
-        "sha256": "cf7e3e3607edc962197bcfe920106bc0ee71745f1bb45fe0b279b92bdc04970b",
-        "bytes": 24049
+        "sha256": "56810462466820d3e22987b9ed11508cdeba4da3f1a13a9988442f6f0312ab1a",
+        "bytes": 24126
       },
       {
         "path": "references/okf-conformance-policy.json",
@@ -1535,7 +1535,7 @@
   "rule_manifest_path": "references/current/generations/V2.66/rule-manifest.json",
   "prompt_manifest_path": "references/current/generations/V2.66/prompt-manifest.json",
   "semantic_owner_set_digest": "c341fdec7ec3a7d991ca17afecee58801649b36c14e85307c674080f7d0b27fe",
-  "rule_index_digest": "cf7e3e3607edc962197bcfe920106bc0ee71745f1bb45fe0b279b92bdc04970b",
+  "rule_index_digest": "56810462466820d3e22987b9ed11508cdeba4da3f1a13a9988442f6f0312ab1a",
   "prompt_plan_digest": "0b5bc44abb7a8b997d5e34b7476fd88dc97e12f35b63bf8720d74bbff8a43334",
   "schema_and_validator_digest": "33d135c6b444d987c4f76cdba3aff77221f2a5e14987bb5aa2d44ee3d97f5d22",
   "current_default_allowlist": [
