@@ -17,6 +17,7 @@
 11. Context 每个非空项都必须是真实链接；项目知识必须包含当前项目 `memory.md`；代码库只显示工程名；不存在或未读取的 MCP/CLI/API 不得生成占位链接。
 12. LOOP 固定四行：`P ｜ 计划 / 下一轮目标`、`D ｜ 执行 / 本轮执行`、`C ｜ 检查 / 执行结果`、`A ｜ 改进 / 调整行动`。C 链接 `Banchmark.md`，A 链接 `loop-review.md`；标题必须包含当前轮次与预计总轮次。
 13. 所有任务/子任务计数、并行性、Evidence、缺口、阻塞和决策均来自 current 绑定；preview/example 不得以非零成功数据冒充执行事实。
+14. `renderer-first`：每个执行型 `结果` 必须先由 current dashboard view 经 `validate_dashboard` 和 `serialize_dashboard` 生成，再原样嵌入外层 Envelope。禁止手写 Dashboard/Context/LOOP、复用旧六字段摘要或用叙述替代 renderer。缺少 view、绑定或校验时必须 `blocked|replan`，不能输出未绑定看板。
 
 ## 唯一输出 Envelope
 

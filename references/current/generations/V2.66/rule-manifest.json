@@ -488,7 +488,7 @@
       "owner_id": "CONTRACT-TASK-STATE-V250",
       "owner_kind": "contract",
       "path": "references/current/generations/V2.66/contracts/task-state.md",
-      "source_sha256": "aae163f3f2d108c3fd45d911ebb5e97881259bc6bf178f03e9e96a9d0080a433",
+      "source_sha256": "cffc0a4d730f6cd9d1ee171b138de2b3bd3e6b816803e2ffd5df2f3fcb6c98d6",
       "dependencies": [
         {
           "kind": "required",
@@ -776,7 +776,7 @@
       "owner_id": "CONTRACT-OUTPUT-DASHBOARD-V266",
       "owner_kind": "contract",
       "path": "references/current/generations/V2.66/contracts/output-dashboard.md",
-      "source_sha256": "036f271ec7532604bf5c5e4d979b0c385223dfcf4762a398d199e8777dd142a3",
+      "source_sha256": "8d71146a322afd5129b6c4d15106b2b742a62da00aae6d1a1d1211a7f8719bab",
       "dependencies": [
         {
           "kind": "required",

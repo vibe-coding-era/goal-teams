@@ -3,7 +3,7 @@
   "generation_id": "V2.66",
   "generation_state": "active",
   "baseline_generation_id": "V2.65",
-  "manifest_payload_sha256": "04c1d42bd9c08610508bf0a7a9acc4f39383e2e6db40bb4288b4fe83637df448",
+  "manifest_payload_sha256": "42ddb7e541f220cf5252b8841bd8eaa13127396c77db14eb680a4898791d98ce",
   "identity": {
     "loaded_runtime_product_version": "V2.66",
     "core_policy_version": "V2.5",
@@ -26,13 +26,13 @@
       },
       {
         "path": "RULES.md",
-        "sha256": "e2e0906c96eb4755f30c3c298874451bb45afb2ed25f9477b0de7af55e8c8ecc",
-        "bytes": 3204
+        "sha256": "874015a60861f1029e84371a613a5286deff2598bf70a13a5418063f04c57bf9",
+        "bytes": 3562
       },
       {
         "path": "SKILL.md",
-        "sha256": "3ef467d883bb6b982fd9cfbb5f10fffb4811f92c8f11e0a8eaab00bab6a4886d",
-        "bytes": 10751
+        "sha256": "c06eba232bf0b63f80973db8a7f2b7c97c4efc060909591b1c1b73f7e078c0a1",
+        "bytes": 11383
       },
       {
         "path": "VERSION",
@@ -41,8 +41,8 @@
       },
       {
         "path": "agents/openai.yaml",
-        "sha256": "c985b69b87168a865447b938c9bcb41571101e329bb33312f6d65714331bca45",
-        "bytes": 786
+        "sha256": "dab2d7c93c011e715f3faf4c5d7bd652e04bcc3c3511d3f3a0ab7bd9ef4e9e47",
+        "bytes": 1130
       },
       {
         "path": "goal-teams.md",
@@ -88,8 +88,8 @@
       },
       {
         "path": "references/current/generations/V2.66/contracts/output-dashboard.md",
-        "sha256": "036f271ec7532604bf5c5e4d979b0c385223dfcf4762a398d199e8777dd142a3",
-        "bytes": 2932
+        "sha256": "8d71146a322afd5129b6c4d15106b2b742a62da00aae6d1a1d1211a7f8719bab",
+        "bytes": 3516
       },
       {
         "path": "references/current/generations/V2.66/contracts/predecessor-release-identity.json",
@@ -123,8 +123,8 @@
       },
       {
         "path": "references/current/generations/V2.66/contracts/task-state.md",
-        "sha256": "aae163f3f2d108c3fd45d911ebb5e97881259bc6bf178f03e9e96a9d0080a433",
-        "bytes": 3974
+        "sha256": "cffc0a4d730f6cd9d1ee171b138de2b3bd3e6b816803e2ffd5df2f3fcb6c98d6",
+        "bytes": 4296
       },
       {
         "path": "references/current/generations/V2.66/contracts/test-case-gate.md",
@@ -178,7 +178,7 @@
       },
       {
         "path": "references/current/generations/V2.66/prompt-manifest.json",
-        "sha256": "864b1efe77f100ef73fa4eb1d458064bf6f2824ae75ea776de10e5e1ef400cab",
+        "sha256": "0b5bc44abb7a8b997d5e34b7476fd88dc97e12f35b63bf8720d74bbff8a43334",
         "bytes": 16878
       },
       {
@@ -188,7 +188,7 @@
       },
       {
         "path": "references/current/generations/V2.66/rule-manifest.json",
-        "sha256": "735a50d20dc5fc301564606a5accfbd7e6809a122b642397ac91ce434c98e881",
+        "sha256": "cf7e3e3607edc962197bcfe920106bc0ee71745f1bb45fe0b279b92bdc04970b",
         "bytes": 24049
       },
       {
@@ -1335,8 +1335,8 @@
       },
       {
         "path": "tests/v266/test_output_contract.py",
-        "sha256": "c567a1eec58026b74766aa5876e2bb83c7ff19cb816c8a342375ecab12eab49e",
-        "bytes": 20183
+        "sha256": "f0d31a801d4980d39cda4d98d67d61d91ad6bd84f09cc120b50232001386fa4f",
+        "bytes": 20416
       },
       {
         "path": "tests/v266/test_release_gate_denominator.py",
@@ -1534,9 +1534,9 @@
   },
   "rule_manifest_path": "references/current/generations/V2.66/rule-manifest.json",
   "prompt_manifest_path": "references/current/generations/V2.66/prompt-manifest.json",
-  "semantic_owner_set_digest": "447f007ce44550ab5a36e2a139e108d40655423fdf6f0b7c88bfa6356477e1ce",
-  "rule_index_digest": "735a50d20dc5fc301564606a5accfbd7e6809a122b642397ac91ce434c98e881",
-  "prompt_plan_digest": "864b1efe77f100ef73fa4eb1d458064bf6f2824ae75ea776de10e5e1ef400cab",
+  "semantic_owner_set_digest": "c341fdec7ec3a7d991ca17afecee58801649b36c14e85307c674080f7d0b27fe",
+  "rule_index_digest": "cf7e3e3607edc962197bcfe920106bc0ee71745f1bb45fe0b279b92bdc04970b",
+  "prompt_plan_digest": "0b5bc44abb7a8b997d5e34b7476fd88dc97e12f35b63bf8720d74bbff8a43334",
   "schema_and_validator_digest": "33d135c6b444d987c4f76cdba3aff77221f2a5e14987bb5aa2d44ee3d97f5d22",
   "current_default_allowlist": [
     ".agents/skills/goal-teams/SKILL.md",

@@ -180,12 +180,17 @@ class TestV266OutputContract(unittest.TestCase):
             ROOT
             / "references/current/generations/V2.66/contracts/task-state.md"
         ).read_text(encoding="utf-8")
-        for text in (skill, rules, task_state):
+        output_contract = (
+            ROOT
+            / "references/current/generations/V2.66/contracts/output-dashboard.md"
+        ).read_text(encoding="utf-8")
+        for text in (skill, rules, task_state, output_contract):
             self.assertIn("◆ Goal-Teams 任务执行看板", text)
             self.assertIn("◆ Context / Knowledge / Tools", text)
             self.assertIn("P ｜ 计划 / 下一轮目标", text)
             self.assertIn("loop-review.md", text)
             self.assertIn("Banchmark.md", text)
+            self.assertIn("renderer-first", text)
         self.assertIn("## 输出控制", skill)
 
     def test_serializer_emits_exact_dashboard_context_pdca_order(self) -> None:

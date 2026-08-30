@@ -47,7 +47,7 @@
       "manual_artifact_count": 0,
       "governance_time": "minimal",
       "max_loaded_rule_bytes": 72194,
-      "expected_loaded_rule_bytes": 27817
+      "expected_loaded_rule_bytes": 28723
     },
     "V250-ROUTE-DISCUSSION": {
       "assurance_level": "Discussion",
@@ -69,7 +69,7 @@
       "manual_artifact_count": 0,
       "governance_time": "discussion_only",
       "max_loaded_rule_bytes": 72194,
-      "expected_loaded_rule_bytes": 30494
+      "expected_loaded_rule_bytes": 31400
     },
     "V250-ROUTE-SMALL-DEVELOPMENT": {
       "assurance_level": "Lite",
@@ -106,7 +106,7 @@
       "manual_artifact_count": 1,
       "governance_time": "light",
       "max_loaded_rule_bytes": 72194,
-      "expected_loaded_rule_bytes": 55450
+      "expected_loaded_rule_bytes": 56356
     },
     "V250-ROUTE-MEDIUM-DEVELOPMENT": {
       "assurance_level": "Standard",
@@ -144,7 +144,7 @@
       "manual_artifact_count": 2,
       "governance_time": "standard",
       "max_loaded_rule_bytes": 72194,
-      "expected_loaded_rule_bytes": 55450
+      "expected_loaded_rule_bytes": 56356
     },
     "V250-ROUTE-LARGE-DEVELOPMENT": {
       "assurance_level": "Full",
@@ -183,7 +183,7 @@
       "manual_artifact_count": 3,
       "governance_time": "full_development",
       "max_loaded_rule_bytes": 72194,
-      "expected_loaded_rule_bytes": 55450
+      "expected_loaded_rule_bytes": 56356
     },
     "V250-ROUTE-UI-DESKTOP": {
       "assurance_level": "Full",
@@ -225,7 +225,7 @@
       "manual_artifact_count": 3,
       "governance_time": "full_ui",
       "max_loaded_rule_bytes": 72194,
-      "expected_loaded_rule_bytes": 57682
+      "expected_loaded_rule_bytes": 58588
     },
     "V250-ROUTE-AGENT-RUNTIME": {
       "assurance_level": "Full",
@@ -264,7 +264,7 @@
       "manual_artifact_count": 3,
       "governance_time": "full_runtime",
       "max_loaded_rule_bytes": 72194,
-      "expected_loaded_rule_bytes": 55450
+      "expected_loaded_rule_bytes": 56356
     },
     "V250-ROUTE-MEDIUM-RELEASE": {
       "assurance_level": "Full",
@@ -306,7 +306,7 @@
       "manual_artifact_count": 4,
       "governance_time": "release_medium",
       "max_loaded_rule_bytes": 72194,
-      "expected_loaded_rule_bytes": 58931
+      "expected_loaded_rule_bytes": 59837
     },
     "V250-ROUTE-LARGE-RELEASE": {
       "assurance_level": "Full",
@@ -349,7 +349,7 @@
       "manual_artifact_count": 5,
       "governance_time": "release_large",
       "max_loaded_rule_bytes": 72194,
-      "expected_loaded_rule_bytes": 58931
+      "expected_loaded_rule_bytes": 59837
     }
   }
 }

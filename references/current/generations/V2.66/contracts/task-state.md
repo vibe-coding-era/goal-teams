@@ -51,6 +51,7 @@ okf_version: "0.1"
 - `GT250-STATE-BOOTSTRAP`: 第一轮 TaskList、Owner/Validator 分配和独立环境 preflight 必须按序产生 current receipt；缺任一项或后续轮缺首轮 receipt ref 时，implementation task 保持 pending/blocked。
 - `GT250-STATE-OUTPUT`: 用户可见执行更新只输出 `任务、成员、进度、结果、Banchmark` 加 `下一轮 LOOP` 或 `下一个任务` 之一；`进度` 必须含当前轮次/总轮次，终局 `结果` 必须含独立于 Benchmark 的 LOOP 改进建议；不输出内部推理或同时输出两个终止字段；不固定输出运行身份短指纹，也不得以同义额外字段恢复。
 - `GT266-STATE-DASHBOARD`: 执行型 `结果` 使用 digest-bound 紧凑看板；固定显示 `◆ Goal-Teams 任务执行看板`、`◆ Context / Knowledge / Tools`、`P ｜ 计划 / 下一轮目标`、`Banchmark.md` 与 `loop-review.md`，且不得以 preview、占位链接或手填并行标识冒充 current Evidence。
+- `GT266-STATE-RENDERER-FIRST`: `renderer-first`：执行型 `结果` 的子视图必须由 current dashboard view 经 `validate_dashboard` 和 `serialize_dashboard` 生成；手写 Dashboard/Context/LOOP 或旧六字段摘要无效。缺少可验证 view 时保持 `blocked|replan`，不得输出替代性执行摘要。
 - `GT250-STATE-REPLAY-SEPARATION`: 历史回放状态只描述历史合同结果，不得投影为 Current accepted、release-ready 或 achieved。
 - `GT263-STATE-REDUCER-CAS`: 只有 append-only typed event 可改变投影；CAS 冲突、binding 漂移、非法跨轴转换、未知事件或非 allowlist writer 一律 fail closed，不覆盖当前状态。
 - `GT263-STATE-COMPLETION-AXES`: `engineering_complete`、`runtime_complete`、`business_validated`、`release_published` 与 `installation_current` 独立投影，任何一轴不得替代另一轴。

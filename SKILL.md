@@ -63,6 +63,8 @@ Goal Lead 负责路由、派发、状态归并和最终诚实汇报；成员只�
 2. `◆ Context / Knowledge / Tools`：固定为 `核心规则 | 项目知识 | 代码库 | MCP/CLI/API`。每个非空单元格必须是真实链接；项目知识固定包含当前项目 `memory.md`；代码库只显示并链接工程名；本轮未实际引入的项留空，不造占位链接。
 3. `◆ LOOP：第 <当前轮> 轮 / 预计 <总轮> 轮`：按 P/D/C/A 四行输出。P 标签精确为 `P ｜ 计划 / 下一轮目标`；D 汇总本轮执行；C 显示新增 Evidence、缺口、阻塞并链接 `Banchmark.md`；A 显示 `continue|replan|stop` 决策并链接 `loop-review.md`。
 
+`renderer-first` 是执行型输出的强制顺序：Goal Lead 必须先从 current TaskList、状态机、Evidence、Banchmark、loop-review 与实际 Context 组装结构化 dashboard view，调用 `validate_dashboard` 与 `serialize_dashboard`，再把 renderer 返回的 Markdown 原样放入 `结果`。禁止手写看板、旧六字段摘要或用自然语言替代 renderer。若 view 缺失、绑定漂移或校验失败，只能在外层 Envelope 内报告 `blocked|replan` 及证据，不得冒充执行看板。已运行的旧会话不会热加载此规则，必须接收一次明确纠正消息或在新会话重启。
+
 紧凑看板是 canonical Task/State/Evidence 的人类投影，不是新的事实源。父子层级、计数、链接、并行标记、Evidence 与决策必须绑定 current digest/receipt；示例和 preview 保持 `not_created|not_run`。详细合同见 `references/current/generations/V2.66/contracts/output-dashboard.md`。
 
 ## Release 路由
