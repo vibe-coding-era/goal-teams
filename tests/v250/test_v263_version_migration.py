@@ -7,9 +7,9 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-TARGET = "V2.66"
-PREDECESSOR = "V2.65"
-GENERATION = ROOT / "references/current/generations/V2.66"
+TARGET = "V2.67"
+PREDECESSOR = "V2.66"
+GENERATION = ROOT / "references/current/generations/V2.67"
 PROTECTED_README_SHA256 = {
     "README.md": "122b693ef2cb864d1fd9d63a4aeabf5ef9f0ee4bd05f22fcbced4470b7772e60",
     "README.en.md": "b31c0a6d58375282f0ec60e06d74bb7a33179828e0f2def65c4c5c3743f33ec3",
@@ -39,7 +39,7 @@ class TestV265VersionMigration(unittest.TestCase):
         )
         self.assertEqual(TARGET, active["generation_id"])
         self.assertEqual(
-            "references/current/generations/V2.66/activation-manifest.json",
+            "references/current/generations/V2.67/activation-manifest.json",
             active["activation_manifest"],
         )
         activation_path = ROOT / active["activation_manifest"]
@@ -57,7 +57,7 @@ class TestV265VersionMigration(unittest.TestCase):
             "V2.3", activation["identity"]["legacy_data_schema_version"]
         )
 
-    def test_current_manifests_package_and_compatibility_are_v266(self) -> None:
+    def test_current_manifests_package_and_compatibility_are_v267(self) -> None:
         prompt = json.loads((GENERATION / "prompt-manifest.json").read_text())
         rule = json.loads((GENERATION / "rule-manifest.json").read_text())
         rendered = json.dumps({"prompt": prompt, "rule": rule}, sort_keys=True)
@@ -66,19 +66,19 @@ class TestV265VersionMigration(unittest.TestCase):
         self.assertNotIn("legacy-replay", rendered)
         package = (ROOT / "scripts/install/package-manifest.txt").read_text()
         for marker in (
-            "product V2.66, core policy V2.5, Graph execution contract V2.65, legacy data schema V2.3",
-            "prefix references/current/generations/V2.66/",
-            "references/profiles/goal-teams-self-release-v2.66.md",
-            "references/release-profiles/v2.66.json",
+            "product V2.67, core policy V2.5, Graph execution contract V2.65, legacy data schema V2.3",
+            "prefix references/current/generations/V2.67/",
+            "references/profiles/goal-teams-self-release-v2.67.md",
+            "references/release-profiles/v2.67.json",
             "prefix scripts/v250/",
             "prefix schemas/v2.50/",
             "prefix tests/v250/",
             "file scripts/v265/runtime_controller.py",
             "file schemas/v2.65/graph-runtime.schema.json",
-            "prefix scripts/v266/",
-            "prefix schemas/v2.66/",
-            "prefix tests/v266/",
-            "prefix references/compatibility/v2.66/",
+            "prefix scripts/v267/",
+            "prefix schemas/v2.67/",
+            "prefix tests/v267/",
+            "prefix references/compatibility/v2.67/",
         ):
             self.assertIn(marker, package)
         for stale in (
@@ -94,11 +94,11 @@ class TestV265VersionMigration(unittest.TestCase):
             self.assertNotIn(stale, package)
 
     def test_release_candidate_profile_and_changelog_are_truthful(self) -> None:
-        path = ROOT / "references/release-profiles/v2.66.json"
-        self.assertTrue(path.is_file(), "E_TEST_V266_RELEASE_PROFILE_MISSING")
+        path = ROOT / "references/release-profiles/v2.67.json"
+        self.assertTrue(path.is_file(), "E_TEST_V267_RELEASE_PROFILE_MISSING")
         profile = json.loads(path.read_text())
         self.assertEqual(TARGET, profile["version"])
-        self.assertEqual("v2.66", profile["tag"])
+        self.assertEqual("v2.67", profile["tag"])
         self.assertEqual(PREDECESSOR, profile["published_before"])
         self.assertEqual("V2.5", profile["core_policy_version"])
         self.assertEqual("V2.3", profile["legacy_data_schema_version"])
@@ -110,7 +110,7 @@ class TestV265VersionMigration(unittest.TestCase):
             self.assertEqual(TARGET, release["product_version"])
             self.assertEqual("published", release["release_identity"]["state"])
         changelog = (ROOT / "CHANGELOG.md").read_text()
-        self.assertIn("## V2.66", changelog)
+        self.assertIn("## V2.67", changelog)
 
 
 if __name__ == "__main__":

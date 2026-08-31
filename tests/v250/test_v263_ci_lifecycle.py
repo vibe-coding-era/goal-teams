@@ -35,7 +35,7 @@ SHARED_ACTIVE_PRE_RELEASE_MODULES = (
 def actual_current_test_modules() -> tuple[str, ...]:
     paths = sorted((ROOT / "tests/v250").glob("test_v263*.py"))
     paths.extend(sorted((ROOT / "tests/v250").glob("test_v265*.py")))
-    paths.extend(sorted((ROOT / "tests/v266").glob("test_*.py")))
+    paths.extend(sorted((ROOT / "tests/v267").glob("test_*.py")))
     return tuple(
         path.relative_to(ROOT).with_suffix("").as_posix().replace("/", ".")
         for path in paths
@@ -53,7 +53,7 @@ def text(path: Path) -> str:
 
 
 def development_step(workflow: str) -> str:
-    marker = "      - name: Active V2.66 pre-release exact Development gate"
+    marker = "      - name: Active V2.67 pre-release exact Development gate"
     start = workflow.index(marker)
     end = workflow.find("\n      - name:", start + len(marker))
     if end < 0:
@@ -108,9 +108,9 @@ class TestV263CiLifecycle(unittest.TestCase):
             "--mode development \\",
             '--published-version "${published_version}"',
             "scripts/checks/validate-v250-generation.py \\",
-            "--generation-id V2.66 \\",
+            "--generation-id V2.67 \\",
             "--selection active",
-            "scripts/checks/check-v266.py \\",
+            "scripts/checks/check-v267.py \\",
             "--phase development \\",
             "--project-size medium \\",
             "--stage candidate",
@@ -127,7 +127,7 @@ class TestV263CiLifecycle(unittest.TestCase):
     def test_published_version_reader_supports_candidate_and_final_projection(
         self,
     ) -> None:
-        projections = ("V2.65", "V2.66")
+        projections = ("V2.65", "V2.67")
         for path in WORKFLOWS:
             source = published_version_reader_source(text(path))
             with self.subTest(path=path.name):

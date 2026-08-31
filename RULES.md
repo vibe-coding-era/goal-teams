@@ -1,4 +1,4 @@
-# Response Contract V2.66
+# Response Contract V2.67
 
 本契约只约束 Goal Lead 与成员的用户可见输出，不改变上层权限、范围、安全、Harness、Evidence 或完成条件。
 
@@ -12,7 +12,7 @@
 6. 每次执行更新的 `进度` 必须包含 `第 <当前轮> 轮/共 <总轮> 轮`，且当前轮不得大于总轮。
 7. 终局 `loop_decision=stop` 时，`结果` 除完成事实外必须包含 `LOOP 改进建议`；建议可覆盖 Skill、上下文、资料、Harness 或流程，也可基于证据明确写“暂无新增建议”。
 8. 不固定输出运行身份短指纹，也不得以同义额外字段恢复该设计。运行身份只进入机器 receipt 和诊断 Evidence；仅在用户明确询问或漂移诊断必要时，才在既有字段内解释可验证事实。
-9. 执行型更新的 `结果` 使用 V2.66 紧凑子视图：`◆ Goal-Teams 任务执行看板` → `◆ Context / Knowledge / Tools` → `◆ LOOP：第 n 轮 / 预计 m 轮`。它们不得提升为外层顶级字段。
+9. 执行型更新的 `结果` 使用 V2.67 紧凑子视图：`◆ Goal-Teams 任务执行看板` → `◆ Context / Knowledge / Tools` → `◆ LOOP：第 n 轮 / 预计 m 轮`。它们不得提升为外层顶级字段。
 10. 看板只显示 active/remaining 父任务与子任务；完成项只通过真实 TaskList 链接查看。`Subagent 成员` 的 `（并行）` 标识必须来自 DAG/派发事实。
 11. Context 每个非空项都必须是真实链接；项目知识必须包含当前项目 `memory.md`；代码库只显示工程名；不存在或未读取的 MCP/CLI/API 不得生成占位链接。
 12. LOOP 固定四行：`P ｜ 计划 / 下一轮目标`、`D ｜ 执行 / 本轮执行`、`C ｜ 检查 / 执行结果`、`A ｜ 改进 / 调整行动`。C 链接 `Banchmark.md`，A 链接 `loop-review.md`；标题必须包含当前轮次与预计总轮次。
@@ -38,4 +38,4 @@
 
 ## `结果` 内固定子视图
 
-机器可验证的结构由 `schemas/v2.66/output-dashboard.schema.json` 定义，并由 `scripts/v266/output_dashboard.py` 进行确定性验证和渲染。外层 `任务、成员、进度、结果、Banchmark` 与终止字段合同仍由通用核心负责。
+机器可验证的结构由 `schemas/v2.67/output-dashboard.schema.json` 定义，并由 `scripts/v267/output_dashboard.py` 进行确定性验证和渲染。外层 `任务、成员、进度、结果、Banchmark` 与终止字段合同仍由通用核心负责。

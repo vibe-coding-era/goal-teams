@@ -127,7 +127,7 @@ class TestV263CandidateRegistry(unittest.TestCase):
 
     def test_default_loader_uses_active_only_and_predecessor_window_is_closed(self) -> None:
         active = json.loads((REPO / ACTIVE_PATH).read_text(encoding="utf-8"))
-        self.assertIn(active["generation_id"], {"V2.65", "V2.66"})
+        self.assertIn(active["generation_id"], {"V2.65", "V2.66", "V2.67"})
         if active["generation_id"] == "V2.66":
             generation = load_generation(REPO)
             self.assertEqual("V2.66", generation["generation_id"])

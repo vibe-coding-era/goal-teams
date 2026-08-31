@@ -81,7 +81,7 @@ def derive_route(
 
     if not isinstance(facts, Mapping):
         _fail("E_V263_ROUTE_FACTS", "facts must be an object")
-    if generation_id not in {"V2.63", "V2.65", "V2.66"}:
+    if generation_id not in {"V2.63", "V2.65", "V2.66", "V2.67"}:
         _fail("E_V263_ROUTE_FACTS", "unsupported derivation generation")
     if "route_id" in facts or "derived_route" in facts:
         _fail(

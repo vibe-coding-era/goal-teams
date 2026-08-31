@@ -9,9 +9,9 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class TestV250VersionMigration(unittest.TestCase):
-    def test_v266_current_identity_is_complete_and_predecessors_are_not_default(self) -> None:
+    def test_v267_current_identity_is_complete_and_predecessors_are_not_default(self) -> None:
         self.assertEqual(
-            "V2.66",
+            "V2.67",
             (ROOT / "VERSION").read_text(encoding="utf-8").strip(),
         )
 
@@ -20,30 +20,30 @@ class TestV250VersionMigration(unittest.TestCase):
                 encoding="utf-8"
             )
         )
-        self.assertEqual("V2.66", active["generation_id"])
+        self.assertEqual("V2.67", active["generation_id"])
         self.assertEqual(
-            "references/current/generations/V2.66/activation-manifest.json",
+            "references/current/generations/V2.67/activation-manifest.json",
             active["activation_manifest"],
         )
 
         profile = json.loads(
-            (ROOT / "references/release-profiles/v2.66.json").read_text(
+            (ROOT / "references/release-profiles/v2.67.json").read_text(
                 encoding="utf-8"
             )
         )
-        self.assertEqual("V2.66", profile["version"])
-        self.assertEqual("v2.66", profile["tag"])
-        self.assertEqual("V2.65", profile["published_before"])
-        self.assertEqual("codex/develop-v2.66", profile["candidate_branch"])
+        self.assertEqual("V2.67", profile["version"])
+        self.assertEqual("v2.67", profile["tag"])
+        self.assertEqual("V2.66", profile["published_before"])
+        self.assertEqual("codex/develop-v2.67", profile["candidate_branch"])
 
         for relative in (
-            "references/current/generations/V2.66/activation-manifest.json",
+            "references/current/generations/V2.67/activation-manifest.json",
             "schemas/v2.50/release-control.schema.json",
             "scripts/v250/s4_executor.py",
             "tests/v250/test_s4_executor.py",
-            "schemas/v2.66/output-dashboard.schema.json",
-            "scripts/v266/output_dashboard.py",
-            "tests/v266/test_output_contract.py",
+            "schemas/v2.67/output-dashboard.schema.json",
+            "scripts/v267/output_dashboard.py",
+            "tests/v267/test_output_contract.py",
         ):
             self.assertTrue((ROOT / relative).is_file(), relative)
 
@@ -55,13 +55,13 @@ class TestV250VersionMigration(unittest.TestCase):
             for line in package_manifest.splitlines()
             if line and not line.startswith("#")
         }
-        self.assertIn("prefix references/current/generations/V2.66/", package_lines)
+        self.assertIn("prefix references/current/generations/V2.67/", package_lines)
         self.assertIn("prefix schemas/v2.50/", package_manifest)
         self.assertIn("prefix scripts/v250/", package_manifest)
         self.assertIn("prefix tests/v250/", package_manifest)
-        self.assertIn("prefix schemas/v2.66/", package_lines)
-        self.assertIn("prefix scripts/v266/", package_lines)
-        self.assertIn("prefix tests/v266/", package_lines)
+        self.assertIn("prefix schemas/v2.67/", package_lines)
+        self.assertIn("prefix scripts/v267/", package_lines)
+        self.assertIn("prefix tests/v267/", package_lines)
 
         expected_shared_v265_runtime = {
             "file schemas/v2.65/context-bundle.schema.json",

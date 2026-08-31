@@ -371,6 +371,7 @@ def validate_v250_current(args: argparse.Namespace, product: str) -> None:
         "V2.63": "V2.62",
         "V2.65": "V2.63",
         "V2.66": "V2.65",
+        "V2.67": "V2.66",
     }
     expected_predecessor = predecessor_by_product.get(product)
     candidate_before_active = (
@@ -404,6 +405,8 @@ def validate_v250_current(args: argparse.Namespace, product: str) -> None:
         fail("activation manifest mixes product, policy, or execution identity")
     if product == "V2.66" and identity.get("execution_asset_generation") != "V2.65":
         fail("V2.66 activation must bind the V2.65 Graph execution contract")
+    if product == "V2.67" and identity.get("execution_asset_generation") != "V2.65":
+        fail("V2.67 activation must bind the V2.65 Graph execution contract")
     if candidate_before_active and activation.get("generation_state") != "inactive_candidate":
         fail(f"{product} pre-activation projection must remain inactive_candidate")
 
@@ -427,6 +430,15 @@ def validate_v250_current(args: argparse.Namespace, product: str) -> None:
         f"prefix tests/v{compact}/",
     ]
     if product == "V2.66":
+        package_markers.extend(
+            [
+                "file scripts/v265/graph_runtime.py",
+                "file scripts/v265/runtime_controller.py",
+                "file schemas/v2.65/graph-runtime.schema.json",
+                "Graph execution contract V2.65",
+            ]
+        )
+    if product == "V2.67":
         package_markers.extend(
             [
                 "file scripts/v265/graph_runtime.py",
@@ -494,11 +506,11 @@ def validate_v250_current(args: argparse.Namespace, product: str) -> None:
         predecessor = predecessor_by_product.get(product, "V2.6")
         candidate_states = (
             {"development_candidate_not_published", "v250_release_readiness"}
-            if product in {"V2.63", "V2.65", "V2.66"}
+            if product in {"V2.63", "V2.65", "V2.66", "V2.67"}
             else {"v250_release_readiness"}
         )
         unchanged_published_predecessor = (
-            product in {"V2.65", "V2.66"}
+            product in {"V2.65", "V2.66", "V2.67"}
             and published == predecessor
             and candidate_keys.isdisjoint(release)
         )
@@ -515,7 +527,7 @@ def validate_v250_current(args: argparse.Namespace, product: str) -> None:
         validate_published_identity(predecessor)
     release_readme = read("release/current/README.md")
     if product not in release_readme and not (
-        product in {"V2.65", "V2.66"}
+        product in {"V2.65", "V2.66", "V2.67"}
         and published == predecessor_by_product[product]
     ):
         fail(f"release/current README does not describe {product}")
@@ -561,9 +573,9 @@ def main() -> None:
         )
         raise SystemExit(2)
 
-    if product in {"V2.62", "V2.63", "V2.65", "V2.66"}:
+    if product in {"V2.62", "V2.63", "V2.65", "V2.66", "V2.67"}:
         validate_v250_current(args, product)
-        execution = "v2.50+v2.65-graph" if product == "V2.66" else "v2.50"
+        execution = "v2.50+v2.65-graph" if product in {"V2.66", "V2.67"} else "v2.50"
         print(
             "Version synchronization passed: "
             "mode="

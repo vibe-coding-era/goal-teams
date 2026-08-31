@@ -224,7 +224,7 @@ class TestV263DiscoverySnapshot(unittest.TestCase):
         self.assertEqual(1, observed_paths.count(ACTIVE_PATH))
         self.assertIs(first, second)
         self.assertIs(second, third)
-        self.assertEqual("V2.66", generation["generation_id"])
+        self.assertEqual("V2.67", generation["generation_id"])
         self.assertEqual(tuple(sorted(generation["member_digests"].items())), first.member_digests)
         with self.assertRaises(FrozenInstanceError):
             first.generation_id = "V2.66"  # type: ignore[misc]

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Goal Teams V2.67 runtime binding receipt",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "binding_run_id",
+    "captured_at",
+    "host_id",
+    "requested_model",
+    "resolved_model",
+    "connection_class",
+    "verification_state",
+    "route_refs",
+    "route_ref_digests",
+    "route_digest"
+  ],
+  "properties": {
+    "schema_version": {"const": "goal-teams-runtime-binding-v2.67-v1"},
+    "binding_run_id": {"type": "string", "minLength": 1, "maxLength": 256},
+    "captured_at": {"type": "string", "format": "date-time"},
+    "host_id": {"type": "string", "minLength": 1},
+    "requested_model": {"type": "string", "minLength": 1},
+    "resolved_model": {"type": "string", "minLength": 1},
+    "connection_class": {
+      "enum": ["direct_responses", "direct_anthropic", "bridge_required", "unsupported_direct"]
+    },
+    "verification_state": {
+      "enum": ["not_run", "documented_only", "contract_mapped_not_runtime_verified", "runtime_passed", "blocked", "failed", "stale", "invalid"]
+    },
+    "route_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "route_ref_digests": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "sha256"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "route_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": true
+}
