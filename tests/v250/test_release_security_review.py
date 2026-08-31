@@ -11,11 +11,11 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from scripts.v250 import release_flow
+from scripts.v267 import release_flow
 
 
 ROOT = Path(__file__).resolve().parents[2]
-RUNNER_PATH = ROOT / "scripts/checks/run-v250-release-security-review.py"
+RUNNER_PATH = ROOT / "scripts/checks/run-v267-release-security-review.py"
 
 
 def load_runner():

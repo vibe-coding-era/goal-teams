@@ -157,21 +157,15 @@ class TestWorkflowSSHContract(unittest.TestCase):
 
 
 class TestReleaseWorkflowSequence(unittest.TestCase):
-    def test_released_runtime_adapter_binds_external_handoff_and_fresh_child(self) -> None:
+    def test_released_runtime_adapter_binds_local_predecessor_observation_and_fresh_child(self) -> None:
         workflow = text(".github/workflows/release-gate.yml")
         self.assertIn("Materialize the exact trusted Release route receipt", workflow)
         self.assertIn("derive_route(project_route_facts)", workflow)
         self.assertIn("compile_derived_route_closure", workflow)
         self.assertNotIn("compile_route_closure", workflow)
-        self.assertIn("controller_handoff_receipt_json", workflow)
-        self.assertIn(
-            "Materialize the installed V2.66 host-issued V2.67 controller handoff",
-            workflow,
-        )
-        self.assertNotIn("V2.67 host-signed controller handoff", workflow)
-        self.assertIn("Verify the pinned GitHub owner public key before host launch", workflow)
-        self.assertIn("https://api.github.com/users/vibe-coding-era/keys", workflow)
-        self.assertIn("scripts/v267/runtime_host_adapter.py verify-github-key", workflow)
+        self.assertNotIn("controller_handoff_receipt_json", workflow)
+        self.assertNotIn("Verify the pinned GitHub owner public key before host launch", workflow)
+        self.assertNotIn("verify-github-key", workflow)
         adapter = workflow.index("scripts/v267/runtime_host_adapter.py launch")
         checker = workflow.index("python3 scripts/checks/check-v267.py", adapter)
         self.assertLess(adapter, checker)
@@ -181,12 +175,12 @@ class TestReleaseWorkflowSequence(unittest.TestCase):
             '--derived-route-receipt "${RUNNER_TEMP}/release-route-derived.json"',
             '--route-receipt "${RUNNER_TEMP}/release-route-receipt.json"',
             '--authorization-receipt "${RUNNER_TEMP}/authorization.json"',
-            '--controller-handoff-receipt "${RUNNER_TEMP}/controller-handoff.json"',
             '--host-execution-id "${GITHUB_RUN_ID}"',
             "--adapter-identity github-actions-release-host-adapter",
             "--adapter-code scripts/v267/runtime_host_adapter.py",
         ):
             self.assertIn(option, workflow)
+        self.assertNotIn("--controller-handoff-receipt", workflow)
         for forbidden in (
             "--controller-version",
             "--previous-controller-version",

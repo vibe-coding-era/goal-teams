@@ -190,6 +190,36 @@ class TestV267ReleaseRuntimeTransition(unittest.TestCase):
                 )
         self.assertTrue(verdict["ok"], verdict["errors"])
 
+    def test_authorized_local_predecessor_observation_needs_no_ssh_signature(self) -> None:
+        runtime = self._runtime()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self._write_predecessor_contract(runtime, root, PUBLISHED_V266_IDENTITY)
+            authorization = {
+                "authorization_id": "AUTH-V267-LOCAL",
+                "intent_sha256": "a" * 64,
+            }
+            observation = runtime.build_authorized_local_predecessor_observation(
+                source_commit="1" * 40,
+                source_tree="2" * 40,
+                authorization=authorization,
+                authorization_receipt_sha256="b" * 64,
+                root=root,
+                issued_at="2026-08-26T08:00:00+00:00",
+            )
+            verdict = runtime.validate_controller_handoff(
+                observation,
+                expected_source_commit="1" * 40,
+                expected_source_tree="2" * 40,
+                expected_authorization_id=authorization["authorization_id"],
+                expected_authorization_receipt_sha256="b" * 64,
+                expected_authorization_intent_sha256="a" * 64,
+                validation_time=VALIDATION_TIME,
+                root=root,
+            )
+        self.assertTrue(verdict["ok"], verdict["errors"])
+        self.assertTrue(verdict["local_observation"])
+
     def test_resealed_v263_or_tampered_v266_controller_is_rejected(self) -> None:
         runtime = self._runtime()
         for case in ("v263", "release_id", "source_commit", "state_sha256"):

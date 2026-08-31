@@ -23,10 +23,6 @@ on:
         description: Complete V2.67 project-start authorization receipt JSON; required only for release.
         required: false
         type: string
-      controller_handoff_receipt_json:
-        description: Installed V2.66 host-issued V2.67 controller handoff JSON; required only for release.
-        required: false
-        type: string
 
 permissions:
   contents: read
@@ -284,32 +280,6 @@ jobs:
               json.dumps(value, ensure_ascii=False, sort_keys=True), encoding="utf-8"
           )
           PY
-      - name: Materialize the installed V2.66 host-issued V2.67 controller handoff
-        id: controller_handoff
-        if: steps.release-version.outputs.release == 'true'
-        env:
-          CONTROLLER_HANDOFF_RECEIPT_JSON: ${{ inputs.controller_handoff_receipt_json }}
-        run: |
-          python3 - <<'PY'
-          import json
-          import os
-          from pathlib import Path
-
-          raw = os.environ.get("CONTROLLER_HANDOFF_RECEIPT_JSON", "")
-          value = json.loads(raw)
-          if not isinstance(value, dict):
-              raise SystemExit("E_V250_CONTROLLER_HANDOFF_REQUIRED")
-          Path(os.environ["RUNNER_TEMP"], "controller-handoff.json").write_text(
-              json.dumps(
-                  value,
-                  ensure_ascii=False,
-                  sort_keys=True,
-                  separators=(",", ":"),
-              )
-              + "\n",
-              encoding="utf-8",
-          )
-          PY
       - name: Materialize the exact trusted Release route receipt
         id: release_route
         if: steps.release-version.outputs.release == 'true'
@@ -410,21 +380,6 @@ jobs:
           write_json("release-route-derived.json", derived_route)
           write_json("release-route-receipt.json", receipt)
           PY
-      - name: Verify the pinned GitHub owner public key before host launch
-        id: github_owner_key
-        if: steps.release-version.outputs.release == 'true'
-        run: |
-          curl \
-            --fail \
-            --silent \
-            --show-error \
-            --header 'Accept: application/vnd.github+json' \
-            --header 'X-GitHub-Api-Version: 2022-11-28' \
-            https://api.github.com/users/vibe-coding-era/keys \
-            > "${RUNNER_TEMP}/github-owner-keys.json"
-          python3 scripts/v267/runtime_host_adapter.py verify-github-key \
-            --github-keys "${RUNNER_TEMP}/github-owner-keys.json" \
-            > "${RUNNER_TEMP}/github-owner-key-validation.json"
       - name: Launch fresh released runtime through the external host adapter before S0
         id: runtime_transition
         if: steps.release-version.outputs.release == 'true'
@@ -440,7 +395,6 @@ jobs:
             --derived-route-receipt "${RUNNER_TEMP}/release-route-derived.json" \
             --route-receipt "${RUNNER_TEMP}/release-route-receipt.json" \
             --authorization-receipt "${RUNNER_TEMP}/authorization.json" \
-            --controller-handoff-receipt "${RUNNER_TEMP}/controller-handoff.json" \
             --host-execution-id "${GITHUB_RUN_ID}" \
             --adapter-identity github-actions-release-host-adapter \
             --adapter-code scripts/v267/runtime_host_adapter.py \
@@ -673,8 +627,6 @@ jobs:
           mkdir -p "${receipt_root}" "${diagnostic_root}/observed_outputs"
           formal_receipt_names=(
             authorization.json
-            controller-handoff.json
-            github-owner-key-validation.json
             release-route-facts.json
             release-route-derived.json
             release-route-receipt.json
@@ -727,9 +679,7 @@ jobs:
             --workflow-run-attempt "${GITHUB_RUN_ATTEMPT}" \
             --gate-outcome "identity=${{ steps.identity.outcome }}" \
             --gate-outcome "authorization=${{ steps.authorization.outcome }}" \
-            --gate-outcome "controller_handoff=${{ steps.controller_handoff.outcome }}" \
             --gate-outcome "release_route=${{ steps.release_route.outcome }}" \
-            --gate-outcome "github_owner_key=${{ steps.github_owner_key.outcome }}" \
             --gate-outcome "runtime_transition=${{ steps.runtime_transition.outcome }}" \
             --gate-outcome "s1=${{ steps.s1.outcome }}" \
             --gate-outcome "s2_build=${{ steps.s2_build.outcome }}" \

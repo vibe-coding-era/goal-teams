@@ -81,16 +81,12 @@ class TestV263ReleaseWorkflowRoute(unittest.TestCase):
         ):
             self.assertIn(receipt, workflow)
 
-    def test_installed_controller_handoff_identity_is_v266(self) -> None:
+    def test_authorized_local_predecessor_observation_replaces_handoff_input(self) -> None:
         workflow = workflow_text()
-        self.assertIn(
-            "Materialize the installed V2.66 host-issued V2.67 controller handoff",
-            workflow,
-        )
-        self.assertNotIn(
-            "Materialize the installed V2.63 host-issued V2.67 controller handoff",
-            workflow,
-        )
+        self.assertNotIn("controller_handoff_receipt_json", workflow)
+        self.assertNotIn("controller-handoff.json", workflow)
+        self.assertNotIn("verify-github-key", workflow)
+        self.assertIn("runtime_host_adapter.py launch", workflow)
 
     def test_each_workflow_step_has_unique_mapping_keys(self) -> None:
         workflow = workflow_text()

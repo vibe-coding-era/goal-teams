@@ -112,7 +112,7 @@ class TestV250RuntimeCLI(unittest.TestCase):
         ):
             self.assertNotIn(forbidden, result.stdout)
 
-    def test_host_adapter_cli_has_launch_and_read_only_key_verification(self) -> None:
+    def test_host_adapter_cli_has_launch_without_key_verification_requirement(self) -> None:
         result = subprocess.run(
             ["python3", "scripts/v267/runtime_host_adapter.py", "--help"],
             cwd=ROOT,
@@ -122,7 +122,7 @@ class TestV250RuntimeCLI(unittest.TestCase):
         )
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertIn("launch", result.stdout)
-        self.assertIn("verify-github-key", result.stdout)
+        self.assertNotIn("verify-github-key", result.stdout)
 
     def test_host_adapter_declares_v262_to_v263_runtime_handoff(self) -> None:
         adapter_source = (ROOT / "scripts/v267/runtime_host_adapter.py").read_text(

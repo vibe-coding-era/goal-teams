@@ -56,7 +56,8 @@
 - repository boundary 是独立只读门禁，不得表述成 S2 安全或可复现结果。
 - 正式 S0 前必须有 exact released SHA 的 fresh runtime transition receipt；receipt 必须绑定 root
   `AGENTS.md`/`SKILL.md`、ACTIVE/activation、Prompt/release/route/command manifests、可信 route 与
-  `project_size`、项目起始授权 lineage、host adapter code digest、transition 前 controller product
+  `project_size`、项目起始授权 lineage、host adapter code digest、一次授权绑定的本地已安装 V2.66 状态、
+  transition 前 controller product
   version `V2.66`、fresh loaded runtime product version `V2.67`、前后 run ID、
   `captured_at` 和实际 Current `loaded_paths`/digests。
 
@@ -83,7 +84,6 @@ python3 scripts/v267/runtime_host_adapter.py launch --stage released \
   --derived-route-receipt <trusted-derived-route-receipt.json> \
   --route-receipt <trusted-route-receipt.json> \
   --authorization-receipt <project-start-authorization-receipt.json> \
-  --controller-handoff-receipt <externally-issued-v267-controller-handoff.json> \
   --host-execution-id <external-host-execution-id> \
   --adapter-identity <host-adapter-id> \
   --adapter-code scripts/v267/runtime_host_adapter.py \
