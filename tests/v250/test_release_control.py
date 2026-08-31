@@ -727,8 +727,6 @@ def checkpoint_fixture(root: Path) -> tuple[Path, Path, dict[str, str]]:
     }
     values = {
         "authorization.json": auth,
-        "controller-handoff.json": {},
-        "github-owner-key-validation.json": {},
         "release-route-facts.json": route_facts,
         "release-route-derived.json": derived_route,
         "release-route-receipt.json": route_closure,
@@ -776,7 +774,7 @@ def checkpoint_fixture(root: Path) -> tuple[Path, Path, dict[str, str]]:
             json.dumps(value, sort_keys=True), encoding="utf-8"
         )
     outcomes = {
-        phase: "success" for phase in skill_release.V250_CONTINUATION_PHASE_ORDER
+        phase: "success" for phase in skill_release.V267_CONTINUATION_PHASE_ORDER
     }
     return receipt_root, release_root, outcomes
 
@@ -1295,7 +1293,7 @@ class TestV250ReleaseControl(unittest.TestCase):
             self.assertEqual([], checkpoint["missing_files"])
             self.assertEqual(4, len(checkpoint["public_assets"]))
             self.assertEqual(
-                set(skill_release.V263_CONTINUATION_FORMAL_RECEIPTS),
+                set(skill_release.V267_CONTINUATION_FORMAL_RECEIPTS),
                 set(checkpoint["formal_files"]),
             )
             self.assertTrue(checkpoint["resumable_without_rebuild"])
@@ -1569,7 +1567,7 @@ class TestV250ReleaseControl(unittest.TestCase):
     def test_non_large_checkpoint_requires_large_s3_steps_to_be_skipped(self) -> None:
         outcomes = {
             phase: "success"
-            for phase in skill_release.V250_CONTINUATION_PHASE_ORDER
+            for phase in skill_release.V267_CONTINUATION_PHASE_ORDER
         }
         self.assertIn(
             "E_V267_CHECKPOINT_GATE_OUTCOME",

@@ -205,6 +205,16 @@ V263_CONTINUATION_FORMAL_RECEIPTS = (
     )
     + V249_CONTINUATION_FORMAL_RECEIPTS[_ROUTE_RECEIPT_INDEX:]
 )
+V267_CONTINUATION_FORMAL_RECEIPTS = tuple(
+    name
+    for name in V263_CONTINUATION_FORMAL_RECEIPTS
+    if name not in {"controller-handoff.json", "github-owner-key-validation.json"}
+)
+V267_CONTINUATION_PHASE_ORDER = tuple(
+    phase
+    for phase in V249_CONTINUATION_PHASE_ORDER
+    if phase not in {"controller_handoff", "github_owner_key"}
+)
 V263_CONTINUATION_ASSET_NAMES = continuation_asset_names("V2.65")
 V265_CONTINUATION_ASSET_NAMES = continuation_asset_names("V2.65")
 V266_CONTINUATION_ASSET_NAMES = continuation_asset_names("V2.66")
@@ -216,8 +226,10 @@ def continuation_formal_receipts(version: str) -> tuple[str, ...]:
 
     _version_digits(version)
     return (
-        V263_CONTINUATION_FORMAL_RECEIPTS
-        if version in {"V2.63", "V2.65", "V2.66", "V2.67"}
+        V267_CONTINUATION_FORMAL_RECEIPTS
+        if version == "V2.67"
+        else V263_CONTINUATION_FORMAL_RECEIPTS
+        if version in {"V2.63", "V2.65", "V2.66"}
         else V249_CONTINUATION_FORMAL_RECEIPTS
     )
 
@@ -1714,10 +1726,15 @@ def _checkpoint_gate_errors(
     gate_outcomes: Mapping[str, str],
     version: str = "V2.49",
 ) -> list[str]:
-    if set(gate_outcomes) != set(V249_CONTINUATION_PHASE_ORDER):
+    phase_order = (
+        V267_CONTINUATION_PHASE_ORDER
+        if version == "V2.67"
+        else V249_CONTINUATION_PHASE_ORDER
+    )
+    if set(gate_outcomes) != set(phase_order):
         return [_version_error(version, "CHECKPOINT_GATE_OUTCOME_SET")]
     errors: list[str] = []
-    for phase in V249_CONTINUATION_PHASE_ORDER:
+    for phase in phase_order:
         outcome = gate_outcomes[phase]
         if outcome not in {"success", "failure", "skipped", "cancelled"}:
             errors.append(_version_error(version, "CHECKPOINT_GATE_OUTCOME_VALUE"))
@@ -1834,8 +1851,10 @@ def _v249_checkpoint_receipt_binding_errors(
     errors: list[str] = []
     if any(control.get(key) != value for key, value in bindings.items()):
         errors.append(_version_error(version, "CHECKPOINT_RECEIPT_BINDING"))
-    if runtime.get("controller_handoff_receipt") != receipt_values.get(
-        "controller-handoff.json"
+    if (
+        version != "V2.67"
+        and runtime.get("controller_handoff_receipt")
+        != receipt_values.get("controller-handoff.json")
     ):
         errors.append(_version_error(version, "CHECKPOINT_CONTROLLER_BINDING"))
     return errors
@@ -2097,10 +2116,15 @@ def build_v249_continuation_checkpoint(
         and required_assets_present
         else "diagnostic_partial"
     )
+    phase_order = (
+        V267_CONTINUATION_PHASE_ORDER
+        if version == "V2.67"
+        else V249_CONTINUATION_PHASE_ORDER
+    )
     first_failed_phase = next(
         (
             phase
-            for phase in V249_CONTINUATION_PHASE_ORDER
+            for phase in phase_order
             if gate_outcomes.get(phase) in {"failure", "cancelled"}
         ),
         None,
@@ -2140,7 +2164,7 @@ def build_v249_continuation_checkpoint(
         "workflow_run_attempt": workflow_run_attempt,
         "gate_outcomes": {
             phase: gate_outcomes.get(phase)
-            for phase in V249_CONTINUATION_PHASE_ORDER
+            for phase in phase_order
         },
         "first_failed_phase": first_failed_phase,
         "failure_outcome": failure_outcome,
