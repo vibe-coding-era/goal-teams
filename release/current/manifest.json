@@ -51,4 +51,7 @@
     "kg_trace_truncated_match_count": "discovered_lower_bound_not_total_reachable_edges"
   },
   "status": "release"
+  ,"candidate_product_version": "V2.67"
+  ,"candidate_release_state": "development_candidate_not_published"
+  ,"candidate_profile": "references/release-profiles/v2.67.json"
 }

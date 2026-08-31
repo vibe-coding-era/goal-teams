@@ -55,7 +55,7 @@ jobs:
             "require('ajv/dist/2020')"
           echo "PYTHONPATH=${VALIDATOR_PYTHON_PREFIX}${PYTHONPATH:+:${PYTHONPATH}}" >> "${GITHUB_ENV}"
           echo "NODE_PATH=${VALIDATOR_NODE_PREFIX}/node_modules${NODE_PATH:+:${NODE_PATH}}" >> "${GITHUB_ENV}"
-      - name: Active V2.66 pre-release exact Development gate
+      - name: Active V2.67 pre-release exact Development gate
         env:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
@@ -132,12 +132,12 @@ jobs:
             tests.v250.test_v265_generation_validator_selection \
             tests.v250.test_v265_prompt_manifest_state \
             tests.v250.test_workflow_release_contract \
-            tests.v266.test_output_contract \
-            tests.v266.test_release_gate_denominator \
-            tests.v266.test_release_manifest_closure \
-            tests.v266.test_release_runtime_transition \
-            tests.v266.test_s4_workflow_contract \
-            tests.v266.test_version_candidate
+            tests.v267.test_output_contract \
+            tests.v267.test_release_gate_denominator \
+            tests.v267.test_release_manifest_closure \
+            tests.v267.test_release_runtime_transition \
+            tests.v267.test_s4_workflow_contract \
+            tests.v267.test_version_candidate
           published_version="$(
             python3 - <<'PY'
           import json
@@ -160,9 +160,9 @@ jobs:
             --mode development \
             --published-version "${published_version}"
           python3 scripts/checks/validate-v250-generation.py \
-            --generation-id V2.66 \
+            --generation-id V2.67 \
             --selection active
-          python3 scripts/checks/check-v266.py \
+          python3 scripts/checks/check-v267.py \
             --phase development \
             --project-size medium \
             --stage candidate

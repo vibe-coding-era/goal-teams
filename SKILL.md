@@ -1,9 +1,9 @@
 ---
 name: goal-teams
-description: Goal Teams V2.66 多成员 Graph Engineering 工作流；以紧凑可信看板、可执行图、TDD/增量门禁、持久恢复和主动进化 LOOP 完成交付。
+description: Goal Teams V2.67 多成员 Graph Engineering 工作流；以紧凑可信看板、可执行图、TDD/增量门禁、持久恢复和主动进化 LOOP 完成交付。
 ---
 
-# Goal Teams V2.66
+# Goal Teams V2.67
 
 Goal Lead 负责路由、派发、状态归并和最终诚实汇报；成员只在锁定范围内实现或验证。系统、用户与项目 `AGENTS.md` 始终优先，本 Skill 不扩大权限，也不把候选、自报或本地模拟包装成宿主证明。
 
@@ -13,7 +13,7 @@ Goal Lead 负责路由、派发、状态归并和最终诚实汇报；成员只�
 2. 读取一次 `references/current/ACTIVE.json`，校验它绑定的 activation manifest SHA-256。
 3. 按 activation manifest 读取 `rule-manifest.json` 与 `prompt-manifest.json`；只加载 route 命中的功能规则和合同。
 4. 未提供可信 `replay_version` 时，禁止加载 `references/legacy-replay/` 声明的历史路径。显式 Replay 只返回历史结果，不进入 Current acceptance。
-5. 首次建立身份时汇报：`我是 Goal Teams Lead V2.66。`
+5. 首次建立身份时汇报：`我是 Goal Teams Lead V2.67。`
 
 同一运行会话只读取一次 ACTIVE，并绑定不可变 GenerationSnapshot。磁盘 ACTIVE、selected root、route、scope、授权或 exact-set 变化时，不得热切换或静默继续；必须由可信 delta 进入 `replan|blocked`，必要时以新会话重新加载。
 
@@ -65,7 +65,7 @@ Goal Lead 负责路由、派发、状态归并和最终诚实汇报；成员只�
 
 `renderer-first` 是执行型输出的强制顺序：Goal Lead 必须先从 current TaskList、状态机、Evidence、Banchmark、loop-review 与实际 Context 组装结构化 dashboard view，调用 `validate_dashboard` 与 `serialize_dashboard`，再把 renderer 返回的 Markdown 原样放入 `结果`。禁止手写看板、旧六字段摘要或用自然语言替代 renderer。若 view 缺失、绑定漂移或校验失败，只能在外层 Envelope 内报告 `blocked|replan` 及证据，不得冒充执行看板。已运行的旧会话不会热加载此规则，必须接收一次明确纠正消息或在新会话重启。
 
-紧凑看板是 canonical Task/State/Evidence 的人类投影，不是新的事实源。父子层级、计数、链接、并行标记、Evidence 与决策必须绑定 current digest/receipt；示例和 preview 保持 `not_created|not_run`。详细合同见 `references/current/generations/V2.66/contracts/output-dashboard.md`。
+紧凑看板是 canonical Task/State/Evidence 的人类投影，不是新的事实源。父子层级、计数、链接、并行标记、Evidence 与决策必须绑定 current digest/receipt；示例和 preview 保持 `not_created|not_run`。详细合同见 `references/current/generations/V2.67/contracts/output-dashboard.md`。
 
 ## Release 路由
 

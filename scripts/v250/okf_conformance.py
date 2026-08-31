@@ -27,7 +27,7 @@ PACKAGE_MANIFEST_SCHEMA = "goal-teams-okf-conformance-manifest-v2.39"
 DEFAULT_POLICY_PATH = "references/okf-conformance-policy.json"
 DEFAULT_PACKAGE_MANIFEST_PATH = "references/okf-conformance-manifest.json"
 V250_RUNTIME_PRODUCT_VERSIONS = frozenset(
-    {"V2.50", "V2.52", "V2.6", "V2.62", "V2.63", "V2.65", "V2.66"}
+    {"V2.50", "V2.52", "V2.6", "V2.62", "V2.63", "V2.65", "V2.66", "V2.67"}
 )
 V23_RUNTIME_PRODUCT_VERSIONS = frozenset({"V2.39"})
 

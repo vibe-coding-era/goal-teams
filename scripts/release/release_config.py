@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Load closed, Git-tracked release identities.
 
-V2.66 is the active Skill release profile used by ``skill_release.py``.
-V2.65 is the published predecessor; V2.50 remains the rollback baseline.
+V2.67 is the active Skill release profile used by ``skill_release.py``.
+V2.66 is the published predecessor; V2.50 remains the rollback baseline.
 V2.46 keeps the governed CP00-CP18 engine; earlier versions are replay-only.
 """
 
@@ -18,7 +18,7 @@ from typing import Any
 
 SCHEMA_VERSION = "goal-teams-release-engine-profile-v1"
 PROTOCOL_VERSION = "V2.40"
-ACTIVE_VERSION = "V2.66"
+ACTIVE_VERSION = "V2.67"
 NEXT_VERSION = None
 ROOT = Path(__file__).resolve().parents[2]
 PROFILE_BY_VERSION = {
@@ -35,6 +35,7 @@ PROFILE_BY_VERSION = {
     "V2.63": ROOT / "references" / "release-profiles" / "v2.63.json",
     "V2.65": ROOT / "references" / "release-profiles" / "v2.65.json",
     "V2.66": ROOT / "references" / "release-profiles" / "v2.66.json",
+    "V2.67": ROOT / "references" / "release-profiles" / "v2.67.json",
 }
 PREDECESSOR_BY_VERSION = {
     "V2.40": None,
@@ -50,6 +51,7 @@ PREDECESSOR_BY_VERSION = {
     "V2.63": "V2.62",
     "V2.65": "V2.63",
     "V2.66": "V2.65",
+    "V2.67": "V2.66",
 }
 HOST_ACCEPTANCE_VERSIONS = {"V2.44", "V2.45", "V2.46"}
 REQUIRED_FIELDS = {
@@ -134,6 +136,7 @@ CURRENT_SIMPLE_VERSIONS = {
     "V2.63",
     "V2.65",
     "V2.66",
+    "V2.67",
 }
 VERSION_RE = re.compile(r"^V[0-9]+\.[0-9]+$")
 CANDIDATE_RE = re.compile(r"^develops/[a-z0-9][a-z0-9._-]*$")
@@ -164,7 +167,7 @@ def _load_profile(version: str) -> dict[str, Any]:
     )
     expected_fields = (
         V263_FIELDS
-        if simple_mode and version in {"V2.63", "V2.65", "V2.66"}
+        if simple_mode and version in {"V2.63", "V2.65", "V2.66", "V2.67"}
         else V249_FIELDS
         if simple_mode and version in CURRENT_SIMPLE_VERSIONS
         else SIMPLE_FIELDS
@@ -233,6 +236,7 @@ def _load_profile(version: str) -> dict[str, Any]:
             "V2.63": "codex/develop-v2.63",
             "V2.65": "codex/develop-v2.65",
             "V2.66": "codex/develop-v2.66",
+            "V2.67": "codex/develop-v2.67",
         }[version]
         lowercase_version = version.lower()
         if (
@@ -276,7 +280,7 @@ def _load_profile(version: str) -> dict[str, Any]:
                 "public-asset-map.json"
             )
             or (
-                version in {"V2.63", "V2.65", "V2.66"}
+                version in {"V2.63", "V2.65", "V2.66", "V2.67"}
                 and (
                     value.get("core_policy_version") != "V2.5"
                     or value.get("legacy_data_schema_version") != "V2.3"

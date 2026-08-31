@@ -38,7 +38,10 @@ CORE_POLICY_VERSION = "V2.5"
 LEGACY_DATA_SCHEMA_VERSION = "V2.3"
 DEFAULT_ACTIVE_LOCK_TIMEOUT_SECONDS = 10.0
 MAX_ACTIVE_LOCK_TIMEOUT_SECONDS = 300.0
-EXECUTION_ASSET_GENERATION_BY_POLICY = {"V2.66": "V2.65"}
+EXECUTION_ASSET_GENERATION_BY_POLICY = {
+    "V2.66": "V2.65",
+    "V2.67": "V2.65",
+}
 V266_SHARED_EXECUTION_SCRIPTS = {
     "scripts/v265/__init__.py",
     "scripts/v265/canonical.py",
@@ -53,6 +56,28 @@ V266_SHARED_EXECUTION_SCRIPTS = {
     "scripts/v265/runtime_store.py",
 }
 V266_SHARED_EXECUTION_SCHEMAS = {
+    "schemas/v2.65/context-bundle.schema.json",
+    "schemas/v2.65/graph-contract.schema.json",
+    "schemas/v2.65/graph-runtime.schema.json",
+    "schemas/v2.65/host-capability.schema.json",
+    "schemas/v2.65/loop-coordinator.schema.json",
+    "schemas/v2.65/loop-review.schema.json",
+    "schemas/v2.65/member-packet.schema.json",
+}
+V267_SHARED_EXECUTION_SCRIPTS = {
+    "scripts/v265/__init__.py",
+    "scripts/v265/canonical.py",
+    "scripts/v265/context_compiler.py",
+    "scripts/v265/graph_contract.py",
+    "scripts/v265/graph_runtime.py",
+    "scripts/v265/host_adapter.py",
+    "scripts/v265/loop_coordinator.py",
+    "scripts/v265/loop_review.py",
+    "scripts/v265/member_packet.py",
+    "scripts/v265/runtime_controller.py",
+    "scripts/v265/runtime_store.py",
+}
+V267_SHARED_EXECUTION_SCHEMAS = {
     "schemas/v2.65/context-bundle.schema.json",
     "schemas/v2.65/graph-contract.schema.json",
     "schemas/v2.65/graph-runtime.schema.json",
@@ -192,7 +217,7 @@ def _refreshed_prompt_manifest(paths: dict[str, Path], generation_id: str) -> di
     value["manifest_state"] = (
         "active_current" if value.get("manifest_state") == "active_current" else "inactive_candidate"
     )
-    if generation_id in {"V2.63", "V2.65", "V2.66"}:
+    if generation_id in {"V2.63", "V2.65", "V2.66", "V2.67"}:
         value["path_deduplication_rule"] = "reject_duplicate_repo_relative_posix_paths"
     routes = value.get("routes")
     if not isinstance(routes, dict) or not routes:
@@ -498,6 +523,14 @@ def _refreshed_activation(
                     "scripts/checks/run-v266-release-security-review.py",
                 }
             )
+        elif generation_id == "V2.67":
+            execution.update(
+                V267_SHARED_EXECUTION_SCRIPTS
+                | {
+                    "scripts/checks/check-v267.py",
+                    "scripts/checks/run-v267-release-security-review.py",
+                }
+            )
         execution.update(
             {
                 "scripts/check.sh",
@@ -527,6 +560,8 @@ def _refreshed_activation(
         )
         if generation_id == "V2.66":
             schemas.update(V266_SHARED_EXECUTION_SCHEMAS)
+        elif generation_id == "V2.67":
+            schemas.update(V267_SHARED_EXECUTION_SCHEMAS)
     root_sets = {
         "bootstrap": [_member(relative, virtual) for relative in sorted(bootstrap)],
         "current": [_member(relative, virtual) for relative in sorted(current)],
@@ -984,7 +1019,7 @@ def _derive_projection(
 ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
     rule = _refreshed_rule_manifest(paths, generation_id)
     prompt = _refreshed_prompt_manifest(paths, generation_id)
-    if generation_id in {"V2.63", "V2.65", "V2.66"}:
+    if generation_id in {"V2.63", "V2.65", "V2.66", "V2.67"}:
         from scripts.v250.semantic_closure import validate_route_controls
 
         for route in prompt["routes"].values():

@@ -183,7 +183,7 @@ def validate_generation(
                         generation,
                         route_id=route_id,
                     )
-                    if generation_id in {"V2.63", "V2.65", "V2.66"}
+                    if generation_id in {"V2.63", "V2.65", "V2.66", "V2.67"}
                     else compile_route_closure(root, generation, route_id)
                 )
             except RouteClosureError as exc:

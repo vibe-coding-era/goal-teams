@@ -1,4 +1,4 @@
-# Goal Teams 用户指定要求（Current V2.66）
+# Goal Teams 用户指定要求（Current V2.67）
 
 本文件记录当前代际的长期用户要求。规范语义由 `references/current/ACTIVE.json` 指向的功能 Owner 文档承载；历史版本只通过 Legacy Replay 查询，不参与 Current 优先级。
 
@@ -78,6 +78,6 @@
 ## Runtime 与可信边界
 
 - Candidate 可由候选外 fresh process 做 cutover/incremental transition，但不得启动正式 S0–S4。
-- 合并后必须从 exact released commit/tree 再启动 fresh V2.66 runtime；只有 released transition receipt 可进入 S0。
+- 合并后必须从 exact released commit/tree 再启动 fresh V2.67 runtime；只有 released transition receipt 可进入 S0。
 - 本地宿主适配器最多证明 I1 correlated fresh-process observation；不得冒充独立外部验收、密码学 attestation 或 Provider prompt 签名。
 - 若宿主 transition 不可用，记录 `fresh_runtime_transition_unavailable` 和可恢复 checkpoint，不回退旧 V2.48/V2.36 发行门禁，也不重复向用户授权。
