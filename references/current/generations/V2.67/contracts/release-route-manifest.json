@@ -51,15 +51,9 @@
   },
   "runtime_transition": {
     "released_receipt_required_before_s0": true,
-      "controller_handoff_source": "externally_issued_by_installed_v2.66_codex_host",
-    "controller_handoff_generation_inside_repository": "forbidden",
-    "controller_handoff_signature": {
-      "github_account": "vibe-coding-era",
-      "github_key_id": 152596014,
-      "public_key_fingerprint": "SHA256:fEM2bYLJFOSvNA78soiWLvrSUaWxANVr1HIVl6AAirE",
-      "namespace": "goal-teams-v2.67-controller-handoff"
-    },
-    "launch_contract": "popen_child_pid_then_stdin_launch_then_ack",
+    "predecessor_observation_source": "authorization_bound_local_installed_v2.66_state",
+    "cryptographic_handoff_signature_required": false,
+    "launch_contract": "authorization_bound_local_predecessor_observation_then_popen_child_pid_then_stdin_launch_then_ack",
     "minimum_actor_assurance": "I1",
     "actor_relationship": "correlated",
     "external_independence_required": false

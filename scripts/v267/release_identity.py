@@ -17,6 +17,9 @@ PREDECESSOR_RELEASE_TAG = "v2.66"
 REPOSITORY = "vibe-coding-era/goal-teams"
 
 HANDOFF_SCHEMA_VERSION = "goal-teams-v2.67-controller-handoff-receipt-v1"
+LOCAL_PREDECESSOR_OBSERVATION_SCHEMA_VERSION = (
+    "goal-teams-v2.67-local-predecessor-observation-v1"
+)
 LAUNCH_SCHEMA_VERSION = "goal-teams-v2.67-runtime-launch-receipt-v1"
 CHILD_ACK_SCHEMA_VERSION = "goal-teams-v2.67-runtime-child-ack-v1"
 TRANSITION_SCHEMA_VERSION = "goal-teams-v2.67-runtime-transition-receipt-v1"
@@ -64,6 +67,7 @@ __all__ = [
     "HANDOFF_SCHEMA_VERSION",
     "HANDOFF_SIGNATURE_NAMESPACE",
     "LAUNCH_SCHEMA_VERSION",
+    "LOCAL_PREDECESSOR_OBSERVATION_SCHEMA_VERSION",
     "POLICY_PROFILE_PATH",
     "PREDECESSOR_PRODUCT_VERSION",
     "PREDECESSOR_IDENTITY_SCHEMA_VERSION",

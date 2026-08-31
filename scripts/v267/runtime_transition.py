@@ -38,6 +38,7 @@ from scripts.v267.release_identity import (  # noqa: E402
     HANDOFF_SCHEMA_VERSION,
     HANDOFF_SIGNATURE_NAMESPACE,
     LAUNCH_SCHEMA_VERSION,
+    LOCAL_PREDECESSOR_OBSERVATION_SCHEMA_VERSION,
     POLICY_PROFILE_PATH,
     PREDECESSOR_IDENTITY_SCHEMA_VERSION,
     PREDECESSOR_PRODUCT_VERSION as PREVIOUS_CONTROLLER_PRODUCT_VERSION,
@@ -592,6 +593,49 @@ def _expected_installed_controller_state(
     return state
 
 
+def build_authorized_local_predecessor_observation(
+    *,
+    source_commit: str,
+    source_tree: str,
+    authorization: Mapping[str, Any],
+    authorization_receipt_sha256: str,
+    root: Path = ROOT,
+    issued_at: str | None = None,
+) -> dict[str, Any]:
+    """Create a non-cryptographic, authorization-bound predecessor observation.
+
+    This is intentionally only I1/correlated evidence: it replaces the former
+    external SSH-signature requirement, while retaining exact published V2.66
+    state and the one-time user authorization bindings.
+    """
+
+    identity = _load_previous_controller_release_identity(root)
+    installed = _expected_installed_controller_state(identity)
+    now = issued_at or dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
+    issued = _parse_timestamp(now, "E_V250_CONTROLLER_HANDOFF_TIME")
+    expires = (issued + dt.timedelta(minutes=10)).isoformat(timespec="seconds")
+    payload = {
+        "repository": REPOSITORY,
+        "source_commit": source_commit,
+        "source_tree": source_tree,
+        "authorization_id": authorization["authorization_id"],
+        "authorization_receipt_sha256": authorization_receipt_sha256,
+        "authorization_intent_sha256": authorization["intent_sha256"],
+        "previous_controller_product_version": PREVIOUS_CONTROLLER_PRODUCT_VERSION,
+        "previous_run_id": "V266-INSTALLED-STATE-" + installed["state_sha256"][:16],
+        "nonce": uuid.uuid4().hex,
+        "issued_at": issued.isoformat(timespec="seconds"),
+        "expires_at": expires,
+        "installed_v266_current_state": installed,
+        "observation_source": "authorized_local_installed_v266_state",
+    }
+    return {
+        "schema_version": LOCAL_PREDECESSOR_OBSERVATION_SCHEMA_VERSION,
+        "signed_payload": payload,
+        "payload_sha256": object_sha256(payload),
+    }
+
+
 def validate_controller_handoff(
     receipt: object,
     *,
@@ -615,16 +659,28 @@ def validate_controller_handoff(
             "payload": {},
         }
     value = receipt
-    expected_top_fields = {
+    local_observation = (
+        value.get("schema_version")
+        == LOCAL_PREDECESSOR_OBSERVATION_SCHEMA_VERSION
+    )
+    expected_top_fields = (
+        {"schema_version", "signed_payload", "payload_sha256"}
+        if local_observation
+        else {
         "schema_version",
         "signed_payload",
         "payload_sha256",
         "ssh_signature",
-    }
+        }
+    )
     _append_if(
         errors,
         set(value) != expected_top_fields
-        or value.get("schema_version") != HANDOFF_SCHEMA_VERSION,
+        or value.get("schema_version")
+        not in {
+            HANDOFF_SCHEMA_VERSION,
+            LOCAL_PREDECESSOR_OBSERVATION_SCHEMA_VERSION,
+        },
         "E_V250_CONTROLLER_HANDOFF_SCHEMA",
     )
     payload = value.get("signed_payload")
@@ -644,8 +700,11 @@ def validate_controller_handoff(
         "issued_at",
         "expires_at",
         "installed_v266_current_state",
-        "github_signing_identity",
     }
+    if local_observation:
+        expected_payload_fields.add("observation_source")
+    else:
+        expected_payload_fields.add("github_signing_identity")
     _append_if(
         errors,
         set(payload) != expected_payload_fields,
@@ -750,17 +809,25 @@ def validate_controller_handoff(
         "public_key_fingerprint",
         "ssh_signature_namespace",
     }
-    _append_if(
-        errors,
-        not isinstance(signer, dict)
-        or set(signer) != expected_signer_fields
-        or signer.get("account") != PINNED_GITHUB_ACCOUNT
-        or signer.get("key_id") != PINNED_GITHUB_KEY_ID
-        or signer.get("public_key") != PINNED_GITHUB_PUBLIC_KEY
-        or signer.get("public_key_fingerprint") != PINNED_GITHUB_FINGERPRINT
-        or signer.get("ssh_signature_namespace") != HANDOFF_SIGNATURE_NAMESPACE,
-        "E_V250_CONTROLLER_HANDOFF_SIGNER_DRIFT",
-    )
+    if local_observation:
+        _append_if(
+            errors,
+            payload.get("observation_source")
+            != "authorized_local_installed_v266_state",
+            "E_V250_CONTROLLER_HANDOFF_LOCAL_OBSERVATION",
+        )
+    else:
+        _append_if(
+            errors,
+            not isinstance(signer, dict)
+            or set(signer) != expected_signer_fields
+            or signer.get("account") != PINNED_GITHUB_ACCOUNT
+            or signer.get("key_id") != PINNED_GITHUB_KEY_ID
+            or signer.get("public_key") != PINNED_GITHUB_PUBLIC_KEY
+            or signer.get("public_key_fingerprint") != PINNED_GITHUB_FINGERPRINT
+            or signer.get("ssh_signature_namespace") != HANDOFF_SIGNATURE_NAMESPACE,
+            "E_V250_CONTROLLER_HANDOFF_SIGNER_DRIFT",
+        )
 
     claimed_payload_digest = value.get("payload_sha256")
     _append_if(
@@ -785,7 +852,9 @@ def validate_controller_handoff(
     except ValueError as exc:
         errors.append(str(exc))
 
-    if not _verify_handoff_signature(payload, str(value.get("ssh_signature", ""))):
+    if not local_observation and not _verify_handoff_signature(
+        payload, str(value.get("ssh_signature", ""))
+    ):
         errors.append("E_V250_CONTROLLER_HANDOFF_SIGNATURE")
 
     deduplicated = list(dict.fromkeys(errors))
@@ -795,6 +864,7 @@ def validate_controller_handoff(
         "errors": deduplicated,
         "payload": payload,
         "receipt_sha256": object_sha256(value),
+        "local_observation": local_observation,
     }
 
 
@@ -987,6 +1057,7 @@ def observe_transition(
         captured_at or str(runtime_launch_receipt.get("launched_at", ""))
     )
     input_digests = route["input_digests"]
+    local_observation = bool(handoff_verdict.get("local_observation"))
     receipt: dict[str, Any] = {
         "schema_version": TRANSITION_SCHEMA_VERSION,
         "transition_id": transition_id or f"V250-TRANSITION-{uuid.uuid4().hex}",
@@ -1019,7 +1090,7 @@ def observe_transition(
         "controller_handoff_receipt_sha256": object_sha256(
             controller_handoff_receipt
         ),
-        "controller_handoff_signature_verified": True,
+        "controller_handoff_signature_verified": not local_observation,
         "runtime_launch_receipt": copy.deepcopy(runtime_launch_receipt),
         "runtime_launch_receipt_sha256": object_sha256(runtime_launch_receipt),
         "host_execution_id": runtime_launch_receipt["host_execution_id"],
@@ -1408,7 +1479,8 @@ def validate_transition(
         _append_if(
             errors,
             value.get("controller_handoff_receipt_sha256") != object_sha256(handoff)
-            or value.get("controller_handoff_signature_verified") is not True,
+            or value.get("controller_handoff_signature_verified")
+            != (handoff.get("schema_version") != LOCAL_PREDECESSOR_OBSERVATION_SCHEMA_VERSION),
             "E_V250_CONTROLLER_HANDOFF_DIGEST",
         )
         handoff_verdict = validate_controller_handoff(

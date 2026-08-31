@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """External host adapter for the V2.66 -> V2.67 runtime handoff.
 
-This module never creates or signs a controller handoff.  It accepts the
-V2.67 receipt externally issued by the installed V2.66 host, verifies the
-pinned owner key, launches a fresh V2.67 child with ``Popen``, sends the
-launch contract only after the child PID exists, and verifies the child's
-acknowledgement.
+This module can derive an authorization-bound local predecessor observation
+from the exact installed V2.66 state. It never reads a private key or claims
+external independence; it launches a fresh V2.67 child with ``Popen``,
+sends the launch contract only after the child PID exists, and verifies the
+child's acknowledgement.
 """
 
 from __future__ import annotations
@@ -42,6 +42,7 @@ from scripts.v267.runtime_transition import (
     _load_authorization,
     _path_label,
     _sha256,
+    build_authorized_local_predecessor_observation,
     object_sha256,
     validate_controller_handoff,
     validate_transition,
@@ -285,7 +286,7 @@ def validate_github_key_readback(value: object) -> dict[str, Any]:
 
 def build_runtime_launch_receipt(
     *,
-    controller_handoff_receipt: Mapping[str, Any],
+    controller_handoff_receipt: Mapping[str, Any] | None,
     parent_pid: int,
     expected_child_pid: int,
     host_execution_id: str,
@@ -386,12 +387,20 @@ def launch_runtime_transition(
     root: Path = ROOT,
     popen_factory: Callable[..., Any] = subprocess.Popen,
 ) -> dict[str, Any]:
-    """Launch and verify one fresh child for the exact signed handoff."""
+    """Launch and verify one fresh child from local predecessor evidence."""
 
     root = root.resolve()
     authorization, _, authorization_digest = _load_authorization(
         authorization_receipt_path, root=root
     )
+    if controller_handoff_receipt is None:
+        controller_handoff_receipt = build_authorized_local_predecessor_observation(
+            source_commit=source_commit,
+            source_tree=source_tree,
+            authorization=authorization,
+            authorization_receipt_sha256=authorization_digest,
+            root=root,
+        )
     handoff_verdict = validate_controller_handoff(
         controller_handoff_receipt,
         expected_repository=REPOSITORY,
@@ -505,9 +514,6 @@ def _read_json(path: Path) -> object:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
-    key = subparsers.add_parser("verify-github-key")
-    key.add_argument("--github-keys", type=Path, required=True)
-
     launch = subparsers.add_parser("launch")
     launch.add_argument("--stage", choices=("candidate", "released"), required=True)
     launch.add_argument("--source-commit", required=True)
@@ -523,7 +529,7 @@ def parse_args() -> argparse.Namespace:
     launch.add_argument("--authorization-receipt", type=Path, required=True)
     launch.add_argument("--adapter-identity", required=True)
     launch.add_argument("--adapter-code", type=Path, required=True)
-    launch.add_argument("--controller-handoff-receipt", type=Path, required=True)
+    launch.add_argument("--controller-handoff-receipt", type=Path)
     launch.add_argument("--host-execution-id", required=True)
     return parser.parse_args()
 
@@ -531,28 +537,27 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     try:
-        if args.command == "verify-github-key":
-            result = validate_github_key_readback(_read_json(args.github_keys))
-            if not result["ok"]:
-                raise ValueError(result["errors"][0])
-        else:
-            handoff = _read_json(args.controller_handoff_receipt)
-            if not isinstance(handoff, dict):
-                raise ValueError("E_V250_CONTROLLER_HANDOFF_REQUIRED")
-            result = launch_runtime_transition(
-                stage=args.stage,
-                source_commit=args.source_commit,
-                source_tree=args.source_tree,
-                project_size=args.project_size,
-                route_facts_receipt_path=args.route_facts_receipt,
-                derived_route_receipt_path=args.derived_route_receipt,
-                route_receipt_path=args.route_receipt,
-                authorization_receipt_path=args.authorization_receipt,
-                adapter_identity=args.adapter_identity,
-                adapter_code_path=args.adapter_code,
-                controller_handoff_receipt=handoff,
-                host_execution_id=args.host_execution_id,
-            )
+        handoff = (
+            _read_json(args.controller_handoff_receipt)
+            if args.controller_handoff_receipt is not None
+            else None
+        )
+        if handoff is not None and not isinstance(handoff, dict):
+            raise ValueError("E_V250_CONTROLLER_HANDOFF_REQUIRED")
+        result = launch_runtime_transition(
+            stage=args.stage,
+            source_commit=args.source_commit,
+            source_tree=args.source_tree,
+            project_size=args.project_size,
+            route_facts_receipt_path=args.route_facts_receipt,
+            derived_route_receipt_path=args.derived_route_receipt,
+            route_receipt_path=args.route_receipt,
+            authorization_receipt_path=args.authorization_receipt,
+            adapter_identity=args.adapter_identity,
+            adapter_code_path=args.adapter_code,
+            controller_handoff_receipt=handoff,
+            host_execution_id=args.host_execution_id,
+        )
     except RuntimeChildFailure as exc:
         result = exc.parent_envelope()
         print(json.dumps(result, sort_keys=True))

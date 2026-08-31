@@ -71,6 +71,61 @@
       },
       "additionalProperties": false
     },
+    "localPredecessorObservation": {
+      "type": "object",
+      "required": ["schema_version", "signed_payload", "payload_sha256"],
+      "properties": {
+        "schema_version": {"const": "goal-teams-v2.67-local-predecessor-observation-v1"},
+        "signed_payload": {
+          "type": "object",
+          "required": [
+            "repository",
+            "source_commit",
+            "source_tree",
+            "authorization_id",
+            "authorization_receipt_sha256",
+            "authorization_intent_sha256",
+            "previous_controller_product_version",
+            "previous_run_id",
+            "nonce",
+            "issued_at",
+            "expires_at",
+            "installed_v266_current_state",
+            "observation_source"
+          ],
+          "properties": {
+            "repository": {"const": "vibe-coding-era/goal-teams"},
+            "source_commit": {"$ref": "#/$defs/gitIdentity"},
+            "source_tree": {"$ref": "#/$defs/gitIdentity"},
+            "authorization_id": {"type": "string", "minLength": 1},
+            "authorization_receipt_sha256": {"$ref": "#/$defs/sha256"},
+            "authorization_intent_sha256": {"$ref": "#/$defs/sha256"},
+            "previous_controller_product_version": {"const": "V2.66"},
+            "previous_run_id": {"$ref": "#/$defs/runId"},
+            "nonce": {"type": "string", "pattern": "^[A-Za-z0-9_-]{32,128}$"},
+            "issued_at": {"type": "string", "format": "date-time"},
+            "expires_at": {"type": "string", "format": "date-time"},
+            "installed_v266_current_state": {"$ref": "#/$defs/installedV266State"},
+            "observation_source": {"const": "authorized_local_installed_v266_state"}
+          },
+          "additionalProperties": false
+        },
+        "payload_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "installedV266State": {
+      "type": "object",
+      "required": ["state_sha256", "source_commit", "source_tree", "tag", "release_id"],
+      "properties": {
+        "state_sha256": {"$ref": "#/$defs/sha256"},
+        "source_commit": {"$ref": "#/$defs/gitIdentity"},
+        "source_tree": {"$ref": "#/$defs/gitIdentity"},
+        "tag": {"const": "v2.66"},
+        "release_id": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
     "runtimeLaunchReceipt": {
       "type": "object",
       "required": [
@@ -199,9 +254,14 @@
     "adapter_identity": {"type": "string", "minLength": 1},
     "adapter_code_path": {"type": "string", "minLength": 1},
     "adapter_code_sha256": {"$ref": "#/$defs/sha256"},
-    "controller_handoff_receipt": {"$ref": "#/$defs/controllerHandoffReceipt"},
+    "controller_handoff_receipt": {
+      "oneOf": [
+        {"$ref": "#/$defs/controllerHandoffReceipt"},
+        {"$ref": "#/$defs/localPredecessorObservation"}
+      ]
+    },
     "controller_handoff_receipt_sha256": {"$ref": "#/$defs/sha256"},
-    "controller_handoff_signature_verified": {"const": true},
+    "controller_handoff_signature_verified": {"type": "boolean"},
     "runtime_launch_receipt": {"$ref": "#/$defs/runtimeLaunchReceipt"},
     "runtime_launch_receipt_sha256": {"$ref": "#/$defs/sha256"},
     "host_execution_id": {"$ref": "#/$defs/runId"},

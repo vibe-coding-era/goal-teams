@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class TestV263AgentsReleaseCommand(unittest.TestCase):
-    def test_release_command_names_the_v267_handoff_not_legacy_v248(self) -> None:
+    def test_release_command_uses_authorized_local_predecessor_observation(self) -> None:
         text = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
         self.assertIn(
             "--route-facts-receipt <trusted-route-facts-receipt.json>",
@@ -18,10 +18,8 @@ class TestV263AgentsReleaseCommand(unittest.TestCase):
             "--derived-route-receipt <trusted-derived-route-receipt.json>",
             text,
         )
-        self.assertIn(
-            "--controller-handoff-receipt <externally-issued-v267-controller-handoff.json>",
-            text,
-        )
+        self.assertNotIn("--controller-handoff-receipt", text)
+        self.assertIn("一次授权绑定的本地已安装 V2.66 状态", text)
         self.assertNotIn("externally-issued-v248-handoff", text)
 
 

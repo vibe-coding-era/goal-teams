@@ -116,7 +116,9 @@ class TestV267S4WorkflowContract(unittest.TestCase):
 
         self.assertIn("Goal Teams V2.67 phase-aware verification", release)
         self.assertIn("codex/develop-v2.67", release)
-        self.assertIn("Installed V2.66 host-issued V2.67 controller handoff", release)
+        self.assertIn("Launch fresh released runtime through the external host adapter before S0", release)
+        self.assertNotIn("controller_handoff_receipt_json", release)
+        self.assertNotIn("verify-github-key", release)
         self.assertIn('"V2.67"', release)
         self.assertIn("--version V2.67", release)
         self.assertIn("release/versions/V2.67", release)

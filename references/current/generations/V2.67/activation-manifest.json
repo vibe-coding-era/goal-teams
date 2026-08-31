@@ -3,7 +3,7 @@
   "generation_id": "V2.67",
   "generation_state": "active",
   "baseline_generation_id": "V2.66",
-  "manifest_payload_sha256": "35c3b0ac512652560a7b1836b6b7585dc9ca3d9703ba2b454a06f014b1b8fd03",
+  "manifest_payload_sha256": "debf617adff99513377a0772ba0e32e68e32c43666ec075c149910da0830f9ed",
   "identity": {
     "loaded_runtime_product_version": "V2.67",
     "core_policy_version": "V2.5",
@@ -21,8 +21,8 @@
       },
       {
         "path": "AGENTS.md",
-        "sha256": "c3a536fbf010bd5ebef3b2ee63321f44219bf282345292425a462b4f40c277bc",
-        "bytes": 8723
+        "sha256": "cc05c815bef27afad3ea06dcebebe8e61176e5f28ca64d0f9c70de0e4ffaffbc",
+        "bytes": 8696
       },
       {
         "path": "RULES.md",
@@ -108,13 +108,13 @@
       },
       {
         "path": "references/current/generations/V2.67/contracts/release-route-manifest.json",
-        "sha256": "8b81ebb922f98c5ae31a777d50ac7cb269bc649510b48e078741b3bce469b607",
-        "bytes": 2569
+        "sha256": "a1317bc9cb1ecc18d83a180a27e134c092ccc03044fec7ee082ae752f5c1b27c",
+        "bytes": 2349
       },
       {
         "path": "references/current/generations/V2.67/contracts/release-security-review-manifest.json",
-        "sha256": "8a5b1ce747853e5640843ea124eec089af630e6deb9fa5f7347aa01417545fe1",
-        "bytes": 27210
+        "sha256": "9a775a8b2215b2d52ee18327e581346bc276ac49b22ec53946b5be82608398d2",
+        "bytes": 27136
       },
       {
         "path": "references/current/generations/V2.67/contracts/review-completion.md",
@@ -590,8 +590,8 @@
       },
       {
         "path": "scripts/v267/release_identity.py",
-        "sha256": "90bf861c53e4bd52045cb6a9ef193d7ddad06b3000bc8e322a2d6783e4b58dc3",
-        "bytes": 2712
+        "sha256": "a557a56b2dedc9e8592007bc44393657de3f0db3f91ca02d40edae2e76c4a04f",
+        "bytes": 2871
       },
       {
         "path": "scripts/v267/repository_boundary.py",
@@ -605,13 +605,13 @@
       },
       {
         "path": "scripts/v267/runtime_host_adapter.py",
-        "sha256": "446c23227ad45381ebb730400fbd051e532cf43af81bc1562ba0dac8f3052cbc",
-        "bytes": 21277
+        "sha256": "9422c8da89b9a20609c5e633d51d7c2a7eb8d0bb319e0ccfcf36aa4b2434ef10",
+        "bytes": 21395
       },
       {
         "path": "scripts/v267/runtime_transition.py",
-        "sha256": "bbc7cc2778c2c6cc7833adbd2432f98e85fa4187d41a851b0a04334be5d3a908",
-        "bytes": 62070
+        "sha256": "edb08d54a3f815a649979f983ffe8ef5cae364b1fee90bef28f9a98dd25f40ad",
+        "bytes": 64982
       },
       {
         "path": "scripts/v267/s4_executor.py",
@@ -785,7 +785,7 @@
       },
       {
         "path": "tests/v250/test_release_security_review.py",
-        "sha256": "c0c077b30679273c6fc0a171180f5b41566e19a7100e94424245846c3a4466c1",
+        "sha256": "94443d9c7a9b17b1a46ae84b2bf892937598b4dbd1f29205e7d0c73e7f41b276",
         "bytes": 13402
       },
       {
@@ -800,8 +800,8 @@
       },
       {
         "path": "tests/v250/test_runtime_cli.py",
-        "sha256": "d47aa743fba84418678f06f62768fbf21a95e4096938af05132d9e6523f16ce4",
-        "bytes": 5249
+        "sha256": "322c21450e12a5fbff1d5bd2feaf69f772494bfa5021ce3cbd462e1ff538833f",
+        "bytes": 5258
       },
       {
         "path": "tests/v250/test_runtime_host_adapter.py",
@@ -1020,8 +1020,8 @@
       },
       {
         "path": "tests/v250/test_v263_agents_release_command.py",
-        "sha256": "251825f32913a4a1159a00bc256d82556f35a1c75085b4535651ce75688da616",
-        "bytes": 834
+        "sha256": "30f5b38a6315103934c542fc4214f7627c400879475466a226532fd69d979dbc",
+        "bytes": 841
       },
       {
         "path": "tests/v250/test_v263_blocker_finding.py",
@@ -1160,8 +1160,8 @@
       },
       {
         "path": "tests/v250/test_v263_release_workflow_route.py",
-        "sha256": "7761eff723d60360c49b93a815614fbba41b34a324fe43c3e46a7147e590f988",
-        "bytes": 3872
+        "sha256": "87284998b7257f57827a8c285f1fdc6fc9472e6149ad0aa311663846121c17e9",
+        "bytes": 3863
       },
       {
         "path": "tests/v250/test_v263_released_runtime_route_triplet.py",
@@ -1300,8 +1300,8 @@
       },
       {
         "path": "tests/v250/test_workflow_release_contract.py",
-        "sha256": "b48a3452aa65a3b1b85d6ea85bcca6f68a1d5045373830abe16c5970732646f7",
-        "bytes": 23499
+        "sha256": "a12475cdc866b1a514feb44ca886df3c8d249070db454e188bdb816816d097fa",
+        "bytes": 23167
       },
       {
         "path": "tests/v250/v263_activation_fixture.py",
@@ -1355,13 +1355,13 @@
       },
       {
         "path": "tests/v267/test_release_runtime_transition.py",
-        "sha256": "bab0f90b2caa9bc9099b6b6dc2a49a74353f010645ade877bc992bbf0bed8dbc",
-        "bytes": 9165
+        "sha256": "fa3f0ebea18dd7bd809f9e1bd9aaa13114788eecfbf160e485e856875a2cbe37",
+        "bytes": 10557
       },
       {
         "path": "tests/v267/test_s4_workflow_contract.py",
-        "sha256": "fdce42099ff03aab0fd1d26b6c20b44b3a6fcb89e0020942dd07d666c7442459",
-        "bytes": 5193
+        "sha256": "72dbf3f71c425e4fe2ea0c8e98bf7d0d601be2f016b331447c1c283b81545290",
+        "bytes": 5338
       },
       {
         "path": "tests/v267/test_version_candidate.py",
@@ -1532,8 +1532,8 @@
       },
       {
         "path": "schemas/v2.67/runtime-transition-receipt.schema.json",
-        "sha256": "a50dcfee9ab889ede97d70d96d4d67c3283fdbcac55260bf03153c9d4396f0f5",
-        "bytes": 11000
+        "sha256": "7e5389d346e78dd8389253e7963bb0418a3e6e96059e13c1ea69a87bebb0d6a5",
+        "bytes": 13455
       }
     ]
   },
@@ -1542,7 +1542,7 @@
   "semantic_owner_set_digest": "3554795df3195085d77e52ad09fc0d8c8e6b24aa2e4779f16b9ee08937d40e4e",
   "rule_index_digest": "c6365a01f8fe91e3902bb5954dd2f35f376ca434635ea3e28b55f9c87667b362",
   "prompt_plan_digest": "97fd294b3d74b990f62bfa86b072c2b5e0a4f383fc4ed45884086345350261c1",
-  "schema_and_validator_digest": "ee04393633b59f3d640347a0af4ef7651cb561b683533f1a970bf21bf6216a54",
+  "schema_and_validator_digest": "117cfd77a25334a2c83f1de75cad57aec2272e060164bc5592b9575a4bd67838",
   "current_default_allowlist": [
     ".agents/skills/goal-teams/SKILL.md",
     "AGENTS.md",
@@ -1950,7 +1950,7 @@
     "scripts/v250/refresh_generation_manifests.py"
   ],
   "projection_writer_allowlist_digest": "6013892aaf766bf73fbf750cb1836da333ee7c58caee199bbbf96571c6eebbfb",
-  "fixture_and_completion_contract_digest": "4de0119463492bc783f02efad4816481dee7a3a84fa96da3173900cbb01a77b8",
+  "fixture_and_completion_contract_digest": "d49aadcd9507cbc00fa7dd4075664d7e03325cf20c84272c6b4cede15d29adf1",
   "repository_control_exclusions": [
     {
       "path_prefix": ".github/workflows/",
