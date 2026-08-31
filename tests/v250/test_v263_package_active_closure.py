@@ -15,14 +15,14 @@ DEVELOPS = ROOT / "develops"
 CHECKER = ROOT / "scripts/checks/check-package-manifest.py"
 PACKAGE_MANIFEST = ROOT / "scripts/install/package-manifest.txt"
 ACTIVE_PATH = "references/current/ACTIVE.json"
-V266_ACTIVATION_PATH = (
-    "references/current/generations/V2.66/activation-manifest.json"
+V267_ACTIVATION_PATH = (
+    "references/current/generations/V2.67/activation-manifest.json"
 )
 
 
 def _load_checker():
     spec = importlib.util.spec_from_file_location(
-        "check_package_manifest_v266_active_closure", CHECKER
+        "check_package_manifest_v267_active_closure", CHECKER
     )
     if spec is None or spec.loader is None:
         raise RuntimeError("cannot load package checker")
@@ -54,20 +54,20 @@ def _canonical_digest(value: object) -> str:
     return hashlib.sha256(raw).hexdigest()
 
 
-class TestV266PackageActiveClosure(unittest.TestCase):
+class TestV267PackageActiveClosure(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.checker = _load_checker()
         cls.selected = _package_selection(cls.checker)
         DEVELOPS.mkdir(exist_ok=True)
 
-    def _v266_cutover_fixture(self) -> tuple[tempfile.TemporaryDirectory[str], Path]:
+    def _v267_cutover_fixture(self) -> tuple[tempfile.TemporaryDirectory[str], Path]:
         temporary = tempfile.TemporaryDirectory(
-            prefix="v266-package-active-closure-", dir=DEVELOPS
+            prefix="v267-package-active-closure-", dir=DEVELOPS
         )
         root = Path(temporary.name)
         activation = copy.deepcopy(
-            json.loads((ROOT / V266_ACTIVATION_PATH).read_text(encoding="utf-8"))
+            json.loads((ROOT / V267_ACTIVATION_PATH).read_text(encoding="utf-8"))
         )
         activation["generation_state"] = "active"
         for entries in activation["root_sets"].values():
@@ -95,7 +95,7 @@ class TestV266PackageActiveClosure(unittest.TestCase):
                 if key != "manifest_payload_sha256"
             }
         )
-        activation_file = root / V266_ACTIVATION_PATH
+        activation_file = root / V267_ACTIVATION_PATH
         activation_file.parent.mkdir(parents=True, exist_ok=True)
         activation_raw = (
             json.dumps(activation, ensure_ascii=False, indent=2) + "\n"
@@ -107,8 +107,8 @@ class TestV266PackageActiveClosure(unittest.TestCase):
             json.dumps(
                 {
                     "schema_version": "goal-teams-active-generation-v1",
-                    "generation_id": "V2.66",
-                    "activation_manifest": V266_ACTIVATION_PATH,
+                    "generation_id": "V2.67",
+                    "activation_manifest": V267_ACTIVATION_PATH,
                     "activation_manifest_sha256": hashlib.sha256(
                         activation_raw
                     ).hexdigest(),
@@ -159,8 +159,8 @@ class TestV266PackageActiveClosure(unittest.TestCase):
         finally:
             temporary.cleanup()
 
-    def test_same_package_selection_passes_after_v266_active_cutover(self) -> None:
-        temporary, root = self._v266_cutover_fixture()
+    def test_same_package_selection_passes_after_v267_active_cutover(self) -> None:
+        temporary, root = self._v267_cutover_fixture()
         try:
             self.assertEqual(
                 [], self.checker._active_package_closure(root, self.selected)
@@ -169,7 +169,7 @@ class TestV266PackageActiveClosure(unittest.TestCase):
             temporary.cleanup()
 
     def test_active_activation_and_generation_digests_are_exact(self) -> None:
-        temporary, root = self._v266_cutover_fixture()
+        temporary, root = self._v267_cutover_fixture()
         try:
             active_path = root / ACTIVE_PATH
             active = json.loads(active_path.read_text(encoding="utf-8"))
@@ -180,14 +180,14 @@ class TestV266PackageActiveClosure(unittest.TestCase):
             )
             self.assertIn(
                 "E_CURRENT_PACKAGE_ACTIVE_ACTIVATION_DIGEST_MISMATCH:"
-                + V266_ACTIVATION_PATH,
+                + V267_ACTIVATION_PATH,
                 self.checker._active_package_closure(root, self.selected),
             )
 
             temporary.cleanup()
-            temporary, root = self._v266_cutover_fixture()
+            temporary, root = self._v267_cutover_fixture()
             activation = json.loads(
-                (root / V266_ACTIVATION_PATH).read_text(encoding="utf-8")
+                (root / V267_ACTIVATION_PATH).read_text(encoding="utf-8")
             )
             member = activation["root_sets"]["bootstrap"][0]
             (root / member["path"]).write_bytes(b"tampered\n")
@@ -210,7 +210,7 @@ class TestV266PackageActiveClosure(unittest.TestCase):
                 result["errors"],
             )
         else:
-            self.assertEqual("V2.66", active["generation_id"])
+            self.assertEqual("V2.67", active["generation_id"])
             self.assertTrue(result["passed"], result)
 
 

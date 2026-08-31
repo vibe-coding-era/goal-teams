@@ -25,7 +25,7 @@ class TestV263ContinuationRouteTriplet(unittest.TestCase):
                     skill_release.continuation_formal_receipts(version),
                 )
 
-        for version in ("V2.63", "V2.65", "V2.66"):
+        for version in ("V2.63", "V2.66", "V2.67"):
             current = skill_release.continuation_formal_receipts(version)
             self.assertEqual(current, skill_release.V263_CONTINUATION_FORMAL_RECEIPTS)
             self.assertEqual(
@@ -57,7 +57,7 @@ class TestV263ContinuationRouteTriplet(unittest.TestCase):
                 ) as control_validator,
             ):
                 checkpoint = skill_release.build_v250_continuation_checkpoint(
-                    "V2.66",
+                    "V2.67",
                     SOURCE,
                     project_size="large",
                     job_status="success",
@@ -68,7 +68,7 @@ class TestV263ContinuationRouteTriplet(unittest.TestCase):
                     release_root=release_root,
                 )
                 control_validator.assert_called_once_with(
-                    "V2.66",
+                    "V2.67",
                     SOURCE,
                     mock.ANY,
                     runtime_route_facts_receipt_path=(
@@ -107,12 +107,12 @@ class TestV263ContinuationRouteTriplet(unittest.TestCase):
                 }
                 forged.pop("checkpoint_sha256")
                 forged["checkpoint_sha256"] = (
-                    skill_release._release_flow_module("V2.66").canonical_sha256(
+                    skill_release._release_flow_module("V2.67").canonical_sha256(
                         forged
                     )
                 )
                 verdict = skill_release.validate_v250_continuation_checkpoint(
-                    "V2.66",
+                    "V2.67",
                     SOURCE,
                     forged,
                     receipt_root=receipt_root,
@@ -121,7 +121,7 @@ class TestV263ContinuationRouteTriplet(unittest.TestCase):
                     expected_workflow_run_attempt="1",
                 )
                 control_validator.assert_called_once_with(
-                    "V2.66",
+                    "V2.67",
                     SOURCE,
                     mock.ANY,
                     runtime_route_facts_receipt_path=(

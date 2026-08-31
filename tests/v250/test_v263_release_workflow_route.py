@@ -81,14 +81,14 @@ class TestV263ReleaseWorkflowRoute(unittest.TestCase):
         ):
             self.assertIn(receipt, workflow)
 
-    def test_installed_controller_handoff_identity_is_v265(self) -> None:
+    def test_installed_controller_handoff_identity_is_v266(self) -> None:
         workflow = workflow_text()
         self.assertIn(
-            "Materialize the installed V2.65 host-issued V2.66 controller handoff",
+            "Materialize the installed V2.66 host-issued V2.67 controller handoff",
             workflow,
         )
         self.assertNotIn(
-            "Materialize the installed V2.63 host-issued V2.66 controller handoff",
+            "Materialize the installed V2.63 host-issued V2.67 controller handoff",
             workflow,
         )
 

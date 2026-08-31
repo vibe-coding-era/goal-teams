@@ -68,7 +68,7 @@ class TestV250RuntimeCLI(unittest.TestCase):
         release_invocation = next(
             value
             for value in invocations
-            if value.startswith("scripts/checks/check-v266.py --phase release")
+            if value.startswith("scripts/checks/check-v267.py --phase release")
         )
         self.assertIn(
             f"--released-runtime-receipt {runtime_receipt}", release_invocation
@@ -87,7 +87,7 @@ class TestV250RuntimeCLI(unittest.TestCase):
 
     def test_runtime_child_cli_forbids_raw_lineage_and_uses_stdin_receipts(self) -> None:
         result = subprocess.run(
-            ["python3", "scripts/v266/runtime_transition.py", "--help"],
+            ["python3", "scripts/v267/runtime_transition.py", "--help"],
             cwd=ROOT,
             check=False,
             capture_output=True,
@@ -114,7 +114,7 @@ class TestV250RuntimeCLI(unittest.TestCase):
 
     def test_host_adapter_cli_has_launch_and_read_only_key_verification(self) -> None:
         result = subprocess.run(
-            ["python3", "scripts/v266/runtime_host_adapter.py", "--help"],
+            ["python3", "scripts/v267/runtime_host_adapter.py", "--help"],
             cwd=ROOT,
             check=False,
             capture_output=True,
@@ -125,11 +125,11 @@ class TestV250RuntimeCLI(unittest.TestCase):
         self.assertIn("verify-github-key", result.stdout)
 
     def test_host_adapter_declares_v262_to_v263_runtime_handoff(self) -> None:
-        adapter_source = (ROOT / "scripts/v266/runtime_host_adapter.py").read_text(
+        adapter_source = (ROOT / "scripts/v267/runtime_host_adapter.py").read_text(
             encoding="utf-8"
         )
-        self.assertIn("V2.65 -> V2.66 runtime handoff", adapter_source)
-        self.assertNotIn("V2.66 -> V2.66 runtime handoff", adapter_source)
+        self.assertIn("V2.66 -> V2.67 runtime handoff", adapter_source)
+        self.assertNotIn("V2.67 -> V2.67 runtime handoff", adapter_source)
 
 
 if __name__ == "__main__":

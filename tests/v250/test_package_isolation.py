@@ -269,7 +269,7 @@ class TestV250PackageIsolation(unittest.TestCase):
         self.assertTrue(results)
         self.assertTrue(all(result["status"] == "passed" for result in results))
         self.assertIn(
-            "scripts/checks/check-v266.py --phase development",
+            "scripts/checks/check-v267.py --phase development",
             {result["command"] for result in results},
         )
         self.assertIn(

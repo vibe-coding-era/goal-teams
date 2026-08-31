@@ -290,7 +290,9 @@ def _package_selected_paths(
                     "activation-manifest.json"
                 )
             )
-        if generation_id != "V2.63" or activation.get("generation_id") != generation_id:
+        if generation_id not in {"V2.63", "V2.66"} or activation.get(
+            "generation_id"
+        ) != generation_id:
             raise ValueError("unsupported historical package fixture generation")
         allowlist = activation.get("current_default_allowlist")
         supplement = activation.get("package_supplement_allowlist")
@@ -302,19 +304,34 @@ def _package_selected_paths(
             raise ValueError("historical package fixture closure is missing")
         selected = set(allowlist) | set(supplement)
         forbidden_prefixes = (
-            "references/current/generations/V2.66/",
-            "references/compatibility/v2.66/",
-            "schemas/v2.66/",
-            "scripts/v266/",
-            "tests/v266/",
-            "references/current/generations/V2.65/",
-            "references/compatibility/v2.65/",
-            "schemas/v2.65/",
-            "scripts/v265/",
-            "tests/v265/",
+            (
+                "references/current/generations/V2.67/",
+                "references/compatibility/v2.67/",
+                "schemas/v2.67/",
+                "scripts/v267/",
+                "tests/v267/",
+            )
+            if generation_id == "V2.66"
+            else (
+                "references/current/generations/V2.65/",
+                "references/compatibility/v2.65/",
+                "schemas/v2.65/",
+                "scripts/v265/",
+                "tests/v265/",
+                "references/current/generations/V2.66/",
+                "references/compatibility/v2.66/",
+                "schemas/v2.66/",
+                "scripts/v266/",
+                "tests/v266/",
+                "references/current/generations/V2.67/",
+                "references/compatibility/v2.67/",
+                "schemas/v2.67/",
+                "scripts/v267/",
+                "tests/v267/",
+            )
         )
         if any(path.startswith(forbidden_prefixes) for path in selected):
-            raise ValueError("historical package fixture contains Current V2.65 paths")
+            raise ValueError("historical package fixture contains newer Current paths")
         missing = sorted(
             path for path in selected if not _is_regular_repository_source(path)
         )

@@ -10,17 +10,17 @@ from pathlib import Path
 from unittest import mock
 
 from scripts.release import skill_release
-from tests.v250.v266_candidate_fixture import release_flow, s4_executor
+from tests.v250.v267_candidate_fixture import release_flow, s4_executor
 from tests.v250.test_release_control import checkpoint_fixture
 
 
 SOURCE = "1" * 40
 TREE = "2" * 40
 REPOSITORY = "vibe-coding-era/goal-teams"
-VERSION = "V2.66"
-TAG = "v2.66"
-RELEASE_BODY = "Goal Teams V2.66. See release/current/README.md in the tagged source."
-SCHEMA_PATH = Path(__file__).resolve().parents[2] / "schemas/v2.66/release-control.schema.json"
+VERSION = "V2.67"
+TAG = "v2.67"
+RELEASE_BODY = "Goal Teams V2.67. See release/current/README.md in the tagged source."
+SCHEMA_PATH = Path(__file__).resolve().parents[2] / "schemas/v2.67/release-control.schema.json"
 
 
 def push_access_response(*, allowed: bool = True) -> s4_executor.CommandResult:
@@ -37,7 +37,7 @@ def sha256_bytes(value: bytes) -> str:
 
 
 def make_release_tree(root: Path) -> tuple[Path, list[dict[str, object]]]:
-    profile = root / "references/release-profiles/v2.66.json"
+    profile = root / "references/release-profiles/v2.67.json"
     profile.parent.mkdir(parents=True)
     profile.write_text(
         json.dumps(
@@ -45,9 +45,9 @@ def make_release_tree(root: Path) -> tuple[Path, list[dict[str, object]]]:
                 "version": VERSION,
                 "status": "active",
                 "tag": TAG,
-                "release_title": "Goal Teams V2.66",
+                "release_title": "Goal Teams V2.67",
                 "release_body": RELEASE_BODY,
-                "tag_message": "Goal Teams V2.66",
+                "tag_message": "Goal Teams V2.67",
             },
             sort_keys=True,
         ),
@@ -120,10 +120,10 @@ def make_release_tree(root: Path) -> tuple[Path, list[dict[str, object]]]:
 def make_control(assets: list[dict[str, object]]) -> dict[str, object]:
     asset_set_digest = release_flow.canonical_sha256(assets)
     return {
-        "schema_version": "goal-teams-v2.66-release-control-receipt-v1",
+        "schema_version": "goal-teams-v2.67-release-control-receipt-v1",
         "repository": REPOSITORY,
         "version": VERSION,
-        "candidate_branch": "codex/develop-v2.66",
+        "candidate_branch": "codex/develop-v2.67",
         "tag": TAG,
         "source_commit": SOURCE,
         "source_tree": TREE,
@@ -363,7 +363,7 @@ class FakeBackend:
             "body": body,
             "draft": True,
             "prerelease": False,
-            "html_url": "https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.66",
+            "html_url": "https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.67",
             "assets": [],
         }
         if self.fail_after_mutation == "release_create":
@@ -390,7 +390,7 @@ class FakeBackend:
         self.write_counts["release_publish"] += 1
         self.release["draft"] = False
         self.release["html_url"] = (
-            "https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.66"
+            "https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.67"
         )
 
     def download_asset(self, repository: str, tag: str, name: str, target: Path) -> None:
@@ -579,7 +579,7 @@ class TestV250S4Executor(unittest.TestCase):
     def test_default_control_validator_uses_downloaded_receipt_paths(self) -> None:
         module = mock.Mock()
         module.validate_v250_s4_control.return_value = {"ok": True}
-        receipt_root = Path("/portable/release/versions/V2.66/_receipts")
+        receipt_root = Path("/portable/release/versions/V2.67/_receipts")
         with mock.patch.object(s4_executor, "_load_module", return_value=module):
             verdict = s4_executor._default_control_validator(
                 VERSION,
@@ -752,7 +752,7 @@ class TestV250S4Executor(unittest.TestCase):
                     target = root / f"{names[0]}.regular-target"
                     source.rename(target)
                     source.symlink_to(target)
-                    expected_error = "E_V266_CONTINUATION_RECEIPT_SET"
+                    expected_error = "E_V267_CONTINUATION_RECEIPT_SET"
                 else:
                     first = receipt_root / names[0]
                     second = receipt_root / names[1]
@@ -1202,7 +1202,7 @@ class TestV250S4Executor(unittest.TestCase):
             backend.installed_state = None
             backend.write_counts = {key: 0 for key in backend.write_counts}
             original_read_release = backend.read_release
-            safe = root / "develops/.v266-s4-tmp"
+            safe = root / "develops/.v267-s4-tmp"
             outside = root / "outside-after-remote-readback"
             swapped = False
 
@@ -1230,7 +1230,7 @@ class TestV250S4Executor(unittest.TestCase):
                 )
 
         self.assertEqual(
-            "E_V266_S4_INSTALL_TMPDIR_UNSAFE", caught.exception.code
+            "E_V267_S4_INSTALL_TMPDIR_UNSAFE", caught.exception.code
         )
         self.assertEqual(
             {key: 0 for key in backend.write_counts}, backend.write_counts
@@ -1290,12 +1290,12 @@ class TestV250S4Executor(unittest.TestCase):
                 "object_sha": "6" * 40,
                 "peeled_commit": SOURCE,
                 "annotated": True,
-                "message": "Goal Teams V2.66",
+                "message": "Goal Teams V2.67",
             }
             backend.release = {
                 "id": 363687225,
                 "tag_name": TAG,
-                "name": "Goal Teams V2.66",
+                "name": "Goal Teams V2.67",
                 "body": RELEASE_BODY,
                 "draft": True,
                 "prerelease": False,
@@ -1495,18 +1495,18 @@ class TestV250S4Executor(unittest.TestCase):
                 "object_sha": "6" * 40,
                 "peeled_commit": SOURCE,
                 "annotated": True,
-                "message": "Goal Teams V2.66",
+                "message": "Goal Teams V2.67",
             }
             backend.release = {
                 "id": 249,
                 "tag_name": TAG,
-                "name": "Goal Teams V2.66",
+                "name": "Goal Teams V2.67",
                 "body": "wrong release notes",
                 "draft": True,
                 "prerelease": False,
                 "html_url": (
                     "https://github.com/vibe-coding-era/goal-teams/"
-                    "releases/tag/v2.66"
+                    "releases/tag/v2.67"
                 ),
                 "assets": [],
             }
@@ -1538,12 +1538,12 @@ class TestV250S4Executor(unittest.TestCase):
                 "object_sha": "6" * 40,
                 "peeled_commit": SOURCE,
                 "annotated": True,
-                "message": "Goal Teams V2.66",
+                "message": "Goal Teams V2.67",
             }
             backend.release = {
                 "id": 249,
                 "tag_name": TAG,
-                "name": "Goal Teams V2.66",
+                "name": "Goal Teams V2.67",
                 "body": RELEASE_BODY,
                 "draft": True,
                 "prerelease": False,
@@ -1582,12 +1582,12 @@ class TestV250S4Executor(unittest.TestCase):
                 "object_sha": "6" * 40,
                 "peeled_commit": SOURCE,
                 "annotated": True,
-                "message": "Goal Teams V2.66",
+                "message": "Goal Teams V2.67",
             }
             backend.release = {
                 "id": 249,
                 "tag_name": TAG,
-                "name": "Goal Teams V2.66",
+                "name": "Goal Teams V2.67",
                 "body": RELEASE_BODY,
                 "draft": False,
                 "prerelease": False,
@@ -1742,7 +1742,7 @@ class TestV250S4Executor(unittest.TestCase):
                 "object_sha": "6" * 40,
                 "peeled_commit": SOURCE,
                 "annotated": True,
-                "message": "Goal Teams V2.66",
+                "message": "Goal Teams V2.67",
             }
             backend.fail_without_mutation = "release_create"
 
@@ -1779,7 +1779,7 @@ class TestV250S4Executor(unittest.TestCase):
                 "object_sha": "6" * 40,
                 "peeled_commit": "9" * 40,
                 "annotated": True,
-                "message": "Goal Teams V2.66",
+                "message": "Goal Teams V2.67",
             }
 
             with self.assertRaises(s4_executor.S4ExecutionError) as caught:
@@ -2003,7 +2003,7 @@ class TestV250CommandBackend(unittest.TestCase):
             safe = s4_executor._prepare_formal_install_temp_root(root)
             metadata = safe.lstat()
 
-        self.assertEqual(root.resolve() / "develops/.v266-s4-tmp", safe)
+        self.assertEqual(root.resolve() / "develops/.v267-s4-tmp", safe)
         self.assertFalse(safe.is_symlink())
         self.assertEqual(os.getuid(), metadata.st_uid)
         self.assertEqual(0o700, metadata.st_mode & 0o777)
@@ -2015,14 +2015,14 @@ class TestV250CommandBackend(unittest.TestCase):
             develops.mkdir()
             outside = root / "outside"
             outside.mkdir()
-            (develops / ".v266-s4-tmp").symlink_to(
+            (develops / ".v267-s4-tmp").symlink_to(
                 outside, target_is_directory=True
             )
             with self.assertRaises(s4_executor.S4ExecutionError) as caught:
                 s4_executor._prepare_formal_install_temp_root(root)
 
         self.assertEqual(
-            "E_V266_S4_INSTALL_TMPDIR_UNSAFE", caught.exception.code
+            "E_V267_S4_INSTALL_TMPDIR_UNSAFE", caught.exception.code
         )
 
     def test_install_tmpdir_is_revalidated_immediately_before_install(self) -> None:
@@ -2043,7 +2043,7 @@ class TestV250CommandBackend(unittest.TestCase):
                 )
 
         self.assertEqual(
-            "E_V266_S4_INSTALL_TMPDIR_UNSAFE", caught.exception.code
+            "E_V267_S4_INSTALL_TMPDIR_UNSAFE", caught.exception.code
         )
         self.assertEqual([], runner.argv)
 
@@ -2056,15 +2056,15 @@ class TestV250CommandBackend(unittest.TestCase):
         )
         backend = s4_executor.CommandBackend(Path.cwd(), runner)
 
-        backend.create_annotated_tag(TAG, SOURCE, "Goal Teams V2.66")
+        backend.create_annotated_tag(TAG, SOURCE, "Goal Teams V2.67")
         backend.push_tag(TAG, "6" * 40)
 
         self.assertEqual(
-            ["git", "tag", "-a", TAG, SOURCE, "-m", "Goal Teams V2.66"],
+            ["git", "tag", "-a", TAG, SOURCE, "-m", "Goal Teams V2.67"],
             runner.argv[0],
         )
         self.assertEqual(
-            ["git", "push", "origin", f"{'6' * 40}:refs/tags/v2.66"],
+            ["git", "push", "origin", f"{'6' * 40}:refs/tags/v2.67"],
             runner.argv[1],
         )
         flattened = " ".join(item for argv in runner.argv for item in argv).lower()
@@ -2115,7 +2115,7 @@ class TestV250CommandBackend(unittest.TestCase):
                 TAG,
                 commit,
                 "-m",
-                "Goal Teams V2.66",
+                "Goal Teams V2.67",
             )
             validated_oid = git("rev-parse", f"refs/tags/{TAG}")
             git("tag", "--delete", TAG)
@@ -2185,7 +2185,7 @@ class TestV250CommandBackend(unittest.TestCase):
         draft = {
             "id": 363687225,
             "tag_name": TAG,
-            "name": "Goal Teams V2.66",
+            "name": "Goal Teams V2.67",
             "body": RELEASE_BODY,
             "draft": True,
             "prerelease": False,
@@ -2245,10 +2245,10 @@ class TestV250CommandBackend(unittest.TestCase):
         response = s4_executor.CommandResult(
             0,
             'HTTP/2.0 200 OK\n\n'
-            '{"id":249,"tag_name":"v2.66","name":"Goal Teams V2.66",'
-            '"body":"Goal Teams V2.66. See release/current/README.md in the tagged source.",'
+            '{"id":249,"tag_name":"v2.67","name":"Goal Teams V2.67",'
+            '"body":"Goal Teams V2.67. See release/current/README.md in the tagged source.",'
             '"draft":true,"prerelease":false,'
-            '"html_url":"https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.66",'
+            '"html_url":"https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.67",'
             '"assets":[]}\n',
         )
         runner = RecordingRunner(
@@ -2266,7 +2266,7 @@ class TestV250CommandBackend(unittest.TestCase):
             backend.create_draft_release(
                 REPOSITORY,
                 TAG,
-                "Goal Teams V2.66",
+                "Goal Teams V2.67",
                 RELEASE_BODY,
             )
             backend.upload_asset(REPOSITORY, TAG, Path("SHA256SUMS"))
@@ -2303,7 +2303,7 @@ class TestV250CommandBackend(unittest.TestCase):
             "type commit\n"
             f"tag {TAG}\n"
             "tagger Goal Teams <noreply@example.invalid> 0 +0000\n\n"
-            "Goal Teams V2.66\n"
+            "Goal Teams V2.67\n"
         )
         runner = RecordingRunner(
             [
@@ -2315,7 +2315,7 @@ class TestV250CommandBackend(unittest.TestCase):
         )
         backend = s4_executor.CommandBackend(Path.cwd(), runner)
         value = backend.read_local_tag(TAG)
-        self.assertEqual("Goal Teams V2.66", value["message"])
+        self.assertEqual("Goal Teams V2.67", value["message"])
         self.assertEqual(
             ["git", "cat-file", "-t", "6" * 40], runner.argv[2]
         )
@@ -2323,7 +2323,7 @@ class TestV250CommandBackend(unittest.TestCase):
             ["git", "cat-file", "tag", "6" * 40], runner.argv[3]
         )
 
-        wrong = tag_object.replace("Goal Teams V2.66\n", "wrong title\n")
+        wrong = tag_object.replace("Goal Teams V2.67\n", "wrong title\n")
         backend = s4_executor.CommandBackend(
             Path.cwd(),
             RecordingRunner(
@@ -2358,7 +2358,7 @@ class TestV250CommandBackend(unittest.TestCase):
         backend = s4_executor.CommandBackend(Path.cwd(), absent_runner)
         self.assertIsNone(backend.read_local_tag(TAG))
         self.assertEqual(
-            ["git", "show-ref", "--verify", "--quiet", "refs/tags/v2.66"],
+            ["git", "show-ref", "--verify", "--quiet", "refs/tags/v2.67"],
             absent_runner.argv[0],
         )
 

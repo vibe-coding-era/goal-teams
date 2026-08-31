@@ -9,14 +9,14 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class TestV263FirstLoopEnvironment(unittest.TestCase):
-    def test_product_identity_and_active_generation_are_v266(self) -> None:
-        self.assertEqual("V2.66", (ROOT / "VERSION").read_text(encoding="utf-8").strip())
+    def test_product_identity_and_active_generation_are_v267(self) -> None:
+        self.assertEqual("V2.67", (ROOT / "VERSION").read_text(encoding="utf-8").strip())
         active = json.loads(
             (ROOT / "references/current/ACTIVE.json").read_text(encoding="utf-8")
         )
-        self.assertEqual("V2.66", active["generation_id"])
+        self.assertEqual("V2.67", active["generation_id"])
         self.assertEqual(
-            "references/current/generations/V2.66/activation-manifest.json",
+            "references/current/generations/V2.67/activation-manifest.json",
             active["activation_manifest"],
         )
 
