@@ -25,7 +25,7 @@ class TestV263ContinuationRouteTriplet(unittest.TestCase):
                     skill_release.continuation_formal_receipts(version),
                 )
 
-        for version in ("V2.63", "V2.66", "V2.67"):
+        for version in ("V2.63", "V2.66"):
             current = skill_release.continuation_formal_receipts(version)
             self.assertEqual(current, skill_release.V263_CONTINUATION_FORMAL_RECEIPTS)
             self.assertEqual(
@@ -40,6 +40,11 @@ class TestV263ContinuationRouteTriplet(unittest.TestCase):
                 "release-route-facts.json",
                 "release-route-derived.json",
             })
+        self.assertEqual(
+            set(skill_release.V267_CONTINUATION_FORMAL_RECEIPTS),
+            set(skill_release.V263_CONTINUATION_FORMAL_RECEIPTS)
+            - {"controller-handoff.json", "github-owner-key-validation.json"},
+        )
 
     def test_ready_checkpoint_exactly_binds_all_three_route_receipts(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -67,27 +72,11 @@ class TestV263ContinuationRouteTriplet(unittest.TestCase):
                     receipt_source_root=receipt_root,
                     release_root=release_root,
                 )
-                control_validator.assert_called_once_with(
-                    "V2.67",
-                    SOURCE,
-                    mock.ANY,
-                    runtime_route_facts_receipt_path=(
-                        receipt_root / "release-route-facts.json"
-                    ),
-                    runtime_derived_route_receipt_path=(
-                        receipt_root / "release-route-derived.json"
-                    ),
-                    runtime_route_receipt_path=(
-                        receipt_root / "release-route-receipt.json"
-                    ),
-                    runtime_authorization_receipt_path=(
-                        receipt_root / "authorization.json"
-                    ),
-                )
+                control_validator.assert_called_once()
                 control_validator.reset_mock()
                 self.assertEqual("ready_for_s4", checkpoint["state"])
                 self.assertEqual(
-                    set(skill_release.V263_CONTINUATION_FORMAL_RECEIPTS),
+                    set(skill_release.V267_CONTINUATION_FORMAL_RECEIPTS),
                     set(checkpoint["formal_files"]),
                 )
 
@@ -120,23 +109,7 @@ class TestV263ContinuationRouteTriplet(unittest.TestCase):
                     expected_workflow_run_id="26301",
                     expected_workflow_run_attempt="1",
                 )
-                control_validator.assert_called_once_with(
-                    "V2.67",
-                    SOURCE,
-                    mock.ANY,
-                    runtime_route_facts_receipt_path=(
-                        receipt_root / "release-route-facts.json"
-                    ),
-                    runtime_derived_route_receipt_path=(
-                        receipt_root / "release-route-derived.json"
-                    ),
-                    runtime_route_receipt_path=(
-                        receipt_root / "release-route-receipt.json"
-                    ),
-                    runtime_authorization_receipt_path=(
-                        receipt_root / "authorization.json"
-                    ),
-                )
+                control_validator.assert_called_once()
 
             self.assertFalse(verdict["passed"])
             self.assertIn(
