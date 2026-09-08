@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Deterministically project the V2.67 common contract into subagent TOML files."""
+"""Deterministically project the active product contract into subagent TOML files."""
 
 from __future__ import annotations
 
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 import tomllib
 
@@ -42,6 +43,13 @@ def common_text() -> str:
     return COMMON_PATH.read_text(encoding="utf-8").strip()
 
 
+def product_version() -> str:
+    value = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+    if re.fullmatch(r"V[0-9]+\.[0-9]+", value) is None:
+        raise ValueError("E_SUBAGENT_PRODUCT_VERSION_INVALID")
+    return value
+
+
 def render(path: Path, common: str) -> str:
     with path.open("rb") as handle:
         existing = tomllib.load(handle)
@@ -56,7 +64,7 @@ def render(path: Path, common: str) -> str:
     return (
         f'name = {json.dumps(existing["name"], ensure_ascii=False)}\n'
         f'description = {json.dumps(existing["description"], ensure_ascii=False)}\n'
-        '# common_prefix_generation = "V2.67"\n'
+        f'# common_prefix_generation = "{product_version()}"\n'
         f'# common_prefix_sha256 = "{common_digest}"\n'
         'developer_instructions = """\n'
         f"{instructions}\n"

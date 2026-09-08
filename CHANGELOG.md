@@ -1,5 +1,13 @@
 # Changelog
 
+## V2.68 Development Candidate
+
+- 将已验证的输出改进接入正式 Current 默认入口：所有 final 经过 typed output gateway 与六字段外层校验/序列化；错误返回受控 blocked/replan 正文。
+- 新增轻量文档 prepare → 实际写入 → 真实复核 → observe → render 交付记录，产物交付与输出校验、开发准入分别报告。
+- 修复任务全部完成时的空看板，保留真实统计和链接并显示完成提示；进行中任务行及 V2.67 dashboard 输入保持兼容。
+- 产品 V2.68 继续复用 exact V2.65 Graph Execution 和 exact V2.67 dashboard 依赖；未实现完整 V2.68 PRD 的其它能力。Host 发送拦截与最终 frame 验证仍 unavailable。
+- 提交、Release、安装和 readback 以各自实际回执为准；本条候选说明本身不证明已发布。
+
 ## V2.67 Development Candidate — 2026-08-26
 
 - Added a compact, digest-bound execution dashboard inside the existing six-field user-visible Envelope: active/remaining parent and subtask rows, fact-bound parallel Subagent markers, linked Context / Knowledge / Tools, and a four-line P/D/C/A LOOP with round estimates.

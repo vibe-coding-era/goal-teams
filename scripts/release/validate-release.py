@@ -182,13 +182,18 @@ WORKSPACE_ROOT = workspace_root()
 RELEASE_ROOT = WORKSPACE_ROOT / "release" / "versions"
 META = {"_release.json", "_files.sha256", "_artifacts/SHA256SUMS"}
 OKF_GENERATED_PATH = "references/okf-conformance-manifest.json"
-OKF_RELEASE_VERSIONS = {"V2.39", "V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49", "V2.50", "V2.52", "V2.6", "V2.62", "V2.63", "V2.65", "V2.66", "V2.67"}
+OKF_RELEASE_VERSIONS = {"V2.39", "V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49", "V2.50", "V2.52", "V2.6", "V2.62", "V2.63", "V2.65", "V2.66", "V2.67", "V2.68"}
 STRICT_SNAPSHOT_SCHEMA = "goal-teams-release-snapshot-v2.40"
-STRICT_SNAPSHOT_VERSIONS = {"V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49", "V2.50", "V2.52", "V2.6", "V2.62", "V2.63", "V2.65", "V2.66", "V2.67"}
+STRICT_SNAPSHOT_VERSIONS = {"V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49", "V2.50", "V2.52", "V2.6", "V2.62", "V2.63", "V2.65", "V2.66", "V2.67", "V2.68"}
 SUPPORTED_RELEASE_VERSIONS = {
     "V2.33", "V2.34", "V2.35", "V2.36", "V2.37", "V2.38", "V2.39",
-    "V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49", "V2.50", "V2.52", "V2.6", "V2.62", "V2.63", "V2.65", "V2.66", "V2.67",
+    "V2.40", "V2.44", "V2.45", "V2.46", "V2.48", "V2.49", "V2.50", "V2.52", "V2.6", "V2.62", "V2.63", "V2.65", "V2.66", "V2.67", "V2.68",
 }
+V268_PREDECESSOR_IDENTITY_PATH = Path(
+    "references/current/generations/V2.68/contracts/predecessor-release-identity.json"
+)
+V268_PREDECESSOR_IDENTITY_SHA256 = "83a68244ccff6da250a0c80476a099cb54f6e1a25f2f758c23fa604eeabce144"
+
 MAX_TAR_MEMBERS = 2048
 MAX_TAR_PATH_BYTES = 240
 MAX_TAR_SINGLE_FILE_BYTES = 16 * 1024 * 1024
@@ -409,6 +414,38 @@ def _v267_predecessor_release_identity() -> dict[str, object] | None:
     return dict(identity) if isinstance(identity, dict) else None
 
 
+def _v268_predecessor_release_identity() -> dict[str, object] | None:
+    path = SOURCE_ROOT / V268_PREDECESSOR_IDENTITY_PATH
+    if path.is_symlink() or not path.is_file():
+        return None
+    try:
+        contract = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return None
+    if (
+        not isinstance(contract, dict)
+        or set(contract)
+        != {
+            "schema_version",
+            "generation_id",
+            "predecessor_product_version",
+            "release_identity",
+            "release_identity_sha256",
+        }
+        or contract.get("schema_version")
+        != "goal-teams-predecessor-release-identity-v2.68"
+        or contract.get("generation_id") != "V2.68"
+        or contract.get("predecessor_product_version") != "V2.67"
+        or contract.get("release_identity_sha256")
+        != V268_PREDECESSOR_IDENTITY_SHA256
+        or _canonical_json_sha256(contract.get("release_identity"))
+        != V268_PREDECESSOR_IDENTITY_SHA256
+    ):
+        return None
+    identity = contract.get("release_identity")
+    return dict(identity) if isinstance(identity, dict) else None
+
+
 def release_projection_state(
     version: str,
     current: object,
@@ -418,6 +455,51 @@ def release_projection_state(
     """Distinguish a published projection from an isolated candidate."""
 
     if not isinstance(current, dict) or current.get("status") != "release":
+        return "invalid"
+    if version == "V2.68":
+        candidate_keys = {
+            key for key in current if str(key).startswith("candidate_")
+        }
+        if current.get("product_version") == "V2.68":
+            if (
+                current.get("schema_version")
+                != "goal-teams-release-manifest-v2.68"
+                or current.get("core_policy_version") != "V2.5"
+                or current.get("legacy_data_schema_version") != "V2.3"
+                or candidate_keys
+                or not _v263_published_identity_valid(
+                    current.get("release_identity"), "V2.68"
+                )
+            ):
+                return "invalid"
+            return "final"
+        predecessor_identity = _v268_predecessor_release_identity()
+        expected_candidate_keys = {
+            "candidate_product_version",
+            "candidate_release_state",
+            "candidate_profile",
+        }
+        if (
+            allow_candidate
+            and current.get("product_version") == "V2.67"
+            and current.get("schema_version")
+            == "goal-teams-release-manifest-v2.67"
+            and current.get("core_policy_version") == "V2.5"
+            and current.get("legacy_data_schema_version") == "V2.3"
+            and candidate_keys == expected_candidate_keys
+            and current.get("candidate_product_version") == "V2.68"
+            and current.get("candidate_release_state")
+            in {"development_candidate_not_published", "v250_release_readiness"}
+            and current.get("candidate_profile")
+            == "references/release-profiles/v2.68.json"
+            and predecessor_identity is not None
+            and _v263_published_identity_valid(
+                current.get("release_identity"),
+                "V2.67",
+                exact_identity=predecessor_identity,
+            )
+        ):
+            return "candidate"
         return "invalid"
     if version == "V2.67":
         candidate_keys = {
@@ -739,7 +821,7 @@ def validate_v250_release_identity(
         or not isinstance(observed, dict)
         or set(expected) != required
         or set(observed) != required
-        or expected.get("version") not in {"V2.50", "V2.52", "V2.6", "V2.62", "V2.63", "V2.65", "V2.66", "V2.67"}
+        or expected.get("version") not in {"V2.50", "V2.52", "V2.6", "V2.62", "V2.63", "V2.65", "V2.66", "V2.67", "V2.68"}
         or observed != expected
     ):
         return {
@@ -934,7 +1016,7 @@ def write_expected_file(root: Path, relative: str, mode: str, data: bytes) -> No
 def okf_runtime_generation(version: str) -> str:
     """Return the packaged OKF runtime generation for a release version."""
 
-    return "v250" if version in {"V2.50", "V2.52", "V2.6", "V2.62", "V2.63", "V2.65", "V2.66", "V2.67"} else "v249"
+    return "v250" if version in {"V2.50", "V2.52", "V2.6", "V2.62", "V2.63", "V2.65", "V2.66", "V2.67", "V2.68"} else "v249"
 
 
 def materialize_expected_payload_map(

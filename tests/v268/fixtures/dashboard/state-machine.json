@@ -1,0 +1,65 @@
+{
+  "schema_version": "goal-teams-dashboard-state-v1",
+  "dashboard": {
+    "completed_tasks": 1,
+    "total_tasks": 4,
+    "completed_subtasks": 6,
+    "total_subtasks": 14,
+    "active_rows": [
+      {
+        "row_kind": "task",
+        "task_id": "AUTH",
+        "parent_task_id": null,
+        "priority": "P0",
+        "name": "账户登录与鉴权",
+        "members": ["goal_backend"],
+        "in_progress": 2,
+        "remaining": 3
+      },
+      {
+        "row_kind": "subtask",
+        "task_id": "AUTH-TOKEN",
+        "parent_task_id": "AUTH",
+        "priority": "P0",
+        "name": "Token 刷新",
+        "members": ["goal_backend"],
+        "in_progress": 1,
+        "remaining": 1
+      },
+      {
+        "row_kind": "subtask",
+        "task_id": "AUTH-SECURITY",
+        "parent_task_id": "AUTH",
+        "priority": "P0",
+        "name": "异常登录安全验证",
+        "members": ["goal_security"],
+        "in_progress": 1,
+        "remaining": 2
+      },
+      {
+        "row_kind": "task",
+        "task_id": "SEARCH",
+        "parent_task_id": null,
+        "priority": "P1",
+        "name": "商品检索",
+        "members": ["goal_api_integration_test_runner"],
+        "in_progress": 1,
+        "remaining": 1
+      }
+    ],
+    "ready_layers": [
+      ["AUTH"],
+      ["AUTH-TOKEN", "AUTH-SECURITY"],
+      ["SEARCH"]
+    ]
+  },
+  "loop": {
+    "current_round": 2,
+    "estimated_total_rounds": 4,
+    "plan": "修复 Token 刷新并完成安全重验证",
+    "do": "进行中任务 2｜进行中子任务 3",
+    "gap_count": 3,
+    "blocked_count": 1,
+    "decision": "continue"
+  }
+}

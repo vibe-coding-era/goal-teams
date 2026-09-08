@@ -46,6 +46,16 @@ class TestV263ContinuationRouteTriplet(unittest.TestCase):
             - {"controller-handoff.json", "github-owner-key-validation.json"},
         )
 
+    def test_v268_formal_receipts_add_exact_installed_predecessor_observation(self) -> None:
+        self.assertEqual(
+            (*skill_release.V267_CONTINUATION_FORMAL_RECEIPTS, "installed-predecessor-observation.json"),
+            skill_release.continuation_formal_receipts("V2.68"),
+        )
+        self.assertEqual(
+            skill_release.V268_CONTINUATION_FORMAL_RECEIPTS,
+            skill_release.continuation_formal_receipts("V2.68"),
+        )
+
     def test_ready_checkpoint_exactly_binds_all_three_route_receipts(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             receipt_root, release_root, outcomes = checkpoint_fixture(Path(temp))
@@ -62,7 +72,7 @@ class TestV263ContinuationRouteTriplet(unittest.TestCase):
                 ) as control_validator,
             ):
                 checkpoint = skill_release.build_v250_continuation_checkpoint(
-                    "V2.67",
+                    "V2.68",
                     SOURCE,
                     project_size="large",
                     job_status="success",
@@ -76,7 +86,7 @@ class TestV263ContinuationRouteTriplet(unittest.TestCase):
                 control_validator.reset_mock()
                 self.assertEqual("ready_for_s4", checkpoint["state"])
                 self.assertEqual(
-                    set(skill_release.V267_CONTINUATION_FORMAL_RECEIPTS),
+                    set(skill_release.V268_CONTINUATION_FORMAL_RECEIPTS),
                     set(checkpoint["formal_files"]),
                 )
 
@@ -96,12 +106,12 @@ class TestV263ContinuationRouteTriplet(unittest.TestCase):
                 }
                 forged.pop("checkpoint_sha256")
                 forged["checkpoint_sha256"] = (
-                    skill_release._release_flow_module("V2.67").canonical_sha256(
+                    skill_release._release_flow_module("V2.68").canonical_sha256(
                         forged
                     )
                 )
                 verdict = skill_release.validate_v250_continuation_checkpoint(
-                    "V2.67",
+                    "V2.68",
                     SOURCE,
                     forged,
                     receipt_root=receipt_root,

@@ -1,0 +1,1 @@
+{"route_id":"provider.deepseek","models":{"flash":{"canonical_id":"provider.deepseek/flash","wires":["responses","anthropic_messages"]},"pro":{"canonical_id":"provider.deepseek/pro","wires":["anthropic_messages"]}},"fallback_policy":"requested_model_must_not_be_rewritten","verification_state":"documented_only"}

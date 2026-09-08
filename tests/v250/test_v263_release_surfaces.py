@@ -1,4 +1,4 @@
-"""V2.67 Current and release control surfaces."""
+"""V2.68 Current and release control surfaces."""
 
 from __future__ import annotations
 
@@ -10,16 +10,17 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from scripts.v267 import release_flow
+from scripts.v268 import release_flow
+from tests.v250.v268_release_facts import PUBLISHED_V267_IDENTITY
 
 
 ROOT = Path(__file__).resolve().parents[2]
 VALIDATE_PATH = ROOT / "scripts/checks/validate.py"
-SECURITY_RUNNER_PATH = ROOT / "scripts/checks/run-v267-release-security-review.py"
+SECURITY_RUNNER_PATH = ROOT / "scripts/checks/run-v268-release-security-review.py"
 VERSION_SYNC_PATH = ROOT / "scripts/checks/check-version-sync.py"
 SECURITY_MANIFEST_PATH = (
     ROOT
-    / "references/current/generations/V2.67/contracts/"
+    / "references/current/generations/V2.68/contracts/"
     "release-security-review-manifest.json"
 )
 
@@ -32,15 +33,15 @@ def _load(path: Path, name: str):
     return module
 
 
-class TestV267ReleaseSurfaces(unittest.TestCase):
+class TestV268ReleaseSurfaces(unittest.TestCase):
     @staticmethod
     def _strict_projections(_sync):
         candidate = {
-            "schema_version": "goal-teams-release-manifest-v2.66",
-            "product_version": "V2.66",
-            "candidate_product_version": "V2.67",
+            "schema_version": "goal-teams-release-manifest-v2.67",
+            "product_version": "V2.67",
+            "candidate_product_version": "V2.68",
             "candidate_release_state": "development_candidate_not_published",
-            "candidate_profile": "references/release-profiles/v2.67.json",
+            "candidate_profile": "references/release-profiles/v2.68.json",
             "core_policy_version": "V2.5",
             "legacy_data_schema_version": "V2.3",
             "docs_policy": "local-only",
@@ -70,19 +71,7 @@ class TestV267ReleaseSurfaces(unittest.TestCase):
                 },
                 "claim_policy": "no_estimation_without_trusted_host_usage_evidence",
             },
-            "release_identity": {
-                "tag": "v2.66",
-                "release_id": 375434758,
-                "state": "published",
-                "source_commit": "8512f6b9a7668daa6824b7a97494b927962b299e",
-                "source_tree": "fb436dbee231ee6c066cbb00fc9048b3113134ef",
-                "public_assets": [
-                    "goal-teams-V2.66.tar.gz",
-                    "SHA256SUMS",
-                    "_release.json",
-                    "_files.sha256",
-                ],
-            },
+            "release_identity": copy.deepcopy(PUBLISHED_V267_IDENTITY),
             "assurance_limits": {
                 "reproducibility": "not_verified_by_v250_policy",
                 "s2_security_checks": "not_run_by_v250_policy",
@@ -101,17 +90,17 @@ class TestV267ReleaseSurfaces(unittest.TestCase):
         }
         final = {
             **candidate,
-            "schema_version": "goal-teams-release-manifest-v2.67",
-            "product_version": "V2.67",
+            "schema_version": "goal-teams-release-manifest-v2.68",
+            "product_version": "V2.68",
             "release_identity": {
                 **candidate["release_identity"],
-                "tag": "v2.67",
+                "tag": "v2.68",
                 "release_id": 466000001,
                 "state": "published",
                 "source_commit": "a" * 40,
                 "source_tree": "b" * 40,
                 "public_assets": [
-                    "goal-teams-V2.67.tar.gz",
+                    "goal-teams-V2.68.tar.gz",
                     "SHA256SUMS",
                     "_release.json",
                     "_files.sha256",
@@ -145,7 +134,7 @@ class TestV267ReleaseSurfaces(unittest.TestCase):
                 return json.dumps(projection)
             if path == "release/current/README.md":
                 heading = readme_published_version or projection.get("product_version")
-                return f"# Goal Teams {heading} Release\n\nV2.67\n"
+                return f"# Goal Teams {heading} Release\n\nV2.68\n"
             return original_read(path)
 
         with (
@@ -161,16 +150,16 @@ class TestV267ReleaseSurfaces(unittest.TestCase):
             sync.main()
 
     def test_version_sync_accepts_candidate_and_final_current_projection(self) -> None:
-        sync = _load(VERSION_SYNC_PATH, "_test_v267_version_sync")
+        sync = _load(VERSION_SYNC_PATH, "_test_v268_version_sync")
         candidate, final = self._strict_projections(sync)
         self.assertEqual(
             {
-                "schema_version": "goal-teams-release-manifest-v2.66",
-                "product_version": "V2.66",
-                "tag": "v2.66",
-                "release_id": 375434758,
-                "source_commit": "8512f6b9a7668daa6824b7a97494b927962b299e",
-                "source_tree": "fb436dbee231ee6c066cbb00fc9048b3113134ef",
+                "schema_version": "goal-teams-release-manifest-v2.67",
+                "product_version": "V2.67",
+                "tag": "v2.67",
+                "release_id": 379771898,
+                "source_commit": "24f522a87b1aa74b6b127962ab88522ddc1f489d",
+                "source_tree": "a09be8a212b583cc489125bf2ff3b4e6cbbf9b71",
             },
             {
                 "schema_version": candidate["schema_version"],
@@ -194,11 +183,11 @@ class TestV267ReleaseSurfaces(unittest.TestCase):
                     self._run_version_sync_projection(sync, projection)
                 except SystemExit as exc:
                     self.fail(
-                        f"E_TEST_V267_VERSION_SYNC_REJECTED_VALID_PROJECTION:{exc.code}"
+                        f"E_TEST_V268_VERSION_SYNC_REJECTED_VALID_PROJECTION:{exc.code}"
                     )
 
     def test_version_sync_rejects_mixed_or_partial_current_projection(self) -> None:
-        sync = _load(VERSION_SYNC_PATH, "_test_v267_version_sync_negative")
+        sync = _load(VERSION_SYNC_PATH, "_test_v268_version_sync_negative")
         candidate, final = self._strict_projections(sync)
         invalid = []
 
@@ -207,7 +196,7 @@ class TestV267ReleaseSurfaces(unittest.TestCase):
         invalid.append(missing_profile)
 
         candidate_schema = copy.deepcopy(candidate)
-        candidate_schema["schema_version"] = "goal-teams-release-manifest-v2.67"
+        candidate_schema["schema_version"] = "goal-teams-release-manifest-v2.68"
         invalid.append(candidate_schema)
 
         candidate_draft = copy.deepcopy(candidate)
@@ -228,15 +217,15 @@ class TestV267ReleaseSurfaces(unittest.TestCase):
         ):
             mixed = copy.deepcopy(final)
             if key == "candidate_product_version":
-                mixed[key] = "V2.67"
+                mixed[key] = "V2.68"
             elif key == "candidate_release_state":
                 mixed[key] = "development_candidate_not_published"
             elif key == "candidate_profile":
-                mixed[key] = "references/release-profiles/v2.67.json"
+                mixed[key] = "references/release-profiles/v2.68.json"
             elif key == "schema_version":
-                mixed[key] = "goal-teams-release-manifest-v2.66"
+                mixed[key] = "goal-teams-release-manifest-v2.67"
             elif key == "release_identity.tag":
-                mixed["release_identity"]["tag"] = "v2.66"
+                mixed["release_identity"]["tag"] = "v2.67"
             elif key == "release_identity.state":
                 mixed["release_identity"]["state"] = "draft"
             elif key == "release_identity.release_id":
@@ -247,7 +236,7 @@ class TestV267ReleaseSurfaces(unittest.TestCase):
                 mixed["release_identity"]["source_tree"] = "b" * 39
             else:
                 mixed["release_identity"]["public_assets"][0] = (
-                    "goal-teams-V2.66.tar.gz"
+                    "goal-teams-V2.67.tar.gz"
                 )
             invalid.append(mixed)
 
@@ -261,12 +250,12 @@ class TestV267ReleaseSurfaces(unittest.TestCase):
                 self._run_version_sync_projection(
                     sync,
                     final,
-                    readme_published_version="V2.66",
+                    readme_published_version="V2.67",
                 )
 
-    def test_current_validator_dispatches_v267_without_legacy_readme_checks(self) -> None:
-        validator = _load(VALIDATE_PATH, "_test_v267_current_validator")
-        self.assertEqual("V2.67", validator.CURRENT_VERSION)
+    def test_current_validator_dispatches_v268_without_legacy_readme_checks(self) -> None:
+        validator = _load(VALIDATE_PATH, "_test_v268_current_validator")
+        self.assertEqual("V2.68", validator.CURRENT_VERSION)
         with (
             mock.patch.object(validator.subprocess, "run") as run,
             mock.patch.object(
@@ -284,28 +273,28 @@ class TestV267ReleaseSurfaces(unittest.TestCase):
                 validator.sys.executable,
                 "scripts/checks/validate-v250-generation.py",
                 "--generation-id",
-                "V2.67",
+                "V2.68",
                 "--selection",
                 "active",
             ],
             commands,
         )
 
-    def test_current_release_readme_describes_v266_and_v263_predecessor(self) -> None:
+    def test_current_release_readme_describes_v268_and_actual_v267_predecessor(self) -> None:
         text = (ROOT / "scripts/release/README.md").read_text(encoding="utf-8")
         current = text.split("## V2.48 Skill 简单发行兼容", 1)[0]
-        self.assertIn("V2.66 两阶段 Skill 发行", current)
-        self.assertIn("--version V2.66", current)
-        self.assertIn("docs/v2.66-release-runtime", current)
-        self.assertIn("已安装 V2.63 Codex 宿主", current)
+        self.assertIn("V2.68 两阶段 Skill 发行", current)
+        self.assertIn("--version V2.68", current)
+        self.assertIn("docs/v268-release", current)
+        self.assertIn("V2.67", current)
+        self.assertIn("installed_predecessor", current)
+        self.assertIn("--predecessor-observation-receipt", current)
+        self.assertIn("correlated", current)
         self.assertNotIn("已安装 V2.6 Codex 宿主", current)
-        self.assertIn("不是 V2.66\nCurrent Skill 发行默认入口", text)
-        self.assertIn(
-            "V2.66 是候选 `skill_simple` profile，V2.63 保持已安装基线直到 atomic cutover",
-            text,
-        )
+        self.assertNotIn("--controller-handoff-receipt", current)
+        self.assertNotIn("--verify-github-key", current)
 
-    def test_v266_release_readme_uses_facts_derived_medium_route_only(self) -> None:
+    def test_v268_release_readme_uses_facts_derived_medium_route_only(self) -> None:
         text = (ROOT / "scripts/release/README.md").read_text(encoding="utf-8")
         current = text.split("## V2.48 Skill 简单发行兼容", 1)[0]
         self.assertIn("from scripts.v250.route_derivation import derive_route", current)
@@ -316,7 +305,7 @@ class TestV267ReleaseSurfaces(unittest.TestCase):
         self.assertIn('"project_size": "medium"', current)
         self.assertIn('"workflow_phase": "release"', current)
         self.assertIn('"stage": "released"', current)
-        self.assertIn("derive_route(project_route_facts)", current)
+        self.assertIn('derive_route(project_route_facts, generation_id="V2.68")', current)
         self.assertIn("compile_derived_route_closure", current)
         self.assertIn("--project-size medium", current)
         self.assertNotIn("compile_route_closure", current)
@@ -324,12 +313,12 @@ class TestV267ReleaseSurfaces(unittest.TestCase):
 
     def test_security_denominator_covers_new_runtime_and_projection_code(self) -> None:
         manifest = json.loads(SECURITY_MANIFEST_PATH.read_text(encoding="utf-8"))
-        runner = _load(SECURITY_RUNNER_PATH, "_test_v267_security_runner")
+        runner = _load(SECURITY_RUNNER_PATH, "_test_v268_security_runner")
         targets = {item["path"] for item in manifest["review_targets"]}
         required = {
             "scripts/checks/check.sh",
-            "scripts/checks/check-v267.py",
-            "scripts/checks/run-v267-release-security-review.py",
+            "scripts/checks/check-v268.py",
+            "scripts/checks/run-v268-release-security-review.py",
             "scripts/checks/validate.py",
             "scripts/checks/check-version-sync.py",
             "scripts/checks/validate-v250-generation.py",
@@ -344,15 +333,20 @@ class TestV267ReleaseSurfaces(unittest.TestCase):
             "scripts/v250/test_gate.py",
             "scripts/v250/unicode17_data.py",
             "scripts/v250/unicode17_nfc.py",
-            "scripts/v267/compatibility.py",
-            "scripts/v267/project_host_assets.py",
-            "scripts/v267/role_projections.py",
-            "scripts/v267/release_identity.py",
-            "scripts/v267/release_flow.py",
-            "scripts/v267/repository_boundary.py",
-            "scripts/v267/runtime_host_adapter.py",
-            "scripts/v267/runtime_transition.py",
-            "scripts/v267/s4_executor.py",
+            "scripts/v268/compatibility.py",
+            "scripts/v268/project_host_assets.py",
+            "scripts/v268/role_projections.py",
+            "scripts/v268/release_identity.py",
+            "scripts/v268/release_flow.py",
+            "scripts/v268/repository_boundary.py",
+            "scripts/v268/runtime_host_adapter.py",
+            "scripts/v268/runtime_transition.py",
+            "scripts/v268/s4_executor.py",
+            "scripts/v268/installed_predecessor.py",
+            "scripts/v268/output_gateway.py",
+            "scripts/v268/output_dashboard.py",
+            "scripts/v268/specification_delivery.py",
+            "scripts/v267/output_dashboard.py",
         }
         self.assertTrue(required.issubset(targets))
         self.assertEqual(targets, set(runner.MANDATORY_REVIEW_TARGETS))
@@ -362,17 +356,17 @@ class TestV267ReleaseSurfaces(unittest.TestCase):
         command = json.loads(
             (
                 ROOT
-                / "references/current/generations/V2.67/contracts/"
+                / "references/current/generations/V2.68/contracts/"
                 "release-command-manifest.json"
             ).read_text(encoding="utf-8")
         )
         denominator = command["release"]["s1"]["current_full_regression_denominator"]
         self.assertEqual(
-            ["tests/v250", "tests/v267"],
+            ["tests/v250", "tests/v268"],
             denominator["test_roots"],
         )
         self.assertEqual(
-            ["tests/v266"], denominator["published_predecessor_test_roots"]
+            ["tests/v267"], denominator["published_predecessor_test_roots"]
         )
         self.assertEqual(0, denominator["predecessor_test_invocation_limit"])
         self.assertEqual(
@@ -388,12 +382,16 @@ class TestV267ReleaseSurfaces(unittest.TestCase):
             text = (ROOT / relative).read_text(encoding="utf-8")
             if relative.endswith(".yml"):
                 self.assertIn("tests.v250.", text, relative)
-                self.assertIn("tests.v267.", text, relative)
-                self.assertNotIn("tests.v266.", text, relative)
+                self.assertIn("tests.v268.", text, relative)
+                self.assertNotIn("tests.v267.", text, relative)
             else:
-                self.assertIn("tests.v250.", text, relative)
-                self.assertIn("tests.v267.", text, relative)
-                self.assertNotIn("tests.v266.", text, relative)
+                # Historical branches remain callable for their own VERSION;
+                # the current V2.68 branch must not invoke predecessor tests.
+                current_branch = text.split('if [[ "$PRODUCT_VERSION" == "V2.68" ]]; then', 1)[1]
+                current_branch = current_branch.split('if [[ "$PRODUCT_VERSION" == "V2.67" ]]; then', 1)[0]
+                self.assertIn("tests.v250.", current_branch, relative)
+                self.assertIn("tests.v268.", current_branch, relative)
+                self.assertNotIn("tests.v267.", current_branch, relative)
 
 
 if __name__ == "__main__":

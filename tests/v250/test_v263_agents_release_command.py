@@ -19,7 +19,8 @@ class TestV263AgentsReleaseCommand(unittest.TestCase):
             text,
         )
         self.assertNotIn("--controller-handoff-receipt", text)
-        self.assertIn("一次授权绑定的本地已安装 V2.66 状态", text)
+        self.assertIn("一次授权绑定的本地已安装 V2.67 状态", text)
+        self.assertIn("--predecessor-observation-receipt", text)
         self.assertNotIn("externally-issued-v248-handoff", text)
 
 

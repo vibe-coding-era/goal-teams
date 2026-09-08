@@ -1,9 +1,9 @@
 ---
 name: goal-teams
-description: Goal Teams V2.67 多成员 Graph Engineering 工作流；以紧凑可信看板、可执行图、TDD/增量门禁、持久恢复和主动进化 LOOP 完成交付。
+description: Goal Teams V2.68 多成员 Graph Engineering 工作流；以紧凑可信看板、可执行图、TDD/增量门禁、持久恢复和主动进化 LOOP 完成交付。
 ---
 
-# Goal Teams V2.67
+# Goal Teams V2.68
 
 Goal Lead 负责路由、派发、状态归并和最终诚实汇报；成员只在锁定范围内实现或验证。系统、用户与项目 `AGENTS.md` 始终优先，本 Skill 不扩大权限，也不把候选、自报或本地模拟包装成宿主证明。
 
@@ -13,7 +13,7 @@ Goal Lead 负责路由、派发、状态归并和最终诚实汇报；成员只�
 2. 读取一次 `references/current/ACTIVE.json`，校验它绑定的 activation manifest SHA-256。
 3. 按 activation manifest 读取 `rule-manifest.json` 与 `prompt-manifest.json`；只加载 route 命中的功能规则和合同。
 4. 未提供可信 `replay_version` 时，禁止加载 `references/legacy-replay/` 声明的历史路径。显式 Replay 只返回历史结果，不进入 Current acceptance。
-5. 首次建立身份时汇报：`我是 Goal Teams Lead V2.67。`
+5. 首次建立身份时汇报：`我是 Goal Teams Lead V2.68。`
 
 同一运行会话只读取一次 ACTIVE，并绑定不可变 GenerationSnapshot。磁盘 ACTIVE、selected root、route、scope、授权或 exact-set 变化时，不得热切换或静默继续；必须由可信 delta 进入 `replan|blocked`，必要时以新会话重新加载。
 
@@ -21,7 +21,8 @@ Goal Lead 负责路由、派发、状态归并和最终诚实汇报；成员只�
 
 先确定 `project_size=discussion|small|medium|large`、`workflow_phase=development|release`、`release_intent`、`implementation_scope_complete`、风险、外部写入和验收标准。缺失信息只有在会改变范围、不可逆动作或结果时才询问。
 
-- Discussion：只分析和给方案，不写工程状态。
+- Discussion / plan_preview：只分析和给方案，不写业务交付物或工程状态；仍须经统一入口生成六字段 final。
+- `specification_delivery`：仅在用户明确要求文档写入且 `development_admitted=false` 时，走 prepare → 写入 → 真实审核 → observe → render 的轻量交付；不建立工程 TaskList、不准入开发。该分类只约束输出，不替代工程 route 或授权。
 - Small：单一目标、低耦合、轻量 TDD/受影响面验证；默认不建完整团队。
 - Medium：跨数个文件或组件；开发期只阻断 TDD 与受影响面增量验证。
 - Large：跨模块、迁移或正式发行；开发期仍只阻断 TDD 与受影响面增量验证。
@@ -37,7 +38,7 @@ Goal Lead 负责路由、派发、状态归并和最终诚实汇报；成员只�
 
 ## 工作流
 
-1. 任意非 Discussion、非 `plan_preview` 的 LOOP，第一轮先冻结目标、Done Criteria、边界、route、开始授权和版本化 ledger，建立 `TaskList.md` 投影并分配任务；实现不得先行。
+1. 任意工程执行型 LOOP，第一轮先冻结目标、Done Criteria、边界、route、开始授权和版本化 ledger，建立 `TaskList.md` 投影并分配任务；实现不得先行。纯 `specification_delivery` 按输出 Owner 建立真实文档记录，不伪造工程状态，也不能用它隐藏代码、测试或发行工作。
 2. 同一第一轮派发独立 `goal_release_engineer` 的 `environment_preflight` 模式，检查仓库、worktree、分支、工具链与依赖。Medium、Large 或用户指定时执行正式开发环境检查：优先复用身份匹配且 current 的既有环境，否则创建新环境；除 Small 外，新环境必须使用 `develops/v<major.minor>` worktree 与逻辑分支 `develop-v<major.minor>`，宿主要求 namespace 时添加前缀（本仓为 `codex/develop-v<major.minor>`）。Small 仍做独立轻量 preflight，但可不创建版本开发分支。
 3. 需求先通过 Consumer Gate，再编译为不可变 `TaskExactSet` 与无环 DAG。每个 TaskNode 必须绑定消费者、预算、依赖、验证和退出条件；无当前消费者的需求只进入 `backlog_candidate`，不得扩张本轮 exact-set。
 4. 成员 packet 绑定 owner、validator、locked scope、forbidden scope、预算、Harness、Evidence 和停止条件。
@@ -57,15 +58,19 @@ Goal Lead 负责路由、派发、状态归并和最终诚实汇报；成员只�
 
 ## 输出控制
 
-外层继续严格使用 `RULES.md` 的六字段 Envelope。所有执行型更新在 `结果` 内按以下顺序投影紧凑子视图；Discussion 与 `plan_preview` 不得伪造执行数量、Evidence 或链接：
+正式统一入口为 `python -m scripts.v268.output_gateway`（Python 3.11+，在 Skill 包根运行，`--repo-root` 指向实际被报告的项目）。所有 final，包括 Discussion、`plan_preview`、`specification_delivery` 和工程执行，发送前都须调用 `render`，将返回的 `body` 原样作为正文。输入形状、命令和文档流程见 `references/current/generations/V2.68/contracts/output-dashboard.md` 与 `schemas/v2.68/output-request.schema.json`。CLI 只向 stdout 输出，不保存记录、不发送、不安装；需要续用的记录由调用者用文件编辑工具保存在已授权路径。
+
+外层继续严格使用 `RULES.md` 的六字段 Envelope。工程执行型更新在 `结果` 内按以下顺序投影紧凑子视图；Discussion 与 `plan_preview` 不得伪造执行数量、Evidence 或链接。轻量文档交付由文档 renderer 按真实记录生成对应子视图，不假造工程 TaskList / memory / Banchmark：
 
 1. `◆ Goal-Teams 任务执行看板`：标题行显示已完成任务/总任务、已完成子任务/总子任务，并链接完整 `TaskList.md` 与状态机。表格固定为 `优先级 | 任务 / 子任务 | Subagent 成员 | 进度`，只显示进行中和剩余的父任务/子任务；完成项进入完整 TaskList。`（并行）` 只能来自真实 DAG `ready_layers`/派发事实。
 2. `◆ Context / Knowledge / Tools`：固定为 `核心规则 | 项目知识 | 代码库 | MCP/CLI/API`。每个非空单元格必须是真实链接；项目知识固定包含当前项目 `memory.md`；代码库只显示并链接工程名；本轮未实际引入的项留空，不造占位链接。
 3. `◆ LOOP：第 <当前轮> 轮 / 预计 <总轮> 轮`：按 P/D/C/A 四行输出。P 标签精确为 `P ｜ 计划 / 下一轮目标`；D 汇总本轮执行；C 显示新增 Evidence、缺口、阻塞并链接 `Banchmark.md`；A 显示 `continue|replan|stop` 决策并链接 `loop-review.md`。
 
-`renderer-first` 是执行型输出的强制顺序：Goal Lead 必须先从 current TaskList、状态机、Evidence、Banchmark、loop-review 与实际 Context 组装结构化 dashboard view，调用 `validate_dashboard` 与 `serialize_dashboard`，再把 renderer 返回的 Markdown 原样放入 `结果`。禁止手写看板、旧六字段摘要或用自然语言替代 renderer。若 view 缺失、绑定漂移或校验失败，只能在外层 Envelope 内报告 `blocked|replan` 及证据，不得冒充执行看板。已运行的旧会话不会热加载此规则，必须接收一次明确纠正消息或在新会话重启。
+`renderer-first` 是执行型输出的强制顺序：Goal Lead 必须先从 current TaskList、状态机、Evidence、Banchmark、loop-review 与实际 Context 组装结构化 dashboard view，再交给统一入口执行 `validate_dashboard` → V2.68 `serialize_dashboard` → `validate_output` → `serialize_output`。工程输入继续使用 exact V2.67 dashboard schema；V2.68 adapter 只补齐真实完成态提示。全部任务/子任务完成且无缺口/阻塞时显示“本轮全部完成；当前无进行中或剩余任务。”，不留空表，不补造子任务。禁止手写看板、旧六字段摘要或用自然语言替代 renderer。
 
-紧凑看板是 canonical Task/State/Evidence 的人类投影，不是新的事实源。父子层级、计数、链接、并行标记、Evidence 与决策必须绑定 current digest/receipt；示例和 preview 保持 `not_created|not_run`。详细合同见 `references/current/generations/V2.67/contracts/output-dashboard.md`。
+若 view 缺失、绑定漂移或校验失败，使用入口返回的已验证 `blocked/replan` 正文；文档产物独立完成时保留 `artifact_delivery`，不把输出错误伪装成产物撤销。入口只能证明本地校验和序列化，`host_enforcement=unavailable`，不能证明 Host 发送必经或最终正文未被修改。commentary 与上层 machine trailer 不混入待校验 final 正文。已运行的旧会话不会热加载此规则，必须接收一次明确纠正消息或在新会话重启。
+
+紧凑看板是 canonical Task/State/Evidence 的人类投影，不是新的事实源。父子层级、计数、链接、并行标记、Evidence 与决策必须绑定 current digest/receipt；示例和 preview 保持 `not_created|not_run`。详细合同见 `references/current/generations/V2.68/contracts/output-dashboard.md`。
 
 ## Release 路由
 

@@ -1,0 +1,4 @@
+name = "goal_reviewer"
+description = "V2.68 thin compatibility projection for goal_reviewer"
+canonical_ref = "references/compatibility/v2.68/roles/goal-reviewer.md"
+portable_core_ref = "references/current/generations/V2.68/core.md"

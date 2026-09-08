@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goal-teams.local/schemas/v2.68/installed-predecessor-observation.schema.json",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "repository",
+    "repository_id",
+    "target_product_version",
+    "predecessor_product_version",
+    "release_identity",
+    "authorization_id",
+    "authorization_intent_sha256",
+    "captured_at",
+    "state_raw_sha256",
+    "package_manifest_sha256",
+    "expected_file_set_sha256",
+    "observed_file_set_sha256",
+    "package_file_count",
+    "extra_file_count",
+    "strict_payload_check",
+    "observation_source",
+    "actor_assurance",
+    "actor_relationship",
+    "receipt_sha256"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "goal-teams-v2.68-installed-predecessor-observation-v1"
+    },
+    "repository": {
+      "const": "vibe-coding-era/goal-teams"
+    },
+    "repository_id": {
+      "const": "1249985345"
+    },
+    "target_product_version": {
+      "const": "V2.68"
+    },
+    "predecessor_product_version": {
+      "const": "V2.67"
+    },
+    "release_identity": {
+      "const": {
+        "tag": "v2.67",
+        "release_id": 379771898,
+        "state": "published",
+        "source_commit": "24f522a87b1aa74b6b127962ab88522ddc1f489d",
+        "source_tree": "a09be8a212b583cc489125bf2ff3b4e6cbbf9b71",
+        "public_assets": [
+          "goal-teams-V2.67.tar.gz",
+          "SHA256SUMS",
+          "_release.json",
+          "_files.sha256"
+        ]
+      }
+    },
+    "authorization_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authorization_intent_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "captured_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "state_raw_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "package_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "expected_file_set_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "observed_file_set_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "package_file_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "extra_file_count": {
+      "const": 0
+    },
+    "strict_payload_check": {
+      "const": "passed"
+    },
+    "observation_source": {
+      "const": "observed_on_authorized_local_host"
+    },
+    "actor_assurance": {
+      "const": "I1"
+    },
+    "actor_relationship": {
+      "const": "correlated"
+    },
+    "receipt_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "additionalProperties": false
+}
