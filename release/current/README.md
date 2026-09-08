@@ -1,10 +1,10 @@
-# Goal Teams V2.67 Release
+# Goal Teams V2.68 Release
 
-V2.68 is the output-control and document-delivery release candidate. It is not yet published or installed. The verified published predecessor is V2.67: tag `v2.67`, GitHub Release `379771898`, source commit `24f522a87b1aa74b6b127962ab88522ddc1f489d`, tree `a09be8a212b583cc489125bf2ff3b4e6cbbf9b71`.
+V2.68 is published as [Goal Teams V2.68](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.68), GitHub Release `384469308`, with annotated tag `v2.68` at source commit `12728a6878544fbfaf208cb2d7b4a2a16041bc7f`, tree `bf8f0c24dc1883c2a96dff7a4bb16c28ac834450`. Publication occurred on 2026-09-08; the authorized local installation was separately updated and read back successfully.
 
-The published V2.67 public asset set is `goal-teams-V2.67.tar.gz`, `SHA256SUMS`, `_release.json` and `_files.sha256`. These immutable predecessor assets are not rebuilt by the V2.68 candidate.
+The published public asset set is exactly `goal-teams-V2.68.tar.gz`, `SHA256SUMS`, `_release.json` and `_files.sha256`. The tarball is 1,765,966 bytes with SHA-256 `5677a4505a48f1f5a7f203f21265778c93f6a745162a72ead274464f6aadd297`. All four uploaded assets were downloaded and verified against the same S2 asset set. V2.67 remains the unchanged published predecessor.
 
-## V2.68 candidate scope
+## V2.68 release scope
 
 - Promote the typed output gateway to the default Skill entrypoint: discussion, preview, lightweight document delivery and engineering execution retain one validated six-field response envelope.
 - Bind document delivery to authorized paths, before-write records, actual file readback and reviewer results without falsely admitting product development.
@@ -17,15 +17,15 @@ This release scope does not implement every item in the local V2.68 PRD. Host se
 
 ## Release policy
 
-After the final exact-main source is frozen, Release readiness requires a fresh runtime transition, Current full regression and independent security review. S2 builds the exact four-asset set once; repository boundary verification is separate. S3 is Large-only, so this Medium release does not run an install rehearsal. Actions creates the authorized S4 plan and official continuation artifact; the independent S4 successor performs publication, canonical installation and exact readback.
+[Formal Actions run 34190735376](https://github.com/vibe-coding-era/goal-teams/actions/runs/34190735376), attempt 1, passed the fresh released runtime transition, 589 Current tests, fresh separate-process release security review (I1/correlated, not external independence), single S2 build, same-asset integrity and independent repository boundary checks. S3 is Large-only; this Medium release recorded `not_required/not_run` with zero process invocations. Actions performed zero external S4 writes and produced the authorized plan and official continuation artifact. The independent S4 successor then completed tag/Release publication, four asset uploads, canonical installation and exact readback without rebuilding or retrying confirmed writes.
 
-The intended V2.68 public set is `goal-teams-V2.68.tar.gz`, `SHA256SUMS`, `_release.json` and `_files.sha256`. No V2.68 asset size, digest or Release ID is claimed before actual build/publication. `docs/`, `develops/`, local evidence, credentials and optional Replay material are excluded from the default public assets.
+The authorized local readback verified product V2.68, the exact released source, 361 package files, 24 agent files and zero symlinks. This is one local installation observation, not a claim about every user installation. `docs/`, `develops/`, local evidence, credentials and optional Replay material are excluded from the default public assets.
 
 ## Identity and assurance
 
-`release/current/manifest.json` records the published V2.67 identity separately from the V2.68 candidate fields. Publication and installation are distinct from this source projection; a later verified projection must not rewrite the immutable release tag or rebuild published assets.
+`release/current/manifest.json` records the actual published V2.68 identity; candidate fields have been removed. Publication and installation are distinct from this source projection. A later metadata-only main commit is not a replacement released SHA and must not rewrite the immutable release tag or rebuild published assets.
 
-This mutable document is the post-release `main` projection of the verified V2.67 release, with the separate V2.68 candidate scope described above. The immutable V2.67 assets retain the candidate-time projection captured by their single S2 build and are not rewritten after publication.
+This mutable document is the post-release `main` projection of the verified V2.68 release. The immutable V2.68 assets retain the candidate-time projection captured by their single S2 build and are not rewritten after publication. Installed package bytes retain that same captured projection; editing them to match this later document would invalidate exact package readback.
 
 Runtime and predecessor observations remain I1/correlated, not cryptographic or external-independent proof. Reproducibility is `not_verified_by_v250_policy`; S2 security is `not_run_by_v250_policy`. Token consumption and cache-hit telemetry remain unavailable without trusted host evidence.
 

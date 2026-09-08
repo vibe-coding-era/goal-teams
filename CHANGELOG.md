@@ -1,5 +1,12 @@
 # Changelog
 
+## V2.68 Published — 2026-09-08
+
+- Published [Goal Teams V2.68](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.68), Release `384469308`, with annotated tag `v2.68` at source `12728a6878544fbfaf208cb2d7b4a2a16041bc7f`, tree `bf8f0c24dc1883c2a96dff7a4bb16c28ac834450`.
+- [Formal Actions run 34190735376](https://github.com/vibe-coding-era/goal-teams/actions/runs/34190735376), attempt 1, passed 589 Current tests and fresh separate-process release security review (I1/correlated, not external independence). S2 built one exact four-asset set; integrity and repository boundary checks passed separately. Medium S3 was not required and invoked zero processes.
+- The independent S4 successor published and read back all four assets, then updated the authorized local installation and verified 361 package files and 24 agent files. S4 outcome receipt `d9d13b1195c8d016f41e95fde3d80db5c1e88cd6b3d8b321ecf8ef0fbd74c6d9` records local/correlated evidence, not external attestation.
+- This post-publication entry does not rewrite the immutable assets or move the release tag. The candidate-time entries below remain historical. Host send interception and final-frame verification remain unavailable; the release does not implement every item of the V2.68 PRD or establish business acceptance.
+
 ## V2.68 Development Candidate
 
 - 将已验证的输出改进接入正式 Current 默认入口：所有 final 经过 typed output gateway 与六字段外层校验/序列化；错误返回受控 blocked/replan 正文。

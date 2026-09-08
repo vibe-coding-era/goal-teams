@@ -1,6 +1,6 @@
 {
-  "schema_version": "goal-teams-release-manifest-v2.67",
-  "product_version": "V2.67",
+  "schema_version": "goal-teams-release-manifest-v2.68",
+  "product_version": "V2.68",
   "core_policy_version": "V2.5",
   "legacy_data_schema_version": "V2.3",
   "docs_policy": "local-only",
@@ -28,13 +28,13 @@
     "claim_policy": "no_estimation_without_trusted_host_usage_evidence"
   },
   "release_identity": {
-    "tag": "v2.67",
-    "release_id": 379771898,
+    "tag": "v2.68",
+    "release_id": 384469308,
     "state": "published",
-    "source_commit": "24f522a87b1aa74b6b127962ab88522ddc1f489d",
-    "source_tree": "a09be8a212b583cc489125bf2ff3b4e6cbbf9b71",
+    "source_commit": "12728a6878544fbfaf208cb2d7b4a2a16041bc7f",
+    "source_tree": "bf8f0c24dc1883c2a96dff7a4bb16c28ac834450",
     "public_assets": [
-      "goal-teams-V2.67.tar.gz",
+      "goal-teams-V2.68.tar.gz",
       "SHA256SUMS",
       "_release.json",
       "_files.sha256"
@@ -51,7 +51,4 @@
     "kg_trace_truncated_match_count": "discovered_lower_bound_not_total_reachable_edges"
   },
   "status": "release"
-  ,"candidate_product_version": "V2.68"
-  ,"candidate_release_state": "development_candidate_not_published"
-  ,"candidate_profile": "references/release-profiles/v2.68.json"
 }
