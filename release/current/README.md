@@ -25,6 +25,8 @@ The intended V2.68 public set is `goal-teams-V2.68.tar.gz`, `SHA256SUMS`, `_rele
 
 `release/current/manifest.json` records the published V2.67 identity separately from the V2.68 candidate fields. Publication and installation are distinct from this source projection; a later verified projection must not rewrite the immutable release tag or rebuild published assets.
 
+This mutable document is the post-release `main` projection of the verified V2.67 release, with the separate V2.68 candidate scope described above. The immutable V2.67 assets retain the candidate-time projection captured by their single S2 build and are not rewritten after publication.
+
 Runtime and predecessor observations remain I1/correlated, not cryptographic or external-independent proof. Reproducibility is `not_verified_by_v250_policy`; S2 security is `not_run_by_v250_policy`. Token consumption and cache-hit telemetry remain unavailable without trusted host evidence.
 
 Requirements: Python 3.11+ and the pinned validation dependencies used by the repository workflows.
