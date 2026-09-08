@@ -491,6 +491,9 @@ def synthetic_payload_policy():
 @synthetic_payload_policy()
 def capture_synthetic_predecessor(root: Path, authorization: dict, *, captured_at: str = CAPTURED_AT) -> dict:
     """Exercise the production capture API against explicit synthetic files."""
+    # These files belong to this fixture; macOS tempfile may spell /private/var
+    # as /var. Canonicalize the owned root, not the production API's inputs.
+    root = root.resolve(strict=True)
     installation = root / "synthetic-installed-predecessor"
     installation.mkdir(parents=True)
     package_files = []

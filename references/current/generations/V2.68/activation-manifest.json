@@ -3,7 +3,7 @@
   "generation_id": "V2.68",
   "generation_state": "active",
   "baseline_generation_id": "V2.67",
-  "manifest_payload_sha256": "20ea2eadd1c0db17df2f5ea56100ff587a6aad8470cec4e7674b4ebf5e5e22c6",
+  "manifest_payload_sha256": "ac003679f1d589580d7f9753a41b77159e0985d9494fcfff3bfba0c6b112b741",
   "identity": {
     "loaded_runtime_product_version": "V2.68",
     "core_policy_version": "V2.5",
@@ -1045,8 +1045,8 @@
       },
       {
         "path": "tests/v250/test_v263_agents_release_command.py",
-        "sha256": "30f5b38a6315103934c542fc4214f7627c400879475466a226532fd69d979dbc",
-        "bytes": 841
+        "sha256": "18a335b2dec99377664d5d3d8d23949d221b10e6338e1e34d66cf9fa9e7123e0",
+        "bytes": 906
       },
       {
         "path": "tests/v250/test_v263_blocker_finding.py",
@@ -1360,8 +1360,8 @@
       },
       {
         "path": "tests/v250/v268_candidate_fixture.py",
-        "sha256": "77adec32a777cbb77244d398935118feb5bf627157077acac361fdccb1dff613",
-        "bytes": 23789
+        "sha256": "60b2521ff4c860ecd39f14a21964c53a657153e5f50a40f912a2afb5a20b3ae3",
+        "bytes": 23983
       },
       {
         "path": "tests/v250/v268_release_facts.py",
