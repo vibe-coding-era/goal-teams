@@ -8,8 +8,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-CURRENT_VERSION = "V2.67"
-PUBLISHED_PREDECESSOR_VERSION = "V2.66"
+CURRENT_VERSION = "V2.68"
+PUBLISHED_PREDECESSOR_VERSION = "V2.67"
 KG_HISTORY_VERSION = "V2.63"
 KG_HISTORY_GENERATION = (
     ROOT / "references" / "current" / "generations" / KG_HISTORY_VERSION
@@ -53,14 +53,14 @@ def _target(testcase: unittest.TestCase):
 
 
 class TestV262VersionMigration(unittest.TestCase):
-    def test_product_current_is_v267_over_published_v265_predecessor(self) -> None:
+    def test_product_current_is_v268_over_published_v267_predecessor(self) -> None:
         self.assertEqual(CURRENT_VERSION, (ROOT / "VERSION").read_text().strip())
         active = json.loads(
             (ROOT / "references/current/ACTIVE.json").read_text(encoding="utf-8")
         )
         self.assertEqual(CURRENT_VERSION, active["generation_id"])
         self.assertEqual(
-            "references/current/generations/V2.67/activation-manifest.json",
+            "references/current/generations/V2.68/activation-manifest.json",
             active["activation_manifest"],
         )
         activation_path = ROOT / active["activation_manifest"]
@@ -106,14 +106,14 @@ class TestV262VersionMigration(unittest.TestCase):
             if line.strip()
         ]
         self.assertEqual(["name", "description"], keys)
-        self.assertIn("Goal Teams V2.67", skill)
-        self.assertIn("我是 Goal Teams Lead V2.67。", skill)
+        self.assertIn("Goal Teams V2.68", skill)
+        self.assertIn("我是 Goal Teams Lead V2.68。", skill)
         self.assertIn(
-            "V2.67",
+            "V2.68",
             (ROOT / ".agents/skills/goal-teams/SKILL.md").read_text(encoding="utf-8"),
         )
-        self.assertIn("产品版本：`V2.67`", (ROOT / "AGENTS.md").read_text())
-        self.assertIn("V2.67", (ROOT / "agents/openai.yaml").read_text())
+        self.assertIn("产品版本：`V2.68`", (ROOT / "AGENTS.md").read_text())
+        self.assertIn("V2.68", (ROOT / "agents/openai.yaml").read_text())
         for path, expected in PROTECTED_README_SHA256.items():
             self.assertEqual(
                 expected,
@@ -166,18 +166,18 @@ class TestV262VersionMigration(unittest.TestCase):
         ]
         self.assertIn(owner, owner_mentions)
 
-    def test_execution_core_stays_v250_and_default_package_is_v267_only(self) -> None:
+    def test_execution_core_stays_v250_and_default_package_is_v268_only(self) -> None:
         package = (ROOT / "scripts/install/package-manifest.txt").read_text(
             encoding="utf-8"
         )
         package_lines = set(package.splitlines())
-        self.assertIn("prefix references/current/generations/V2.67/", package_lines)
-        self.assertIn("prefix references/compatibility/v2.67/", package_lines)
+        self.assertIn("prefix references/current/generations/V2.68/", package_lines)
+        self.assertIn("prefix references/compatibility/v2.68/", package_lines)
         self.assertIn(
-            "file references/profiles/goal-teams-self-release-v2.67.md",
+            "file references/profiles/goal-teams-self-release-v2.68.md",
             package_lines,
         )
-        self.assertIn("file references/release-profiles/v2.67.json", package_lines)
+        self.assertIn("file references/release-profiles/v2.68.json", package_lines)
         self.assertIn("prefix scripts/v250/", package)
         self.assertIn("prefix schemas/v2.50/", package)
         self.assertIn("prefix tests/v250/", package)
@@ -189,9 +189,23 @@ class TestV262VersionMigration(unittest.TestCase):
                 if line.startswith(("file schemas/v2.65/", "file scripts/v265/"))
             },
         )
-        self.assertIn("prefix schemas/v2.67/", package_lines)
-        self.assertIn("prefix scripts/v267/", package_lines)
-        self.assertIn("prefix tests/v267/", package_lines)
+        self.assertIn("prefix schemas/v2.68/", package_lines)
+        self.assertIn("prefix scripts/v268/", package_lines)
+        self.assertIn("prefix tests/v268/", package_lines)
+        self.assertEqual(
+            {
+                "file scripts/v267/__init__.py",
+                "file scripts/v267/output_dashboard.py",
+                "file schemas/v2.67/output-dashboard.schema.json",
+            },
+            {line for line in package_lines
+             if line.startswith(("file scripts/v267/", "file schemas/v2.67/"))},
+        )
+        self.assertNotIn("prefix references/current/generations/V2.67/", package)
+        self.assertNotIn("prefix references/compatibility/v2.67/", package)
+        self.assertNotIn("prefix scripts/v267/", package)
+        self.assertNotIn("prefix schemas/v2.67/", package)
+        self.assertNotIn("prefix tests/v267/", package)
         self.assertNotIn("prefix references/current/generations/V2.65/", package)
         self.assertNotIn("prefix references/compatibility/v2.65/", package)
         self.assertNotIn("references/profiles/goal-teams-self-release-v2.65.md", package)

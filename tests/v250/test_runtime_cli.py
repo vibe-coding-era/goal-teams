@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -68,7 +69,7 @@ class TestV250RuntimeCLI(unittest.TestCase):
         release_invocation = next(
             value
             for value in invocations
-            if value.startswith("scripts/checks/check-v267.py --phase release")
+            if value.startswith("scripts/checks/check-v268.py --phase release")
         )
         self.assertIn(
             f"--released-runtime-receipt {runtime_receipt}", release_invocation
@@ -87,7 +88,7 @@ class TestV250RuntimeCLI(unittest.TestCase):
 
     def test_runtime_child_cli_forbids_raw_lineage_and_uses_stdin_receipts(self) -> None:
         result = subprocess.run(
-            ["python3", "scripts/v267/runtime_transition.py", "--help"],
+            [sys.executable, "-B", "scripts/v268/runtime_transition.py", "--help"],
             cwd=ROOT,
             check=False,
             capture_output=True,
@@ -114,7 +115,7 @@ class TestV250RuntimeCLI(unittest.TestCase):
 
     def test_host_adapter_cli_has_launch_without_key_verification_requirement(self) -> None:
         result = subprocess.run(
-            ["python3", "scripts/v267/runtime_host_adapter.py", "--help"],
+            [sys.executable, "-B", "scripts/v268/runtime_host_adapter.py", "--help"],
             cwd=ROOT,
             check=False,
             capture_output=True,
@@ -124,12 +125,12 @@ class TestV250RuntimeCLI(unittest.TestCase):
         self.assertIn("launch", result.stdout)
         self.assertNotIn("verify-github-key", result.stdout)
 
-    def test_host_adapter_declares_v262_to_v263_runtime_handoff(self) -> None:
-        adapter_source = (ROOT / "scripts/v267/runtime_host_adapter.py").read_text(
+    def test_host_adapter_declares_v267_to_v268_runtime_handoff(self) -> None:
+        adapter_source = (ROOT / "scripts/v268/runtime_host_adapter.py").read_text(
             encoding="utf-8"
         )
-        self.assertIn("V2.66 -> V2.67 runtime handoff", adapter_source)
-        self.assertNotIn("V2.67 -> V2.67 runtime handoff", adapter_source)
+        self.assertIn("V2.67 -> V2.68 runtime handoff", adapter_source)
+        self.assertNotIn("V2.68 -> V2.68 runtime handoff", adapter_source)
 
 
 if __name__ == "__main__":

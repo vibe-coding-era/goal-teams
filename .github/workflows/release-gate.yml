@@ -1,9 +1,9 @@
-name: Goal Teams V2.67 phase-aware verification
-run-name: Goal Teams V2.67 phase-aware verification ${{ github.sha }}
+name: Goal Teams V2.68 phase-aware verification
+run-name: Goal Teams V2.68 phase-aware verification ${{ github.sha }}
 
 on:
   push:
-    branches: [main, codex/develop-v2.67]
+    branches: [main, codex/develop-v2.68]
   pull_request:
   workflow_dispatch:
     inputs:
@@ -20,7 +20,12 @@ on:
         default: medium
         options: [small, medium, large]
       project_start_authorization_receipt_json:
-        description: Complete V2.67 project-start authorization receipt JSON; required only for release.
+        description: Complete V2.68 project-start authorization receipt JSON; required only for release.
+        required: false
+        type: string
+
+      predecessor_observation_receipt_json:
+        description: Authorization-bound actual installed V2.67 observation captured on the user's local host; required for release.
         required: false
         type: string
 
@@ -79,7 +84,7 @@ jobs:
             "require('ajv/dist/2020')"
           echo "PYTHONPATH=${VALIDATOR_PYTHON_PREFIX}${PYTHONPATH:+:${PYTHONPATH}}" >> "${GITHUB_ENV}"
           echo "NODE_PATH=${VALIDATOR_NODE_PREFIX}/node_modules${NODE_PATH:+:${NODE_PATH}}" >> "${GITHUB_ENV}"
-      - name: Active V2.67 pre-release exact Development gate
+      - name: Active V2.68 pre-release exact Development gate
         env:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
@@ -97,6 +102,7 @@ jobs:
             tests.v250.test_v252_loop_bootstrap \
             tests.v250.test_v252_loop_bootstrap_hardening \
             tests.v250.test_v252_loop_bootstrap_receipt_hardening \
+            tests.v250.test_workflow_release_contract \
             tests.v250.test_v263_activation_lifecycle \
             tests.v250.test_v263_activation_lifecycle_hardening \
             tests.v250.test_v263_active_pointer_locking \
@@ -114,8 +120,8 @@ jobs:
             tests.v250.test_v263_discovery_snapshot \
             tests.v250.test_v263_external_anchor_test_roots \
             tests.v250.test_v263_first_loop_environment \
-            tests.v250.test_v263_git_change \
             tests.v250.test_v263_generation_validator_selection \
+            tests.v250.test_v263_git_change \
             tests.v250.test_v263_installer_offline_closure \
             tests.v250.test_v263_loop_registry_integration \
             tests.v250.test_v263_okf_package_manifest \
@@ -155,13 +161,19 @@ jobs:
             tests.v250.test_v265_active_pointer_locking \
             tests.v250.test_v265_generation_validator_selection \
             tests.v250.test_v265_prompt_manifest_state \
-            tests.v250.test_workflow_release_contract \
-            tests.v267.test_output_contract \
-            tests.v267.test_release_gate_denominator \
-            tests.v267.test_release_manifest_closure \
-            tests.v267.test_release_runtime_transition \
-            tests.v267.test_s4_workflow_contract \
-            tests.v267.test_version_candidate
+            tests.v268.test_completion_heading_boundary \
+            tests.v268.test_current_promotion \
+            tests.v268.test_dashboard_completion \
+            tests.v268.test_output_bindings \
+            tests.v268.test_output_gateway \
+            tests.v268.test_output_review_boundaries \
+            tests.v268.test_release_integration \
+            tests.v268.test_release_payload_anchor \
+            tests.v268.test_release_predecessor \
+            tests.v268.test_release_runtime \
+            tests.v268.test_route_schema_receipt \
+            tests.v268.test_s4_release_integration \
+            tests.v268.test_specification_delivery
           published_version="$(
             python3 - <<'PY'
           import json
@@ -184,9 +196,9 @@ jobs:
             --mode development \
             --published-version "${published_version}"
           python3 scripts/checks/validate-v250-generation.py \
-            --generation-id V2.67 \
+            --generation-id V2.68 \
             --selection active
-          python3 scripts/checks/check-v267.py \
+          python3 scripts/checks/check-v268.py \
             --phase development \
             --project-size medium \
             --stage candidate
@@ -239,11 +251,11 @@ jobs:
             "require('ajv/dist/2020')"
           echo "PYTHONPATH=${VALIDATOR_PYTHON_PREFIX}${PYTHONPATH:+:${PYTHONPATH}}" >> "${GITHUB_ENV}"
           echo "NODE_PATH=${VALIDATOR_NODE_PREFIX}/node_modules${NODE_PATH:+:${NODE_PATH}}" >> "${GITHUB_ENV}"
-      - name: Detect the explicit V2.67 workflow phase
+      - name: Detect the explicit V2.68 workflow phase
         id: release-version
         run: |
           product_version="$(tr -d '[:space:]' < VERSION)"
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.workflow_phase }}" = "release" ] && [ "${product_version}" = "V2.67" ]; then
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.workflow_phase }}" = "release" ] && [ "${product_version}" = "V2.68" ]; then
             echo "release=true" >> "${GITHUB_OUTPUT}"
           else
             echo "release=false" >> "${GITHUB_OUTPUT}"
@@ -251,7 +263,7 @@ jobs:
           fi
       - name: Validate development contracts without release gates
         if: steps.release-version.outputs.release != 'true'
-        run: python3 scripts/checks/check-v267.py --phase development --project-size medium --stage candidate
+        run: python3 scripts/checks/check-v268.py --phase development --project-size medium --stage candidate
       - name: Require exact clean released main identity
         id: identity
         if: steps.release-version.outputs.release == 'true'
@@ -279,6 +291,28 @@ jobs:
           Path(os.environ["RUNNER_TEMP"], "authorization.json").write_text(
               json.dumps(value, ensure_ascii=False, sort_keys=True), encoding="utf-8"
           )
+          PY
+      - name: Validate the authorization-bound local installed predecessor observation
+        id: installed_predecessor
+        if: steps.release-version.outputs.release == 'true'
+        env:
+          PREDECESSOR_OBSERVATION_RECEIPT_JSON: ${{ inputs.predecessor_observation_receipt_json }}
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          from scripts.v268.installed_predecessor import strict_json, validate_installed_predecessor
+
+          temp = Path(os.environ["RUNNER_TEMP"])
+          observation = strict_json(os.environ.get("PREDECESSOR_OBSERVATION_RECEIPT_JSON", "").encode("utf-8"))
+          authorization = strict_json((temp / "authorization.json").read_bytes())
+          predecessor = strict_json(Path("references/current/generations/V2.68/contracts/predecessor-release-identity.json").read_bytes())
+          verdict = validate_installed_predecessor(observation, authorization=authorization, expected_identity=predecessor["release_identity"])
+          if not verdict["ok"]:
+              raise SystemExit("E_V268_PREDECESSOR_WORKFLOW_INPUT")
+          (temp / "installed-predecessor-observation.json").write_text(json.dumps(observation, ensure_ascii=False, sort_keys=True), encoding="utf-8")
           PY
       - name: Materialize the exact trusted Release route receipt
         id: release_route
@@ -319,7 +353,7 @@ jobs:
               text=True,
           ).stdout.strip()
           facts_source = {
-              "schema_version": "goal-teams-project-route-facts-source-v2.67",
+              "schema_version": "goal-teams-project-route-facts-source-v2.68",
               "repository": os.environ["GITHUB_REPOSITORY"],
               "source_commit": source_commit,
               "source_tree": source_tree,
@@ -350,7 +384,7 @@ jobs:
           # Predecessor compatibility form: derived_route = derive_route(project_route_facts)
           derived_route = derive_route(
               project_route_facts,
-              generation_id="V2.67",
+              generation_id="V2.68",
           )
           generation = load_generation(root)
           receipt = compile_derived_route_closure(root, generation, derived_route)
@@ -386,7 +420,7 @@ jobs:
         env:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
-          python3 scripts/v267/runtime_host_adapter.py launch \
+          python3 scripts/v268/runtime_host_adapter.py launch \
             --stage released \
             --source-commit "${GITHUB_SHA}" \
             --source-tree "$(git rev-parse "${GITHUB_SHA}^{tree}")" \
@@ -396,8 +430,9 @@ jobs:
             --route-receipt "${RUNNER_TEMP}/release-route-receipt.json" \
             --authorization-receipt "${RUNNER_TEMP}/authorization.json" \
             --host-execution-id "${GITHUB_RUN_ID}" \
+            --predecessor-observation-receipt "${RUNNER_TEMP}/installed-predecessor-observation.json" \
             --adapter-identity github-actions-release-host-adapter \
-            --adapter-code scripts/v267/runtime_host_adapter.py \
+            --adapter-code scripts/v268/runtime_host_adapter.py \
             > "${RUNNER_TEMP}/released-runtime-transition.json"
       - name: Run exact Current full regression and separate-process security review once
         id: s1
@@ -405,7 +440,7 @@ jobs:
         env:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
-          python3 scripts/checks/check-v267.py \
+          python3 scripts/checks/check-v268.py \
             --phase release \
             --project-size "${{ inputs.project_size }}" \
             --stage released \
@@ -427,7 +462,7 @@ jobs:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
           python3 scripts/release/build-release.py \
-            --version V2.67 \
+            --version V2.68 \
             --commit "${GITHUB_SHA}" \
             --source-ref "${GITHUB_REF}" \
             --output-root release/versions \
@@ -439,7 +474,7 @@ jobs:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
           python3 scripts/release/skill_release.py validate \
-            --version V2.67 \
+            --version V2.68 \
             --commit "${GITHUB_SHA}" \
             --release-root release/versions \
             --build-receipt "${RUNNER_TEMP}/s2-build.json" \
@@ -450,7 +485,7 @@ jobs:
         env:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
-          python3 scripts/v267/repository_boundary.py \
+          python3 scripts/v268/repository_boundary.py \
             --source-commit "${GITHUB_SHA}" \
             --source-tree "$(git rev-parse "${GITHUB_SHA}^{tree}")" \
             --s2-receipt "${RUNNER_TEMP}/asset-validation.json" \
@@ -463,7 +498,7 @@ jobs:
         env:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
-          python3 scripts/v267/repository_boundary.py \
+          python3 scripts/v268/repository_boundary.py \
             --source-commit "${GITHUB_SHA}" \
             --source-tree "$(git rev-parse "${GITHUB_SHA}^{tree}")" \
             --s2-receipt "${RUNNER_TEMP}/asset-validation.json" \
@@ -483,7 +518,7 @@ jobs:
 
           temp = Path(os.environ["RUNNER_TEMP"])
           receipt = json.loads((temp / "asset-validation.json").read_text(encoding="utf-8"))
-          release_root = Path("release/versions/V2.67").resolve()
+          release_root = Path("release/versions/V2.68").resolve()
           bundle = temp / "release-bundle"
           bundle.mkdir()
           for name, source in receipt["public_asset_sources"].items():
@@ -534,7 +569,7 @@ jobs:
           else
             prior_boundary="${RUNNER_TEMP}/repository-boundary.json"
           fi
-          python3 scripts/v267/repository_boundary.py \
+          python3 scripts/v268/repository_boundary.py \
             --source-commit "${GITHUB_SHA}" \
             --source-tree "$(git rev-parse "${GITHUB_SHA}^{tree}")" \
             --s2-receipt "${RUNNER_TEMP}/asset-validation.json" \
@@ -566,7 +601,7 @@ jobs:
           PY
           }
           if ! python3 scripts/release/skill_release.py preflight \
-            --version V2.67 \
+            --version V2.68 \
             --commit "${GITHUB_SHA}" \
             --project-size "${{ inputs.project_size }}" \
             --authorization-receipt "${RUNNER_TEMP}/authorization.json" \
@@ -579,7 +614,7 @@ jobs:
             exit 1
           fi
           if ! python3 scripts/release/skill_release.py plan-s4 \
-            --version V2.67 \
+            --version V2.68 \
             --commit "${GITHUB_SHA}" \
             --release-control-receipt "${RUNNER_TEMP}/preflight-output.json" \
             > "${RUNNER_TEMP}/plan-output.json"; then
@@ -610,11 +645,11 @@ jobs:
         id: asset_verify
         if: steps.release-version.outputs.release == 'true'
         run: |
-          test -f "release/versions/V2.67/_artifacts/goal-teams-V2.67.tar.gz"
-          test -f "release/versions/V2.67/_artifacts/SHA256SUMS"
-          test -f "release/versions/V2.67/_release.json"
-          test -f "release/versions/V2.67/_files.sha256"
-          cd "release/versions/V2.67/_artifacts"
+          test -f "release/versions/V2.68/_artifacts/goal-teams-V2.68.tar.gz"
+          test -f "release/versions/V2.68/_artifacts/SHA256SUMS"
+          test -f "release/versions/V2.68/_release.json"
+          test -f "release/versions/V2.68/_files.sha256"
+          cd "release/versions/V2.68/_artifacts"
           sha256sum -c SHA256SUMS
       - name: Stage exact receipts for cross-job S4 continuation without rebuilding
         id: stage_receipts
@@ -622,11 +657,12 @@ jobs:
         env:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
-          receipt_root="release/versions/V2.67/_receipts"
-          diagnostic_root="release/versions/V2.67/_diagnostics"
+          receipt_root="release/versions/V2.68/_receipts"
+          diagnostic_root="release/versions/V2.68/_diagnostics"
           mkdir -p "${receipt_root}" "${diagnostic_root}/observed_outputs"
           formal_receipt_names=(
             authorization.json
+            installed-predecessor-observation.json
             release-route-facts.json
             release-route-derived.json
             release-route-receipt.json
@@ -671,7 +707,7 @@ jobs:
             checkpoint_source_root="${RUNNER_TEMP}"
           fi
           python3 scripts/release/skill_release.py checkpoint \
-            --version V2.67 \
+            --version V2.68 \
             --commit "${GITHUB_SHA}" \
             --project-size "${{ inputs.project_size }}" \
             --job-status "${checkpoint_job_status}" \
@@ -679,6 +715,7 @@ jobs:
             --workflow-run-attempt "${GITHUB_RUN_ATTEMPT}" \
             --gate-outcome "identity=${{ steps.identity.outcome }}" \
             --gate-outcome "authorization=${{ steps.authorization.outcome }}" \
+            --gate-outcome "installed_predecessor=${{ steps.installed_predecessor.outcome }}" \
             --gate-outcome "release_route=${{ steps.release_route.outcome }}" \
             --gate-outcome "runtime_transition=${{ steps.runtime_transition.outcome }}" \
             --gate-outcome "s1=${{ steps.s1.outcome }}" \
@@ -713,7 +750,7 @@ jobs:
               "${diagnostic_root}/checkpoint-output.json" \
               "${receipt_root}/_checkpoint.json"
             python3 scripts/release/skill_release.py verify-checkpoint \
-              --version V2.67 \
+              --version V2.68 \
               --commit "${GITHUB_SHA}" \
               --checkpoint-receipt "${receipt_root}/_checkpoint.json" \
               --receipt-root "${receipt_root}" \
@@ -732,13 +769,13 @@ jobs:
           steps.stage_receipts.outputs.checkpoint_state == 'ready_for_s4'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: goal-teams-v267-release-${{ github.sha }}
+          name: goal-teams-v268-release-${{ github.sha }}
           path: |
-            release/versions/V2.67/_artifacts/goal-teams-V2.67.tar.gz
-            release/versions/V2.67/_artifacts/SHA256SUMS
-            release/versions/V2.67/_release.json
-            release/versions/V2.67/_files.sha256
-            release/versions/V2.67/_receipts/
+            release/versions/V2.68/_artifacts/goal-teams-V2.68.tar.gz
+            release/versions/V2.68/_artifacts/SHA256SUMS
+            release/versions/V2.68/_release.json
+            release/versions/V2.68/_files.sha256
+            release/versions/V2.68/_receipts/
           if-no-files-found: error
           compression-level: 0
           retention-days: 30
@@ -751,7 +788,7 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: goal-teams-v250-diagnostic-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
-          path: release/versions/V2.67/_diagnostics/
+          path: release/versions/V2.68/_diagnostics/
           if-no-files-found: error
           compression-level: 0
           retention-days: 30

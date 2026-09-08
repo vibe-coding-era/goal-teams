@@ -624,13 +624,13 @@ def validate_manifest(
                 ) and value not in identity_rules:
                     errors.append(identity_error + value)
             current_checker = (
-                "scripts/checks/check-v266.py"
-                if version == "V2.66"
+                f"scripts/checks/check-v{compact}.py"
+                if version in {"V2.66", "V2.67", "V2.68"}
                 else "scripts/checks/check-v250.py"
             )
             current_security_runner = (
-                "scripts/checks/run-v266-release-security-review.py"
-                if version == "V2.66"
+                f"scripts/checks/run-v{compact}-release-security-review.py"
+                if version in {"V2.66", "V2.67", "V2.68"}
                 else "scripts/checks/run-v250-release-security-review.py"
             )
             for required_path in (

@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Goal Teams V2.68 local candidate output request",
+  "$comment": "This is a shape contract, not evidence or authorization. Runtime checks current_round <= estimated_total_rounds, validates old V2.67 dashboard bindings and specification records against real files, and validates serialized output. Nested dashboard/record objects are intentionally delegated to those validators.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "facts", "project", "current_round", "estimated_total_rounds",
+    "loop_decision", "task", "members", "result", "banchmark", "next_action",
+    "dashboard", "specification_record"
+  ],
+  "properties": {
+    "schema_version": { "const": "goal-teams-output-request-v2.68" },
+    "facts": { "$ref": "#/$defs/facts" },
+    "project": { "$ref": "#/$defs/nonemptyText" },
+    "current_round": { "type": "integer", "minimum": 1 },
+    "estimated_total_rounds": { "type": "integer", "minimum": 1 },
+    "loop_decision": { "enum": ["continue", "replan", "stop"] },
+    "task": { "$ref": "#/$defs/nonemptyText" },
+    "members": { "$ref": "#/$defs/nonemptyText" },
+    "result": { "type": "string" },
+    "banchmark": { "$ref": "#/$defs/nonemptyText" },
+    "next_action": { "$ref": "#/$defs/nonemptyText" },
+    "dashboard": { "type": ["object", "null"] },
+    "specification_record": { "type": ["object", "null"] }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "facts": { "type": "object", "properties": { "activity": { "enum": ["discussion", "plan_preview"] } } },
+        "result": { "$ref": "#/$defs/nonemptyText" },
+        "dashboard": { "type": "null" },
+        "specification_record": { "type": "null" }
+      }
+    },
+    {
+      "properties": {
+        "facts": { "type": "object", "properties": { "activity": { "const": "document" } } },
+        "result": { "const": "" },
+        "dashboard": { "type": "null" },
+        "specification_record": { "type": "object" }
+      }
+    },
+    {
+      "properties": {
+        "facts": { "type": "object", "properties": { "activity": { "enum": ["development", "release"] } } },
+        "result": { "const": "" },
+        "dashboard": { "type": "object" },
+        "specification_record": { "type": "null" }
+      }
+    }
+  ],
+  "$defs": {
+    "nonemptyText": { "type": "string", "minLength": 1, "pattern": "\\S" },
+    "facts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["activity", "persistent_write", "development_admitted"],
+      "properties": {
+        "activity": { "enum": ["discussion", "plan_preview", "document", "development", "release"] },
+        "persistent_write": { "type": "boolean" },
+        "development_admitted": { "type": "boolean" }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "activity": { "enum": ["discussion", "plan_preview"] },
+            "persistent_write": { "const": false },
+            "development_admitted": { "const": false }
+          }
+        },
+        {
+          "properties": {
+            "activity": { "const": "document" },
+            "persistent_write": { "const": true },
+            "development_admitted": { "const": false }
+          }
+        },
+        {
+          "properties": {
+            "activity": { "enum": ["development", "release"] },
+            "development_admitted": { "const": true }
+          }
+        }
+      ]
+    }
+  }
+}

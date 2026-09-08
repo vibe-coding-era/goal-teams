@@ -1,4 +1,4 @@
-# Goal Teams 用户指定要求（Current V2.67）
+# Goal Teams 用户指定要求（Current V2.68）
 
 本文件记录当前代际的长期用户要求。规范语义由 `references/current/ACTIVE.json` 指向的功能 Owner 文档承载；历史版本只通过 Legacy Replay 查询，不参与 Current 优先级。
 
@@ -16,7 +16,7 @@
 
 ## 流程
 
-- 所有非 Discussion、非 `plan_preview` LOOP 的第一轮先建立 TaskList、分配任务并由独立成员检查环境，未闭合前不进入实现。
+- 所有工程执行型 LOOP 的第一轮先建立 TaskList、分配任务并由独立成员检查环境，未闭合前不进入实现。纯文档 `specification_delivery` 使用独立文档记录和真实复核，不建工程 TaskList，也不形成产品开发准入。
 - Discussion：只讨论，不落工程状态。
 - Small：小流程，按实际风险使用 Lite 基线，首轮做独立轻量环境 preflight，可不创建版本开发分支，只做目标相关的 TDD/受影响面检查。
 - Medium：首轮由独立 `goal_release_engineer/environment_preflight` 正式检查开发环境；已有 identity 匹配且 current 的环境先复用，否则创建 `develops/v<major.minor>` worktree 与逻辑分支 `develop-v<major.minor>`，并按宿主要求添加 namespace。开发过程只确保 TDD 和增量；所有实现完成且准备 Release 时，才执行全量回归与安全审核。
@@ -65,8 +65,10 @@
 
 ## 用户可见执行看板
 
-- 外层六字段 Envelope 保持不变；执行型更新的 `结果` 依次显示 `◆ Goal-Teams 任务执行看板`、`◆ Context / Knowledge / Tools` 和 `◆ LOOP：第 n 轮 / 预计 m 轮`。
+- 所有 final 调用 `python -m scripts.v268.output_gateway render`，原样使用 body；外层六字段 Envelope 保持不变。入口不强制 Host 发送，`host_enforcement=unavailable`。失败使用已验证 blocked/replan 正文，并独立保留产物交付状态。
+- 工程执行型更新的 `结果` 依次显示 `◆ Goal-Teams 任务执行看板`、`◆ Context / Knowledge / Tools` 和 `◆ LOOP：第 n 轮 / 预计 m 轮`；纯文档 specification_delivery 用真实记录生成轻量视图，不伪造工程上下文。
 - 任务表只显示进行中与剩余的业务父任务/子任务，列为 `优先级 | 任务 / 子任务 | Subagent 成员 | 进度`；完成详情通过完整 TaskList 链接查看。
+- 所有已登记任务/子任务完成且无缺口/阻塞时，用“本轮全部完成；当前无进行中或剩余任务。”替代空表，保留真实统计和链接，不为 0/0 子任务补造分母。
 - 成员后的 `（并行）` 必须来自真实 DAG/派发事实。Context 每个非空项使用真实链接，项目知识固定包含 `memory.md`，代码库只显示工程名，MCP/CLI/API 不得造占位入口。
 - LOOP 使用 P/D/C/A 四行：P 为计划/下一轮目标，D 为本轮执行，C 为 Evidence/缺口/阻塞及 `Banchmark.md`，A 为决策及 `loop-review.md`。
 
@@ -78,6 +80,6 @@
 ## Runtime 与可信边界
 
 - Candidate 可由候选外 fresh process 做 cutover/incremental transition，但不得启动正式 S0–S4。
-- 合并后必须从 exact released commit/tree 再启动 fresh V2.67 runtime；只有 released transition receipt 可进入 S0。
+- 合并后必须从 exact released commit/tree 再启动 fresh V2.68 runtime；只有 released transition receipt 可进入 S0。
 - 本地宿主适配器最多证明 I1 correlated fresh-process observation；不得冒充独立外部验收、密码学 attestation 或 Provider prompt 签名。
 - 若宿主 transition 不可用，记录 `fresh_runtime_transition_unavailable` 和可恢复 checkpoint，不回退旧 V2.48/V2.36 发行门禁，也不重复向用户授权。

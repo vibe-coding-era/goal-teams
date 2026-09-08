@@ -41,6 +41,7 @@ MAX_ACTIVE_LOCK_TIMEOUT_SECONDS = 300.0
 EXECUTION_ASSET_GENERATION_BY_POLICY = {
     "V2.66": "V2.65",
     "V2.67": "V2.65",
+    "V2.68": "V2.65",
 }
 V266_SHARED_EXECUTION_SCRIPTS = {
     "scripts/v265/__init__.py",
@@ -86,6 +87,13 @@ V267_SHARED_EXECUTION_SCHEMAS = {
     "schemas/v2.65/loop-review.schema.json",
     "schemas/v2.65/member-packet.schema.json",
 }
+V268_SHARED_OUTPUT_SCRIPTS = {
+    "scripts/v267/__init__.py",
+    "scripts/v267/output_dashboard.py",
+}
+V268_SHARED_OUTPUT_SCHEMAS = {"schemas/v2.67/output-dashboard.schema.json"}
+V268_SHARED_EXECUTION_SCRIPTS = V267_SHARED_EXECUTION_SCRIPTS | V268_SHARED_OUTPUT_SCRIPTS
+V268_SHARED_EXECUTION_SCHEMAS = V267_SHARED_EXECUTION_SCHEMAS | V268_SHARED_OUTPUT_SCHEMAS
 
 
 def _json_bytes(value: Any) -> bytes:
@@ -217,7 +225,7 @@ def _refreshed_prompt_manifest(paths: dict[str, Path], generation_id: str) -> di
     value["manifest_state"] = (
         "active_current" if value.get("manifest_state") == "active_current" else "inactive_candidate"
     )
-    if generation_id in {"V2.63", "V2.65", "V2.66", "V2.67"}:
+    if generation_id in {"V2.63", "V2.65", "V2.66", "V2.67", "V2.68"}:
         value["path_deduplication_rule"] = "reject_duplicate_repo_relative_posix_paths"
     routes = value.get("routes")
     if not isinstance(routes, dict) or not routes:
@@ -290,7 +298,7 @@ def _package_selected_paths(
                     "activation-manifest.json"
                 )
             )
-        if generation_id not in {"V2.63", "V2.66"} or activation.get(
+        if generation_id not in {"V2.63", "V2.66", "V2.67"} or activation.get(
             "generation_id"
         ) != generation_id:
             raise ValueError("unsupported historical package fixture generation")
@@ -304,6 +312,9 @@ def _package_selected_paths(
             raise ValueError("historical package fixture closure is missing")
         selected = set(allowlist) | set(supplement)
         forbidden_prefixes = (
+            ()
+            if generation_id == "V2.67"
+            else
             (
                 "references/current/generations/V2.67/",
                 "references/compatibility/v2.67/",
@@ -329,6 +340,13 @@ def _package_selected_paths(
                 "scripts/v267/",
                 "tests/v267/",
             )
+        )
+        forbidden_prefixes += (
+            "references/current/generations/V2.68/",
+            "references/compatibility/v2.68/",
+            "schemas/v2.68/",
+            "scripts/v268/",
+            "tests/v268/",
         )
         if any(path.startswith(forbidden_prefixes) for path in selected):
             raise ValueError("historical package fixture contains newer Current paths")
@@ -436,6 +454,17 @@ def _legacy_classification(
     prefixes.update(predecessor_prefixes)
     prefixes.discard(f"references/current/generations/{generation_id}/")
     exact = set(legacy.get("exact_paths", []))
+    if generation_id == "V2.68":
+        # Three immutable V2.67 output assets are shared Execution, not a
+        # license to import the predecessor runtime or its complete schema set.
+        prefixes.discard("scripts/v267/")
+        prefixes.discard("schemas/v2.67/")
+        shared_output = V268_SHARED_OUTPUT_SCRIPTS | V268_SHARED_OUTPUT_SCHEMAS
+        predecessor_output_roots = (
+            _glob_files("scripts/v267/**/*") | _glob_files("schemas/v2.67/**/*")
+        )
+        exact.update(predecessor_output_roots - shared_output)
+        exact.difference_update(shared_output)
     exact.update(
         {
             f"references/profiles/goal-teams-self-release-v{suffix}.md",
@@ -548,6 +577,14 @@ def _refreshed_activation(
                     "scripts/checks/run-v267-release-security-review.py",
                 }
             )
+        elif generation_id == "V2.68":
+            execution.update(
+                V268_SHARED_EXECUTION_SCRIPTS
+                | {
+                    "scripts/checks/check-v268.py",
+                    "scripts/checks/run-v268-release-security-review.py",
+                }
+            )
         execution.update(
             {
                 "scripts/check.sh",
@@ -579,6 +616,8 @@ def _refreshed_activation(
             schemas.update(V266_SHARED_EXECUTION_SCHEMAS)
         elif generation_id == "V2.67":
             schemas.update(V267_SHARED_EXECUTION_SCHEMAS)
+        elif generation_id == "V2.68":
+            schemas.update(V268_SHARED_EXECUTION_SCHEMAS)
     root_sets = {
         "bootstrap": [_member(relative, virtual) for relative in sorted(bootstrap)],
         "current": [_member(relative, virtual) for relative in sorted(current)],
@@ -1036,7 +1075,7 @@ def _derive_projection(
 ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
     rule = _refreshed_rule_manifest(paths, generation_id)
     prompt = _refreshed_prompt_manifest(paths, generation_id)
-    if generation_id in {"V2.63", "V2.65", "V2.66", "V2.67"}:
+    if generation_id in {"V2.63", "V2.65", "V2.66", "V2.67", "V2.68"}:
         from scripts.v250.semantic_closure import validate_route_controls
 
         for route in prompt["routes"].values():

@@ -88,6 +88,74 @@ fi
 
 PRODUCT_VERSION="$(<VERSION)"
 
+if [[ "$PRODUCT_VERSION" == "V2.68" ]]; then
+  CANDIDATE_ACTIVATION="references/current/generations/V2.68/activation-manifest.json"
+  CANDIDATE_SHA256="$(shasum -a 256 "$CANDIDATE_ACTIVATION" | awk '{print $1}')"
+  ACTIVE_GENERATION="$($PYTHON_BIN -c 'import json; print(json.load(open("references/current/ACTIVE.json"))["generation_id"])')"
+  if [[ "$ACTIVE_GENERATION" == "V2.68" ]]; then
+    "$PYTHON_BIN" scripts/checks/validate-v250-generation.py \
+      --generation-id V2.68 \
+      --selection active
+  else
+    "$PYTHON_BIN" scripts/checks/validate-v250-generation.py \
+      --generation-id V2.68 \
+      --selection candidate \
+      --expected-activation-sha256 "$CANDIDATE_SHA256"
+  fi
+  "$PYTHON_BIN" scripts/checks/validate-v250-test-gate.py --self-test
+  if [[ "$ACTIVE_GENERATION" == "V2.68" ]]; then
+    "$PYTHON_BIN" scripts/checks/check-package-manifest.py
+  else
+    "$PYTHON_BIN" scripts/checks/check-package-manifest.py \
+      --candidate-generation V2.68 \
+      --activation-sha256 "$CANDIDATE_SHA256"
+  fi
+  "$PYTHON_BIN" scripts/v250/generate_subagents.py --check
+  "$PYTHON_BIN" scripts/v268/project_host_assets.py --check
+  if [[ "$PHASE" == "release" ]]; then
+    if [[ -z "$SOURCE_COMMIT" || -z "$SOURCE_TREE" || -z "$RELEASED_RUNTIME_RECEIPT" || -z "$EXPECTED_HOST_EXECUTION_ID" || -z "$ROUTE_FACTS_RECEIPT" || -z "$DERIVED_ROUTE_RECEIPT" || -z "$ROUTE_RECEIPT" || -z "$AUTHORIZATION_RECEIPT" ]]; then
+      echo "Release phase requires --source-commit, --source-tree, --released-runtime-receipt, --expected-host-execution-id, --route-facts-receipt, --derived-route-receipt, --route-receipt, and --authorization-receipt." >&2
+      exit 2
+    fi
+    "$PYTHON_BIN" scripts/checks/check-v268.py \
+      --phase release \
+      --project-size "$PROJECT_SIZE" \
+      --stage released \
+      --release-intent \
+      --implementation-scope-complete \
+      --source-commit "$SOURCE_COMMIT" \
+      --source-tree "$SOURCE_TREE" \
+      --expected-host-execution-id "$EXPECTED_HOST_EXECUTION_ID" \
+      --released-runtime-receipt "$RELEASED_RUNTIME_RECEIPT" \
+      --route-facts-receipt "$ROUTE_FACTS_RECEIPT" \
+      --derived-route-receipt "$DERIVED_ROUTE_RECEIPT" \
+      --route-receipt "$ROUTE_RECEIPT" \
+      --authorization-receipt "$AUTHORIZATION_RECEIPT"
+    echo "Goal Teams V2.68 S0/S1 passed; Release control remains incomplete until S2-boundary-S3-S4 plan closure."
+    exit 0
+  fi
+  "$PYTHON_BIN" -m unittest -v \
+    tests.v250.test_output_contract \
+    tests.v250.test_v251_small_iteration.TestV251SmallIteration.test_every_loop_requires_current_and_total_iteration \
+    tests.v250.test_v251_small_iteration.TestV251SmallIteration.test_final_output_requires_loop_improvement_suggestions \
+    tests.v250.test_v263_output_contract \
+    tests.v268.test_output_gateway \
+    tests.v268.test_specification_delivery \
+    tests.v268.test_output_bindings \
+    tests.v268.test_output_review_boundaries \
+    tests.v268.test_dashboard_completion \
+    tests.v268.test_completion_heading_boundary \
+    tests.v268.test_current_promotion \
+    tests.v268.test_release_predecessor \
+    tests.v268.test_release_integration \
+    tests.v268.test_release_runtime \
+    tests.v268.test_s4_release_integration \
+    tests.v268.test_route_schema_receipt \
+    tests.v268.test_release_payload_anchor
+  echo "Goal Teams V2.68 affected Development checks passed (${CHECK_MODE}); Release is not_run."
+  exit 0
+fi
+
 if [[ "$PRODUCT_VERSION" == "V2.67" ]]; then
   CANDIDATE_ACTIVATION="references/current/generations/V2.67/activation-manifest.json"
   CANDIDATE_SHA256="$(shasum -a 256 "$CANDIDATE_ACTIVATION" | awk '{print $1}')"

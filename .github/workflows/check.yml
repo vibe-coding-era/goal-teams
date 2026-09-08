@@ -55,7 +55,7 @@ jobs:
             "require('ajv/dist/2020')"
           echo "PYTHONPATH=${VALIDATOR_PYTHON_PREFIX}${PYTHONPATH:+:${PYTHONPATH}}" >> "${GITHUB_ENV}"
           echo "NODE_PATH=${VALIDATOR_NODE_PREFIX}/node_modules${NODE_PATH:+:${NODE_PATH}}" >> "${GITHUB_ENV}"
-      - name: Active V2.67 pre-release exact Development gate
+      - name: Active V2.68 pre-release exact Development gate
         env:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
@@ -73,6 +73,7 @@ jobs:
             tests.v250.test_v252_loop_bootstrap \
             tests.v250.test_v252_loop_bootstrap_hardening \
             tests.v250.test_v252_loop_bootstrap_receipt_hardening \
+            tests.v250.test_workflow_release_contract \
             tests.v250.test_v263_activation_lifecycle \
             tests.v250.test_v263_activation_lifecycle_hardening \
             tests.v250.test_v263_active_pointer_locking \
@@ -90,8 +91,8 @@ jobs:
             tests.v250.test_v263_discovery_snapshot \
             tests.v250.test_v263_external_anchor_test_roots \
             tests.v250.test_v263_first_loop_environment \
-            tests.v250.test_v263_git_change \
             tests.v250.test_v263_generation_validator_selection \
+            tests.v250.test_v263_git_change \
             tests.v250.test_v263_installer_offline_closure \
             tests.v250.test_v263_loop_registry_integration \
             tests.v250.test_v263_okf_package_manifest \
@@ -131,13 +132,19 @@ jobs:
             tests.v250.test_v265_active_pointer_locking \
             tests.v250.test_v265_generation_validator_selection \
             tests.v250.test_v265_prompt_manifest_state \
-            tests.v250.test_workflow_release_contract \
-            tests.v267.test_output_contract \
-            tests.v267.test_release_gate_denominator \
-            tests.v267.test_release_manifest_closure \
-            tests.v267.test_release_runtime_transition \
-            tests.v267.test_s4_workflow_contract \
-            tests.v267.test_version_candidate
+            tests.v268.test_completion_heading_boundary \
+            tests.v268.test_current_promotion \
+            tests.v268.test_dashboard_completion \
+            tests.v268.test_output_bindings \
+            tests.v268.test_output_gateway \
+            tests.v268.test_output_review_boundaries \
+            tests.v268.test_release_integration \
+            tests.v268.test_release_payload_anchor \
+            tests.v268.test_release_predecessor \
+            tests.v268.test_release_runtime \
+            tests.v268.test_route_schema_receipt \
+            tests.v268.test_s4_release_integration \
+            tests.v268.test_specification_delivery
           published_version="$(
             python3 - <<'PY'
           import json
@@ -160,9 +167,9 @@ jobs:
             --mode development \
             --published-version "${published_version}"
           python3 scripts/checks/validate-v250-generation.py \
-            --generation-id V2.67 \
+            --generation-id V2.68 \
             --selection active
-          python3 scripts/checks/check-v267.py \
+          python3 scripts/checks/check-v268.py \
             --phase development \
             --project-size medium \
             --stage candidate
