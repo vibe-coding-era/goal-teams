@@ -70,7 +70,8 @@ jobs:
 
           trace_path = Path(__file__).parent / ('pid-%d.jsonl' % os.getpid())
           def log(event, **values):
-              row = dict(event=event, pid=os.getpid(), monotonic=time.monotonic(), **values)
+              row = dict(event=event, pid=os.getpid(), monotonic=time.monotonic(),
+                         diagnostic_round=os.environ.get('GT_DIAGNOSTIC_ROUND'), **values)
               with trace_path.open('a', encoding='utf-8') as stream:
                   stream.write(json.dumps(row, ensure_ascii=False) + '\\n')
 
@@ -131,13 +132,16 @@ jobs:
           test_gt.GT = bootstrap
           original = Repo.gt
           observations = []
+          current_round = 0
+          round_results = []
           lock = threading.Lock()
 
           def traced_gt(self, *args, **kwargs):
               started = time.monotonic()
               result = original(self, *args, **kwargs)
               if args[:2] == ('run', 'T1'):
-                  row = dict(args=list(args), elapsed=time.monotonic() - started,
+                  row = dict(diagnostic_round=current_round, project=str(self.path),
+                             args=list(args), elapsed=time.monotonic() - started,
                              exit_code=result.returncode, stdout=result.stdout, stderr=result.stderr)
                   with lock:
                       observations.append(row)
@@ -147,7 +151,20 @@ jobs:
           original_case = RunReceiptTests.test_concurrent_runs_all_succeed
           def audited_case(self):
               # Execute the unchanged test and every original assertion first.
-              original_case(self)
+              try:
+                  original_case(self)
+              finally:
+                  state_dir = self.repo.path / '.goal-teams'
+                  evidence = dict(diagnostic_round=current_round, project=str(self.repo.path),
+                                  ledger=(state_dir / 'ledger.jsonl').read_text(encoding='utf-8'),
+                                  lock_exists=(state_dir / '.lock').exists(), logs={})
+                  if evidence['lock_exists']:
+                      evidence['lock_content'] = (state_dir / '.lock').read_text(encoding='utf-8', errors='replace')
+                  for log_path in sorted((state_dir / 'evidence').glob('*')):
+                      if log_path.is_file():
+                          evidence['logs'][log_path.name] = log_path.read_text(encoding='utf-8', errors='replace')
+                  (trace_dir / ('round-%d-project.json' % current_round)).write_text(
+                      json.dumps(evidence, ensure_ascii=False, indent=2), encoding='utf-8')
               events = self.repo.events()
               starts = [event for event in events if event['type'] == 'run.started']
               receipts = [event['data'] for event in events if event['type'] == 'run']
@@ -179,7 +196,7 @@ jobs:
               self.assertEqual(state.foreign_receipts, [])
               self.assertFalse((self.repo.path / '.goal-teams/.lock').exists())
               print('CONCURRENT_INTEGRITY_RESULT ' + json.dumps(dict(
-                  passed=True, starts=len(starts), receipts=len(receipts),
+                  diagnostic_round=current_round, passed=True, starts=len(starts), receipts=len(receipts),
                   unique_receipts=len(state.receipts), charges=len(state.graph_charges),
                   budget=budget, running=dict(state.running),
                   lock_exists=False, receipt_logs_present=12)), flush=True)
@@ -234,19 +251,35 @@ jobs:
                       reader.close()
                       if path.exists():
                           path.unlink()
-          suite = unittest.defaultTestLoader.loadTestsFromName(
-              'tests.test_gt_integrity.RunReceiptTests.test_concurrent_runs_all_succeed')
-          suite.addTest(ControlledSharingReleaseTests())
-          result = unittest.TextTestRunner(verbosity=2, stream=sys.stdout).run(suite)
+          all_successful = True
+          for current_round in range(1, 4):
+              os.environ['GT_DIAGNOSTIC_ROUND'] = str(current_round)
+              print('BOUNDED_DIAGNOSTIC_ROUND %d/3' % current_round, flush=True)
+              suite = unittest.defaultTestLoader.loadTestsFromName(
+                  'tests.test_gt_integrity.RunReceiptTests.test_concurrent_runs_all_succeed')
+              result = unittest.TextTestRunner(verbosity=2, stream=sys.stdout).run(suite)
+              all_successful = all_successful and result.wasSuccessful()
+              round_results.append(dict(diagnostic_round=current_round, tests_run=result.testsRun,
+                                        success=result.wasSuccessful(), failures=len(result.failures),
+                                        errors=len(result.errors)))
+          os.environ.pop('GT_DIAGNOSTIC_ROUND', None)
+          sharing_result = unittest.TextTestRunner(verbosity=2, stream=sys.stdout).run(
+              unittest.TestSuite([ControlledSharingReleaseTests()]))
+          all_successful = all_successful and sharing_result.wasSuccessful()
           print('CONCURRENT_CHILD_DIAGNOSTICS_BEGIN', flush=True)
-          print(json.dumps(dict(source_base='cdcf8af04c7eca6f36a26be8528dfe130a6d6192',
+          print(json.dumps(dict(source_base='05560126b2c97d850d8a368a0d672ef2cbdda833',
                                 diagnostic_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode().strip(),
+                                max_rounds=3, round_results=round_results,
                                 child_count=len(observations), observations=observations),
                            ensure_ascii=False, indent=2), flush=True)
           print('CONCURRENT_CHILD_DIAGNOSTICS_END', flush=True)
+          print('PER_ROUND_PROJECT_EVIDENCE_BEGIN', flush=True)
+          for path in sorted(trace_dir.glob('round-*-project.json')):
+              print(path.read_text(encoding='utf-8'), flush=True)
+          print('PER_ROUND_PROJECT_EVIDENCE_END', flush=True)
           print('FILELOCK_TRACE_BEGIN', flush=True)
           for path in sorted(trace_dir.glob('pid-*.jsonl')):
               print(path.read_text(encoding='utf-8'), end='', flush=True)
           print('FILELOCK_TRACE_END', flush=True)
-          raise SystemExit(0 if result.wasSuccessful() else 1)
+          raise SystemExit(0 if all_successful else 1)
           PY
