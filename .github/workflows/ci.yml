@@ -15,12 +15,6 @@ jobs:
     name: Windows Python 3.13 integrity regression probe
     runs-on: windows-latest
     timeout-minutes: 15
-    env:
-      PYTHONDONTWRITEBYTECODE: "1"
-      TMPDIR: ${{ github.workspace }}/develops/windows-probe-tmp
-      TEMP: ${{ github.workspace }}/develops/windows-probe-tmp
-      TMP: ${{ github.workspace }}/develops/windows-probe-tmp
-      GIT_CEILING_DIRECTORIES: ${{ github.workspace }}/develops
     steps:
       - name: Check out
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -31,8 +25,14 @@ jobs:
         with:
           python-version: "3.13"
       - name: Prepare isolated fixtures
-        shell: bash
-        run: mkdir -p "$TMPDIR"
+        shell: pwsh
+        run: New-Item -ItemType Directory -Force -Path "${{ github.workspace }}/develops/windows-probe-tmp"
       - name: Run exact failing integrity case
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          TMPDIR: ${{ github.workspace }}/develops/windows-probe-tmp
+          TEMP: ${{ github.workspace }}/develops/windows-probe-tmp
+          TMP: ${{ github.workspace }}/develops/windows-probe-tmp
+          GIT_CEILING_DIRECTORIES: ${{ github.workspace }}/develops
         shell: bash
         run: python -m unittest -v tests.test_gt_integrity.ExternalReviewTests.test_r01_spec_change_stales_the_review
