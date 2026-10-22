@@ -14,7 +14,7 @@ class FrozenIdentityRaceTests(fixtures.ReleaseTestCase):
         tree_a = self.git(repo, 'rev-parse', 'HEAD^{tree}')
         (repo / fixtures.GT).write_bytes(b"print('second committed version')\n")
         self.git(repo, 'add', fixtures.GT)
-        self.git(repo, 'commit', '-qm', 'second version')
+        fixtures.commit(self.env, repo, 'second version')
         commit_b = self.git(repo, 'rev-parse', 'HEAD')
         self.assertNotEqual(tree_a, self.git(repo, 'rev-parse', 'HEAD^{tree}'))
         self.git(repo, 'reset', '--hard', commit_a)
