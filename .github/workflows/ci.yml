@@ -1,4 +1,4 @@
-name: windows-single-test-probe
+name: windows-concurrent-run-diagnostic
 
 on:
   push:
@@ -12,7 +12,7 @@ env:
 
 jobs:
   windows-single-test:
-    name: Windows Python 3.13 integrity regression probe
+    name: Windows Python 3.13 concurrent run diagnostic
     runs-on: windows-latest
     timeout-minutes: 15
     steps:
@@ -27,7 +27,7 @@ jobs:
       - name: Prepare isolated fixtures
         shell: pwsh
         run: New-Item -ItemType Directory -Force -Path "${{ github.workspace }}/develops/windows-probe-tmp"
-      - name: Run exact failing integrity case
+      - name: Diagnose exact concurrent run case without changing assertions
         env:
           PYTHONDONTWRITEBYTECODE: "1"
           TMPDIR: ${{ github.workspace }}/develops/windows-probe-tmp
@@ -35,4 +35,38 @@ jobs:
           TMP: ${{ github.workspace }}/develops/windows-probe-tmp
           GIT_CEILING_DIRECTORIES: ${{ github.workspace }}/develops
         shell: bash
-        run: python -m unittest -v tests.test_gt_integrity.ExternalReviewTests.test_r01_spec_change_stales_the_review
+        run: |
+          python - <<'PY'
+          import json
+          import subprocess
+          import threading
+          import time
+          import unittest
+          from tests.test_gt import Repo
+
+          original = Repo.gt
+          observations = []
+          lock = threading.Lock()
+
+          def traced_gt(self, *args, **kwargs):
+              started = time.monotonic()
+              result = original(self, *args, **kwargs)
+              if args[:2] == ('run', 'T1'):
+                  row = dict(args=list(args), elapsed=time.monotonic() - started,
+                             exit_code=result.returncode, stdout=result.stdout, stderr=result.stderr)
+                  with lock:
+                      observations.append(row)
+              return result
+
+          Repo.gt = traced_gt
+          suite = unittest.defaultTestLoader.loadTestsFromName(
+              'tests.test_gt_integrity.RunReceiptTests.test_concurrent_runs_all_succeed')
+          result = unittest.TextTestRunner(verbosity=2).run(suite)
+          print('CONCURRENT_CHILD_DIAGNOSTICS_BEGIN', flush=True)
+          print(json.dumps(dict(source_base='cdcf8af04c7eca6f36a26be8528dfe130a6d6192',
+                                diagnostic_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode().strip(),
+                                child_count=len(observations), observations=observations),
+                           ensure_ascii=False, indent=2), flush=True)
+          print('CONCURRENT_CHILD_DIAGNOSTICS_END', flush=True)
+          raise SystemExit(0 if result.wasSuccessful() else 1)
+          PY

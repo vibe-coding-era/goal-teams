@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import shlex
 import json
 import sys
 import unittest
@@ -26,7 +27,7 @@ def tracked_goal(repo: Repo, risk: str = "normal", check: bool = True) -> None:
     repo.ok("init")
     args = ["goal", "修复 add", "--done", "add(2,3)==5", "--mode", "tracked", "--risk", risk]
     if check:
-        args += ["--check", " ".join(UNITTEST)]
+        args += ["--check", shlex.join(UNITTEST)]
     repo.ok(*args)
 
 
@@ -194,7 +195,7 @@ class CompletionContractTests(unittest.TestCase):
     def test_finish_reruns_stale_evidence_and_criteria_checks(self):
         repo = self.repo
         repo.ok("init")
-        repo.ok("goal", "修复 add", "--done", "add(2,3)==5", "--check", " ".join(UNITTEST), "--mode", "tracked")
+        repo.ok("goal", "修复 add", "--done", "add(2,3)==5", "--check", shlex.join(UNITTEST), "--mode", "tracked")
         apply_plan(repo, {"tasks": [PLAN["tasks"][0]]})
         red_green(repo)
         repo.ok("task", "done", "T1", "--as", "goal_backend")

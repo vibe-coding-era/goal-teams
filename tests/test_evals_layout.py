@@ -24,6 +24,7 @@ Run: python3 -m unittest tests.test_evals_layout -v
 
 from __future__ import annotations
 
+import shlex
 import json
 import os
 import re
@@ -1372,7 +1373,7 @@ def gt_ledgers() -> Dict[str, str]:
     # tracked: one plan file applied at once, then the same evidence, a review and finish.
     tracked = GtSession(base / "tracked")
     tracked.gt("init")
-    tracked.gt("goal", "加法修复", "--mode", "tracked", "--done", "add(2, 3) == 5", "--check", " ".join(CALC_UNITTEST[1:]))
+    tracked.gt("goal", "加法修复", "--mode", "tracked", "--done", "add(2, 3) == 5", "--check", shlex.join(CALC_UNITTEST[1:]))
     tracked.write(".goal-teams/plan.json", json.dumps({"tasks": [
         {"id": "T1", "title": "修复 add", "owner": "goal_backend", "validator": "goal_reviewer",
          "scope": ["calc.py", "tests/test_calc.py"], "accept": "add(2, 3) == 5", "exit": "Green", "tdd": True},

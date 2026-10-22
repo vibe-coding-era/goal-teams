@@ -1,4 +1,5 @@
 """The graph gates actual CLI work, not just an optional diagram."""
+import shlex
 import json
 import subprocess
 import sys
@@ -15,7 +16,7 @@ class GraphRuntimeTests(unittest.TestCase):
     def goal(self, mode="tracked"):
         self.repo.ok("init")
         self.repo.ok("goal", "Validate calculator", "--mode", mode, "--impact", "config_change",
-                     "--done", "tests pass", "--check", " ".join(UNITTEST))
+                     "--done", "tests pass", "--check", shlex.join(UNITTEST))
 
     def plan(self, **overrides):
         task = {"id": "A", "title": "calculator", "owner": "dev", "validator": "qa",

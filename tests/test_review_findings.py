@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import shlex
 import json
 import os
 import subprocess
@@ -34,7 +35,7 @@ class FindingTests(unittest.TestCase):
 
     def test_1_a_check_criterion_needs_its_own_command(self):
         repo = self.repo
-        direct_goal(repo, "--done", "tests pass", "--check", " ".join(FALSE), "--impact", "config_change")
+        direct_goal(repo, "--done", "tests pass", "--check", shlex.join(FALSE), "--impact", "config_change")
         repo.write("src/calc.py", FIXED)
         repo.ok("run", "T1", "--kind", "affected", "--", *TRUE)
         repo.ok("task", "done", "T1")
@@ -47,7 +48,7 @@ class FindingTests(unittest.TestCase):
 
     def test_1b_editing_a_check_criterion_text_makes_it_run_again(self):
         repo = self.repo
-        direct_goal(repo, "--done", "tests pass", "--check", " ".join(UNITTEST), "--impact", "config_change")
+        direct_goal(repo, "--done", "tests pass", "--check", shlex.join(UNITTEST), "--impact", "config_change")
         repo.write("src/calc.py", FIXED)
         repo.ok("run", "T1", "--kind", "affected", "--", *UNITTEST)
         repo.ok("task", "done", "T1")
@@ -77,7 +78,7 @@ class FindingTests(unittest.TestCase):
         repo.ok("auth", "grant", "--actions", "push", "--scope", "x")
         self.assertEqual(repo.gt("operation", "prepare", "--action", "push", "--target", "origin main", "--required").returncode, 2)
         op = json.loads(repo.ok("--json", "operation", "prepare", "--action", "push", "--target", "origin main",
-                                "--readback", " ".join(FALSE), "--required"))["id"]
+                                "--readback", shlex.join(FALSE), "--required"))["id"]
         repo.gt("operation", "dispatch", op, "--", PY, "-c", "import sys; sys.exit(3)")
         self.assertEqual(repo.gt("operation", "confirm", op, "--", *TRUE).returncode, 2)
         repo.gt("operation", "confirm", op)

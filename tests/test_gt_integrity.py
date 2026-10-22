@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import shlex
 import io
 import json
 import os
@@ -307,7 +308,7 @@ class ReviewTests(unittest.TestCase):
     def test_goal_reviews(self):
         repo = self.repo
         repo.ok("init")
-        repo.ok("goal", "big", "--done", "d", "--check", " ".join(UNITTEST), "--size", "large")
+        repo.ok("goal", "big", "--done", "d", "--check", shlex.join(UNITTEST), "--size", "large")
         repo.ok("task", "add", "T1", "x", "--owner", "goal_backend", "--validator", "goal_reviewer",
                 "--scope", "src/calc.py", "--scope", "tests/test_calc.py", "--accept", "a", "--exit", "e", "--tdd")
         repo.ok("plan", "apply")
@@ -330,7 +331,7 @@ class ReviewTests(unittest.TestCase):
     def test_release_goal_needs_readback_to_be_achieved(self):
         repo = self.repo
         repo.ok("init")
-        repo.ok("goal", "ship", "--done", "d", "--check", " ".join(UNITTEST), "--size", "medium", "--release")
+        repo.ok("goal", "ship", "--done", "d", "--check", shlex.join(UNITTEST), "--size", "medium", "--release")
         repo.ok("task", "add", "T1", "x", "--owner", "goal_backend", "--validator", "goal_reviewer",
                 "--scope", "src/calc.py", "--scope", "tests/test_calc.py", "--accept", "a", "--exit", "e", "--tdd")
         repo.ok("plan", "apply")
@@ -818,7 +819,7 @@ class ExternalReviewTests(unittest.TestCase):
     def test_r02_ui_and_agent_gates_block_completion(self):
         repo = self.repo
         repo.ok("init")
-        repo.ok("goal", "g", "--done", "d", "--check", " ".join(UNITTEST), "--size", "medium", "--ui", "--agent")
+        repo.ok("goal", "g", "--done", "d", "--check", shlex.join(UNITTEST), "--size", "medium", "--ui", "--agent")
         repo.ok("task", "add", "T1", "x", "--owner", "goal_backend", "--validator", "goal_reviewer",
                 "--scope", "src/calc.py", "--scope", "tests/test_calc.py", "--accept", "a", "--exit", "e", "--tdd")
         repo.ok("plan", "apply")
@@ -847,7 +848,7 @@ class ExternalReviewTests(unittest.TestCase):
     def release_ready(self):
         repo = self.repo
         repo.ok("init")
-        repo.ok("goal", "ship", "--done", "d", "--check", " ".join(UNITTEST), "--size", "medium", "--release")
+        repo.ok("goal", "ship", "--done", "d", "--check", shlex.join(UNITTEST), "--size", "medium", "--release")
         repo.ok("task", "add", "T1", "x", "--owner", "goal_backend", "--validator", "goal_reviewer",
                 "--scope", "src/calc.py", "--scope", "tests/test_calc.py", "--accept", "a", "--exit", "e", "--tdd")
         repo.ok("plan", "apply")

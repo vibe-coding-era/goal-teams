@@ -805,7 +805,7 @@ class InstallerTest(unittest.TestCase):
     def test_lock_next_to_the_target_is_shared_by_homes_that_install_into_the_same_folder(self):
         other = os.path.join(self.tmp, "other-home")  # e.g. another $CODEX_HOME: same ~/.agents/skills
         skills = os.path.join(self.user_home, ".agents", "skills")
-        skills_lock = os.path.join(skills, ".goal-teams-install.lock")
+        skills_lock = os.path.join(os.path.realpath(skills), ".goal-teams-install.lock")
         for home in (self.home, other):
             self.assertEqual(install.Target("codex", home).locks, [os.path.join(home, ".goal-teams-install.lock"),
                                                                    skills_lock])
@@ -851,7 +851,8 @@ class InstallerTest(unittest.TestCase):
     def test_two_homes_installing_into_one_folder_at_once_take_turns_and_keep_their_staging_copies(self):
         other = os.path.join(self.tmp, "other-home")
         skills = os.path.join(self.user_home, ".agents", "skills")
-        lock, flag = os.path.join(skills, ".goal-teams-install.lock"), os.path.join(self.tmp, "go")
+        lock = os.path.join(os.path.realpath(skills), ".goal-teams-install.lock")
+        flag = os.path.join(self.tmp, "go")
         argv = [sys.executable, INSTALL_PY, "--host", "codex", "--source", self.src]
         first = subprocess.Popen(argv, env=self.sub_env(GOAL_TEAMS_INSTALL_WAIT_AT=f"staged:{flag}"),
                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
