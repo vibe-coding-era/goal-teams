@@ -1,0 +1,5 @@
+[project]
+name = "tinycalc"
+version = "1.0.0"
+description = "A tiny calculator library"
+requires-python = ">=3.9"

@@ -1,0 +1,619 @@
+{
+ "schema": "goal-teams/acceptance@1",
+ "note": "V2.95 extends the imported V2.9 fixed acceptance matrix (AC01-AC36) with local regression references. A passing local test is not real-host acceptance; partial and historical not_required claims remain explicit.",
+ "baseline": {
+  "commit": "395667364bcf28fa70c97e1264be034c87381ef0",
+  "label": "V2.7 candidate (develop-v2.7)"
+ },
+ "items": [
+  {
+   "id": "AC01",
+   "behavior": "direct/tracked 同风险领域输入导出相同质量要求",
+   "reviews": [
+    "R02",
+    "R08"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_completion.PolicyTests.test_mode_does_not_change_quality_gates",
+    "test_review_findings.FindingTests.test_7_mode_does_not_change_quality_outcomes"
+   ]
+  },
+  {
+   "id": "AC02",
+   "behavior": "UI/Agent 按真实影响触发，文档/样式不误升级",
+   "reviews": [
+    "R02",
+    "R08"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_gt_integrity.ExternalReviewTests.test_r02_plain_goals_are_not_gated",
+    "test_completion.PolicyTests.test_impact_decides_tdd_and_e2e_not_the_domain_label"
+   ]
+  },
+  {
+   "id": "AC03",
+   "behavior": "修改目标完成标准后旧 GoalAcceptance 失效",
+   "reviews": [
+    "R08"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_completion.CompletionContractTests.test_goal_accept_is_self_reported_and_goes_stale_when_the_criterion_changes",
+    "test_review_findings.FindingTests.test_1b_editing_a_check_criterion_text_makes_it_run_again"
+   ]
+  },
+  {
+   "id": "AC04",
+   "behavior": "修改任务范围/验收/验证要求后旧 Review 失效",
+   "reviews": [
+    "R01"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_gt_integrity.ExternalReviewTests.test_r01_spec_change_stales_the_review"
+   ]
+  },
+  {
+   "id": "AC05",
+   "behavior": "check/finish/next/achieved/report 同 snapshot 结论一致",
+   "reviews": [
+    "R08"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_completion.CompletionContractTests.test_every_entry_reads_the_same_result",
+    "test_completion.CompletionContractTests.test_finish_waits_for_the_review_then_reuses_current_evidence",
+    "test_review_findings.FindingTests.test_8_every_entry_agrees_on_a_release_goal",
+    "test_v295_completion.RequiredTDDTests.test_unflagged_behavior_task_cannot_hide_behind_another_tasks_green",
+    "test_v295_completion.RequiredTDDTests.test_second_task_with_its_own_tdd_is_accepted_without_opt_in_flag",
+    "test_v295_completion.RequiredTDDTests.test_configuration_change_does_not_require_tdd",
+    "test_v295_completion.RequiredTDDTests.test_parent_fully_covered_by_code_children_needs_no_duplicate_tdd",
+    "test_v295_completion.RequiredTDDTests.test_inflight_command_blocks_shared_judge",
+    "test_v295_completion.RequiredTDDTests.test_unknown_operation_precedes_achieved_in_supervisor_decision",
+    "test_v295_completion.RequiredTDDTests.test_confirmed_optional_operation_does_not_block_supervisor",
+    "test_v295_completion.CompletionCLITests.test_finish_waits_for_current_check_and_keeps_later_failure",
+    "test_v295_completion.CompletionCLITests.test_unknown_optional_operation_blocks_loop_before_host_launch",
+    "test_v295_runtime_graph.RuntimeGraphTests.test_unfrozen_exact_set_blocks_an_otherwise_complete_goal",
+    "test_v295_runtime_graph.RuntimeGraphTests.test_changed_task_spec_invalidates_frozen_completion",
+    "test_v295_runtime_graph.RuntimeGraphTests.test_corrupt_graph_budget_blocks_completion",
+    "test_v295_runtime_graph.RuntimeGraphTests.test_external_blocker_only_stops_its_successor_closure",
+    "test_v295_runtime_graph.RuntimeGraphTests.test_independent_work_does_not_override_corrupt_ledger",
+    "test_v295_runtime_graph.RuntimeGraphTests.test_independent_work_does_not_override_inflight_check",
+    "test_v295_closure_race.ClosureRaceTests.test_achieved_stop_rejects_a_real_failure_landed_after_judgement",
+    "test_v295_closure_race.ClosureRaceTests.test_achieved_stop_rejects_changed_snapshot_even_if_new_evidence_passes",
+    "test_v295_closure_race.ClosureRaceTests.test_another_terminal_decision_cannot_be_overwritten_by_achieved",
+    "test_v295_closure_race.ClosureRaceTests.test_finish_control_also_rejects_the_same_failure_schedule",
+    "test_v295_closure_race.ClosureRaceTests.test_explicit_stopped_outcome_still_records_open_failures",
+    "test_v295_closure_race.ClosureRaceTests.test_current_success_still_records_achieved"
+   ]
+  },
+  {
+   "id": "AC06",
+   "behavior": "手工任务与 plan apply 同等 revision；无效计划原子拒绝",
+   "reviews": [
+    "R01",
+    "R05",
+    "R08"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_completion.PlanTests.test_plan_apply_is_atomic",
+    "test_completion.PlanTests.test_manual_edits_share_the_revision_counter",
+    "test_v295_graph_contract.GraphContractTests.test_graph_is_exact_and_rebuilt_from_tasks",
+    "test_v295_graph_contract.GraphContractTests.test_missing_or_unknown_consumer_fails",
+    "test_v295_graph_contract.GraphContractTests.test_inferred_consumer_names_current_goal_without_claiming_acceptance",
+    "test_v295_graph_contract.GraphContractTests.test_cycle_and_cancelled_dependency_are_rejected",
+    "test_v295_graph_contract.GraphContractTests.test_budget_types_are_exact_positive_integers",
+    "test_v295_graph_contract.GraphContractTests.test_weighted_critical_path",
+    "test_v295_graph_contract.GraphContractTests.test_blocker_only_closes_descendants",
+    "test_v295_graph_contract.GraphContractTests.test_context_limit_counts_utf8_bytes_and_binds_packet",
+    "test_v295_graph_contract.GraphContractTests.test_finding_admission_requires_current_evidence_scope_consumer_and_budget",
+    "test_v295_graph_contract.GraphContractTests.test_completed_task_exit_predicate_requires_real_current_receipt",
+    "test_v295_graph_contract.GraphContractTests.test_budget_replay_never_trusts_remaining_and_does_not_reset_on_revision",
+    "test_v295_graph_contract.GraphContractTests.test_atomic_multiaxis_charge_and_revalidation_limit",
+    "test_v295_graph_contract.GraphContractTests.test_forged_budget_charge_is_rejected",
+    "test_v295_graph_runtime.GraphRuntimeTests.test_direct_automatically_freezes_graph_and_command_consumes_budget",
+    "test_v295_graph_runtime.GraphRuntimeTests.test_budget_exhaustion_prevents_subprocess_and_survives_reapply",
+    "test_v295_graph_runtime.GraphRuntimeTests.test_dependency_gate_cannot_be_bypassed_by_force_or_evidence",
+    "test_v295_graph_runtime.GraphRuntimeTests.test_forbidden_scope_is_not_overridden_by_scope_allow",
+    "test_v295_graph_runtime.GraphRuntimeTests.test_packet_context_budget_is_consumed_by_real_packet_command",
+    "test_v295_graph_runtime.GraphRuntimeTests.test_plan_apply_freezes_the_entire_active_exact_set",
+    "test_v295_graph_runtime.GraphRuntimeTests.test_default_budget_covers_real_red_green_and_affected",
+    "test_v295_graph_runtime.GraphRuntimeTests.test_concurrent_last_budget_unit_has_one_winner",
+    "test_v295_runtime_graph.RuntimeGraphTests.test_unfrozen_exact_set_blocks_an_otherwise_complete_goal",
+    "test_v295_runtime_graph.RuntimeGraphTests.test_changed_task_spec_invalidates_frozen_completion",
+    "test_v295_runtime_graph.RuntimeGraphTests.test_corrupt_graph_budget_blocks_completion",
+    "test_v295_runtime_graph.RuntimeGraphTests.test_external_blocker_only_stops_its_successor_closure",
+    "test_v295_runtime_graph.RuntimeGraphTests.test_independent_work_does_not_override_corrupt_ledger",
+    "test_v295_runtime_graph.RuntimeGraphTests.test_independent_work_does_not_override_inflight_check",
+    "test_v295_graph_dependencies.GraphDependencyTests.test_complete_predecessor_without_exit_receipt_cannot_release_successor",
+    "test_v295_graph_dependencies.GraphDependencyTests.test_aggregate_default_requires_own_review_and_children_exit",
+    "test_v295_graph_dependencies.GraphDependencyTests.test_parent_with_uncovered_scope_still_needs_own_evidence",
+    "test_v295_graph_dependencies.GraphDependencyTests.test_cli_force_cannot_release_done_predecessor_without_evidence",
+    "test_v295_graph_findings.GraphFindingTests.test_verified_red_is_current_reproduction_even_with_separate_test_digest",
+    "test_v295_graph_findings.GraphFindingTests.test_fake_outside_stale_and_overbudget_findings_never_expand_graph",
+    "test_v295_graph_live.LiveGraphAdmissionTests.test_new_failure_overrules_historical_pass_until_same_command_recovers",
+    "test_v295_graph_live.LiveGraphAdmissionTests.test_current_source_change_requires_fresh_predecessor_before_dispatch",
+    "test_v295_graph_live.LiveGraphAdmissionTests.test_successor_own_scope_change_does_not_invalidate_predecessor",
+    "test_v295_graph_live.LiveReviewAdmissionTests.test_reviewed_predecessor_content_change_blocks_dispatch_until_reviewed_again",
+    "test_v295_graph_live.LiveReviewAdmissionTests.test_independent_successor_change_preserves_reviewed_predecessor"
+   ],
+   "note": "V2.95 额外验证完整 active exact-set、DAG 依赖、消费者、退出条件和计划漂移。"
+  },
+  {
+   "id": "AC07",
+   "behavior": "缺 E2E、配对 eval 或其证据过期时不能误通过",
+   "reviews": [
+    "R02"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_gt_integrity.ExternalReviewTests.test_r02_ui_and_agent_gates_block_completion"
+   ]
+  },
+  {
+   "id": "AC08",
+   "behavior": "环境错误、日志篡改、错误 oracle 的 confirm 被拒绝",
+   "reviews": [
+    "R08"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_gt_integrity.TddIntegrityTests.test_missing_command_or_timeout_is_not_a_red",
+    "test_gt_integrity.SecondRoundTests.test_tampered_tail_blocks_appends",
+    "test_completion.TddConfirmTests.test_confirm_reads_the_original_log_and_refuses_tampering",
+    "test_completion.TddConfirmTests.test_expect_on_the_red_itself_verifies_at_once_and_invalid_reds_cannot_be_confirmed",
+    "test_review_findings.FindingTests.test_10_confirming_a_mismatched_red_is_what_the_ledger_says"
+   ]
+  },
+  {
+   "id": "AC09",
+   "behavior": "测试变化不能继承 Red；只提交/改日志不能构成 Green",
+   "reviews": [
+    "R08"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_gt_integrity.SecondRoundTests.test_green_needs_a_change_in_the_tasks_own_scope",
+    "test_gt_integrity.TddIntegrityTests.test_reverting_after_green_is_caught",
+    "test_gt_integrity.TddIntegrityTests.test_new_red_after_green_blocks_done_and_check",
+    "test_v295_completion.RequiredTDDTests.test_unflagged_behavior_task_cannot_hide_behind_another_tasks_green",
+    "test_v295_completion.RequiredTDDTests.test_second_task_with_its_own_tdd_is_accepted_without_opt_in_flag",
+    "test_v295_completion.RequiredTDDTests.test_configuration_change_does_not_require_tdd",
+    "test_v295_completion.RequiredTDDTests.test_parent_fully_covered_by_code_children_needs_no_duplicate_tdd",
+    "test_v295_completion.RequiredTDDTests.test_inflight_command_blocks_shared_judge",
+    "test_v295_completion.RequiredTDDTests.test_unknown_operation_precedes_achieved_in_supervisor_decision",
+    "test_v295_completion.RequiredTDDTests.test_confirmed_optional_operation_does_not_block_supervisor",
+    "test_v295_completion.CompletionCLITests.test_finish_waits_for_current_check_and_keeps_later_failure",
+    "test_v295_completion.CompletionCLITests.test_unknown_optional_operation_blocks_loop_before_host_launch",
+    "test_v295_recovery_tdd.InterruptedTDDTests.test_later_real_red_and_current_paired_green_close_interrupted_red",
+    "test_v295_recovery_tdd.InterruptedTDDTests.test_unpaired_or_unverified_green_cannot_close_interrupted_red"
+   ]
+  },
+  {
+   "id": "AC10",
+   "behavior": "失败、重试、flaky、撤销记录保留且不缩减分母",
+   "reviews": [
+    "R09"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_gt_integrity.RunReceiptTests.test_failure_is_closed_only_by_the_same_command",
+    "test_gt_integrity.SecondRoundTests.test_mistaken_runs_can_be_retired_and_typos_are_not_failures",
+    "test_gt_integrity.SecondRoundTests.test_retired_failures_are_in_the_outcome_line",
+    "test_review_findings.FindingTests.test_6_behaviour_change_without_tdd_is_not_achieved"
+   ]
+  },
+  {
+   "id": "AC11",
+   "behavior": "并发同 ID、同 revision 和双监督器 epoch 冲突可检测且不覆盖",
+   "reviews": [
+    "R05"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_gt_integrity.ExternalReviewTests.test_r05_concurrent_duplicate_ids_are_refused_under_the_lock",
+    "test_gt_integrity.ExternalReviewTests.test_r05_state_change_is_rechecked_under_the_lock",
+    "test_completion.PlanTests.test_plan_apply_is_atomic",
+    "test_supervisor.SupervisorTests.test_second_supervisor_is_refused_while_the_first_is_alive_and_takes_over_a_dead_one",
+    "test_supervisor.SupervisorTests.test_an_old_epoch_cannot_write_after_a_takeover"
+   ]
+  },
+  {
+   "id": "AC12",
+   "behavior": "目标替换/计划变化/终态之后的迟到回执被隔离",
+   "reviews": [
+    "R05",
+    "R10"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_gt_integrity.ExternalReviewTests.test_r05_late_receipt_of_a_replaced_goal_is_kept_apart",
+    "test_ledger_tx.LateReceiptTests.test_receipt_landing_after_the_task_spec_changed_is_kept_apart",
+    "test_ledger_tx.LateReceiptTests.test_finish_waits_for_running_receipt_before_closing",
+    "test_v295_closure_race.ClosureRaceTests.test_achieved_stop_rejects_a_real_failure_landed_after_judgement",
+    "test_v295_closure_race.ClosureRaceTests.test_achieved_stop_rejects_changed_snapshot_even_if_new_evidence_passes",
+    "test_v295_closure_race.ClosureRaceTests.test_another_terminal_decision_cannot_be_overwritten_by_achieved",
+    "test_v295_closure_race.ClosureRaceTests.test_finish_control_also_rejects_the_same_failure_schedule",
+    "test_v295_closure_race.ClosureRaceTests.test_explicit_stopped_outcome_still_records_open_failures",
+    "test_v295_closure_race.ClosureRaceTests.test_current_success_still_records_achieved"
+   ]
+  },
+  {
+   "id": "AC13",
+   "behavior": "journal 各写入点崩溃后无重复、无伪造通过",
+   "reviews": [
+    "R05",
+    "R10"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_gt_integrity.LedgerTests.test_truncated_tail_is_detected",
+    "test_gt_integrity.SecondRoundTests.test_missing_newline_is_repaired_not_dropped",
+    "test_gt_integrity.LedgerTests.test_rewritten_last_event_is_detected",
+    "test_ledger_tx.JournalTests.test_crash_after_journal_before_ledger_is_forgotten",
+    "test_ledger_tx.JournalTests.test_crash_after_ledger_before_head_is_completed_from_the_journal",
+    "test_ledger_tx.JournalTests.test_ledger_ahead_without_a_matching_journal_is_refused",
+    "test_ledger_tx.JournalTests.test_journal_naming_a_different_line_is_refused",
+    "test_ledger_tx.JournalTests.test_partial_line_after_journal_is_dropped_and_forgotten",
+    "test_v295_run_recovery.RunRecoveryTests.test_dead_run_recovery_retains_a_gap_until_the_same_command_really_passes",
+    "test_v295_recovery_tdd.InterruptedTDDTests.test_later_real_red_and_current_paired_green_close_interrupted_red",
+    "test_v295_recovery_tdd.InterruptedTDDTests.test_unpaired_or_unverified_green_cannot_close_interrupted_red"
+   ]
+  },
+  {
+   "id": "AC14",
+   "behavior": "未知 schema/type/capability 拒绝；checkpoint 损坏可恢复",
+   "reviews": [
+    "R05",
+    "R10"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_ledger_tx.ManifestTests.test_a_newer_manifest_refuses_to_judge_or_append",
+    "test_ledger_tx.ManifestTests.test_unknown_event_type_is_reported_and_blocks_completion",
+    "test_ledger_tx.ManifestTests.test_init_writes_a_manifest_and_events_carry_the_new_schema"
+   ],
+   "note": "checkpoint 不做（决策：先用微基准 tools/bench_ledger.py 证明需要）；manifest 拒绝替代"
+  },
+  {
+   "id": "AC15",
+   "behavior": "v1 迁移保存人工数据；旧 CLI 不能误判新活动状态",
+   "reviews": [
+    "R11"
+   ],
+   "status": "not_required",
+   "tests": [],
+   "reason": "没有 event@1 用户（V2.7 未发布）；决策 D9 改为发布 V2.7 时转 not_run"
+  },
+  {
+   "id": "AC16",
+   "behavior": "自评/相关复核/外部身份分开；假 --by user 不提升保证",
+   "reviews": [
+    "R12"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_gt_integrity.ExternalReviewTests.test_r12_self_review_can_be_refused_by_policy",
+    "test_gt_integrity.ReviewTests.test_independence_rules",
+    "test_completion.CompletionContractTests.test_review_assurance_is_recorded_from_facts_not_role_names",
+    "test_completion.CompletionContractTests.test_goal_accept_is_self_reported_and_goes_stale_when_the_criterion_changes",
+    "test_review_findings.FindingTests.test_5_human_verdicts_are_self_reported_and_independent_reviews_need_a_note"
+   ]
+  },
+  {
+   "id": "AC17",
+   "behavior": "子会话修改授权、预算、标准的提案不能自行生效",
+   "reviews": [
+    "R10",
+    "R12"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_supervisor.SupervisorTests.test_subsession_can_only_propose",
+    "test_review_findings.FindingTests.test_4_subsessions_cannot_decide"
+   ],
+   "note": "cooperative：子会话限制是监督器设置的约定（GT_SUBSESSION），不是 OS 隔离；能力报告如实写 unavailable"
+  },
+  {
+   "id": "AC18",
+   "behavior": "授权过期/目标改变/动作超范围停止；范围内不重复询问",
+   "reviews": [
+    "R10",
+    "R12"
+   ],
+   "status": "partial",
+   "tests": [
+    "test_gt_integrity.ExternalReviewTests.test_r12_auth_check_binds_the_repository",
+    "test_gt_integrity.WorkspaceTests.test_config_memory_downgrade_and_expiry",
+    "test_operations.OperationTests.test_expired_or_rebound_grant_stops_dispatch"
+   ]
+  },
+  {
+   "id": "AC19",
+   "behavior": "父进程/检查挂起、后代逃逸、输出堵塞有界处理",
+   "reviews": [
+    "R10"
+   ],
+   "status": "partial",
+   "tests": [
+    "test_gt_integrity.UnitTests.test_timeout_stops_grandchildren",
+    "test_supervisor.SupervisorTests.test_overrunning_round_is_terminated_and_the_deadline_does_not_move",
+    "test_v295_run_recovery.RunRecoveryTests.test_dead_run_recovery_retains_a_gap_until_the_same_command_really_passes"
+   ],
+   "note": "进程组终止已测；脱离进程组的后代、输出堵塞未测，能力报告写 process_containment=unavailable"
+  },
+  {
+   "id": "AC20",
+   "behavior": "预留及启动前后、轮内硬杀后预算与绝对 deadline 不增加",
+   "reviews": [
+    "R10"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_supervisor.SupervisorTests.test_round_budget_is_exhausted_before_a_second_session",
+    "test_supervisor.SupervisorTests.test_unsettled_reservation_is_charged_at_its_upper_bound",
+    "test_supervisor.SupervisorTests.test_overrunning_round_is_terminated_and_the_deadline_does_not_move",
+    "test_v295_graph_contract.GraphContractTests.test_graph_is_exact_and_rebuilt_from_tasks",
+    "test_v295_graph_contract.GraphContractTests.test_missing_or_unknown_consumer_fails",
+    "test_v295_graph_contract.GraphContractTests.test_inferred_consumer_names_current_goal_without_claiming_acceptance",
+    "test_v295_graph_contract.GraphContractTests.test_cycle_and_cancelled_dependency_are_rejected",
+    "test_v295_graph_contract.GraphContractTests.test_budget_types_are_exact_positive_integers",
+    "test_v295_graph_contract.GraphContractTests.test_weighted_critical_path",
+    "test_v295_graph_contract.GraphContractTests.test_blocker_only_closes_descendants",
+    "test_v295_graph_contract.GraphContractTests.test_context_limit_counts_utf8_bytes_and_binds_packet",
+    "test_v295_graph_contract.GraphContractTests.test_finding_admission_requires_current_evidence_scope_consumer_and_budget",
+    "test_v295_graph_contract.GraphContractTests.test_completed_task_exit_predicate_requires_real_current_receipt",
+    "test_v295_graph_contract.GraphContractTests.test_budget_replay_never_trusts_remaining_and_does_not_reset_on_revision",
+    "test_v295_graph_contract.GraphContractTests.test_atomic_multiaxis_charge_and_revalidation_limit",
+    "test_v295_graph_contract.GraphContractTests.test_forged_budget_charge_is_rejected",
+    "test_v295_graph_runtime.GraphRuntimeTests.test_direct_automatically_freezes_graph_and_command_consumes_budget",
+    "test_v295_graph_runtime.GraphRuntimeTests.test_budget_exhaustion_prevents_subprocess_and_survives_reapply",
+    "test_v295_graph_runtime.GraphRuntimeTests.test_dependency_gate_cannot_be_bypassed_by_force_or_evidence",
+    "test_v295_graph_runtime.GraphRuntimeTests.test_forbidden_scope_is_not_overridden_by_scope_allow",
+    "test_v295_graph_runtime.GraphRuntimeTests.test_packet_context_budget_is_consumed_by_real_packet_command",
+    "test_v295_graph_runtime.GraphRuntimeTests.test_plan_apply_freezes_the_entire_active_exact_set",
+    "test_v295_graph_runtime.GraphRuntimeTests.test_default_budget_covers_real_red_green_and_affected",
+    "test_v295_graph_runtime.GraphRuntimeTests.test_concurrent_last_budget_unit_has_one_winner",
+    "test_v295_recovery_budget.InterruptedBudgetTests.test_settlement_preserves_spent_budget_and_rerun_charges_one_revalidation"
+   ],
+   "note": "V2.95 额外验证命令启动前锁内多维计费、并发最后额度、重计划不清零和任务包估算上限；不等于宿主模型硬限额。"
+  },
+  {
+   "id": "AC21",
+   "behavior": "重复/截断/丢失宿主事件不造成预算漏算或伪硬限额",
+   "reviews": [
+    "R10"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_supervisor.AdapterUsageTests.test_claude_stream_without_a_result_is_unknown_and_with_one_is_reported",
+    "test_supervisor.AdapterUsageTests.test_codex_sums_turns_and_never_invents_a_cost",
+    "test_supervisor.SupervisorTests.test_unsettled_reservation_is_charged_at_its_upper_bound"
+   ]
+  },
+  {
+   "id": "AC22",
+   "behavior": "重复新 ID、缺口震荡、无新证据进入 stalled",
+   "reviews": [
+    "R10"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_supervisor.SupervisorTests.test_two_rounds_without_progress_are_stalled"
+   ]
+  },
+  {
+   "id": "AC23",
+   "behavior": "blocked 未解除不可恢复；checking/reconciling 中断及成功超时竞态有唯一结论",
+   "reviews": [
+    "R10"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_supervisor.SupervisorTests.test_an_old_epoch_cannot_write_after_a_takeover",
+    "test_supervisor.SupervisorTests.test_unsettled_external_operation_blocks_the_loop"
+   ]
+  },
+  {
+   "id": "AC24",
+   "behavior": "外部调用前后各崩溃点可按 intent 回读，不重复副作用",
+   "reviews": [
+    "R07",
+    "R10"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_operations.OperationTests.test_required_operation_blocks_finish_until_confirmed",
+    "test_operations.OperationTests.test_crash_between_dispatch_and_result_is_settled_by_resume_readback",
+    "test_operations.OperationTests.test_intent_needs_a_grant_and_binds_it",
+    "test_review_findings.FindingTests.test_2_concurrent_dispatch_runs_a_once_operation_once"
+   ]
+  },
+  {
+   "id": "AC25",
+   "behavior": "远端部分成功/同名异物/readback 失败保持 unknown",
+   "reviews": [
+    "R07",
+    "R10"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_operations.OperationTests.test_failed_dispatch_is_unknown_until_readback_and_once_is_not_retried",
+    "test_operations.OperationTests.test_retry_safe_intent_may_be_dispatched_again_after_a_clean_failure",
+    "test_review_findings.FindingTests.test_3_a_registered_readback_cannot_be_replaced"
+   ]
+  },
+  {
+   "id": "AC26",
+   "behavior": "构建后删除/替换/增加产物导致检查拒绝",
+   "reviews": [
+    "R03"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_gt_integrity.ExternalReviewTests.test_r03_deleted_or_replaced_artifact_fails_the_release_check",
+    "test_gt_integrity.RunReceiptTests.test_artifacts_are_recorded_and_missing_ones_fail",
+    "test_gt_integrity.ExternalReviewTests.test_r03_readback_is_bound_to_the_built_asset_set",
+    "test_release.VerifyTests.test_unexpected_and_missing_assets_are_detected",
+    "test_release.VerifyTests.test_asset_set_id_binds_the_listed_files_and_tarball",
+    "test_v295_release.FrozenSourceTests.test_assume_unchanged_cannot_ship_uncommitted_bytes",
+    "test_v295_release.FrozenSourceTests.test_skip_worktree_cannot_ship_uncommitted_bytes",
+    "test_v295_release.FrozenSourceTests.test_frozen_version_comes_from_the_same_commit_as_payload",
+    "test_v295_release_race.FrozenIdentityRaceTests.test_head_moving_after_capture_cannot_change_recorded_tree"
+   ]
+  },
+  {
+   "id": "AC27",
+   "behavior": "已发布相同资产只恢复回读，不重新构建或 create",
+   "reviews": [
+    "R07"
+   ],
+   "status": "partial",
+   "tests": [
+    "test_release.VerifyTests.test_asset_set_id_binds_the_listed_files_and_tarball"
+   ],
+   "note": "release.json 带 asset_set_id；release.yml 的已存在比对仍只静态审查（需要 GitHub 环境）"
+  },
+  {
+   "id": "AC28",
+   "behavior": "人工 modified/extra 备份经历多次更新仍可恢复",
+   "reviews": [
+    "R04"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_install.InstallerTest.test_backup_holding_your_own_changes_is_never_pruned_and_rollback_restores_them",
+    "test_install.InstallerTest.test_uninstall_backup_holding_edited_files_is_protected"
+   ]
+  },
+  {
+   "id": "AC29",
+   "behavior": "多 home 共享 target 并发安装不互删 staging",
+   "reviews": [
+    "R06"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_install.InstallerTest.test_two_homes_installing_into_one_folder_at_once_take_turns_and_keep_their_staging_copies"
+   ]
+  },
+  {
+   "id": "AC30",
+   "behavior": "安装/回退崩溃、symlink/越界/overlap/跨设备失败可恢复",
+   "reviews": [
+    "R04",
+    "R06"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_install.InstallerTest.test_failure_during_switch_restores_old_install",
+    "test_install.InstallerTest.test_hard_crash_mid_switch_is_undone_from_the_journal_on_the_next_run",
+    "test_install.InstallerTest.test_rollback_undoes_an_interrupted_switch_first",
+    "test_install.InstallerTest.test_dry_run_creates_nothing",
+    "test_install.InstallerTest.test_9_crash_after_a_rename_before_the_journal_update_is_undone",
+    "test_v295_tools.InterruptedPreviewTests.test_rollback_dry_run_preserves_interrupted_state",
+    "test_v295_tools.ExtractedSourceChecks.test_ignored_child_source_is_scanned_instead_of_empty_parent_index",
+    "test_v295_tools.ExtractedSourceChecks.test_ignored_child_shipped_text_cannot_pass_without_reading_files"
+   ],
+   "note": "跨设备 rename 走 shutil.move 回退；平台文件锁失败由 Refused 报告"
+  },
+  {
+   "id": "AC31",
+   "behavior": "Codex 与 Claude 实际加载规则、发现成员及运行隔离各自验证",
+   "reviews": [
+    "R12",
+    "R13"
+   ],
+   "status": "partial",
+   "tests": [
+    "test_supervisor.SupervisorTests.test_probe_reports_capabilities_honestly",
+    "test_v295_host_probe.HostProbeTests.test_version_success_proves_only_command_availability",
+    "test_v295_host_probe.HostProbeTests.test_error_text_from_nonzero_version_is_not_availability",
+    "test_v295_host_probe.HostProbeTests.test_missing_binary_does_not_claim_launch_or_cancel_probe"
+   ],
+   "note": "本地探测只证实二进制可调用；真实宿主 headless launch、成员加载与隔离仍待外部验收。"
+  },
+  {
+   "id": "AC32",
+   "behavior": "真实 loop 成功、失败、blocked、stalled、超时、预算终止分别验证",
+   "reviews": [
+    "R10"
+   ],
+   "status": "partial",
+   "tests": [
+    "test_supervisor.SupervisorTests.test_one_round_reaches_achieved_through_finish",
+    "test_supervisor.SupervisorTests.test_two_rounds_without_progress_are_stalled",
+    "test_supervisor.SupervisorTests.test_round_budget_is_exhausted_before_a_second_session",
+    "test_supervisor.SupervisorTests.test_overrunning_round_is_terminated_and_the_deadline_does_not_move",
+    "test_supervisor.SupervisorTests.test_unsettled_external_operation_blocks_the_loop"
+   ],
+   "note": "用脚本化宿主验证 achieved/stalled/budget_exhausted/timed_out/blocked；真实模型会话未运行（需额度授权 D10）"
+  },
+  {
+   "id": "AC33",
+   "behavior": "本地目录边界不被跟踪/打包/安装；README 处理符合 D1",
+   "reviews": [
+    "R11"
+   ],
+   "status": "passed",
+   "tests": [
+    "test_tools.BoundaryTests.test_local_only_folders_are_refused_and_the_readme_block_is_checked"
+   ],
+   "note": "D1/D2 取默认 B：check.py 拒绝跟踪 docs/、develops/；README 版本区块由 gen.py 写入标记之间"
+  },
+  {
+   "id": "AC34",
+   "behavior": "单次构建、独立 verify、安全评审（large）、Actions 恢复分支",
+   "reviews": [
+    "R11"
+   ],
+   "status": "partial",
+   "tests": [
+    "test_release.BuildFromGitTests.test_build_writes_the_documented_layout",
+    "test_release.BuildFromGitTests.test_build_is_byte_identical_twice_and_from_a_clone",
+    "test_release.VerifyTests.test_asset_set_id_binds_the_listed_files_and_tarball"
+   ],
+   "note": "单次构建与独立 verify 已测；release.yml 的 Actions 发布与已存在比对需要 GitHub 环境，仅静态审查"
+  },
+  {
+   "id": "AC35",
+   "behavior": "每份回执绑定实际 source；当前验收只消费匹配且有效的证据；采集/提交前并发改文件被识别",
+   "reviews": [
+    "R13"
+   ],
+   "status": "partial",
+   "tests": [
+    "test_gt_integrity.SecondRoundTests.test_any_later_change_needs_a_rerun_even_docs",
+    "test_gt_integrity.SecondRoundTests.test_check_from_a_linked_worktree_judges_the_main_tree",
+    "test_review_findings.FindingTests.test_1_a_check_criterion_needs_its_own_command",
+    "test_review_findings.FindingTests.test_11_affected_is_not_passed_without_finished_code"
+   ],
+   "note": "采集中并发改文件未测"
+  },
+  {
+   "id": "AC36",
+   "behavior": "四组评测使用固定案例/模型/环境，失败与未验证不隐藏",
+   "reviews": [
+    "R09",
+    "R13"
+   ],
+   "status": "partial",
+   "tests": [
+    "test_evals_layout.GtLedgerPatternTest.test_ledger_patterns_on_real_gt_ledgers",
+    "test_v295_tools.InterruptedPreviewTests.test_rollback_dry_run_preserves_interrupted_state",
+    "test_v295_tools.ExtractedSourceChecks.test_ignored_child_source_is_scanned_instead_of_empty_parent_index",
+    "test_v295_tools.ExtractedSourceChecks.test_ignored_child_shipped_text_cannot_pass_without_reading_files"
+   ],
+   "note": "评测套件 8 例（新增 direct-slugify-fix、tracked-two-tasks）与四组对照协议（evals/comparison.md）已就位；运行待维护者授权额度（D10）"
+  }
+ ],
+ "v295_source": {
+  "local_baseline": "c3c0ebfd61197eb245d533ad88a1287b1ec5034b",
+  "v29_zip_sha256": "cf84edba6bd1367add835096d99a084c079a2e676014f73b0a584c50d887b645",
+  "retained_contract": "task graph and budgets",
+  "host_acceptance": "not_run"
+ }
+}

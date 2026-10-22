@@ -1,0 +1,16 @@
+{
+  "description": "Goal Teams：只在项目开启 enforce_report（gt config set enforce_report true）时，提醒发送 gt report；每个账本状态最多提醒一次。",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/skills/goal-teams/scripts/gt.py\" hook stop || python \"${CLAUDE_PLUGIN_ROOT}/skills/goal-teams/scripts/gt.py\" hook stop",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

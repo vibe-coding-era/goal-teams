@@ -1,0 +1,7 @@
+{
+  "items": [
+    {"sku": "A-1", "name": "扳手", "quantity": 3},
+    {"sku": "B-2", "name": "螺丝刀", "quantity": 0},
+    {"sku": "C-3", "name": "卷尺", "quantity": 12}
+  ]
+}

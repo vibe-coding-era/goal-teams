@@ -1,0 +1,254 @@
+name: ci
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONUTF8: "1"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: test (ubuntu-latest, Python 3.9)
+            os: ubuntu-latest
+            python: "3.9"
+            shard: 0
+            shard_count: 1
+          - name: test (ubuntu-latest, Python 3.13)
+            os: ubuntu-latest
+            python: "3.13"
+            shard: 0
+            shard_count: 1
+          - name: test (macos-latest, Python 3.13, shard 1/4)
+            os: macos-latest
+            python: "3.13"
+            shard: 0
+            shard_count: 4
+          - name: test (macos-latest, Python 3.13, shard 2/4)
+            os: macos-latest
+            python: "3.13"
+            shard: 1
+            shard_count: 4
+          - name: test (macos-latest, Python 3.13, shard 3/4)
+            os: macos-latest
+            python: "3.13"
+            shard: 2
+            shard_count: 4
+          - name: test (macos-latest, Python 3.13, shard 4/4)
+            os: macos-latest
+            python: "3.13"
+            shard: 3
+            shard_count: 4
+          - name: test (windows-latest, Python 3.13, shard 1/8)
+            os: windows-latest
+            python: "3.13"
+            shard: 0
+            shard_count: 8
+          - name: test (windows-latest, Python 3.13, shard 2/8)
+            os: windows-latest
+            python: "3.13"
+            shard: 1
+            shard_count: 8
+          - name: test (windows-latest, Python 3.13, shard 3/8)
+            os: windows-latest
+            python: "3.13"
+            shard: 2
+            shard_count: 8
+          - name: test (windows-latest, Python 3.13, shard 4/8)
+            os: windows-latest
+            python: "3.13"
+            shard: 3
+            shard_count: 8
+          - name: test (windows-latest, Python 3.13, shard 5/8)
+            os: windows-latest
+            python: "3.13"
+            shard: 4
+            shard_count: 8
+          - name: test (windows-latest, Python 3.13, shard 6/8)
+            os: windows-latest
+            python: "3.13"
+            shard: 5
+            shard_count: 8
+          - name: test (windows-latest, Python 3.13, shard 7/8)
+            os: windows-latest
+            python: "3.13"
+            shard: 6
+            shard_count: 8
+          - name: test (windows-latest, Python 3.13, shard 8/8)
+            os: windows-latest
+            python: "3.13"
+            shard: 7
+            shard_count: 8
+    steps:
+      - name: Check out
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Repository checks
+        shell: bash
+        run: python tools/check.py
+      - name: Generated files are up to date
+        shell: bash
+        run: python tools/gen.py --check
+      - name: Unit tests
+        if: matrix.shard_count == 1
+        shell: bash
+        run: python -m unittest discover -s tests -t . -v
+      - name: Unit test shard
+        if: matrix.shard_count > 1
+        shell: bash
+        env:
+          TEST_SHARD_INDEX: ${{ matrix.shard }}
+          TEST_SHARD_COUNT: ${{ matrix.shard_count }}
+        run: |
+          python - <<'PY'
+          import os
+          import unittest
+
+          shard = int(os.environ["TEST_SHARD_INDEX"])
+          count = int(os.environ["TEST_SHARD_COUNT"])
+          if count < 1 or not 0 <= shard < count:
+              raise SystemExit("Invalid test shard index/count")
+
+          def flatten(suite):
+              for item in suite:
+                  if isinstance(item, unittest.TestSuite):
+                      yield from flatten(item)
+                  else:
+                      yield item
+
+          cases = list(flatten(unittest.defaultTestLoader.discover('tests', top_level_dir='.')))
+          selected = [case for index, case in enumerate(cases) if index % count == shard]
+          denominators = [sum(index % count == slot for index in range(len(cases))) for slot in range(count)]
+          print("Discovered %d test occurrences; shard denominators: %s" % (len(cases), denominators), flush=True)
+          print("Running shard %d/%d: %d/%d test occurrences" % (shard + 1, count, len(selected), len(cases)), flush=True)
+          result = unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite(selected))
+          raise SystemExit(0 if result.wasSuccessful() else 1)
+          PY
+      - name: Examples match real gt output
+        if: runner.os == 'Linux'
+        shell: bash
+        run: python tools/make_examples.py --check
+      - name: okf-graph tests
+        # extras/okf-graph does not support Windows (it refuses to run there).
+        if: runner.os == 'Linux' || (runner.os == 'macOS' && matrix.shard == 0)
+        shell: bash
+        run: python -m unittest discover -s extras/okf-graph/tests -t extras/okf-graph -v
+
+  check-macos:
+    name: check-macos
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: test
+    if: ${{ always() }}
+    steps:
+      - name: Require every test matrix job to pass
+        shell: bash
+        env:
+          TEST_RESULT: ${{ needs.test.result }}
+        run: |
+          echo "Full test matrix result: $TEST_RESULT"
+          test "$TEST_RESULT" = "success"
+
+  release-asset-gate:
+    name: release-asset-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+      TMPDIR: ${{ github.workspace }}/develops/ci-release-tmp
+      GIT_CEILING_DIRECTORIES: ${{ github.workspace }}/develops
+    steps:
+      - name: Check out
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.13"
+      - name: Prepare isolated test fixtures
+        shell: bash
+        run: mkdir -p "$TMPDIR"
+      - name: Repository and generated package checks
+        shell: bash
+        run: |
+          python tools/check.py
+          python tools/gen.py --check
+      - name: Release and installer regressions
+        # Builds in these tests belong to disposable fixtures, never this candidate.
+        shell: bash
+        run: |
+          python -m unittest -v \
+            tests.test_release \
+            tests.test_install \
+            tests.test_ed25519_verify \
+            tests.test_v295_release \
+            tests.test_v295_release_race \
+            tests.test_v295_tools
+      - name: Validate frozen package inputs without building assets
+        shell: bash
+        run: |
+          python - <<'PY'
+          import subprocess
+          from pathlib import Path
+          from tools import release
+
+          root = Path.cwd()
+          tracked = subprocess.check_output(["git", "ls-files", "-z"]).decode().split("\0")
+          forbidden = [p for p in tracked if p and p.split("/")[0] in {"docs", "develops", ".goal-teams"}]
+          if forbidden:
+              raise SystemExit("Local-only paths are tracked: " + ", ".join(forbidden))
+          warned = set()
+          entries, commit, tree, _ = release.collect_from_git(root, False, warned)
+          entries = release.finalize(entries, warned)
+          if not commit or tree != release.git_out(root, "rev-parse", commit + "^{tree}").decode().strip():
+              raise SystemExit("Package inputs are not bound to one committed tree")
+          if warned:
+              raise SystemExit("Untracked package inputs would be omitted: " + ", ".join(sorted(warned)))
+          for path, mode, data in entries:
+              if (not release.in_release_set(path) or release.path_problem(path)
+                      or release.is_excluded(path) or mode not in (0o644, 0o755)):
+                  raise SystemExit("Invalid package input: " + path)
+              if data != release.git_out(root, "cat-file", "blob", commit + ":" + path):
+                  raise SystemExit("Package input differs from committed blob: " + path)
+          print("Validated %d package files at %s (tree %s); no candidate assets built." % (len(entries), commit, tree))
+          PY
+
+  plugin-validate:
+    name: plugin-validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+      - name: Install Claude Code
+        shell: bash
+        run: npm install -g --no-audit --no-fund @anthropic-ai/claude-code@2.1.302
+      - name: Validate the plugin
+        shell: bash
+        run: claude plugin validate --strict plugins/goal-teams
+      - name: Validate the marketplace
+        shell: bash
+        run: claude plugin validate --strict .

@@ -5,359 +5,171 @@
 作者：肉山@TGO 杭州
 
 <!-- goal-teams-release:start -->
-当前发行：**V2.66** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.66) · [发行说明](release/current/README.md)
+当前版本：**V2.95** · [GitHub 发行页](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.95.0) · [更新记录](CHANGELOG.md)
 <!-- goal-teams-release:end -->
 
-Goal Teams 是一个跨 CodeAgent 的团队协作 AgentTeams Skill，支持多个 LLM 及 CodeAgent 平台。它会以一个 Goal Lead 的身份，把目标拆成可验证计划，再协调独立成员完成需求、设计、实现、测试、Evidence 和收尾审计，过程中会应用到：
-- 应用 Goal + Plan + Loop 模式，能够保持长时间完成任务；
-- 构建和严格遵循 SPEC + Harness + SSOT 三大原则，保持过程严谨性及 增强 LLM 缓存命中率；
-- 不同角色使用不同的 Subagent（不同上下文执行）保持上下文独立性不被污染，同时任务并发执行；
-- 建立过程 Benchmark 基准，为 LOOP 提供数据支持；
-- 有完备的开发团队，也能够与 OpenSpec 和 Superpowers 这类共存；
-- 沉淀大量的脚本，减少 LLM Tokens 消耗；
-- 会根据你的需求类型，自动判断或人工选择相应的流程：
-1. 小型需求/BugFix，只做简单设计和 TDD；
-2. 中型项目，相对完整的产品、原型、架构、TDD、开发、增量测试，是否需要全量回归，需要人工确认；
-3. 大型系统，完整的走全量流程及门禁，包括质量、安全审计；
+Goal Teams 是面向 Codex 和 Claude Code 的团队协作交付 Skill。由一个 Goal Lead 把目标拆成可验证的任务，协调 `goal_*` 成员子代理完成需求、实现、测试、评审和发布。整个过程用 `gt` 命令行工具记账，汇报里的每个数字都来自真实记录。
 
-
-## 核心机制
-
-### Goal + Plan + Loop
-
-Goal Teams 把一次复杂协作拆成三个层次：
-
-- Goal 定义目标和 Done Criteria，让团队先对“完成是什么”达成一致。
-- Plan 把目标转成成员、Subagent 上下文、范围、交接物、验证方式和停止条件，降低范围漂移和并发冲突。
-- Loop 在每轮整合后记录 `loop_decision=continue|replan|stop`，并把 `run_outcome`、task/check 状态与 stop_reason 分开记录，方便长任务恢复和审计。
-
-这个模式的先进性不在于多派几个 agent，而在于让不同角色在独立上下文中工作，同时由 Goal Lead 保持目标、范围和证据的一致性。它把一次聊天式请求变成可以追踪的工程过程。
-
-### SPEC + Harness + SSOT
-
-Goal Teams 用 `SPEC -> Harness -> Evidence -> Audit` 做验证链，并用 SSOT 约束交接物口径：
-
-- SPEC 说明要完成什么，包括需求、边界、用户故事、功能验收标准、架构和测试计划。
-- Harness 说明如何证明完成，包括命令、脚本、E2E、截图、人工检查清单和证据路径。
-- SSOT 说明交接物只有一个权威定义，包括 artifact 类型、Owner、validator、状态字段和 TaskList 账本格式。
-
-这组机制让 Skill 的产物不只是一份计划，而是一套可以被成员执行、被脚本检查、被 reviewer 复核、被 auditor 收尾的证据结构。对复杂应用开发来说，这比单纯输出代码更稳，因为它要求“完成”必须能被证明。
-
-### Benchmark
-
-Goal Teams 内置 `benchmarks/` 任务包，用来比较不同工作流、prompt 或 skill 版本的表现。Benchmark 不用于普通任务的默认输出，而是在用户要求、计划确认或 Skill Improvement 场景中启用。
-
-Benchmark 的价值是把“感觉变好了”变成可复盘的比较：同一任务可以对比 baseline 和 Goal Teams 在产物完整度、证据质量、UI 验证、生产门禁判断、Loop 状态恢复和成本上的差异。当前仓库提供 `GT-BENCH-001` 到 `GT-BENCH-005`，覆盖从基础产物质量、Lead LOOP 恢复到 API/E2E 真实行为缺陷检出的典型维度。
-
-### 开放性和外部 Skill
-
-Goal Teams 不要求所有能力都来自内置 subagent。Plan 阶段可以把外部 skill、项目已有脚本、浏览器工具、测试工具或用户指定 subagent 纳入 `Teams 规划表`，并为它们定义 locked scope、输入、输出、Harness 和 validator。
-
-这种开放性让 Goal Teams 更像一个协作编排层：它负责目标、计划、交接物和证据的一致性；具体能力可以来自 `goal_*` subagent，也可以来自外部 skill，例如 browser 验证、文档生成、安全审查、PDF/表格处理或项目自定义工具。外部能力进入团队后仍遵守 SSOT、Harness 和独立校验规则。
-
-### 支持 OKF/Markdown 文档编译为内存 RDF-compatible 知识图谱
-通过稳定 IRI、版本与证据关系、Current/Replay 隔离和 Observe-only 质量记录，提升知识复用与检索效率，减少歧义和幻觉。
-
-
-## 项目流程选择
-
-首次使用 Goal Teams 时，系统会根据目标、已有材料和风险给出流程建议。用户可以直接用数字选择流程；确认后，才创建正式 Plan、Teams 规划表或派发成员。
-
-```mermaid
-flowchart TD
-    A[用户目标] --> B[流程初判]
-    B --> C{用户选择}
-    C -->|1 小型需求/BugFix| S[需求或 BugFix -> 测试与造数 -> 实现 -> 独立复核]
-    C -->|2 中型项目| M[需求与影响分析 -> 架构与双环境规划 -> 集成与测试 -> Review]
-    C -->|3 大型系统| L[完整规格 -> 架构与环境 -> 独立测试与实现 -> Evidence/LOOP/审计]
-    C -->|4 自定义流程| D[保留、删除或调整节点]
-    C -->|5 直接改| X[直接修改指定内容 -> 轻量验证]
-```
-
-请选择下一步：
-
-1. 小型需求/BugFix
-2. 中型项目
-3. 大型系统
-4. 自定义流程节点
-5. 直接改：不创建正式 Plan 或 Teams，只修改指定内容并完成适用的轻量验证
-
-### 小型需求/BugFix
-
-适用于单点、低风险且不涉及跨模块、生产发布或安全边界的需求或 BugFix。
-
-`需求/原型（如有 UI）或 BugFix 定位 → 测试用例与造数 → TDD 与实现 → 测试及独立复核`
-
-- 项目成员：通常 1–2 人。
-- 可能的 Subagent：0–1 个。
-- 常见角色：Goal Lead、实现/测试与轻量独立复核。
-
-### 中型项目
-
-适用于多模块、API 或数据边界、原创 UI，或开发与生产环境存在差异的项目。
-
-`需求卡、PRD 与影响分析 → 架构设计及开发/生产配置规划 → 原型、测试与造数 → TDD、实现与集成 → 独立测试及 Review`
-
-- 项目成员：通常 3–5 人。
-- 可能的 Subagent：2–4 个。
-- 常见角色：需求/产品、架构或开发、测试、QA/Reviewer。
-
-### 大型系统
-
-适用于多系统协作、发布、生产变更、安全敏感、支付/认证或复杂 UI 等高风险系统。
-
-`流程澄清、需求规格与 PRD → 页面原型及架构 → 开发/生产配置规划 → 独立测试设计、Harness 与实现 → Evidence、Review、LOOP 补缺及完成审计`
-
-- 项目成员：通常 6–10 人。
-- 可能的 Subagent：5–8 个。
-- 常见角色：Goal Lead、需求/产品、架构、前后端、测试设计与执行、QA、Reviewer、Auditor，以及按需接入安全或性能专家。
-
-人数仅是参考编制，实际按任务范围、风险和可用运行时能力调整；涉及安全、发布或生产边界时，不得因选择小型流程降低必要门禁。
+- **按规模走流程**：
+  - 问答直接回答。
+  - 小改动走快速通道：先 Red，再 Green，最后给摘要。
+  - 中大型任务才建账本、拆任务、派成员。
+- **证据优先**：
+  - TDD 的 Red 和 Green 用同一条命令、绑定同一组测试文件，并且源码内容确实发生了变化（只提交不算）。
+  - 每个代码任务都要有在最终代码上通过的测试记录（人工结论不算），收尾时用 `gt rerun` 一次重跑。
+  - 真实改动由 git 采集，再与全部任务的锁定范围对比。
+  - 评审结论绑定文件摘要，文件改动后评审自动过期。
+- **诚实状态**：not_run、blocked、failed 不会写成 passed；只有 `gt check` 通过，才算"达成"。
+- **独立验证**：验证人不能是负责人。在 Claude Code 中，只读和执行类成员没有 Write/Edit，所有成员都不能再派子代理。
+- **一次授权**：push、PR、发布、部署等外部写入在开始时一次确认；不可逆动作执行前先给预览。
 
 ## 快速开始
 
-安装到本地 Codex skills 目录：
-
-```bash
-git clone git@github.com:vibe-coding-era/goal-teams.git ~/.codex/skills/goal-teams
-```
-
-从本仓库安装或更新本地副本：
-
-```bash
-./scripts/install-local.sh --update-team-fallback
-```
-
-开发期运行 TDD 与 Current 增量检查：
-
-```bash
-./scripts/check.sh --phase development --project-size medium
-```
-
-全部实现完成、冻结 exact released commit/tree 后，先由 fresh process 生成绑定 Current
-prompt、route、项目起始授权与 host adapter 的真实 runtime receipt，再运行最终全量回归与独立安全审核：
-
-```bash
-EVIDENCE_DIR=docs/v2.52-release-runtime
-mkdir -p "$EVIDENCE_DIR"
-SOURCE_COMMIT="$(git rev-parse 'HEAD^{commit}')"
-SOURCE_TREE="$(git rev-parse "${SOURCE_COMMIT}^{tree}")"
-ROUTE_RECEIPT="$EVIDENCE_DIR/large-release-route.json"
-RUNTIME_RECEIPT="$EVIDENCE_DIR/released-runtime-transition.json"
-S1_CHECK_RECEIPT="$EVIDENCE_DIR/s1-check-result.json"
-AUTH_RECEIPT=docs/v2.52-execution/versions/V2.52/evidence/project-start-authorization-receipt.json
-HANDOFF_RECEIPT="${HANDOFF_RECEIPT:?请提供由已安装 V2.51 Codex 宿主签发的 handoff receipt}"
-HOST_EXECUTION_ID="${HOST_EXECUTION_ID:?请提供外部宿主 execution ID}"
-PYTHON_BIN="$(python3 -c 'import pathlib,sys; print(pathlib.Path(sys.executable).resolve())')"
-
-"$PYTHON_BIN" -c 'import json, pathlib, sys; from scripts.v250.generation_runtime import load_generation; from scripts.v250.route_closure import compile_route_closure; root=pathlib.Path(".").resolve(); pathlib.Path(sys.argv[1]).write_text(json.dumps(compile_route_closure(root, load_generation(root), "V250-ROUTE-LARGE-RELEASE"), ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8")' "$ROUTE_RECEIPT"
-
-"$PYTHON_BIN" scripts/v250/runtime_host_adapter.py launch \
-  --stage released --source-commit "$SOURCE_COMMIT" --source-tree "$SOURCE_TREE" \
-  --project-size large --route-receipt "$ROUTE_RECEIPT" \
-  --authorization-receipt "$AUTH_RECEIPT" \
-  --controller-handoff-receipt "$HANDOFF_RECEIPT" \
-  --host-execution-id "$HOST_EXECUTION_ID" \
-  --adapter-identity local-external-runtime-host \
-  --adapter-code scripts/v250/runtime_host_adapter.py > "$RUNTIME_RECEIPT"
-
-./scripts/check.sh --phase release --project-size large \
-  --source-commit "$SOURCE_COMMIT" --source-tree "$SOURCE_TREE" \
-  --expected-host-execution-id "$HOST_EXECUTION_ID" \
-  --released-runtime-receipt "$RUNTIME_RECEIPT" > "$S1_CHECK_RECEIPT"
-```
-
-`controller-handoff-receipt` 只能由已安装的 V2.51 Codex 宿主在仓库外签发；仓库代码不得生成。
-它以固定 owner SSH 公钥绑定真实 previous run、一次性 nonce、授权与 exact commit/tree。adapter 在
-获得真实 child PID 后才经 stdin 发送 launch receipt，并校验 child ack。上述 I1 receipt 仍只证明
-相关进程与签名 handoff 的绑定，不证明外部独立性；`S1_CHECK_RECEIPT` 只关闭 S0/S1，不等于 Release 完成。
-
-手动复制 subagents：
-
-```bash
-mkdir -p ~/.codex/agents
-cp ~/.codex/skills/goal-teams/subagents/goal-*.toml ~/.codex/agents/
-```
-
-## 使用方式
-
-规划并等待确认：
+### Claude Code（插件）
 
 ```text
-Use $goal-teams。
-请为“分时租赁 V3.0”做 Goal Teams 计划。
-过程和结果保存到 `GoalTeamsWork-V3.0/`。
-先生成带用户故事和功能验收标准的需求卡片，再生成需求规格卡和 PRD。
+/plugin marketplace add vibe-coding-era/goal-teams
+/plugin install goal-teams@goal-teams
 ```
 
-直接执行：
+Claude Code 2.1.275 及以上可以一步完成：`/plugin install goal-teams --marketplace vibe-coding-era/goal-teams`。
+
+### Codex
+
+```bash
+git clone https://github.com/vibe-coding-era/goal-teams.git ~/src/goal-teams   # 不要 clone 到 skills 目录里
+cd ~/src/goal-teams
+python3 tools/install.py --host codex
+```
+
+安装器的行为：
+
+- 把 skill 装到 `~/.agents/skills/goal-teams`（Codex 当前的用户 skill 目录），成员装到 `~/.codex/agents/goal_*.toml`。
+- 旧位置 `~/.codex/skills/goal-teams`（V2 的安装位置）会被移入备份，避免 Codex 读到两份。
+- 旧版本会先移入备份，支持 `--verify`、`--rollback` 和 `--uninstall`。
+- 以后更新：`git pull && python3 tools/install.py --host codex`，然后新开会话。
+- Windows 用 `py -3 tools\install.py --host codex`。
+- 不用插件的 Claude Code 用户可以改用 `--host claude`；插件和安装器二选一，不要同时装。
+- Claude Code 插件的 Stop 钩子需要 PATH 上有 `python3` 或 `python`。
+
+从 V2.x 升级请看 [MIGRATION.md](MIGRATION.md)。
+
+### 环境要求
+
+- Python 3.9+（gt 只用标准库）。
+- git：可选，没有时 `gt diff` 不可用。
+
+## 怎么用
+
+直接描述你的目标，Goal Lead 会先判定规模：
 
 ```text
-Use $goal-teams。
-请直接执行：为 WIKI 列表 V2.0 规划并实现后端 API、页面验证、独立测试和验收文档。
-仍然先展示 Teams 规划表作为执行记录，但不用等我确认。
+Python 的 list 和 tuple 有什么区别？                       → discussion：直接回答
+slugify("Hello World") 多了个末尾横杠，修一下               → small：Red → Green → 摘要
+用 goal teams 给订单服务加优惠券功能（API + 校验 + 文档）    → medium：建目标、拆任务、派成员、每轮 gt report
+只规划，不写代码：给会员系统出需求卡片                       → 只规划：在回复里给出需求卡片与计划
+帮我把 v1.2 发布出去：打 tag、推送、建 GitHub Release        → 先一次性授权，再按发布规则执行并回读
 ```
 
-指定成员能力：
+medium/large 每一轮结束时，Goal Lead 运行 `gt report`，把输出原样发给你。输出包含六个字段：任务、成员、进度、结果、Benchmark、下一轮 LOOP（或下一个任务）。其中"结果"里有任务看板、Context 表和 P/D/C/A 四行。真实输出见 [examples/](examples/)。
+
+## 工作方式
+
+| 规模 | 判定 | Lead 读取的规则 | 状态 |
+|---|---|---|---|
+| discussion | 只问答、解释、给方案 | SKILL.md | 无 |
+| small | 单一目标、低耦合、可逆 | + core、testing（共约 6K tokens） | 无 |
+| medium | 跨数个文件或组件 | + planning、members、output（共约 12K tokens） | `.goal-teams/` |
+| large | 跨模块、迁移、高影响 | 同 medium，另需完成审计 | `.goal-teams/` |
+| 只规划 | 只规划、Plan Mode、需求卡片 | + planning 和对应模板 | 无 |
+
+token 数按 `tools/check.py` 估算（与 Claude Code 显示的估算接近）。UI 任务加读 `rules/ui.md`，Agent 产品加读 `rules/agent-dev.md`，发布加读 `rules/release.md`。
+
+以下情况会把 small 自动升级为 medium：
+- 改动超过 3 个文件；
+- 涉及公共 API 或迁移；
+- 涉及认证、支付或个人数据；
+- 有外部写入；
+- 涉及 UI 视觉；
+- 用户要求计划或团队协作。
+
+### gt 命令一览
 
 ```text
-Use $goal-teams。
-需求分析使用 goal_requirements_analyst。
-页面验证使用 browser skill。
-测试成员使用 goal_qa。
-安全审核使用 goal_reviewer，只读模式。
+gt init / goal / route / doctor                            建状态、目标、路由、环境预检
+gt auth grant / check                                      一次性授权与执行前检查
+gt task add / start / done / block / packet                任务、阻塞、给子代理的任务包
+gt plan freeze / show                                      依赖图冻结、分层、关键路径
+gt tdd red / green                                         Red/Green 证据（Green 重跑 Red 的命令）
+gt run --kind affected|regression|e2e|security|build|...   检查证据（--artifact 记录产物）
+gt rerun / retire                                          收尾重跑测试 / 撤销错误的检查失败
+gt diff                                                    真实改动对照锁定范围
+gt review                                                  评审结论（由验证人给出）
+gt loop decide · gt reflect                                轮次决策 · 反思
+gt status / report / check                                 看板、六字段汇报、完成检查
+gt config / verify                                         项目约定、账本校验
 ```
 
-显式调用 Goal Teams 或当前会话首次需要建立身份时汇报；已有完整上下文时不重复：
+所有状态保存在项目的 `.goal-teams/` 中：
+
+- `ledger.jsonl`：只追加、带哈希链的账本；`ledger.head` 记录链头，账本被截断时能发现；
+- `TaskList.md`、`benchmark.md`：由账本生成；
+- `memory.md`：项目记忆；
+- `loop-review.md`：反思记录。
+
+### 成员
+
+成员共 20 个，按职责分为三种模式：
+
+| 模式 | 能做什么 | 成员 |
+|---|---|---|
+| write | 改锁定范围内的文件 | 需求、产品、Agent 产品、前后端、测试设计（单测/API/E2E）、文档 |
+| runner | 只运行命令、记录证据 | 测试执行（单测/API/E2E）、QA、发布工程 |
+| read-only | 只读，给出结论 | 评审、完成审计、安全、性能、重构、质量体系 |
+
+完整清单和派发时机见 [rules/members.md](plugins/goal-teams/skills/goal-teams/rules/members.md)。成员的单一来源是 [members/](members/)：Codex 的 TOML 和 Claude Code 的子代理都由它生成。
+
+## 评测
+
+[plugins/goal-teams/evals/](plugins/goal-teams/evals/) 收录了 6 个用例，用 `claude plugin eval` 对比有无 Skill 时的结果：
+
+- 讨论题
+- small bugfix
+- medium 功能
+- API 缺陷狩猎
+- 未授权发布
+- 只规划
+
+改动规则后，先用评测确认确实有收益。
+
+## 目录
 
 ```text
-我是 Goal Teams Lead V2.52。
+.claude-plugin/marketplace.json   Claude Code marketplace
+plugins/goal-teams/               运行时包（skill、规则、模板、gt、成员、钩子、评测）
+members/                          成员单一来源
+tools/                            生成、检查、安装、发布、示例
+tests/  examples/  extras/okf-graph/
 ```
 
-中文核心模型要点提示词：用户沟通和治理文档默认中文；代码、注释、测试名、fixture 和产品字符串遵循目标仓库约定；代码标识、命令、路径、API 名称、配置键、subagent ID 和精确引用保留原文。
+## 参与开发
 
-## 规则入口
+见 [AGENTS.md](AGENTS.md)。提交前运行：
 
-`SKILL.md` 是触发导向入口。它只保留启动语、不变量、规划检查、失败降级摘要和渐进式加载路由。更细的规则放在 references 和 prompts 中，按任务类型读取。
-
-| 文件 | 作用 |
-| --- | --- |
-| `RULES.md` | Goal Lead 和成员的响应规范：执行优先、事实优先、未验证不宣称完成。 |
-| `SKILL.md` | Skill 发现入口和加载路由。`description` 保留 `$goal-teams`、`Goal Mode`、`Plan Mode`、`先规划`、`只规划`、`需求卡片` 等触发词。 |
-| `references/invariants.md` | 永远生效的不变量、硬边界和失败降级协议。 |
-| `references/compat.md` | `TaskList.md`/`tasklist.md`、脚本兼容入口、成员包布局和版本同步口径。 |
-| `references/rules-ui.md` | UI、页面规格卡、HTML Prototype MOCK、E2E 和像素对比规则。 |
-| `references/rules-testing.md` | 后端架构先行、TDD、API 集成 pytest、前端 E2E 和独立测试规则。 |
-| `references/verification-governance-protocol.md` | 历史 Evidence 适用性、正交状态、测试合同、Grill me 与对抗式测试。 |
-| `references/desktop-engineering-protocol.md` | Rust/Tauri 桌面前端复刻、Rust 后端合同与跨平台 L1–L4 测试；配套 manifest/schema/validator 机器校验。 |
-| `references/rules-loop.md` | Lead LOOP、Loop Decision、Loop Gate、Budget Gate 和自动续跑边界。 |
-| `prompts/packets/handoff-artifacts.md` | 交接物 SSOT，定义 artifact 类型、Owner、validator、状态字段和 TaskList 账本格式。 |
-
-## 工作流
-
-1. 把用户目标转成 Done Criteria，并确认项目版本、artifact version 和输出目录。
-2. 若用户明确要求聊天内 `plan_preview` / no-write，只在响应中给出方案，不创建文件、ledger、TaskList 或 subagent。
-3. 其他执行型 LOOP 的第一轮先创建或更新 `GoalTeamsWork-<project_version>/memory.md`，建立版本化 append-only ledger，由 reducer 生成 `TaskList.md`，再分配 Owner 与 Validator；实现不得先行。
-4. 同一第一轮派发独立 `goal_release_engineer` 的 `environment_preflight` 模式。Small 做轻量 preflight，可不创建版本分支；Medium、Large 或用户指定时正式检查开发环境，优先复用 identity 匹配且 current 的既有环境，否则创建仓库内 `develops/v<major.minor>` worktree 与逻辑分支 `develop-v<major.minor>`；宿主要求 namespace 时添加前缀，本仓为 `codex/develop-v<major.minor>`。
-5. 非 `plan_preview` 的 Plan 模式先写 `spec/requirement-card.md`，再按适用范围补齐 PRD、架构、测试计划和验收文档。
-6. 按任务类型加载 UI、测试或 LOOP 条件规则，展示四列 `Teams 规划表`，然后派发其余独立成员。
-7. 每个成员只在自己的 locked scope 内执行，并提交带 revision 的 event/patch、Harness 和 Evidence；成员不直接编辑中央 TaskList。
-8. ledger owner 合并事件并生成 TaskList 投影；Goal Lead 分别记录 `loop_decision` 与 `run_outcome`。
-9. 完成前启动新的只读 `goal_completion_auditor`。仅在当前会话且宿主支持时续跑已确认范围内缺口；新范围、高风险或授权问题停下问用户。
-
-## 输出结构
-
-默认输出目录：
-
-```text
-GoalTeamsWork-<project_version>/
-  index.md
-  memory.md
-  versions/
-    <artifact_version>/
-      index.md
-      TaskList.md
-      ledger/events.jsonl
-      ledger/checkpoint.json
-      identity/registry.json
-      plan.md
-      progress.md
-      decisions.md
-      goal-packet.md
-      spec/
-        requirement-card.md
-        requirement-spec-card.md
-        PRD.md
-        page-spec-card.md
-        frontend-architecture-design.md
-        backend-architecture-design.md
-        HTML-prototype.html
-        test-plan.md
-        acceptance.md
-      tests/
-        unit/
-        api-integration/
-        e2e/
-        reports/
-      artifacts/
-      harness/harness.json
-      harness/traceability.json
-      evidence/evidence.jsonl
-      reviews/dual-review.json
-      reviews/semantic-review.md
-      audit/completion-audit.json
-      capability/manifest.json       # 宿主能力需要记录时
-      release/license-decision.json  # 仅 repository owner 授权 GA 时
+```bash
+python3 tools/check.py && python3 -m unittest discover -s tests -t .
 ```
 
-`tasklist.md` 仍可作为 legacy 输入读取；V2.3 新输出只写 reducer 生成的 `TaskList.md`。上述机器路径以 `schemas/v2.3/goal-teams.schema.json` 为准；V1.8 的根级 `harness.yaml`、`evidence.jsonl`、`pipeline-state.json` 仅是 legacy/可选协议，不构成 V2.3 completion closure。
+## 设计依据
 
-## 默认成员
-
-| Subagent ID | 主要职责 |
-| --- | --- |
-| `goal_requirements_analyst` | 澄清目标、调研辅助、需求规格卡、PRD 前置输入。 |
-| `goal_agent_product_manager` | Agent PRD、能力合同、Prompt/Context/Cache、工具/审批矩阵、可组合产品方案与验收输入。 |
-| `goal_product` | PRD、验收标准、原型结构和产品评审。 |
-| `goal_backend` | 领域模型、存储、API、CLI、MCP、迁移和集成。 |
-| `goal_frontend` | UI、HTML 原型、浏览器验证、E2E、复刻像素级对比和截图证据。 |
-| `goal_unit_test_designer` | 后端 TDD 单元测试用例、断言和覆盖说明。 |
-| `goal_unit_test_runner` | 后端 TDD 单元测试执行、红绿证据和失败报告。 |
-| `goal_api_integration_test_designer` | API 集成测试脚本和测试矩阵，默认 Python + pytest。 |
-| `goal_api_integration_test_runner` | API 集成测试执行、日志、报告和失败响应。 |
-| `goal_e2e_test_designer` | 前端完成后的 E2E 用例、viewport 和组件断言。 |
-| `goal_e2e_test_runner` | E2E 执行、截图、trace、console/network 证据。 |
-| `goal_qa` | 独立测试、集成测试、UI E2E、像素级对比验收和测试报告。 |
-| `goal_docs` | acceptance、README、报告和发布说明；TaskList 变化以 event/patch 交接。 |
-| `goal_reviewer` | 只读评审、架构边界、安全、覆盖率、兼容性和风险。 |
-| `goal_completion_auditor` | 收尾审计、未完成工作检查和会话内续跑建议。 |
-| `goal_security` | 只读安全评估和修复 proposal；不修改产品或自证安全通过。 |
-| `goal_performance` | 只读性能评估、基线与优化 proposal；不直接实现或自证收益。 |
-| `goal_refactor` | 只读重构与等价性评估，提交最小任务补丁建议。 |
-| `goal_sqa` | 只读质量体系评估，检查门禁价值、状态诚实和 Evidence 链。 |
-| `goal_release_engineer` | 双模式独立成员：首轮 `environment_preflight` 检查并复用开发环境；Release 模式复核最终 Evidence 并形成受控发行计划，不自批发布。 |
-
-## 核心能力
-| 核心能力 | 作用 | 流程关系 |
-| --- | --- | --- |
-| 1. 目标与计划建模 | 把模糊目标转成 Done Criteria、需求卡片、用户故事、验收标准和 SPEC | 整个流程的起点，先定义“什么算完成” |
-| 2. 风险路由与渐进加载 | 按任务选择 `Lite / Standard / Full / Regulated`，只加载 UI、后端、测试、LOOP 等适用规则 | 决定任务需要多严格，避免小任务也走完整重流程 |
-| 3. 多 Agent 角色编排 | 内置需求、Agent 产品、产品、前后端、单测、API、E2E、QA、文档、四类只读专家、Release Engineer、Reviewer 与 Auditor 等 20 类角色，也可接入外部 Skill | 根据依赖关系串行或并行派发任务 |
-| 4. 范围与职责隔离 | 每个成员获得 `locked_scope`；Owner、测试者、Reviewer、Auditor 使用不同身份，禁止自我批准 | 防止多人覆盖同一文件、范围失控和“自己证明自己正确” |
-| 5. SSOT、Ledger 与项目记忆 | append-only ledger 保存事实，reducer 生成 `TaskList.md`；产物按版本保存，根目录维护 `memory.md` | 贯穿全流程，保证状态可重放、可恢复、可追踪 |
-| 6. Contract-first 工程门禁 | 顺序为：合同冻结并独立评审 → 架构通过 → 开发环境 Evidence 就绪 → 独立测试准备 → 实现 | 防止需求、架构或环境尚未稳定就开始编码 |
-| 7. 独立测试编排 | 分离单测设计、实现、单测执行、API 测试设计/执行、E2E 设计/执行 | 建立 TDD、API 集成和 E2E 验证链，降低实现者自测偏差 |
-| 8. UI 与视觉验收 | 页面规格卡、组件库元数据、交互状态、浏览器 E2E、截图、局部组件检查和像素对比 | 仅 UI 任务触发；复刻任务额外要求参考基线和环境指纹 |
-| 9. Harness、Evidence 与追踪 | Harness 定义怎么验证；Evidence 绑定命令、日志、文件 hash、运行身份和 ledger 版本 | 建立 `Requirement → AC → Task → Check → Run → Evidence` 追踪链 |
-| 10. 分级 Review 与完成审计 | 脚本检查机械事实，LLM Reviewer 检查语义和风险；最后由独立 Completion Auditor 判断闭环 | Required 任务、当前 Evidence 和最终审计全部通过，才能 `achieved` |
-| 11. 长任务 LOOP 与恢复 | 使用 `Gather → Reason → Act → Verify → Repeat`；支持 `continue / replan / stop`、四文件状态、CAS 和中断恢复 | 验证失败时补缺或重规划；状态不一致时失败关闭，不猜测继续 |
-| 12. 安全、预算与失败治理 | 管理凭证、破坏性操作、外部写入、预算、冲突、脱敏和不可信内容 | 可在任何阶段阻断流程；明确区分 `failed / blocked / partial` |
-| 13. 迁移、安装与发布治理 | Current/Replay 隔离、原子安装、备份、回滚、卸载；S2 单次构建、S3 Large-only | 项目开始一次授权；锁定范围内不重复询问，Git remote 只用 SSH |
-| 14. Benchmark 与质量改进 | 对比不同 Prompt、Skill 版本和执行方式；记录评分、失败类型、分歧、回归与瓶颈 | 位于主交付流程之外，用于判断流程是否真的改进 |
-
-## 设计依据和出处
-
-| 原则或技术 | 为什么采用 | 出处 |
-| --- | --- | --- |
-| Codex Skill | Goal Teams 本质上是可复用工作流，不是业务应用。Skill 可以把 instructions、references 和 scripts 打包，让 Codex 在需要时加载。 | [OpenAI Codex Agent Skills](https://developers.openai.com/codex/skills) |
-| 触发导向 `description` | Codex 会根据 skill 的 `description` 做隐式匹配，所以关键触发词必须前置且明确。 | [OpenAI Codex Agent Skills: How Codex uses skills](https://developers.openai.com/codex/skills) |
-| 渐进式加载 | 先加载少量入口信息，只有任务需要时再读取细分规则，能减少上下文占用，也降低无关规则干扰。 | [OpenAI Codex Agent Skills](https://developers.openai.com/codex/skills), [NN/g Progressive Disclosure](https://www.nngroup.com/articles/progressive-disclosure/) |
-| SSOT | 交接物、Owner、validator 和状态字段必须只有一个权威定义，避免成员包、TaskList 和验收记录各说各话。 | [Atlassian: Single Source of Truth](https://www.atlassian.com/work-management/knowledge-sharing/documentation/building-a-single-source-of-truth-ssot-for-your-team), `prompts/packets/handoff-artifacts.md` |
-| OKF Markdown | Goal Teams 产物需要同时给人和 agent 读取。OKF 使用 Markdown + YAML frontmatter，适合版本控制、索引和跨工具交换。 | [GoogleCloudPlatform Open Knowledge Format SPEC](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md), `references/google-okf-bilingual-spec.md` |
-| 需求到测试的可追溯性 | 需求、测试、证据和验收要能互相追踪，才能判断“是否真的完成”。 | [NASA Software Test Procedures](https://swehb.nasa.gov/display/SWEHBVD/5.14%2B-%2BTest%2B-%2BSoftware%2BTest%2BProcedures?desktop=true&macroName=show-if) |
-| TDD | 后端任务先写测试再实现，可以把需求转成可执行约束，并在实现阶段及时暴露偏差。 | [Martin Fowler: Test-Driven Development](https://martinfowler.com/bliki/TestDrivenDevelopment.html) |
-| pytest | API 集成测试默认用 Python + pytest，因为 pytest 语法直接、失败信息清楚，并能扩展到复杂测试。 | [pytest documentation](https://docs.pytest.org/en/stable/) |
-| Playwright E2E | UI 任务需要真实浏览器证据。Playwright 支持浏览器、viewport、trace、截图和 pytest 集成。 | [Playwright Python Pytest plugin](https://playwright.dev/python/docs/test-runners), `references/ui-e2e-pixel-protocol.md` |
-| Lead LOOP | 长任务常见问题不是“不会做”，而是证据缺口、范围漂移和中途状态丢失。Loop Decision 把每轮整合后的选择固定下来。 | `references/rules-loop.md`, `prompts/lead/loop.md` |
-
-
-
-## 版本说明
-
-发布包的当前可见组成见[发行说明](release/current/README.md)。该说明不会替代运行规则、`VERSION` 或安装校验。
-
-按时间整理的版本改动见 [CHANGELOG.md](CHANGELOG.md)，其中保留逐项技术变更与兼容记录。
+| 原则 | 出处 |
+|---|---|
+| Skill 结构、渐进加载、简洁、"Solve, don't defer"、评测驱动 | [Agent Skills best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices) |
+| Codex Skill 与触发式 description | [OpenAI Codex Agent Skills](https://developers.openai.com/codex/skills) |
+| Claude Code 插件、子代理工具限制、钩子、插件评测 | [Plugins](https://code.claude.com/docs/en/plugins)、[Subagents](https://code.claude.com/docs/en/sub-agents)、[Hooks](https://code.claude.com/docs/en/hooks)、[Plugin evals](https://code.claude.com/docs/en/plugin-evals) |
+| TDD | [Martin Fowler: Test-Driven Development](https://martinfowler.com/bliki/TestDrivenDevelopment.html) |
+| E2E 与截图断言 | [Playwright](https://playwright.dev/docs/test-snapshots) |
 
 ## License
 
-本仓库采用 MIT License 完全开源，完整条款见 [LICENSE](LICENSE)。任何人均可在保留版权与许可声明的条件下使用、复制、修改、合并、发布、分发、再许可和销售本软件。
+MIT，见 [LICENSE](LICENSE)。
