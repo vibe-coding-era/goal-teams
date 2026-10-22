@@ -300,14 +300,16 @@ def scope_patterns(state: State) -> List[str]:
     return patterns
 
 
-def live_diff(project: Project, state: State) -> Dict[str, Any]:
-    """Changes since the goal baseline compared with the union of task scopes."""
+def live_diff(project: Project, state: State, live: Optional[Live] = None) -> Dict[str, Any]:
+    """Changes since the goal baseline; optional Live belongs to this project and this collection."""
     work = project.work_tree
+    if live is not None and (live.project.root != project.root or live.project.work_tree != work):
+        raise ValueError("live_diff snapshot belongs to another project or work tree")
     if not gitinfo.is_repo(work):
         return {"available": False, "reason": "not a git repository"}
-    icase = gitinfo.ignore_case(work)
     baseline = ((state.goal or {}).get("baseline") or {}).get("head")
-    live = Live(project, state)
+    live = live or Live(project, state)
+    icase = live.icase
     artifacts = set(live.areas.generated)
     changed = [(s, p) for s, p in gitinfo.changed_since(work, baseline) if not gitinfo.ignored(p)]
     untracked = gitinfo.untracked(work)
@@ -349,8 +351,14 @@ def axes(live: Live, state: State) -> Dict[str, str]:
     return completion._axes(collect(live.project, state, live=live))
 
 
-def receipt_axes(project: Project, state: State) -> Dict[str, str]:
-    return axes(Live(project, state), state)
+def receipt_axes(project: Project, state: State, snapshot: Optional[Snapshot] = None) -> Dict[str, str]:
+    """Receipt axes; a supplied snapshot must come from collect(project, state) in this invocation."""
+    if snapshot is None:
+        return axes(Live(project, state), state)
+    if snapshot.state is not state:
+        raise ValueError("receipt_axes snapshot belongs to another reduced state")
+    from . import completion
+    return completion._axes(snapshot)
 
 
 def latest_goal_reviews(state: State) -> "OrderedDict[str, Dict[str, Any]]":
@@ -384,7 +392,7 @@ def collect(project: Project, state: State, live: Optional[Live] = None) -> Snap
         )
     build = latest_build(state)
     drift = artifact_drift(project, build) if build else []
-    return Snapshot(goal, live.source(), live.code(), facts, live_diff(project, state), project.verify(), drift,
+    return Snapshot(goal, live.source(), live.code(), facts, live_diff(project, state, live=live), project.verify(), drift,
                     project.config(), project.tree_label(), worktree_note, sorted(live.areas.generated), {}, state)
 
 
