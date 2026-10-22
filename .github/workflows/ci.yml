@@ -143,3 +143,92 @@ jobs:
               unittest.TestSuite([StateHashReplaceMechanism()]))
           raise SystemExit(0 if result.wasSuccessful() else 1)
           PY
+      - name: Original twelve concurrent runs once on the new source
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          TMPDIR: ${{ github.workspace }}/develops/windows-probe-tmp
+          TEMP: ${{ github.workspace }}/develops/windows-probe-tmp
+          TMP: ${{ github.workspace }}/develops/windows-probe-tmp
+          GIT_CEILING_DIRECTORIES: ${{ github.workspace }}/develops
+        shell: bash
+        run: |
+          python - <<'PYCONCURRENT'
+          import json
+          import subprocess
+          import sys
+          import threading
+          import unittest
+          from pathlib import Path
+          from tests.test_gt import Repo
+          from tests.test_gt_integrity import RunReceiptTests
+          from goalteams.state import reduce
+          from goalteams.graph_budget import status as budget_status
+
+          original_gt = Repo.gt
+          observations = []
+          project_evidence = {}
+          guard = threading.Lock()
+          def traced_gt(self, *args, **kwargs):
+              result = original_gt(self, *args, **kwargs)
+              if args[:2] == ('run', 'T1'):
+                  with guard:
+                      observations.append(dict(args=list(args), exit_code=result.returncode,
+                                               stdout=result.stdout, stderr=result.stderr))
+              return result
+          Repo.gt = traced_gt
+          original_case = RunReceiptTests.test_concurrent_runs_all_succeed
+          def audited_case(self):
+              try:
+                  original_case(self)
+              finally:
+                  state_dir = self.repo.path / '.goal-teams'
+                  project_evidence.update(ledger=(state_dir/'ledger.jsonl').read_text(encoding='utf-8'),
+                                          lock_exists=(state_dir/'.lock').exists(), evidence_logs={})
+                  for path in sorted((state_dir/'evidence').glob('*')):
+                      if path.is_file():
+                          project_evidence['evidence_logs'][path.name] = path.read_text(encoding='utf-8', errors='replace')
+              events = self.repo.events()
+              starts = [event for event in events if event['type'] == 'run.started']
+              receipts = [event['data'] for event in events if event['type'] == 'run']
+              state = reduce(events)
+              budget = budget_status(state)
+              self.assertEqual(len(starts), 12)
+              self.assertEqual(len(receipts), 12)
+              self.assertEqual(len({r['id'] for r in receipts}), 12)
+              self.assertEqual(len({r['started'] for r in receipts}), 12)
+              self.assertEqual({e['seq'] for e in starts}, {r['started'] for r in receipts})
+              start_by_seq = {e['seq']: e['data'] for e in starts}
+              for receipt in receipts:
+                  self.assertEqual(receipt['exit_code'], 0)
+                  self.assertFalse(receipt.get('late'))
+                  self.assertEqual(receipt['graph_charge_sha256'],
+                                   start_by_seq[receipt['started']]['graph_charge']['sha256'])
+                  self.assertTrue((self.repo.path/receipt['log']).is_file())
+              self.assertEqual(len({r['log'] for r in receipts}), 12)
+              self.assertEqual(len(state.receipts), 12)
+              self.assertEqual(len(state.graph_charges), 12)
+              self.assertEqual(len({c['operation'] for c in state.graph_charges}), 12)
+              self.assertEqual(budget['tasks']['T1']['consumed']['work_units'], 12)
+              self.assertEqual(sum(budget['tasks']['T1']['consumed'][a] for a in ('attempts', 'revalidations')), 12)
+              self.assertEqual(budget['errors'], [])
+              self.assertEqual(state.graph_errors, [])
+              self.assertEqual(dict(state.running), {})
+              self.assertEqual(state.foreign_receipts, [])
+              self.assertFalse((self.repo.path/'.goal-teams/.lock').exists())
+              project_evidence.update(integrity_passed=True, starts=12, receipts=12, charges=12,
+                                      budget=budget, running=dict(state.running))
+          RunReceiptTests.test_concurrent_runs_all_succeed = audited_case
+          suite = unittest.defaultTestLoader.loadTestsFromName(
+              'tests.test_gt_integrity.RunReceiptTests.test_concurrent_runs_all_succeed')
+          result = unittest.TextTestRunner(verbosity=2, stream=sys.stdout).run(suite)
+          evidence = dict(diagnostic_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode().strip(),
+                          original_case_executions=1, children=observations, project=project_evidence,
+                          tests_run=result.testsRun, failures=len(result.failures), errors=len(result.errors),
+                          passed=result.wasSuccessful(), formal_pr_verification=False)
+          out = Path.cwd()/'develops/windows-state-hash-traces/new-source-concurrent-result.json'
+          out.write_text(json.dumps(evidence, ensure_ascii=False, indent=2), encoding='utf-8')
+          print('NEW_SOURCE_CONCURRENT_RESULT_BEGIN', flush=True)
+          print(json.dumps(evidence, ensure_ascii=False, indent=2), flush=True)
+          print('NEW_SOURCE_CONCURRENT_RESULT_END', flush=True)
+          raise SystemExit(0 if result.wasSuccessful() else 1)
+          PYCONCURRENT

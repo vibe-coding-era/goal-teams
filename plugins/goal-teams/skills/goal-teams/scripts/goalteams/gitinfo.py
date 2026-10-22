@@ -244,7 +244,7 @@ def content_ids(work_tree: Path) -> Dict[str, str]:
     for entry in _z(["ls-files", "-s", "-z"], work_tree):
         meta, _, path = entry.partition("\t")
         parts = meta.split()
-        if len(parts) != 3 or not path:
+        if len(parts) != 3 or not path or ignored(path):
             continue
         mode, oid, stage = parts
         index[path] = (mode, oid)
@@ -252,7 +252,7 @@ def content_ids(work_tree: Path) -> Dict[str, str]:
             dirty.add(path)
     dirty.update(_z(["diff-files", "-z", "--name-only"], work_tree))
     others = [p for p in _z(["ls-files", "--others", "--exclude-standard", "-z"], work_tree)
-              if not p.endswith("/")]
+              if not p.endswith("/") and not ignored(p)]
     ids: Dict[str, str] = {}
     files: List[str] = []
     algo = None
