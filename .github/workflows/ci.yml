@@ -44,12 +44,14 @@ jobs:
           import threading
           import time
           import unittest
+          from unittest import mock
           from pathlib import Path
           from tests import test_gt
           from tests.test_gt import Repo
           from tests.test_gt_integrity import RunReceiptTests
           from goalteams.state import reduce
           from goalteams.graph_budget import status as budget_status
+          from goalteams.util import FileLock
 
           trace_dir = Path.cwd() / 'develops/windows-lock-traces'
           trace_dir.mkdir(parents=True, exist_ok=True)
@@ -182,8 +184,59 @@ jobs:
                   budget=budget, running=dict(state.running),
                   lock_exists=False, receipt_logs_present=12)), flush=True)
           RunReceiptTests.test_concurrent_runs_all_succeed = audited_case
+          class ControlledSharingReleaseTests(unittest.TestCase):
+              def runTest(self):
+                  self.assertEqual(os.name, 'nt', 'this is a real Windows sharing scenario')
+                  path = trace_dir / 'controlled-sharing.lock'
+                  gate = FileLock(path)
+                  gate.__enter__()
+                  reader = path.open('rb')
+                  attempted, closed = threading.Event(), threading.Event()
+                  violations = []
+                  remove = os.remove
+                  def observed_remove(target, *args, **kwargs):
+                      try:
+                          return remove(target, *args, **kwargs)
+                      except OSError as exc:
+                          if Path(target) == path:
+                              violations.append(dict(error=repr(exc), errno=exc.errno,
+                                                     winerror=getattr(exc, 'winerror', None),
+                                                     monotonic=time.monotonic()))
+                              attempted.set()
+                          raise
+                  def close_reader():
+                      attempted.wait(timeout=3)
+                      time.sleep(0.1)
+                      reader.close()
+                      closed.set()
+                  closer = threading.Thread(target=close_reader)
+                  closer.start()
+                  started = time.monotonic()
+                  try:
+                      with mock.patch('goalteams.util.os.remove', side_effect=observed_remove):
+                          gate.__exit__(None, None, None)
+                      elapsed = time.monotonic() - started
+                      closer.join(timeout=5)
+                      self.assertTrue(violations, 'must observe an actual Windows sharing violation')
+                      self.assertTrue(all(row['winerror'] == 32 for row in violations))
+                      self.assertTrue(closed.is_set())
+                      self.assertTrue(reader.closed)
+                      self.assertFalse(path.exists())
+                      with FileLock(path):
+                          self.assertTrue(path.exists())
+                      self.assertFalse(path.exists())
+                      print('CONTROLLED_WINDOWS_SHARING_RESULT ' + json.dumps(dict(
+                          passed=True, real_violations=violations, release_seconds=elapsed,
+                          reader_closed=reader.closed, lock_exists=False, reacquire_passed=True)), flush=True)
+                  finally:
+                      attempted.set()
+                      closer.join(timeout=5)
+                      reader.close()
+                      if path.exists():
+                          path.unlink()
           suite = unittest.defaultTestLoader.loadTestsFromName(
               'tests.test_gt_integrity.RunReceiptTests.test_concurrent_runs_all_succeed')
+          suite.addTest(ControlledSharingReleaseTests())
           result = unittest.TextTestRunner(verbosity=2, stream=sys.stdout).run(suite)
           print('CONCURRENT_CHILD_DIAGNOSTICS_BEGIN', flush=True)
           print(json.dumps(dict(source_base='cdcf8af04c7eca6f36a26be8528dfe130a6d6192',
