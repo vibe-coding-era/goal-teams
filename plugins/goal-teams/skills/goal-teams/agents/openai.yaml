@@ -1,0 +1,4 @@
+interface:
+  display_name: "Goal Teams"
+  short_description: "Goal Lead 协调成员子代理交付：按规模路由、TDD 红绿证据、独立评审，gt 记账与汇报。"
+  default_prompt: "使用 $goal-teams：先判定规模（discussion / small / medium / large）。small 走快速通道（Red → Green → 摘要）；medium/large 用 gt 建目标、拆任务、派成员、记录证据，每轮用 gt report 汇报。"

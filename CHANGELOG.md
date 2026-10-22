@@ -1,5 +1,125 @@
 # Changelog
 
+## V2.95.0 — 2026-10-22
+
+本地整合候选：采用 V2.9 的单一运行时和产品流程，仅任务图与细粒度预算保留 V2.68 的约束语义。此条记录源码变化，不声明已发布、已安装或真实模型验收。
+
+- 保留 direct/tracked、自动取证、统一完成入口、成员生成、双宿主安装器及精简发行流程。
+- 任务图与预算接入同一账本：消费者准入、冻结 TaskExactSet、revision/digest、DAG、范围/禁止范围、有限预算、blocker 闭包与有界 finding 准入。
+- 修复检查仍在运行时提前完成、逐任务 TDD 漏检、unknown 操作的 supervisor 判停顺序。
+- 增加中断命令显式结算和同命令重验；旧 achieved 入口在锁内重验快照。依赖准入验证前驱当前范围与未闭合失败，独立范围的改动不误阻断。
+- 修复 Git 提交身份与打包字节不一致、回滚 dry-run 写入、嵌套 Git 源码检查空跑、宿主能力报告误标成功。
+- 更正迁移文档对旧版 TDD/Git 自动采集能力的描述；保留真实模型、宿主和远端发布验证的证据边界。
+
+## V2.9.0 — 2026-10-22
+
+以下为导入源码的版本说明，发布状态未由源码包证明：包含未单独发布的 V2.7 候选（下方 V2.7.0 一节）的全部内容，再加以下改动。V2.8 只有方案，没有代码。升级见 [MIGRATION.md](MIGRATION.md)。
+
+### 用起来更快
+- **三条路径**：discussion（直接回答）、direct（默认：任何实现任务，不论文件数，不建计划、不派成员；第一条 `gt tdd red` / `gt run` 自动建立最小状态）、tracked（用户要计划、分工、并行、跨轮或发布时）。删除按文件数、模块数升级的规则。
+- **质量门与路径无关**：`policy.required_gates(风险, 领域, 影响, 阶段)`。同样的风险和改动，direct 与 tracked 要求相同；纯文档不要求 TDD，纯样式不强制全站 E2E；认证、支付、个人数据、迁移用 `--risk high`。
+- **规则减半**：SKILL.md 4,090 B（原 8,018）；`rules/work.md` + `rules/tracked.md` 取代五个规则文件；Lead 读取量 direct 8,185 B、tracked 14,256 B（V2.7：small 16.9 KB、medium 30.8 KB）。规则 ID 125 → 98。
+- **一次写入的计划**：`gt plan apply plan.json` 在内存校验整份计划后一条事件提交，无效就什么都不写；`plan freeze` 并入。
+- **收尾一步**：`gt finish` 补跑过期证据和完成标准的 `--check`，用唯一判定给出结论并记录达成；可重复运行，不评审、不构建、不外部写入。
+- **简洁汇报**：`gt report` 默认"结果、关键证据、未完成事项"；六字段改为 `--format six`。`gt review --file` 批量评审。`gt resume` 生成六节续接包。
+- **成员两步协作**：实现者自己写测试、Red、实现、Green，验证人评审；成员可设 `effort`、`model`。
+- `gt task done` 缺证据只提醒；Red 的 `--expect` 可后补（`gt tdd confirm`）。
+
+### 结论更可靠
+- **唯一完成判定** `completion.evaluate()`：纯函数；`gt check`、`gt finish`、`gt report`、`gt loop decide`、`gt goal accept`、监督器都读它。三级结论 engineering_passed / criteria_accepted / goal_achieved；状态 achieved、review_required、acceptance_required、blocked、unverified；每个门禁 passed / failed / not_run / stale / not_required。
+- **完成标准**：`--done` 编号 C1…，可配 `--check` 命令；没有命令的由 `gt goal accept --item --quote` 记录，固定 assurance=self_reported；标准改了验收自动过期。
+- **保证等级**：评审记录 self / correlated_reviewer / self_reported；高风险、发布、`require_independent_review` 要求 correlated_reviewer。
+- **Red 三态**：red_verified 才是有效 TDD；`gt tdd confirm` 读原始日志（sha256 绑定），日志被改过即拒绝。
+- **账本**：`goal-teams/event@2` + `manifest.json`（版本或能力不够就拒绝判定与追加）；journal 提交协议，崩溃后补齐或忘记那一次写入，gt 之外追加的事件被拒绝；未知事件类型阻断完成判定。
+- **迟到回执**：命令执行前写 `run.started`；回执落账时任务规格已变或目标已结束，记 `late` 只保留不计入验收；中断的命令在看板和检查里可见。
+- **外部操作**：`gt operation prepare/dispatch/confirm/reconcile`：先登记意图再执行；结果不明不重放，`once` 不重试；`--required` 的操作回读确认前不能达成；`gt resume --readback` 对账。
+- **安装事务**：每次切换写 journal，断电后下一次安装或 `--rollback` 先撤销记录的移动；`--dry-run` 不创建任何东西。
+- **发行资产**：`release.json` 带 `asset_set_id` 与构建环境，verify 重新计算。
+
+### LOOP（可选，cooperative 模式）
+- `gt loop run --host claude|codex`：每轮一个无头会话，喂续接包；监督器负责预算预留与结算、绝对截止时间、租约与 epoch（同一目标只有一个监督器，旧 epoch 写入被拒绝）、按证据指纹判 stalled、外部操作不明时 blocked。只有 achieved 结束目标。
+- `gt loop next` 手动记录同一判定；`gt loop probe` 输出宿主能力报告（逐项写明 probe_passed / documented / unavailable）。
+- 控制面：`gt control set` 只由操作者设置预算；子会话（`GT_SUBSESSION=1`）只能 `gt propose`，`auth grant`、完成标准修改、`config set` 拒绝它。这是约定，不是 OS 隔离。
+
+### 评测与验收
+- `tests/acceptance.json`：AC01–AC36 固定验收矩阵，`tools/acceptance.py --run` 用实测结算。本版：passed 27、partial 8、not_required 1（各项说明见文件）。
+- 评测新增 direct-slugify-fix、tracked-two-tasks 两例与四组对照协议 `evals/comparison.md`；真实模型评测未运行（需要维护者授权额度）。
+- `tools/bench_ledger.py`：账本追加与重放微基准。
+
+### 维护决策（方案第三部分的默认值；维护者可改选）
+- D1 README：正文人工维护，版本区块由 `gen.py` 写在标记之间。
+- D2 状态在 `.goal-teams/`；`tools/check.py` 拒绝跟踪 `docs/`、`develops/`。
+- D3 正式资产只在 GitHub Release（`dist/` + `release.json`），不入库。
+- D4 `release.yml` 保持 `contents: write`，已存在的 Release 先比对再回读，不一致即停。
+- D5 维护者 SSH；安装示例 HTTPS 只读。
+- D6 六字段汇报退役为可选格式。
+- D7 发行阶段：tests + check、`release.py build`、安全评审（高风险）、publish + readback。
+- D8 Stop 钩子不做第二套 LOOP 判停，保留为提醒。
+- D9 不单独发布 V2.7；不做 event@1 迁移（照常读取）。
+- D10 真实模型评测待授权。
+- D11 成员保留 20 个，按需派发。
+- D12 LOOP 默认预算：3 轮 / 30 分钟 / 单轮 10 分钟 / 检查 2 分钟 / 宽限 5 秒（待测参数）。
+
+### 已知限制
+- cooperative 模式不防同权限的恶意进程；脱离进程组的后代不保证被终止；费用硬上限无法前置执行（取不到时记 unknown）。
+- Codex 适配器未在真实 Codex 上运行（本机未安装）；Claude Code 适配器只做了能力探测，未跑真实会话。
+- `release.yml` 的发布与已存在比对只做了静态审查。
+
+## V2.7.0 — 2026-10-19（候选，未单独发布，并入 V2.9.0）
+
+破坏性版本：从"规则驱动 + 版本化副本"改为"薄规则 + 确定性工具"。升级步骤见 [MIGRATION.md](MIGRATION.md)。
+
+### 新增
+- **gt CLI**（`plugins/goal-teams/skills/goal-teams/scripts/gt.py`，Python 3.9+，仅标准库，Linux/macOS/Windows）：负责所有确定性记账。
+  - 账本：只追加，带哈希链。
+  - 任务与计划：任务、子任务、依赖图（分层、关键路径、并行宽度）、计划冻结与版本号。
+  - 证据：
+    - TDD Red/Green 回执：Green 重跑 Red 的同一条命令，测试文件不变，源码内容必须变化（只提交不算），且实现落在本任务的锁定范围里（只改测试数据不算）。medium/large 的 Red 要写 `--expect`；最近一次 Green 没通过会阻断完成。
+    - 每个代码任务都要有在最终代码上通过的记录（Green 或 affected，人工结论不算）；之后任何文件变了都要重跑，收尾用 `gt rerun` 一次完成。测试报告等没人读取的命令输出用 `--output` 声明（只能是目标开始后新生成、未跟踪、不在代码范围里的非源码文件；Green 和 rerun 沿用；检查和汇报会列出）或加进 .gitignore，其余改动一律算源码；`task done` 只看本任务自己的实现，不被并行任务的进行中改动挡住。
+    - 检查回执：失败只能由同一命令的通过关闭；同一份代码上先失败后通过会被标为不稳定；命令写错的失败可用 `gt retire` 带理由撤销（写进检查和汇报）；命令不存在不算检查结果。`--artifact` 记录构建产物的大小与 SHA-256，声明的产物不算源码。
+    - 基于 git 的越界检查（Red 绑定的测试文件算作任务范围）；绑定文件摘要的评审，文件变化后自动过期，过期的任务不计为完成；完成检查以主工作树为准。
+  - 账本完整性：哈希链加 `ledger.head` 链头。截断或改写末行会被发现，gt 也不会在不一致的账本上继续追加（确认原因后用 `gt verify --reset-head --reason` 留痕重置）；证据日志不会被覆盖（其他历史留下的同名日志移到 `evidence/orphans/` 并提示）；CRLF 检出不破坏哈希链。
+  - 流程：一次性授权、轮次决策、完成检查（`gt check`，含完成轴；`--release` 加发布前门禁）、环境预检（`gt doctor`）、项目约定（`gt config`）。
+  - 评审：任务由验证人评审，Goal Lead 评审要加 `--self`；large 的完成审计由 goal_completion_auditor 或用户签署，绑定当前源码。
+  - 发布类目标：发布前 `gt check --release`，回读（`--kind release`）通过后才能记为达成。
+  - 输出：看板、六字段执行汇报（`gt report`，中/英）、按成员和步骤生成的任务包（`gt task packet --for --phase`）。
+- **成员单一来源**（`members/`）：共享协议 + 20 个角色。用 `tools/gen.py` 生成 Codex TOML 与 Claude Code 子代理。
+  - runner/read-only 成员在 Claude Code 中禁用 Write/Edit。
+  - 所有成员禁止再派子代理。
+- **Claude Code 插件与 marketplace**（`.claude-plugin/marketplace.json`、`plugins/goal-teams/`），带一个可选的 Stop 钩子：项目运行 `gt config set enforce_report true` 后，提醒发送 gt report。
+- **跨平台安装器** `tools/install.py`：支持 Codex 与 Claude Code。
+  - Codex 的 skill 装到 `~/.agents/skills/goal-teams`（Codex 当前的用户 skill 目录），旧位置 `~/.codex/skills/goal-teams` 移入备份。
+  - 内置"源目录 = 目标目录"保护：修复 V2.68 中按 README 安装会把 git clone 替换掉的问题。
+  - 旧安装和旧成员文件先移入备份，不删除；旧版（V2、git clone）的备份不会自动清理，其他备份保留最近 3 份。
+  - 支持校验、卸载、回滚。
+- **评测套件**（`plugins/goal-teams/evals/`，用 `claude plugin eval` 运行）：比较有无 Skill 时的结果；GT-BENCH-005 改造为 API 缺陷狩猎用例。
+- 真实示例 `examples/`：由 `tools/make_examples.py` 运行 gt 生成，CI 校验与实际输出一致。
+- 仓库检查 `tools/check.py`，覆盖：
+  - 生成物是否同步
+  - 文件字节预算与路由 token 预算
+  - 禁止版本化目录
+  - 运行时包内无陈旧版本号、本机路径或测试数据（评测夹具除外）
+  - SKILL.md 格式，以及路由表与代码一致
+- 精简的发布工具 `tools/release.py`（确定性 tarball、SHA256SUMS、release.json、回读校验、可选 ed25519 签名校验）与 `.github/workflows/{ci,release}.yml`。CI 不需要密钥，fork PR 可直接运行。
+
+### 变更
+- 路由按规模真正裁剪。按文件原始字节统计：small 读 SKILL.md + core + testing 共 16.5 KB，medium/large 共 30.5 KB；V2.68 按 rule-manifest 的路由归属统计，SMALL-DEVELOPMENT 路由的 owner 规则共 64 KB，另加每次都要读的 SKILL.md、RULES.md、ACTIVE.json 和三份 manifest 共 145 KB。token 数按 `tools/check.py` 估算（small ≈ 6.9K，medium ≈ 12.5K），与 Claude Code `plugin details` 的估算接近，但不是实测。
+- **Small 快速通道**：不建账本、不派预检子代理，只做 Red → Green → 摘要；遇到升级信号自动转 medium。
+- **讨论、只规划与方案预览**：自由格式回答，不再经过输出网关。执行汇报由 `gt report` 从账本生成，LLM 只写摘要；目标要交付内容本身时，先写内容再附汇报。gt 出错时以内容为先，不再用 blocked 诊断替换答案。
+- **项目约束改为项目级配置**（`gt config set`，存于 `.goal-teams/config.json`）：
+  - remote 协议沿用仓库现状（V2.68 要求一律 SSH）。
+  - 分支默认为"提交前若在默认分支则建功能分支"（V2.68 要求一律建 `develops/` worktree）。
+  - 新增单 Agent 模式，用于没有子代理的宿主。
+- 字段显示名 `Banchmark` 改为 `Benchmark`；支持 `--lang en`；链接改为项目相对路径。
+- 反思只在发现问题或目标结束时写，每次最多 3 条（V2.68 要求每轮按 12 个维度写）。
+- 数据库破坏性操作规则从孤立的 V2.68 prompt 迁入核心规则（GT-CORE-DATA）。
+
+### 移除（历史保留在 tag v2.68 及更早版本中）
+- **规则与代际**：`references/`（11 代规则与 Legacy Replay）、`prompts/`（未被加载的 626 KB）、版本化的 `schemas/`、`scripts/v2*`、`tests/v2*`、`subagents/`、`benchmarks/`、`release/`、根目录 `SKILL.md` 与 `RULES.md`。仓库 git 跟踪内容从 1,507 个文件 20.9 MB 降到 258 个文件 7.8 MB（其中 6.8 MB 是不随包发布的 `extras/okf-graph` Unicode 测试夹具）；运行时包 `plugins/goal-teams/` 为 163 个文件 481 KB；`tools/release.py build` 生成的 gzip 发布包（运行时包加顶层文档、marketplace 和安装器，171 个文件）约 190 KB。
+- **自发行与输出机制**：S0–S4 自发行机制、runtime transition 回执、输出网关及其请求 JSON。
+- **安装器**：`install-local.sh` 及其 `--update-team-fallback`。
+- **OKF 文档图**：移到 `extras/okf-graph/`，可选，不随包安装。
+
 ## V2.68 Published — 2026-09-08
 
 - Published [Goal Teams V2.68](https://github.com/vibe-coding-era/goal-teams/releases/tag/v2.68), Release `384469308`, with annotated tag `v2.68` at source `12728a6878544fbfaf208cb2d7b4a2a16041bc7f`, tree `bf8f0c24dc1883c2a96dff7a4bb16c28ac834450`.

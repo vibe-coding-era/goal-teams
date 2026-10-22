@@ -1,0 +1,150 @@
+name: release
+
+# Publishes the GitHub Release for a version tag (v<VERSION>, e.g. v2.7.0):
+# check -> test -> build once -> optional Ed25519 signature -> verify ->
+# publish -> download the published assets again and verify them.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to release, e.g. v2.7.0"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write  # only for `gh release create`; the token is never written to disk
+    env:
+      # Untrusted text reaches scripts only through environment variables.
+      TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+      HAS_SIGNING_KEY: ${{ secrets.GOAL_TEAMS_RELEASE_SIGNING_KEY != '' }}
+    steps:
+      - name: Check out the tag
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.tag) || github.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.13"
+      - name: Tag matches VERSION
+        shell: bash
+        run: python tools/release.py check-tag "$TAG"
+      - name: Tag is on main
+        shell: bash
+        run: |
+          git fetch --no-tags --quiet origin +refs/heads/main:refs/remotes/origin/main
+          if ! git merge-base --is-ancestor "$TAG^{commit}" refs/remotes/origin/main; then
+            echo "::error::$TAG does not point at a commit on main; merge first, then tag."
+            exit 1
+          fi
+      - name: Repository checks
+        shell: bash
+        run: |
+          python tools/check.py
+          python tools/gen.py --check
+      - name: Unit tests
+        shell: bash
+        run: python -m unittest discover -s tests -t .
+      - name: Build the release assets once
+        shell: bash
+        run: python tools/release.py build --out dist
+      - name: Sign SHA256SUMS
+        if: env.HAS_SIGNING_KEY == 'true'
+        shell: bash
+        env:
+          SIGNING_KEY: ${{ secrets.GOAL_TEAMS_RELEASE_SIGNING_KEY }}
+        run: |
+          umask 077
+          key_file="$(mktemp "${RUNNER_TEMP}/release-key.XXXXXX")"
+          trap 'rm -f "$key_file"' EXIT
+          printf '%s\n' "$SIGNING_KEY" > "$key_file"
+          openssl pkeyutl -sign -rawin -inkey "$key_file" -in dist/SHA256SUMS -out dist/SHA256SUMS.sig
+          rm -f "$key_file"
+          test "$(wc -c < dist/SHA256SUMS.sig)" -eq 64
+      - name: Verify the assets before publishing
+        shell: bash
+        run: |
+          set -- dist
+          if [ -f keys/release-ed25519.pub ]; then set -- "$@" --pubkey keys/release-ed25519.pub; fi
+          python tools/release.py verify "$@"
+      - name: Release notes from CHANGELOG.md
+        shell: bash
+        run: |
+          notes="${RUNNER_TEMP}/notes.md"
+          python tools/release.py notes "${TAG#v}" > "$notes"
+          {
+            echo
+            echo "---"
+            # A signature reaching this step was verified above with keys/release-ed25519.pub.
+            if [ -f dist/SHA256SUMS.sig ]; then
+              echo '- 签名：`SHA256SUMS.sig` 是 `SHA256SUMS` 的 Ed25519 签名，发布前已用仓库中的 `keys/release-ed25519.pub` 校验通过。'
+            else
+              echo '- 签名：本次发布没有签名；`SHA256SUMS` 只能证明文件完整，不能证明来源。'
+            fi
+            echo '- 校验：把全部资产下载到一个空目录，在本仓库的检出中运行 `python3 tools/release.py verify <目录>`。'
+          } >> "$notes"
+      - name: Compare with a release that already exists (re-run after a failed readback)
+        id: existing
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          # Four cases: no release -> publish; same assets -> only verify again; different or
+          # partial assets -> stop, nothing is overwritten or re-uploaded.
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            echo "state=absent" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          mkdir -p existing
+          gh release download "$TAG" -D existing || true
+          if [ -z "$(ls -A existing)" ]; then
+            echo "::error::Release $TAG exists but has no assets. Delete the empty release or add the assets by hand; this workflow does not overwrite an existing release."
+            exit 1
+          fi
+          if diff -r dist existing >/dev/null; then
+            echo "Release $TAG already holds exactly the assets built now; publishing is skipped."
+            echo "state=same" >> "$GITHUB_OUTPUT"
+          else
+            diff -rq dist existing || true
+            echo "::error::Release $TAG exists with different or partial assets. Nothing was changed; decide by hand (compare dist/ with existing/)."
+            exit 1
+          fi
+      - name: Publish the GitHub Release
+        if: steps.existing.outputs.state == 'absent'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release create "$TAG" dist/* --title "Goal Teams $TAG" \
+            --notes-file "${RUNNER_TEMP}/notes.md" --verify-tag
+      - name: Read back and verify the published assets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release download "$TAG" -D readback
+          set -- readback
+          if [ -f keys/release-ed25519.pub ]; then set -- "$@" --pubkey keys/release-ed25519.pub; fi
+          python tools/release.py verify "$@"
+          diff -r dist readback
+          echo "Published assets are byte-identical to the built ones."

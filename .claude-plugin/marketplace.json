@@ -1,0 +1,17 @@
+{
+  "name": "goal-teams",
+  "owner": {
+    "name": "vibe-coding-era",
+    "url": "https://github.com/vibe-coding-era"
+  },
+  "description": "Goal Teams：多成员软件交付工作流（Claude Code 插件；Codex 用户请使用 tools/install.py）。",
+  "plugins": [
+    {
+      "name": "goal-teams",
+      "source": "./plugins/goal-teams",
+      "description": "Goal Lead + goal_* 成员子代理：按规模路由、TDD 红绿证据、锁定范围、独立评审，gt CLI 记账与汇报。",
+      "category": "development",
+      "tags": ["agents", "tdd", "workflow"]
+    }
+  ]
+}

@@ -1,1 +1,0 @@
-# Fixture Project Memory

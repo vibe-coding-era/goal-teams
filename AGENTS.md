@@ -1,114 +1,138 @@
-# Goal Teams 仓库维护指南（V2.68）
+# Goal Teams 仓库维护指南（V2.95）
 
-本仓库是 Codex Skill 包。维护目标是 Current 规则清晰、安装可用、历史可复盘、发行事实可验证。
+本仓库发布 Goal Teams：一个 Codex Skill，同时也是 Claude Code 插件。维护目标有四条：
+- 规则少而准；
+- 确定性的记账交给工具；
+- 生成物与来源保持一致；
+- 发布结果可以回读确认。
 
-## 工作区边界
+产品层面的长期要求见 [goal-teams.md](goal-teams.md)。
 
-- 所有开发 worktree、过程版本和生成物只能位于仓库根 `develops/`；禁止在父目录创建兄弟 worktree。
-- 非发行知识、测试报告和凭证只能位于根 `docs/`。`docs/`、`develops/` 均只在本地使用，禁止 Git 跟踪、安装、打包或上传。
-- 正式发行快照位于 `release/versions/<VERSION>/`；GitHub Release 只能上传该目录经验证的公开资产。
-- 发布前必须独立运行 workspace boundary、package manifest 和 release validator；任一发现越界路径即 fail closed。
+## 本次版本边界
 
-## Current、Execution 与 Replay
+V2.95 采用 V2.9 的单一运行时、direct/tracked、CLI、安装和发行结构；仅任务图与细粒度预算保留前代约束，接入同一个 ledger。不能重新引入旧 Generation/Host 全栈。计划准入、冻结 exact-set、DAG、范围与 forbidden scope、预算和退出条件均须有实际执行消费者与负向测试。
 
-- `references/current/ACTIVE.json` 是唯一代际切换指针；进程只读取一次并验证 activation manifest digest。
-- `references/current/generations/V2.68/` 按功能模板承载 Current 规则、Prompt plan 和合同。
-- `scripts/v250/`、`schemas/v2.50/` 是通用核心；V2.68 复用 exact `scripts/v265/` 与 `schemas/v2.65/` Graph Execution contract，工程输出输入复用 exact V2.67 renderer/schema，并由 `scripts/v268/`、`schemas/v2.68/` 承载统一输出/兼容适配；route-aware checks 与当前成员配置仍是 Execution assets。V2.67 仅 `scripts/v267/__init__.py`、`scripts/v267/output_dashboard.py` 和 `schemas/v2.67/output-dashboard.schema.json` 属于共享输出依赖，其余保持 predecessor，不进入默认包。
-- `references/legacy-replay/manifest.json` 是历史可达性的唯一 allowlist。未显式提供可信 `replay_version` 时，Current route、默认安装包和 Prompt closure 均不得包含 Legacy。
-- 历史 profile/schema/fixture/engine 首轮迁移保持字节不变；删除必须在观察窗口后另行批准。
+本仓开发 worktree 和临时生成物只放仓库根 `develops/`；过程文档、测试日志与凭证只放根 `docs/`，两者不跟踪、不安装、不打包。历史保留在 Git，不删除已有本地记录。
 
-## 版本身份
+## 目录与来源
 
-- 产品版本：`V2.68`。
-- 通用核心策略：`V2.5`。
-- Legacy 机器数据 schema：`V2.3`。
-- `VERSION`、根/包装 Skill、release profile、release/current 与启动语必须同步；不得混用三种版本身份。根 `README.md` 与 `README.en.md` 仅允许人类维护，AI 不得更新。
-- `SKILL.md` frontmatter 只保留 `name` 和 `description`。
+| 路径 | 内容 | 维护方式 |
+|---|---|---|
+| `plugins/goal-teams/` | **唯一的运行时包**，只有它会被安装或发布 | — |
+| `…/skills/goal-teams/SKILL.md`、`rules/`、`templates/` | Lead 的操作手册、规则、文档模板 | 手写 |
+| `…/skills/goal-teams/scripts/gt.py` + `goalteams/` | gt CLI（Python 3.9+，只用标准库） | 手写 |
+| `…/agents/`、`…/codex/agents/`、`rules/tracked.md` 中的成员表 | 各宿主的成员文件 | `tools/gen.py` 生成 |
+| `…/hooks/hooks.json`、`…/.claude-plugin/plugin.json`、`…/evals/` | Claude Code 钩子、插件清单、评测套件 | 手写；版本号由生成器写入 |
+| `members/` | 成员的单一来源：`_protocol.md`、`_readonly.md`、`goal_*.md` | 手写 |
+| `tools/` | `gen.py`、`check.py`、`acceptance.py`、`install.py`、`release.py`、`make_examples.py` | 手写 |
+| `tests/`、`extras/okf-graph/` | 测试；`tests/acceptance.json` 是 AC01–AC36 固定验收矩阵；可选的 OKF 文档图（不随包发布） | 手写 |
+| `examples/` | 真实的 gt 输出 | `tools/make_examples.py` 生成（README 除外） |
+| `.claude-plugin/marketplace.json` | Claude Code marketplace | 手写 |
 
-## Owner 文件
+## 修改规则
 
-- 根 `SKILL.md`：薄入口、路由和加载顺序。
-- `RULES.md`：用户可见六字段 Envelope。
-- `goal-teams.md`：当前用户指定的长期要求。
-- `references/current/generations/V2.68/functions/`：需求、架构实现、测试、UI/桌面、Agent runtime、知识图谱与发行操作。
-- `references/current/generations/V2.68/contracts/`：任务状态、输出看板、测试门禁、Harness/Evidence、Review/Completion、授权/副作用与 Release manifests。
-- `references/profiles/goal-teams-self-release-v2.68.md` 与 `references/release-profiles/v2.68.json`：本仓当前发行规则。
-- `scripts/install/package-manifest.txt`：默认 Current 包 allowlist；`replay-package-manifest.txt`：可选 Replay 包。
+- **不要复制目录来做版本。** 历史在 git tag 里（`v2.68` 及更早）。不要新增 `vX.Y` 形式的目录或文件，`tools/check.py` 会拒绝。
+- **改成员**：编辑 `members/*.md`（frontmatter 可选 `effort: low|medium|high`、`model`），然后运行 `python3 tools/gen.py`。不要手改生成的 agents。
+- **改版本**：只改 `VERSION`（如 `2.8.0`），然后运行 `python3 tools/gen.py`。生成器会同步以下位置：
+  - `plugin.json`
+  - gt 版本号
+  - 身份语
+  - README 版本区块
+- **改路由**：门禁策略在 `goalteams/policy.py`（风险、领域、影响、阶段决定门禁；mode 只决定协作方式），规则文件映射在 `goalteams/routes.py`；SKILL.md 中的路径表必须与它一致，check 会比对。
+- **改验收矩阵**：`tests/acceptance.json` 的 36 项只增不删（退役项改为 not_required 并写理由）；每项声明的 passed/partial 必须指向真实测试，`python3 tools/acceptance.py --run` 用实测结算。
+- **规则 ID**：格式为 `GT-<领域>-<名称>`，全局唯一，不含版本号。新增规则时，先说明它解决了什么真实失败，最好有评测用例。
+- **预算是硬限制**：
+  - 文件字节数和每条路径的字节数见 `tools/check.py` 的 `FILE_BUDGETS` 和 `ROUTE_BYTE_BUDGETS`（direct ≤ 8 KB、tracked ≤ 14 KB）。
+  - 超出预算时，先删旧内容再加新内容。
+- **运行时代码**：Python 3.9+，只用标准库，兼容 Linux/macOS/Windows；不用 `shell=True`，不读取凭证。
+- **README**：正文由维护者维护；版本区块由 `gen.py` 生成。AI 修改 README 正文，需要维护者在当次任务中明确要求。
 
-兼容入口只能转发，不得复制规范正文或把 Legacy 带回 Current prompt plan。
+## gt 账本格式（供维护者参考）
 
-## 开发与测试
+`.goal-teams/ledger.jsonl` 每行是一条 JSON 事件，字段如下：
 
-- 所有工程执行型 LOOP 第一轮先建立 TaskList、分配任务并派发独立 `goal_release_engineer/environment_preflight`；Medium/Large 或用户指定时正式检查开发环境，优先复用 current 的兼容环境，否则创建 `develops/v<major.minor>` worktree 与逻辑分支 `develop-v<major.minor>`。宿主要求 namespace 时添加前缀，本仓为 `codex/develop-v<major.minor>`；Small 可不创建版本分支。
-- 所有行为变更先观察真实 TDD Red，再实现 Green；TestCase/test-file digest 在 Red/Green 间保持不变，source digest 必须变化。
-- Small 按实际风险运行轻量检查；Medium/Large 开发期只阻断 TDD 与受影响面增量检查。
-- 全量回归与独立 `release_security_review` 只在全部实现完成、Release intent 为真且 source 冻结后运行。
-- 不得在开发 PR 中调用旧 monolithic full/security/install path。
-- 测试事实由 `RiskDenominator -> TestCase -> TestRunReceipt -> TestReviewReceipt` 绑定；Development/Release denominator 分离。
-- 每项 active 需求必须有当前消费者；冻结后的 `TaskExactSet` 与 DAG 绑定预算、依赖、验证和退出条件，任何改变都必须提升 plan revision。
-- GitChangeReceipt 自动绑定 baseline、tracked diff 与 untracked exact-set。外部 blocker 与 audit finding 的修复准入不得静默扩大范围或形成无限循环。
+- `schema`：`goal-teams/event@2`（V2.7 候选写的 `event@1` 仍能读，不迁移）；
+- `seq`：递增序号；
+- `ts`：UTC 时间；
+- `type`：事件类型；
+- `actor`：执行者；
+- `data`：事件内容；
+- `prev`：上一行原文的 SHA-256，构成哈希链。
 
-## S0–S4
+`manifest.json` 记录事件格式、最低读取版本（`min_reader`）、所需能力和项目身份；版本不够或能力缺失时 gt 不判定也不追加。`ledger.head` 记录最后一条事件的 seq 和 SHA-256，用来发现被截断或改写的末尾；末尾与它不一致时 gt 拒绝追加。每次追加先写 `journal.json`（旧链头、目标 seq、事件摘要），再写事件并 fsync，再原子替换链头，最后删除 journal；崩溃后只按 journal 补齐或忘记那一次写入，账本在 gt 之外多出的事件会被拒绝。`.gitattributes`（`* -text`）防止换行转换破坏哈希链。
 
-- S2：每个 exact released asset set 单次构建；不执行第二构建、复现比较或 S2 安全检查。
-- S3：仅 Large Release 且 S1 passed/current；Small/Medium 与非 Release invocation 为 0。
-- S4：复用项目开始的一次授权，执行或恢复 tag/Release/资产上传/正式安装并 exact readback；不再次询问。
-- repository boundary 是独立只读门禁，不得表述成 S2 安全或可复现结果。
-- 正式 S0 前必须有 exact released SHA 的 fresh runtime transition receipt；receipt 必须绑定 root
-  `AGENTS.md`/`SKILL.md`、ACTIVE/activation、Prompt/release/route/command manifests、可信 route 与
-  `project_size`、项目起始授权 lineage、host adapter code digest、一次授权绑定的本地已安装 V2.67 状态、
-  transition 前 controller product
-  version `V2.67`、fresh loaded runtime product version `V2.68`、前后 run ID、
-  `captured_at` 和实际 Current `loaded_paths`/digests。
+`type` 有这些取值：
 
-## Git 与外部写入
+- `init`、`goal`、`goal.update`、`goal.accept`（逐项验收，assurance=self_reported）、`goal.finished`（`gt finish` 记录的达成）、`auth.grant`
+- `task.add`、`task.edit`、`task.state`、`plan.applied`（`gt plan apply`；旧的 `plan.freeze` 仍能读）
+- `run.started`（命令执行前写入，绑定目标、计划版本与任务规格摘要）、`tdd.red`（outcome red_verified / red_observed / red_invalid …）、`tdd.green`、`tdd.confirm`、`run`、`diff`、`scope.allow`、`review`（带 assurance）；回执带 `started` 指回开始事件，落账时目标已结束或任务规格已变的回执带 `late`，只保留不计入验收
+- `loop.decide`、`reflect`、`context.add`、`preflight`、`report`、`memory`、`config`
+- `operation.prepared` / `operation.dispatched` / `operation.result` / `operation.confirmed` / `operation.reconciled`：外部操作先登记意图再执行，回读确认（`gt operation`）
+- `control.set` / `control.proposal` / `control.decision`：控制面（预算、允许工具）只由操作者设置；子会话只能提案
+- `loop.lease` / `loop.lease.end` / `loop.reserve` / `loop.round` / `loop.next`：监督器租约（epoch 防重入）、预算预留与结算、每轮记录与确定性判定
+- `retire`（撤销一次错误的检查失败）、`head.reset`（确认原因后重置链头）
 
-- 项目开始授权锁定后，普通范围内 commit、SSH push、PR、merge、Actions、tag、Release、安装与恢复不重复询问。
-- GitHub Git remote 的 fetch/pull/ls-remote/push 只用 SSH，不得 HTTPS fallback。PR/Actions/Release 用已认证 API/CLI。
-- 不读取、复制或导出凭证，不关闭 GitHub/宿主平台强制保护。
+ reducer 不认识的事件类型会被记录并阻断完成判定，不再静默忽略。
 
-## 校验与发行
+哈希链和链头能发现意外损坏和粗糙的改写，但挡不住有意同时改写账本和链头的人；需要更强的保证时，把 `.goal-teams/` 提交到 git，并在受保护的分支上合并。
 
-开发增量：
+状态由 `goalteams/state.py` 中的 reducer 从事件重建。`TaskList.md`、`benchmark.md` 是投影，只由 gt 写入。修改事件结构时，旧事件必须仍能被 reducer 读出；用 `schema` 字段区分版本。
+
+## 行为变更与测试
+
+先保存真实 Red，再实现 Green；测试文件摘要保持不变，源码摘要必须变化。开发阶段运行受影响检查；实现完成并冻结候选后运行全量测试和独立审核。测试、模型评测、宿主加载、安装与远端发布分别报告，未运行不得写 passed。
+
+## 提交前
 
 ```bash
-./scripts/check.sh --phase development --project-size <small|medium|large>
+python3 tools/gen.py --check
+python3 tools/check.py
+python3 tools/acceptance.py            # 验收矩阵引用有效；--run 用实测结算
+python3 -m unittest discover -s tests -t .
+python3 -m unittest discover -s extras/okf-graph/tests -t extras/okf-graph
+python3 tools/make_examples.py --check      # gt 输出改了就重新生成 examples
+claude plugin validate --strict plugins/goal-teams   # 有 Claude Code CLI 时运行
 ```
 
-最终 Release readiness：只允许从 clean、exact released V2.68 commit/tree 进入；S1 当前测试根固定为 `tests/v250` 与 `tests/v268`，已发布 predecessor `tests/v267` 调用数必须为 0。GitHub Actions 只生成 S4 authorized operation plan，正式外部执行与 exact readback 仍由授权后的独立 S4 successor 完成。
+CI（`.github/workflows/ci.yml`）在 Linux/macOS/Windows 上跑这些检查，不需要任何密钥。例外：examples 只在 Linux 上比对；`extras/okf-graph` 不支持 Windows，在 Windows 上跳过；插件校验单独在 Linux 上跑。
+
+## 评测
+
+`plugins/goal-teams/evals/` 中的用例比较"有 Skill"和"无 Skill"两种情况下的结果，详见该目录的 README。改动 SKILL.md、规则或成员后，至少跑一次冒烟评测：
 
 ```bash
-python3 scripts/v268/runtime_host_adapter.py launch --stage released \
-  --source-commit <40-hex> --source-tree <40-hex> --project-size <small|medium|large> \
-  --route-facts-receipt <trusted-route-facts-receipt.json> \
-  --derived-route-receipt <trusted-derived-route-receipt.json> \
-  --route-receipt <trusted-route-receipt.json> \
-  --authorization-receipt <project-start-authorization-receipt.json> \
-  --predecessor-observation-receipt <actual-installed-v267-observation.json> \
-  --host-execution-id <external-host-execution-id> \
-  --adapter-identity <host-adapter-id> \
-  --adapter-code scripts/v268/runtime_host_adapter.py \
-  > <released-runtime-transition.json>
-python3 scripts/checks/check-v268.py --phase release --project-size <small|medium|large> \
-  --stage released --release-intent --implementation-scope-complete \
-  --source-commit <40-hex> --source-tree <40-hex> \
-  --expected-host-execution-id <external-host-execution-id> \
-  --released-runtime-receipt <released-runtime-transition.json> \
-  --route-facts-receipt <trusted-route-facts-receipt.json> \
-  --derived-route-receipt <trusted-derived-route-receipt.json> \
-  --route-receipt <trusted-route-receipt.json> \
-  --authorization-receipt <project-start-authorization-receipt.json>
+claude plugin eval plugins/goal-teams --scaffold --allow-tools Bash Write Edit --ablation none --runs 1
 ```
 
-旧 `./scripts/check.sh` 仅是兼容调度入口；V2.68 必须路由到 `scripts/checks/check-v268.py`。提交前验证 Skill frontmatter、subagent TOML、版本同步、Current/Replay closure、默认包和受影响测试。正式发行再运行 full regression、release security、boundary、单次 S2、适用 S3 与 S4 plan；Actions 内外部写入数保持 0，后续独立 S4 才执行发布、安装与 readback。
+评测会使用运行者自己的模型额度。
 
-## 风格与状态
+## 发布
 
-- 默认中文；英文 README 与中文 README 信息等价。命令、路径、API、配置键保留原文。
-- 根 `README.md` 与 `README.en.md` 为人类维护内容；AI 不得修改其正文、发行标记或版本说明。版本技术事实只记录在 `CHANGELOG.md`、`release/current/` 与正式发行快照中。
-- 不新增未验证的 runtime 能力，不把结构检查写成行为或宿主证明。
-- 用户可见 final 必须调用 `python -m scripts.v268.output_gateway render` 并原样发送 `body`；只输出 `任务、成员、进度、结果、Banchmark`，以及恰好二选一的 `下一轮 LOOP` 或 `下一个任务`。入口要求不等于 Host 拦截证明，`host_enforcement=unavailable`。
-- typed `specification_delivery` 的文档写入遵循 prepare → 写入 → 真实审核 → observe → render，不伪造工程 TaskList 或开发准入；有代码/测试/发行范围时仍执行工程首轮和相应门禁。
-- 执行型 `结果` 内按 V2.68 输出合同依次显示 `◆ Goal-Teams 任务执行看板`、`◆ Context / Knowledge / Tools` 与带当前/预计轮次的 P/D/C/A LOOP；Context 项目知识包含真实 `memory.md` 链接。
-- 不固定输出运行身份短指纹；身份只进入机器 receipt 和诊断 Evidence。
-- `not_run|not_required|blocked|failed|stale|invalid` 保持真实；候选、合并、Release、安装与外部验收不得混写。
+1. 更新 `VERSION` 和 `CHANGELOG.md`（标题包含版本号，如 `## V2.7.0 — <日期>`），运行 `python3 tools/gen.py`。
+2. 合并到 main，打 tag 并推送：`git tag -a v2.7.0 -m "Goal Teams V2.7"`，再 `git push origin v2.7.0`。也可以在 Actions 里手动运行 release，输入已有的 tag。
+3. `release.yml` 会依次完成：
+   1. 校验 tag 与 VERSION 一致，且 tag 指向 main 上的提交；
+   2. 跑全部检查和测试；
+   3. 运行 `tools/release.py build`，只构建一次，生成确定性的 tarball、`release.json` 和 `SHA256SUMS`；
+   4. 可选：用仓库密钥 `GOAL_TEAMS_RELEASE_SIGNING_KEY` 做 ed25519 签名；
+   5. 发布前先 verify；如果 Release 已存在（上次回读失败后重跑），比对远端资产：完全一致就跳过创建、只做回读，不一致或不完整就停止，不覆盖；
+   6. 下载已发布的产物，用 `tools/release.py verify` 回读校验，并与构建产物逐字节比对。
+4. 本地自检（工作区必须与 HEAD 一致，否则 build 会拒绝；试构建加 `--allow-dirty`，此时 commit/tree 记为 null）：
+
+   ```bash
+   python3 tools/release.py build --out dist
+   python3 tools/release.py verify dist
+   ```
+
+签名是可选的，但两项要么都配、要么都不配：
+- 私钥：`openssl genpkey -algorithm ed25519 -out key.pem`，存为仓库密钥 `GOAL_TEAMS_RELEASE_SIGNING_KEY`，不进仓库；
+- 公钥：`openssl pkey -in key.pem -pubout -out keys/release-ed25519.pub`，提交到仓库。
+
+只配一项时，发布前的 verify 会失败，不会发布。verify 只证明资产彼此一致；没有签名时不证明来源。构建只做一次，不宣称可复现；发布说明会如实写明本次是否签名。
+
+## 本仓库自己的 Git 约定
+
+以下约定只适用于本仓库，不是 Goal Teams 对用户项目的要求：
+
+- 开发分支命名为 `develop-v<major.minor>`；宿主要求命名空间时加前缀，例如 `codex/develop-v<major.minor>`。
+- 推送到 GitHub 时，本仓库维护者使用 SSH remote。

@@ -1,13 +1,15 @@
 .DS_Store
 __pycache__/
 *.pyc
-# Process bundles are archived under root docs/ and must never be Git-tracked.
-/GoalTeamsWork-*/
+# Local-only maintainer areas (never tracked, packaged or uploaded).
 /docs/
 /develops/
-/release/versions/
-/release/README.md
-/.goalteams-candidates/
-/.goalteams-state/
-/.goalteams-quarantine/
+# Release build output (tools/release.py build) and the release workflow's readback.
+/dist/
+/readback/
+/existing/
+# Goal Teams state when the skill is used on this repository itself.
+/.goal-teams/
+# claude plugin eval results.
+plugins/goal-teams/evals/results/
 /.playwright-cli/

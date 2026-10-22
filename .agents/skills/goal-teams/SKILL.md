@@ -1,8 +1,10 @@
 ---
 name: goal-teams-repo
-description: Goal Teams V2.68 输出控制与 Graph Engineering 仓库入口；从 ACTIVE generation 加载 Current 规则，Legacy 仅显式 Replay。
+description: Goal Teams 仓库内的 Codex 入口：在本仓库里使用或开发 Goal Teams 时，加载 plugins/goal-teams/skills/goal-teams/SKILL.md。
 ---
 
-# Goal Teams 仓库入口
+# Goal Teams（仓库入口）
 
-完整读取仓库根 `../../../SKILL.md`，并以仓库根解析其中路径。默认只加载 `references/current/ACTIVE.json` 指向的 Current generation；只有用户明确要求历史复盘且提供 `replay_version` 时，才进入 `references/legacy-replay/manifest.json` 的隔离 Replay。
+完整读取 `../../../plugins/goal-teams/skills/goal-teams/SKILL.md`，并以该文件所在目录作为 `<skill-dir>` 解析其中的 `rules/`、`templates/` 与 `scripts/gt.py`。
+
+维护本仓库（修改规则、成员、工具或发布）时，先读仓库根目录的 `AGENTS.md`。

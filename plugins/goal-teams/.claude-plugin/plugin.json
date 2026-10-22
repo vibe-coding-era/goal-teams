@@ -1,0 +1,21 @@
+{
+  "name": "goal-teams",
+  "displayName": "Goal Teams",
+  "version": "2.95.0",
+  "description": "Goal Lead 协调 goal_* 成员子代理完成软件交付：按规模路由、TDD 红绿证据、锁定范围、独立评审与诚实状态，gt CLI 记账并生成看板与汇报。",
+  "author": {
+    "name": "vibe-coding-era",
+    "url": "https://github.com/vibe-coding-era"
+  },
+  "homepage": "https://github.com/vibe-coding-era/goal-teams",
+  "repository": "https://github.com/vibe-coding-era/goal-teams",
+  "license": "MIT",
+  "keywords": [
+    "agents",
+    "multi-agent",
+    "tdd",
+    "workflow",
+    "delivery",
+    "codex"
+  ]
+}
