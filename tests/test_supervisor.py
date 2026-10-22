@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import shlex
 import json
 import os
 import shutil
@@ -21,7 +22,7 @@ from goalteams.supervisor import expect_lease  # noqa: E402
 from goalteams.util import GTError  # noqa: E402
 
 PY = sys.executable
-CHECK = " ".join(UNITTEST)
+CHECK = shlex.join(UNITTEST)
 
 
 def script(folder: Path, name: str, body: str) -> str:

@@ -19,7 +19,7 @@ jobs:
   test:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -27,16 +27,73 @@ jobs:
           - name: test (ubuntu-latest, Python 3.9)
             os: ubuntu-latest
             python: "3.9"
+            shard: 0
+            shard_count: 1
           - name: test (ubuntu-latest, Python 3.13)
             os: ubuntu-latest
             python: "3.13"
-          # Keep the required context attached to the real macOS test job.
-          - name: check-macos
+            shard: 0
+            shard_count: 1
+          - name: test (macos-latest, Python 3.13, shard 1/4)
             os: macos-latest
             python: "3.13"
-          - name: test (windows-latest, Python 3.13)
+            shard: 0
+            shard_count: 4
+          - name: test (macos-latest, Python 3.13, shard 2/4)
+            os: macos-latest
+            python: "3.13"
+            shard: 1
+            shard_count: 4
+          - name: test (macos-latest, Python 3.13, shard 3/4)
+            os: macos-latest
+            python: "3.13"
+            shard: 2
+            shard_count: 4
+          - name: test (macos-latest, Python 3.13, shard 4/4)
+            os: macos-latest
+            python: "3.13"
+            shard: 3
+            shard_count: 4
+          - name: test (windows-latest, Python 3.13, shard 1/8)
             os: windows-latest
             python: "3.13"
+            shard: 0
+            shard_count: 8
+          - name: test (windows-latest, Python 3.13, shard 2/8)
+            os: windows-latest
+            python: "3.13"
+            shard: 1
+            shard_count: 8
+          - name: test (windows-latest, Python 3.13, shard 3/8)
+            os: windows-latest
+            python: "3.13"
+            shard: 2
+            shard_count: 8
+          - name: test (windows-latest, Python 3.13, shard 4/8)
+            os: windows-latest
+            python: "3.13"
+            shard: 3
+            shard_count: 8
+          - name: test (windows-latest, Python 3.13, shard 5/8)
+            os: windows-latest
+            python: "3.13"
+            shard: 4
+            shard_count: 8
+          - name: test (windows-latest, Python 3.13, shard 6/8)
+            os: windows-latest
+            python: "3.13"
+            shard: 5
+            shard_count: 8
+          - name: test (windows-latest, Python 3.13, shard 7/8)
+            os: windows-latest
+            python: "3.13"
+            shard: 6
+            shard_count: 8
+          - name: test (windows-latest, Python 3.13, shard 8/8)
+            os: windows-latest
+            python: "3.13"
+            shard: 7
+            shard_count: 8
     steps:
       - name: Check out
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -53,22 +110,69 @@ jobs:
         shell: bash
         run: python tools/gen.py --check
       - name: Unit tests
+        if: matrix.shard_count == 1
         shell: bash
         run: python -m unittest discover -s tests -t . -v
+      - name: Unit test shard
+        if: matrix.shard_count > 1
+        shell: bash
+        env:
+          TEST_SHARD_INDEX: ${{ matrix.shard }}
+          TEST_SHARD_COUNT: ${{ matrix.shard_count }}
+        run: |
+          python - <<'PY'
+          import os
+          import unittest
+
+          shard = int(os.environ["TEST_SHARD_INDEX"])
+          count = int(os.environ["TEST_SHARD_COUNT"])
+          if count < 1 or not 0 <= shard < count:
+              raise SystemExit("Invalid test shard index/count")
+
+          def flatten(suite):
+              for item in suite:
+                  if isinstance(item, unittest.TestSuite):
+                      yield from flatten(item)
+                  else:
+                      yield item
+
+          cases = list(flatten(unittest.defaultTestLoader.discover('tests', top_level_dir='.')))
+          selected = [case for index, case in enumerate(cases) if index % count == shard]
+          denominators = [sum(index % count == slot for index in range(len(cases))) for slot in range(count)]
+          print("Discovered %d test occurrences; shard denominators: %s" % (len(cases), denominators), flush=True)
+          print("Running shard %d/%d: %d/%d test occurrences" % (shard + 1, count, len(selected), len(cases)), flush=True)
+          result = unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite(selected))
+          raise SystemExit(0 if result.wasSuccessful() else 1)
+          PY
       - name: Examples match real gt output
         if: runner.os == 'Linux'
         shell: bash
         run: python tools/make_examples.py --check
       - name: okf-graph tests
         # extras/okf-graph does not support Windows (it refuses to run there).
-        if: runner.os != 'Windows'
+        if: runner.os == 'Linux' || (runner.os == 'macOS' && matrix.shard == 0)
         shell: bash
         run: python -m unittest discover -s extras/okf-graph/tests -t extras/okf-graph -v
+
+  check-macos:
+    name: check-macos
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: test
+    if: ${{ always() }}
+    steps:
+      - name: Require every test matrix job to pass
+        shell: bash
+        env:
+          TEST_RESULT: ${{ needs.test.result }}
+        run: |
+          echo "Full test matrix result: $TEST_RESULT"
+          test "$TEST_RESULT" = "success"
 
   release-asset-gate:
     name: release-asset-gate
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     env:
       PYTHONDONTWRITEBYTECODE: "1"
       TMPDIR: ${{ github.workspace }}/develops/ci-release-tmp
@@ -133,7 +237,7 @@ jobs:
   plugin-validate:
     name: plugin-validate
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
     steps:
       - name: Check out
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1

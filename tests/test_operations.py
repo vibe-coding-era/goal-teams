@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import shlex
 import json
 import sys
 import unittest
@@ -45,7 +46,7 @@ class OperationTests(unittest.TestCase):
         self.assertIn("未授权", refused.stderr)
         repo.ok("auth", "grant", "--actions", "tag", "--scope", "v1.0.0 only")
         out = repo.ok("--json", "operation", "prepare", "--action", "tag", "--target", "github.com/x/y tag v1.0.0",
-                      "--readback", " ".join(OK), "--required")
+                      "--readback", shlex.join(OK), "--required")
         op = json.loads(out)
         self.assertEqual((op["state"] if "state" in op else "prepared"), "prepared")
         self.assertTrue(op["grant_seq"])
@@ -55,7 +56,7 @@ class OperationTests(unittest.TestCase):
         repo = self.repo
         repo.ok("auth", "grant", "--actions", "push", "--scope", "feature branch")
         op = json.loads(repo.ok("--json", "operation", "prepare", "--action", "push", "--target", "origin goal/x",
-                                "--readback", " ".join(OK), "--required"))["id"]
+                                "--readback", shlex.join(OK), "--required"))["id"]
         check = json.loads(repo.gt("--json", "check").stdout)
         self.assertIn("已登记未执行", "\n".join(check["reasons"]))
         self.assertEqual(check["gates"]["operations"], "failed")
@@ -73,7 +74,7 @@ class OperationTests(unittest.TestCase):
         repo = self.repo
         repo.ok("auth", "grant", "--actions", "release", "--scope", "v1.0.0")
         op = json.loads(repo.ok("--json", "operation", "prepare", "--action", "release", "--target", "Release v1.0.0",
-                                "--readback", " ".join(ABSENT)))["id"]
+                                "--readback", shlex.join(ABSENT)))["id"]
         result = repo.gt("operation", "dispatch", op, "--", *FAIL2)
         self.assertEqual(result.returncode, 1)
         self.assertIn("unknown", result.stdout)
@@ -111,7 +112,7 @@ class OperationTests(unittest.TestCase):
         repo = self.repo
         repo.ok("auth", "grant", "--actions", "tag", "--scope", "v1.0.0")
         op = json.loads(repo.ok("--json", "operation", "prepare", "--action", "tag", "--target", "v1.0.0",
-                                "--readback", " ".join(OK), "--required"))["id"]
+                                "--readback", shlex.join(OK), "--required"))["id"]
         Project(repo.path).append("operation.dispatched", {"id": op, "cmd": ["git", "tag", "v1.0.0"], "pid": 1}, "lead")
         self.assertEqual(self.ops()[0]["state"], "dispatched")
         check = json.loads(repo.gt("--json", "check").stdout)

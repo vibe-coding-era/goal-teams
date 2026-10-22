@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import shlex
 import io
 import json
 import os
@@ -89,7 +90,7 @@ def medium_goal(repo: Repo, tdd: bool = True, check: bool = True) -> None:
     repo.ok("init")
     args = ["goal", "修复 add", "--done", "add(2,3)==5", "--size", "medium", "--rounds", "2"]
     if check:
-        args += ["--check", " ".join(UNITTEST)]
+        args += ["--check", shlex.join(UNITTEST)]
     if not tdd:  # a goal without TDD tasks says so honestly: not a behaviour change
         args += ["--impact", "config_change"]
     repo.ok(*args)
