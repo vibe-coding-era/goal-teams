@@ -269,13 +269,34 @@ class FileLock:
             time.sleep(0.05)
 
     def __exit__(self, *exc: Any) -> None:
-        if self._fd is not None:
-            os.close(self._fd)
-            self._fd = None
+        if self._fd is None:
+            return
+        fd, self._fd = self._fd, None
         try:
-            os.remove(self.path)
-        except OSError:
-            pass
+            owned = os.fstat(fd)
+        finally:
+            os.close(fd)
+        # Windows readers can briefly prevent deletion. This is a bounded
+        # release budget, independent of the timeout for acquiring a lock.
+        deadline = time.monotonic() + 1.0
+        while True:
+            try:
+                current = self.path.stat()
+                if (current.st_dev, current.st_ino) != (owned.st_dev, owned.st_ino):
+                    raise GTError("释放账本锁时锁文件已被替换：%s" % self.path)
+                os.remove(self.path)
+                return
+            except FileNotFoundError:
+                return
+            except OSError as error:
+                remaining = deadline - time.monotonic()
+                if getattr(error, "winerror", None) in (32, 33) and remaining > 0:
+                    time.sleep(min(0.05, remaining))
+                    continue
+                raise GTError(
+                    "无法释放账本锁：%s（%s）" % (self.path, error),
+                    hint="本次写入可能已完成；先核对账本，确认没有其他 gt 在运行后再处理残留锁。",
+                ) from error
 
 
 def _hostname() -> str:

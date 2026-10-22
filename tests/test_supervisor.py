@@ -75,9 +75,10 @@ class SupervisorTests(unittest.TestCase):
         self.repo.close()
         shutil.rmtree(self.scripts, ignore_errors=True)
 
-    def run_loop(self, body: str, *args: str):
+    def run_loop(self, body: str, *args: str, env=None):
         host = script(self.scripts, "host.py", body)
-        return self.repo.gt("--json", "loop", "run", "--host", "fake", *args, env={"GT_FAKE_HOST": host})
+        return self.repo.gt("--json", "loop", "run", "--host", "fake", *args,
+                            env={"GT_FAKE_HOST": host, **(env or {})})
 
     def events(self, kind: str):
         return [e["data"] for e in self.repo.events() if e["type"] == kind]
@@ -128,7 +129,9 @@ class SupervisorTests(unittest.TestCase):
         self.assertEqual(self.events("loop.round"), [], "the crashed reservation already used the one round")
 
     def test_overrunning_round_is_terminated_and_the_deadline_does_not_move(self):  # AC19, AC20
-        result = self.run_loop(SLEEPER, "--rounds", "3", "--minutes", "0.04", "--round-minutes", "0.04")
+        # This case measures real deadlines across processes; do not freeze their UTC clock.
+        result = self.run_loop(SLEEPER, "--rounds", "3", "--minutes", "0.04", "--round-minutes", "0.04",
+                               env={"GT_NOW": ""})
         payload = json.loads(result.stdout)
         self.assertEqual(payload["outcome"], "timed_out", result.stdout)
         rounds = self.events("loop.round")
@@ -137,7 +140,7 @@ class SupervisorTests(unittest.TestCase):
         self.assertEqual(rounds[0]["exit_code"], 124)
         self.assertLess(rounds[0]["duration_ms"], 10000, "the sleeper did not get its 20 s")
         lease = self.events("loop.lease")[0]
-        again = self.run_loop(NOOP, "--rounds", "3")
+        again = self.run_loop(NOOP, "--rounds", "3", env={"GT_NOW": ""})
         self.assertEqual(json.loads(again.stdout)["outcome"], "timed_out", "a later run inherits the absolute deadline")
         self.assertEqual(self.events("loop.lease")[-1]["deadline_at"], lease["deadline_at"])
 

@@ -104,11 +104,18 @@ class Ctx:
             print("gt: 未能更新 TaskList.md / benchmark.md：%s" % exc, file=sys.stderr)
 
     def regenerate(self) -> None:
-        state = self.state(refresh=True)
-        config = self.config
+        # A fresh reduced state and one filesystem snapshot drive both projections.
+        # append still invokes this under its ledger lock; never cache Live across calls.
+        state = reduce(self.project.events())
+        snapshot = checks.collect(self.project, state)
+        self._state = state
+        config = snapshot.config
+        diff = snapshot.diff
+        oos = len(diff["out_of_scope"]) if diff.get("available") and diff.get("scoped") else None
         _atomic_write(self.project.state / "TaskList.md", render.tasklist_md(state, config))
         _atomic_write(self.project.state / "benchmark.md", render.benchmark_md(
-            state, config, axes=checks.receipt_axes(self.project, state) if state.goal else None, oos=self.oos()))
+            state, config, axes=checks.receipt_axes(self.project, state, snapshot=snapshot) if state.goal else None,
+            oos=oos))
 
     def oos(self) -> Optional[int]:
         """Live count of out-of-scope changed files (None when unknown)."""
