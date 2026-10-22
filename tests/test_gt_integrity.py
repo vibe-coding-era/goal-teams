@@ -186,16 +186,21 @@ class RunReceiptTests(unittest.TestCase):
     def test_concurrent_runs_all_succeed(self):
         repo = self.repo
         results = []
+        failures = []
 
         def one():
-            results.append(repo.gt("run", "T1", "--kind", "lint", "--", sys.executable, "-c", "pass").returncode)
+            result = repo.gt("run", "T1", "--kind", "lint", "--", sys.executable, "-c", "pass")
+            results.append(result.returncode)
+            if result.returncode:
+                failures.append("exit %s\nstdout:\n%s\nstderr:\n%s" %
+                                (result.returncode, result.stdout, result.stderr))
 
         threads = [threading.Thread(target=one) for _ in range(12)]
         for thread in threads:
             thread.start()
         for thread in threads:
             thread.join()
-        self.assertEqual(results, [0] * 12)
+        self.assertEqual(results, [0] * 12, "\n\n".join(failures))
         self.assertEqual(repo.gt("verify").returncode, 0)
 
 
