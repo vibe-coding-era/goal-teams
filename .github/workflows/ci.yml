@@ -1,4 +1,4 @@
-name: windows-concurrent-run-diagnostic
+name: windows-state-hash-mechanism-diagnostic
 
 on:
   push:
@@ -12,22 +12,22 @@ env:
 
 jobs:
   windows-single-test:
-    name: Windows Python 3.13 concurrent run diagnostic
+    name: Windows Python 3.13 state hash replace mechanism
     runs-on: windows-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - name: Check out
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           persist-credentials: false
       - name: Set up Python 3.13
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: "3.13"
       - name: Prepare isolated fixtures
         shell: pwsh
         run: New-Item -ItemType Directory -Force -Path "${{ github.workspace }}/develops/windows-probe-tmp"
-      - name: Diagnose exact concurrent run case without changing assertions
+      - name: Controlled real state reader against real gt append
         env:
           PYTHONDONTWRITEBYTECODE: "1"
           TMPDIR: ${{ github.workspace }}/develops/windows-probe-tmp
@@ -37,249 +37,109 @@ jobs:
         shell: bash
         run: |
           python - <<'PY'
+          import hashlib
           import json
           import os
           import subprocess
           import sys
-          import threading
           import time
           import unittest
-          from unittest import mock
           from pathlib import Path
-          from tests import test_gt
-          from tests.test_gt import Repo
-          from tests.test_gt_integrity import RunReceiptTests
-          from goalteams.state import reduce
-          from goalteams.graph_budget import status as budget_status
-          from goalteams.util import FileLock
+          from tests.test_gt import Repo, SCRIPTS, medium_goal
 
-          trace_dir = Path.cwd() / 'develops/windows-lock-traces'
+          trace_dir = Path.cwd() / 'develops/windows-state-hash-traces'
           trace_dir.mkdir(parents=True, exist_ok=True)
-          bootstrap = trace_dir / 'gt_lock_diagnostic.py'
-          bootstrap.write_text('''import json
-          import os
+          reader_script = trace_dir / 'state_hash_reader.py'
+          reader_script.write_text('''import json
           import sys
           import time
-          import traceback
           from pathlib import Path
 
-          root = Path(__file__).resolve().parents[2]
-          sys.path.insert(0, str(root / 'plugins/goal-teams/skills/goal-teams/scripts'))
-          from goalteams.util import FileLock, pid_alive
-          from goalteams.cli import main
+          scripts, project, ready, release = map(Path, sys.argv[1:])
+          sys.path.insert(0, str(scripts))
+          from goalteams import gitinfo
 
-          trace_path = Path(__file__).parent / ('pid-%d.jsonl' % os.getpid())
-          def log(event, **values):
-              row = dict(event=event, pid=os.getpid(), monotonic=time.monotonic(),
-                         diagnostic_round=os.environ.get('GT_DIAGNOSTIC_ROUND'), **values)
-              with trace_path.open('a', encoding='utf-8') as stream:
-                  stream.write(json.dumps(row, ensure_ascii=False) + '\\n')
-
-          def holder(path):
+          original = gitinfo._hash_paths
+          def synchronized_hash(work_tree, paths):
+              # The production content_ids chooses these exact paths. Extend only
+              # a real state candidate's read lifetime to control the schedule.
+              observed = dict(paths=list(paths), ignored_paths=[p for p in paths if gitinfo.ignored(p)],
+                              held_path=None, held_read_bytes=0, hold_budget_seconds=15)
+              reader = None
               try:
-                  text = path.read_text(encoding='ascii', errors='replace')
-                  parts = text.split()
-                  owner = int(parts[0]) if parts and parts[0].isdigit() else None
-                  return dict(content=text, owner_pid=owner, owner_alive=pid_alive(owner) if owner else None)
-              except OSError as exc:
-                  return dict(read_error=repr(exc))
-
-          enter, leave, remove = FileLock.__enter__, FileLock.__exit__, os.remove
-          def traced_enter(self):
-              start = time.monotonic()
-              log('enter_wait', path=str(self.path), timeout=self.timeout,
-                  call_stack=traceback.format_stack(limit=8))
-              try:
-                  result = enter(self)
-              except BaseException as exc:
-                  log('enter_error', path=str(self.path), elapsed=time.monotonic()-start,
-                      error=repr(exc), holder=holder(self.path))
-                  raise
-              self._diagnostic_acquired_at = time.monotonic()
-              log('acquired', path=str(self.path), elapsed=self._diagnostic_acquired_at-start)
-              return result
-
-          def traced_leave(self, *args):
-              acquired = getattr(self, '_diagnostic_acquired_at', None)
-              log('release_begin', path=str(self.path),
-                  critical_duration=time.monotonic()-acquired if acquired is not None else None)
-              try:
-                  return leave(self, *args)
+                  if '.goal-teams/ledger.head' in paths:
+                      reader = (work_tree / '.goal-teams/ledger.head').open('rb')
+                      observed['held_path'] = str(work_tree / '.goal-teams/ledger.head')
+                      observed['held_read_bytes'] = len(reader.read())
+                  result = original(work_tree, paths)
+                  ready.write_text(json.dumps(observed), encoding='utf-8')
+                  until = time.monotonic() + 15
+                  while reader is not None and not release.exists() and time.monotonic() < until:
+                      time.sleep(0.01)
+                  return result
               finally:
-                  log('release_end', path=str(self.path), exists=self.path.exists())
-
-          def traced_remove(path, *args, **kwargs):
-              target = str(path).replace('\\\\', '/')
-              if not target.endswith('/.goal-teams/.lock'):
-                  return remove(path, *args, **kwargs)
-              try:
-                  result = remove(path, *args, **kwargs)
-              except OSError as exc:
-                  log('remove_error', path=str(path), error=repr(exc),
-                      errno=exc.errno, winerror=getattr(exc, 'winerror', None))
-                  raise
-              log('removed', path=str(path))
-              return result
-
-          FileLock.__enter__, FileLock.__exit__, os.remove = traced_enter, traced_leave, traced_remove
-          log('process_start', argv=sys.argv)
-          try:
-              code = main()
-          finally:
-              log('process_end')
-          raise SystemExit(code)
+                  if reader is not None:
+                      reader.close()
+                  observed['reader_closed'] = reader is None or reader.closed
+                  observed['released_by_signal'] = release.exists()
+                  print(json.dumps(observed), flush=True)
+          gitinfo._hash_paths = synchronized_hash
+          ids = gitinfo.content_ids(project)
+          print(json.dumps(dict(content_ids_count=len(ids), ignored_result_paths=[p for p in ids if gitinfo.ignored(p)])), flush=True)
           ''', encoding='utf-8')
-          test_gt.GT = bootstrap
-          original = Repo.gt
-          observations = []
-          current_round = 0
-          round_results = []
-          lock = threading.Lock()
 
-          def traced_gt(self, *args, **kwargs):
-              started = time.monotonic()
-              result = original(self, *args, **kwargs)
-              if args[:2] == ('run', 'T1'):
-                  row = dict(diagnostic_round=current_round, project=str(self.path),
-                             args=list(args), elapsed=time.monotonic() - started,
-                             exit_code=result.returncode, stdout=result.stdout, stderr=result.stderr)
-                  with lock:
-                      observations.append(row)
-              return result
-
-          Repo.gt = traced_gt
-          original_case = RunReceiptTests.test_concurrent_runs_all_succeed
-          def audited_case(self):
-              # Execute the unchanged test and every original assertion first.
-              try:
-                  original_case(self)
-              finally:
-                  state_dir = self.repo.path / '.goal-teams'
-                  evidence = dict(diagnostic_round=current_round, project=str(self.repo.path),
-                                  ledger=(state_dir / 'ledger.jsonl').read_text(encoding='utf-8'),
-                                  lock_exists=(state_dir / '.lock').exists(), logs={})
-                  if evidence['lock_exists']:
-                      evidence['lock_content'] = (state_dir / '.lock').read_text(encoding='utf-8', errors='replace')
-                  for log_path in sorted((state_dir / 'evidence').glob('*')):
-                      if log_path.is_file():
-                          evidence['logs'][log_path.name] = log_path.read_text(encoding='utf-8', errors='replace')
-                  (trace_dir / ('round-%d-project.json' % current_round)).write_text(
-                      json.dumps(evidence, ensure_ascii=False, indent=2), encoding='utf-8')
-              events = self.repo.events()
-              starts = [event for event in events if event['type'] == 'run.started']
-              receipts = [event['data'] for event in events if event['type'] == 'run']
-              state = reduce(events)
-              budget = budget_status(state)
-              self.assertEqual(len(starts), 12)
-              self.assertEqual(len(receipts), 12)
-              self.assertEqual(len({receipt['id'] for receipt in receipts}), 12)
-              self.assertEqual(len({receipt['started'] for receipt in receipts}), 12)
-              self.assertEqual({event['seq'] for event in starts},
-                               {receipt['started'] for receipt in receipts})
-              start_by_seq = {event['seq']: event['data'] for event in starts}
-              for receipt in receipts:
-                  self.assertEqual(receipt['exit_code'], 0)
-                  self.assertFalse(receipt.get('late'))
-                  self.assertEqual(receipt['graph_charge_sha256'],
-                                   start_by_seq[receipt['started']]['graph_charge']['sha256'])
-                  self.assertTrue((self.repo.path / receipt['log']).is_file())
-              self.assertEqual(len({receipt['log'] for receipt in receipts}), 12)
-              self.assertEqual(len(state.receipts), 12)
-              self.assertEqual(len(state.graph_charges), 12)
-              self.assertEqual(len({charge['operation'] for charge in state.graph_charges}), 12)
-              self.assertEqual(budget['tasks']['T1']['consumed']['work_units'], 12)
-              self.assertEqual(sum(budget['tasks']['T1']['consumed'][axis]
-                                   for axis in ('attempts', 'revalidations')), 12)
-              self.assertEqual(budget['errors'], [])
-              self.assertEqual(state.graph_errors, [])
-              self.assertEqual(dict(state.running), {})
-              self.assertEqual(state.foreign_receipts, [])
-              self.assertFalse((self.repo.path / '.goal-teams/.lock').exists())
-              print('CONCURRENT_INTEGRITY_RESULT ' + json.dumps(dict(
-                  diagnostic_round=current_round, passed=True, starts=len(starts), receipts=len(receipts),
-                  unique_receipts=len(state.receipts), charges=len(state.graph_charges),
-                  budget=budget, running=dict(state.running),
-                  lock_exists=False, receipt_logs_present=12)), flush=True)
-          RunReceiptTests.test_concurrent_runs_all_succeed = audited_case
-          class ControlledSharingReleaseTests(unittest.TestCase):
+          class StateHashReplaceMechanism(unittest.TestCase):
               def runTest(self):
-                  self.assertEqual(os.name, 'nt', 'this is a real Windows sharing scenario')
-                  path = trace_dir / 'controlled-sharing.lock'
-                  gate = FileLock(path)
-                  gate.__enter__()
-                  reader = path.open('rb')
-                  attempted, closed = threading.Event(), threading.Event()
-                  violations = []
-                  remove = os.remove
-                  def observed_remove(target, *args, **kwargs):
-                      try:
-                          return remove(target, *args, **kwargs)
-                      except OSError as exc:
-                          if Path(target) == path:
-                              violations.append(dict(error=repr(exc), errno=exc.errno,
-                                                     winerror=getattr(exc, 'winerror', None),
-                                                     monotonic=time.monotonic()))
-                              attempted.set()
-                          raise
-                  def close_reader():
-                      attempted.wait(timeout=3)
-                      time.sleep(0.1)
-                      reader.close()
-                      closed.set()
-                  closer = threading.Thread(target=close_reader)
-                  closer.start()
-                  started = time.monotonic()
+                  self.assertEqual(os.name, 'nt')
+                  repo = Repo()
+                  self.addCleanup(repo.close)
+                  medium_goal(repo)
+                  repo.ok('plan', 'apply')
+                  ready = trace_dir / 'reader-ready.json'
+                  release = trace_dir / 'reader-release'
+                  reader = subprocess.Popen([sys.executable, str(reader_script), str(SCRIPTS),
+                                             str(repo.path), str(ready), str(release)],
+                                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                            text=True, encoding='utf-8')
+                  deadline = time.monotonic() + 10
                   try:
-                      with mock.patch('goalteams.util.os.remove', side_effect=observed_remove):
-                          gate.__exit__(None, None, None)
-                      elapsed = time.monotonic() - started
-                      closer.join(timeout=5)
-                      self.assertTrue(violations, 'must observe an actual Windows sharing violation')
-                      self.assertTrue(all(row['winerror'] == 32 for row in violations))
-                      self.assertTrue(closed.is_set())
-                      self.assertTrue(reader.closed)
-                      self.assertFalse(path.exists())
-                      with FileLock(path):
-                          self.assertTrue(path.exists())
-                      self.assertFalse(path.exists())
-                      print('CONTROLLED_WINDOWS_SHARING_RESULT ' + json.dumps(dict(
-                          passed=True, real_violations=violations, release_seconds=elapsed,
-                          reader_closed=reader.closed, lock_exists=False, reacquire_passed=True)), flush=True)
+                      while not ready.exists() and reader.poll() is None and time.monotonic() < deadline:
+                          time.sleep(0.01)
+                      self.assertTrue(ready.exists(), 'real content_ids must reach its hash boundary')
+                      observation = json.loads(ready.read_text(encoding='utf-8'))
+                      result = repo.gt('run', 'T1', '--kind', 'lint', '--', sys.executable, '-c', 'pass')
                   finally:
-                      attempted.set()
-                      closer.join(timeout=5)
-                      reader.close()
-                      if path.exists():
-                          path.unlink()
-          all_successful = True
-          for current_round in range(1, 4):
-              os.environ['GT_DIAGNOSTIC_ROUND'] = str(current_round)
-              print('BOUNDED_DIAGNOSTIC_ROUND %d/3' % current_round, flush=True)
-              suite = unittest.defaultTestLoader.loadTestsFromName(
-                  'tests.test_gt_integrity.RunReceiptTests.test_concurrent_runs_all_succeed')
-              result = unittest.TextTestRunner(verbosity=2, stream=sys.stdout).run(suite)
-              all_successful = all_successful and result.wasSuccessful()
-              round_results.append(dict(diagnostic_round=current_round, tests_run=result.testsRun,
-                                        success=result.wasSuccessful(), failures=len(result.failures),
-                                        errors=len(result.errors)))
-          os.environ.pop('GT_DIAGNOSTIC_ROUND', None)
-          sharing_result = unittest.TextTestRunner(verbosity=2, stream=sys.stdout).run(
-              unittest.TestSuite([ControlledSharingReleaseTests()]))
-          all_successful = all_successful and sharing_result.wasSuccessful()
-          print('CONCURRENT_CHILD_DIAGNOSTICS_BEGIN', flush=True)
-          print(json.dumps(dict(source_base='05560126b2c97d850d8a368a0d672ef2cbdda833',
-                                diagnostic_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode().strip(),
-                                max_rounds=3, round_results=round_results,
-                                child_count=len(observations), observations=observations),
-                           ensure_ascii=False, indent=2), flush=True)
-          print('CONCURRENT_CHILD_DIAGNOSTICS_END', flush=True)
-          print('PER_ROUND_PROJECT_EVIDENCE_BEGIN', flush=True)
-          for path in sorted(trace_dir.glob('round-*-project.json')):
-              print(path.read_text(encoding='utf-8'), flush=True)
-          print('PER_ROUND_PROJECT_EVIDENCE_END', flush=True)
-          print('FILELOCK_TRACE_BEGIN', flush=True)
-          for path in sorted(trace_dir.glob('pid-*.jsonl')):
-              print(path.read_text(encoding='utf-8'), end='', flush=True)
-          print('FILELOCK_TRACE_END', flush=True)
-          raise SystemExit(0 if all_successful else 1)
+                      release.write_text('release real reader', encoding='utf-8')
+                      try:
+                          reader_stdout, reader_stderr = reader.communicate(timeout=20)
+                      except subprocess.TimeoutExpired:
+                          reader.kill()
+                          reader_stdout, reader_stderr = reader.communicate()
+                  state = repo.path / '.goal-teams'
+                  files = {}
+                  for name in ('ledger.jsonl', 'ledger.head', 'journal.json', '.lock'):
+                      target = state / name
+                      files[name] = target.read_text(encoding='utf-8', errors='replace') if target.exists() else None
+                  evidence = dict(scenario='controlled_real_handle_mechanism_not_natural_CI_reproduction',
+                                  production_base='05560126b2c97d850d8a368a0d672ef2cbdda833',
+                                  diagnostic_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode().strip(),
+                                  gitinfo_sha256=hashlib.sha256((SCRIPTS/'goalteams/gitinfo.py').read_bytes()).hexdigest(),
+                                  observation=observation, child_exit=result.returncode,
+                                  child_stdout=result.stdout, child_stderr=result.stderr,
+                                  reader_exit=reader.returncode, reader_stdout=reader_stdout,
+                                  reader_stderr=reader_stderr, state_files=files,
+                                  asserted_contract='real run succeeds and source hashing never opens ignored state')
+                  (trace_dir/'mechanism-result.json').write_text(json.dumps(evidence, ensure_ascii=False, indent=2), encoding='utf-8')
+                  print('CONTROLLED_STATE_HASH_REPLACE_BEGIN', flush=True)
+                  print(json.dumps(evidence, ensure_ascii=False, indent=2), flush=True)
+                  print('CONTROLLED_STATE_HASH_REPLACE_END', flush=True)
+                  self.assertEqual(reader.returncode, 0, reader_stderr)
+                  self.assertEqual(result.returncode, 0, result.stderr)
+                  self.assertEqual(observation['ignored_paths'], [])
+                  self.assertIsNone(observation['held_path'])
+                  self.assertEqual(repo.gt('verify').returncode, 0)
+
+          result = unittest.TextTestRunner(verbosity=2, stream=sys.stdout).run(
+              unittest.TestSuite([StateHashReplaceMechanism()]))
+          raise SystemExit(0 if result.wasSuccessful() else 1)
           PY
